@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -147,13 +148,7 @@ internal class RenameService(
         var updatedPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !filePath.StartsWith("/")
                     ? '/' + filePath
                     : filePath;
-        var oldUri = new UriBuilder
-        {
-            Path = updatedPath,
-            Host = string.Empty,
-            Scheme = Uri.UriSchemeFile,
-        }.Uri;
-        return oldUri;
+        return VsLspFactory.CreateFilePathUri(updatedPath);
     }
 
     private static string MakeNewPath(string originalPath, string newName)

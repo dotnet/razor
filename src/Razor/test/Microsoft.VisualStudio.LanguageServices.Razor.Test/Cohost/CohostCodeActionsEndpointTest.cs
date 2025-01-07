@@ -31,9 +31,9 @@ using WorkspacesSR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
+public class CohostCodeActionsEndpointTest(FuseTestContext context, ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper), IClassFixture<FuseTestContext>
 {
-    [Fact]
+    [FuseFact]
     public async Task GenerateConstructor()
     {
         var input = """
@@ -68,7 +68,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task UseExpressionBodiedMember()
     {
         var input = """
@@ -101,7 +101,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.UseExpressionBody);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task IntroduceLocal()
     {
         var input = """
@@ -148,7 +148,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.IntroduceVariable);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task IntroduceLocal_All()
     {
         var input = """
@@ -195,7 +195,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.IntroduceVariable, childActionIndex: 1);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task ConvertConcatenationToInterpolatedString_CSharpStatement()
     {
         var input = """
@@ -213,7 +213,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task ConvertConcatenationToInterpolatedString_ExplicitExpression()
     {
         var input = """
@@ -227,7 +227,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task ConvertConcatenationToInterpolatedString_CodeBlock()
     {
         var input = """
@@ -247,7 +247,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task ConvertBetweenRegularAndVerbatimInterpolatedString_CodeBlock()
     {
         var input = """
@@ -267,7 +267,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimInterpolatedString);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task ConvertBetweenRegularAndVerbatimInterpolatedString_CodeBlock2()
     {
         var input = """
@@ -287,7 +287,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimInterpolatedString);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task ConvertBetweenRegularAndVerbatimString_CodeBlock()
     {
         var input = """
@@ -307,7 +307,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimString);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task ConvertBetweenRegularAndVerbatimString_CodeBlock2()
     {
         var input = """
@@ -327,7 +327,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimString);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task ConvertPlaceholderToInterpolatedString_CodeBlock()
     {
         var input = """
@@ -347,7 +347,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertPlaceholderToInterpolatedString);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task ConvertToInterpolatedString_CodeBlock()
     {
         var input = """
@@ -367,7 +367,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertToInterpolatedString);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task AddDebuggerDisplay()
     {
         var input = """
@@ -396,7 +396,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.AddDebuggerDisplay);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task FullyQualify()
     {
         var input = """
@@ -416,7 +416,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, "System.Text.StringBuilder");
     }
 
-    [Fact]
+    [FuseFact]
     public async Task FullyQualify_Multiple()
     {
         await VerifyCodeActionAsync(
@@ -444,7 +444,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
             childActionIndex: 0);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task AddUsing()
     {
         var input = """
@@ -465,7 +465,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.AddImport);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task AddUsing_Typo()
     {
         var input = """
@@ -486,7 +486,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.AddImport);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task AddUsing_WithExisting()
     {
         var input = """
@@ -513,7 +513,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.AddImport);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task GenerateEventHandler_NoCodeBlock()
     {
         var input = """
@@ -523,7 +523,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         var expected = """
             <button @onclick="DoesNotExist"></button>
             @code {
-                private void DoesNotExist(MouseEventArgs e)
+                private void DoesNotExist(MouseEventArgs args)
                 {
                     throw new NotImplementedException();
                 }
@@ -533,7 +533,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, WorkspacesSR.FormatGenerate_Event_Handler_Title("DoesNotExist"));
     }
 
-    [Fact]
+    [FuseFact]
     public async Task GenerateEventHandler_CodeBlock()
     {
         var input = """
@@ -549,7 +549,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
 
             @code
             {
-                private void DoesNotExist(MouseEventArgs e)
+                private void DoesNotExist(MouseEventArgs args)
                 {
                     throw new NotImplementedException();
                 }
@@ -559,7 +559,115 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, WorkspacesSR.FormatGenerate_Event_Handler_Title("DoesNotExist"));
     }
 
-    [Fact]
+    [FuseFact]
+    public async Task GenerateEventHandler_BindSet()
+    {
+        var input = """
+            <InputText @bind-Value="Text" @bind-Value:set="{|CS0103:Does[||]NotExist|}" />
+
+            @code
+            {
+                private string Text { get; set; }
+            }
+            """;
+
+        var expected = """
+            <InputText @bind-Value="Text" @bind-Value:set="DoesNotExist" />
+
+            @code
+            {
+                private string Text { get; set; }
+                private void DoesNotExist(string args)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, WorkspacesSR.FormatGenerate_Event_Handler_Title("DoesNotExist"));
+    }
+
+    [FuseFact]
+    public async Task GenerateEventHandler_BindAfter()
+    {
+        var input = """
+            <InputText @bind-Value="Text" @bind-Value:after="{|CS0103:Does[||]NotExist|}" />
+
+            @code
+            {
+                private string Text { get; set; }
+            }
+            """;
+
+        var expected = """
+            <InputText @bind-Value="Text" @bind-Value:after="DoesNotExist" />
+
+            @code
+            {
+                private string Text { get; set; }
+                private void DoesNotExist()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, WorkspacesSR.FormatGenerate_Event_Handler_Title("DoesNotExist"));
+    }
+
+    [FuseFact]
+    public async Task GenerateEventHandler_Callback()
+    {
+        var input = """
+            <InputFile OnChange="{|CS0103:Does[||]NotExist|}" />
+
+            @code
+            {
+            }
+            """;
+
+        var expected = """
+            <InputFile OnChange="DoesNotExist" />
+
+            @code
+            {
+                private void DoesNotExist(InputFileChangeEventArgs args)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, WorkspacesSR.FormatGenerate_Event_Handler_Title("DoesNotExist"));
+    }
+
+    [FuseFact]
+    public async Task GenerateEventHandler_AsyncCallback()
+    {
+        var input = """
+            <InputText ValueChanged="{|CS0103:Does[||]NotExistAsync|}" />
+
+            @code
+            {
+            }
+            """;
+
+        var expected = """
+            <InputText ValueChanged="DoesNotExistAsync" />
+
+            @code
+            {
+                private Task DoesNotExistAsync(string args)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, WorkspacesSR.FormatGenerate_Async_Event_Handler_Title("DoesNotExistAsync"));
+    }
+
+    [FuseFact]
     public async Task GenerateEventHandler_BadCodeBehind()
     {
         await VerifyCodeActionAsync(
@@ -569,7 +677,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
             expected: """
                 <button @onclick="DoesNotExist"></button>
                 @code {
-                    private void DoesNotExist(MouseEventArgs e)
+                    private void DoesNotExist(MouseEventArgs args)
                     {
                         throw new NotImplementedException();
                     }
@@ -587,7 +695,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
             codeActionName: WorkspacesSR.FormatGenerate_Event_Handler_Title("DoesNotExist"));
     }
 
-    [Fact]
+    [FuseFact]
     public async Task GenerateEventHandler_CodeBehind()
     {
         await VerifyCodeActionAsync(
@@ -617,7 +725,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
                         public void M()
                         {
                         }
-                        private void DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                        private void DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
                         {
                             throw new System.NotImplementedException();
                         }
@@ -626,7 +734,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
             codeActionName: WorkspacesSR.FormatGenerate_Event_Handler_Title("DoesNotExist"));
     }
 
-    [Fact]
+    [FuseFact]
     public async Task GenerateEventHandler_EmptyCodeBehind()
     {
         await VerifyCodeActionAsync(
@@ -650,7 +758,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
                     
                     public partial class File1
                     {
-                        private void DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                        private void DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
                         {
                             throw new System.NotImplementedException();
                         }
@@ -659,7 +767,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
             codeActionName: WorkspacesSR.FormatGenerate_Event_Handler_Title("DoesNotExist"));
     }
 
-    [Fact]
+    [FuseFact]
     public async Task GenerateAsyncEventHandler_NoCodeBlock()
     {
         var input = """
@@ -669,7 +777,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         var expected = """
             <button @onclick="DoesNotExist"></button>
             @code {
-                private Task DoesNotExist(MouseEventArgs e)
+                private Task DoesNotExist(MouseEventArgs args)
                 {
                     throw new NotImplementedException();
                 }
@@ -679,7 +787,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, WorkspacesSR.FormatGenerate_Async_Event_Handler_Title("DoesNotExist"));
     }
 
-    [Fact]
+    [FuseFact]
     public async Task GenerateAsyncEventHandler_CodeBlock()
     {
         var input = """
@@ -695,7 +803,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
 
             @code
             {
-                private Task DoesNotExist(MouseEventArgs e)
+                private Task DoesNotExist(MouseEventArgs args)
                 {
                     throw new NotImplementedException();
                 }
@@ -705,7 +813,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
         await VerifyCodeActionAsync(input, expected, WorkspacesSR.FormatGenerate_Async_Event_Handler_Title("DoesNotExist"));
     }
 
-    [Fact]
+    [FuseFact]
     public async Task CreateComponentFromTag()
     {
         await VerifyCodeActionAsync(
@@ -724,7 +832,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
                 (FileUri("Hello.razor"), "")]);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task CreateComponentFromTag_Attribute()
     {
         await VerifyCodeActionAsync(
@@ -743,7 +851,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
                 (FileUri("Hello.razor"), "")]);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task ComponentAccessibility_FixCasing()
     {
         await VerifyCodeActionAsync(
@@ -760,7 +868,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
             codeActionName: "EditForm");
     }
 
-    [Fact]
+    [FuseFact]
     public async Task ComponentAccessibility_FullyQualify()
     {
         await VerifyCodeActionAsync(
@@ -777,7 +885,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
             codeActionName: "Microsoft.AspNetCore.Components.Sections.SectionOutlet");
     }
 
-    [Fact]
+    [FuseFact]
     public async Task ComponentAccessibility_AddUsing()
     {
         await VerifyCodeActionAsync(
@@ -795,7 +903,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
             codeActionName: "@using Microsoft.AspNetCore.Components.Sections");
     }
 
-    [Fact]
+    [FuseFact]
     public async Task ComponentAccessibility_AddUsing_FixTypo()
     {
         await VerifyCodeActionAsync(
@@ -813,9 +921,16 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
             codeActionName: "SectionOutlet - @using Microsoft.AspNetCore.Components.Sections");
     }
 
-    [Fact]
+    [FuseFact]
     public async Task ExtractToCodeBehind()
     {
+        // Roslyn uses the first .cs document in a project to work out the "file header", and in these tests that is the
+        // generated document, so we need to include the auto-generated header in the expected output. In FUSE however,
+        // there is a #pragma before the comment, so it isn't seen as having a file header.
+        var fileHeader = context.ForceRuntimeCodeGeneration
+                ? ""
+                : $"// <auto-generated/>{Environment.NewLine}";
+
         await VerifyCodeActionAsync(
             input: """
                 <div></div>
@@ -832,8 +947,8 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
                 """,
             codeActionName: WorkspacesSR.ExtractTo_CodeBehind_Title,
             additionalExpectedFiles: [
-                (FileUri("File1.razor.cs"), """
-                    namespace SomeProject
+                (FileUri("File1.razor.cs"), $$"""
+                    {{fileHeader}}namespace SomeProject
                     {
                         public partial class File1
                         {
@@ -843,7 +958,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
                     """)]);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task ExtractToComponent()
     {
         await VerifyCodeActionAsync(
@@ -872,7 +987,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
                     """)]);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task PromoteUsingDirective()
     {
         await VerifyCodeActionAsync(
@@ -896,7 +1011,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
                     """)]);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task PromoteUsingDirective_Indented()
     {
         await VerifyCodeActionAsync(
@@ -924,7 +1039,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
                     """)]);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task PromoteUsingDirective_Mvc()
     {
         await VerifyCodeActionAsync(
@@ -949,7 +1064,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
                     """)]);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task PromoteUsingDirective_ExistingImports()
     {
         await VerifyCodeActionAsync(
@@ -980,7 +1095,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
                     """)]);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task PromoteUsingDirective_ExistingImports_BlankLineAtEnd()
     {
         await VerifyCodeActionAsync(
@@ -1012,7 +1127,7 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
                     """)]);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task PromoteUsingDirective_ExistingImports_WhitespaceLineAtEnd()
     {
         await VerifyCodeActionAsync(
@@ -1046,6 +1161,8 @@ public class CohostCodeActionsEndpointTest(ITestOutputHelper testOutputHelper) :
 
     private async Task VerifyCodeActionAsync(TestCode input, string? expected, string codeActionName, int childActionIndex = 0, string? fileKind = null, (string filePath, string contents)[]? additionalFiles = null, (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
     {
+        UpdateClientInitializationOptions(c => c with { ForceRuntimeCodeGeneration = context.ForceRuntimeCodeGeneration });
+
         var fileSystem = (RemoteFileSystem)OOPExportProvider.GetExportedValue<IFileSystem>();
         fileSystem.GetTestAccessor().SetFileSystem(new TestFileSystem(additionalFiles));
 

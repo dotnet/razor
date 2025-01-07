@@ -6,12 +6,9 @@ using System;
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 [Flags]
-internal enum ProjectDifference
+internal enum RazorCompilerOptions
 {
     None = 0,
-    ConfigurationChanged = 1,
-    ProjectWorkspaceStateChanged = 2,
-    DocumentAdded = 4,
-    DocumentRemoved = 8,
-    DocumentChanged = 16,
+    ForceRuntimeCodeGeneration = 1 << 0,
+    UseRoslynTokenizer = 1 << 1
 }

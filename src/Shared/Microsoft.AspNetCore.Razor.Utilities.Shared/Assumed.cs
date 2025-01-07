@@ -88,6 +88,8 @@ internal static partial class Assumed
         }
     }
 
+    [DebuggerStepThrough]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void True(
         [DoesNotReturnIf(false)] bool condition,
         string? message = null,
