@@ -275,7 +275,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     public void TryConvert_TagHelperElement_ReturnsTrue()
     {
         // Arrange
-        var completionItem = new RazorCompletionItem("format", "format", RazorCompletionItemKind.TagHelperElement);
+        var completionItem = RazorCompletionItem.CreateTagHelperElement(displayText: "format", insertText: "format", description: null!, commitCharacters: []);
 
         // Act
         var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
@@ -367,7 +367,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     [InlineData("@page\r\n<div></div>\r\n@f$$")]
     [InlineData("@page\r\n<div></div>\r\n@f$$\r\n")]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/4547")]
-    [WorkItem("https://github.com/dotnet/razor/issues/9955")]    
+    [WorkItem("https://github.com/dotnet/razor/issues/9955")]
     public async Task GetCompletionListAsync_ProvidesDirectiveCompletionItems(string documentText)
     {
         // Arrange

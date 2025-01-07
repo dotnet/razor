@@ -248,11 +248,10 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
         {
             var tagHelperDescriptions = tagHelpers.SelectAsArray(BoundElementDescriptionInfo.From);
 
-            var razorCompletionItem = new RazorCompletionItem(
+            var razorCompletionItem = RazorCompletionItem.CreateTagHelperElement(
                 displayText: displayText,
                 insertText: displayText,
-                kind: RazorCompletionItemKind.TagHelperElement,
-                descriptionInfo: new AggregateBoundElementDescription(tagHelperDescriptions),
+                description: new(tagHelperDescriptions),
                 commitCharacters: commitChars);
 
             completionItems.Add(razorCompletionItem);
