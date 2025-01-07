@@ -5,6 +5,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
@@ -61,6 +62,12 @@ internal sealed class RazorCompletionItem : IEquatable<RazorCompletionItem>
         DirectiveCompletionDescription description,
         ImmutableArray<RazorCommitCharacter> commitCharacters, bool isSnippet)
         => new(displayText, insertText, RazorCompletionItemKind.Directive, description, sortText, commitCharacters, isSnippet);
+
+    public static RazorCompletionItem CreateDirectiveAttribute(
+        string displayText, string insertText,
+        AggregateBoundAttributeDescription description,
+        ImmutableArray<RazorCommitCharacter> commitCharacters)
+        => new(displayText, insertText, RazorCompletionItemKind.DirectiveAttribute, description, sortText: null, commitCharacters, isSnippet: false);
 
     public static RazorCompletionItem CreateMarkupTransition(
         string displayText, string insertText,

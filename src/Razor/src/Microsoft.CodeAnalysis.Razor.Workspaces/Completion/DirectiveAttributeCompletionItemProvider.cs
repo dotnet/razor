@@ -123,9 +123,9 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
         using var completionItems = new PooledArrayBuilder<RazorCompletionItem>(capacity: attributeCompletions.Count);
 
-        foreach (var completion in attributeCompletions)
+        foreach (var (displayText, value) in attributeCompletions)
         {
-            var insertText = completion.Key;
+            var insertText = displayText;
             if (insertText.EndsWith("...", StringComparison.Ordinal))
             {
                 // Indexer attribute, we don't want to insert with the triple dot.
@@ -140,7 +140,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                 insertText = insertText[1..];
             }
 
-            var (attributeDescriptionInfos, commitCharacters) = completion.Value;
+            var (attributeDescriptionInfos, commitCharacters) = value;
 
             using var razorCommitCharacters = new PooledArrayBuilder<RazorCommitCharacter>(capacity: commitCharacters.Count);
 
@@ -149,11 +149,10 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                 razorCommitCharacters.Add(new(c));
             }
 
-            var razorCompletionItem = new RazorCompletionItem(
-                completion.Key,
+            var razorCompletionItem = RazorCompletionItem.CreateDirectiveAttribute(
+                displayText,
                 insertText,
-                RazorCompletionItemKind.DirectiveAttribute,
-                descriptionInfo: new AggregateBoundAttributeDescription([.. attributeDescriptionInfos]),
+                description: new([.. attributeDescriptionInfos]),
                 commitCharacters: razorCommitCharacters.DrainToImmutable());
 
             completionItems.Add(razorCompletionItem);
