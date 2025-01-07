@@ -117,18 +117,18 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
         {
             var insertText = displayText;
 
-            if (insertText.EndsWith("...", StringComparison.Ordinal))
-            {
-                // Indexer attribute, we don't want to insert with the triple dot.
-                insertText = insertText[..^3];
-            }
+            // Strip off the @ from the insertion text. This change is here to align the insertion text with the
+            // completion hooks into VS and VSCode. Basically, completion triggers when `@` is typed so we don't
+            // want to insert `@bind` because `@` already exists.
+            var startIndex = insertText.StartsWith('@') ? 1 : 0;
 
-            if (insertText.StartsWith('@'))
+            // Indexer attribute, we don't want to insert with the triple dot.
+            var endIndex = insertText.EndsWith("...", StringComparison.Ordinal) ? ^3 : ^0;
+
+            // Don't allocate a new string unless we need to make a change.
+            if (startIndex > 0 || endIndex.Value > 0)
             {
-                // Strip off the @ from the insertion text. This change is here to align the insertion text with the
-                // completion hooks into VS and VSCode. Basically, completion triggers when `@` is typed so we don't
-                // want to insert `@bind` because `@` already exists.
-                insertText = insertText[1..];
+                insertText = insertText[startIndex..endIndex];
             }
 
             using var razorCommitCharacters = new PooledArrayBuilder<RazorCommitCharacter>(capacity: commitCharacters.Count);
