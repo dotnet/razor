@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -16,29 +15,19 @@ internal class MarkupTransitionCompletionItemProvider : IRazorCompletionItemProv
     private static RazorCompletionItem? s_markupTransitionCompletionItem;
 
     public static RazorCompletionItem MarkupTransitionCompletionItem
-    {
-        get
-        {
-            return s_markupTransitionCompletionItem ??= RazorCompletionItem.CreateMarkupTransition(
-                displayText: SyntaxConstants.TextTagName,
-                insertText: SyntaxConstants.TextTagName,
-                descriptionInfo: new(CodeAnalysisResources.MarkupTransition_Description),
-                commitCharacters: RazorCommitCharacter.CreateArray([">"]));
-        }
-    }
+        => s_markupTransitionCompletionItem ??= RazorCompletionItem.CreateMarkupTransition(
+            displayText: SyntaxConstants.TextTagName,
+            insertText: SyntaxConstants.TextTagName,
+            descriptionInfo: new(CodeAnalysisResources.MarkupTransition_Description),
+            commitCharacters: RazorCommitCharacter.CreateArray([">"]));
 
     public ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
         var owner = context.Owner;
         if (owner is null)
         {
             Debug.Fail("Owner should never be null.");
-            return ImmutableArray<RazorCompletionItem>.Empty;
+            return [];
         }
 
         // If we're at the edge of a razor code block, FindInnermostNode will have returned that edge. However,
@@ -52,7 +41,7 @@ internal class MarkupTransitionCompletionItemProvider : IRazorCompletionItemProv
 
         if (!AtMarkupTransitionCompletionPoint(owner))
         {
-            return ImmutableArray<RazorCompletionItem>.Empty;
+            return [];
         }
 
         // Also helps filter out edge cases like `< te` and `< te=""`
@@ -60,10 +49,10 @@ internal class MarkupTransitionCompletionItemProvider : IRazorCompletionItemProv
         if (!HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out _, closingForwardSlashOrCloseAngleToken: out _) ||
             !containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
         {
-            return ImmutableArray<RazorCompletionItem>.Empty;
+            return [];
         }
 
-        return ImmutableArray.Create(MarkupTransitionCompletionItem);
+        return [MarkupTransitionCompletionItem];
     }
 
     private static bool AtMarkupTransitionCompletionPoint(RazorSyntaxNode owner)
