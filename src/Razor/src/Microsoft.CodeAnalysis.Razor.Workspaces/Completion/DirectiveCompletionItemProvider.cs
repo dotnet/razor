@@ -149,16 +149,15 @@ internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
             var completionDisplayText = directive.DisplayName ?? directive.Directive;
             var commitCharacters = GetDirectiveCommitCharacters(directive.Kind);
 
-            var completionItem = new RazorCompletionItem(
+            var completionItem = RazorCompletionItem.CreateDirective(
                 displayText: completionDisplayText,
                 insertText: directive.Directive,
-                RazorCompletionItemKind.Directive,
-                descriptionInfo: new DirectiveCompletionDescription(directive.Description),
                 // Make sort text one less than display text so if there are any delegated completion items
                 // with the same display text in the combined completion list, they will be sorted below
                 // our items.
                 sortText: completionDisplayText,
-                commitCharacters: commitCharacters,
+                description: new(directive.Description),
+                commitCharacters,
                 isSnippet: false);
 
             completionItems.Add(completionItem);
@@ -167,14 +166,13 @@ internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
             {
                 var snippetDescription = $"@{snippetTexts.DisplayText}{Environment.NewLine}{SR.DirectiveSnippetDescription}";
 
-                var snippetCompletionItem = new RazorCompletionItem(
-                    $"{completionDisplayText} {SR.Directive} ...",
-                    snippetTexts.InsertText,
-                    RazorCompletionItemKind.Directive,
-                    descriptionInfo: new DirectiveCompletionDescription(snippetDescription),
+                var snippetCompletionItem = RazorCompletionItem.CreateDirective(
+                    displayText: $"{completionDisplayText} {SR.Directive} ...",
+                    insertText: snippetTexts.InsertText,
                     // Use the same sort text here as the directive completion item so both items are grouped together
                     sortText: completionDisplayText,
-                    commitCharacters: commitCharacters,
+                    description: new(snippetDescription),
+                    commitCharacters,
                     isSnippet: true);
 
                 completionItems.Add(snippetCompletionItem);

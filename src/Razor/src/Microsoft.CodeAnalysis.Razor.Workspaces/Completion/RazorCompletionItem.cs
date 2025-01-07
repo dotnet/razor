@@ -56,12 +56,17 @@ internal sealed class RazorCompletionItem : IEquatable<RazorCompletionItem>
         IsSnippet = isSnippet;
     }
 
+    public static RazorCompletionItem CreateDirective(
+        string displayText, string insertText, string? sortText,
+        DirectiveCompletionDescription description,
+        ImmutableArray<RazorCommitCharacter> commitCharacters, bool isSnippet)
+        => new(displayText, insertText, RazorCompletionItemKind.Directive, description, sortText, commitCharacters, isSnippet);
+
     public static RazorCompletionItem CreateMarkupTransition(
-        string displayText,
-        string insertText,
+        string displayText, string insertText,
         MarkupTransitionCompletionDescription description,
         ImmutableArray<RazorCommitCharacter> commitCharacters)
-        => new(displayText, insertText, RazorCompletionItemKind.MarkupTransition, description, sortText: null, commitCharacters);
+        => new(displayText, insertText, RazorCompletionItemKind.MarkupTransition, description, sortText: null, commitCharacters, isSnippet: false);
 
     public override bool Equals(object? obj)
         => Equals(obj as RazorCompletionItem);

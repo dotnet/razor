@@ -68,7 +68,15 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     {
         // Arrange
         var resolver = new RazorCompletionItemResolver();
-        var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.Directive, new DirectiveCompletionDescription("Test directive"));
+        var descriptionText = "Test directive";
+        var razorCompletionItem = RazorCompletionItem.CreateDirective(
+            displayText: "TestItem",
+            insertText: "TestItem",
+            sortText: null,
+            description: new(descriptionText),
+            commitCharacters: [],
+            isSnippet: false);
+
         var completionList = CreateLSPCompletionList(razorCompletionItem);
         var completionItem = completionList.Items.Single() as VSInternalCompletionItem;
 
@@ -77,7 +85,7 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
             completionItem, completionList, CreateCompletionResolveContext(razorCompletionItem), _defaultClientCapability, _solutionQueryOperations, DisposalToken);
 
         // Assert
-        Assert.NotNull(resolvedCompletionItem.Documentation);
+        Assert.Equal(descriptionText, resolvedCompletionItem.Documentation);
     }
 
     [Fact]
@@ -86,7 +94,7 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
         // Arrange
         var resolver = new RazorCompletionItemResolver();
         var descriptionText = "Test description";
-        var razorCompletionItem = RazorCompletionItem.CreateMarkupTransition("@...", "@", new MarkupTransitionCompletionDescription(descriptionText), commitCharacters: []);
+        var razorCompletionItem = RazorCompletionItem.CreateMarkupTransition("@...", "@", new(descriptionText), commitCharacters: []);
         var completionList = CreateLSPCompletionList(razorCompletionItem);
         var completionItem = completionList.Items.Single() as VSInternalCompletionItem;
 

@@ -124,7 +124,13 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     public void TryConvert_Directive_ReturnsTrue()
     {
         // Arrange
-        var completionItem = new RazorCompletionItem("testDisplay", "testInsert", RazorCompletionItemKind.Directive, new DirectiveCompletionDescription("Something"));
+        var completionItem = RazorCompletionItem.CreateDirective(
+            displayText: "testDisplay",
+            insertText: "testInsert",
+            sortText: null,
+            description: new("Something"),
+            commitCharacters: [],
+            isSnippet: false);
 
         // Act
         var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
@@ -143,7 +149,14 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     public void TryConvert_Directive_SerializationDoesNotThrow()
     {
         // Arrange
-        var completionItem = new RazorCompletionItem("testDisplay", "testInsert", RazorCompletionItemKind.Directive, new DirectiveCompletionDescription("Something"));
+        var completionItem = RazorCompletionItem.CreateDirective(
+            displayText: "testDisplay",
+            insertText: "testInsert",
+            sortText: null,
+            description: new("Something"),
+            commitCharacters: [],
+            isSnippet: false);
+
         RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
 
         // Act & Assert

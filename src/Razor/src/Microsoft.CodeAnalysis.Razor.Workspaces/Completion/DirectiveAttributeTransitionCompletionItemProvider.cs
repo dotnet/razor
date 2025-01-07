@@ -17,11 +17,11 @@ internal class DirectiveAttributeTransitionCompletionItemProvider : DirectiveAtt
     {
         get
         {
-            return s_transitionCompletionItem ??= new RazorCompletionItem(
+            return s_transitionCompletionItem ??= RazorCompletionItem.CreateDirective(
                 displayText: "@...",
                 insertText: "@",
-                kind: RazorCompletionItemKind.Directive,
-                descriptionInfo: new DirectiveCompletionDescription(SR.Blazor_directive_attributes),
+                sortText: null,
+                description: new(SR.Blazor_directive_attributes),
 
                 // We specify these three commit characters to work around a Visual Studio interaction where
                 // completion items that get "soft selected" will cause completion to re-trigger if a user
@@ -29,7 +29,8 @@ internal class DirectiveAttributeTransitionCompletionItemProvider : DirectiveAtt
                 // In practice this happens in the `<button |` scenario where the "space" results in completions
                 // where this directive attribute transition character ("@...") gets provided and then typing
                 // `@` should re-trigger OR typing `/` should re-trigger.
-                commitCharacters: RazorCommitCharacter.CreateArray(["@", "/", ">"]));
+                commitCharacters: RazorCommitCharacter.CreateArray(["@", "/", ">"]),
+                isSnippet: false);
         }
     }
 
