@@ -153,9 +153,8 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                 completion.Key,
                 insertText,
                 RazorCompletionItemKind.DirectiveAttribute,
+                descriptionInfo: new AggregateBoundAttributeDescription([.. attributeDescriptionInfos]),
                 commitCharacters: razorCommitCharacters.DrainToImmutable());
-            var completionDescription = new AggregateBoundAttributeDescription(attributeDescriptionInfos.ToImmutableArray());
-            razorCompletionItem.SetAttributeCompletionDescription(completionDescription);
 
             completionItems.Add(razorCompletionItem);
         }

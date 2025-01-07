@@ -150,35 +150,33 @@ internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
             var commitCharacters = GetDirectiveCommitCharacters(directive.Kind);
 
             var completionItem = new RazorCompletionItem(
-                completionDisplayText,
-                directive.Directive,
+                displayText: completionDisplayText,
+                insertText: directive.Directive,
                 RazorCompletionItemKind.Directive,
+                descriptionInfo: new DirectiveCompletionDescription(directive.Description),
                 // Make sort text one less than display text so if there are any delegated completion items
                 // with the same display text in the combined completion list, they will be sorted below
                 // our items.
                 sortText: completionDisplayText,
                 commitCharacters: commitCharacters,
                 isSnippet: false);
-            var completionDescription = new DirectiveCompletionDescription(directive.Description);
-            completionItem.SetDirectiveCompletionDescription(completionDescription);
+
             completionItems.Add(completionItem);
 
             if (s_singleLineDirectiveSnippets.TryGetValue(directive.Directive, out var snippetTexts))
             {
+                var snippetDescription = $"@{snippetTexts.DisplayText}{Environment.NewLine}{SR.DirectiveSnippetDescription}";
+
                 var snippetCompletionItem = new RazorCompletionItem(
                     $"{completionDisplayText} {SR.Directive} ...",
                     snippetTexts.InsertText,
                     RazorCompletionItemKind.Directive,
+                    descriptionInfo: new DirectiveCompletionDescription(snippetDescription),
                     // Use the same sort text here as the directive completion item so both items are grouped together
                     sortText: completionDisplayText,
                     commitCharacters: commitCharacters,
                     isSnippet: true);
 
-                var snippetDescription = "@" + snippetTexts.DisplayText
-                                             + Environment.NewLine
-                                             + SR.DirectiveSnippetDescription;
-
-                snippetCompletionItem.SetDirectiveCompletionDescription(new(snippetDescription));
                 completionItems.Add(snippetCompletionItem);
             }
         }

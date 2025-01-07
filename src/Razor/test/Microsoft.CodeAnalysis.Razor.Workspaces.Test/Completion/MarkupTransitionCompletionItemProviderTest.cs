@@ -322,7 +322,7 @@ public class MarkupTransitionCompletionItemProviderTest(ITestOutputHelper testOu
     {
         Assert.Equal(SyntaxConstants.TextTagName, item.DisplayText);
         Assert.Equal(SyntaxConstants.TextTagName, item.InsertText);
-        var completionDescription = item.GetMarkupTransitionCompletionDescription();
+        var completionDescription = item.DescriptionInfo as MarkupTransitionCompletionDescription;
         Assert.Equal(CodeAnalysisResources.MarkupTransition_Description, completionDescription.Description);
     }
 

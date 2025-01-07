@@ -188,18 +188,16 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
                 ? CompletionSortTextHelper.DefaultSortPriority
                 : CompletionSortTextHelper.HighSortPriority;
 
+            var attributeDescriptions = boundAttributes.SelectAsArray(boundAttribute => BoundAttributeDescriptionInfo.From(boundAttribute, isIndexer));
+
             var razorCompletionItem = new RazorCompletionItem(
                 displayText: displayText,
                 insertText: insertText,
                 sortText: sortText,
                 kind: RazorCompletionItemKind.TagHelperAttribute,
+                descriptionInfo: new AggregateBoundAttributeDescription(attributeDescriptions),
                 commitCharacters: attributeCommitCharacters,
                 isSnippet: isSnippet);
-
-            var attributeDescriptions = boundAttributes.SelectAsArray(boundAttribute => BoundAttributeDescriptionInfo.From(boundAttribute, isIndexer));
-
-            var attributeDescriptionInfo = new AggregateBoundAttributeDescription(attributeDescriptions);
-            razorCompletionItem.SetAttributeCompletionDescription(attributeDescriptionInfo);
 
             completionItems.Add(razorCompletionItem);
         }
@@ -248,15 +246,14 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
 
         foreach (var (displayText, tagHelpers) in completionResult.Completions)
         {
+            var tagHelperDescriptions = tagHelpers.SelectAsArray(BoundElementDescriptionInfo.From);
+
             var razorCompletionItem = new RazorCompletionItem(
                 displayText: displayText,
                 insertText: displayText,
                 kind: RazorCompletionItemKind.TagHelperElement,
+                descriptionInfo: new AggregateBoundElementDescription(tagHelperDescriptions),
                 commitCharacters: commitChars);
-
-            var tagHelperDescriptions = tagHelpers.SelectAsArray(BoundElementDescriptionInfo.From);
-            var elementDescription = new AggregateBoundElementDescription(tagHelperDescriptions);
-            razorCompletionItem.SetTagHelperElementDescriptionInfo(elementDescription);
 
             completionItems.Add(razorCompletionItem);
         }

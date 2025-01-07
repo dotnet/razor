@@ -450,7 +450,7 @@ public class DirectiveCompletionItemProviderTest : ToolingTestBase
     private static void AssertRazorCompletionItem(string completionDisplayText, DirectiveDescriptor directive, RazorCompletionItem item, IReadOnlyList<RazorCommitCharacter> commitCharacters = null, bool isSnippet = false)
     {
         Assert.Equal(item.DisplayText, completionDisplayText);
-        var completionDescription = item.GetDirectiveCompletionDescription();
+        var completionDescription = item.DescriptionInfo as DirectiveCompletionDescription;
 
         if (isSnippet)
         {

@@ -20,19 +20,12 @@ internal class MarkupTransitionCompletionItemProvider : IRazorCompletionItemProv
     {
         get
         {
-            if (s_markupTransitionCompletionItem is null)
-            {
-                var completionDisplayText = SyntaxConstants.TextTagName;
-                s_markupTransitionCompletionItem = new RazorCompletionItem(
-                    completionDisplayText,
-                    completionDisplayText,
-                    RazorCompletionItemKind.MarkupTransition,
-                    commitCharacters: s_elementCommitCharacters);
-                var completionDescription = new MarkupTransitionCompletionDescription(CodeAnalysisResources.MarkupTransition_Description);
-                s_markupTransitionCompletionItem.SetMarkupTransitionCompletionDescription(completionDescription);
-            }
-
-            return s_markupTransitionCompletionItem;
+            return s_markupTransitionCompletionItem ??= new RazorCompletionItem(
+                displayText: SyntaxConstants.TextTagName,
+                insertText: SyntaxConstants.TextTagName,
+                RazorCompletionItemKind.MarkupTransition,
+                descriptionInfo: new MarkupTransitionCompletionDescription(CodeAnalysisResources.MarkupTransition_Description),
+                commitCharacters: s_elementCommitCharacters);
         }
     }
 

@@ -4,7 +4,6 @@
 #nullable disable
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -125,9 +124,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     public void TryConvert_Directive_ReturnsTrue()
     {
         // Arrange
-        var completionItem = new RazorCompletionItem("testDisplay", "testInsert", RazorCompletionItemKind.Directive);
-        var description = "Something";
-        completionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription(description));
+        var completionItem = new RazorCompletionItem("testDisplay", "testInsert", RazorCompletionItemKind.Directive, new DirectiveCompletionDescription("Something"));
 
         // Act
         var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
@@ -146,9 +143,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     public void TryConvert_Directive_SerializationDoesNotThrow()
     {
         // Arrange
-        var completionItem = new RazorCompletionItem("testDisplay", "testInsert", RazorCompletionItemKind.Directive);
-        var description = "Something";
-        completionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription(description));
+        var completionItem = new RazorCompletionItem("testDisplay", "testInsert", RazorCompletionItemKind.Directive, new DirectiveCompletionDescription("Something"));
         RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
 
         // Act & Assert
@@ -283,10 +278,11 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     public void TryConvert_TagHelperAttribute_ForBool_ReturnsTrue()
     {
         // Arrange
-        var completionItem = new RazorCompletionItem("format", "format", RazorCompletionItemKind.TagHelperAttribute);
-        var attributeCompletionDescription = new AggregateBoundAttributeDescription(ImmutableArray.Create(
-            new BoundAttributeDescriptionInfo("System.Boolean", "Stuff", "format", "SomeDocs")));
-        completionItem.SetAttributeCompletionDescription(attributeCompletionDescription);
+        var attributeCompletionDescription = new AggregateBoundAttributeDescription([
+            new BoundAttributeDescriptionInfo("System.Boolean", "Stuff", "format", "SomeDocs")
+        ]);
+
+        var completionItem = new RazorCompletionItem("format", "format", RazorCompletionItemKind.TagHelperAttribute, attributeCompletionDescription);
 
         // Act
         var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
@@ -307,9 +303,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     public void TryConvert_TagHelperAttribute_ForHtml_ReturnsTrue()
     {
         // Arrange
-        var completionItem = new RazorCompletionItem("format", "format=\"$0\"", RazorCompletionItemKind.TagHelperAttribute, isSnippet: true);
-        var attributeCompletionDescription = AggregateBoundAttributeDescription.Empty;
-        completionItem.SetAttributeCompletionDescription(attributeCompletionDescription);
+        var completionItem = new RazorCompletionItem("format", "format=\"$0\"", RazorCompletionItemKind.TagHelperAttribute, AggregateBoundAttributeDescription.Empty, isSnippet: true);
 
         // Act
         var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);

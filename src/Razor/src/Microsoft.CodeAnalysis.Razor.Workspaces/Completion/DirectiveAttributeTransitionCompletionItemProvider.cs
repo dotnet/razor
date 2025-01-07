@@ -17,24 +17,19 @@ internal class DirectiveAttributeTransitionCompletionItemProvider : DirectiveAtt
     {
         get
         {
-            if (s_transitionCompletionItem is null)
-            {
-                s_transitionCompletionItem = new RazorCompletionItem(
-                    displayText: "@...",
-                    insertText: "@",
-                    kind: RazorCompletionItemKind.Directive,
+            return s_transitionCompletionItem ??= new RazorCompletionItem(
+                displayText: "@...",
+                insertText: "@",
+                kind: RazorCompletionItemKind.Directive,
+                descriptionInfo: new DirectiveCompletionDescription(SR.Blazor_directive_attributes),
 
-                    // We specify these three commit characters to work around a Visual Studio interaction where
-                    // completion items that get "soft selected" will cause completion to re-trigger if a user
-                    // types one of the soft-selected completion item's commit characters.
-                    // In practice this happens in the `<button |` scenario where the "space" results in completions
-                    // where this directive attribute transition character ("@...") gets provided and then typing
-                    // `@` should re-trigger OR typing `/` should re-trigger.
-                    commitCharacters: RazorCommitCharacter.CreateArray(["@", "/", ">"]));
-                s_transitionCompletionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription(SR.Blazor_directive_attributes));
-            }
-
-            return s_transitionCompletionItem;
+                // We specify these three commit characters to work around a Visual Studio interaction where
+                // completion items that get "soft selected" will cause completion to re-trigger if a user
+                // types one of the soft-selected completion item's commit characters.
+                // In practice this happens in the `<button |` scenario where the "space" results in completions
+                // where this directive attribute transition character ("@...") gets provided and then typing
+                // `@` should re-trigger OR typing `/` should re-trigger.
+                commitCharacters: RazorCommitCharacter.CreateArray(["@", "/", ">"]));
         }
     }
 
