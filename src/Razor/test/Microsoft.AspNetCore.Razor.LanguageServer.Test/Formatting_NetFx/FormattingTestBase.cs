@@ -378,13 +378,6 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
                     path, fileKind, codeDocument, projectEngine, imports, importDocuments, tagHelpers, inGlobalNamespace);
             });
 
-#if !FORMAT_FUSE
-        var generatorMock = snapshotMock.As<IDesignTimeCodeGenerator>();
-        generatorMock
-            .Setup(x => x.GenerateDesignTimeOutputAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(codeDocument);
-#endif
-
         return snapshotMock.Object;
     }
 }
