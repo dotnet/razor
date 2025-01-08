@@ -3,14 +3,12 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
-using Microsoft.Extensions.Internal;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-internal sealed class RazorCompletionItem : IEquatable<RazorCompletionItem>
+internal sealed class RazorCompletionItem
 {
     public RazorCompletionItemKind Kind { get; }
     public string DisplayText { get; }
@@ -91,32 +89,4 @@ internal sealed class RazorCompletionItem : IEquatable<RazorCompletionItem>
         AggregateBoundAttributeDescription descriptionInfo,
         ImmutableArray<RazorCommitCharacter> commitCharacters, bool isSnippet)
         => new(RazorCompletionItemKind.TagHelperAttribute, displayText, insertText, sortText, descriptionInfo, commitCharacters, isSnippet);
-
-    public override bool Equals(object? obj)
-        => Equals(obj as RazorCompletionItem);
-
-    public bool Equals(RazorCompletionItem? other)
-    {
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return other is not null &&
-               DisplayText == other.DisplayText &&
-               InsertText == other.InsertText &&
-               Kind == other.Kind &&
-               CommitCharacters.SequenceEqual(other.CommitCharacters);
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCodeCombiner = HashCodeCombiner.Start();
-        hashCodeCombiner.Add(DisplayText);
-        hashCodeCombiner.Add(InsertText);
-        hashCodeCombiner.Add(Kind);
-        hashCodeCombiner.Add(CommitCharacters);
-
-        return hashCodeCombiner.CombinedHash;
-    }
 }
