@@ -30,7 +30,7 @@ internal class TestProjectEngineFactoryProvider : IProjectEngineFactoryProvider
         => new(BaseProvider, _configure.Add(configure));
 
     public TestProjectEngineFactoryProvider WithTestImportFeature()
-        => AddConfigure(static b => b.SetImportFeature(TestImportProjectFeature.Instance));
+        => AddConfigure(static b => b.SetImportFeature(new TestImportProjectFeature()));
 
     public IProjectEngineFactory GetFactory(RazorConfiguration configuration)
         => new FactoryWrapper(this, BaseProvider.GetFactory(configuration));

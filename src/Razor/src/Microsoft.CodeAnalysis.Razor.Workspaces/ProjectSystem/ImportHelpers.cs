@@ -19,7 +19,7 @@ internal static class ImportHelpers
 
         using var importProjectItems = new PooledArrayBuilder<RazorProjectItem>();
 
-        foreach (var feature in projectEngine.ProjectFeatures.OfType<IImportProjectFeature>())
+        foreach (var feature in projectEngine.GetFeatures<IImportProjectFeature>())
         {
             if (feature.GetImports(projectItem) is { } featureImports)
             {

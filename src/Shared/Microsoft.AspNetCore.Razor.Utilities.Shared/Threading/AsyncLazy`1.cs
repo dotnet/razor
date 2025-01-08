@@ -240,7 +240,7 @@ internal abstract class AsyncLazy<T>
         private AsynchronousComputationToStart RegisterAsynchronousComputation_NoLock()
         {
             Assumed.False(_computationActive);
-            Assumed.NonNull(_asynchronousComputeFunction);
+            Assumed.NotNull(_asynchronousComputeFunction);
 
             _asynchronousComputationCancellationSource = new CancellationTokenSource();
             _computationActive = true;
@@ -443,7 +443,7 @@ internal abstract class AsyncLazy<T>
                 {
                     // TrySetException wraps its argument in an AggregateException, so we pass the inner exceptions from
                     // the antecedent to avoid wrapping in two layers of AggregateException.
-                    Assumed.NonNull(task.Exception);
+                    Assumed.NotNull(task.Exception);
                     if (task.Exception.InnerExceptions.Count > 0)
                     {
                         TrySetException(task.Exception.InnerExceptions);
