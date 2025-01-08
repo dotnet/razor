@@ -18,7 +18,6 @@ internal class RazorContentTypeChangeListener : ITextBufferContentTypeListener
     private readonly TrackingLSPDocumentManager _lspDocumentManager;
     private readonly ITextDocumentFactoryService _textDocumentFactory;
     private readonly ILspEditorFeatureDetector _lspEditorFeatureDetector;
-    private readonly IEditorOptionsFactoryService _editorOptionsFactory;
     private readonly IFileToContentTypeService _fileToContentTypeService;
 
     [ImportingConstructor]
@@ -26,7 +25,6 @@ internal class RazorContentTypeChangeListener : ITextBufferContentTypeListener
         ITextDocumentFactoryService textDocumentFactory,
         LSPDocumentManager lspDocumentManager,
         ILspEditorFeatureDetector lspEditorFeatureDetector,
-        IEditorOptionsFactoryService editorOptionsFactory,
         IFileToContentTypeService fileToContentTypeService)
     {
         if (textDocumentFactory is null)
@@ -44,11 +42,6 @@ internal class RazorContentTypeChangeListener : ITextBufferContentTypeListener
             throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
         }
 
-        if (editorOptionsFactory is null)
-        {
-            throw new ArgumentNullException(nameof(editorOptionsFactory));
-        }
-
         if (fileToContentTypeService is null)
         {
             throw new ArgumentNullException(nameof(fileToContentTypeService));
@@ -63,7 +56,6 @@ internal class RazorContentTypeChangeListener : ITextBufferContentTypeListener
 
         _textDocumentFactory = textDocumentFactory;
         _lspEditorFeatureDetector = lspEditorFeatureDetector;
-        _editorOptionsFactory = editorOptionsFactory;
         _fileToContentTypeService = fileToContentTypeService;
     }
 
