@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Test;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -22,9 +21,9 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
     public async Task GetProjectAvailabilityText_NoProjects_ReturnsNull()
     {
         var projectManager = CreateProjectSnapshotManager();
-        var solutionQueryOperations = projectManager.GetQueryOperations();
+        var componentAvailabilityService = new TestComponentAvailabilityService(projectManager);
 
-        var availability = await solutionQueryOperations.GetProjectAvailabilityTextAsync("file.razor", "MyTagHelper", DisposalToken);
+        var availability = await componentAvailabilityService.GetProjectAvailabilityTextAsync("file.razor", "MyTagHelper", DisposalToken);
 
         Assert.Null(availability);
     }
@@ -60,9 +59,9 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
             updater.AddDocument(hostProject.Key, hostDocument, EmptyTextLoader.Instance);
         });
 
-        var solutionQueryOperations = projectManager.GetQueryOperations();
+        var componentAvailabilityService = new TestComponentAvailabilityService(projectManager);
 
-        var availability = await solutionQueryOperations.GetProjectAvailabilityTextAsync(hostDocument.FilePath, tagHelperTypeName, DisposalToken);
+        var availability = await componentAvailabilityService.GetProjectAvailabilityTextAsync(hostDocument.FilePath, tagHelperTypeName, DisposalToken);
 
         Assert.Null(availability);
     }
@@ -109,9 +108,9 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
             updater.AddDocument(hostProject2.Key, hostDocument, EmptyTextLoader.Instance);
         });
 
-        var solutionQueryOperations = projectManager.GetQueryOperations();
+        var componentAvailabilityService = new TestComponentAvailabilityService(projectManager);
 
-        var availability = await solutionQueryOperations.GetProjectAvailabilityTextAsync(hostDocument.FilePath, tagHelperTypeName, DisposalToken);
+        var availability = await componentAvailabilityService.GetProjectAvailabilityTextAsync(hostDocument.FilePath, tagHelperTypeName, DisposalToken);
 
         Assert.Null(availability);
     }
@@ -157,9 +156,9 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
             updater.AddDocument(hostProject2.Key, hostDocument, EmptyTextLoader.Instance);
         });
 
-        var solutionQueryOperations = projectManager.GetQueryOperations();
+        var componentAvailabilityService = new TestComponentAvailabilityService(projectManager);
 
-        var availability = await solutionQueryOperations.GetProjectAvailabilityTextAsync(hostDocument.FilePath, tagHelperTypeName, DisposalToken);
+        var availability = await componentAvailabilityService.GetProjectAvailabilityTextAsync(hostDocument.FilePath, tagHelperTypeName, DisposalToken);
 
         AssertEx.EqualOrDiff("""
 
@@ -201,9 +200,9 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
             updater.AddDocument(hostProject2.Key, hostDocument, EmptyTextLoader.Instance);
         });
 
-        var solutionQueryOperations = projectManager.GetQueryOperations();
+        var componentAvailabilityService = new TestComponentAvailabilityService(projectManager);
 
-        var availability = await solutionQueryOperations.GetProjectAvailabilityTextAsync(hostDocument.FilePath, "MyTagHelper", DisposalToken);
+        var availability = await componentAvailabilityService.GetProjectAvailabilityTextAsync(hostDocument.FilePath, "MyTagHelper", DisposalToken);
 
         AssertEx.EqualOrDiff("""
 
