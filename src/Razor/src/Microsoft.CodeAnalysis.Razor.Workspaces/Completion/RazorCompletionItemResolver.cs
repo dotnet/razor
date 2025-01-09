@@ -69,8 +69,7 @@ internal class RazorCompletionItemResolver : CompletionItemResolver
         {
             case RazorCompletionItemKind.Directive:
                 {
-                    var descriptionInfo = associatedRazorCompletion.GetDirectiveCompletionDescription();
-                    if (descriptionInfo is not null)
+                    if (associatedRazorCompletion.DescriptionInfo is DirectiveCompletionDescription descriptionInfo)
                     {
                         completionItem.Documentation = descriptionInfo.Description;
                     }
@@ -79,8 +78,7 @@ internal class RazorCompletionItemResolver : CompletionItemResolver
                 }
             case RazorCompletionItemKind.MarkupTransition:
                 {
-                    var descriptionInfo = associatedRazorCompletion.GetMarkupTransitionCompletionDescription();
-                    if (descriptionInfo is not null)
+                    if (associatedRazorCompletion.DescriptionInfo is MarkupTransitionCompletionDescription descriptionInfo)
                     {
                         completionItem.Documentation = descriptionInfo.Description;
                     }
@@ -91,8 +89,7 @@ internal class RazorCompletionItemResolver : CompletionItemResolver
             case RazorCompletionItemKind.DirectiveAttributeParameter:
             case RazorCompletionItemKind.TagHelperAttribute:
                 {
-                    var descriptionInfo = associatedRazorCompletion.GetAttributeCompletionDescription();
-                    if (descriptionInfo == null)
+                    if (associatedRazorCompletion.DescriptionInfo is not AggregateBoundAttributeDescription descriptionInfo)
                     {
                         break;
                     }
@@ -110,8 +107,7 @@ internal class RazorCompletionItemResolver : CompletionItemResolver
                 }
             case RazorCompletionItemKind.TagHelperElement:
                 {
-                    var descriptionInfo = associatedRazorCompletion.GetTagHelperElementDescriptionInfo();
-                    if (descriptionInfo == null)
+                    if (associatedRazorCompletion.DescriptionInfo is not AggregateBoundElementDescription descriptionInfo)
                     {
                         break;
                     }

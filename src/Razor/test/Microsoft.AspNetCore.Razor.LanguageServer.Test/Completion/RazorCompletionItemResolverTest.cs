@@ -68,8 +68,15 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     {
         // Arrange
         var resolver = new RazorCompletionItemResolver();
-        var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.Directive);
-        razorCompletionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription("Test directive"));
+        var descriptionText = "Test directive";
+        var razorCompletionItem = RazorCompletionItem.CreateDirective(
+            displayText: "TestItem",
+            insertText: "TestItem",
+            sortText: null,
+            descriptionInfo: new(descriptionText),
+            commitCharacters: [],
+            isSnippet: false);
+
         var completionList = CreateLSPCompletionList(razorCompletionItem);
         var completionItem = completionList.Items.Single() as VSInternalCompletionItem;
 
@@ -78,7 +85,7 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
             completionItem, completionList, CreateCompletionResolveContext(razorCompletionItem), _defaultClientCapability, _solutionQueryOperations, DisposalToken);
 
         // Assert
-        Assert.NotNull(resolvedCompletionItem.Documentation);
+        Assert.Equal(descriptionText, resolvedCompletionItem.Documentation);
     }
 
     [Fact]
@@ -86,8 +93,8 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     {
         // Arrange
         var resolver = new RazorCompletionItemResolver();
-        var razorCompletionItem = new RazorCompletionItem("@...", "@", RazorCompletionItemKind.MarkupTransition);
-        razorCompletionItem.SetMarkupTransitionCompletionDescription(new MarkupTransitionCompletionDescription("Test description"));
+        var descriptionText = "Test description";
+        var razorCompletionItem = RazorCompletionItem.CreateMarkupTransition("@...", "@", new(descriptionText), commitCharacters: []);
         var completionList = CreateLSPCompletionList(razorCompletionItem);
         var completionItem = completionList.Items.Single() as VSInternalCompletionItem;
 
@@ -96,7 +103,7 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
             completionItem, completionList, CreateCompletionResolveContext(razorCompletionItem), _defaultClientCapability, _solutionQueryOperations, DisposalToken);
 
         // Assert
-        Assert.NotNull(resolvedCompletionItem.Documentation);
+        Assert.Equal(descriptionText, resolvedCompletionItem.Documentation);
     }
 
     [Fact]
@@ -104,8 +111,11 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     {
         // Arrange
         var resolver = new RazorCompletionItemResolver();
-        var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.DirectiveAttribute);
-        razorCompletionItem.SetAttributeCompletionDescription(_attributeDescription);
+        var razorCompletionItem = RazorCompletionItem.CreateDirectiveAttribute(
+            displayText: "TestItem",
+            insertText: "TestItem",
+            _attributeDescription,
+            commitCharacters: []);
         var completionList = CreateLSPCompletionList(razorCompletionItem);
         var completionItem = completionList.Items.Single() as VSInternalCompletionItem;
 
@@ -122,8 +132,10 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     {
         // Arrange
         var resolver = new RazorCompletionItemResolver();
-        var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.DirectiveAttributeParameter);
-        razorCompletionItem.SetAttributeCompletionDescription(_attributeDescription);
+        var razorCompletionItem = RazorCompletionItem.CreateDirectiveAttributeParameter(
+            displayText: "TestItem",
+            insertText: "TestItem",
+            _attributeDescription);
         var completionList = CreateLSPCompletionList(razorCompletionItem);
         var completionItem = completionList.Items.Single() as VSInternalCompletionItem;
 
@@ -140,8 +152,11 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     {
         // Arrange
         var resolver = new RazorCompletionItemResolver();
-        var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.TagHelperElement);
-        razorCompletionItem.SetTagHelperElementDescriptionInfo(_elementDescription);
+        var razorCompletionItem = RazorCompletionItem.CreateTagHelperElement(
+            displayText: "TestItem",
+            insertText: "TestItem",
+            _elementDescription,
+            commitCharacters: []);
         var completionList = CreateLSPCompletionList(razorCompletionItem);
         var completionItem = completionList.Items.Single() as VSInternalCompletionItem;
 
@@ -158,8 +173,14 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     {
         // Arrange
         var resolver = new RazorCompletionItemResolver();
-        var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.TagHelperAttribute);
-        razorCompletionItem.SetAttributeCompletionDescription(_attributeDescription);
+        var razorCompletionItem = RazorCompletionItem.CreateTagHelperAttribute(
+            displayText: "TestItem",
+            insertText: "TestItem",
+            sortText: null,
+            _attributeDescription,
+            commitCharacters: [],
+            isSnippet: false);
+
         var completionList = CreateLSPCompletionList(razorCompletionItem);
         var completionItem = completionList.Items.Single() as VSInternalCompletionItem;
 
@@ -176,8 +197,10 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     {
         // Arrange
         var resolver = new RazorCompletionItemResolver();
-        var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.DirectiveAttribute);
-        razorCompletionItem.SetAttributeCompletionDescription(_attributeDescription);
+        var razorCompletionItem = RazorCompletionItem.CreateDirectiveAttribute(
+            displayText: "TestItem",
+            insertText: "TestItem", _attributeDescription,
+            commitCharacters: []);
         var completionList = CreateLSPCompletionList(razorCompletionItem);
         var completionItem = completionList.Items.Single() as VSInternalCompletionItem;
 
@@ -194,8 +217,10 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     {
         // Arrange
         var resolver = new RazorCompletionItemResolver();
-        var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.DirectiveAttributeParameter);
-        razorCompletionItem.SetAttributeCompletionDescription(_attributeDescription);
+        var razorCompletionItem = RazorCompletionItem.CreateDirectiveAttributeParameter(
+            displayText: "TestItem",
+            insertText: "TestItem",
+            _attributeDescription);
         var completionList = CreateLSPCompletionList(razorCompletionItem);
         var completionItem = completionList.Items.Single() as VSInternalCompletionItem;
 
@@ -212,8 +237,11 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     {
         // Arrange
         var resolver = new RazorCompletionItemResolver();
-        var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.TagHelperElement);
-        razorCompletionItem.SetTagHelperElementDescriptionInfo(_elementDescription);
+        var razorCompletionItem = RazorCompletionItem.CreateTagHelperElement(
+            displayText: "TestItem",
+            insertText: "TestItem",
+            _elementDescription,
+            commitCharacters: []);
         var completionList = CreateLSPCompletionList(razorCompletionItem);
         var completionItem = completionList.Items.Single() as VSInternalCompletionItem;
 
@@ -230,8 +258,14 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
     {
         // Arrange
         var resolver = new RazorCompletionItemResolver();
-        var razorCompletionItem = new RazorCompletionItem("TestItem", "TestItem", RazorCompletionItemKind.TagHelperAttribute);
-        razorCompletionItem.SetAttributeCompletionDescription(_attributeDescription);
+        var razorCompletionItem = RazorCompletionItem.CreateTagHelperAttribute(
+            displayText: "TestItem",
+            insertText: "TestItem",
+            sortText: null,
+            _attributeDescription,
+            commitCharacters: [],
+            isSnippet: false);
+
         var completionList = CreateLSPCompletionList(razorCompletionItem);
         var completionItem = completionList.Items.Single() as VSInternalCompletionItem;
 
