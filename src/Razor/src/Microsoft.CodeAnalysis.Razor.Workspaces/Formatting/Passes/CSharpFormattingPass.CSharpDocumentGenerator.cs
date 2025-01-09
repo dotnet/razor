@@ -594,7 +594,7 @@ internal partial class CSharpFormattingPass
 #if DEBUG
                 _builder.AppendLine($"// {_currentLine}");
 #else
-            _builder.AppendLine($"//");
+                _builder.AppendLine($"//");
 #endif
                 return CreateLineInfo();
             }
