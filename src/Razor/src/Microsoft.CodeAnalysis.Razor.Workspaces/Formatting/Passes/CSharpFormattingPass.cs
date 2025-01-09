@@ -27,9 +27,9 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
 
         // To format C# code we generate a C# document that represents the indentation semantics the user would be
         // expecting in their Razor file. See the doc comments on CSharpDocumentGenerator for more info
-        var generator = new CSharpDocumentGenerator(changedContext.CodeDocument, context.Options.InsertSpaces, context.Options.TabSize);
+        var generatedDocument = CSharpDocumentGenerator.Generate(changedContext.CodeDocument, context.Options);
 
-        var generatedCSharpText = generator.GetCSharpDocumentContents();
+        var generatedCSharpText = generatedDocument.SourceText;
         _logger.LogTestOnly($"Generated C# document:\r\n{generatedCSharpText}");
         var formattedCSharpText = await FormatCSharpAsync(generatedCSharpText, context.Options.ToIndentationOptions(), cancellationToken).ConfigureAwait(false);
         _logger.LogTestOnly($"Formatted generated C# document:\r\n{formattedCSharpText}");
@@ -46,7 +46,7 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
         var iFormatted = 0;
         for (var iOriginal = 0; iOriginal < changedText.Lines.Count; iOriginal++, iFormatted++)
         {
-            var lineInfo = generator.LineInfo[iOriginal];
+            var lineInfo = generatedDocument.LineInfo[iOriginal];
 
             var formattedLine = formattedCSharpText.Lines[iFormatted];
             if (lineInfo.ProcessIndentation &&
