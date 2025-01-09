@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
@@ -57,7 +58,8 @@ public class FormattingUtilitiesTest
     [InlineData("\t\t\t012345\r\n\t\t\t6789       ")]
     public void CountNonWhitespaceCharacters(string input)
     {
-        Assert.Equal(10, FormattingUtilities.CountNonWhitespaceChars(SourceText.From(input), 0, input.Length));
+        var text = SourceText.From(input);
+        Assert.Equal(10, FormattingUtilities.CountNonWhitespaceChars(text, 0, text.Lines[^1].End));
     }
 
     [Fact]

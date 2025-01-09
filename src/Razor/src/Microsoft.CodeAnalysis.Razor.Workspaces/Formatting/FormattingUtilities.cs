@@ -122,10 +122,16 @@ internal static class FormattingUtilities
         return AddIndentationToMethod(method, tabSize, insertSpaces, startingIndent);
     }
 
-    public static int CountNonWhitespaceChars(SourceText text, int start, int end)
+    /// <summary>
+    /// Counts the number of non-whitespace characters in a given span of text.
+    /// </summary>
+    /// <param name="text">The source text</param>
+    /// <param name="start">Inclusive position for where to start counting</param>
+    /// <param name="endExclusive">Exclusive for where to stop counting</param>
+    public static int CountNonWhitespaceChars(SourceText text, int start, int endExclusive)
     {
         var count = 0;
-        for (var i = start; i < end; i++)
+        for (var i = start; i < endExclusive; i++)
         {
             if (!char.IsWhiteSpace(text[i]))
             {
@@ -144,12 +150,12 @@ internal static class FormattingUtilities
         }
 
         // For spaces, the actual indentation needs to be divided by the tab size to get the level, and additional is the remainder
-        var indentation = firstNonWhitespaceCharacterPosition - line.Start;
+        var currentIndentationWidth = firstNonWhitespaceCharacterPosition - line.Start;
         if (insertSpaces)
         {
-            var indent = indentation / tabSize;
-            additionalIndentation = new string(' ', indentation % tabSize);
-            return indent;
+            var indentationLevel = currentIndentationWidth / tabSize;
+            additionalIndentation = new string(' ', currentIndentationWidth % tabSize);
+            return indentationLevel;
         }
 
         // For tabs, we just count the tabs, and additional is any spaces at the end.
