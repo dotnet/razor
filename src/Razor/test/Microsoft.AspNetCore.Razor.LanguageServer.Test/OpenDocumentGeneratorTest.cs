@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -40,7 +39,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
         {
             updater.AddProject(_hostProject1);
             updater.AddProject(_hostProject2);
-            updater.AddDocument(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(_hostProject1.Key, _documents[0], EmptyTextLoader.Instance);
             updater.OpenDocument(_hostProject1.Key, _documents[0].FilePath, SourceText.From(string.Empty));
         });
 
@@ -50,7 +49,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
         await projectManager.UpdateAsync(updater =>
         {
             updater.RemoveDocument(_hostProject1.Key, _documents[0].FilePath);
-            updater.AddDocument(_hostProject2.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(_hostProject2.Key, _documents[0], EmptyTextLoader.Instance);
         });
 
         // Assert
@@ -73,7 +72,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
             updater.AddProject(_hostProject2);
 
             // Act
-            updater.AddDocument(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(_hostProject1.Key, _documents[0], EmptyTextLoader.Instance);
         });
 
         // Assert
@@ -92,7 +91,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
         {
             updater.AddProject(_hostProject1);
             updater.AddProject(_hostProject2);
-            updater.AddDocument(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(_hostProject1.Key, _documents[0], EmptyTextLoader.Instance);
 
             // Act
             updater.UpdateDocumentText(_hostProject1.Key, _documents[0].FilePath, SourceText.From("new"));
@@ -114,7 +113,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
         {
             updater.AddProject(_hostProject1);
             updater.AddProject(_hostProject2);
-            updater.AddDocument(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(_hostProject1.Key, _documents[0], EmptyTextLoader.Instance);
             updater.OpenDocument(_hostProject1.Key, _documents[0].FilePath, SourceText.From(string.Empty));
 
             // Act
@@ -139,7 +138,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
         {
             updater.AddProject(_hostProject1);
             updater.AddProject(_hostProject2);
-            updater.AddDocument(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(_hostProject1.Key, _documents[0], EmptyTextLoader.Instance);
 
             // Act
             updater.UpdateProjectWorkspaceState(_hostProject1.Key,
@@ -162,7 +161,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
         {
             updater.AddProject(_hostProject1);
             updater.AddProject(_hostProject2);
-            updater.AddDocument(_hostProject1.Key, _documents[0], _documents[0].CreateEmptyTextLoader());
+            updater.AddDocument(_hostProject1.Key, _documents[0], EmptyTextLoader.Instance);
             updater.OpenDocument(_hostProject1.Key, _documents[0].FilePath, SourceText.From(string.Empty));
 
             // Act
@@ -176,7 +175,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
     }
 
     private OpenDocumentGenerator CreateOpenDocumentGenerator(
-        IProjectSnapshotManager projectManager,
+        ProjectSnapshotManager projectManager,
         params IDocumentProcessedListener[] listeners)
     {
         return new OpenDocumentGenerator(listeners, projectManager, TestLanguageServerFeatureOptions.Instance, LoggerFactory);
@@ -206,7 +205,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
             return _tcs.Task;
         }
 
-        public void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
+        public void DocumentProcessed(RazorCodeDocument codeDocument, DocumentSnapshot document)
         {
             _tcs.SetResult(document);
         }

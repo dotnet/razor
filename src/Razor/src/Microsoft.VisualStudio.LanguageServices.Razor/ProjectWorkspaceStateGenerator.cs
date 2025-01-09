@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Razor;
 [Export(typeof(IProjectWorkspaceStateGenerator))]
 [method: ImportingConstructor]
 internal sealed partial class ProjectWorkspaceStateGenerator(
-    IProjectSnapshotManager projectManager,
+    ProjectSnapshotManager projectManager,
     ITagHelperResolver tagHelperResolver,
     ILoggerFactory loggerFactory,
     ITelemetryReporter telemetryReporter)
@@ -29,7 +29,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
     // SemaphoreSlim is banned. See https://github.com/dotnet/razor/issues/10390 for more info.
 #pragma warning disable RS0030 // Do not use banned APIs
 
-    private readonly IProjectSnapshotManager _projectManager = projectManager;
+    private readonly ProjectSnapshotManager _projectManager = projectManager;
     private readonly ITagHelperResolver _tagHelperResolver = tagHelperResolver;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<ProjectWorkspaceStateGenerator>();
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
@@ -65,7 +65,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
         _blockBackgroundWorkStart?.Set();
     }
 
-    public void EnqueueUpdate(Project? workspaceProject, IProjectSnapshot projectSnapshot)
+    public void EnqueueUpdate(Project? workspaceProject, ProjectSnapshot projectSnapshot)
     {
         if (_disposed)
         {
@@ -113,7 +113,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
         }
     }
 
-    private async Task UpdateWorkspaceStateAsync(Project? workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
+    private async Task UpdateWorkspaceStateAsync(Project? workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
     {
         var projectKey = projectSnapshot.Key;
 
@@ -253,12 +253,12 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
     }
 
     /// <summary>
-    ///  Attempts to produce a <see cref="ProjectWorkspaceState"/> from the provide <see cref="Project"/> and <see cref="IProjectSnapshot"/>.
+    ///  Attempts to produce a <see cref="ProjectWorkspaceState"/> from the provide <see cref="Project"/> and <see cref="ProjectSnapshot"/>.
     ///  Returns <see langword="null"/> if an error is encountered.
     /// </summary>
     private async Task<ProjectWorkspaceState?> GetProjectWorkspaceStateAsync(
         Project? workspaceProject,
-        IProjectSnapshot projectSnapshot,
+        ProjectSnapshot projectSnapshot,
         CancellationToken cancellationToken)
     {
         // This is the simplest case. If we don't have a project (likely because it is being removed),
