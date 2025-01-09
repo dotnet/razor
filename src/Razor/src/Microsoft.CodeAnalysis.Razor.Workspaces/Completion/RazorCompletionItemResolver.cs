@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -20,7 +19,7 @@ internal class RazorCompletionItemResolver : CompletionItemResolver
         VSInternalCompletionList containingCompletionList,
         object? originalRequestContext,
         VSInternalClientCapabilities? clientCapabilities,
-        ISolutionQueryOperations solutionQueryOperations,
+        IComponentAvailabilityService componentAvailabilityService,
         CancellationToken cancellationToken)
     {
         if (originalRequestContext is not RazorCompletionResolveContext razorCompletionResolveContext)
@@ -52,6 +51,7 @@ internal class RazorCompletionItemResolver : CompletionItemResolver
             // do what previous version of the code did and return true.
             return true;
         });
+
         if (associatedRazorCompletion is null)
         {
             return null;
@@ -115,13 +115,13 @@ internal class RazorCompletionItemResolver : CompletionItemResolver
                     if (useDescriptionProperty)
                     {
                         tagHelperClassifiedTextTooltip = await ClassifiedTagHelperTooltipFactory
-                            .TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo, solutionQueryOperations, cancellationToken)
+                            .TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo, componentAvailabilityService, cancellationToken)
                             .ConfigureAwait(false);
                     }
                     else
                     {
                         tagHelperMarkupTooltip = await MarkupTagHelperTooltipFactory
-                            .TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo, solutionQueryOperations, documentationKind, cancellationToken)
+                            .TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo, componentAvailabilityService, documentationKind, cancellationToken)
                             .ConfigureAwait(false);
                     }
 
