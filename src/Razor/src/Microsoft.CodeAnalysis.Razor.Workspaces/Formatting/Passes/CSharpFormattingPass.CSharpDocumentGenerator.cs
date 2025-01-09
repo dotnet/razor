@@ -325,7 +325,7 @@ internal partial class CSharpFormattingPass
 #if DEBUG
                 _builder.AppendLine($"// {_currentLine}");
 #else
-            _builder.AppendLine($"//");
+                _builder.AppendLine($"//");
 #endif
                 return CreateLineInfo(
                     htmlIndentLevel: FormattingUtilities.GetIndentationLevel(_currentLine, _currentFirstNonWhitespacePosition, _insertSpaces, _tabSize, out var additionalIndentation),
