@@ -13,9 +13,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class CohostValidateBreakableRangeEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
+public class CohostValidateBreakableRangeEndpointTest(FuseTestContext context, ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper), IClassFixture<FuseTestContext>
 {
-    [Fact]
+    [FuseFact]
     public async Task Handle_CSharpInHtml_ValidBreakpoint()
     {
         var input = """
@@ -31,7 +31,7 @@ public class CohostValidateBreakableRangeEndpointTest(ITestOutputHelper testOutp
         await VerifyBreakableRangeAsync(input);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task Handle_CSharpInAttribute_ValidBreakpoint()
     {
         var input = """
@@ -47,7 +47,7 @@ public class CohostValidateBreakableRangeEndpointTest(ITestOutputHelper testOutp
         await VerifyBreakableRangeAsync(input);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task Handle_CSharp_ValidBreakpoint()
     {
         var input = """
@@ -61,7 +61,7 @@ public class CohostValidateBreakableRangeEndpointTest(ITestOutputHelper testOutp
         await VerifyBreakableRangeAsync(input);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task Handle_CSharp_InvalidBreakpointRemoved()
     {
         var input = """
@@ -75,7 +75,7 @@ public class CohostValidateBreakableRangeEndpointTest(ITestOutputHelper testOutp
         await VerifyBreakableRangeAsync(input);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task Handle_CSharp_ValidBreakpointMoved()
     {
         var input = """
@@ -90,7 +90,7 @@ public class CohostValidateBreakableRangeEndpointTest(ITestOutputHelper testOutp
         await VerifyBreakableRangeAsync(input);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task Handle_Html_BreakpointRemoved()
     {
         var input = """
@@ -106,6 +106,8 @@ public class CohostValidateBreakableRangeEndpointTest(ITestOutputHelper testOutp
 
     private async Task VerifyBreakableRangeAsync(TestCode input)
     {
+        UpdateClientInitializationOptions(c => c with { ForceRuntimeCodeGeneration = context.ForceRuntimeCodeGeneration });
+
         var document = await CreateProjectAndRazorDocumentAsync(input.Text);
         var inputText = await document.GetTextAsync(DisposalToken);
 
