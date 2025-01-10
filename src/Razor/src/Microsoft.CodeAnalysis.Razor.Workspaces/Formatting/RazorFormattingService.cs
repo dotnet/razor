@@ -38,6 +38,7 @@ internal class RazorFormattingService : IRazorFormattingService
     public RazorFormattingService(
         IDocumentMappingService documentMappingService,
         IHostServicesProvider hostServicesProvider,
+        LanguageServerFeatureOptions languageServerFeatureOptions,
         ILoggerFactory loggerFactory)
     {
         _htmlOnTypeFormattingPass = new HtmlOnTypeFormattingPass(loggerFactory);
@@ -47,13 +48,20 @@ internal class RazorFormattingService : IRazorFormattingService
             new FormattingDiagnosticValidationPass(loggerFactory),
             new FormattingContentValidationPass(loggerFactory)
         ];
-        _documentFormattingPasses =
-        [
-            new HtmlFormattingPass(loggerFactory),
-            new RazorFormattingPass(loggerFactory),
-            new CSharpFormattingPass(hostServicesProvider, loggerFactory),
-        .. _validationPasses
-        ];
+
+        _documentFormattingPasses = languageServerFeatureOptions.UseNewFormattingEngine
+            ? [
+                new New.HtmlFormattingPass(loggerFactory),
+                new RazorFormattingPass(languageServerFeatureOptions, loggerFactory),
+                new New.CSharpFormattingPass(hostServicesProvider, loggerFactory),
+                .. _validationPasses
+            ]
+            : [
+                new HtmlFormattingPass(loggerFactory),
+                new RazorFormattingPass(languageServerFeatureOptions, loggerFactory),
+                new CSharpFormattingPass(documentMappingService, hostServicesProvider, loggerFactory),
+                .. _validationPasses
+            ];
     }
 
     public async Task<ImmutableArray<TextChange>> GetDocumentFormattingChangesAsync(
@@ -106,7 +114,7 @@ internal class RazorFormattingService : IRazorFormattingService
 
         var filteredChanges = range is not { } linePositionSpan
             ? result
-            : [.. result.Where(e => linePositionSpan.LineOverlapsWith(sourceText.GetLinePositionSpan(e.Span)))];
+            : result.Where(e => linePositionSpan.LineOverlapsWith(sourceText.GetLinePositionSpan(e.Span))).ToImmutableArray();
 
         var normalizedChanges = NormalizeLineEndings(originalText, filteredChanges);
         return originalText.MinimizeTextChanges(normalizedChanges);
@@ -198,7 +206,7 @@ internal class RazorFormattingService : IRazorFormattingService
         };
     }
 
-    private static async Task<ImmutableArray<TextChange>> ApplyFormattedChangesAsync(
+    private async Task<ImmutableArray<TextChange>> ApplyFormattedChangesAsync(
         IDocumentSnapshot documentSnapshot,
         ImmutableArray<TextChange> generatedDocumentChanges,
         RazorFormattingOptions options,

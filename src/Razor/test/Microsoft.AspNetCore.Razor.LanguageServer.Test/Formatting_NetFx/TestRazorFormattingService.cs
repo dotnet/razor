@@ -22,7 +22,8 @@ internal static class TestRazorFormattingService
     {
         codeDocument ??= TestRazorCodeDocument.CreateEmpty();
 
-        var filePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
+        var languageServerFeatureOptions = TestLanguageServerFeatureOptions.Instance;
+        var filePathService = new LSPFilePathService(languageServerFeatureOptions);
         var mappingService = new LspDocumentMappingService(filePathService, new TestDocumentContextFactory(), loggerFactory);
 
         var configurationSyncService = new Mock<IConfigurationSyncService>(MockBehavior.Strict);
@@ -40,6 +41,6 @@ internal static class TestRazorFormattingService
 
         var hostServicesProvider = new DefaultHostServicesProvider();
 
-        return new RazorFormattingService(mappingService, hostServicesProvider, loggerFactory);
+        return new RazorFormattingService(mappingService, hostServicesProvider, languageServerFeatureOptions, loggerFactory);
     }
 }

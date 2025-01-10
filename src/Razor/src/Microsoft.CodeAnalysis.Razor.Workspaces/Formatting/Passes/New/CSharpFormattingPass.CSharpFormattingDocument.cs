@@ -4,7 +4,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.Formatting;
+namespace Microsoft.CodeAnalysis.Razor.Formatting.New;
 
 internal partial class CSharpFormattingPass
 {
