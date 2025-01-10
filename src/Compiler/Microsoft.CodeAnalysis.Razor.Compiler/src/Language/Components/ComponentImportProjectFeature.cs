@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,6 +20,28 @@ internal sealed class ComponentImportProjectFeature : RazorProjectEngineFeatureB
         "@using global::System.Threading.Tasks\r\n" +
         "@using global::" + ComponentsApi.RenderFragment.Namespace + "\r\n"; // Microsoft.AspNetCore.Components
 
+    private static byte[]? s_contentBytes;
+
+    private static byte[] ContentBytes
+    {
+        get
+        {
+            return s_contentBytes ?? InterlockedOperations.Initialize(ref s_contentBytes, ComputeContentBytes());
+
+            static byte[] ComputeContentBytes()
+            {
+                var preamble = Encoding.UTF8.GetPreamble();
+                var contentBytes = Encoding.UTF8.GetBytes(DefaultUsingImportContent);
+
+                var bytes = new byte[preamble.Length + contentBytes.Length];
+                preamble.CopyTo(bytes, 0);
+                contentBytes.CopyTo(bytes, preamble.Length);
+
+                return bytes;
+            }
+        }
+    }
+
     public IReadOnlyList<RazorProjectItem> GetImports(RazorProjectItem projectItem)
     {
         ArgHelper.ThrowIfNull(projectItem);
@@ -34,7 +54,7 @@ internal sealed class ComponentImportProjectFeature : RazorProjectEngineFeatureB
 
         var imports = new List<RazorProjectItem>()
         {
-            new VirtualProjectItem(DefaultUsingImportContent),
+            ComponentImportProjectItem.Instance,
         };
 
         // We add hierarchical imports second so any default directive imports can be overridden.
@@ -49,19 +69,15 @@ internal sealed class ComponentImportProjectFeature : RazorProjectEngineFeatureB
         return fileSystem.FindHierarchicalItems(projectItem.FilePath, ComponentMetadata.ImportsFileName).Reverse();
     }
 
-    private sealed class VirtualProjectItem : RazorProjectItem
+    private sealed class ComponentImportProjectItem : RazorProjectItem
     {
-        private readonly byte[] _bytes;
+        public static readonly ComponentImportProjectItem Instance = new();
 
-        public VirtualProjectItem(string content)
+        private ComponentImportProjectItem()
         {
-            var preamble = Encoding.UTF8.GetPreamble();
-            var contentBytes = Encoding.UTF8.GetBytes(content);
-
-            _bytes = new byte[preamble.Length + contentBytes.Length];
-            preamble.CopyTo(_bytes, 0);
-            contentBytes.CopyTo(_bytes, preamble.Length);
         }
+
+#nullable disable
 
         public override string BasePath => null;
 
@@ -69,10 +85,12 @@ internal sealed class ComponentImportProjectFeature : RazorProjectEngineFeatureB
 
         public override string PhysicalPath => null;
 
+#nullable enable
+
         public override bool Exists => true;
 
         public override string FileKind => FileKinds.ComponentImport;
 
-        public override Stream Read() => new MemoryStream(_bytes);
+        public override Stream Read() => new MemoryStream(ContentBytes, writable: false);
     }
 }
