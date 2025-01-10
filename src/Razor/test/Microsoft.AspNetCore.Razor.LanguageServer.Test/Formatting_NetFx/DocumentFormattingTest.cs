@@ -18,6 +18,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
     : FormattingTestBase(context, fixture.Service, testOutput), IClassFixture<FormattingTestContext>
 {
+    private readonly bool _useNewFormattingEngine = context.UseNewFormattingEngine;
+
     [FormattingTestFact]
     public async Task EmptyDocument()
     {
@@ -2080,7 +2082,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             fileKind: FileKinds.Component);
     }
 
-    [FormattingTestFact]
+    [FormattingTestFact(SkipFlipLineEndingInOldEngine = true)]
     [WorkItem("https://github.com/dotnet/razor/issues/6001")]
     public async Task FormatNestedCascadingValue2()
     {
@@ -2198,7 +2200,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             fileKind: FileKinds.Component);
     }
 
-    [FormattingTestFact]
+    [FormattingTestFact(SkipFlipLineEndingInOldEngine = true)]
     [WorkItem("https://github.com/dotnet/razor/issues/6001")]
     public async Task FormatNestedCascadingValue4()
     {
@@ -2250,7 +2252,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             fileKind: FileKinds.Component);
     }
 
-    [FormattingTestFact]
+    [FormattingTestFact(SkipFlipLineEndingInOldEngine = true)]
     [WorkItem("https://github.com/dotnet/razor/issues/6001")]
     public async Task FormatNestedCascadingValue5()
     {
@@ -2596,7 +2598,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             fileKind: FileKinds.Component);
     }
 
-    [FormattingTestFact]
+    [FormattingTestFact(SkipOldFormattingEngine = true)]
     public async Task FormatEventHandlerAttributes()
     {
         await RunFormattingTestAsync(
@@ -2635,7 +2637,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             fileKind: FileKinds.Component);
     }
 
-    [FormattingTestFact]
+    [FormattingTestFact(SkipOldFormattingEngine = true)]
     public async Task FormatEventCallbackAttributes()
     {
         await RunFormattingTestAsync(
@@ -2678,7 +2680,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             fileKind: FileKinds.Component);
     }
 
-    [FormattingTestFact]
+    [FormattingTestFact(SkipOldFormattingEngine = true)]
     public async Task FormatBindAttributes()
     {
         await RunFormattingTestAsync(
@@ -3218,7 +3220,8 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         </div>
                     </section>
                     """,
-            expected: """
+            expected: _useNewFormattingEngine
+                ? """
                     @page
                     @model BlazorApp58.Pages.Index2Model
                     @{
@@ -3234,6 +3237,28 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         <div class="container">
                     @foreach (var item in Model.Images)
                     {
+                                <div>
+                                    <div>
+                                        }
+                                    </div>
+                        </section>
+                    """
+                : """
+                    @page
+                    @model BlazorApp58.Pages.Index2Model
+                    @{
+                    }
+
+                    <section class="section">
+                        <div class="container">
+                            <h1 class="title">Managed pohotos</h1>
+                            <p class="subtitle">@Model.ReferenceNumber</p>
+                        </div>
+                    </section>
+                    <section class="section">
+                        <div class="container">
+                            @foreach (var item in Model.Images)
+                            {
                                 <div>
                                     <div>
                                         }
@@ -4532,7 +4557,8 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             };
                     }
                     """,
-            expected: """
+            expected: _useNewFormattingEngine
+                ? """
                     @code {
                         private object _x = new()
                         {
@@ -4548,6 +4574,24 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                                     "There"
                                 },
                         };
+                    }
+                    """
+                : """
+                    @code {
+                        private object _x = new()
+                            {
+                                Name = "One",
+                                Goo = new
+                                {
+                                    First = 1,
+                                    Second = 2
+                                },
+                                Bar = new string[]
+                                {
+                                    "Hello",
+                                    "There"
+                                },
+                            };
                     }
                     """);
     }
@@ -4655,7 +4699,8 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
-            expected: """
+            expected: _useNewFormattingEngine
+                ? """
                     <p></p>
                     
                     @code {
@@ -4680,6 +4725,34 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                                 Data = Model.WorkOrders,
                                 Title = "Work Orders"
                             };
+                        }
+                    }
+                    """
+                : """
+                    <p></p>
+                    
+                    @code {
+                        private void M()
+                        {
+                            var entries = new string[]
+                            {
+                                "a",
+                                "b",
+                                "c"
+                            };
+                    
+                            object gridOptions = new()
+                                {
+                                    Columns = new GridColumn<WorkOrderModel>[]
+                                {
+                                    new TextColumn<WorkOrderModel>(e => e.Name) { Label = "Work Order #" },
+                                    new TextColumn<WorkOrderModel>(e => e.PartNumber) { Label = "Part #" },
+                                    new TextColumn<WorkOrderModel>(e => e.Lot) { Label = "Lot #" },
+                                            new DateTimeColumn<WorkOrderModel>(e => e.TargetStartOn) { Label = "Target Start" },
+                                },
+                                    Data = Model.WorkOrders,
+                                    Title = "Work Orders"
+                                };
                         }
                     }
                     """);
@@ -4794,7 +4867,8 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
-            expected: """
+            expected: _useNewFormattingEngine
+                ? """
                     @code {
                         private void M()
                         {
@@ -4803,6 +4877,18 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                                 First = 1,
                                 Second = 2
                             };
+                        }
+                    }
+                    """
+                : """
+                    @code {
+                        private void M()
+                        {
+                            object entries = new()
+                                {
+                                    First = 1,
+                                    Second = 2
+                                };
                         }
                     }
                     """);
