@@ -32,8 +32,8 @@ public abstract class RazorProjectFileSystem
     /// </summary>
     /// <param name="path">The path.</param>
     /// <returns>The <see cref="RazorProjectItem"/>.</returns>
-
-    public abstract RazorProjectItem GetItem(string path);
+    public RazorProjectItem GetItem(string path)
+        => GetItem(path, fileKind: null);
 
     /// <summary>
     /// Gets a <see cref="RazorProjectItem"/> for the specified path.

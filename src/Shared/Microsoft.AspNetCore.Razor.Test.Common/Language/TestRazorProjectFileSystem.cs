@@ -30,12 +30,6 @@ internal class TestRazorProjectFileSystem : DefaultRazorProjectFileSystem
         throw new NotImplementedException();
     }
 
-
-    public override RazorProjectItem GetItem(string path)
-    {
-        return GetItem(path, fileKind: null);
-    }
-
     public override RazorProjectItem GetItem(string path, string fileKind)
     {
         if (!_lookup.TryGetValue(path, out var value))

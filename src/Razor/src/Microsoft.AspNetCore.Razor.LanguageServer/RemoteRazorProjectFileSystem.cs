@@ -29,11 +29,6 @@ internal class RemoteRazorProjectFileSystem : RazorProjectFileSystem
         throw new NotImplementedException();
     }
 
-    public override RazorProjectItem GetItem(string path)
-    {
-        return GetItem(path, fileKind: null);
-    }
-
     public override RazorProjectItem GetItem(string path, string? fileKind)
     {
         if (path is null)

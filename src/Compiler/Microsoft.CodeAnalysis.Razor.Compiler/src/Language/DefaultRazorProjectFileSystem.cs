@@ -63,12 +63,6 @@ internal class DefaultRazorProjectFileSystem : RazorProjectFileSystem
         return new DefaultRazorProjectItem("/", filePath, relativePhysicalPath, fileKind, new FileInfo(absolutePath), cssScope: null);
     }
 
-
-    public override RazorProjectItem GetItem(string path)
-    {
-        return GetItem(path, fileKind: null);
-    }
-
     protected override string NormalizeAndEnsureValidPath(string path)
     {
         if (string.IsNullOrEmpty(path))
