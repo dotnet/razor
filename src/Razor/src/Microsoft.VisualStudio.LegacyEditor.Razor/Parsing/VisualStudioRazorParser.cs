@@ -592,7 +592,7 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
         }
     }
 
-    private class VisualStudioTagHelperFeature : ITagHelperFeature
+    private class VisualStudioTagHelperFeature : RazorEngineFeatureBase, ITagHelperFeature
     {
         private readonly IReadOnlyList<TagHelperDescriptor>? _tagHelpers;
 
@@ -600,8 +600,6 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
         {
             _tagHelpers = tagHelpers;
         }
-
-        public RazorEngine? Engine { get; set; }
 
         public IReadOnlyList<TagHelperDescriptor>? GetDescriptors()
         {

@@ -455,6 +455,12 @@ internal static class RazorSyntaxNodeExtensions
         var startPositionSpan = GetLinePositionSpan(firstToken, source, node.SpanStart);
         var endPositionSpan = GetLinePositionSpan(lastToken, source, node.SpanStart);
 
+        if (endPositionSpan.End < startPositionSpan.Start)
+        {
+            linePositionSpan = default;
+            return false;
+        }
+
         linePositionSpan = new LinePositionSpan(startPositionSpan.Start, endPositionSpan.End);
         return true;
 

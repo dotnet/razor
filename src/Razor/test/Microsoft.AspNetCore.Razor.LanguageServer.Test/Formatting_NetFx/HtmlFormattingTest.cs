@@ -440,6 +440,46 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
         }
     }
 
+    [FormattingTestFact]
+    public async Task PreprocessorDirectives()
+    {
+        await RunFormattingTestAsync(
+            input: """
+            <div Model="SomeModel">
+            <div />
+            @{
+            #if DEBUG
+            }
+             <div />
+            @{
+            #endif
+            }
+            </div>
+
+            @code {
+                private object SomeModel {get;set;}
+            }
+            """,
+            expected: """
+            <div Model="SomeModel">
+                <div />
+                @{
+            #if DEBUG
+                    }
+                    <div />
+                    @{
+            #endif
+
+                }
+            </div>
+
+            @code {
+                private object SomeModel { get; set; }
+            }
+            """,
+            allowDiagnostics: true);
+    }
+
     private ImmutableArray<TagHelperDescriptor> GetComponents()
     {
         AdditionalSyntaxTrees.Add(Parse("""

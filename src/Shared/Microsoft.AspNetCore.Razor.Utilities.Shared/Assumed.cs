@@ -8,27 +8,38 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.AspNetCore.Razor;
 
-internal static class Assumed
+internal static partial class Assumed
 {
-    [DebuggerStepThrough]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void NonNull<T>(
-        [NotNull] this T value,
+    public static void NotNull<T>(
+        [NotNull] this T? value,
+        string? message = null,
         [CallerArgumentExpression(nameof(value))] string? valueExpression = null,
         [CallerFilePath] string? path = null,
         [CallerLineNumber] int line = 0)
-        where T : class?
+        where T : class
     {
         if (value is null)
         {
-            ThrowInvalidOperation($"Expected '{valueExpression}' to be non-null.", path, line);
+            ThrowInvalidOperation(message ?? SR.FormatExpected_0_to_be_non_null(valueExpression), path, line);
         }
     }
 
-    [DebuggerStepThrough]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void NonNull<T>(
+    public static void NotNull<T>(
         [NotNull] this T? value,
+        [InterpolatedStringHandlerArgument(nameof(value))] ThrowIfNullInterpolatedStringHandler<T> message,
+        [CallerFilePath] string? path = null,
+        [CallerLineNumber] int line = 0)
+        where T : class
+    {
+        if (value is null)
+        {
+            ThrowInvalidOperation(message.GetFormattedText(), path, line);
+        }
+    }
+
+    public static void NotNull<T>(
+        [NotNull] this T? value,
+        string? message = null,
         [CallerArgumentExpression(nameof(value))] string? valueExpression = null,
         [CallerFilePath] string? path = null,
         [CallerLineNumber] int line = 0)
@@ -36,12 +47,23 @@ internal static class Assumed
     {
         if (value is null)
         {
-            ThrowInvalidOperation($"Expected '{valueExpression}' to be non-null.", path, line);
+            ThrowInvalidOperation(message ?? SR.FormatExpected_0_to_be_non_null(valueExpression), path, line);
         }
     }
 
-    [DebuggerStepThrough]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void NotNull<T>(
+        [NotNull] this T? value,
+        [InterpolatedStringHandlerArgument(nameof(value))] ThrowIfNullInterpolatedStringHandler<T> message,
+        [CallerFilePath] string? path = null,
+        [CallerLineNumber] int line = 0)
+        where T : struct
+    {
+        if (value is null)
+        {
+            ThrowInvalidOperation(message.GetFormattedText(), path, line);
+        }
+    }
+
     public static void False(
         [DoesNotReturnIf(true)] bool condition,
         string? message = null,
@@ -51,6 +73,18 @@ internal static class Assumed
         if (condition)
         {
             ThrowInvalidOperation(message ?? SR.Expected_condition_to_be_false, path, line);
+        }
+    }
+
+    public static void False(
+        [DoesNotReturnIf(true)] bool condition,
+        [InterpolatedStringHandlerArgument(nameof(condition))] ThrowIfFalseInterpolatedStringHandler message,
+        [CallerFilePath] string? path = null,
+        [CallerLineNumber] int line = 0)
+    {
+        if (condition)
+        {
+            ThrowInvalidOperation(message.GetFormattedText(), path, line);
         }
     }
 
@@ -73,32 +107,44 @@ internal static class Assumed
     /// </summary>
     /// <exception cref="InvalidOperationException"/>
     [DoesNotReturn]
-    public static void Unreachable([CallerFilePath] string? path = null, [CallerLineNumber] int line = 0)
-        => ThrowInvalidOperation(SR.This_program_location_is_thought_to_be_unreachable, path, line);
+    public static void Unreachable(
+        string? message = null,
+        [CallerFilePath] string? path = null,
+        [CallerLineNumber] int line = 0)
+        => ThrowInvalidOperation(message ?? SR.This_program_location_is_thought_to_be_unreachable, path, line);
 
     /// <summary>
     ///  Can be called at points that are assumed to be unreachable at runtime.
     /// </summary>
     /// <exception cref="InvalidOperationException"/>
     [DoesNotReturn]
-    public static void Unreachable(string message, [CallerFilePath] string? path = null, [CallerLineNumber] int line = 0)
-        => ThrowInvalidOperation(message, path, line);
+    public static void Unreachable(
+        UnreachableInterpolatedStringHandler message,
+        [CallerFilePath] string? path = null,
+        [CallerLineNumber] int line = 0)
+        => ThrowInvalidOperation(message.GetFormattedText(), path, line);
 
     /// <summary>
     ///  Can be called at points that are assumed to be unreachable at runtime.
     /// </summary>
     /// <exception cref="InvalidOperationException"/>
     [DoesNotReturn]
-    public static T Unreachable<T>([CallerFilePath] string? path = null, [CallerLineNumber] int line = 0)
-        => ThrowInvalidOperation<T>(SR.This_program_location_is_thought_to_be_unreachable, path, line);
+    public static T Unreachable<T>(
+        string? message = null,
+        [CallerFilePath] string? path = null,
+        [CallerLineNumber] int line = 0)
+        => ThrowInvalidOperation<T>(message ?? SR.This_program_location_is_thought_to_be_unreachable, path, line);
 
     /// <summary>
     ///  Can be called at points that are assumed to be unreachable at runtime.
     /// </summary>
     /// <exception cref="InvalidOperationException"/>
     [DoesNotReturn]
-    public static T Unreachable<T>(string message, [CallerFilePath] string? path = null, [CallerLineNumber] int line = 0)
-        => ThrowInvalidOperation<T>(message, path, line);
+    public static T Unreachable<T>(
+        UnreachableInterpolatedStringHandler message,
+        [CallerFilePath] string? path = null,
+        [CallerLineNumber] int line = 0)
+        => ThrowInvalidOperation<T>(message.GetFormattedText(), path, line);
 
     [DebuggerHidden]
     [DoesNotReturn]

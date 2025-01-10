@@ -100,13 +100,8 @@ internal sealed class ImportDocumentManager(IFileChangeTrackerFactory fileChange
         var documentSnapshot = projectSnapshot.GetDocument(filePath);
         var projectItem = projectEngine.FileSystem.GetItem(filePath, documentSnapshot?.FileKind);
 
-        foreach (var projectFeature in projectEngine.ProjectFeatures)
+        foreach (var importFeature in projectEngine.GetFeatures<IImportProjectFeature>())
         {
-            if (projectFeature is not IImportProjectFeature importFeature)
-            {
-                continue;
-            }
-
             foreach (var importItem in importFeature.GetImports(projectItem))
             {
                 if (importItem.PhysicalPath is null)

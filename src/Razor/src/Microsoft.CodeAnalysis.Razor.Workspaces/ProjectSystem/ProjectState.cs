@@ -455,12 +455,9 @@ internal sealed class ProjectState
         RazorProjectEngine projectEngine,
         ref PooledArrayBuilder<RazorProjectItem> importProjectItems)
     {
-        foreach (var projectFeature in projectEngine.ProjectFeatures)
+        foreach (var importProjectFeature in projectEngine.GetFeatures<IImportProjectFeature>())
         {
-            if (projectFeature is IImportProjectFeature importProjectFeature)
-            {
-                importProjectItems.AddRange(importProjectFeature.GetImports(projectItem));
-            }
+            importProjectItems.AddRange(importProjectFeature.GetImports(projectItem));
         }
     }
 

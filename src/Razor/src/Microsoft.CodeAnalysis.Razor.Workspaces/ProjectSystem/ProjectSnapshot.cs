@@ -143,7 +143,7 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot, IL
 
         using var importProjectItems = new PooledArrayBuilder<RazorProjectItem>();
 
-        foreach (var feature in projectEngine.ProjectFeatures.OfType<IImportProjectFeature>())
+        foreach (var feature in projectEngine.GetFeatures<IImportProjectFeature>())
         {
             if (feature.GetImports(projectItem) is { } featureImports)
             {

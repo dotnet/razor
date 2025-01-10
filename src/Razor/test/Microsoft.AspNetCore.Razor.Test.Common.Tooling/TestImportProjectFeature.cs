@@ -10,8 +10,6 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 
 public class TestImportProjectFeature : RazorProjectEngineFeatureBase, IImportProjectFeature
 {
-    public static IImportProjectFeature Instance { get; } = new TestImportProjectFeature();
-
     public IReadOnlyList<RazorProjectItem> GetImports(RazorProjectItem projectItem)
     {
         ArgHelper.ThrowIfNull(projectItem);

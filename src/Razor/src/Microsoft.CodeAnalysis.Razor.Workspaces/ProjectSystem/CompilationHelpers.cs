@@ -35,7 +35,7 @@ internal static class CompilationHelpers
         var source = await ImportHelpers.GetSourceAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);
 
         var generator = new CodeDocumentGenerator(projectEngine, compilerOptions);
-        return generator.Generate(source, document.FileKind, importSources, tagHelpers);
+        return generator.Generate(source, document.FileKind, importSources, tagHelpers, cancellationToken);
     }
 
     internal static async Task<RazorCodeDocument> GenerateDesignTimeCodeDocumentAsync(
@@ -49,7 +49,7 @@ internal static class CompilationHelpers
         var source = await ImportHelpers.GetSourceAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);
 
         var generator = new CodeDocumentGenerator(projectEngine, RazorCompilerOptions.None);
-        return generator.GenerateDesignTime(source, document.FileKind, importSources, tagHelpers);
+        return generator.GenerateDesignTime(source, document.FileKind, importSources, tagHelpers, cancellationToken);
     }
 
     internal static async Task<RazorCodeDocument> GenerateDesignTimeCodeDocumentAsync(
@@ -63,6 +63,6 @@ internal static class CompilationHelpers
         var source = await ImportHelpers.GetSourceAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);
 
         var generator = new CodeDocumentGenerator(projectEngine, RazorCompilerOptions.None);
-        return generator.GenerateDesignTime(source, document.FileKind, importSources, tagHelpers);
+        return generator.GenerateDesignTime(source, document.FileKind, importSources, tagHelpers, cancellationToken);
     }
 }
