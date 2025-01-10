@@ -24,16 +24,25 @@ public class RazorProjectFileSystemTest
         Assert.Equal("/Views/Home/Index.cshtml", path);
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    public void NormalizeAndEnsureValidPath_ThrowsIfPathIsNullOrEmpty(string? path)
+    [Fact]
+    public void NormalizeAndEnsureValidPath_ThrowsIfPathIsNull()
     {
         // Arrange
         var project = new TestRazorProjectFileSystem();
 
         // Act and Assert
-        var ex = Assert.Throws<ArgumentException>(() => project.NormalizeAndEnsureValidPath(path!));
+        var ex = Assert.Throws<ArgumentNullException>(() => project.NormalizeAndEnsureValidPath(null!));
+        Assert.Equal("path", ex.ParamName);
+    }
+
+    [Fact]
+    public void NormalizeAndEnsureValidPath_ThrowsIfPathIsEmpty()
+    {
+        // Arrange
+        var project = new TestRazorProjectFileSystem();
+
+        // Act and Assert
+        var ex = Assert.Throws<ArgumentException>(() => project.NormalizeAndEnsureValidPath(""));
         Assert.Equal("path", ex.ParamName);
     }
 

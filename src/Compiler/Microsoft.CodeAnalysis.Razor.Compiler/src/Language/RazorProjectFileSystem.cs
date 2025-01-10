@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -41,7 +39,7 @@ public abstract class RazorProjectFileSystem
     /// <param name="path">The path.</param>
     /// <param name="fileKind">The file kind</param>
     /// <returns>The <see cref="RazorProjectItem"/>.</returns>
-    public abstract RazorProjectItem GetItem(string path, string fileKind);
+    public abstract RazorProjectItem GetItem(string path, string? fileKind);
 
     /// <summary>
     /// Gets the sequence of files named <paramref name="fileName"/> that are applicable to the specified path.
@@ -59,7 +57,7 @@ public abstract class RazorProjectFileSystem
     /// </remarks>
     public IEnumerable<RazorProjectItem> FindHierarchicalItems(string path, string fileName)
     {
-        return FindHierarchicalItems(basePath: "/", path: path, fileName: fileName);
+        return FindHierarchicalItems(basePath: "/", path, fileName);
     }
 
     /// <summary>
@@ -79,14 +77,13 @@ public abstract class RazorProjectFileSystem
     /// </remarks>
     public virtual IEnumerable<RazorProjectItem> FindHierarchicalItems(string basePath, string path, string fileName)
     {
+        ArgHelper.ThrowIfNullOrEmpty(fileName);
+
         basePath = NormalizeAndEnsureValidPath(basePath);
         path = NormalizeAndEnsureValidPath(path);
-        if (string.IsNullOrEmpty(fileName))
-        {
-            throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(fileName));
-        }
 
         Debug.Assert(!string.IsNullOrEmpty(path));
+
         if (path.Length == 1)
         {
             yield break;
@@ -136,14 +133,11 @@ public abstract class RazorProjectFileSystem
     /// <param name="path">The path to validate.</param>
     protected virtual string NormalizeAndEnsureValidPath(string path)
     {
-        if (string.IsNullOrEmpty(path))
-        {
-            throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(path));
-        }
+        ArgHelper.ThrowIfNullOrEmpty(path);
 
         if (path[0] != '/')
         {
-            throw new ArgumentException(Resources.RazorProject_PathMustStartWithForwardSlash, nameof(path));
+            throw new ArgumentException(Resources.RazorProjectFileSystem_PathMustStartWithForwardSlash, nameof(path));
         }
 
         return path;
@@ -156,10 +150,7 @@ public abstract class RazorProjectFileSystem
     /// <returns>A <see cref="RazorProjectFileSystem"/></returns>
     public static RazorProjectFileSystem Create(string rootDirectoryPath)
     {
-        if (string.IsNullOrEmpty(rootDirectoryPath))
-        {
-            throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(rootDirectoryPath));
-        }
+        ArgHelper.ThrowIfNullOrEmpty(rootDirectoryPath);
 
         return new DefaultRazorProjectFileSystem(rootDirectoryPath);
     }
