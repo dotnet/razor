@@ -1,22 +1,21 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Moq;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public class RazorProjectTest
+public class RazorProjectFileSystemTest
 {
     [Fact]
     public void NormalizeAndEnsureValidPath_DoesNotModifyPath()
     {
         // Arrange
-        var project = new TestRazorProject();
+        var project = new TestRazorProjectFileSystem();
 
         // Act
         var path = project.NormalizeAndEnsureValidPath("/Views/Home/Index.cshtml");
@@ -28,13 +27,13 @@ public class RazorProjectTest
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    public void NormalizeAndEnsureValidPath_ThrowsIfPathIsNullOrEmpty(string path)
+    public void NormalizeAndEnsureValidPath_ThrowsIfPathIsNullOrEmpty(string? path)
     {
         // Arrange
-        var project = new TestRazorProject();
+        var project = new TestRazorProjectFileSystem();
 
         // Act and Assert
-        var ex = Assert.Throws<ArgumentException>(() => project.NormalizeAndEnsureValidPath(path));
+        var ex = Assert.Throws<ArgumentException>(() => project.NormalizeAndEnsureValidPath(path!));
         Assert.Equal("path", ex.ParamName);
     }
 
@@ -45,7 +44,7 @@ public class RazorProjectTest
     public void NormalizeAndEnsureValidPath_ThrowsIfPathDoesNotStartWithForwardSlash(string path)
     {
         // Arrange
-        var project = new TestRazorProject();
+        var project = new TestRazorProjectFileSystem();
 
         // Act and Assert
         var ex = Assert.Throws<ArgumentException>(() => project.NormalizeAndEnsureValidPath(path));
@@ -56,7 +55,7 @@ public class RazorProjectTest
     public void FindHierarchicalItems_ReturnsEmptySequenceIfPathIsAtRoot()
     {
         // Arrange
-        var project = new TestRazorProject();
+        var project = new TestRazorProjectFileSystem();
 
         // Act
         var result = project.FindHierarchicalItems("/", "File.cshtml");
@@ -72,13 +71,10 @@ public class RazorProjectTest
     {
         // Arrange
         var path = "/Views/Home/Index.cshtml";
-        var items = new List<RazorProjectItem>
-            {
-                CreateProjectItem($"/{fileName}"),
-                CreateProjectItem($"/Views/{fileName}"),
-                CreateProjectItem($"/Views/Home/{fileName}")
-            };
-        var project = new TestRazorProject(items);
+        var project = new TestRazorProjectFileSystem(
+            CreateProjectItem($"/{fileName}"),
+            CreateProjectItem($"/Views/{fileName}"),
+            CreateProjectItem($"/Views/Home/{fileName}"));
 
         // Act
         var result = project.FindHierarchicalItems(path, $"{fileName}");
@@ -96,11 +92,8 @@ public class RazorProjectTest
     {
         // Arrange
         var path = "/Index.cshtml";
-        var items = new List<RazorProjectItem>
-            {
-                CreateProjectItem("/File.cshtml")
-            };
-        var project = new TestRazorProject(items);
+        var project = new TestRazorProjectFileSystem(
+            CreateProjectItem("/File.cshtml"));
 
         // Act
         var result = project.FindHierarchicalItems(path, "File.cshtml");
@@ -116,15 +109,12 @@ public class RazorProjectTest
     {
         // Arrange
         var path = "/Areas/MyArea/Views/Home/File.cshtml";
-        var items = new List<RazorProjectItem>
-            {
-                CreateProjectItem("/Areas/MyArea/Views/Home/File.cshtml"),
-                CreateProjectItem("/Areas/MyArea/Views/File.cshtml"),
-                CreateProjectItem("/Areas/MyArea/File.cshtml"),
-                CreateProjectItem("/Areas/File.cshtml"),
-                CreateProjectItem("/File.cshtml"),
-            };
-        var project = new TestRazorProject(items);
+        var project = new TestRazorProjectFileSystem(
+            CreateProjectItem("/Areas/MyArea/Views/Home/File.cshtml"),
+            CreateProjectItem("/Areas/MyArea/Views/File.cshtml"),
+            CreateProjectItem("/Areas/MyArea/File.cshtml"),
+            CreateProjectItem("/Areas/File.cshtml"),
+            CreateProjectItem("/File.cshtml"));
 
         // Act
         var result = project.FindHierarchicalItems(path, "File.cshtml");
@@ -143,11 +133,8 @@ public class RazorProjectTest
     {
         // Arrange
         var path = "/File.cshtml";
-        var items = new List<RazorProjectItem>
-            {
-                 CreateProjectItem("/File.cshtml")
-            };
-        var project = new TestRazorProject(items);
+        var project = new TestRazorProjectFileSystem(
+            CreateProjectItem("/File.cshtml"));
 
         // Act
         var result = project.FindHierarchicalItems(path, "File.cshtml");
@@ -161,12 +148,9 @@ public class RazorProjectTest
     {
         // Arrange
         var path = "/Areas/MyArea/Views/Home/Test.cshtml";
-        var items = new List<RazorProjectItem>
-            {
-                CreateProjectItem("/Areas/MyArea/File.cshtml"),
-                CreateProjectItem("/File.cshtml")
-            };
-        var project = new TestRazorProject(items);
+        var project = new TestRazorProjectFileSystem(
+            CreateProjectItem("/Areas/MyArea/File.cshtml"),
+            CreateProjectItem("/File.cshtml"));
 
         // Act
         var result = project.FindHierarchicalItems(path, "File.cshtml");
@@ -208,12 +192,9 @@ public class RazorProjectTest
     {
         // Arrange
         var path = "/Areas/MyArea/Views/Home/Test.cshtml";
-        var items = new List<RazorProjectItem>
-            {
-                CreateProjectItem("/Areas/MyArea/File.cshtml"),
-                CreateProjectItem("/File.cshtml")
-            };
-        var project = new TestRazorProject(items);
+        var project = new TestRazorProjectFileSystem(
+            CreateProjectItem("/Areas/MyArea/File.cshtml"),
+            CreateProjectItem("/File.cshtml"));
 
         // Act
         var result = project.FindHierarchicalItems(basePath, path, "File.cshtml");
@@ -250,12 +231,9 @@ public class RazorProjectTest
     {
         // Arrange
         var path = "/Areas/MyArea/Views/Home/Test.cshtml";
-        var items = new List<RazorProjectItem>
-            {
-                CreateProjectItem("/Areas/MyArea/File.cshtml"),
-                CreateProjectItem("/File.cshtml")
-            };
-        var project = new TestRazorProject(items);
+        var project = new TestRazorProjectFileSystem(
+            CreateProjectItem("/Areas/MyArea/File.cshtml"),
+            CreateProjectItem("/File.cshtml"));
 
         // Act
         var result = project.FindHierarchicalItems(basePath, path, "File.cshtml");
@@ -282,12 +260,9 @@ public class RazorProjectTest
     {
         // Arrange
         var path = "/Areas/MyArea/Views/Home/Test.cshtml";
-        var items = new List<RazorProjectItem>
-            {
-                CreateProjectItem("/Areas/MyArea/File.cshtml"),
-                CreateProjectItem("/File.cshtml"),
-            };
-        var project = new TestRazorProject(items);
+        var project = new TestRazorProjectFileSystem(
+            CreateProjectItem("/Areas/MyArea/File.cshtml"),
+            CreateProjectItem("/File.cshtml"));
 
         // Act
         var result = project.FindHierarchicalItems(basePath, path, "File.cshtml");
@@ -308,12 +283,9 @@ public class RazorProjectTest
         // Arrange
         var basePath = "/Pages";
         var path = "/Areas/MyArea/Views/Home/Test.cshtml";
-        var items = new List<RazorProjectItem>
-            {
-                CreateProjectItem("/Areas/MyArea/File.cshtml"),
-                CreateProjectItem("/File.cshtml"),
-            };
-        var project = new TestRazorProject(items);
+        var project = new TestRazorProjectFileSystem(
+            CreateProjectItem("/Areas/MyArea/File.cshtml"),
+            CreateProjectItem("/File.cshtml"));
 
         // Act
         var result = project.FindHierarchicalItems(basePath, path, "File.cshtml");
@@ -322,11 +294,44 @@ public class RazorProjectTest
         Assert.Empty(result);
     }
 
-    private RazorProjectItem CreateProjectItem(string path)
+    private static RazorProjectItem CreateProjectItem(string path)
     {
         var projectItem = new Mock<RazorProjectItem>();
         projectItem.SetupGet(f => f.FilePath).Returns(path);
         projectItem.SetupGet(f => f.Exists).Returns(true);
         return projectItem.Object;
+    }
+
+    public sealed class TestRazorProjectFileSystem(params IEnumerable<RazorProjectItem> items) : RazorProjectFileSystem
+    {
+        private readonly Dictionary<string, RazorProjectItem> _lookup = items.ToDictionary(item => item.FilePath);
+
+        public TestRazorProjectFileSystem()
+            : this([])
+        {
+        }
+
+        public override IEnumerable<RazorProjectItem> EnumerateItems(string basePath)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override RazorProjectItem GetItem(string path)
+        {
+            return GetItem(path, fileKind: null);
+        }
+
+        public override RazorProjectItem GetItem(string path, string? fileKind)
+        {
+            if (!_lookup.TryGetValue(path, out var value))
+            {
+                value = new NotFoundProjectItem("", path, fileKind);
+            }
+
+            return value;
+        }
+
+        public new string NormalizeAndEnsureValidPath(string path)
+            => base.NormalizeAndEnsureValidPath(path);
     }
 }
