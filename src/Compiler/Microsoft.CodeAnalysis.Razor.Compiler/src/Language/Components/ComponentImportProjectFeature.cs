@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using Microsoft.CodeAnalysis.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
@@ -20,27 +20,7 @@ internal sealed class ComponentImportProjectFeature : RazorProjectEngineFeatureB
         "@using global::System.Threading.Tasks\r\n" +
         "@using global::" + ComponentsApi.RenderFragment.Namespace + "\r\n"; // Microsoft.AspNetCore.Components
 
-    private static byte[]? s_contentBytes;
-
-    private static byte[] ContentBytes
-    {
-        get
-        {
-            return s_contentBytes ?? InterlockedOperations.Initialize(ref s_contentBytes, ComputeContentBytes());
-
-            static byte[] ComputeContentBytes()
-            {
-                var preamble = Encoding.UTF8.GetPreamble();
-                var contentBytes = Encoding.UTF8.GetBytes(DefaultUsingImportContent);
-
-                var bytes = new byte[preamble.Length + contentBytes.Length];
-                preamble.CopyTo(bytes, 0);
-                contentBytes.CopyTo(bytes, preamble.Length);
-
-                return bytes;
-            }
-        }
-    }
+    private static readonly InMemoryFileContent s_fileContent = new(DefaultUsingImportContent);
 
     public IReadOnlyList<RazorProjectItem> GetImports(RazorProjectItem projectItem)
     {
@@ -91,6 +71,6 @@ internal sealed class ComponentImportProjectFeature : RazorProjectEngineFeatureB
 
         public override string FileKind => FileKinds.ComponentImport;
 
-        public override Stream Read() => new MemoryStream(ContentBytes, writable: false);
+        public override Stream Read() => s_fileContent.CreateStream();
     }
 }
