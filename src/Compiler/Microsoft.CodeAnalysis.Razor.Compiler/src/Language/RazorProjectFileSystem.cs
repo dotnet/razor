@@ -11,9 +11,9 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// <summary>
 /// An abstraction for working with a project containing Razor files.
 /// </summary>
-public abstract class RazorProjectFileSystem
+public abstract partial class RazorProjectFileSystem
 {
-    internal static readonly RazorProjectFileSystem Empty = new EmptyProjectFileSystem();
+    public static readonly RazorProjectFileSystem Empty = new EmptyFileSystem();
 
     /// <summary>
     /// Gets a sequence of <see cref="RazorProjectItem"/> under the specific path in the project.
