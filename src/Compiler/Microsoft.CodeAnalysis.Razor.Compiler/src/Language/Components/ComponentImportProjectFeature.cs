@@ -43,11 +43,10 @@ internal sealed class ComponentImportProjectFeature : RazorProjectEngineFeatureB
         return imports;
     }
 
-    // Temporary API until we fully convert to RazorProjectEngine
-    public IEnumerable<RazorProjectItem> GetHierarchicalImports(RazorProject project, RazorProjectItem projectItem)
+    private static IEnumerable<RazorProjectItem> GetHierarchicalImports(RazorProjectFileSystem fileSystem, RazorProjectItem projectItem)
     {
         // We want items in descending order. FindHierarchicalItems returns items in ascending order.
-        return project.FindHierarchicalItems(projectItem.FilePath, ComponentMetadata.ImportsFileName).Reverse();
+        return fileSystem.FindHierarchicalItems(projectItem.FilePath, ComponentMetadata.ImportsFileName).Reverse();
     }
 
     private sealed class VirtualProjectItem : RazorProjectItem
