@@ -8,7 +8,8 @@ namespace Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 internal class TestLanguageServerFeatureOptions(
     bool includeProjectKeyInGeneratedFilePath = false,
     bool forceRuntimeCodeGeneration = false,
-    bool updateBuffersForClosedDocuments = false) : LanguageServerFeatureOptions
+    bool updateBuffersForClosedDocuments = false,
+    bool useNewFormattingEngine = false) : LanguageServerFeatureOptions
 {
     public static readonly LanguageServerFeatureOptions Instance = new TestLanguageServerFeatureOptions();
 
@@ -39,4 +40,6 @@ internal class TestLanguageServerFeatureOptions(
     public override bool ForceRuntimeCodeGeneration => forceRuntimeCodeGeneration;
 
     public override bool UseRoslynTokenizer => false;
+
+    public override bool UseNewFormattingEngine => useNewFormattingEngine;
 }
