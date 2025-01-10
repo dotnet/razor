@@ -11,7 +11,7 @@ using System.Text;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
-internal class ComponentImportProjectFeature : RazorProjectEngineFeatureBase, IImportProjectFeature
+internal sealed class ComponentImportProjectFeature : RazorProjectEngineFeatureBase, IImportProjectFeature
 {
     // Using explicit newlines here to avoid fooling our baseline tests
     private const string DefaultUsingImportContent =
@@ -24,21 +24,18 @@ internal class ComponentImportProjectFeature : RazorProjectEngineFeatureBase, II
 
     public IReadOnlyList<RazorProjectItem> GetImports(RazorProjectItem projectItem)
     {
-        if (projectItem == null)
-        {
-            throw new ArgumentNullException(nameof(projectItem));
-        }
+        ArgHelper.ThrowIfNull(projectItem);
 
         // Don't add Component imports for a non-component.
         if (!FileKinds.IsComponent(projectItem.FileKind))
         {
-            return Array.Empty<RazorProjectItem>();
+            return [];
         }
 
         var imports = new List<RazorProjectItem>()
-            {
-                 new VirtualProjectItem(DefaultUsingImportContent),
-            };
+        {
+            new VirtualProjectItem(DefaultUsingImportContent),
+        };
 
         // We add hierarchical imports second so any default directive imports can be overridden.
         imports.AddRange(GetHierarchicalImports(ProjectEngine.FileSystem, projectItem));
@@ -53,7 +50,7 @@ internal class ComponentImportProjectFeature : RazorProjectEngineFeatureBase, II
         return project.FindHierarchicalItems(projectItem.FilePath, ComponentMetadata.ImportsFileName).Reverse();
     }
 
-    private class VirtualProjectItem : RazorProjectItem
+    private sealed class VirtualProjectItem : RazorProjectItem
     {
         private readonly byte[] _bytes;
 
