@@ -329,7 +329,7 @@ public class RazorProjectFileSystemTest
         {
             if (!_lookup.TryGetValue(path, out var value))
             {
-                value = new NotFoundProjectItem("", path, fileKind);
+                value = new NotFoundProjectItem(path, fileKind);
             }
 
             return value;
