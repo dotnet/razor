@@ -12,6 +12,9 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal sealed class DocumentSnapshot(ProjectSnapshot project, DocumentState state) : IDocumentSnapshot, ILegacyDocumentSnapshot
+#if !FORMAT_FUSE
+    , IDesignTimeCodeGenerator
+#endif
 {
     public ProjectSnapshot Project { get; } = project;
 
@@ -61,6 +64,18 @@ internal sealed class DocumentSnapshot(ProjectSnapshot project, DocumentState st
             return codeDocument.GetOrParseCSharpSyntaxTree(cancellationToken);
         }
     }
+
+#if !FORMAT_FUSE
+    public async Task<RazorCodeDocument> GenerateDesignTimeOutputAsync(CancellationToken cancellationToken)
+    {
+        var importItems = await Project.GetImportItemsAsync(FilePath, cancellationToken).ConfigureAwait(false);
+        var projectEngine = Project.ProjectEngine;
+
+        return await CompilationHelpers
+            .GenerateDesignTimeCodeDocumentAsync(this, projectEngine, importItems, cancellationToken)
+            .ConfigureAwait(false);
+    }
+#endif
 
     #region ILegacyDocumentSnapshot support
 
