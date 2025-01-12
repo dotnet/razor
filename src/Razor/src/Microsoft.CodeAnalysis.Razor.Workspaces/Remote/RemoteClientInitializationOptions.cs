@@ -36,4 +36,7 @@ internal struct RemoteClientInitializationOptions
 
     [JsonPropertyName("useRoslynTokenizer")]
     public required bool UseRoslynTokenizer { get; set; }
+
+    [JsonPropertyName("useNewFormattingEngine")]
+    public required bool UseNewFormattingEngine { get; set; }
 }

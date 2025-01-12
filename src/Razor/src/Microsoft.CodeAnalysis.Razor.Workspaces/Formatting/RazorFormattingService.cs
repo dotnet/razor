@@ -38,6 +38,7 @@ internal class RazorFormattingService : IRazorFormattingService
     public RazorFormattingService(
         IDocumentMappingService documentMappingService,
         IHostServicesProvider hostServicesProvider,
+        LanguageServerFeatureOptions languageServerFeatureOptions,
         ILoggerFactory loggerFactory)
     {
         _htmlOnTypeFormattingPass = new HtmlOnTypeFormattingPass(loggerFactory);
@@ -47,13 +48,20 @@ internal class RazorFormattingService : IRazorFormattingService
             new FormattingDiagnosticValidationPass(loggerFactory),
             new FormattingContentValidationPass(loggerFactory)
         ];
-        _documentFormattingPasses =
-        [
-            new HtmlFormattingPass(loggerFactory),
-            new RazorFormattingPass(loggerFactory),
-            new CSharpFormattingPass(documentMappingService, hostServicesProvider, loggerFactory),
-            .. _validationPasses
-        ];
+
+        _documentFormattingPasses = languageServerFeatureOptions.UseNewFormattingEngine
+            ? [
+                new New.HtmlFormattingPass(loggerFactory),
+                new RazorFormattingPass(languageServerFeatureOptions, loggerFactory),
+                new New.CSharpFormattingPass(hostServicesProvider, loggerFactory),
+                .. _validationPasses
+            ]
+            : [
+                new HtmlFormattingPass(loggerFactory),
+                new RazorFormattingPass(languageServerFeatureOptions, loggerFactory),
+                new CSharpFormattingPass(documentMappingService, hostServicesProvider, loggerFactory),
+                .. _validationPasses
+            ];
     }
 
     public async Task<ImmutableArray<TextChange>> GetDocumentFormattingChangesAsync(

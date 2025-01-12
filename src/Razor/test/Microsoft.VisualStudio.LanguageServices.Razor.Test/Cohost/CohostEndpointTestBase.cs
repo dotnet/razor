@@ -83,6 +83,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
             SupportsFileManipulation = true,
             ShowAllCSharpCodeActions = false,
             UseRoslynTokenizer = false,
+            UseNewFormattingEngine = false,
         };
         UpdateClientInitializationOptions(c => c);
 
