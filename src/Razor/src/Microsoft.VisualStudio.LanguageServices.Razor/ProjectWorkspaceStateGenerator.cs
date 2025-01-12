@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
@@ -138,7 +139,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
                 return;
             }
 
-            var workspaceState = await GetProjectWorkspaceStateAsync(workspaceProject, projectSnapshot, cancellationToken);
+            var (workspaceState, configuration) = await GetProjectWorkspaceStateAndConfigurationAsync(workspaceProject, projectSnapshot, cancellationToken);
 
             if (workspaceState is null)
             {
@@ -157,7 +158,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
                 .UpdateAsync(
                     static (updater, state) =>
                     {
-                        var (projectKey, workspaceState, logger, cancellationToken) = state;
+                        var (projectKey, workspaceState, configuration, logger, cancellationToken) = state;
 
                         if (cancellationToken.IsCancellationRequested)
                         {
@@ -165,9 +166,14 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
                         }
 
                         logger.LogTrace($"Updating project with {workspaceState.TagHelpers.Length} tag helper(s) for '{projectKey}'");
+
+                        var projectSnapshot = updater.GetRequiredProject(projectKey);
+                        var hostProject = projectSnapshot.HostProject with { Configuration = configuration };
+
+                        updater.UpdateProjectConfiguration(hostProject);
                         updater.UpdateProjectWorkspaceState(projectKey, workspaceState);
                     },
-                    state: (projectKey, workspaceState, _logger, cancellationToken),
+                    state: (projectKey, workspaceState, configuration, _logger, cancellationToken),
                     cancellationToken)
                 .ConfigureAwait(false);
         }
@@ -256,16 +262,18 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
     ///  Attempts to produce a <see cref="ProjectWorkspaceState"/> from the provide <see cref="Project"/> and <see cref="ProjectSnapshot"/>.
     ///  Returns <see langword="null"/> if an error is encountered.
     /// </summary>
-    private async Task<ProjectWorkspaceState?> GetProjectWorkspaceStateAsync(
+    private async Task<(ProjectWorkspaceState?, RazorConfiguration)> GetProjectWorkspaceStateAndConfigurationAsync(
         Project? workspaceProject,
         ProjectSnapshot projectSnapshot,
         CancellationToken cancellationToken)
     {
+        var configuration = projectSnapshot.Configuration;
+
         // This is the simplest case. If we don't have a project (likely because it is being removed),
         // we just a default ProjectWorkspaceState.
         if (workspaceProject is null)
         {
-            return ProjectWorkspaceState.Default;
+            return (ProjectWorkspaceState.Default, configuration);
         }
 
         _logger.LogTrace($"Starting tag helper discovery for {projectSnapshot.FilePath}");
@@ -305,7 +313,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
                 Project: {projectSnapshot.FilePath}
                 """);
 
-            return ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion);
+            return (ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion), configuration);
         }
         catch (OperationCanceledException)
         {
@@ -326,7 +334,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
                 """);
         }
 
-        return null;
+        return (null, configuration);
     }
 
     private void OnStartingBackgroundWork()
