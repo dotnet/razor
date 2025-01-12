@@ -77,16 +77,17 @@ internal partial class CSharpFormattingPass
     {
         public static CSharpFormattingDocument Generate(RazorCodeDocument codeDocument, RazorFormattingOptions options)
         {
-            using var _ = StringBuilderPool.GetPooledObject(out var builder);
-            using var lineInfo = new PooledArrayBuilder<LineInfo>(capacity: codeDocument.Source.Text.Lines.Count);
+            using var _1 = StringBuilderPool.GetPooledObject(out var builder);
+            using var _2 = ArrayBuilderPool<LineInfo>.GetPooledObject(out var lineInfoBuilder);
+            lineInfoBuilder.SetCapacityIfLarger(codeDocument.Source.Text.Lines.Count);
 
-            var generator = new Generator(codeDocument, options);
+            var generator = new Generator(codeDocument, options, builder, lineInfoBuilder);
 
-            generator.Generate(builder, ref lineInfo.AsRef());
+            generator.Generate();
 
             var text = SourceText.From(builder.ToString());
 
-            return new(text, lineInfo.DrainToImmutable());
+            return new(text, lineInfoBuilder.DrainToImmutable());
         }
 
         private static string GetAdditionalLineComment(SourceSpan originalSpan)
@@ -111,18 +112,23 @@ internal partial class CSharpFormattingPass
             return (start, length);
         }
 
-        private sealed class Generator(RazorCodeDocument codeDocument, RazorFormattingOptions options) : SyntaxVisitor<LineInfo>
+        private sealed class Generator(
+            RazorCodeDocument codeDocument,
+            RazorFormattingOptions options,
+            StringBuilder builder,
+            ImmutableArray<LineInfo>.Builder lineInfoBuilder) : SyntaxVisitor<LineInfo>
         {
             private readonly SourceText _sourceText = codeDocument.Source.Text;
             private readonly RazorCodeDocument _codeDocument = codeDocument;
             private readonly bool _insertSpaces = options.InsertSpaces;
             private readonly int _tabSize = options.TabSize;
+            private readonly StringBuilder _builder = builder;
+            private readonly ImmutableArray<LineInfo>.Builder _lineInfoBuilder = lineInfoBuilder;
 
             private TextLine _currentLine;
             private int _currentFirstNonWhitespacePosition;
 
             // These are set in GetCSharpDocumentContents so will never be observably null
-            private StringBuilder _builder = null!;
             private RazorSyntaxToken _currentToken = null!;
 
             /// <summary>
@@ -134,9 +140,8 @@ internal partial class CSharpFormattingPass
             /// </remarks>
             private int? _elementEndLine;
 
-            public void Generate(StringBuilder builder, ref PooledArrayBuilder<LineInfo> lineInfo)
+            public void Generate()
             {
-                _builder = builder;
                 using var _ = StringBuilderPool.GetPooledObject(out var additionalLinesBuilder);
 
                 var root = _codeDocument.GetSyntaxTree().Root;
@@ -151,7 +156,7 @@ internal partial class CSharpFormattingPass
                         _currentToken = root.FindToken(firstNonWhitespacePosition);
 
                         var length = _builder.Length;
-                        lineInfo.Add(Visit(_currentToken.Parent));
+                        _lineInfoBuilder.Add(Visit(_currentToken.Parent));
                         Debug.Assert(_builder.Length > length, "Didn't output any generated code!");
 
                         // If there are C# mappings on this line, we want to output additional lines that represent the C# blocks.
@@ -189,7 +194,7 @@ internal partial class CSharpFormattingPass
                     else
                     {
                         _builder.AppendLine();
-                        lineInfo.Add(CreateLineInfo(processIndentation: false));
+                        _lineInfoBuilder.Add(CreateLineInfo(processIndentation: false));
                     }
 
                     // If we're inside an element that ends on this line, clear the field that tracks it.

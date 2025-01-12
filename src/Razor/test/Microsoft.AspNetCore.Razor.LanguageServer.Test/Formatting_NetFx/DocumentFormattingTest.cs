@@ -65,6 +65,24 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
     }
 
     [FormattingTestFact]
+    public async Task EndsWithWhitespace()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div></div>
+
+                
+
+                """,
+            expected: """
+                <div></div>
+                
+                
+                
+                """);
+    }
+
+    [FormattingTestFact]
     public async Task Section_BraceOnNextLine()
     {
         await RunFormattingTestAsync(
