@@ -39,7 +39,5 @@ internal class TestLanguageServerFeatureOptions(
 
     public override bool ForceRuntimeCodeGeneration => forceRuntimeCodeGeneration;
 
-    public override bool UseRoslynTokenizer => false;
-
     public override bool UseNewFormattingEngine => useNewFormattingEngine;
 }
