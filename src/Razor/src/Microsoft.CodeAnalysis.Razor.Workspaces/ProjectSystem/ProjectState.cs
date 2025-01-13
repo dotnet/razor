@@ -89,8 +89,6 @@ internal sealed class ProjectState
 
     public ImmutableArray<TagHelperDescriptor> TagHelpers => ProjectWorkspaceState.TagHelpers;
 
-    public LanguageVersion CSharpLanguageVersion => HostProject.Configuration.CSharpLanguageVersion;
-
     public RazorProjectEngine ProjectEngine
     {
         get
@@ -112,7 +110,7 @@ internal sealed class ProjectState
                 return _projectEngineFactoryProvider.Create(configuration, rootDirectoryPath, builder =>
                 {
                     builder.SetRootNamespace(configuration.RootNamespace);
-                    builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
+                    builder.SetCSharpLanguageVersion(configuration.CSharpLanguageVersion);
                     builder.SetSupportLocalizedComponentNames();
                     builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer, parseOptions));
                 });

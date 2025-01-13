@@ -108,7 +108,10 @@ internal static class RazorProjectInfoFactory
 
         configurationName ??= "MVC-3.0"; // TODO: Source generator uses "default" here??
 
-        globalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace);
+        if (!globalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace))
+        {
+            rootNamespace = project.DefaultNamespace;
+        }
 
         if (!globalOptions.TryGetValue("build_property.RazorLangVersion", out var razorLanguageVersionString) ||
             !RazorLanguageVersion.TryParse(razorLanguageVersionString, out var razorLanguageVersion))

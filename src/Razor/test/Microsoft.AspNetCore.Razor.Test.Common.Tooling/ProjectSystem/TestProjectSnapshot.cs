@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
@@ -42,9 +41,7 @@ internal sealed class TestProjectSnapshot : IProjectSnapshot
     public IEnumerable<string> DocumentFilePaths => RealSnapshot.DocumentFilePaths;
     public string FilePath => RealSnapshot.FilePath;
     public string IntermediateOutputPath => RealSnapshot.IntermediateOutputPath;
-    public string? RootNamespace => RealSnapshot.RootNamespace;
     public string DisplayName => RealSnapshot.DisplayName;
-    public LanguageVersion CSharpLanguageVersion => RealSnapshot.CSharpLanguageVersion;
 
     public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken)
         => RealSnapshot.GetTagHelpersAsync(cancellationToken);

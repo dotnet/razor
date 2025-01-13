@@ -60,13 +60,9 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
 
     public string IntermediateOutputPath => FilePathNormalizer.GetNormalizedDirectoryName(_project.CompilationOutputInfo.AssemblyPath);
 
-    public string? RootNamespace => _project.DefaultNamespace ?? "ASP";
-
     public string DisplayName => _project.Name;
 
     public Project Project => _project;
-
-    public LanguageVersion CSharpLanguageVersion => ((CSharpParseOptions)_project.ParseOptions.AssumeNotNull()).LanguageVersion;
 
     public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken)
     {
@@ -189,8 +185,8 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
             rootDirectoryPath: Path.GetDirectoryName(FilePath).AssumeNotNull(),
             configure: builder =>
             {
-                builder.SetRootNamespace(RootNamespace);
-                builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
+                builder.SetRootNamespace(configuration.RootNamespace);
+                builder.SetCSharpLanguageVersion(configuration.CSharpLanguageVersion);
                 builder.SetSupportLocalizedComponentNames();
                 builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer, parseOptions));
             });

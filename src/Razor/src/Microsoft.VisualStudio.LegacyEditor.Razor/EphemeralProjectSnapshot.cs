@@ -7,7 +7,6 @@ using System.IO;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem.Legacy;
 
@@ -24,8 +23,6 @@ internal sealed class EphemeralProjectSnapshot(IProjectEngineFactoryProvider pro
             configure: null));
 
     public RazorConfiguration Configuration => FallbackRazorConfiguration.Latest;
-    public string? RootNamespace => null;
-    public LanguageVersion CSharpLanguageVersion => LanguageVersion.Default;
     public ImmutableArray<TagHelperDescriptor> TagHelpers => [];
 
     public RazorProjectEngine GetProjectEngine()

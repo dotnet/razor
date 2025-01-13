@@ -3,7 +3,6 @@
 
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem.Legacy;
 
@@ -19,8 +18,6 @@ internal interface ILegacyProjectSnapshot
 
     string FilePath { get; }
 
-    string? RootNamespace { get; }
-    LanguageVersion CSharpLanguageVersion { get; }
     ImmutableArray<TagHelperDescriptor> TagHelpers { get; }
 
     RazorProjectEngine GetProjectEngine();

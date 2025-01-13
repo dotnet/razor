@@ -365,7 +365,6 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                 updater.UpdateProjectWorkspaceState(project.Key, projectWorkspaceState);
 
                 var currentConfiguration = project.Configuration;
-                var currentRootNamespace = project.RootNamespace;
                 if (currentConfiguration == configuration)
                 {
                     _logger.LogTrace($"Updating project '{project.Key}'. The project is already using configuration '{configuration.ConfigurationName}' and root namespace '{configuration.RootNamespace}' and C# lang version '{configuration.CSharpLanguageVersion}'.");

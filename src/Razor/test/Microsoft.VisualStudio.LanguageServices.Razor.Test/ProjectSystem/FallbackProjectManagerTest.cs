@@ -102,7 +102,7 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
 
         var project = Assert.Single(_projectManager.GetProjects());
         Assert.Equal("DisplayName", project.DisplayName);
-        Assert.Equal("RootNamespace", project.RootNamespace);
+        Assert.Equal("RootNamespace", project.Configuration.RootNamespace);
 
         Assert.True(_fallbackProjectManger.IsFallbackProject(project));
 

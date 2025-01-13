@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem.Legacy;
 using Microsoft.CodeAnalysis.Text;
 
@@ -31,9 +30,7 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot, IL
     public IEnumerable<string> DocumentFilePaths => _state.Documents.Keys;
     public string FilePath => _state.HostProject.FilePath;
     public string IntermediateOutputPath => _state.HostProject.IntermediateOutputPath;
-    public string? RootNamespace => Configuration.RootNamespace;
     public string DisplayName => _state.HostProject.DisplayName;
-    public LanguageVersion CSharpLanguageVersion => _state.CSharpLanguageVersion;
     public ProjectWorkspaceState ProjectWorkspaceState => _state.ProjectWorkspaceState;
 
     public int DocumentCount => _state.Documents.Count;
@@ -190,8 +187,6 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot, IL
 
     RazorConfiguration ILegacyProjectSnapshot.Configuration => Configuration;
     string ILegacyProjectSnapshot.FilePath => FilePath;
-    string? ILegacyProjectSnapshot.RootNamespace => RootNamespace;
-    LanguageVersion ILegacyProjectSnapshot.CSharpLanguageVersion => CSharpLanguageVersion;
     ImmutableArray<TagHelperDescriptor> ILegacyProjectSnapshot.TagHelpers => ProjectWorkspaceState.TagHelpers;
 
     RazorProjectEngine ILegacyProjectSnapshot.GetProjectEngine()
