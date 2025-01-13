@@ -24,9 +24,9 @@ public class SerializationTest(ITestOutputHelper testOutput) : ToolingTestBase(t
             TagHelperDescriptorBuilder.Create("TestTagHelper2", "TestAssembly2").Build());
 
         var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers);
-        var expectedConfiguration = RazorConfiguration.Default;
         var expectedRootNamespace = "project";
-        var handle = new ProjectSnapshotHandleProxy(new Uri("vsls://some/path/project.csproj"), new Uri("vsls://some/path/obj"), RazorConfiguration.Default, expectedRootNamespace, projectWorkspaceState);
+        var expectedConfiguration = RazorConfiguration.Default with { RootNamespace = expectedRootNamespace };
+        var handle = new ProjectSnapshotHandleProxy(new Uri("vsls://some/path/project.csproj"), new Uri("vsls://some/path/obj"), RazorConfiguration.Default with { RootNamespace = expectedRootNamespace }, projectWorkspaceState);
 
         var json = JsonConvert.SerializeObject(handle, ProjectSnapshotHandleProxyJsonConverter.Instance);
         Assert.NotNull(json);
@@ -41,6 +41,6 @@ public class SerializationTest(ITestOutputHelper testOutput) : ToolingTestBase(t
         Assert.Equal(expectedConfiguration.ConfigurationName, deserializedHandle.Configuration.ConfigurationName);
         Assert.Equal(expectedConfiguration.Extensions.Length, deserializedHandle.Configuration.Extensions.Length);
         Assert.Equal(expectedConfiguration.LanguageVersion, deserializedHandle.Configuration.LanguageVersion);
-        Assert.Equal(expectedRootNamespace, deserializedHandle.RootNamespace);
+        Assert.Equal(expectedRootNamespace, deserializedHandle.Configuration.RootNamespace);
     }
 }
