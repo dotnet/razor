@@ -49,6 +49,7 @@ internal static partial class ObjectReaders
             configurationName,
             extensions,
             csharpLanguageVersion,
+            UseConsolidatedMvcViews: useConsolidatedMvcViews,
             SuppressAddComponentParameter: suppressAddComponentParameter,
             UseRoslynTokenizer: useRoslynTokenizer,
             PreprocessorSymbols: preprocessorSymbols);
