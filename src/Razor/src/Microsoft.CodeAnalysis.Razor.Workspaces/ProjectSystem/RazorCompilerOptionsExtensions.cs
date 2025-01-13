@@ -17,11 +17,6 @@ internal static class RazorCompilerOptionsExtensions
             options.SetFlag(RazorCompilerOptions.ForceRuntimeCodeGeneration);
         }
 
-        if (languageServerFeatureOptions.UseRoslynTokenizer)
-        {
-            options.SetFlag(RazorCompilerOptions.UseRoslynTokenizer);
-        }
-
         return options;
     }
 }

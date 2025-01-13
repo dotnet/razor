@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
@@ -141,8 +140,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
             updater.AddDocument(_hostProject1.Key, _documents[0], EmptyTextLoader.Instance);
 
             // Act
-            updater.UpdateProjectWorkspaceState(_hostProject1.Key,
-                ProjectWorkspaceState.Create(LanguageVersion.CSharp8));
+            updater.UpdateProjectWorkspaceState(_hostProject1.Key, ProjectWorkspaceState.Default);
         });
 
         // Assert
@@ -165,8 +163,7 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
             updater.OpenDocument(_hostProject1.Key, _documents[0].FilePath, SourceText.From(string.Empty));
 
             // Act
-            updater.UpdateProjectWorkspaceState(_hostProject1.Key,
-                ProjectWorkspaceState.Create(LanguageVersion.CSharp8));
+            updater.UpdateProjectWorkspaceState(_hostProject1.Key, ProjectWorkspaceState.Default);
         });
 
         // Assert

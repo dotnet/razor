@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
-using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -160,33 +159,6 @@ public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
 
         // Act
         var newState = state.WithProjectWorkspaceState(ProjectWorkspaceState.Create(_someTagHelpers));
-        var newOutput = await GetGeneratedOutputAsync(newState, _hostDocument);
-
-        // Assert
-        Assert.NotSame(output, newOutput);
-    }
-
-    [Fact]
-    public async Task WithProjectWorkspaceState_CSharpLanguageVersionChange_DoesNotCacheOutput()
-    {
-        // Arrange
-        var hostProject = TestProjectData.SomeProject with
-        {
-            Configuration = _hostProject.Configuration with { LanguageVersion = RazorLanguageVersion.Version_3_0 }
-        };
-
-        var projectWorkspaceState = ProjectWorkspaceState.Create(_someTagHelpers, LanguageVersion.CSharp7);
-
-        var state = ProjectState
-            .Create(hostProject, CompilerOptions, ProjectEngineFactoryProvider)
-            .WithProjectWorkspaceState(projectWorkspaceState)
-            .AddDocument(_hostDocument, TestMocks.CreateTextLoader("@DateTime.Now", VersionStamp.Default));
-
-        var output = await GetGeneratedOutputAsync(state, _hostDocument);
-
-        // Act
-        var newProjectWorkspaceState = ProjectWorkspaceState.Create(_someTagHelpers, LanguageVersion.CSharp8);
-        var newState = state.WithProjectWorkspaceState(newProjectWorkspaceState);
         var newOutput = await GetGeneratedOutputAsync(newState, _hostDocument);
 
         // Assert
