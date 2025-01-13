@@ -32,7 +32,6 @@ internal static class MiscFilesProject
             normalizedPath,
             normalizedPath,
             FallbackRazorConfiguration.Latest,
-            rootNamespace: null,
             "Miscellaneous Files");
     }
 

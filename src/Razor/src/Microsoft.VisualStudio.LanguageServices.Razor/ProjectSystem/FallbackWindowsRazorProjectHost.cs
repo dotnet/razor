@@ -141,7 +141,7 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
                 ? $"{projectFileName} ({sliceDimensions})"
                 : projectFileName;
 
-            var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, intermediatePath, configuration, rootNamespace: null, displayName);
+            var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, intermediatePath, configuration, displayName);
 
             UpdateProject(updater, hostProject);
 

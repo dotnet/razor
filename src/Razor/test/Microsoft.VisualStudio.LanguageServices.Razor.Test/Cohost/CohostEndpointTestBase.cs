@@ -220,7 +220,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
 
         if (!inGlobalNamespace)
         {
-            projectInfo = projectInfo.WithDefaultNamespace(TestProjectData.SomeProject.RootNamespace);
+            projectInfo = projectInfo.WithDefaultNamespace(TestProjectData.SomeProject.Configuration.RootNamespace);
         }
 
         var solution = workspace.CurrentSolution.AddProject(projectInfo);

@@ -43,6 +43,7 @@ public class RazorConfigurationSerializationTest(ITestOutputHelper testOutput) :
             {
               "ConfigurationName": "MVC-3.0",
               "LanguageVersion": "3.0",
+              "RootNamespace": "RootNamespace",
               "Extensions": ["MVC-3.0"]
             }
             """;
@@ -66,6 +67,7 @@ public class RazorConfigurationSerializationTest(ITestOutputHelper testOutput) :
             {
               "ConfigurationName": "MVC-2.1",
               "LanguageVersion": "2.1",
+              "RootNamespace": "RootNamespace",
               "Extensions": ["MVC-2.1"]
             }
             """;
@@ -89,6 +91,7 @@ public class RazorConfigurationSerializationTest(ITestOutputHelper testOutput) :
             {
               "ConfigurationName": "MVC-1.1",
               "LanguageVersion": "1.1",
+              "RootNamespace": "RootNamespace",
               "Extensions": ["MVC-1.1"]
             }
             """;

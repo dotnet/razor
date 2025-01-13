@@ -77,7 +77,7 @@ internal class OutOfProcTagHelperResolver(
             lastResultId = -1;
         }
 
-        var projectHandle = new ProjectSnapshotHandle(project.Id, projectSnapshot.Configuration, projectSnapshot.RootNamespace);
+        var projectHandle = new ProjectSnapshotHandle(project.Id, projectSnapshot.Configuration);
 
         var deltaResult = await _remoteServiceInvoker.TryInvokeAsync<IRemoteTagHelperProviderService, TagHelperDeltaResult>(
             project.Solution,

@@ -73,7 +73,8 @@ public class StreamExtensionTests(ITestOutputHelper testOutputHelper) : ToolingT
         var configuration = new RazorConfiguration(
             RazorLanguageVersion.Latest,
             "TestConfiguration",
-            ImmutableArray<RazorExtension>.Empty);
+            ImmutableArray<RazorExtension>.Empty,
+            "TestNamespace");
 
         var tagHelper = TagHelperDescriptorBuilder.Create("TypeName", "AssemblyName")
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("tag-name"))
@@ -85,7 +86,6 @@ public class StreamExtensionTests(ITestOutputHelper testOutputHelper) : ToolingT
             new ProjectKey("TestProject"),
             @"C:\test\test.csproj",
             configuration,
-            "TestNamespace",
             "Test",
             projectWorkspaceState,
             [new DocumentSnapshotHandle(@"C:\test\document.razor", @"document.razor", FileKinds.Component)]);

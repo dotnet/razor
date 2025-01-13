@@ -5,6 +5,7 @@
   "Configuration": {
     "ConfigurationName": "MVC-3.0",
     "LanguageVersion": "3.0",
+    "RootNamespace": "blazorserver",
     "CSharpLanguageVersion": 800,
     "Extensions": [
       "MVC-3.0"
@@ -17808,7 +17809,6 @@
       }
     ]
   },
-  "RootNamespace": "blazorserver",
   "Documents": [
     {
       "FilePath": "C:\\Users\\admin\\location\\blazorserver\\Shared\\MainLayout.razor",

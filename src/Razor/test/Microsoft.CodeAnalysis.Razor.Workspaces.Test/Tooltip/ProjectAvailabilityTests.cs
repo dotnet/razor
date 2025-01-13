@@ -42,7 +42,6 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
             "C:/path/to/project.csproj",
             "C:/path/to/obj/1",
             RazorConfiguration.Default,
-            rootNamespace: null,
             displayName: "project");
 
         var hostDocument = new HostDocument(
@@ -80,14 +79,12 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
             "C:/path/to/project.csproj",
             "C:/path/to/obj/1",
             RazorConfiguration.Default,
-            rootNamespace: null,
             displayName: "project1");
 
         var hostProject2 = new HostProject(
             "C:/path/to/project.csproj",
             "C:/path/to/obj/2",
             RazorConfiguration.Default,
-            rootNamespace: null,
             displayName: "project2");
 
         var hostDocument = new HostDocument(
@@ -129,14 +126,12 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
             "C:/path/to/project.csproj",
             "C:/path/to/obj/1",
             RazorConfiguration.Default,
-            rootNamespace: null,
             displayName: "project1");
 
         var hostProject2 = new HostProject(
             "C:/path/to/project.csproj",
             "C:/path/to/obj/2",
             RazorConfiguration.Default,
-            rootNamespace: null,
             displayName: "project2");
 
         var hostDocument = new HostDocument(
@@ -174,14 +169,12 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
             "C:/path/to/project.csproj",
             "C:/path/to/obj/1",
             RazorConfiguration.Default,
-            rootNamespace: null,
             displayName: "project1");
 
         var hostProject2 = new HostProject(
             "C:/path/to/project.csproj",
             "C:/path/to/obj/2",
             RazorConfiguration.Default,
-            rootNamespace: null,
             displayName: "project2");
 
         var hostDocument = new HostDocument(

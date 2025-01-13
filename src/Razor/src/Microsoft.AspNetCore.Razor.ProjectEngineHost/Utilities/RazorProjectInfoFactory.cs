@@ -66,17 +66,13 @@ internal static class RazorProjectInfoFactory
             return new(null, "Failed to get compilation for project");
         }
 
-        var configuration = ComputeRazorConfigurationOptions(project, compilation, out var defaultNamespace);
+        var configuration = ComputeRazorConfigurationOptions(project, compilation);
 
         var fileSystem = RazorProjectFileSystem.Create(projectPath);
 
         var defaultConfigure = (RazorProjectEngineBuilder builder) =>
         {
-            if (defaultNamespace is not null)
-            {
-                builder.SetRootNamespace(defaultNamespace);
-            }
-
+            builder.SetRootNamespace(configuration.RootNamespace);
             builder.SetCSharpLanguageVersion(configuration.CSharpLanguageVersion);
             builder.SetSupportLocalizedComponentNames(); // ProjectState in MS.CA.Razor.Workspaces does this, so I'm doing it too!
         };
@@ -96,7 +92,6 @@ internal static class RazorProjectInfoFactory
             projectKey: new ProjectKey(intermediateOutputPath),
             filePath: project.FilePath!,
             configuration: configuration,
-            rootNamespace: defaultNamespace,
             displayName: project.Name,
             projectWorkspaceState: projectWorkspaceState,
             documents: documents);
@@ -104,7 +99,7 @@ internal static class RazorProjectInfoFactory
         return new(projectInfo, null);
     }
 
-    public static RazorConfiguration ComputeRazorConfigurationOptions(Project project, Compilation? compilation, out string defaultNamespace)
+    public static RazorConfiguration ComputeRazorConfigurationOptions(Project project, Compilation? compilation)
     {
         // See RazorSourceGenerator.RazorProviders.cs
         var globalOptions = project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions;
@@ -129,13 +124,12 @@ internal static class RazorProjectInfoFactory
             razorLanguageVersion,
             configurationName,
             Extensions: [],
+            RootNamespace: rootNamespace ?? "ASP",
             CSharpLanguageVersion: csharpParseOptions.LanguageVersion,
             UseConsolidatedMvcViews: true,
             suppressAddComponentParameter,
             UseRoslynTokenizer: csharpParseOptions.UseRoslynTokenizer(),
             PreprocessorSymbols: csharpParseOptions.PreprocessorSymbolNames.ToImmutableArray());
-
-        defaultNamespace = rootNamespace ?? "ASP"; // TODO: Source generator does this. Do we want it?
 
         return razorConfiguration;
     }

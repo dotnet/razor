@@ -489,11 +489,17 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
             .AddEmptyDocument(SomeProjectFile2);
 
         // Act
-        var newState = state.WithHostProject(s_hostProject with { RootNamespace = "ChangedRootNamespace" });
+        var newState = state.WithHostProject(s_hostProject with
+        {
+            Configuration = s_hostProject.Configuration with
+            {
+                RootNamespace = "ChangedRootNamespace"
+            }
+        });
 
         // Assert
         Assert.NotSame(state, newState);
-        Assert.Equal("ChangedRootNamespace", newState.HostProject.RootNamespace);
+        Assert.Equal("ChangedRootNamespace", newState.HostProject.Configuration.RootNamespace);
     }
 
     [Fact]

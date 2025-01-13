@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 
 internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfiguration>
 {
-    private const int SerializerPropertyCount = 7;
+    private const int SerializedPropertyCount = 8;
 
     public static readonly ValueFormatter<RazorConfiguration> Instance = new RazorConfigurationFormatter();
 
@@ -26,13 +26,14 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
 
         var configurationName = CachedStringFormatter.Instance.Deserialize(ref reader, options) ?? string.Empty;
         var languageVersionText = CachedStringFormatter.Instance.Deserialize(ref reader, options) ?? string.Empty;
+        var rootNamespace = CachedStringFormatter.Instance.Deserialize(ref reader, options) ?? "ASP";
         var csharpLanguageVersion = (LanguageVersion)reader.ReadInt32();
         var suppressAddComponentParameter = reader.ReadBoolean();
         var useConsolidatedMvcViews = reader.ReadBoolean();
         var useRoslynTokenizer = reader.ReadBoolean();
         var preprocessorSymbols = reader.Deserialize<ImmutableArray<string>>(options);
 
-        count -= SerializerPropertyCount;
+        count -= SerializedPropertyCount;
 
         using var builder = new PooledArrayBuilder<RazorExtension>();
 
@@ -52,6 +53,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
             languageVersion,
             configurationName,
             extensions,
+            rootNamespace,
             csharpLanguageVersion,
             UseConsolidatedMvcViews: useConsolidatedMvcViews,
             SuppressAddComponentParameter: suppressAddComponentParameter,
@@ -63,7 +65,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
     {
         // Write SerializerPropertyCount values + 1 value per extension.
         var extensions = value.Extensions;
-        var count = extensions.Length + SerializerPropertyCount;
+        var count = extensions.Length + SerializedPropertyCount;
 
         writer.WriteArrayHeader(count);
 
@@ -78,13 +80,15 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
             CachedStringFormatter.Instance.Serialize(ref writer, value.LanguageVersion.ToString(), options);
         }
 
+        CachedStringFormatter.Instance.Serialize(ref writer, value.RootNamespace, options);
+
         writer.Write((int)value.CSharpLanguageVersion);
         writer.Write(value.SuppressAddComponentParameter);
         writer.Write(value.UseConsolidatedMvcViews);
         writer.Write(value.UseRoslynTokenizer);
         writer.Serialize(value.PreprocessorSymbols, options);
 
-        count -= SerializerPropertyCount;
+        count -= SerializedPropertyCount;
 
         for (var i = 0; i < count; i++)
         {

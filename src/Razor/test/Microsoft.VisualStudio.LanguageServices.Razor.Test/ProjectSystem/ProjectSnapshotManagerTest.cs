@@ -75,7 +75,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         await projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(
-                new("C:/path/to/project.csproj", "C:/path/to/obj", RazorConfiguration.Default, rootNamespace: null));
+                new("C:/path/to/project.csproj", "C:/path/to/obj", RazorConfiguration.Default));
         });
 
         // Assert

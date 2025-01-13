@@ -25,8 +25,7 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
     private static readonly HostProject s_hostProject = new(
         filePath: "/path/to/project.csproj",
         intermediateOutputPath: "/path/to/obj",
-        RazorConfiguration.Default,
-        rootNamespace: null);
+        RazorConfiguration.Default);
 
     private static readonly HostDocument s_hostDocument = new(
         filePath: "/path/to/file1.razor",

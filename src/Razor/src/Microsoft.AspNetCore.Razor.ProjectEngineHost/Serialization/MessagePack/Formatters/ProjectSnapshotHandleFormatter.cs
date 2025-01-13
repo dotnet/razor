@@ -24,9 +24,8 @@ internal sealed class ProjectSnapshotHandleFormatter : TopLevelFormatter<Project
         var projectId = ProjectId.CreateFromSerialized(id);
 
         var configuration = reader.DeserializeOrNull<RazorConfiguration>(options) ?? RazorConfiguration.Default;
-        var rootNamespace = CachedStringFormatter.Instance.Deserialize(ref reader, options);
 
-        return new(projectId, configuration, rootNamespace);
+        return new(projectId, configuration);
     }
 
     public override void Serialize(ref MessagePackWriter writer, ProjectSnapshotHandle value, SerializerCachingOptions options)
@@ -35,6 +34,5 @@ internal sealed class ProjectSnapshotHandleFormatter : TopLevelFormatter<Project
 
         GuidFormatter.Instance.Serialize(ref writer, value.ProjectId.Id, options);
         writer.Serialize(value.Configuration, options);
-        CachedStringFormatter.Instance.Serialize(ref writer, value.RootNamespace, options);
     }
 }

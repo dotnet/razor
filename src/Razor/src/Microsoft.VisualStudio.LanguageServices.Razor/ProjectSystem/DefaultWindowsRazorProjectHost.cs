@@ -52,8 +52,6 @@ internal class DefaultWindowsRazorProjectHost(
         if (TryGetConfiguration(update.Value.CurrentState, out var configuration) &&
             TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
         {
-            TryGetRootNamespace(update.Value.CurrentState, out var rootNamespace);
-
             if (TryGetBeforeIntermediateOutputPath(update.Value.ProjectChanges, out var beforeIntermediateOutputPath) &&
                 beforeIntermediateOutputPath != intermediatePath)
             {
@@ -87,7 +85,7 @@ internal class DefaultWindowsRazorProjectHost(
                         ? $"{projectFileName} ({sliceDimensions})"
                         : projectFileName;
 
-                    var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, intermediatePath, configuration, rootNamespace, displayName);
+                    var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, intermediatePath, configuration, displayName);
 
                     UpdateProject(updater, hostProject);
 
@@ -153,10 +151,13 @@ internal class DefaultWindowsRazorProjectHost(
             return false;
         }
 
+        TryGetRootNamespace(state, out var rootNamespace);
+
         configuration = new(
             languageVersion,
             configurationItem.Key,
-            extensions);
+            extensions,
+            RootNamespace: rootNamespace ?? "ASP");
 
         return true;
     }

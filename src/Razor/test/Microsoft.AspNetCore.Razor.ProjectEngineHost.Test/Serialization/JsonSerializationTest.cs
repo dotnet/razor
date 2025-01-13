@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.Serialization.Json;
 
 public class JsonSerializationTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    private readonly RazorConfiguration _configuration = new(RazorLanguageVersion.Experimental, ConfigurationName: "Custom", [new("TestExtension")]);
+    private readonly RazorConfiguration _configuration = new(RazorLanguageVersion.Experimental, ConfigurationName: "Custom", [new("TestExtension")], "TestProject");
 
     private readonly ProjectWorkspaceState _projectWorkspaceState = ProjectWorkspaceState.Create(
         tagHelpers: [TagHelperDescriptorBuilder.Create("Test", "TestAssembly").Build()]);
@@ -26,7 +26,6 @@ public class JsonSerializationTest(ITestOutputHelper testOutput) : ToolingTestBa
             new ProjectKey("/path/to/obj/"),
             "/path/to/project.csproj",
             _configuration,
-            rootNamespace: "TestProject",
             displayName: "project",
             _projectWorkspaceState,
             documents: []);
@@ -59,7 +58,6 @@ public class JsonSerializationTest(ITestOutputHelper testOutput) : ToolingTestBa
             new ProjectKey("/path/to/obj/"),
             "/path/to/project.csproj",
             _configuration,
-            rootNamespace: "TestProject",
             displayName: "project",
             _projectWorkspaceState,
             documents: []);
@@ -94,7 +92,6 @@ public class JsonSerializationTest(ITestOutputHelper testOutput) : ToolingTestBa
             new ProjectKey("/path/to/obj/"),
             "/path/to/project.csproj",
             _configuration,
-            rootNamespace: "TestProject",
             displayName: "project",
             _projectWorkspaceState,
             documents: [legacyDocument, componentDocument]);
@@ -109,7 +106,6 @@ public class JsonSerializationTest(ITestOutputHelper testOutput) : ToolingTestBa
         // Assert
         Assert.Equal(projectInfo.FilePath, deserializedProjectInfo.FilePath);
         Assert.Equal(projectInfo.Configuration, deserializedProjectInfo.Configuration);
-        Assert.Equal(projectInfo.RootNamespace, deserializedProjectInfo.RootNamespace);
         Assert.Equal(projectInfo.ProjectWorkspaceState, deserializedProjectInfo.ProjectWorkspaceState);
         Assert.Collection(projectInfo.Documents.OrderBy(doc => doc.FilePath),
             document =>

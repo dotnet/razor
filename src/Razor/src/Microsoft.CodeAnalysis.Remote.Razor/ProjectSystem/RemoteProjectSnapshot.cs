@@ -174,7 +174,7 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
     {
         var compilation = await _project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-        return RazorProjectInfoFactory.ComputeRazorConfigurationOptions(_project, compilation, out _);
+        return RazorProjectInfoFactory.ComputeRazorConfigurationOptions(_project, compilation);
     }
 
     private async Task<RazorProjectEngine> ComputeProjectEngineAsync(CancellationToken cancellationToken)

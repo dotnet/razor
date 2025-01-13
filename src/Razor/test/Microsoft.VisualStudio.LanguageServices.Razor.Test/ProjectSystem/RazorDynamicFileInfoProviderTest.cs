@@ -43,7 +43,7 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
 
         _projectManager = CreateProjectSnapshotManager();
 
-        var hostProject = new HostProject(@"C:\project.csproj", @"C:\obj", RazorConfiguration.Default, rootNamespace: "TestNamespace");
+        var hostProject = new HostProject(@"C:\project.csproj", @"C:\obj", RazorConfiguration.Default with { RootNamespace = "TestNamespace" });
         var hostDocument1 = new HostDocument(@"C:\document1.razor", "document1.razor", FileKinds.Component);
         var hostDocument2 = new HostDocument(@"C:\document2.razor", "document2.razor", FileKinds.Component);
 

@@ -111,7 +111,7 @@ internal sealed class ProjectState
 
                 return _projectEngineFactoryProvider.Create(configuration, rootDirectoryPath, builder =>
                 {
-                    builder.SetRootNamespace(HostProject.RootNamespace);
+                    builder.SetRootNamespace(configuration.RootNamespace);
                     builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
                     builder.SetSupportLocalizedComponentNames();
                     builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer, parseOptions));
@@ -249,8 +249,7 @@ internal sealed class ProjectState
     {
         ArgHelper.ThrowIfNull(hostProject);
 
-        if (HostProject.Configuration == hostProject.Configuration &&
-            HostProject.RootNamespace == hostProject.RootNamespace)
+        if (HostProject.Configuration == hostProject.Configuration)
         {
             return this;
         }

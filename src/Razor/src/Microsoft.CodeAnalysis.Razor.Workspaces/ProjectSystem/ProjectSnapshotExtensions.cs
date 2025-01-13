@@ -44,7 +44,6 @@ internal static class ProjectSnapshotExtensions
             projectKey: project.Key,
             filePath: project.FilePath,
             configuration: project.Configuration,
-            rootNamespace: project.RootNamespace,
             displayName: project.DisplayName,
             projectWorkspaceState: project.ProjectWorkspaceState,
             documents: documents.DrainToImmutable());

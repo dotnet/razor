@@ -59,8 +59,7 @@ public class RenameEndpointDelegationTest(ITestOutputHelper testOutput) : Single
             updater.AddProject(new(
                 filePath: "C:/path/to/project.csproj",
                 intermediateOutputPath: "C:/path/to/obj",
-                configuration: RazorConfiguration.Default,
-                rootNamespace: "project"));
+                configuration: RazorConfiguration.Default with { RootNamespace = "project" }));
         });
 
         var searchEngine = new RazorComponentSearchEngine(LoggerFactory);

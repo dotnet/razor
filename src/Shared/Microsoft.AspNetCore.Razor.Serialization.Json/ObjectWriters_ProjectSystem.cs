@@ -15,7 +15,6 @@ internal static partial class ObjectWriters
     {
         writer.Write(nameof(value.ProjectId), value.ProjectId.Id.ToString());
         writer.WriteObject(nameof(value.Configuration), value.Configuration, WriteProperties);
-        writer.WriteIfNotNull(nameof(value.RootNamespace), value.RootNamespace);
     }
 
     public static void Write(JsonDataWriter writer, DocumentSnapshotHandle? value)
@@ -46,7 +45,6 @@ internal static partial class ObjectWriters
         writer.Write(nameof(value.FilePath), value.FilePath);
         writer.WriteObject(nameof(value.Configuration), value.Configuration, WriteProperties);
         writer.WriteObject(nameof(value.ProjectWorkspaceState), value.ProjectWorkspaceState, WriteProperties);
-        writer.Write(nameof(value.RootNamespace), value.RootNamespace);
         writer.WriteArray(nameof(value.Documents), value.Documents, Write);
     }
 }
