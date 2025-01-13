@@ -35,6 +35,7 @@ internal static partial class ObjectWriters
 
         writer.Write(nameof(value.LanguageVersion), languageVersionText);
 
+        writer.WriteIfNotZero(nameof(value.CSharpLanguageVersion), (int)value.CSharpLanguageVersion);
         writer.WriteIfNotFalse(nameof(value.SuppressAddComponentParameter), value.SuppressAddComponentParameter);
         writer.WriteIfNotTrue(nameof(value.UseConsolidatedMvcViews), value.UseConsolidatedMvcViews);
 

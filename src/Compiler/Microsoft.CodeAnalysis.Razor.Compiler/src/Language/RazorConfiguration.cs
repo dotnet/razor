@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -11,6 +12,7 @@ public sealed record class RazorConfiguration(
     RazorLanguageVersion LanguageVersion,
     string ConfigurationName,
     ImmutableArray<RazorExtension> Extensions,
+    LanguageVersion CSharpLanguageVersion = LanguageVersion.Default,
     bool UseConsolidatedMvcViews = true,
     bool SuppressAddComponentParameter = false)
 {
@@ -18,6 +20,7 @@ public sealed record class RazorConfiguration(
         RazorLanguageVersion.Latest,
         ConfigurationName: "unnamed",
         Extensions: [],
+        CSharpLanguageVersion: CodeAnalysis.CSharp.LanguageVersion.Default,
         UseConsolidatedMvcViews: true,
         SuppressAddComponentParameter: false);
 
@@ -25,6 +28,7 @@ public sealed record class RazorConfiguration(
         => other is not null &&
            LanguageVersion == other.LanguageVersion &&
            ConfigurationName == other.ConfigurationName &&
+           CSharpLanguageVersion == other.CSharpLanguageVersion &&
            SuppressAddComponentParameter == other.SuppressAddComponentParameter &&
            UseConsolidatedMvcViews == other.UseConsolidatedMvcViews &&
            Extensions.SequenceEqual(other.Extensions);
@@ -34,6 +38,7 @@ public sealed record class RazorConfiguration(
         var hash = HashCodeCombiner.Start();
         hash.Add(LanguageVersion);
         hash.Add(ConfigurationName);
+        hash.Add(CSharpLanguageVersion);
         hash.Add(Extensions);
         hash.Add(SuppressAddComponentParameter);
         hash.Add(UseConsolidatedMvcViews);

@@ -89,7 +89,7 @@ internal sealed class ProjectState
 
     public ImmutableArray<TagHelperDescriptor> TagHelpers => ProjectWorkspaceState.TagHelpers;
 
-    public LanguageVersion CSharpLanguageVersion => ProjectWorkspaceState.CSharpLanguageVersion;
+    public LanguageVersion CSharpLanguageVersion => HostProject.Configuration.CSharpLanguageVersion;
 
     public RazorProjectEngine ProjectEngine
     {
@@ -274,10 +274,7 @@ internal sealed class ProjectState
 
         var documents = UpdateDocuments(static x => x.WithProjectWorkspaceStateChange());
 
-        // If the C# language version changed, we need a new project engine.
-        var retainProjectEngine = ProjectWorkspaceState.CSharpLanguageVersion == projectWorkspaceState.CSharpLanguageVersion;
-
-        return new(this, HostProject, projectWorkspaceState, documents, ImportsToRelatedDocuments, retainProjectEngine);
+        return new(this, HostProject, projectWorkspaceState, documents, ImportsToRelatedDocuments, retainProjectEngine: true);
     }
 
     private ImmutableDictionary<string, ImmutableHashSet<string>> AddToImportsToRelatedDocuments(HostDocument hostDocument)

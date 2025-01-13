@@ -364,7 +364,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
 
                 if (!projectWorkspaceState.Equals(ProjectWorkspaceState.Default))
                 {
-                    _logger.LogInformation($"Updating project '{project.Key}' TagHelpers ({projectWorkspaceState.TagHelpers.Length}) and C# Language Version ({projectWorkspaceState.CSharpLanguageVersion}).");
+                    _logger.LogInformation($"Updating project '{project.Key}' TagHelpers ({projectWorkspaceState.TagHelpers.Length}).");
                 }
 
                 updater.UpdateProjectWorkspaceState(project.Key, projectWorkspaceState);
@@ -372,9 +372,10 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                 var currentConfiguration = project.Configuration;
                 var currentRootNamespace = project.RootNamespace;
                 if (currentConfiguration.ConfigurationName == configuration?.ConfigurationName &&
+                    currentConfiguration.CSharpLanguageVersion == configuration?.CSharpLanguageVersion &&
                     currentRootNamespace == rootNamespace)
                 {
-                    _logger.LogTrace($"Updating project '{project.Key}'. The project is already using configuration '{configuration.ConfigurationName}' and root namespace '{rootNamespace}'.");
+                    _logger.LogTrace($"Updating project '{project.Key}'. The project is already using configuration '{configuration.ConfigurationName}' and root namespace '{rootNamespace}' and C# lang version '{configuration.CSharpLanguageVersion}'.");
                     return;
                 }
 
@@ -383,9 +384,10 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                     configuration = FallbackRazorConfiguration.Latest;
                     _logger.LogInformation($"Updating project '{project.Key}' to use the latest configuration ('{configuration.ConfigurationName}')'.");
                 }
-                else if (currentConfiguration.ConfigurationName != configuration.ConfigurationName)
+                else if (currentConfiguration.ConfigurationName != configuration.ConfigurationName ||
+                    currentConfiguration.CSharpLanguageVersion != configuration.CSharpLanguageVersion)
                 {
-                    _logger.LogInformation($"Updating project '{project.Key}' to Razor configuration '{configuration.ConfigurationName}' with language version '{configuration.LanguageVersion}'.");
+                    _logger.LogInformation($"Updating project '{project.Key}' to Razor configuration '{configuration.ConfigurationName}' with language version '{configuration.LanguageVersion}' and C# lang version '{configuration.CSharpLanguageVersion}'.");
                 }
 
                 if (currentRootNamespace != rootNamespace)

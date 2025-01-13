@@ -291,6 +291,11 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
                 ? csharpParseOptions.LanguageVersion
                 : LanguageVersion.Default;
 
+            configuration = configuration with
+            {
+                CSharpLanguageVersion = csharpLanguageVersion
+            };
+
             using var _ = StopwatchPool.GetPooledObject(out var watch);
 
             watch.Restart();
@@ -313,7 +318,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
                 Project: {projectSnapshot.FilePath}
                 """);
 
-            return (ProjectWorkspaceState.Create(tagHelpers, csharpLanguageVersion), configuration);
+            return (ProjectWorkspaceState.Create(tagHelpers), configuration);
         }
         catch (OperationCanceledException)
         {

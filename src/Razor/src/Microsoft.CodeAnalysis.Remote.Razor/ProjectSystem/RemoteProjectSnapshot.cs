@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
@@ -174,29 +173,9 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
     private async Task<RazorConfiguration> ComputeConfigurationAsync(CancellationToken cancellationToken)
     {
         // See RazorSourceGenerator.RazorProviders.cs
-
-        var globalOptions = _project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions;
-
-        globalOptions.TryGetValue("build_property.RazorConfiguration", out var configurationName);
-
-        configurationName ??= "MVC-3.0"; // TODO: Source generator uses "default" here??
-
-        if (!globalOptions.TryGetValue("build_property.RazorLangVersion", out var razorLanguageVersionString) ||
-            !RazorLanguageVersion.TryParse(razorLanguageVersionString, out var razorLanguageVersion))
-        {
-            razorLanguageVersion = RazorLanguageVersion.Latest;
-        }
-
         var compilation = await _project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-        var suppressAddComponentParameter = compilation is not null && !compilation.HasAddComponentParameter();
-
-        return new(
-            razorLanguageVersion,
-            configurationName,
-            Extensions: [],
-            UseConsolidatedMvcViews: true,
-            suppressAddComponentParameter);
+        return RazorProjectInfoFactory.ComputeRazorConfigurationOptions(_project, compilation, out _);
     }
 
     private async Task<RazorProjectEngine> ComputeProjectEngineAsync(CancellationToken cancellationToken)

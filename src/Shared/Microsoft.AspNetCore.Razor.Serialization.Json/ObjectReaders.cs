@@ -3,6 +3,7 @@
 
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.Json;
 
@@ -27,6 +28,7 @@ internal static partial class ObjectReaders
     {
         var configurationName = reader.ReadNonNullString(nameof(RazorConfiguration.ConfigurationName));
         var languageVersionText = reader.ReadNonNullString(nameof(RazorConfiguration.LanguageVersion));
+        var csharpLanguageVersion =  (LanguageVersion)reader.ReadInt32OrZero(nameof(RazorConfiguration.CSharpLanguageVersion));
         var suppressAddComponentParameter = reader.ReadBooleanOrFalse(nameof(RazorConfiguration.SuppressAddComponentParameter));
         var useConsolidatedMvcViews = reader.ReadBooleanOrTrue(nameof(RazorConfiguration.UseConsolidatedMvcViews));
         var extensions = reader.ReadImmutableArrayOrEmpty(nameof(RazorConfiguration.Extensions),
@@ -40,7 +42,7 @@ internal static partial class ObjectReaders
             ? version
             : RazorLanguageVersion.Version_2_1;
 
-        return new(languageVersion, configurationName, extensions, SuppressAddComponentParameter: suppressAddComponentParameter);
+        return new(languageVersion, configurationName, extensions, csharpLanguageVersion, SuppressAddComponentParameter: suppressAddComponentParameter);
     }
 
     public static RazorDiagnostic ReadDiagnostic(JsonDataReader reader)
