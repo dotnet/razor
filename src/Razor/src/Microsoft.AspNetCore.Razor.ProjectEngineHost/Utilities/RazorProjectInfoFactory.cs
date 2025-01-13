@@ -123,15 +123,17 @@ internal static class RazorProjectInfoFactory
 
         var suppressAddComponentParameter = compilation is not null && !compilation.HasAddComponentParameter();
 
-        var csharpLanguageVersion = ((CSharpParseOptions)project.ParseOptions.AssumeNotNull()).LanguageVersion;
+        var csharpParseOptions = project.ParseOptions as CSharpParseOptions ?? CSharpParseOptions.Default;
 
         var razorConfiguration = new RazorConfiguration(
             razorLanguageVersion,
             configurationName,
             Extensions: [],
-            CSharpLanguageVersion: csharpLanguageVersion,
+            CSharpLanguageVersion: csharpParseOptions.LanguageVersion,
             UseConsolidatedMvcViews: true,
-            suppressAddComponentParameter);
+            suppressAddComponentParameter,
+            UseRoslynTokenizer: csharpParseOptions.UseRoslynTokenizer(),
+            PreprocessorSymbols: csharpParseOptions.PreprocessorSymbolNames.ToImmutableArray());
 
         defaultNamespace = rootNamespace ?? "ASP"; // TODO: Source generator does this. Do we want it?
 

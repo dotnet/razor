@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -287,13 +289,13 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
 
         try
         {
-            var csharpLanguageVersion = workspaceProject.ParseOptions is CSharpParseOptions csharpParseOptions
-                ? csharpParseOptions.LanguageVersion
-                : LanguageVersion.Default;
+            var csharpParseOptions = workspaceProject.ParseOptions as CSharpParseOptions ?? CSharpParseOptions.Default;
 
             configuration = configuration with
             {
-                CSharpLanguageVersion = csharpLanguageVersion
+                CSharpLanguageVersion = csharpParseOptions.LanguageVersion,
+                UseRoslynTokenizer = csharpParseOptions.UseRoslynTokenizer(),
+                PreprocessorSymbols = csharpParseOptions.PreprocessorSymbolNames.ToImmutableArray()
             };
 
             using var _ = StopwatchPool.GetPooledObject(out var watch);
