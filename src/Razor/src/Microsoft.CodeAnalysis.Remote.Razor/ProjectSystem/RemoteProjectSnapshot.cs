@@ -182,7 +182,8 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
     {
         var configuration = await _lazyConfiguration.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-        var useRoslynTokenizer = SolutionSnapshot.SnapshotManager.CompilerOptions.IsFlagSet(RazorCompilerOptions.UseRoslynTokenizer);
+        var useRoslynTokenizer = configuration.UseRoslynTokenizer;
+        var parseOptions = CSharpParseOptions.Default.WithPreprocessorSymbols(configuration.PreprocessorSymbols);
 
         return ProjectEngineFactories.DefaultProvider.Create(
             configuration,
@@ -192,7 +193,7 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
                 builder.SetRootNamespace(RootNamespace);
                 builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
                 builder.SetSupportLocalizedComponentNames();
-                builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer, CSharpParseOptions.Default));
+                builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer, parseOptions));
             });
     }
 

@@ -14,15 +14,25 @@ public sealed record class RazorConfiguration(
     ImmutableArray<RazorExtension> Extensions,
     LanguageVersion CSharpLanguageVersion = LanguageVersion.Default,
     bool UseConsolidatedMvcViews = true,
-    bool SuppressAddComponentParameter = false)
+    bool SuppressAddComponentParameter = false,
+    bool UseRoslynTokenizer = false,
+    ImmutableArray<string> PreprocessorSymbols = default)
 {
+    public ImmutableArray<string> PreprocessorSymbols
+    {
+        get => field.NullToEmpty();
+        init => field = value.NullToEmpty();
+    } = PreprocessorSymbols;
+
     public static readonly RazorConfiguration Default = new(
         RazorLanguageVersion.Latest,
         ConfigurationName: "unnamed",
         Extensions: [],
         CSharpLanguageVersion: CodeAnalysis.CSharp.LanguageVersion.Default,
         UseConsolidatedMvcViews: true,
-        SuppressAddComponentParameter: false);
+        SuppressAddComponentParameter: false,
+        UseRoslynTokenizer: false,
+        PreprocessorSymbols: []);
 
     public bool Equals(RazorConfiguration? other)
         => other is not null &&
@@ -31,6 +41,8 @@ public sealed record class RazorConfiguration(
            CSharpLanguageVersion == other.CSharpLanguageVersion &&
            SuppressAddComponentParameter == other.SuppressAddComponentParameter &&
            UseConsolidatedMvcViews == other.UseConsolidatedMvcViews &&
+           UseRoslynTokenizer == other.UseRoslynTokenizer &&
+           PreprocessorSymbols.SequenceEqual(other.PreprocessorSymbols) &&
            Extensions.SequenceEqual(other.Extensions);
 
     public override int GetHashCode()
@@ -42,6 +54,8 @@ public sealed record class RazorConfiguration(
         hash.Add(Extensions);
         hash.Add(SuppressAddComponentParameter);
         hash.Add(UseConsolidatedMvcViews);
+        hash.Add(UseRoslynTokenizer);
+        hash.Add(PreprocessorSymbols);
         return hash;
     }
 }

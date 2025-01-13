@@ -106,14 +106,15 @@ internal sealed class ProjectState
             {
                 var configuration = HostProject.Configuration;
                 var rootDirectoryPath = Path.GetDirectoryName(HostProject.FilePath).AssumeNotNull();
-                var useRoslynTokenizer = CompilerOptions.IsFlagSet(RazorCompilerOptions.UseRoslynTokenizer);
+                var useRoslynTokenizer = configuration.UseRoslynTokenizer;
+                var parseOptions = CSharpParseOptions.Default.WithPreprocessorSymbols(configuration.PreprocessorSymbols);
 
                 return _projectEngineFactoryProvider.Create(configuration, rootDirectoryPath, builder =>
                 {
                     builder.SetRootNamespace(HostProject.RootNamespace);
                     builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
                     builder.SetSupportLocalizedComponentNames();
-                    builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer, CSharpParseOptions.Default));
+                    builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer, parseOptions));
                 });
             }
         }

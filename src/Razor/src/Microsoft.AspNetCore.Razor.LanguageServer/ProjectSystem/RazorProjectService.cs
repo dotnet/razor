@@ -371,8 +371,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
 
                 var currentConfiguration = project.Configuration;
                 var currentRootNamespace = project.RootNamespace;
-                if (currentConfiguration.ConfigurationName == configuration?.ConfigurationName &&
-                    currentConfiguration.CSharpLanguageVersion == configuration?.CSharpLanguageVersion &&
+                if (currentConfiguration == configuration &&
                     currentRootNamespace == rootNamespace)
                 {
                     _logger.LogTrace($"Updating project '{project.Key}'. The project is already using configuration '{configuration.ConfigurationName}' and root namespace '{rootNamespace}' and C# lang version '{configuration.CSharpLanguageVersion}'.");
@@ -384,8 +383,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                     configuration = FallbackRazorConfiguration.Latest;
                     _logger.LogInformation($"Updating project '{project.Key}' to use the latest configuration ('{configuration.ConfigurationName}')'.");
                 }
-                else if (currentConfiguration.ConfigurationName != configuration.ConfigurationName ||
-                    currentConfiguration.CSharpLanguageVersion != configuration.CSharpLanguageVersion)
+                else
                 {
                     _logger.LogInformation($"Updating project '{project.Key}' to Razor configuration '{configuration.ConfigurationName}' with language version '{configuration.LanguageVersion}' and C# lang version '{configuration.CSharpLanguageVersion}'.");
                 }

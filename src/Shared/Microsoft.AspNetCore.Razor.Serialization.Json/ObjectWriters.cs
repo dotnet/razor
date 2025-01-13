@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Utilities;
@@ -38,6 +39,8 @@ internal static partial class ObjectWriters
         writer.WriteIfNotZero(nameof(value.CSharpLanguageVersion), (int)value.CSharpLanguageVersion);
         writer.WriteIfNotFalse(nameof(value.SuppressAddComponentParameter), value.SuppressAddComponentParameter);
         writer.WriteIfNotTrue(nameof(value.UseConsolidatedMvcViews), value.UseConsolidatedMvcViews);
+        writer.WriteIfNotFalse(nameof(value.UseRoslynTokenizer), value.UseRoslynTokenizer);
+        writer.WriteArrayIfNotDefaultOrEmpty(nameof(value.PreprocessorSymbols), value.PreprocessorSymbols, static (w, v) => w.Write(v));
 
         writer.WriteArrayIfNotNullOrEmpty(nameof(value.Extensions), value.Extensions, static (w, v) => w.Write(v.ExtensionName));
     }

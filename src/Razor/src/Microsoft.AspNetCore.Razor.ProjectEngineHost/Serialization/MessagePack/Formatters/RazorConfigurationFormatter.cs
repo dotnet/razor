@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using MessagePack;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -10,7 +11,8 @@ namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 
 internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfiguration>
 {
-    private const int SerializerPropertyCount = 5;
+    private const int SerializerPropertyCount = 7;
+
     public static readonly ValueFormatter<RazorConfiguration> Instance = new RazorConfigurationFormatter();
 
     private RazorConfigurationFormatter()
@@ -27,6 +29,8 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
         var csharpLanguageVersion = (LanguageVersion)reader.ReadInt32();
         var suppressAddComponentParameter = reader.ReadBoolean();
         var useConsolidatedMvcViews = reader.ReadBoolean();
+        var useRoslynTokenizer = reader.ReadBoolean();
+        var preprocessorSymbols = reader.Deserialize<ImmutableArray<string>>(options);
 
         count -= SerializerPropertyCount;
 
@@ -50,7 +54,9 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
             extensions,
             csharpLanguageVersion,
             UseConsolidatedMvcViews: useConsolidatedMvcViews,
-            SuppressAddComponentParameter: suppressAddComponentParameter);
+            SuppressAddComponentParameter: suppressAddComponentParameter,
+            UseRoslynTokenizer: useRoslynTokenizer,
+            PreprocessorSymbols: preprocessorSymbols);
     }
 
     public override void Serialize(ref MessagePackWriter writer, RazorConfiguration value, SerializerCachingOptions options)
@@ -75,6 +81,8 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
         writer.Write((int)value.CSharpLanguageVersion);
         writer.Write(value.SuppressAddComponentParameter);
         writer.Write(value.UseConsolidatedMvcViews);
+        writer.Write(value.UseRoslynTokenizer);
+        writer.Serialize(value.PreprocessorSymbols, options);
 
         count -= SerializerPropertyCount;
 

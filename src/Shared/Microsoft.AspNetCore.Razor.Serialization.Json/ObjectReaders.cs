@@ -28,9 +28,11 @@ internal static partial class ObjectReaders
     {
         var configurationName = reader.ReadNonNullString(nameof(RazorConfiguration.ConfigurationName));
         var languageVersionText = reader.ReadNonNullString(nameof(RazorConfiguration.LanguageVersion));
-        var csharpLanguageVersion =  (LanguageVersion)reader.ReadInt32OrZero(nameof(RazorConfiguration.CSharpLanguageVersion));
+        var csharpLanguageVersion = (LanguageVersion)reader.ReadInt32OrZero(nameof(RazorConfiguration.CSharpLanguageVersion));
         var suppressAddComponentParameter = reader.ReadBooleanOrFalse(nameof(RazorConfiguration.SuppressAddComponentParameter));
         var useConsolidatedMvcViews = reader.ReadBooleanOrTrue(nameof(RazorConfiguration.UseConsolidatedMvcViews));
+        var useRoslynTokenizer = reader.ReadBooleanOrFalse(nameof(RazorConfiguration.UseRoslynTokenizer));
+        var preprocessorSymbols = reader.ReadImmutableArrayOrEmpty(nameof(RazorConfiguration.PreprocessorSymbols), r => r.ReadNonNullString());
         var extensions = reader.ReadImmutableArrayOrEmpty(nameof(RazorConfiguration.Extensions),
             static r =>
             {
@@ -42,7 +44,14 @@ internal static partial class ObjectReaders
             ? version
             : RazorLanguageVersion.Version_2_1;
 
-        return new(languageVersion, configurationName, extensions, csharpLanguageVersion, SuppressAddComponentParameter: suppressAddComponentParameter);
+        return new(
+            languageVersion,
+            configurationName,
+            extensions,
+            csharpLanguageVersion,
+            SuppressAddComponentParameter: suppressAddComponentParameter,
+            UseRoslynTokenizer: useRoslynTokenizer,
+            PreprocessorSymbols: preprocessorSymbols);
     }
 
     public static RazorDiagnostic ReadDiagnostic(JsonDataReader reader)
