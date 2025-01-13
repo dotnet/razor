@@ -33,17 +33,17 @@ public class ProjectEngineFactoryProviderTest : ToolingTestBase
     {
         var projectFilePath = "/TestPath/SomePath/Test.csproj";
         var intermediateOutputPath = "/TestPath/SomePath/obj";
-        var hostProject_For_1_0 = new HostProject(projectFilePath, intermediateOutputPath, FallbackRazorConfiguration.MVC_1_0, "Test");
-        var hostProject_For_1_1 = new HostProject(projectFilePath, intermediateOutputPath, FallbackRazorConfiguration.MVC_1_1, "Test");
-        var hostProject_For_2_0 = new HostProject(projectFilePath, intermediateOutputPath, FallbackRazorConfiguration.MVC_2_0, "Test");
+        var hostProject_For_1_0 = new HostProject(projectFilePath, intermediateOutputPath, FallbackRazorConfiguration.MVC_1_0 with { RootNamespace = "Test" });
+        var hostProject_For_1_1 = new HostProject(projectFilePath, intermediateOutputPath, FallbackRazorConfiguration.MVC_1_1 with { RootNamespace = "Test" });
+        var hostProject_For_2_0 = new HostProject(projectFilePath, intermediateOutputPath, FallbackRazorConfiguration.MVC_2_0 with { RootNamespace = "Test" });
 
         var hostProject_For_2_1 = new HostProject(
             projectFilePath, intermediateOutputPath,
-            new(RazorLanguageVersion.Version_2_1, "MVC-2.1", Extensions: []), "Test");
+            new(RazorLanguageVersion.Version_2_1, "MVC-2.1", Extensions: [], "Test"));
 
         var hostProject_For_3_0 = new HostProject(
             projectFilePath, intermediateOutputPath,
-            new(RazorLanguageVersion.Version_3_0, "MVC-3.0", Extensions: []), "Test");
+            new(RazorLanguageVersion.Version_3_0, "MVC-3.0", Extensions: [], "Test"));
 
         var hostProject_For_UnknownConfiguration = new HostProject(
             projectFilePath, intermediateOutputPath,

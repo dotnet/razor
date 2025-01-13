@@ -32,7 +32,7 @@ internal static class MiscFilesProject
             normalizedPath,
             normalizedPath,
             FallbackRazorConfiguration.Latest,
-            "Miscellaneous Files");
+            displayName: "Miscellaneous Files");
     }
 
     public static ProjectSnapshot GetMiscellaneousProject(this ProjectSnapshotManager projectManager)

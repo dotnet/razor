@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
 public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
 {
-    private static readonly HostProject s_hostProject = new("C:/project/project.csproj", "C:/project/obj", RazorConfiguration.Default, "TestRootNamespace");
+    private static readonly HostProject s_hostProject = new("C:/project/project.csproj", "C:/project/obj", RazorConfiguration.Default with { RootNamespace = "TestRootNamespace" });
     private static readonly HostDocument s_openHostDocument = new("C:/project/open_document.cshtml", "C:/project/open_document.cshtml");
     private static readonly HostDocument s_closedHostDocument = new("C:/project/closed_document.cshtml", "C:/project/closed_document.cshtml");
     private static readonly Uri s_openedDocumentUri = new(s_openHostDocument.FilePath);

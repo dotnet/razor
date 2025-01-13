@@ -259,7 +259,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : VisualStudioTes
         await projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(
-                new HostProject("/Some/Unknown/Path.csproj", "/Some/Unknown/obj", RazorConfiguration.Default, "Path"));
+                new HostProject("/Some/Unknown/Path.csproj", "/Some/Unknown/obj", RazorConfiguration.Default));
         });
 
         var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();

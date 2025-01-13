@@ -23,8 +23,8 @@ public class OpenDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageS
         new HostDocument("c:/Test1/Components/Counter.cshtml", "Components/Counter.cshtml"),
     ];
 
-    private readonly HostProject _hostProject1 = new("c:/Test1/Test1.csproj", "c:/Test1/obj", RazorConfiguration.Default, "TestRootNamespace");
-    private readonly HostProject _hostProject2 = new("c:/Test2/Test2.csproj", "c:/Test2/obj", RazorConfiguration.Default, "TestRootNamespace");
+    private readonly HostProject _hostProject1 = new("c:/Test1/Test1.csproj", "c:/Test1/obj", RazorConfiguration.Default with { RootNamespace = "TestRootNamespace" });
+    private readonly HostProject _hostProject2 = new("c:/Test2/Test2.csproj", "c:/Test2/obj", RazorConfiguration.Default with { RootNamespace = "TestRootNamespace" });
 
     [Fact]
     public async Task AddDocument_ProcessesOpenDocument()

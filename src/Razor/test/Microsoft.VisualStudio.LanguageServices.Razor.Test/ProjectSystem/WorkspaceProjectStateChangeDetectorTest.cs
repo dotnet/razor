@@ -112,9 +112,9 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         _projectNumberTwo = _solutionWithTwoProjects.GetRequiredProject(projectId2);
         _projectNumberThree = _solutionWithOneProject.GetRequiredProject(projectId3);
 
-        _hostProjectOne = new HostProject("One.csproj", "obj1", FallbackRazorConfiguration.MVC_1_1, "One");
-        _hostProjectTwo = new HostProject("Two.csproj", "obj2", FallbackRazorConfiguration.MVC_1_1, "Two");
-        _hostProjectThree = new HostProject("Three.csproj", "obj3", FallbackRazorConfiguration.MVC_1_1, "Three");
+        _hostProjectOne = new HostProject("One.csproj", "obj1", FallbackRazorConfiguration.MVC_1_1 with { RootNamespace = "One" });
+        _hostProjectTwo = new HostProject("Two.csproj", "obj2", FallbackRazorConfiguration.MVC_1_1 with { RootNamespace = "Two" });
+        _hostProjectThree = new HostProject("Three.csproj", "obj3", FallbackRazorConfiguration.MVC_1_1 with { RootNamespace = "Three" });
     }
 
     [UIFact]

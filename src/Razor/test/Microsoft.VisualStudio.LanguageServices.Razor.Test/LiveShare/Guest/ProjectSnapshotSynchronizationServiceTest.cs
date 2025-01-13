@@ -122,7 +122,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
             _projectManager,
             LoggerFactory,
             JoinableTaskFactory);
-        var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default, "project");
+        var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default);
 
         await _projectManager.UpdateAsync(updater =>
         {
@@ -160,7 +160,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
             _projectManager,
             LoggerFactory,
             JoinableTaskFactory);
-        var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default, "project");
+        var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default);
 
         await _projectManager.UpdateAsync(updater =>
         {
@@ -202,7 +202,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
             _projectManager,
             LoggerFactory,
             JoinableTaskFactory);
-        var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default, "project");
+        var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default);
 
         await _projectManager.UpdateAsync(updater =>
         {
