@@ -31,8 +31,7 @@ public class RazorProjectFileSystemTest
         var project = new TestRazorProjectFileSystem();
 
         // Act and Assert
-        var ex = Assert.Throws<ArgumentNullException>(() => project.NormalizeAndEnsureValidPath(null!));
-        Assert.Equal("path", ex.ParamName);
+        Assert.Throws<ArgumentNullException>(paramName: "path", () => project.NormalizeAndEnsureValidPath(null!));
     }
 
     [Fact]
@@ -42,8 +41,7 @@ public class RazorProjectFileSystemTest
         var project = new TestRazorProjectFileSystem();
 
         // Act and Assert
-        var ex = Assert.Throws<ArgumentException>(() => project.NormalizeAndEnsureValidPath(""));
-        Assert.Equal("path", ex.ParamName);
+        Assert.Throws<ArgumentException>(paramName: "path", () => project.NormalizeAndEnsureValidPath(""));
     }
 
     [Theory]
@@ -56,8 +54,7 @@ public class RazorProjectFileSystemTest
         var project = new TestRazorProjectFileSystem();
 
         // Act and Assert
-        var ex = Assert.Throws<ArgumentException>(() => project.NormalizeAndEnsureValidPath(path));
-        Assert.Equal("path", ex.ParamName);
+        Assert.Throws<ArgumentException>(paramName: "path", () => project.NormalizeAndEnsureValidPath(path));
     }
 
     [Fact]
