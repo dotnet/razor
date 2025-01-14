@@ -5610,4 +5610,192 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     """);
     }
+
+    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [WorkItem("https://github.com/dotnet/razor/issues/9254")]
+    public async Task RenderFragmentPresent()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    @page "/"
+                    @code
+                    {
+                        void T()
+                        {
+                            S("first"
+                                + "second"
+                                + "third");
+                        }
+
+                    string[] S(string s) =>
+                            s.Split(',')
+                            . Select(s => s.Trim())
+                            . ToArray();
+
+                    RenderFragment R => @<div></div>;
+                    }
+                    """,
+            expected: """
+                    @page "/"
+                    @code
+                    {
+                        void T()
+                        {
+                            S("first"
+                                + "second"
+                                + "third");
+                        }
+
+                        string[] S(string s) =>
+                                s.Split(',')
+                                .Select(s => s.Trim())
+                                .ToArray();
+
+                        RenderFragment R => @<div></div>;
+                    }
+                    """);
+    }
+
+    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [WorkItem("https://github.com/dotnet/razor/issues/6150")]
+    public async Task RenderFragment_InLambda()
+    {
+        // Formatting result here is not necessarily perfect, but in the new engine is stable
+        await RunFormattingTestAsync(
+            input: """
+                    @page "/"
+                    @using RazorClassLibrary2.Models
+
+                    @code{
+                        private DateTime? date1;
+
+                        Gopt<int> gopt = new Gopt<int>()
+                        {
+                            Name = "hi"
+                        }
+                        .Editor(m =>
+                        {
+                        return
+                        @<text>hi</text>
+                        ; }
+                        );    
+                    }
+                    """,
+            expected: """
+                    @page "/"
+                    @using RazorClassLibrary2.Models
+
+                    @code {
+                        private DateTime? date1;
+
+                        Gopt<int> gopt = new Gopt<int>()
+                        {
+                            Name = "hi"
+                        }
+                        .Editor(m =>
+                        {
+                            return
+                            @<text>hi</text>
+                            ;
+                        }
+                        );
+                    }
+                    """);
+    }
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/9119")]
+    public async Task CollectionInitializers()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    @{
+                        // Stable
+                        var formatMe = new string[] {
+                            "One",
+                            "Two",
+                            "Three",
+                        };
+
+                        // Closing brace advances to the right
+                        var formatMeTwo = new string[]
+                        {
+                            "One",
+                            "Two",
+                            "Three",
+                        };
+
+                        // Stable
+                        var formatMeThree = new List<string> {
+                            "One",
+                            "Two",
+                            "Three",
+                        };
+                    
+                        // Opening brace advances to the right
+                        var formatMeFour = new List<string>
+                        {
+                            "One",
+                            "Two",
+                            "Three",
+                        };
+                    }
+                    """,
+            expected: """
+                    @{
+                        // Stable
+                        var formatMe = new string[] {
+                            "One",
+                            "Two",
+                            "Three",
+                        };
+                    
+                        // Closing brace advances to the right
+                        var formatMeTwo = new string[]
+                        {
+                            "One",
+                            "Two",
+                            "Three",
+                        };
+                    
+                        // Stable
+                        var formatMeThree = new List<string> {
+                            "One",
+                            "Two",
+                            "Three",
+                        };
+                    
+                        // Opening brace advances to the right
+                        var formatMeFour = new List<string>
+                        {
+                            "One",
+                            "Two",
+                            "Three",
+                        };
+                    }
+                    """);
+    }
+
+    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [WorkItem("https://github.com/dotnet/razor/issues/9711")]
+    public async Task Directives()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                            @page "/"
+
+                            @using System
+                            @inject object Foo
+
+
+                    """,
+            expected: """
+                    @page "/"
+                    
+                    @using System
+                    @inject object Foo
+                    
+                    
+                    """);
+    }
 }
