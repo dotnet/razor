@@ -597,7 +597,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
         {
             TextDocument = new RoslynTextDocumentIdentifier()
             {
-                Uri = document.CreateUri()
+                Uri = document.CreateDocumentUri()
             },
             Position = RoslynLspExtensions.GetPosition(sourceText, input.Position),
             Context = completionContext

@@ -202,7 +202,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
             return null;
         }
 
-        request.TextDocument = RoslynLspExtensions.WithUri(request.TextDocument, htmlDocument.Uri);
+        request.TextDocument = RoslynLspExtensions.WithUri(request.TextDocument, new Roslyn.LanguageServer.Protocol.DocumentUri(htmlDocument.Uri));
 
         _logger.LogDebug($"Resolving auto-insertion edit for {htmlDocument.Uri}");
 

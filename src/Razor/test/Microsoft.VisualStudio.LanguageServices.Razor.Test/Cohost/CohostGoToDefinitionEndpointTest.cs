@@ -83,7 +83,7 @@ public class CohostGoToDefinitionEndpointTest(FuseTestContext context, ITestOutp
         // number of using directives in .NET Framework vs. .NET Core, so rather than relying on line
         // numbers we do some vague notion of actual navigation and test the actual source line that
         // the user would see.
-        var line = File.ReadLines(location.Uri.LocalPath).ElementAt(location.Range.Start.Line);
+        var line = File.ReadLines(location.Uri.ParsedUri!.LocalPath).ElementAt(location.Range.Start.Line);
         Assert.Contains("public sealed class String", line);
     }
 
@@ -253,7 +253,7 @@ public class CohostGoToDefinitionEndpointTest(FuseTestContext context, ITestOutp
         var range = RoslynLspExtensions.GetRange(text, input.Span);
         Assert.Equal(range, location.Range);
 
-        Assert.Equal(document.CreateUri(), location.Uri);
+        Assert.Equal(document.CreateDocumentUri(), location.Uri);
     }
 
     private async Task<SumType<RoslynLocation, RoslynLocation[], RoslynDocumentLink[]>?> GetGoToDefinitionResultAsync(

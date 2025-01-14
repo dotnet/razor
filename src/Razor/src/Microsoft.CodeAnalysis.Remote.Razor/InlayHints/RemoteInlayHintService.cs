@@ -65,7 +65,7 @@ internal sealed class RemoteInlayHintService(in ServiceArgs args) : RazorDocumen
             .GetGeneratedDocumentAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        var textDocument = inlayHintParams.TextDocument.WithUri(generatedDocument.CreateUri());
+        var textDocument = inlayHintParams.TextDocument.WithUri(generatedDocument.CreateDocumentUri());
         var range = projectedLinePositionSpan.ToRange();
 
         var hints = await InlayHints.GetInlayHintsAsync(generatedDocument, textDocument, range, displayAllOverride, cancellationToken).ConfigureAwait(false);

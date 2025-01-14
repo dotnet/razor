@@ -145,7 +145,7 @@ public class CohostInlayHintEndpointTest(FuseTestContext context, ITestOutputHel
 
         var request = new InlayHintParams()
         {
-            TextDocument = new TextDocumentIdentifier() { Uri = document.CreateUri() },
+            TextDocument = new TextDocumentIdentifier() { Uri = document.CreateDocumentUri() },
             Range = RoslynLspFactory.CreateRange(startLine, starChar, endLine, endChar)
         };
 
@@ -168,7 +168,7 @@ public class CohostInlayHintEndpointTest(FuseTestContext context, ITestOutputHel
 
         var request = new InlayHintParams()
         {
-            TextDocument = new TextDocumentIdentifier() { Uri = document.CreateUri() },
+            TextDocument = new TextDocumentIdentifier() { Uri = document.CreateDocumentUri() },
             Range = new()
             {
                 Start = new(0, 0),
@@ -203,7 +203,7 @@ public class CohostInlayHintEndpointTest(FuseTestContext context, ITestOutputHel
             // Make sure we can resolve the document correctly
             var tdi = resolveEndpoint.GetTestAccessor().GetTextDocumentIdentifier(serializedHint);
             Assert.NotNull(tdi);
-            Assert.Equal(document.CreateUri(), tdi.Uri);
+            Assert.Equal(document.CreateDocumentUri(), tdi.Uri);
 
             // Make sure we, or really Roslyn, can resolve the hint correctly
             var resolvedHint = await resolveEndpoint.GetTestAccessor().HandleRequestAsync(serializedHint, document, DisposalToken);

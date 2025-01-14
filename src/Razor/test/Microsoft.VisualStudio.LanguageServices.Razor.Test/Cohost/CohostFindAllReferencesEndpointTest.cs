@@ -109,7 +109,7 @@ public class CohostFindAllReferencesEndpointTest(FuseTestContext context, ITestO
         var textDocumentPositionParams = new TextDocumentPositionParams
         {
             Position = position,
-            TextDocument = new TextDocumentIdentifier { Uri = document.CreateUri() },
+            TextDocument = new TextDocumentIdentifier { Uri = document.CreateDocumentUri() },
         };
 
         var results = await endpoint.GetTestAccessor().HandleRequestAsync(document, position, DisposalToken);
@@ -146,14 +146,14 @@ public class CohostFindAllReferencesEndpointTest(FuseTestContext context, ITestO
         {
             var location = GetLocation(result);
             string matchedText;
-            if (razorDocumentUri.Equals(location.Uri))
+            if (razorDocumentUri.Equals(location.Uri.GetRequiredUri()))
             {
                 matchedText = inputText.Lines[location.Range.Start.Line].ToString();
                 Assert.Single(input.Spans.Where(s => inputText.GetRange(s).Equals(location.Range)));
             }
             else
             {
-                var additionalFile = Assert.Single(additionalFiles.Where(f => FilePathNormalizingComparer.Instance.Equals(f.fileName, location.Uri.AbsolutePath)));
+                var additionalFile = Assert.Single(additionalFiles.Where(f => FilePathNormalizingComparer.Instance.Equals(f.fileName, location.Uri.GetRequiredUri().AbsolutePath)));
                 var text = SourceText.From(additionalFile.testCode.Text);
                 matchedText = text.Lines[location.Range.Start.Line].ToString();
                 Assert.Single(additionalFile.testCode.Spans.Where(s => text.GetRange(s).Equals(location.Range)));

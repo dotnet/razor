@@ -94,7 +94,8 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                 continue;
             }
 
-            var (mappedUri, mappedRange) = await DocumentMappingService.MapToHostDocumentUriAndRangeAsync(context.Snapshot, location.Uri, location.Range.ToLinePositionSpan(), cancellationToken).ConfigureAwait(false);
+            var locationUri = location.Uri.GetRequiredUri();
+            var (mappedUri, mappedRange) = await DocumentMappingService.MapToHostDocumentUriAndRangeAsync(context.Snapshot, locationUri, location.Range.ToLinePositionSpan(), cancellationToken).ConfigureAwait(false);
 
             if (referenceItem is not null)
             {
@@ -102,7 +103,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                 referenceItem.Origin = VSInternalItemOrigin.Exact;
 
                 // If we're going to change the Uri, then also override the file paths
-                if (mappedUri != location.Uri)
+                if (mappedUri != locationUri)
                 {
                     referenceItem.DisplayPath = mappedUri.AbsolutePath;
                     referenceItem.DocumentName = mappedUri.AbsolutePath;
@@ -112,7 +113,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                 }
             }
 
-            location.Uri = mappedUri;
+            location.Uri = new DocumentUri(mappedUri);
             location.Range = mappedRange.ToRange();
         }
 
