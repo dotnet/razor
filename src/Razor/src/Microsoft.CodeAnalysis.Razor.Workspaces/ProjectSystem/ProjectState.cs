@@ -107,7 +107,7 @@ internal sealed class ProjectState
                 var configuration = HostProject.Configuration;
                 var rootDirectoryPath = Path.GetDirectoryName(HostProject.FilePath).AssumeNotNull();
                 var useRoslynTokenizer = configuration.UseRoslynTokenizer;
-                var parseOptions = CSharpParseOptions.Default.WithPreprocessorSymbols(configuration.PreprocessorSymbols);
+                var parseOptions = new CSharpParseOptions(languageVersion: CSharpLanguageVersion, preprocessorSymbols: configuration.PreprocessorSymbols);
 
                 return _projectEngineFactoryProvider.Create(configuration, rootDirectoryPath, builder =>
                 {

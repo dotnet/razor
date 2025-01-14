@@ -182,7 +182,7 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
         var configuration = await _lazyConfiguration.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
         var useRoslynTokenizer = configuration.UseRoslynTokenizer;
-        var parseOptions = CSharpParseOptions.Default.WithPreprocessorSymbols(configuration.PreprocessorSymbols);
+        var parseOptions = new CSharpParseOptions(languageVersion: CSharpLanguageVersion, preprocessorSymbols: configuration.PreprocessorSymbols);
 
         return ProjectEngineFactories.DefaultProvider.Create(
             configuration,

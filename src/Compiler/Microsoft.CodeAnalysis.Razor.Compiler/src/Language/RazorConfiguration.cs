@@ -20,9 +20,9 @@ public sealed record class RazorConfiguration(
 {
     public ImmutableArray<string> PreprocessorSymbols
     {
-        get => field.NullToEmpty();
+        get;
         init => field = value.NullToEmpty();
-    } = PreprocessorSymbols;
+    } = PreprocessorSymbols.NullToEmpty();
 
     public static readonly RazorConfiguration Default = new(
         RazorLanguageVersion.Latest,
