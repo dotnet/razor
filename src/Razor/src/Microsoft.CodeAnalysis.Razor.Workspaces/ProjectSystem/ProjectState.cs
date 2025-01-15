@@ -89,7 +89,7 @@ internal sealed class ProjectState
 
     public ImmutableArray<TagHelperDescriptor> TagHelpers => ProjectWorkspaceState.TagHelpers;
 
-    public LanguageVersion CSharpLanguageVersion => ProjectWorkspaceState.CSharpLanguageVersion;
+    public LanguageVersion CSharpLanguageVersion => HostProject.Configuration.CSharpLanguageVersion;
 
     public RazorProjectEngine ProjectEngine
     {
@@ -106,14 +106,15 @@ internal sealed class ProjectState
             {
                 var configuration = HostProject.Configuration;
                 var rootDirectoryPath = Path.GetDirectoryName(HostProject.FilePath).AssumeNotNull();
-                var useRoslynTokenizer = CompilerOptions.IsFlagSet(RazorCompilerOptions.UseRoslynTokenizer);
+                var useRoslynTokenizer = configuration.UseRoslynTokenizer;
+                var parseOptions = new CSharpParseOptions(languageVersion: CSharpLanguageVersion, preprocessorSymbols: configuration.PreprocessorSymbols);
 
                 return _projectEngineFactoryProvider.Create(configuration, rootDirectoryPath, builder =>
                 {
                     builder.SetRootNamespace(HostProject.RootNamespace);
                     builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
                     builder.SetSupportLocalizedComponentNames();
-                    builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer, CSharpParseOptions.Default));
+                    builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer, parseOptions));
                 });
             }
         }
@@ -274,10 +275,7 @@ internal sealed class ProjectState
 
         var documents = UpdateDocuments(static x => x.WithProjectWorkspaceStateChange());
 
-        // If the C# language version changed, we need a new project engine.
-        var retainProjectEngine = ProjectWorkspaceState.CSharpLanguageVersion == projectWorkspaceState.CSharpLanguageVersion;
-
-        return new(this, HostProject, projectWorkspaceState, documents, ImportsToRelatedDocuments, retainProjectEngine);
+        return new(this, HostProject, projectWorkspaceState, documents, ImportsToRelatedDocuments, retainProjectEngine: true);
     }
 
     private ImmutableDictionary<string, ImmutableHashSet<string>> AddToImportsToRelatedDocuments(HostDocument hostDocument)

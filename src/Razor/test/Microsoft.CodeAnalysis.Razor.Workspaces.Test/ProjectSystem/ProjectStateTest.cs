@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -571,7 +570,7 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
             .AddEmptyDocument(AnotherProjectNestedFile3)
             .AddEmptyDocument(SomeProjectFile2);
 
-        var newWorkspaceState = ProjectWorkspaceState.Create(s_projectWorkspaceState.TagHelpers, LanguageVersion.CSharp6);
+        var newWorkspaceState = ProjectWorkspaceState.Create([]);
 
         // Act
         var newState = state.WithProjectWorkspaceState(newWorkspaceState);
@@ -579,9 +578,8 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         // Assert
         Assert.Same(newWorkspaceState, newState.ProjectWorkspaceState);
 
-        // The C# language version changed, and the tag helpers didn't change
-        Assert.NotSame(state.ProjectEngine, newState.ProjectEngine);
-        AssertSameTagHelpers(state.TagHelpers, newState.TagHelpers);
+        // The the tag helpers didn't change
+        Assert.Same(state.ProjectEngine, newState.ProjectEngine);
 
         Assert.NotSame(state.Documents[SomeProjectFile2.FilePath], newState.Documents[SomeProjectFile2.FilePath]);
         Assert.NotSame(state.Documents[AnotherProjectNestedFile3.FilePath], newState.Documents[AnotherProjectNestedFile3.FilePath]);
@@ -621,7 +619,7 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
             .AddEmptyDocument(SomeProjectFile2);
 
         // Act
-        var newState = state.WithProjectWorkspaceState(ProjectWorkspaceState.Create(state.TagHelpers, state.CSharpLanguageVersion));
+        var newState = state.WithProjectWorkspaceState(ProjectWorkspaceState.Create(state.TagHelpers));
 
         // Assert
         Assert.Same(state, newState);
