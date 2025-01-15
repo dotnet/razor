@@ -41,7 +41,7 @@ internal static partial class ObjectWriters
         writer.WriteIfNotFalse(nameof(value.UseRoslynTokenizer), value.UseRoslynTokenizer);
         writer.WriteArrayIfNotDefaultOrEmpty(nameof(value.PreprocessorSymbols), value.PreprocessorSymbols, static (w, v) => w.Write(v));
 
-        writer.WriteArrayIfNotNullOrEmpty(nameof(value.Extensions), value.Extensions, static (w, v) => w.Write(v.ExtensionName));
+        writer.WriteArrayIfNotDefaultOrEmpty(nameof(value.Extensions), value.Extensions, static (w, v) => w.Write(v.ExtensionName));
     }
 
     public static void Write(JsonDataWriter writer, RazorDiagnostic? value)
