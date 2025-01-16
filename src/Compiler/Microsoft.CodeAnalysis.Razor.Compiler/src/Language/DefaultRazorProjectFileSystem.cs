@@ -14,7 +14,25 @@ internal class DefaultRazorProjectFileSystem : RazorProjectFileSystem
     {
         ArgHelper.ThrowIfNullOrEmpty(root);
 
-        Root = root.Replace('\\', '/').TrimEnd('/');
+        // If "/" is passed in, we want that to be the value of root. We don't want root to end up
+        // as an empty string.
+        if (root == DefaultBasePath)
+        {
+            Root = DefaultBasePath;
+        }
+        else
+        {
+            root = root.Replace('\\', '/').TrimEnd('/');
+
+            // Was the entire string just '\\' or '/'? If so, that's an invalid path.
+            // Just throw instead of setting Root to an empty string.
+            if (root.Length == 0)
+            {
+                ThrowHelper.ThrowArgumentException(nameof(root), $"Invalid path provided.");
+            }
+
+            Root = root;
+        }
     }
 
     public string Root { get; }
@@ -43,7 +61,7 @@ internal class DefaultRazorProjectFileSystem : RazorProjectFileSystem
 
     public override RazorProjectItem GetItem(string path, string? fileKind)
     {
-        var absoluteBasePath = NormalizeAndEnsureValidPath("/");
+        var absoluteBasePath = Root;
         var absolutePath = NormalizeAndEnsureValidPath(path);
 
         var file = new FileInfo(absolutePath);
@@ -55,11 +73,18 @@ internal class DefaultRazorProjectFileSystem : RazorProjectFileSystem
         var relativePhysicalPath = file.FullName.Substring(absoluteBasePath.Length + 1); // Include leading separator
         var filePath = "/" + relativePhysicalPath.Replace(Path.DirectorySeparatorChar, '/');
 
-        return new DefaultRazorProjectItem("/", filePath, relativePhysicalPath, fileKind, new FileInfo(absolutePath), cssScope: null);
+        return new DefaultRazorProjectItem(DefaultBasePath, filePath, relativePhysicalPath, fileKind, new FileInfo(absolutePath), cssScope: null);
     }
 
     protected override string NormalizeAndEnsureValidPath(string path)
     {
+        // PERF: If we're asked to normalize "/", there's no need to compare and manipulate strings to
+        // ultimately return the value of Root.
+        if (path == DefaultBasePath)
+        {
+            return Root;
+        }
+
         ArgHelper.ThrowIfNullOrEmpty(path);
 
         var absolutePath = path.Replace('\\', '/');
