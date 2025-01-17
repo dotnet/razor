@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Text;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using static System.StringExtensions;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
@@ -307,6 +309,12 @@ public sealed partial class CodeWriter : IDisposable
 
     public CodeWriter WriteLine([InterpolatedStringHandlerArgument("")] ref WriteInterpolatedStringHandler handler)
         => WriteLine();
+
+    public SourceText GetText()
+    {
+        // TODO: Introduce a TextReader to create the SourceText with rather than a giant string.
+        return SourceText.From(GenerateCode(), Encoding.UTF8);
+    }
 
     public string GenerateCode()
     {
