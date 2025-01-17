@@ -24,7 +24,6 @@ internal class ConfigurableLanguageServerFeatureOptions : LanguageServerFeatureO
     private readonly bool? _disableRazorLanguageServer;
     private readonly bool? _forceRuntimeCodeGeneration;
     private readonly bool? _useNewFormattingEngine;
-    private readonly bool? _avoidExplicitCommitCharacters;
 
     public override bool SupportsFileManipulation => _supportsFileManipulation ?? _defaults.SupportsFileManipulation;
     public override string CSharpVirtualDocumentSuffix => _csharpVirtualDocumentSuffix ?? DefaultLanguageServerFeatureOptions.DefaultCSharpVirtualDocumentSuffix;
@@ -40,7 +39,7 @@ internal class ConfigurableLanguageServerFeatureOptions : LanguageServerFeatureO
     public override bool DisableRazorLanguageServer => _disableRazorLanguageServer ?? _defaults.DisableRazorLanguageServer;
     public override bool ForceRuntimeCodeGeneration => _forceRuntimeCodeGeneration ?? _defaults.ForceRuntimeCodeGeneration;
     public override bool UseNewFormattingEngine => _useNewFormattingEngine ?? _defaults.UseNewFormattingEngine;
-    public override bool AvoidExplicitCommitCharacters => _avoidExplicitCommitCharacters ?? _defaults.AvoidExplicitCommitCharacters;
+    public override bool AvoidExplicitCommitCharactersInTransitionCompletionItem => true;
 
     public ConfigurableLanguageServerFeatureOptions(string[] args)
     {
@@ -65,7 +64,6 @@ internal class ConfigurableLanguageServerFeatureOptions : LanguageServerFeatureO
             TryProcessBoolOption(nameof(DisableRazorLanguageServer), ref _disableRazorLanguageServer, option, args, i);
             TryProcessBoolOption(nameof(ForceRuntimeCodeGeneration), ref _forceRuntimeCodeGeneration, option, args, i);
             TryProcessBoolOption(nameof(UseNewFormattingEngine), ref _useNewFormattingEngine, option, args, i);
-            TryProcessBoolOption(nameof(AvoidExplicitCommitCharacters), ref _avoidExplicitCommitCharacters, option, args, i);
         }
     }
 

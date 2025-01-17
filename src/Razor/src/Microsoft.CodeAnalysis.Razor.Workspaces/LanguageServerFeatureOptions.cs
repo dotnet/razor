@@ -43,8 +43,8 @@ internal abstract class LanguageServerFeatureOptions
     public abstract bool UseNewFormattingEngine { get; }
 
     /// <summary>
-    /// When enabled, completion item providers should avoid specifying explicit commit characters in the return completion items
-    /// as doing so may cause undesirable commits in the current client.
+    /// When enabled, DirectiveAttributeCompletionTransitionItemProvider should avoid specifying explicit commit characters 
+    /// in the return completion item as doing so may cause undesirable commits in the current client.
     /// </summary>
-    public abstract bool AvoidExplicitCommitCharacters { get; }
+    public abstract bool AvoidExplicitCommitCharactersInTransitionCompletionItem { get; }
 }

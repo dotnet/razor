@@ -83,7 +83,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
             SupportsFileManipulation = true,
             ShowAllCSharpCodeActions = false,
             UseNewFormattingEngine = false,
-            AvoidExplicitCommitCharacters = false,
+            AvoidExplicitCommitCharactersInTransitionCompletionItem = false,
         };
         UpdateClientInitializationOptions(c => c);
 

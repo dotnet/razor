@@ -304,6 +304,31 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest : ToolingTes
         Assert.True(DirectiveAttributeTransitionCompletionItemProvider.IsTransitionCompletionItem(item));
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void GetCompletionItems_WithAvoidExplicitCommitOption_ReturnsAppropriateCommitCharacters(bool avoidExplicitCommitOption)
+    {
+        // Arrange
+        var context = CreateContext(absoluteIndex: 7, "<input  />");
+        var provider = new DirectiveAttributeTransitionCompletionItemProvider(new TestLanguageServerFeatureOptions(avoidExplicitCommitCharacters: avoidExplicitCommitOption));
+
+        // Act
+        var result = provider.GetCompletionItems(context);
+
+        // Assert
+        var item = Assert.Single(result);
+        Assert.True(DirectiveAttributeTransitionCompletionItemProvider.IsTransitionCompletionItem(item));
+        if (avoidExplicitCommitOption)
+        {
+            Assert.Empty(item.CommitCharacters);
+        }
+        else
+        {
+            Assert.NotEmpty(item.CommitCharacters);
+        }
+    }
+
     private static RazorSyntaxTree GetSyntaxTree(string text, string? fileKind = null)
     {
         fileKind ??= FileKinds.Component;

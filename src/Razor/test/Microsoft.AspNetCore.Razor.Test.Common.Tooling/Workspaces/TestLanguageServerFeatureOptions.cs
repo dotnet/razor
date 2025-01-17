@@ -42,5 +42,5 @@ internal class TestLanguageServerFeatureOptions(
 
     public override bool UseNewFormattingEngine => useNewFormattingEngine;
 
-    public override bool AvoidExplicitCommitCharacters => avoidExplicitCommitCharacters;
+    public override bool AvoidExplicitCommitCharactersInTransitionCompletionItem => avoidExplicitCommitCharacters;
 }
