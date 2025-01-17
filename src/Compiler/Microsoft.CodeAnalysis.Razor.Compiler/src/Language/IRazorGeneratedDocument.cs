@@ -10,8 +10,6 @@ internal interface IRazorGeneratedDocument
 {
     RazorCodeDocument CodeDocument { get; }
     SourceText Text { get; }
-    // TODO: Remove this property and update callers to use Text.
-    string GeneratedCode { get; }
     RazorCodeGenerationOptions Options { get; }
     ImmutableArray<SourceMapping> SourceMappings { get; }
 }

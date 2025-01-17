@@ -12,8 +12,6 @@ internal sealed class RazorHtmlDocument : IRazorGeneratedDocument
 {
     public RazorCodeDocument CodeDocument { get; }
     public SourceText Text { get; }
-    // TODO: Remove this property and update callers to use Text.
-    public string GeneratedCode => Text.ToString();
     public RazorCodeGenerationOptions Options { get; }
     public ImmutableArray<SourceMapping> SourceMappings { get; }
 
