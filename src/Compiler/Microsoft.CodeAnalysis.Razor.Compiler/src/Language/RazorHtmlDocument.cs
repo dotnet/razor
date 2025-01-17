@@ -4,28 +4,31 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
 internal sealed class RazorHtmlDocument : IRazorGeneratedDocument
 {
     public RazorCodeDocument CodeDocument { get; }
-    public string GeneratedCode { get; }
+    public SourceText Text { get; }
+    // TODO: Remove this property and update callers to use Text.
+    public string GeneratedCode => Text.ToString();
     public RazorCodeGenerationOptions Options { get; }
     public ImmutableArray<SourceMapping> SourceMappings { get; }
 
     public RazorHtmlDocument(
         RazorCodeDocument codeDocument,
-        string generatedCode,
+        SourceText text,
         RazorCodeGenerationOptions options,
         ImmutableArray<SourceMapping> sourceMappings = default)
     {
         ArgHelper.ThrowIfNull(codeDocument);
-        ArgHelper.ThrowIfNull(generatedCode);
+        ArgHelper.ThrowIfNull(text);
         ArgHelper.ThrowIfNull(options);
 
         CodeDocument = codeDocument;
-        GeneratedCode = generatedCode;
+        Text = text;
         Options = options;
         SourceMappings = sourceMappings.NullToEmpty();
     }

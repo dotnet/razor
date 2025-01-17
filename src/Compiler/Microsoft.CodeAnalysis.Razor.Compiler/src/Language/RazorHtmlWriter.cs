@@ -93,9 +93,9 @@ internal class RazorHtmlWriter : SyntaxWalker, IDisposable
         Debug.Assert(
             writer.Source.Text.Length == writer.Builder.Length,
             $"The backing HTML document should be the same length as the original document. Expected: {writer.Source.Text.Length} Actual: {writer.Builder.Length}");
-        var generatedHtml = writer.Builder.GenerateCode();
+        var text = writer.Builder.GetText();
 
-        return new RazorHtmlDocument(codeDocument, generatedHtml, options, writer.SourceMappings.DrainToImmutable());
+        return new RazorHtmlDocument(codeDocument, text, options, writer.SourceMappings.DrainToImmutable());
     }
 
     public void Visit(RazorSyntaxTree syntaxTree)
