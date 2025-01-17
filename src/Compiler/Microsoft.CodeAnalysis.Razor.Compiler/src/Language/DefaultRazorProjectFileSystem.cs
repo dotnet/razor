@@ -87,28 +87,43 @@ internal class DefaultRazorProjectFileSystem : RazorProjectFileSystem
 
         ArgHelper.ThrowIfNullOrEmpty(path);
 
-        var absolutePath = path.Replace('\\', '/');
+        var normalizedPath = path.Replace('\\', '/');
 
-        // Check if the given path is an absolute path. It is absolute if,
-        // 1. It starts with Root or
-        // 2. It is a network share path and starts with a '//'. Eg. //servername/some/network/folder
-        if (!absolutePath.StartsWith(Root, StringComparison.OrdinalIgnoreCase) &&
-            !absolutePath.StartsWith("//", StringComparison.OrdinalIgnoreCase))
+        // Check if the given path is an absolute path. It is absolute if...
+        //
+        // 1. It is a network share path and starts with a '//' (e.g. //server/some/network/folder) or...
+        // 2. It starts with Root
+        if (normalizedPath is ['/', '/', ..] ||
+            normalizedPath.StartsWith(Root, StringComparison.OrdinalIgnoreCase))
         {
-            // This is not an absolute path. Strip the leading slash if any and combine it with Root.
-            if (path[0] == '/' || path[0] == '\\')
-            {
-                path = path.Substring(1);
-            }
-
-            // Instead of `C:filename.ext`, we want `C:/filename.ext`.
-            absolutePath = Root.EndsWith(':') && !path.IsNullOrEmpty()
-                ? Root + "/" + path
-                : Path.Combine(Root, path);
+            return normalizedPath;
         }
 
-        absolutePath = absolutePath.Replace('\\', '/');
+        // This is not an absolute path, so we combine it with Root.
 
-        return absolutePath;
+        using var builder = new MemoryBuilder<char>(initialCapacity: Root.Length + normalizedPath.Length + 1);
+
+        // First, add Root.
+        var rootSpan = Root.AsSpan();
+        builder.Append(rootSpan);
+
+        var pathSpan = normalizedPath.AsSpan();
+
+        // If the root doesn't end in a '/', add one.
+        if (rootSpan is not [.., '/'])
+        {
+            builder.Append('/');
+        }
+
+        // If the path starts with a '/', slice it out.
+        if (pathSpan is ['/', ..])
+        {
+            pathSpan = pathSpan[1..];
+        }
+
+        // Finally, add the path.
+        builder.Append(pathSpan);
+
+        return builder.AsMemory().Span.ToString();
     }
 }
