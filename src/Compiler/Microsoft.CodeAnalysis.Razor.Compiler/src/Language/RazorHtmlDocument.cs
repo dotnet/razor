@@ -3,33 +3,30 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal abstract class RazorHtmlDocument : IRazorGeneratedDocument
+internal sealed class RazorHtmlDocument : IRazorGeneratedDocument
 {
-    public abstract string GeneratedCode { get; }
+    public RazorCodeDocument CodeDocument { get; }
+    public string GeneratedCode { get; }
+    public RazorCodeGenerationOptions Options { get; }
+    public ImmutableArray<SourceMapping> SourceMappings { get; }
 
-    public abstract RazorCodeGenerationOptions Options { get; }
-
-    public abstract ImmutableArray<SourceMapping> SourceMappings { get; }
-
-    public abstract RazorCodeDocument CodeDocument { get; }
-
-    public static RazorHtmlDocument Create(RazorCodeDocument codeDocument, string generatedHtml, RazorCodeGenerationOptions options, ImmutableArray<SourceMapping> sourceMappings)
+    public RazorHtmlDocument(
+        RazorCodeDocument codeDocument,
+        string generatedCode,
+        RazorCodeGenerationOptions options,
+        ImmutableArray<SourceMapping> sourceMappings = default)
     {
-        if (generatedHtml == null)
-        {
-            throw new ArgumentNullException(nameof(generatedHtml));
-        }
+        ArgHelper.ThrowIfNull(codeDocument);
+        ArgHelper.ThrowIfNull(generatedCode);
+        ArgHelper.ThrowIfNull(options);
 
-        if (options == null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
-
-        return new DefaultRazorHtmlDocument(codeDocument, generatedHtml, options, sourceMappings);
+        CodeDocument = codeDocument;
+        GeneratedCode = generatedCode;
+        Options = options;
+        SourceMappings = sourceMappings.NullToEmpty();
     }
 }
