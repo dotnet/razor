@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -41,22 +40,20 @@ internal class DefaultRazorProjectFileSystem : RazorProjectFileSystem
     {
         var absoluteBasePath = NormalizeAndEnsureValidPath(basePath);
 
-        var directory = new DirectoryInfo(absoluteBasePath);
-        if (!directory.Exists)
+        if (!Directory.Exists(absoluteBasePath))
         {
-            return [];
+            yield break;
         }
 
-        return directory
-            .EnumerateFiles("*.cshtml", SearchOption.AllDirectories)
-            .Concat(directory.EnumerateFiles("*.razor", SearchOption.AllDirectories))
-            .Select(file =>
-            {
-                var relativePhysicalPath = file.FullName.Substring(absoluteBasePath.Length + 1); // Include leading separator
-                var filePath = "/" + relativePhysicalPath.Replace(Path.DirectorySeparatorChar, '/');
+        foreach (var filePath in Directory.EnumerateFiles(absoluteBasePath, "*.cshtml", SearchOption.AllDirectories))
+        {
+            yield return CreateItem(filePath, fileKind: null, basePath, absoluteBasePath);
+        }
 
-                return new DefaultRazorProjectItem(basePath, filePath, relativePhysicalPath, fileKind: null, file, cssScope: null);
-            });
+        foreach (var filePath in Directory.EnumerateFiles(absoluteBasePath, "*.razor", SearchOption.AllDirectories))
+        {
+            yield return CreateItem(filePath, fileKind: null, basePath, absoluteBasePath);
+        }
     }
 
     public override RazorProjectItem GetItem(string path, string? fileKind)
@@ -69,12 +66,17 @@ internal class DefaultRazorProjectFileSystem : RazorProjectFileSystem
             return ThrowHelper.ThrowInvalidOperationException<RazorProjectItem>($"The file '{absolutePath}' is not a descendent of the base path '{absoluteBasePath}'.");
         }
 
-        var physicalPath = Path.GetFullPath(absolutePath);
+        return CreateItem(absolutePath, fileKind, DefaultBasePath, absoluteBasePath);
+    }
+
+    private static DefaultRazorProjectItem CreateItem(string path, string? fileKind, string basePath, string absoluteBasePath)
+    {
+        var physicalPath = Path.GetFullPath(path);
         var relativePhysicalPath = physicalPath[(absoluteBasePath.Length + 1)..]; // Don't include leading separator
 
         var filePath = "/" + relativePhysicalPath.Replace(Path.DirectorySeparatorChar, '/');
 
-        return new DefaultRazorProjectItem(DefaultBasePath, filePath, physicalPath, relativePhysicalPath, fileKind, cssScope: null);
+        return new DefaultRazorProjectItem(basePath, filePath, physicalPath, relativePhysicalPath, fileKind, cssScope: null);
     }
 
     protected override string NormalizeAndEnsureValidPath(string path)
