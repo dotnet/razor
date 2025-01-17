@@ -64,16 +64,17 @@ internal class DefaultRazorProjectFileSystem : RazorProjectFileSystem
         var absoluteBasePath = Root;
         var absolutePath = NormalizeAndEnsureValidPath(path);
 
-        var file = new FileInfo(absolutePath);
         if (!absolutePath.StartsWith(absoluteBasePath, StringComparison.OrdinalIgnoreCase))
         {
-            throw new InvalidOperationException($"The file '{absolutePath}' is not a descendent of the base path '{absoluteBasePath}'.");
+            return ThrowHelper.ThrowInvalidOperationException<RazorProjectItem>($"The file '{absolutePath}' is not a descendent of the base path '{absoluteBasePath}'.");
         }
 
-        var relativePhysicalPath = file.FullName.Substring(absoluteBasePath.Length + 1); // Include leading separator
+        var physicalPath = Path.GetFullPath(absolutePath);
+        var relativePhysicalPath = physicalPath[(absoluteBasePath.Length + 1)..]; // Don't include leading separator
+
         var filePath = "/" + relativePhysicalPath.Replace(Path.DirectorySeparatorChar, '/');
 
-        return new DefaultRazorProjectItem(DefaultBasePath, filePath, relativePhysicalPath, fileKind, new FileInfo(absolutePath), cssScope: null);
+        return new DefaultRazorProjectItem(DefaultBasePath, filePath, physicalPath, relativePhysicalPath, fileKind, cssScope: null);
     }
 
     protected override string NormalizeAndEnsureValidPath(string path)
