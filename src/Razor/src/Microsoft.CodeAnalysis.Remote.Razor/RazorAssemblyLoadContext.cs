@@ -3,12 +3,9 @@
 
 #if NET
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
-using System.Threading;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -18,78 +15,36 @@ internal sealed class RazorAssemblyLoadContext : AssemblyLoadContext
     private readonly AssemblyLoadContext? _parent;
     private readonly string _baseDirectory;
 
-    private Assembly? _razorCompilerAssembly;
-
-    private object _loaderLock = new();
-
     public static readonly RazorAssemblyLoadContext Instance = new();
 
     public RazorAssemblyLoadContext()
-        : base(isCollectible: true)
+        : base(isCollectible: false)
     {
-        var thisAssembly = GetType().Assembly;
+        var thisAssembly = GetType().Assembly!;
         _parent = GetLoadContext(thisAssembly);
-        _baseDirectory = Path.GetDirectoryName(thisAssembly.Location) ?? "";
+        _baseDirectory = Path.GetDirectoryName(thisAssembly.Location) ?? throw new InvalidOperationException("Could not determine base directory");
     }
 
     protected override Assembly? Load(AssemblyName assemblyName)
     {
+        // If the assembly is in our root directory, then it's one of ours.
         var fileName = Path.Combine(_baseDirectory, assemblyName.Name + ".dll");
         if (File.Exists(fileName))
         {
-            // when we are asked to load razor.compiler, we first have to see if Roslyn beat us to it.
-            if (IsRazorCompiler(assemblyName))
+            // Is the Roslyn side is responsible for it?
+            if (RazorAnalyzerAssemblyResolver.ResolveRazorAssembly(assemblyName, _baseDirectory) is Assembly resolvedAssembly)
             {
-                // Take the loader lock before we even try and install the resolver.
-                // This ensures that if we successfully install the resolver we can't resolve the assembly until it's actually loaded
-                lock (_loaderLock)
-                {
-                    if (RazorAnalyzerAssemblyResolver.TrySetAssemblyResolver(ResolveAssembly, assemblyName))
-                    {
-                        // We were able to install the resolver. Load the assembly and keep a reference to it.
-                        _razorCompilerAssembly = LoadFromAssemblyPath(fileName);
-                        return _razorCompilerAssembly;
-                    }
-                    else
-                    {
-                        // Roslyn won the race, we need to find the compiler assembly it loaded.
-                        while (true)
-                        {
-                            foreach (var alc in AssemblyLoadContext.All)
-                            {
-                                var roslynRazorCompiler = alc.Assemblies.SingleOrDefault(a => IsRazorCompiler(a.GetName()));
-                                if (roslynRazorCompiler is not null)
-                                {
-                                    return roslynRazorCompiler;
-                                }
-                            }
-                            // we didn't find it, so it's possible that the Roslyn loader is still in the process of loading it. Yield and try again.
-                            Thread.Yield();
-                        }
-                    }
-                }
+                return resolvedAssembly;
             }
 
+            // We're responsible for this one. We load it into our ALC rather than the parent so that we
+            // can still intercept the loads of any dependencies which Roslyn might be responsible for.
             return LoadFromAssemblyPath(fileName);
+
         }
 
+        // This isn't one of our own assemblies, just defer back to the parent ALC.
         return _parent?.LoadFromAssemblyName(assemblyName);
     }
-
-    private Assembly? ResolveAssembly(AssemblyName assemblyName)
-    {
-        if (IsRazorCompiler(assemblyName))
-        {
-            lock (_loaderLock)
-            {
-                Debug.Assert(_razorCompilerAssembly is not null);
-                return _razorCompilerAssembly;
-            }
-        }
-
-        return null;
-    }
-
-    private bool IsRazorCompiler(AssemblyName assemblyName) => assemblyName.Name?.Contains("Microsoft.CodeAnalysis.Razor.Compiler", StringComparison.OrdinalIgnoreCase) == true;
 }
 #endif
