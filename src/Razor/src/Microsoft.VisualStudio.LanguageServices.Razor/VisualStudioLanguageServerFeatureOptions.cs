@@ -114,5 +114,5 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
     public override bool UseNewFormattingEngine => _useNewFormattingEngine.Value;
 
     // VS actually needs explicit commit characters so don't avoid them.
-    public override bool AvoidExplicitCommitCharactersInTransitionCompletionItem => false;
+    public override bool SupportsSoftSelectionInCompletion => true;
 }

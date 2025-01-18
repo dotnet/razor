@@ -45,5 +45,5 @@ internal class RemoteLanguageServerFeatureOptions : LanguageServerFeatureOptions
 
     public override bool UseNewFormattingEngine => _options.UseNewFormattingEngine;
 
-    public override bool AvoidExplicitCommitCharactersInTransitionCompletionItem => _options.AvoidExplicitCommitCharactersInTransitionCompletionItem;
+    public override bool SupportsSoftSelectionInCompletion => _options.SupportsSoftSelectionInCompletion;
 }

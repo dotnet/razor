@@ -43,8 +43,8 @@ internal abstract class LanguageServerFeatureOptions
     public abstract bool UseNewFormattingEngine { get; }
 
     /// <summary>
-    /// When enabled, DirectiveAttributeCompletionTransitionItemProvider should avoid specifying explicit commit characters 
-    /// in the return completion item as doing so may cause undesirable commits in the current client.
+    /// Indicates that client supports soft selection in completion list, meaning that typing a commit 
+    /// character with a soft-selected item will not commit that item.
     /// </summary>
-    public abstract bool AvoidExplicitCommitCharactersInTransitionCompletionItem { get; }
+    public abstract bool SupportsSoftSelectionInCompletion { get; }
 }

@@ -41,5 +41,5 @@ internal class DefaultLanguageServerFeatureOptions : LanguageServerFeatureOption
 
     public override bool UseNewFormattingEngine => false;
 
-    public override bool AvoidExplicitCommitCharactersInTransitionCompletionItem => false;
+    public override bool SupportsSoftSelectionInCompletion => true;
 }

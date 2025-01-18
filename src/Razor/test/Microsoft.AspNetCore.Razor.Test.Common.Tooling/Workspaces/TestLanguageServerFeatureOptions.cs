@@ -10,7 +10,7 @@ internal class TestLanguageServerFeatureOptions(
     bool forceRuntimeCodeGeneration = false,
     bool updateBuffersForClosedDocuments = false,
     bool useNewFormattingEngine = false,
-    bool avoidExplicitCommitCharacters = false) : LanguageServerFeatureOptions
+    bool supportsSoftSelectionInCompletion = true) : LanguageServerFeatureOptions
 {
     public static readonly LanguageServerFeatureOptions Instance = new TestLanguageServerFeatureOptions();
 
@@ -42,5 +42,5 @@ internal class TestLanguageServerFeatureOptions(
 
     public override bool UseNewFormattingEngine => useNewFormattingEngine;
 
-    public override bool AvoidExplicitCommitCharactersInTransitionCompletionItem => avoidExplicitCommitCharacters;
+    public override bool SupportsSoftSelectionInCompletion => supportsSoftSelectionInCompletion;
 }

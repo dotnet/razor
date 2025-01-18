@@ -33,9 +33,9 @@ internal class DirectiveAttributeTransitionCompletionItemProvider(LanguageServer
             // where this directive attribute transition character ("@...") gets provided and then typing
             // `@` should re-trigger OR typing `/` should re-trigger.
             // However, in VS Code explicit commit characters like these cause issues, e.g. "@..." gets committed when trying to type "/" in a
-            // self-closing tag. So VS Code will pass AvoidExplicitCommitCharacters as a start-up parameter to the language server and we will
+            // self-closing tag. So in VS Code we have SupportSoftSelectionInCompletion set to false and we will
             // use empty commit character set in that case.
-            commitCharacters: _languageServerFeatureOptions.AvoidExplicitCommitCharactersInTransitionCompletionItem ? [] : RazorCommitCharacter.CreateArray(["@", "/", ">"]),
+            commitCharacters: _languageServerFeatureOptions.SupportsSoftSelectionInCompletion ? RazorCommitCharacter.CreateArray(["@", "/", ">"]) : [],
             isSnippet: false);
 
     public static bool IsTransitionCompletionItem(RazorCompletionItem completionItem)

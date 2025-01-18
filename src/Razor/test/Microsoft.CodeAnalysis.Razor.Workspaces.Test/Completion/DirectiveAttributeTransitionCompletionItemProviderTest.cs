@@ -307,11 +307,11 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest : ToolingTes
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void GetCompletionItems_WithAvoidExplicitCommitOption_ReturnsAppropriateCommitCharacters(bool avoidExplicitCommitOption)
+    public void GetCompletionItems_WithAvoidExplicitCommitOption_ReturnsAppropriateCommitCharacters(bool supportsSoftSelection)
     {
         // Arrange
         var context = CreateContext(absoluteIndex: 7, "<input  />");
-        var provider = new DirectiveAttributeTransitionCompletionItemProvider(new TestLanguageServerFeatureOptions(avoidExplicitCommitCharacters: avoidExplicitCommitOption));
+        var provider = new DirectiveAttributeTransitionCompletionItemProvider(new TestLanguageServerFeatureOptions(supportsSoftSelectionInCompletion: supportsSoftSelection));
 
         // Act
         var result = provider.GetCompletionItems(context);
@@ -319,13 +319,13 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest : ToolingTes
         // Assert
         var item = Assert.Single(result);
         Assert.True(DirectiveAttributeTransitionCompletionItemProvider.IsTransitionCompletionItem(item));
-        if (avoidExplicitCommitOption)
+        if (supportsSoftSelection)
         {
-            Assert.Empty(item.CommitCharacters);
+            Assert.NotEmpty(item.CommitCharacters);
         }
         else
         {
-            Assert.NotEmpty(item.CommitCharacters);
+            Assert.Empty(item.CommitCharacters);
         }
     }
 
