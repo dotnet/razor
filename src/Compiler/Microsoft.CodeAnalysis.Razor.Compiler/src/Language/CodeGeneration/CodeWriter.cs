@@ -6,6 +6,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -322,34 +323,240 @@ public sealed partial class CodeWriter : IDisposable
 
     public SourceText GetText()
     {
-        // TODO: Introduce a TextReader to create the SourceText with rather than a giant string.
-        return SourceText.From(GenerateCode(), Encoding.UTF8);
+        using var reader = new Reader(this);
+        return SourceText.From(reader, Length, Encoding.UTF8);
     }
 
-    public string GenerateCode()
+    private sealed class Reader(CodeWriter codeWriter) : TextReader
     {
-        // Eventually, we need to remove this and not return a giant string, which can
-        // easily be allocated on the LOH. The work to remove this is tracked by
-        // https://github.com/dotnet/razor/issues/8076.
-        return CreateString(Length, _pages, static (span, pages) =>
+        private LinkedListNode<ReadOnlyMemory<char>[]>? _page = codeWriter._pages.First;
+        private int _remainingLength = codeWriter.Length;
+        private int _chunkIndex;
+        private int _charIndex;
+
+        public override int Read()
         {
-            foreach (var page in pages)
+            if (!TryGetNextCharReadLocation(out var page, out var chunkIndex, out var charIndex))
             {
-                foreach (var chars in page)
-                {
-                    if (chars.IsEmpty)
-                    {
-                        return;
-                    }
-
-                    chars.Span.CopyTo(span);
-                    span = span[chars.Length..];
-
-                    Debug.Assert(span.Length >= 0);
-                }
+                return -1;
             }
 
-            Debug.Assert(span.Length == 0, "We didn't fill the whole span!");
-        });
+            _page = page;
+            _chunkIndex = chunkIndex;
+            _charIndex = charIndex + 1; // Increment the char index for the next read.
+            _remainingLength--;
+
+            return page.Value[chunkIndex].Span[charIndex];
+        }
+
+        public override int Peek()
+        {
+            if (!TryGetNextCharReadLocation(out var page, out var chunkIndex, out var charIndex))
+            {
+                return -1;
+            }
+
+            return page.Value[chunkIndex].Span[charIndex];
+        }
+
+        private bool TryGetNextCharReadLocation([NotNullWhen(true)] out LinkedListNode<ReadOnlyMemory<char>[]>? page, out int chunkIndex, out int charIndex)
+        {
+            page = _page;
+            chunkIndex = _chunkIndex;
+            charIndex = _charIndex;
+
+            if (page is null)
+            {
+                return false;
+            }
+
+            do
+            {
+                var chunks = page.Value.AsSpan(chunkIndex);
+
+                foreach (var chunk in chunks)
+                {
+                    if (charIndex < chunk.Length)
+                    {
+                        return true;
+                    }
+
+                    chunkIndex++;
+                    charIndex = 0;
+                }
+
+                page = page.Next;
+                chunkIndex = 0;
+                charIndex = 0;
+            }
+            while (page is not null);
+
+            chunkIndex = -1;
+            charIndex = -1;
+
+            return false;
+        }
+
+        public override int Read(char[] buffer, int index, int count)
+        {
+            ArgHelper.ThrowIfNull(buffer);
+            ArgHelper.ThrowIfNegative(index);
+            ArgHelper.ThrowIfNegative(count);
+
+            if (buffer.Length - index < count)
+            {
+                throw new ArgumentException($"{count} is greater than the number of elements from {index} to the end of {buffer}.");
+            }
+
+            if (_page is null)
+            {
+                return -1;
+            }
+
+            var destination = buffer.AsSpan(index);
+            var charsWritten = 0;
+
+            var page = _page;
+            var chunkIndex = _chunkIndex;
+            var charIndex = _charIndex;
+
+            Debug.Assert(chunkIndex >= 0);
+            Debug.Assert(charIndex >= 0);
+
+            do
+            {
+                var chunks = page.Value.AsSpan(chunkIndex);
+                var isFirst = true;
+
+                foreach (var chunk in chunks)
+                {
+                    var source = chunk.Span;
+
+                    // Slice if the first chunk is partial. Note that this only occurs for the first chunk.
+                    if (isFirst)
+                    {
+                        isFirst = false;
+
+                        if (charIndex > 0)
+                        {
+                            source = source[charIndex..];
+                        }
+                    }
+
+                    var endOfChunkWritten = true;
+
+                    // Are we about to write past the end of the buffer? If so, adjust source.
+                    // This will be the last chunk we write, so be sure to update charIndex.
+                    if (source.Length > destination.Length)
+                    {
+                        source = source[..destination.Length];
+                        charIndex += source.Length;
+
+                        // There's more to this chunk to write! Note this so that we don't update
+                        // chunkIndex later.
+                        endOfChunkWritten = false;
+                    }
+
+                    source.CopyTo(destination);
+                    destination = destination[source.Length..];
+
+                    charsWritten += source.Length;
+
+                    // Be careful not to increment chunkIndex unless we actually wrote to the end of the chunk.
+                    if (endOfChunkWritten)
+                    {
+                        chunkIndex++;
+                    }
+
+                    // Break if we are done writing. chunkIndex and charIndex should have their correct values at this point.
+                    if (destination.IsEmpty)
+                    {
+                        break;
+                    }
+
+                    charIndex = 0;
+                }
+
+                if (destination.IsEmpty)
+                {
+                    break;
+                }
+
+                page = page.Next;
+                chunkIndex = 0;
+                charIndex = 0;
+            }
+            while (page is not null);
+
+            if (page is not null)
+            {
+                _page = page;
+                _chunkIndex = chunkIndex;
+                _charIndex = charIndex;
+            }
+            else
+            {
+                _page = null;
+                _chunkIndex = -1;
+                _charIndex = -1;
+            }
+
+            return charsWritten;
+        }
+
+        public override string ReadToEnd()
+        {
+            if (_page is null)
+            {
+                return string.Empty;
+            }
+
+            var result = CreateString(_remainingLength, (_page, _chunkIndex, _charIndex), static (destination, state) =>
+            {
+                var (page, chunkIndex, charIndex) = state;
+
+                Debug.Assert(page is not null);
+                Debug.Assert(chunkIndex >= 0);
+                Debug.Assert(charIndex >= 0);
+
+                // Use the current chunk index to slice the first set of chunks.
+                var chunks = page.Value.AsSpan(chunkIndex);
+
+                do
+                {
+                    foreach (var chunk in chunks)
+                    {
+                        var source = chunk.Span;
+
+                        // Slice the first chunk if it's partial.
+                        if (charIndex > 0)
+                        {
+                            source = source[charIndex..];
+                            charIndex = 0;
+                        }
+
+                        if (source.IsEmpty)
+                        {
+                            continue;
+                        }
+
+                        source.CopyTo(destination);
+                        destination = destination[source.Length..];
+                    }
+
+                    page = page.Next;
+                    chunks = (page?.Value ?? []).AsSpan();
+                }
+                while (page is not null);
+
+                Debug.Assert(destination.Length == 0, "We didn't fill the whole span!");
+            });
+
+            _page = null;
+            _chunkIndex = -1;
+            _charIndex = 1;
+
+            return result;
+        }
     }
 }
