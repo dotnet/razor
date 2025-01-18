@@ -61,6 +61,16 @@ public sealed partial class CodeWriter : IDisposable
         _pages = new();
     }
 
+    public void Dispose()
+    {
+        foreach (var page in _pages)
+        {
+            ArrayPool<ReadOnlyMemory<char>>.Shared.Return(page, clearArray: true);
+        }
+
+        _pages.Clear();
+    }
+
     private void AddTextChunk(ReadOnlyMemory<char> value)
     {
         if (value.Length == 0)
@@ -341,15 +351,5 @@ public sealed partial class CodeWriter : IDisposable
 
             Debug.Assert(span.Length == 0, "We didn't fill the whole span!");
         });
-    }
-
-    public void Dispose()
-    {
-        foreach (var page in _pages)
-        {
-            ArrayPool<ReadOnlyMemory<char>>.Shared.Return(page, clearArray: true);
-        }
-
-        _pages.Clear();
     }
 }
