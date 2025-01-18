@@ -5,6 +5,8 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
@@ -44,6 +46,53 @@ internal static class TagHelperDescriptorExtensions
             tagHelper.IsComponentTagHelper &&
             tagHelper.Metadata.TryGetValue(ComponentMetadata.Component.GenericTypedKey, out var value) &&
             string.Equals(bool.TrueString, value);
+    }
+
+    /// <summary>
+    /// Given a taghelper binding it finds the BoundAttribute that is a type parameter and then the
+    /// actual binding value for that type.
+    ///
+    /// <code>
+    /// &lt;MyTagHelper
+    ///   TItem="string"
+    ///   OnChange="OnMyTagHelperChange" /&gt;
+    /// </code>
+    ///
+    /// The above code will return "string" for the typeName.
+    /// </summary>
+    /// <param name="tagHelper"></param>
+    /// <param name="binding"></param>
+    /// <param name="typeName"></param>
+    /// <returns></returns>
+    public static bool TryGetGenericTypeName(this TagHelperDescriptor tagHelper, TagHelperBinding binding, [NotNullWhen(true)] out string typeName)
+    {
+        if (!tagHelper.IsComponentTagHelper)
+        {
+            typeName = null;
+            return false;
+        }
+
+        foreach (var boundAttribute in tagHelper.BoundAttributes)
+        {
+            // This is a bit of a headache so let me explain:
+            // The bound attribute needs to be marked "True" for the "TypeParameter" key in order to be considered a type parameter.
+            // The property name for that is the actual property we need to read, such as "TItem".
+            // However, since you can't get the value from the TagHelperDescriptor directly (it's the type, not what the user has provided data to map)
+            // it has to be looked up in the bindingAttributes to find the value for that type. This assumes that the type is valid because the user
+            // provided it, and if it's not the calling context probably doesn't care.
+            if (boundAttribute.Metadata.TryGetValue(ComponentMetadata.Component.TypeParameterKey, out var value) &&
+                string.Equals(bool.TrueString, value) &&
+                boundAttribute.Metadata.TryGetValue(TagHelperMetadata.Common.PropertyName, out var propertyName) &&
+                !string.IsNullOrEmpty(propertyName) &&
+                binding.Attributes.FirstOrDefault(kvp => kvp.Key == propertyName) is { Value: var bindingTypeName})
+            {
+                typeName = bindingTypeName;
+                return true;
+            }
+        }
+
+        typeName = null;
+        return false;
     }
 
     public static bool IsInputElementBindTagHelper(this TagHelperDescriptor tagHelper)

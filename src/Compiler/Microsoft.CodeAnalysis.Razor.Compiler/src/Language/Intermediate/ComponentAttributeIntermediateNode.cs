@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language.Components;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -241,5 +242,70 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
         // We don't really want to crash though.
         argument = default;
         return false;
+    }
+
+    internal static bool TryGetActionArgument(ReadOnlyMemory<char> candidate, out ReadOnlyMemory<char> argument)
+    {
+        // Strip 'global::' from the candidate.
+        if (candidate.Span.StartsWith("global::".AsSpan()))
+        {
+            candidate = candidate["global::".Length..];
+        }
+
+        if (!candidate.Span.StartsWith("System.Action".AsSpan()))
+        {
+            argument = default;
+            return false;
+        }
+
+
+        candidate = candidate["System.Action".Length..];
+        if (candidate.Span is ['<', .., '>'])
+        {
+            argument = candidate[1..^1];
+            return true;
+        }
+
+        argument = default;
+        return false;
+    }
+
+    internal static bool TryGetGenericActionArgument(ReadOnlyMemory<char> candidate, string genericType, [NotNullWhen(true)] out string argument)
+    {
+        // Strip 'global::' from the candidate.
+        if (candidate.Span.StartsWith("global::".AsSpan()))
+        {
+            candidate = candidate["global::".Length..];
+        }
+
+        if (!candidate.Span.StartsWith("System.Action".AsSpan()))
+        {
+            argument = default;
+            return false;
+        }
+
+
+        candidate = candidate["System.Action".Length..];
+        if (candidate.Span is not ['<', .., '>'])
+        {
+            argument = default;
+            return false;
+        }
+
+        candidate = candidate[1..^1];
+
+        var genericTypeStart = candidate.Span.IndexOf('<');
+        var genericTypeEnd = candidate.Span.IndexOf('>');
+
+        // Check (start + 1) to ensure there is at least one character
+        // between the start and end
+        if (genericTypeStart <= 0 || genericTypeEnd < (genericTypeStart + 1))
+        {
+            argument = default;
+            return false;
+        }
+
+        argument = candidate[0..(genericTypeStart + 1)] + genericType + candidate[genericTypeEnd..];
+        return true;
     }
 }

@@ -174,15 +174,35 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
             {
                 if (attribute.Name == markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.Name)
                 {
-                    if (!attribute.IsEventCallbackProperty())
+                    if (attribute.IsEventCallbackProperty())
+                    {
+                        // TypeName is something like "EventCallback<System.String>", so we need to parse out the parameter type.
+                        if (ComponentAttributeIntermediateNode.TryGetEventCallbackArgument(attribute.TypeName.AsMemory(), out var argument))
+                        {
+                            eventParameterType = argument.ToString();
+                        }
+                    }
+                    else if (attribute.IsDelegateProperty())
+                    {
+                        if (attribute.IsGenericTypedProperty())
+                        {
+                            if (tagHelperDescriptor.TryGetGenericTypeName(binding, out var genericType) &&
+                                ComponentAttributeIntermediateNode.TryGetGenericActionArgument(attribute.TypeName.AsMemory(), genericType, out var argument))
+                            {
+                                eventParameterType = argument.ToString();
+                            }
+                        }
+                        else
+                        {
+                            if (ComponentAttributeIntermediateNode.TryGetActionArgument(attribute.TypeName.AsMemory(), out var argument))
+                            {
+                                eventParameterType = argument.ToString();
+                            }
+                        }
+                    }
+                    else
                     {
                         return false;
-                    }
-
-                    // TypeName is something like "EventCallback<System.String>", so we need to parse out the parameter type.
-                    if (ComponentAttributeIntermediateNode.TryGetEventCallbackArgument(attribute.TypeName.AsMemory(), out var argument))
-                    {
-                        eventParameterType = argument.ToString();
                     }
 
                     break;
