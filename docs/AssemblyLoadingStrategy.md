@@ -2,89 +2,9 @@
 
 When running in co-hosting mode it is essential that the types used by the source generator and the rest of the tooling unify; Roslyn and Razor tooling must 'share' the same loaded copy of the source generator. This requires that Roslyn and Razor co-ordinate as to who is responsible for loading the source generator, and the other party must use the already loaded copy. Unfortunately, due to asynchronous loading it is non-deterministic as to which party will first attempt to load the generator.
 
-If Razor loads first, the generator will be automatically loaded as a dependency. Because Razor directly references Roslyn, it has the ability to set a filter on the Roslyn loading code that will intercept the load and use the version already loaded by Razor. However if Roslyn tries to load the generator *before* Razor tooling has been loaded then the filter is unset and the source generator will be loaded into the default Shadow copy Assembly Load Context (ALC) in the same way as other generators. Roslyn has no reference to Razor, so has no ability to inform Razor that it should use the already loaded instance in the Shadow copy ALC.
+In order to synchronize the loading, Razor tooling always defers loading the Razor compiler to Roslyn via the ExternalAccess (EA) assembly. Roslyn will load the Razor compiler assembly, and its dependencies, into a shared ALC. If the Razor tooling accesses the generator before Roslyn has loaded it, it will first be loaded then returned. When Roslyn comes to load the generator the already existing copy will be used to ensure it remains shared.
 
-It is possible to enumerate the ALC instances and search for a loaded assembly but its possible that Roslyn had already started loading the assembly at the point at which Razor checks; Razor doesn't find it so installs the filter and loads it, meanwhile the Roslyn code resumes loading and loads a duplicate copy into the shadow copy ALC.
-
-Thus it becomes clear that this problem requires a strongly synchronized approach so that we can deterministically load a single copy of the source generator.
-
-## Approach
-
-While we stated that Roslyn has no references to Razor, it *does* have an 'External Access' (EA) assembly available to Razor. These are generally used as ways the Roslyn team can give internal access to small areas of code to authorized third parties in a way that minimizes breakages. If we create a filter in the razor EA assembly and have it always load, we can maintain a persistent hook that can be used to synchronize between the two parties.
-
-The hook simply records the list of assemblies that have been loaded by Roslyn. In the majority of cases, when Razor and Roslyn aren't co-hosted, this is all it does and nothing else. However it also exposes an atomic 'check-and-set' style filter installation routine. This takes a 'canary' assembly to be checked to see if it has already been loaded. If the canary has already been loaded the filter installation fails. When the canary hasn't yet been seen the filter is installed. The assembly resolution and filter installation are synchronized to ensure that it is an atomic operation.
-
-When the filter installation succeeds Razor can continue loading its copy of the source generator, with the knowledge that any requests by Roslyn to load it will be redirected to it. As long as Razor also synchronizes its loading code with the filter requests it is possible to deterministically ensure that Roslyn will always use Razor's copy in this case. If filter installation fails then Roslyn has already loaded (or begun loading) the source generator, and so Razor must retrieve the loaded copy rather than loading its own. In the very small possibility that Roslyn has begun loading the assembly but not yet finished, Razor is required to spin-wait for the assembly to become available. It's technically possible that Roslyn will fail to load the assembly meaning it will never become available so Razor tooling must use a suitable timeout before erroring.
-
-### Examples
-
-The following are possible sequences of events for the load order. Note that locks aren't shown unless they impact the order of operations
-
-Razor loads first:
-
-```mermaid
-sequenceDiagram
-  razor->>filter: InstallFilter
-  filter-->>razor: Success
-  razor->>razor: Load SG
-  roslyn->>filter: Load SG
-  filter->>razor: Execute Filter
-  razor-->>filter: SG
-  filter-->>roslyn: SG
-```
-
-Roslyn loads first
-
-```mermaid
-sequenceDiagram
-  participant  razor
-  participant  filter
-  participant  roslyn
-  roslyn->>filter: Load SG
-  filter-->>roslyn: No filter
-  roslyn->>roslyn: Load SG
-  razor->>filter: InstallFilter
-  filter-->>razor: Failure
-  razor->>roslyn: Search ALCs
-  roslyn-->>razor: SG
-```
-
-Razor loads first, roslyn tries to load during loading:
-
-```mermaid
-sequenceDiagram
-  razor->>+filter: InstallFilter
-  note right of filter: Begin Lock
-  roslyn->>filter: (2) Load SG
-  filter-->>-razor: Success
-  filter->>razor: (2) Execute Filter
-  razor->>razor: Load SG
-  razor->>filter: SG
-  filter->>roslyn: SG
-```
-
-Roslyn loads first, razor tries to load during loading:
-
-```mermaid
-sequenceDiagram
-  participant  razor
-  participant  filter
-  participant  roslyn
-  roslyn->>filter: Load SG
-  filter-->>roslyn: No filter
-  roslyn->>roslyn: Load SG
-  razor->>filter: InstallFilter
-  filter-->>razor: Failure
-  loop Spin Lock
-    razor->>roslyn: Search ALCs
-    alt Not loaded
-        roslyn-->>razor: No result
-    else is well
-        roslyn-->>razor: SG
-    end
-  end
-
-```
+Note that this strategy requires the Roslyn EA loader stub to know the name of the Razor compiler assembly and its dependencies. This is not ideal, but removes the need for extremely complicated synchronization code between the two processes. It is assumed that the compiler name and its dependencies wil change a small enough amount of times for this to be a fair trade off.
 
 ## Intercepting the ALC load for Razor tooling
 
@@ -113,7 +33,7 @@ sequenceDiagram
   #create participant factory(2) as Factory
   #(see https://github.com/mermaid-js/mermaid/issues/5023)
   factory(1)->>factory(2): Create New Factory
-  factory(2)-->>factory(1):  
+  factory(2)-->>factory(1):
   factory(1)->>factory(2): Create Service Internal
   #create participant serviceInstance as Service Instance
   factory(2)->>serviceInstance: Create Service instance
@@ -122,7 +42,7 @@ sequenceDiagram
   serviceHub->>serviceInstance: Handle Request
   serviceInstance-->>razorAlc: Implicit load request
   razorAlc->>razorAlc: Load source generator
-  razorAlc-->>serviceInstance:  
+  razorAlc-->>serviceInstance:
   serviceInstance->>serviceInstance: Handle Request
   serviceInstance-->>serviceHub: Result
 ```
