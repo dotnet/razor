@@ -92,6 +92,6 @@ internal class MvcImportProjectFeature : RazorProjectEngineFeatureBase, IImportP
         public override Stream Read() => s_fileContent.CreateStream();
 
         internal override RazorSourceDocument GetSource()
-            => s_source ??= base.GetSource();
+            => s_source ?? InterlockedOperations.Initialize(ref s_source, base.GetSource());
     }
 }

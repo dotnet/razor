@@ -346,7 +346,7 @@ public static class RazorProjectEngineBuilderExtensions
             public override Stream Read() => _fileContent.CreateStream();
 
             internal override RazorSourceDocument GetSource()
-                => _source ??= base.GetSource();
+                => _source ?? InterlockedOperations.Initialize(ref _source, base.GetSource());
         }
     }
 

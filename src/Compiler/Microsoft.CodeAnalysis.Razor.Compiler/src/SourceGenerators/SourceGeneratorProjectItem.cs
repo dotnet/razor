@@ -50,12 +50,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             => throw new NotSupportedException("This API should not be invoked. We should instead be relying on " +
                 "the RazorSourceDocument associated with this item instead.");
 
-        internal override RazorSourceDocument? GetSource()
-        {
-            return _source is { } source
-                ? source
-                : null;
-        }
+        internal override RazorSourceDocument? GetSource() => _source;
 
         public bool Equals(SourceGeneratorProjectItem? other)
         {
