@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
@@ -73,7 +74,9 @@ internal static class CompilationHelpers
             if (importProjectItem.PhysicalPath is null)
             {
                 // This is a default import.
-                var importSource = importProjectItem.GetSource();
+                var importSource = importProjectItem.GetSource()
+                    .AssumeNotNull($"Encountered a default import with a missing {nameof(RazorSourceDocument)}: {importProjectItem.FilePath}.");
+
                 importSources.Add(importSource);
             }
             else if (project.TryGetDocument(importProjectItem.PhysicalPath, out var importDocument))
