@@ -60,11 +60,8 @@ internal static class TagHelperDescriptorExtensions
     ///
     /// The above code will return "string" for the typeName.
     /// </summary>
-    /// <param name="tagHelper"></param>
-    /// <param name="binding"></param>
-    /// <param name="typeName"></param>
-    /// <returns></returns>
-    public static bool TryGetGenericTypeName(this TagHelperDescriptor tagHelper, TagHelperBinding binding, [NotNullWhen(true)] out string typeName)
+#nullable enable
+    public static bool TryGetGenericTypeName(this TagHelperDescriptor tagHelper, TagHelperBinding binding, [NotNullWhen(true)] out string? typeName)
     {
         if (!tagHelper.IsComponentTagHelper)
         {
@@ -94,6 +91,7 @@ internal static class TagHelperDescriptorExtensions
         typeName = null;
         return false;
     }
+#nullable restore
 
     public static bool IsInputElementBindTagHelper(this TagHelperDescriptor tagHelper)
     {
