@@ -405,7 +405,7 @@ public sealed partial class CodeWriter : IDisposable
 
             if (buffer.Length - index < count)
             {
-                throw new ArgumentException($"{count} is greater than the number of elements from {index} to the end of {buffer}.");
+                throw new ArgumentException($"{nameof(count)} is greater than the number of elements from {nameof(index)} to the end of {nameof(buffer)}.");
             }
 
             if (_page is null)
