@@ -59,13 +59,17 @@ internal static class TagHelperDescriptorExtensions
     /// </code>
     ///
     /// The above code will return "string" for the typeName.
+    /// <remarks>
+    /// As of now this method only supports cases where there is a single bound attribute that is a type parameter. If there are multiple this returns false;
+    /// </remarks>
     /// </summary>
 #nullable enable
-    public static bool TryGetGenericTypeName(this TagHelperDescriptor tagHelper, TagHelperBinding binding, [NotNullWhen(true)] out string? typeName)
+    public static bool TryGetGenericTypeNameFromComponent(this TagHelperDescriptor tagHelper, TagHelperBinding binding, [NotNullWhen(true)] out string? typeName)
     {
+        typeName = null;
+
         if (!tagHelper.IsComponentTagHelper)
         {
-            typeName = null;
             return false;
         }
 
@@ -77,21 +81,24 @@ internal static class TagHelperDescriptorExtensions
             // However, since you can't get the value from the TagHelperDescriptor directly (it's the type, not what the user has provided data to map)
             // it has to be looked up in the bindingAttributes to find the value for that type. This assumes that the type is valid because the user
             // provided it, and if it's not the calling context probably doesn't care.
-            if (boundAttribute.Metadata.TryGetValue(ComponentMetadata.Component.TypeParameterKey, out var value) &&
-                string.Equals(bool.TrueString, value) &&
-                boundAttribute.Metadata.TryGetValue(TagHelperMetadata.Common.PropertyName, out var propertyName) &&
-                !string.IsNullOrEmpty(propertyName) &&
-                binding.Attributes.FirstOrDefault(kvp => kvp.Key == propertyName) is { Value: var bindingTypeName})
+            if (boundAttribute.IsTypeParameterProperty() &&
+                boundAttribute.GetPropertyName() is string propertyName &&
+                binding.Attributes.FirstOrDefault(propertyName, static (kvp, propertyName) => kvp.Key == propertyName) is { Value: var bindingTypeName})
             {
+                if (typeName is not null)
+                {
+                    // Multiple generic types were found and currently not supported.
+                    typeName = null;
+                    return false;
+                }
+
                 typeName = bindingTypeName;
-                return true;
             }
         }
 
-        typeName = null;
-        return false;
+        return typeName is not null;
     }
-#nullable restore
+#nullable disable
 
     public static bool IsInputElementBindTagHelper(this TagHelperDescriptor tagHelper)
     {

@@ -186,7 +186,7 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
                     {
                         if (attribute.IsGenericTypedProperty())
                         {
-                            if (tagHelperDescriptor.TryGetGenericTypeName(binding, out var genericType) &&
+                            if (tagHelperDescriptor.TryGetGenericTypeNameFromComponent(binding, out var genericType) &&
                                 ComponentAttributeIntermediateNode.TryGetGenericActionArgument(attribute.TypeName.AsMemory(), genericType, out var argument))
                             {
                                 eventParameterType = argument.ToString();
