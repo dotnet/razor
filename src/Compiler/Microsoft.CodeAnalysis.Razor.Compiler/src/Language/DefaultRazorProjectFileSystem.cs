@@ -23,7 +23,7 @@ internal class DefaultRazorProjectFileSystem : RazorProjectFileSystem
         {
             root = root.Replace('\\', '/').TrimEnd('/');
 
-            // Was the entire string just '\\' or '/'? If so, that's an invalid path.
+            // Was the entire string just repeated '\' and '/' characters? If so, that's an invalid path.
             // Just throw instead of setting Root to an empty string.
             if (root.Length == 0)
             {
