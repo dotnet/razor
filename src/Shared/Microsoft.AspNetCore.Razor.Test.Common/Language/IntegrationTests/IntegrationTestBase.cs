@@ -494,9 +494,7 @@ public abstract class IntegrationTestBase
             {
                 if (mapping.OriginalSpan == sourceSpan)
                 {
-                    var actualSpan = csharpDocument.Text.ToString().Substring(
-                        mapping.GeneratedSpan.AbsoluteIndex,
-                        mapping.GeneratedSpan.Length);
+                    var actualSpan = csharpDocument.Text.ToString(mapping.GeneratedSpan.AsTextSpan());
 
                     if (!string.Equals(expectedSpan, actualSpan, StringComparison.Ordinal))
                     {
