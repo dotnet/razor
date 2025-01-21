@@ -18,6 +18,8 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
     {
         private static RazorSourceGeneratorEventSource Log => RazorSourceGeneratorEventSource.Log;
 
+        internal static bool UseRazorCohostServer { get; set; } = false;
+
         // Testing usage only.
         private readonly string? _testSuppressUniqueIds;
 
@@ -37,7 +39,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var compilation = context.CompilationProvider;
 
             // determine if we should suppress this run and filter out all the additional files and references if so
-            var isGeneratorSuppressed = analyzerConfigOptions.CheckGlobalFlagSet("SuppressRazorSourceGenerator");
+            var isGeneratorSuppressed = analyzerConfigOptions.CheckGlobalFlagSet("SuppressRazorSourceGenerator").Select((b, _) => !UseRazorCohostServer || b);
             var additionalTexts = context.AdditionalTextsProvider.EmptyOrCachedWhen(isGeneratorSuppressed, true);
             var metadataRefs = context.MetadataReferencesProvider.EmptyOrCachedWhen(isGeneratorSuppressed, true);
 

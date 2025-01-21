@@ -5,6 +5,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -15,7 +16,13 @@ internal class RemoteLanguageServerFeatureOptions : LanguageServerFeatureOptions
 {
     private RemoteClientInitializationOptions _options = default;
 
-    public void SetOptions(RemoteClientInitializationOptions options) => _options = options;
+    public void SetOptions(RemoteClientInitializationOptions options)
+    {
+        _options = options;
+
+        // ensure the source generator is in the correct mode
+        RazorSourceGenerator.UseRazorCohostServer = options.UseRazorCohostServer;
+    }
 
     public override bool SupportsFileManipulation => _options.SupportsFileManipulation;
 
