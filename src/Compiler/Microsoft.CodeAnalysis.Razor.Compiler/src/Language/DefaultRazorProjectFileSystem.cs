@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -102,31 +103,36 @@ internal class DefaultRazorProjectFileSystem : RazorProjectFileSystem
             return normalizedPath;
         }
 
-        // This is not an absolute path, so we combine it with Root.
+        // This is not an absolute path, so we combine it with Root to produce the final path.
 
-        using var builder = new MemoryBuilder<char>(initialCapacity: Root.Length + normalizedPath.Length + 1);
+        // If the root doesn't end in a '/', and the path doesn't start with a '/', we'll need to add one.
+        var needsSlash = Root[^1] is not '/' && normalizedPath[0] is not '/';
+        var length = Root.Length + normalizedPath.Length + (needsSlash ? 1 : 0);
 
-        // First, add Root.
-        var rootSpan = Root.AsSpan();
-        builder.Append(rootSpan);
+        return StringExtensions.CreateString(
+            length,
+            state: (Root, normalizedPath, needsSlash),
+            static (span, state) =>
+            {
+                var (root, normalizedPath, needsSlash) = state;
 
-        var pathSpan = normalizedPath.AsSpan();
+                var rootSpan = root.AsSpan();
+                var pathSpan = normalizedPath.AsSpan();
 
-        // If the root doesn't end in a '/', add one.
-        if (rootSpan is not [.., '/'])
-        {
-            builder.Append('/');
-        }
+                // Copy the root first.
+                rootSpan.CopyTo(span);
+                span = span[rootSpan.Length..];
 
-        // If the path starts with a '/', slice it out.
-        if (pathSpan is ['/', ..])
-        {
-            pathSpan = pathSpan[1..];
-        }
+                // Add a slash if we need one.
+                if (needsSlash)
+                {
+                    span[0] = '/';
+                    span = span[1..];
+                }
 
-        // Finally, add the path.
-        builder.Append(pathSpan);
-
-        return builder.AsMemory().Span.ToString();
+                // Finally, add the path.
+                Debug.Assert(span.Length == pathSpan.Length, "The span should be the same length as the path.");
+                pathSpan.CopyTo(span);
+            });
     }
 }
