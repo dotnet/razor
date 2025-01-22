@@ -273,12 +273,11 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
     /// <summary>
     /// Returns a string where the generic type argument of a System.Action&lt;MyType&lt;TItem&gt;&gt; this method
     /// constructs a new string replacing 'TItem' with <paramref name="genericType"/>
-    ///
+    /// </summary>
     /// <param name="candidate">The full candidate string to parse, e.g System.Action&lt;MyType&lt;TItem&gt;&gt;</param>
     /// <param name="genericType">The type name to replace the generic argument with</param>
     /// <param name="argument"/>The resulting string with the generic argument replaced with <paramref name="genericType"/></param>
     /// <returns>True if the argument could be constructed</returns>
-    /// </summary>
     internal static bool TryGetGenericActionArgument(ReadOnlyMemory<char> candidate, string genericType, [NotNullWhen(true)] out string argument)
     {
         if (!TryGetActionArgument(candidate, out var actionArgument))
