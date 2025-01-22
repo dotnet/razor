@@ -43,7 +43,7 @@ internal abstract partial class RazorBrokeredServiceBase
             var assemblyInRazorAlc = RazorAssemblyLoadContext.Instance.LoadFromAssemblyName(GetType().Assembly.GetName());
             var thisInRazorAlc = assemblyInRazorAlc.CreateInstance(GetType().FullName!)!;
 
-            var createInternalAsyncFunc = thisInRazorAlc.GetType().GetMethod("CreateInternalAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+            var createInternalAsyncFunc = thisInRazorAlc.GetType().GetMethod(nameof(CreateInternalAsync), System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
             var result = (Task<object>)createInternalAsyncFunc.Invoke(thisInRazorAlc, [stream, hostProvidedServices, serviceBroker])!;
             return result;
 #else
