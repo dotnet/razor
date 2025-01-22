@@ -60,7 +60,7 @@ internal static class TagHelperDescriptorExtensions
     ///
     /// The above code will return "string" for the typeName.
     /// <remarks>
-    /// As of now this method only supports cases where there is a single bound attribute that is a type parameter. If there are multiple this returns false;
+    /// As of now this method only supports cases where there is a single bound attribute that is a type parameter. If there are multiple this returns false.
     /// </remarks>
     /// </summary>
 #nullable enable
@@ -83,7 +83,7 @@ internal static class TagHelperDescriptorExtensions
             // provided it, and if it's not the calling context probably doesn't care.
             if (boundAttribute.IsTypeParameterProperty() &&
                 boundAttribute.GetPropertyName() is string propertyName &&
-                binding.Attributes.FirstOrDefault(propertyName, static (kvp, propertyName) => kvp.Key == propertyName) is { Value: var bindingTypeName})
+                binding.Attributes.FirstOrDefault(propertyName, static (kvp, propertyName) => kvp.Key == propertyName) is { Value: var bindingTypeName })
             {
                 if (typeName is not null)
                 {
