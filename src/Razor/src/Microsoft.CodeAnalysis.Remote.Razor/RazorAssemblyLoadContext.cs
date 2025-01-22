@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 internal sealed class RazorAssemblyLoadContext : AssemblyLoadContext
 {
-    private readonly AssemblyLoadContext? _parent;
+    private readonly AssemblyLoadContext _parent;
     private readonly string _baseDirectory;
 
     public static readonly RazorAssemblyLoadContext Instance = new();
@@ -21,7 +21,7 @@ internal sealed class RazorAssemblyLoadContext : AssemblyLoadContext
         : base(isCollectible: false)
     {
         var thisAssembly = GetType().Assembly!;
-        _parent = GetLoadContext(thisAssembly);
+        _parent = GetLoadContext(thisAssembly) ?? throw new InvalidOperationException("Unexpected");
         _baseDirectory = Path.GetDirectoryName(thisAssembly.Location) ?? throw new InvalidOperationException("Could not determine base directory");
     }
 
@@ -40,11 +40,10 @@ internal sealed class RazorAssemblyLoadContext : AssemblyLoadContext
             // We're responsible for this one. We load it into our ALC rather than the parent so that we
             // can still intercept the loads of any dependencies which Roslyn might be responsible for.
             return LoadFromAssemblyPath(fileName);
-
         }
 
         // This isn't one of our own assemblies, just defer back to the parent ALC.
-        return _parent?.LoadFromAssemblyName(assemblyName);
+        return _parent.LoadFromAssemblyName(assemblyName);
     }
 }
 #endif
