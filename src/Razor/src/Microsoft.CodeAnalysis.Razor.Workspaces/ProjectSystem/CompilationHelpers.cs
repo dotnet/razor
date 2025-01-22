@@ -46,11 +46,7 @@ internal static class CompilationHelpers
         var projectItem = projectEngine.FileSystem.GetItem(document.FilePath, document.FileKind);
 
         using var importProjectItems = new PooledArrayBuilder<RazorProjectItem>();
-
-        foreach (var feature in projectEngine.GetFeatures<IImportProjectFeature>())
-        {
-            feature.CollectImports(projectItem, ref importProjectItems.AsRef());
-        }
+        projectEngine.CollectImports(projectItem, ref importProjectItems.AsRef());
 
         if (importProjectItems.Count == 0)
         {

@@ -808,6 +808,11 @@ public abstract class IntegrationTestBase
             using var innerImports = new PooledArrayBuilder<RazorProjectItem>();
             _innerFeature.CollectImports(projectItem, ref innerImports.AsRef());
 
+            if (innerImports.Count == 0)
+            {
+                return;
+            }
+
             foreach (var import in innerImports)
             {
                 if (import.Exists)

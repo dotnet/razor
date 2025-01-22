@@ -426,29 +426,14 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
     private static ImmutableArray<RazorSourceDocument> GetImports(RazorProjectEngine projectEngine, RazorProjectItem projectItem)
     {
-        using var imports = new PooledArrayBuilder<RazorProjectItem>();
+        using var result = new PooledArrayBuilder<RazorSourceDocument>();
 
-        foreach (var importFeature in projectEngine.GetFeatures<IImportProjectFeature>())
+        foreach (var import in projectEngine.GetImports(projectItem, static i => i.Exists))
         {
-            importFeature.CollectImports(projectItem, ref imports.AsRef());
+            result.Add(RazorSourceDocument.ReadFrom(import));
         }
 
-        if (imports.Count == 0)
-        {
-            return [];
-        }
-
-        using var result = new PooledArrayBuilder<RazorSourceDocument>(capacity: imports.Count);
-
-        foreach (var import in imports)
-        {
-            if (import.Exists)
-            {
-                result.Add(RazorSourceDocument.ReadFrom(import));
-            }
-        }
-
-        return result.DrainToImmutable();
+        return result.ToImmutable();
     }
 
     private void AddTagHelperStubs(IEnumerable<TagHelperDescriptor> descriptors)
