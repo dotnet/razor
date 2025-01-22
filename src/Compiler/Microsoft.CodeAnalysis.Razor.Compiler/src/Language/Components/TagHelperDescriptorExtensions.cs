@@ -59,10 +59,10 @@ internal static class TagHelperDescriptorExtensions
     /// </code>
     ///
     /// The above code will return "string" for the typeName.
+    /// </summary>
     /// <remarks>
     /// As of now this method only supports cases where there is a single bound attribute that is a type parameter. If there are multiple this returns false.
     /// </remarks>
-    /// </summary>
 #nullable enable
     public static bool TryGetGenericTypeNameFromComponent(this TagHelperDescriptor tagHelper, TagHelperBinding binding, [NotNullWhen(true)] out string? typeName)
     {
