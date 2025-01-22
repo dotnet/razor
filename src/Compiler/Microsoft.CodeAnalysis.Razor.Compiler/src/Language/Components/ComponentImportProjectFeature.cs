@@ -3,8 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
@@ -22,7 +24,7 @@ internal sealed class ComponentImportProjectFeature : RazorProjectEngineFeatureB
 
     private static readonly InMemoryFileContent s_fileContent = new(DefaultUsingImportContent);
 
-    public IReadOnlyList<RazorProjectItem> GetImports(RazorProjectItem projectItem)
+    public ImmutableArray<RazorProjectItem> GetImports(RazorProjectItem projectItem)
     {
         ArgHelper.ThrowIfNull(projectItem);
 
@@ -32,15 +34,12 @@ internal sealed class ComponentImportProjectFeature : RazorProjectEngineFeatureB
             return [];
         }
 
-        var imports = new List<RazorProjectItem>()
-        {
-            ComponentImportProjectItem.Instance,
-        };
+        using PooledArrayBuilder<RazorProjectItem> imports = [ComponentImportProjectItem.Instance];
 
         // We add hierarchical imports second so any default directive imports can be overridden.
         imports.AddRange(GetHierarchicalImports(ProjectEngine.FileSystem, projectItem));
 
-        return imports;
+        return imports.ToImmutable();
     }
 
     private static IEnumerable<RazorProjectItem> GetHierarchicalImports(RazorProjectFileSystem fileSystem, RazorProjectItem projectItem)

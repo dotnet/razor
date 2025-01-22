@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
@@ -292,14 +293,11 @@ public static class RazorProjectEngineBuilderExtensions
         return configurationFeature;
     }
 
-    private sealed class AdditionalImportsProjectFeature(params string[] imports) : RazorProjectEngineFeatureBase, IImportProjectFeature
+    private sealed class AdditionalImportsProjectFeature(string[] imports) : RazorProjectEngineFeatureBase, IImportProjectFeature
     {
-        private readonly IReadOnlyList<RazorProjectItem> _imports = [.. imports.Select(import => new InMemoryProjectItem(import))];
+        private readonly ImmutableArray<RazorProjectItem> _imports = imports.SelectAsArray(import => (RazorProjectItem)new InMemoryProjectItem(import));
 
-        public IReadOnlyList<RazorProjectItem> GetImports(RazorProjectItem projectItem)
-        {
-            return _imports;
-        }
+        public ImmutableArray<RazorProjectItem> GetImports(RazorProjectItem projectItem) => _imports;
 
         private sealed class InMemoryProjectItem : RazorProjectItem
         {

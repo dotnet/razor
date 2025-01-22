@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Language;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X;
@@ -15,7 +16,7 @@ internal sealed class MvcImportProjectFeature : RazorProjectEngineFeatureBase, I
 {
     private const string ImportsFileName = "_ViewImports.cshtml";
 
-    public IReadOnlyList<RazorProjectItem> GetImports(RazorProjectItem projectItem)
+    public ImmutableArray<RazorProjectItem> GetImports(RazorProjectItem projectItem)
     {
         ArgHelper.ThrowIfNull(projectItem);
 
@@ -25,23 +26,24 @@ internal sealed class MvcImportProjectFeature : RazorProjectEngineFeatureBase, I
             return [];
         }
 
-        var imports = new List<RazorProjectItem>();
-        AddDefaultDirectivesImport(imports);
+        using var imports = new PooledArrayBuilder<RazorProjectItem>();
+
+        AddDefaultDirectivesImport(ref imports.AsRef());
 
         // We add hierarchical imports second so any default directive imports can be overridden.
-        AddHierarchicalImports(projectItem, imports);
+        AddHierarchicalImports(projectItem, ref imports.AsRef());
 
-        return imports;
+        return imports.ToImmutable();
     }
 
     // Internal for testing
-    internal static void AddDefaultDirectivesImport(List<RazorProjectItem> imports)
+    internal static void AddDefaultDirectivesImport(ref PooledArrayBuilder<RazorProjectItem> imports)
     {
         imports.Add(DefaultDirectivesProjectItem.Instance);
     }
 
     // Internal for testing
-    internal void AddHierarchicalImports(RazorProjectItem projectItem, List<RazorProjectItem> imports)
+    internal void AddHierarchicalImports(RazorProjectItem projectItem, ref PooledArrayBuilder<RazorProjectItem> imports)
     {
         // We want items in descending order. FindHierarchicalItems returns items in ascending order.
         var importProjectItems = ProjectEngine.FileSystem.FindHierarchicalItems(projectItem.FilePath, ImportsFileName).Reverse();
