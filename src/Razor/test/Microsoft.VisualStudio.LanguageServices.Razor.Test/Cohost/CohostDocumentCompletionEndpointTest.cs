@@ -67,7 +67,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             expectedItemLabels: ["char", "DateTime", "Exception"]);
     }
 
-    [FuseFact]
+    [FuseFact(Skip = "Can't modify a generated document to apply '.' character")]
     public async Task CSharpClassMembersAtProvisionalCompletion()
     {
         await VerifyCompletionListAsync(
@@ -87,7 +87,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"]);
     }
 
-    [FuseFact]
+    [FuseFact(Skip = "Can't modify a generated document to apply '.' character")]
     public async Task CSharpClassesInCodeBlock()
     {
         await VerifyCompletionListAsync(
@@ -554,7 +554,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
     {
         UpdateClientInitializationOptions(c => c with { ForceRuntimeCodeGeneration = context.ForceRuntimeCodeGeneration });
 
-        var document = await CreateProjectAndRazorDocumentAsync(input.Text);
+        var document = CreateProjectAndRazorDocument(input.Text);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         var clientSettingsManager = new ClientSettingsManager([], null, null);

@@ -14,7 +14,7 @@
         "CPS_DiagnosticRuntime": "1",
         "CPS_MetricsCollection": "1",
         "ServiceHubTraceLevel": "All",
-        "SERVICEHUBDEBUGHOSTONSTARTUP": "ServiceHub.RoslynCodeAnalysisService.exe"
+        "SERVICEHUBDEBUGHOSTONSTARTUP": "ServiceHub.RoslynCodeAnalysisServiceS.exe"
       }
     },
     "Razor (managed + native)": {
