@@ -77,5 +77,8 @@ internal sealed class ComponentImportProjectFeature : RazorProjectEngineFeatureB
 
         internal override RazorSourceDocument GetSource()
             => s_source ?? InterlockedOperations.Initialize(ref s_source, base.GetSource());
+
+        protected override string DebuggerToString()
+            => $"Default component imports ({ComponentMetadata.ImportsFileName})";
     }
 }

@@ -93,5 +93,8 @@ internal class MvcImportProjectFeature : RazorProjectEngineFeatureBase, IImportP
 
         internal override RazorSourceDocument GetSource()
             => s_source ?? InterlockedOperations.Initialize(ref s_source, base.GetSource());
+
+        protected override string DebuggerToString()
+            => $"Default MVC 2.X imports ({ImportsFileName})";
     }
 }

@@ -347,6 +347,9 @@ public static class RazorProjectEngineBuilderExtensions
 
             internal override RazorSourceDocument GetSource()
                 => _source ?? InterlockedOperations.Initialize(ref _source, base.GetSource());
+
+            protected override string DebuggerToString()
+                => "Additional default imports";
         }
     }
 

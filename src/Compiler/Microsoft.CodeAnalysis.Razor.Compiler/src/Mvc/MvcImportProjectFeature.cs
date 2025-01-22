@@ -92,5 +92,8 @@ internal sealed class MvcImportProjectFeature : RazorProjectEngineFeatureBase, I
 
         internal override RazorSourceDocument GetSource()
             => s_source ?? InterlockedOperations.Initialize(ref s_source, base.GetSource());
+
+        protected override string DebuggerToString()
+            => $"Default MVC 3.0 imports ({ImportsFileName})";
     }
 }
