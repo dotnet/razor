@@ -64,9 +64,8 @@ internal static class CompilationHelpers
                 continue;
             }
 
-            if (importProjectItem.PhysicalPath is null)
+            if (importProjectItem is DefaultImportProjectItem)
             {
-                // This is a default import.
                 var importSource = importProjectItem.GetSource()
                     .AssumeNotNull($"Encountered a default import with a missing {nameof(RazorSourceDocument)}: {importProjectItem.FilePath}.");
 

@@ -296,40 +296,12 @@ public static class RazorProjectEngineBuilderExtensions
 
     private sealed class AdditionalImportsProjectFeature(string[] imports) : RazorProjectEngineFeatureBase, IImportProjectFeature
     {
-        private readonly ImmutableArray<RazorProjectItem> _imports = imports.SelectAsArray(import => (RazorProjectItem)new InMemoryProjectItem(import));
+        private readonly ImmutableArray<RazorProjectItem> _imports = imports.SelectAsArray(
+            static import => (RazorProjectItem)new DefaultImportProjectItem("Additional default imports", import));
 
         public void CollectImports(RazorProjectItem projectItem, ref PooledArrayBuilder<RazorProjectItem> imports)
         {
             imports.AddRange(_imports);
-        }
-
-        private sealed class InMemoryProjectItem : RazorProjectItem
-        {
-            private readonly InMemoryFileContent _fileContent;
-            private RazorSourceDocument _source;
-
-            public InMemoryProjectItem(string content)
-            {
-                ArgHelper.ThrowIfNullOrEmpty(content);
-
-                _fileContent = new(content);
-            }
-
-            public override string BasePath => null;
-
-            public override string FilePath => null;
-
-            public override string PhysicalPath => null;
-
-            public override bool Exists => true;
-
-            public override Stream Read() => _fileContent.CreateStream();
-
-            internal override RazorSourceDocument GetSource()
-                => _source ?? InterlockedOperations.Initialize(ref _source, base.GetSource());
-
-            protected override string DebuggerToString()
-                => "Additional default imports";
         }
     }
 
