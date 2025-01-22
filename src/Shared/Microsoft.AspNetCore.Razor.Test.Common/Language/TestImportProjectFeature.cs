@@ -30,16 +30,11 @@ internal sealed class TestImportProjectFeature(
     {
     }
 
-    public ImmutableArray<RazorProjectItem> GetImports(RazorProjectItem projectItem)
+    public void CollectImports(RazorProjectItem projectItem, ref PooledArrayBuilder<RazorProjectItem> imports)
     {
         ArgHelper.ThrowIfNull(projectItem);
 
-        using var imports = new PooledArrayBuilder<RazorProjectItem>();
-
-        foreach (var import in _imports)
-        {
-            imports.Add(import);
-        }
+        imports.AddRange(_imports);
 
         if (_hierarchicalImports != HierarchicalImports.None)
         {
@@ -54,7 +49,5 @@ internal sealed class TestImportProjectFeature(
             var importProjectItems = ProjectEngine.FileSystem.FindHierarchicalItems(projectItem.FilePath, importsFileName).Reverse();
             imports.AddRange(importProjectItems);
         }
-
-        return imports.DrainToImmutable();
     }
 }

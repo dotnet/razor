@@ -455,7 +455,7 @@ internal sealed class ProjectState
     {
         foreach (var importProjectFeature in projectEngine.GetFeatures<IImportProjectFeature>())
         {
-            importProjectItems.AddRange(importProjectFeature.GetImports(projectItem));
+            importProjectFeature.CollectImports(projectItem, ref importProjectItems);
         }
     }
 

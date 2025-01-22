@@ -49,10 +49,7 @@ internal static class CompilationHelpers
 
         foreach (var feature in projectEngine.GetFeatures<IImportProjectFeature>())
         {
-            if (feature.GetImports(projectItem) is { } featureImports)
-            {
-                importProjectItems.AddRange(featureImports);
-            }
+            feature.CollectImports(projectItem, ref importProjectItems.AsRef());
         }
 
         if (importProjectItems.Count == 0)

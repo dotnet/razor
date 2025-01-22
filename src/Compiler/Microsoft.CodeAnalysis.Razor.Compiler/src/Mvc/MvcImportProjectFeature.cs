@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor;
@@ -16,23 +15,20 @@ internal sealed class MvcImportProjectFeature : RazorProjectEngineFeatureBase, I
 {
     internal const string ImportsFileName = "_ViewImports.cshtml";
 
-    public ImmutableArray<RazorProjectItem> GetImports(RazorProjectItem projectItem)
+    public void CollectImports(RazorProjectItem projectItem, ref PooledArrayBuilder<RazorProjectItem> imports)
     {
         ArgHelper.ThrowIfNull(projectItem);
 
         // Don't add MVC imports for a component
         if (FileKinds.IsComponent(projectItem.FileKind))
         {
-            return [];
+            return;
         }
 
-        using var imports = new PooledArrayBuilder<RazorProjectItem>();
-        AddDefaultDirectivesImport(ref imports.AsRef());
+        AddDefaultDirectivesImport(ref imports);
 
         // We add hierarchical imports second so any default directive imports can be overridden.
-        AddHierarchicalImports(projectItem, ref imports.AsRef());
-
-        return imports.ToImmutable();
+        AddHierarchicalImports(projectItem, ref imports);
     }
 
     // Internal for testing

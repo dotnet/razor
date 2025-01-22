@@ -8,6 +8,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem.Legacy;
 using Microsoft.VisualStudio.Razor.Documents;
 
@@ -100,9 +101,14 @@ internal sealed class ImportDocumentManager(IFileChangeTrackerFactory fileChange
         var documentSnapshot = projectSnapshot.GetDocument(filePath);
         var projectItem = projectEngine.FileSystem.GetItem(filePath, documentSnapshot?.FileKind);
 
+        using var importItems = new PooledArrayBuilder<RazorProjectItem>();
+
         foreach (var importFeature in projectEngine.GetFeatures<IImportProjectFeature>())
         {
-            foreach (var importItem in importFeature.GetImports(projectItem))
+            importItems.Clear();
+            importFeature.CollectImports(projectItem, ref importItems.AsRef());
+
+            foreach (var importItem in importItems)
             {
                 if (importItem.PhysicalPath is null)
                 {

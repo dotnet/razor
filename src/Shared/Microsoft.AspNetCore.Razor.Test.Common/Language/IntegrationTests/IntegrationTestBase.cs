@@ -803,11 +803,10 @@ public abstract class IntegrationTestBase
             _innerFeature.Initialize(ProjectEngine);
         }
 
-        public ImmutableArray<RazorProjectItem> GetImports(RazorProjectItem projectItem)
+        public void CollectImports(RazorProjectItem projectItem, ref PooledArrayBuilder<RazorProjectItem> imports)
         {
-            var innerImports = _innerFeature.GetImports(projectItem);
-
-            using var normalizedImports = new PooledArrayBuilder<RazorProjectItem>(capacity: innerImports.Length);
+            using var innerImports = new PooledArrayBuilder<RazorProjectItem>();
+            _innerFeature.CollectImports(projectItem, ref innerImports.AsRef());
 
             foreach (var import in innerImports)
             {
@@ -830,11 +829,9 @@ public abstract class IntegrationTestBase
                         Content = normalizedText
                     };
 
-                    normalizedImports.Add(normalizedImport);
+                    imports.Add(normalizedImport);
                 }
             }
-
-            return normalizedImports.DrainToImmutable();
         }
     }
 }

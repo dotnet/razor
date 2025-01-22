@@ -443,7 +443,7 @@ public class RazorProjectEngine
 
         foreach (var importProjectFeature in GetFeatures<IImportProjectFeature>())
         {
-            importItems.AddRange(importProjectFeature.GetImports(projectItem));
+            importProjectFeature.CollectImports(projectItem, ref importItems.AsRef());
         }
 
         // Suppress exceptions for design-time requests.

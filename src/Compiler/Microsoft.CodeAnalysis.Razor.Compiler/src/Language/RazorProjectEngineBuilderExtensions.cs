@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Language;
 using RazorExtensionsV1_X = Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.RazorExtensions;
 using RazorExtensionsV2_X = Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.RazorExtensions;
@@ -297,7 +298,10 @@ public static class RazorProjectEngineBuilderExtensions
     {
         private readonly ImmutableArray<RazorProjectItem> _imports = imports.SelectAsArray(import => (RazorProjectItem)new InMemoryProjectItem(import));
 
-        public ImmutableArray<RazorProjectItem> GetImports(RazorProjectItem projectItem) => _imports;
+        public void CollectImports(RazorProjectItem projectItem, ref PooledArrayBuilder<RazorProjectItem> imports)
+        {
+            imports.AddRange(_imports);
+        }
 
         private sealed class InMemoryProjectItem : RazorProjectItem
         {
