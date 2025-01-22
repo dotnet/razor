@@ -525,7 +525,7 @@ public class RazorIntegrationTestBase
         }
     }
 
-    private class TestImportProjectFeature : RazorProjectEngineFeatureBase, IImportProjectFeature
+    private sealed class TestImportProjectFeature : RazorProjectEngineFeatureBase, IImportProjectFeature
     {
         private readonly List<RazorProjectItem> _imports;
 

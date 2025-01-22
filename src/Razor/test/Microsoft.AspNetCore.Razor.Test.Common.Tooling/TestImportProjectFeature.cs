@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
-public class TestImportProjectFeature : RazorProjectEngineFeatureBase, IImportProjectFeature
+public sealed class TestImportProjectFeature : RazorProjectEngineFeatureBase, IImportProjectFeature
 {
     public IReadOnlyList<RazorProjectItem> GetImports(RazorProjectItem projectItem)
     {
