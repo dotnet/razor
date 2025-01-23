@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
@@ -39,7 +40,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var compilation = context.CompilationProvider;
 
             // determine if we should suppress this run and filter out all the additional files and references if so
-            var isGeneratorSuppressed = analyzerConfigOptions.CheckGlobalFlagSet("SuppressRazorSourceGenerator").Select((b, _) => !UseRazorCohostServer || b);
+            var isGeneratorSuppressed = analyzerConfigOptions.CheckGlobalFlagSet("SuppressRazorSourceGenerator").Select((suppress, _) => !UseRazorCohostServer && suppress);
             var additionalTexts = context.AdditionalTextsProvider.EmptyOrCachedWhen(isGeneratorSuppressed, true);
             var metadataRefs = context.MetadataReferencesProvider.EmptyOrCachedWhen(isGeneratorSuppressed, true);
 
@@ -149,7 +150,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                     // When using the generator cache in the compiler it's possible to encounter metadata references that are different instances
                     // but ultimately represent the same underlying assembly. We compare the module version ids to determine if the references are the same
-                    if (!compilationA.References.SequenceEqual(compilationB.References, new LambdaComparer<MetadataReference>((old, @new) => 
+                    if (!compilationA.References.SequenceEqual(compilationB.References, new LambdaComparer<MetadataReference>((old, @new) =>
                     {
                         if (ReferenceEquals(old, @new))
                         {
@@ -292,11 +293,19 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     });
             }
 
-            var csharpDocuments = processed(designTime: false)
+            var razorDocuments = processed(designTime: false)
                 .Select(static (pair, _) =>
                 {
                     var (filePath, document) = pair;
-                    return (filePath, csharpDocument: document.CodeDocument.GetCSharpDocument());
+                    return (hintName: GetIdentifierFromPath(filePath), codeDocument: document.CodeDocument);
+                })
+                .WithTrackingName("RazorDocuments");
+
+            var csharpDocuments = razorDocuments
+                .Select(static (pair, _) =>
+                {
+                    var (hintName, document) = pair;
+                    return (hintName, csharpDocument: document.GetCSharpDocument());
                 })
                 .WithLambdaComparer(static (a, b) =>
                 {
@@ -317,14 +326,11 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             context.RegisterImplementationSourceOutput(csharpDocumentsWithSuppressionFlag, static (context, pair) =>
             {
-                var ((filePath, csharpDocument), isGeneratorSuppressed) = pair;
+                var ((hintName, csharpDocument), isGeneratorSuppressed) = pair;
 
                 // When the generator is suppressed, we may still have a lot of cached data for perf, but we don't want to actually add any of the files to the output
                 if (!isGeneratorSuppressed)
                 {
-                    // Add a generated suffix so tools, such as coverlet, consider the file to be generated
-                    var hintName = GetIdentifierFromPath(filePath) + ".g.cs";
-
                     RazorSourceGeneratorEventSource.Log.AddSyntaxTrees(hintName);
                     foreach (var razorDiagnostic in csharpDocument.Diagnostics)
                     {
@@ -334,6 +340,21 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                     context.AddSource(hintName, csharpDocument.Text);
                 }
+            });
+
+            var hostOutputs = razorDocuments
+                .Collect()
+                .Combine(allTagHelpers)
+                .WithTrackingName("HostOutputs");
+
+#pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            context.RegisterHostOutput(hostOutputs, (context, pair) =>
+#pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            {
+                var (documents, tagHelpers) = pair;
+                
+                var documentDictionary = documents.Select(p => new KeyValuePair<string, (string, RazorCodeDocument)>(p.codeDocument.Source.FilePath!, (p.hintName, p.codeDocument))).ToImmutableDictionary();
+                context.AddOutput(nameof(RazorGeneratorResult), new RazorGeneratorResult(tagHelpers, documentDictionary));
             });
         }
     }
