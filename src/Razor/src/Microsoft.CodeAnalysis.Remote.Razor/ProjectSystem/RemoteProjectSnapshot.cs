@@ -177,13 +177,12 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
         var hintName = generatorResult.GetHintName(documentSnapshot.FilePath);
 
         // TODO: use this when the location is case-insensitive on windows (https://github.com/dotnet/roslyn/issues/76869)
-        var generator = typeof(RazorSourceGenerator);
-        var generatorAssembly = generator.Assembly;
-        var generatorName = generatorAssembly.GetName();
-        var generatedDocuments2 = await _project.GetSourceGeneratedDocumentsForGeneratorAsync(generatorName.Name!, generatorAssembly.Location, generatorName.Version!, generator.Name, cancellationToken).ConfigureAwait(false);
+        //var generator = typeof(RazorSourceGenerator);
+        //var generatorAssembly = generator.Assembly;
+        //var generatorName = generatorAssembly.GetName();
+        //var generatedDocuments = await _project.GetSourceGeneratedDocumentsForGeneratorAsync(generatorName.Name!, generatorAssembly.Location, generatorName.Version!, generator.Name, cancellationToken).ConfigureAwait(false);
 
         var generatedDocuments = await _project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-
         return generatedDocuments.Single(d => d.HintName == hintName);
     }
 
