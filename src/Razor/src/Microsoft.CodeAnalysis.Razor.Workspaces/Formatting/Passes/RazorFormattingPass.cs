@@ -461,7 +461,8 @@ internal sealed class RazorFormattingPass(LanguageServerFeatureOptions languageS
                 didFormat = true;
             }
 
-            // If there is no newline after the close brace, we add one.
+            // If there is code after the close brace, then we want to add a newline after it and push the code to the next
+            // line. In other words, we expect only whitespace characters after the close brace, on this line.
             var closeBraceLine = source.Text.Lines[closeBraceRange.End.Line];
             if (closeBraceLine.GetFirstNonWhitespaceOffset(closeBraceRange.End.Character).HasValue)
             {
