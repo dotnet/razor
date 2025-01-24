@@ -114,23 +114,10 @@ public abstract partial class RazorProjectFileSystem
 
         using var result = new PooledArrayBuilder<RazorProjectItem>();
 
-        const int MaxDepth = 255;
-
         var index = pathMemory.Length;
 
-        do
+        while (index > basePath.Length && (index = pathMemory.Span.LastIndexOf('/')) >= 0)
         {
-            if (index <= basePath.Length)
-            {
-                break;
-            }
-
-            index = pathMemory.Span.LastIndexOf('/');
-            if (index < 0)
-            {
-                break;
-            }
-
             pathMemory = pathMemory[..(index + 1)];
 
             var itemPath = StringExtensions.CreateString(
@@ -150,9 +137,9 @@ public abstract partial class RazorProjectFileSystem
             var item = GetItem(itemPath, fileKind: null);
             result.Add(item);
 
+            // Slice to exclude the trailing '/' for the next pass.
             pathMemory = pathMemory[..^1];
         }
-        while (result.Count < MaxDepth);
 
         return result.ToImmutableReversed();
     }
