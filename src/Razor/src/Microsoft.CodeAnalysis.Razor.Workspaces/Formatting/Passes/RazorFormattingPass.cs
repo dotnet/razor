@@ -430,7 +430,8 @@ internal sealed class RazorFormattingPass(LanguageServerFeatureOptions languageS
             didFormat = true;
         }
 
-        if (closeBraceNode.TryGetLinePositionSpanWithoutWhitespace(source, out var closeBraceRange) &&
+        if (closeBraceNode.Span.Length > 0 &&
+            closeBraceNode.TryGetLinePositionSpanWithoutWhitespace(source, out var closeBraceRange) &&
             !RangeHasBeenModified(ref changes, source.Text, codeRange))
         {
             if (directiveNode is not null &&
@@ -458,6 +459,14 @@ internal sealed class RazorFormattingPass(LanguageServerFeatureOptions languageS
                     : codeRange.End;
                 changes.Add(new TextChange(source.Text.GetTextSpan(codeRange.End, start), context.NewLineString + additionalIndentation));
                 didFormat = true;
+            }
+
+            // If there is no newline after the close brace, we add one.
+            var closeBraceLine = source.Text.Lines[closeBraceRange.End.Line];
+            if (closeBraceLine.GetFirstNonWhitespaceOffset(closeBraceRange.End.Character).HasValue)
+            {
+                // Insert a newline after the close brace
+                changes.Add(new TextChange(source.Text.GetTextSpan(closeBraceRange.End, closeBraceRange.End), context.NewLineString));
             }
         }
 

@@ -5827,4 +5827,31 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 """,
             fileKind: FileKinds.Legacy);
     }
+
+    [FormattingTestFact]
+    public async Task LineBreakAtTheEndOfBlocks()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @page
+                @model IndexModel
+
+                <div>
+                </div>
+
+                @code {void Foo() { }}@Foo.ToString(   1  )
+                """,
+            expected: """
+                @page
+                @model IndexModel
+                
+                <div>
+                </div>
+                
+                @code {
+                    void Foo() { }
+                }
+                @Foo.ToString(1)
+                """);
+    }
 }
