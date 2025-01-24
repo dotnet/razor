@@ -5805,7 +5805,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
     {
         await RunFormattingTestAsync(
             input: """
-                @page
+                @page "/"
                 @model IndexModel
 
                 <div>
@@ -5814,7 +5814,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 @functions {void Foo() { }}@Foo()
                 """,
             expected: """
-                @page
+                @page "/"
                 @model IndexModel
                 
                 <div>
@@ -5833,7 +5833,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
     {
         await RunFormattingTestAsync(
             input: """
-                @page
+                @page "/"
                 @model IndexModel
 
                 <div>
@@ -5842,7 +5842,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 @code {void Foo() { }}@Foo.ToString(   1  )
                 """,
             expected: """
-                @page
+                @page "/"
                 @model IndexModel
                 
                 <div>
