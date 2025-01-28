@@ -106,11 +106,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Compiler Tests", "Compiler 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.Microbenchmarks.Generator", "src\Compiler\perf\Microsoft.AspNetCore.Razor.Microbenchmarks.Generator\Microsoft.AspNetCore.Razor.Microbenchmarks.Generator.csproj", "{7400A168-2552-49C7-93E3-D4DAA90C216F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace", "src\Razor\src\Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace\Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace.csproj", "{2223B8FD-D98A-47BE-94A9-6A3A6B8557B8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudioCode.RazorExtension", "src\Razor\src\Microsoft.VisualStudioCode.RazorExtension\Microsoft.VisualStudioCode.RazorExtension.csproj", "{2223B8FD-D98A-47BE-94A9-6A3A6B8557B8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.ProjectEngineHost", "src\Razor\src\Microsoft.AspNetCore.Razor.ProjectEngineHost\Microsoft.AspNetCore.Razor.ProjectEngineHost.csproj", "{2FB4801C-A083-4F08-A4FB-C4910985DE31}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace.Test", "src\Razor\test\Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace.Test\Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace.Test.csproj", "{70C6EAF1-202B-481B-ADD4-D30DF1396BDE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudioCode.RazorExtension.Test", "src\Razor\test\Microsoft.VisualStudioCode.RazorExtension.Test\Microsoft.VisualStudioCode.RazorExtension.Test.csproj", "{70C6EAF1-202B-481B-ADD4-D30DF1396BDE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Razor.Toolset", "src\Compiler\Microsoft.Net.Compilers.Razor.Toolset\Microsoft.Net.Compilers.Razor.Toolset.csproj", "{6117D32B-DDAE-4654-8260-783B27153E0B}"
 EndProject

@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../Microsoft.AspNetCore.Razor.Test.Common.Tooling/Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace\Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.VisualStudioCode.RazorExtension\Microsoft.VisualStudioCode.RazorExtension.csproj" />
   </ItemGroup>
 
 </Project>

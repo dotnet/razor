@@ -44,8 +44,8 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" />
-    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Key="$(RazorKey)" />
-    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension.Test" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.LanguageServer" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.LanguageServer.Test" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Microbenchmarks" Key="$(RazorKey)" />

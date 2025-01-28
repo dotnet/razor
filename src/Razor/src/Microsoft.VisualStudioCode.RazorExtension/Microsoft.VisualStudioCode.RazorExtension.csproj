@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension.Test" Key="$(RazorKey)" />
   </ItemGroup>
 
   <!--
@@ -36,7 +36,7 @@
       * Microsoft.AspNetCore.Razor.ProjectEngineHost.dll
       * Microsoft.AspNetCore.Razor.Utilities.Shared.dll
 
-    (and Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace.dll obviously)
+    (and Microsoft.VisualStudioCode.RazorExtension.dll obviously)
   -->
   <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">
     <ItemGroup>

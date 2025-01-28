@@ -105,7 +105,7 @@ target the broadest set of frameworks.
 
 - Target Framework: net7.0
 - Projects:
-  - Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace
+  - Microsoft.VisualStudioCode.RazorExtension
 
 ## Testing Layers
 
