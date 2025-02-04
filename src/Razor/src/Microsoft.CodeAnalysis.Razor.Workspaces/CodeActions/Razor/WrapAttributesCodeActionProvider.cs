@@ -47,7 +47,7 @@ internal class WrapAttributesCodeActionProvider : IRazorCodeActionProvider
         var indentSize = 0;
         var sourceText = context.SourceText;
 
-        using var newLinePositions = new PooledArrayBuilder<int>();
+        using var newLinePositions = new PooledArrayBuilder<int>(attributes.Count);
         foreach (var attribute in attributes)
         {
             var linePositionSpan = attribute.GetLinePositionSpan(context.CodeDocument.Source);
