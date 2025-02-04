@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -322,7 +323,8 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         var completionProvider = new DelegatedCompletionListProvider(
             documentMappingServiceMock.Object,
             clientConnection,
-            new CompletionListCache());
+            new CompletionListCache(),
+            new CompletionTriggerAndCommitCharacters(TestLanguageServerFeatureOptions.Instance));
 
         var requestSent = false;
         clientConnection.RequestSent += (s, o) =>

@@ -27,19 +27,22 @@ internal class DelegatedCompletionListProvider
     private readonly IDocumentMappingService _documentMappingService;
     private readonly IClientConnection _clientConnection;
     private readonly CompletionListCache _completionListCache;
+    private readonly CompletionTriggerAndCommitCharacters _completionTriggerAndCommitCharacters;
 
     public DelegatedCompletionListProvider(
         IDocumentMappingService documentMappingService,
         IClientConnection clientConnection,
-        CompletionListCache completionListCache)
+        CompletionListCache completionListCache,
+        CompletionTriggerAndCommitCharacters completionTriggerAndCommitCharacters)
     {
         _documentMappingService = documentMappingService;
         _clientConnection = clientConnection;
         _completionListCache = completionListCache;
+        _completionTriggerAndCommitCharacters = completionTriggerAndCommitCharacters;
     }
 
     // virtual for tests
-    public virtual FrozenSet<string> TriggerCharacters => CompletionTriggerAndCommitCharacters.AllDelegationTriggerCharacters;
+    public virtual FrozenSet<string> TriggerCharacters => _completionTriggerAndCommitCharacters.AllDelegationTriggerCharacters;
 
     // virtual for tests
     public virtual async Task<VSInternalCompletionList?> GetCompletionListAsync(
@@ -74,7 +77,7 @@ internal class DelegatedCompletionListProvider
             positionInfo = provisionalCompletionValue.DocumentPositionInfo;
         }
 
-        completionContext = DelegatedCompletionHelper.RewriteContext(completionContext, positionInfo.LanguageKind);
+        completionContext = DelegatedCompletionHelper.RewriteContext(completionContext, positionInfo.LanguageKind, _completionTriggerAndCommitCharacters);
 
         var razorCodeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         // It's a bit confusing, but we have two different "add snippets" options - one is a part of

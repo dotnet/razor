@@ -42,4 +42,6 @@ internal class DefaultLanguageServerFeatureOptions : LanguageServerFeatureOption
     public override bool UseNewFormattingEngine => false;
 
     public override bool SupportsSoftSelectionInCompletion => true;
+
+    public override bool VsCodeCompletionTriggerCharacters => false;
 }
