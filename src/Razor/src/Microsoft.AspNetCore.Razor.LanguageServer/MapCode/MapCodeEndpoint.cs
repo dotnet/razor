@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -83,7 +85,7 @@ internal sealed class MapCodeEndpoint(
                 continue;
             }
 
-            if (!_documentContextFactory.TryCreate(mapping.TextDocument.DocumentUri.GetRequiredParsedUri(), out var documentContext))
+            if (!TryCreateDocumentContext(mapping.TextDocument.DocumentUri.GetRequiredParsedUri(), out var documentContext))
             {
                 continue;
             }
@@ -118,6 +120,11 @@ internal sealed class MapCodeEndpoint(
         };
 
         return workspaceEdits;
+    }
+
+    private bool TryCreateDocumentContext(Uri uri, [NotNullWhen(true)] out DocumentContext? documentContext)
+    {
+        return _documentContextFactory.TryCreate(uri, out documentContext);
     }
 
     private async Task<bool> TryMapCodeAsync(
@@ -194,7 +201,7 @@ internal sealed class MapCodeEndpoint(
                             didCalculateCSharpFocusLocations = true;
                         }
 
-                        var csharpMappingSuccessful = await TrySendCSharpDelegatedMappingRequestAsync(
+                        var csharpMappingSuccessful = await TryMapCSharpCodeAsync(
                             documentContext.GetTextDocumentIdentifierAndVersion(),
                             csharpBody,
                             csharpFocusLocations,
@@ -294,7 +301,7 @@ internal sealed class MapCodeEndpoint(
         typeof(RazorDirectiveSyntax),
     ];
 
-    private async Task<bool> TrySendCSharpDelegatedMappingRequestAsync(
+    private async Task<bool> TryMapCSharpCodeAsync(
         TextDocumentIdentifierAndVersion textDocumentIdentifier,
         SyntaxNode nodeToMap,
         LspLocation[][] focusLocations,
@@ -302,26 +309,7 @@ internal sealed class MapCodeEndpoint(
         List<TextDocumentEdit> changes,
         CancellationToken cancellationToken)
     {
-        var delegatedRequest = new DelegatedMapCodeParams(
-            textDocumentIdentifier,
-            RazorLanguageKind.CSharp,
-            mapCodeCorrelationId,
-            [nodeToMap.ToString()],
-            FocusLocations: focusLocations);
-
-        WorkspaceEdit? edits;
-        try
-        {
-            edits = await _clientConnection.SendRequestAsync<DelegatedMapCodeParams, WorkspaceEdit?>(
-                CustomMessageNames.RazorMapCodeEndpoint,
-                delegatedRequest,
-                cancellationToken).ConfigureAwait(false);
-        }
-        catch
-        {
-            // C# hasn't implemented + merged their C# code mapper yet.
-            return false;
-        }
+        var edits = await TryGetCSharpMapCodeEditsAsync(textDocumentIdentifier, mapCodeCorrelationId, nodeToMap, focusLocations, cancellationToken).ConfigureAwait(false);
 
         if (edits is null)
         {
@@ -333,7 +321,32 @@ internal sealed class MapCodeEndpoint(
         return success;
     }
 
-    private async Task<LspLocation[][]> GetCSharpFocusLocationsAsync(LspLocation[][] focusLocations, CancellationToken cancellationToken)
+    private async Task<WorkspaceEdit?> TryGetCSharpMapCodeEditsAsync(TextDocumentIdentifierAndVersion textDocumentIdentifier, Guid mapCodeCorrelationId, SyntaxNode nodeToMap, Location[][] focusLocations, CancellationToken cancellationToken)
+    {
+        var delegatedRequest = new DelegatedMapCodeParams(
+            textDocumentIdentifier,
+            RazorLanguageKind.CSharp,
+            mapCodeCorrelationId,
+            [nodeToMap.ToString()],
+            FocusLocations: focusLocations);
+
+        WorkspaceEdit? edits;
+        try
+        {
+            return await _clientConnection.SendRequestAsync<DelegatedMapCodeParams, WorkspaceEdit?>(
+                CustomMessageNames.RazorMapCodeEndpoint,
+                delegatedRequest,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            // C# hasn't implemented + merged their C# code mapper yet.
+        }
+
+        return null;
+    }
+
+    private async Task<Location[][]> GetCSharpFocusLocationsAsync(Location[][] focusLocations, CancellationToken cancellationToken)
     {
         // If the focus locations are in a C# context, map them to the C# document.
         var csharpFocusLocations = new LspLocation[focusLocations.Length][];
@@ -350,7 +363,7 @@ internal sealed class MapCodeEndpoint(
                     continue;
                 }
 
-                if (!_documentContextFactory.TryCreate(potentialLocation.DocumentUri.GetRequiredParsedUri(), out var documentContext))
+                if (!TryCreateDocumentContext(potentialLocation.DocumentUri.GetRequiredParsedUri(), out var documentContext))
                 {
                     continue;
                 }
@@ -477,7 +490,7 @@ internal sealed class MapCodeEndpoint(
                 {
                     DocumentUri = documentChanges.Key,
                 },
-                Edits = edits.SelectMany(e => e.Edits).ToArray()
+                Edits = [.. edits.SelectMany(e => e.Edits)]
             };
 
             changes.Add(finalEditsForDoc);
