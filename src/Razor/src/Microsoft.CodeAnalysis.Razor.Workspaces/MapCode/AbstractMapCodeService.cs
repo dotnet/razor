@@ -32,7 +32,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
 
     protected abstract Task<WorkspaceEdit?> TryGetCSharpMapCodeEditsAsync(TextDocumentIdentifierAndVersion textDocumentIdentifier, Guid mapCodeCorrelationId, RazorSyntaxNode nodeToMap, LspLocation[][] focusLocations, CancellationToken cancellationToken);
 
-    public async Task<WorkspaceEdit?> HandleMappingsAsync(VSInternalMapCodeMapping[] mappings, Guid mapCodeCorrelationId, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> MapCodeAsync(VSInternalMapCodeMapping[] mappings, Guid mapCodeCorrelationId, CancellationToken cancellationToken)
     {
         using var _ = ListPool<TextDocumentEdit>.GetPooledObject(out var changes);
         foreach (var mapping in mappings)

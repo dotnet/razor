@@ -52,6 +52,6 @@ internal sealed class MapCodeEndpoint(
         var mapCodeCorrelationId = mapperParams.MapCodeCorrelationId ?? Guid.NewGuid();
         using var ts = _telemetryReporter.TrackLspRequest(VSInternalMethods.WorkspaceMapCodeName, LanguageServerConstants.RazorLanguageServerName, TelemetryThresholds.MapCodeRazorTelemetryThreshold, mapCodeCorrelationId);
 
-        return await _mapCodeService.HandleMappingsAsync(mapperParams.Mappings, mapCodeCorrelationId, cancellationToken).ConfigureAwait(false);
+        return await _mapCodeService.MapCodeAsync(mapperParams.Mappings, mapCodeCorrelationId, cancellationToken).ConfigureAwait(false);
     }
 }
