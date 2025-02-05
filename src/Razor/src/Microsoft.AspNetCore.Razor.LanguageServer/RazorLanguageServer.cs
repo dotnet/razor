@@ -27,6 +27,7 @@ using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.FoldingRanges;
 using Microsoft.CodeAnalysis.Razor.GoToDefinition;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.MapCode;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentSymbols;
 using Microsoft.CodeAnalysis.Razor.Rename;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
@@ -216,6 +217,7 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
             services.AddHandler<WrapWithTagEndpoint>();
 
             services.AddHandlerWithCapabilities<MapCodeEndpoint>();
+            services.AddSingleton<IMapCodeService, LspMapCodeService>();
         }
     }
 }

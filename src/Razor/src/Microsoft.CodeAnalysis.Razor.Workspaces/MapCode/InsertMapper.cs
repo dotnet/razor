@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.MapCode.Mappers;
+namespace Microsoft.CodeAnalysis.Razor.MapCode;
 
 internal static class InsertMapper
 {
     public static int? GetInsertionPoint(
-        SyntaxNode documentRoot,
+        RazorSyntaxNode documentRoot,
         SourceText sourceText,
         LspLocation focusArea)
     {
@@ -31,7 +31,7 @@ internal static class InsertMapper
     }
 
     private static bool TryGetFocusedInsertionPoint(
-        SyntaxNode documentRoot,
+        RazorSyntaxNode documentRoot,
         SourceText sourceText,
         LspLocation focusArea,
         out int insertionPoint)
@@ -76,7 +76,7 @@ internal static class InsertMapper
         return true;
     }
 
-    private static bool TryGetDefaultInsertionPoint(SyntaxNode documentRoot, out int insertionPoint)
+    private static bool TryGetDefaultInsertionPoint(RazorSyntaxNode documentRoot, out int insertionPoint)
     {
         // Our default insertion point is at the end of the document.
         insertionPoint = documentRoot.EndPosition;
