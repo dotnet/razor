@@ -3,9 +3,9 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.VisualStudio.Razor;
+namespace Microsoft.VisualStudio.Razor.Discovery;
 
-internal partial class WorkspaceProjectStateChangeDetector
+internal partial class ProjectStateChangeDetector
 {
     private sealed class Comparer : IEqualityComparer<Work>
     {

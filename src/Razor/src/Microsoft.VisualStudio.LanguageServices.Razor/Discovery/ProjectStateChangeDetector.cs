@@ -18,16 +18,16 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
-namespace Microsoft.VisualStudio.Razor;
+namespace Microsoft.VisualStudio.Razor.Discovery;
 
 [Export(typeof(IRazorStartupService))]
-internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupService, IDisposable
+internal partial class ProjectStateChangeDetector : IRazorStartupService, IDisposable
 {
     private readonly record struct Work(ProjectKey Key, ProjectId? Id);
 
     private static readonly TimeSpan s_delay = TimeSpan.FromSeconds(1);
 
-    private readonly IProjectWorkspaceStateGenerator _generator;
+    private readonly IProjectStateUpdater _generator;
     private readonly ProjectSnapshotManager _projectManager;
     private readonly LanguageServerFeatureOptions _options;
     private readonly CodeAnalysis.Workspace _workspace;
@@ -38,8 +38,8 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
     private WorkspaceChangedListener? _workspaceChangedListener;
 
     [ImportingConstructor]
-    public WorkspaceProjectStateChangeDetector(
-        IProjectWorkspaceStateGenerator generator,
+    public ProjectStateChangeDetector(
+        IProjectStateUpdater generator,
         ProjectSnapshotManager projectManager,
         LanguageServerFeatureOptions options,
         IWorkspaceProvider workspaceProvider)
@@ -47,8 +47,8 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
     {
     }
 
-    public WorkspaceProjectStateChangeDetector(
-        IProjectWorkspaceStateGenerator generator,
+    public ProjectStateChangeDetector(
+        IProjectStateUpdater generator,
         ProjectSnapshotManager projectManager,
         LanguageServerFeatureOptions options,
         IWorkspaceProvider workspaceProvider,
@@ -412,67 +412,5 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
         var projectKey = project.ToProjectKey();
 
         return _projectManager.TryGetProject(projectKey, out projectSnapshot);
-    }
-
-    internal TestAccessor GetTestAccessor() => new(this);
-
-    internal sealed class TestAccessor(WorkspaceProjectStateChangeDetector instance)
-    {
-        public void CancelExistingWork()
-        {
-            instance._workQueue.CancelExistingWork();
-        }
-
-        public async Task WaitUntilCurrentBatchCompletesAsync()
-        {
-            await instance._workQueue.WaitUntilCurrentBatchCompletesAsync();
-        }
-
-        public Task ListenForWorkspaceChangesAsync(params WorkspaceChangeKind[] kinds)
-        {
-            if (instance._workspaceChangedListener is not null)
-            {
-                throw new InvalidOperationException($"There's already a {nameof(WorkspaceChangedListener)} installed.");
-            }
-
-            var listener = new WorkspaceChangedListener(kinds.ToImmutableArray());
-            instance._workspaceChangedListener = listener;
-
-            return listener.Task;
-        }
-
-        public void WorkspaceChanged(WorkspaceChangeEventArgs e)
-        {
-            instance.Workspace_WorkspaceChanged(instance, e);
-        }
-    }
-
-    private class WorkspaceChangedListener(ImmutableArray<WorkspaceChangeKind> kinds)
-    {
-        private readonly ImmutableArray<WorkspaceChangeKind> _kinds = kinds;
-        private readonly TaskCompletionSource<bool> _completionSource = new();
-        private int _index;
-
-        public Task Task => _completionSource.Task;
-
-        public void WorkspaceChanged(WorkspaceChangeKind kind)
-        {
-            if (_index == _kinds.Length)
-            {
-                throw new InvalidOperationException($"Expected {_kinds.Length} WorkspaceChanged events but received another {kind}.");
-            }
-
-            if (_kinds[_index] != kind)
-            {
-                throw new InvalidOperationException($"Expected WorkspaceChanged event #{_index + 1} to be {_kinds[_index]} but it was {kind}.");
-            }
-
-            _index++;
-
-            if (_index == _kinds.Length)
-            {
-                _completionSource.TrySetResult(true);
-            }
-        }
     }
 }

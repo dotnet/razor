@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.VisualStudio.Razor.ProjectSystem;
+namespace Microsoft.VisualStudio.Razor.Discovery;
 
-internal class TestProjectWorkspaceStateGenerator : IProjectWorkspaceStateGenerator
+internal class TestProjectStateUpdater : IProjectStateUpdater
 {
     private readonly List<TestUpdate> _updates = [];
 

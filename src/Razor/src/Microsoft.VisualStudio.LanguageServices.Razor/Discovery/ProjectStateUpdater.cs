@@ -18,17 +18,17 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
-namespace Microsoft.VisualStudio.Razor;
+namespace Microsoft.VisualStudio.Razor.Discovery;
 
-[Export(typeof(IProjectWorkspaceStateGenerator))]
+[Export(typeof(IProjectStateUpdater))]
 [method: ImportingConstructor]
-internal sealed partial class ProjectWorkspaceStateGenerator(
+internal sealed partial class ProjectStateUpdater(
     ProjectSnapshotManager projectManager,
     ITagHelperResolver tagHelperResolver,
     IWorkspaceProvider workspaceProvider,
     ILoggerFactory loggerFactory,
     ITelemetryReporter telemetryReporter)
-    : IProjectWorkspaceStateGenerator, IDisposable
+    : IProjectStateUpdater, IDisposable
 {
     // SemaphoreSlim is banned. See https://github.com/dotnet/razor/issues/10390 for more info.
 #pragma warning disable RS0030 // Do not use banned APIs
@@ -36,7 +36,7 @@ internal sealed partial class ProjectWorkspaceStateGenerator(
     private readonly ProjectSnapshotManager _projectManager = projectManager;
     private readonly ITagHelperResolver _tagHelperResolver = tagHelperResolver;
     private readonly CodeAnalysis.Workspace _workspace = workspaceProvider.GetWorkspace();
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<ProjectWorkspaceStateGenerator>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<ProjectStateUpdater>();
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
     private readonly SemaphoreSlim _semaphore = new(initialCount: 1);

@@ -4,9 +4,9 @@
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.VisualStudio.Razor;
+namespace Microsoft.VisualStudio.Razor.Discovery;
 
-internal interface IProjectWorkspaceStateGenerator
+internal interface IProjectStateUpdater
 {
     void EnqueueUpdate(ProjectKey key, ProjectId? id);
 

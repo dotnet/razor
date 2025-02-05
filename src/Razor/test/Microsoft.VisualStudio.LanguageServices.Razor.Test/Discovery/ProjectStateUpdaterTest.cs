@@ -16,9 +16,9 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Razor;
+namespace Microsoft.VisualStudio.Razor.Discovery;
 
-public class ProjectWorkspaceStateGeneratorTest(ITestOutputHelper testOutput) : VisualStudioWorkspaceTestBase(testOutput)
+public class ProjectStateUpdaterTest(ITestOutputHelper testOutput) : VisualStudioWorkspaceTestBase(testOutput)
 {
     private static readonly HostProject s_hostProject = TestProjectData.SomeProject;
 
@@ -46,51 +46,51 @@ public class ProjectWorkspaceStateGeneratorTest(ITestOutputHelper testOutput) : 
         return Task.CompletedTask;
     }
 
-    private ProjectWorkspaceStateGenerator CreateGenerator()
+    private ProjectStateUpdater CreateProjectStateUpdater()
     {
-        var generator = new ProjectWorkspaceStateGenerator(_projectManager, _tagHelperResolver, WorkspaceProvider, LoggerFactory, NoOpTelemetryReporter.Instance);
-        AddDisposable(generator);
+        var updater = new ProjectStateUpdater(_projectManager, _tagHelperResolver, WorkspaceProvider, LoggerFactory, NoOpTelemetryReporter.Instance);
+        AddDisposable(updater);
 
-        return generator;
+        return updater;
     }
 
     [UIFact]
     public void Dispose_MakesUpdateIgnored()
     {
         // Arrange
-        var generator = CreateGenerator();
+        var updater = CreateProjectStateUpdater();
 
-        var generatorAccessor = generator.GetTestAccessor();
-        generatorAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+        var accessor = updater.GetTestAccessor();
+        accessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
         // Act
-        generator.Dispose();
+        updater.Dispose();
 
-        generator.EnqueueUpdate(s_hostProject.Key, _projectId);
+        updater.EnqueueUpdate(s_hostProject.Key, _projectId);
 
         // Assert
-        Assert.Empty(generatorAccessor.GetUpdates());
+        Assert.Empty(accessor.GetUpdates());
     }
 
     [UIFact]
     public async Task Update_StartsUpdateTask()
     {
         // Arrange
-        var generator = CreateGenerator();
+        var updater = CreateProjectStateUpdater();
 
         await _projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(s_hostProject);
         });
 
-        var generatorAccessor = generator.GetTestAccessor();
-        generatorAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+        var accessor = updater.GetTestAccessor();
+        accessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
         // Act
-        generator.EnqueueUpdate(s_hostProject.Key, _projectId);
+        updater.EnqueueUpdate(s_hostProject.Key, _projectId);
 
         // Assert
-        var update = Assert.Single(generatorAccessor.GetUpdates());
+        var update = Assert.Single(accessor.GetUpdates());
         Assert.False(update.IsCompleted);
     }
 
@@ -98,17 +98,17 @@ public class ProjectWorkspaceStateGeneratorTest(ITestOutputHelper testOutput) : 
     public void Update_SoftCancelsIncompleteTaskForSameProject()
     {
         // Arrange
-        var generator = CreateGenerator();
+        var updater = CreateProjectStateUpdater();
 
-        var generatorAccessor = generator.GetTestAccessor();
-        generatorAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+        var accessor = updater.GetTestAccessor();
+        accessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
-        generator.EnqueueUpdate(s_hostProject.Key, _projectId);
+        updater.EnqueueUpdate(s_hostProject.Key, _projectId);
 
-        var initialUpdate = Assert.Single(generatorAccessor.GetUpdates());
+        var initialUpdate = Assert.Single(accessor.GetUpdates());
 
         // Act
-        generator.EnqueueUpdate(s_hostProject.Key, _projectId);
+        updater.EnqueueUpdate(s_hostProject.Key, _projectId);
 
         // Assert
         Assert.True(initialUpdate.IsCancellationRequested);
@@ -118,10 +118,10 @@ public class ProjectWorkspaceStateGeneratorTest(ITestOutputHelper testOutput) : 
     public async Task Update_NullWorkspaceProject_ClearsProjectWorkspaceState()
     {
         // Arrange
-        var generator = CreateGenerator();
+        var updater = CreateProjectStateUpdater();
 
-        var generatorAccessor = generator.GetTestAccessor();
-        generatorAccessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
+        var accessor = updater.GetTestAccessor();
+        accessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
 
         await _projectManager.UpdateAsync(updater =>
         {
@@ -130,10 +130,10 @@ public class ProjectWorkspaceStateGeneratorTest(ITestOutputHelper testOutput) : 
         });
 
         // Act
-        generator.EnqueueUpdate(s_hostProject.Key, id: null);
+        updater.EnqueueUpdate(s_hostProject.Key, id: null);
 
         // Jump off the UI thread so the background work can complete.
-        await Task.Run(() => generatorAccessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
+        await Task.Run(() => accessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
 
         // Assert
         var newProjectSnapshot = _projectManager.GetRequiredProject(s_hostProject.Key);
@@ -145,10 +145,10 @@ public class ProjectWorkspaceStateGeneratorTest(ITestOutputHelper testOutput) : 
     public async Task Update_ResolvesTagHelpersAndUpdatesWorkspaceState()
     {
         // Arrange
-        var generator = CreateGenerator();
+        var updater = CreateProjectStateUpdater();
 
-        var generatorAccessor = generator.GetTestAccessor();
-        generatorAccessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
+        var accessor = updater.GetTestAccessor();
+        accessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
 
         await _projectManager.UpdateAsync(updater =>
         {
@@ -156,10 +156,10 @@ public class ProjectWorkspaceStateGeneratorTest(ITestOutputHelper testOutput) : 
         });
 
         // Act
-        generator.EnqueueUpdate(s_hostProject.Key, _projectId);
+        updater.EnqueueUpdate(s_hostProject.Key, _projectId);
 
         // Jump off the UI thread so the background work can complete.
-        await Task.Run(() => generatorAccessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
+        await Task.Run(() => accessor.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
 
         // Assert
         var newProjectSnapshot = _projectManager.GetRequiredProject(s_hostProject.Key);

@@ -14,14 +14,14 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.VisualStudio.Razor;
+namespace Microsoft.VisualStudio.Razor.Discovery;
 
 [Export(typeof(IRazorStartupService))]
-internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : IRazorStartupService, IVsUpdateSolutionEvents2, IDisposable
+internal sealed partial class ProjectBuildDetector : IRazorStartupService, IVsUpdateSolutionEvents2, IDisposable
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ProjectSnapshotManager _projectManager;
-    private readonly IProjectWorkspaceStateGenerator _workspaceStateGenerator;
+    private readonly IProjectStateUpdater _workspaceStateGenerator;
     private readonly IWorkspaceProvider _workspaceProvider;
     private readonly JoinableTaskFactory _jtf;
     private readonly CancellationTokenSource _disposeTokenSource;
@@ -33,10 +33,10 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : IRazorStartupServ
     private Task? _projectBuiltTask;
 
     [ImportingConstructor]
-    public VsSolutionUpdatesProjectSnapshotChangeTrigger(
+    public ProjectBuildDetector(
         [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
         ProjectSnapshotManager projectManager,
-        IProjectWorkspaceStateGenerator workspaceStateGenerator,
+        IProjectStateUpdater workspaceStateGenerator,
         IWorkspaceProvider workspaceProvider,
         JoinableTaskContext joinableTaskContext)
     {
@@ -140,16 +140,5 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : IRazorStartupServ
                 _workspaceStateGenerator.EnqueueUpdate(projectKey, workspaceProject.Id);
             }
         }
-    }
-
-    internal TestAccessor GetTestAccessor() => new(this);
-
-    internal sealed class TestAccessor(VsSolutionUpdatesProjectSnapshotChangeTrigger instance)
-    {
-        public JoinableTask InitializeTask => instance._initializeTask;
-        public Task? OnProjectBuiltTask => instance._projectBuiltTask;
-
-        public Task OnProjectBuiltAsync(IVsHierarchy projectHierarchy, CancellationToken cancellationToken)
-            => instance.OnProjectBuiltAsync(projectHierarchy, cancellationToken);
     }
 }
