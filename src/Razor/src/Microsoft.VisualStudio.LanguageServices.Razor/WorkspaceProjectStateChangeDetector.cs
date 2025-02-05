@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -22,6 +23,8 @@ namespace Microsoft.VisualStudio.Razor;
 [Export(typeof(IRazorStartupService))]
 internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupService, IDisposable
 {
+    private readonly record struct Work(ProjectKey Key, ProjectId? Id);
+
     private static readonly TimeSpan s_delay = TimeSpan.FromSeconds(1);
 
     private readonly IProjectWorkspaceStateGenerator _generator;
@@ -30,7 +33,7 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
     private readonly CodeAnalysis.Workspace _workspace;
 
     private readonly CancellationTokenSource _disposeTokenSource;
-    private readonly AsyncBatchingWorkQueue<(Project?, ProjectSnapshot)> _workQueue;
+    private readonly AsyncBatchingWorkQueue<Work> _workQueue;
 
     private WorkspaceChangedListener? _workspaceChangedListener;
 
@@ -56,7 +59,7 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
         _options = options;
 
         _disposeTokenSource = new();
-        _workQueue = new AsyncBatchingWorkQueue<(Project?, ProjectSnapshot)>(
+        _workQueue = new AsyncBatchingWorkQueue<Work>(
             delay,
             ProcessBatchAsync,
             _disposeTokenSource.Token);
@@ -85,16 +88,16 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
         _disposeTokenSource.Dispose();
     }
 
-    private ValueTask ProcessBatchAsync(ImmutableArray<(Project? Project, ProjectSnapshot ProjectSnapshot)> items, CancellationToken token)
+    private ValueTask ProcessBatchAsync(ImmutableArray<Work> items, CancellationToken token)
     {
-        foreach (var (project, projectSnapshot) in items.GetMostRecentUniqueItems(Comparer.Instance))
+        foreach (var (projectKey, projectId) in items.GetMostRecentUniqueItems(Comparer.Instance))
         {
             if (token.IsCancellationRequested)
             {
                 return default;
             }
 
-            _generator.EnqueueUpdate(project, projectSnapshot);
+            _generator.EnqueueUpdate(projectKey, projectId);
         }
 
         return default;
@@ -395,7 +398,7 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
 
     private void EnqueueUpdate(Project? project, ProjectSnapshot projectSnapshot)
     {
-        _workQueue.AddWork((project, projectSnapshot));
+        _workQueue.AddWork(new Work(projectSnapshot.Key, project?.Id));
     }
 
     private bool TryGetProjectSnapshot(Project? project, [NotNullWhen(true)] out ProjectSnapshot? projectSnapshot)

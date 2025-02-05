@@ -4,6 +4,8 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
@@ -17,104 +19,81 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 
-public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTestBase
+public class WorkspaceProjectStateChangeDetectorTest(ITestOutputHelper testOutput) : VisualStudioWorkspaceTestBase(testOutput)
 {
-    private readonly HostProject _hostProjectOne;
-    private readonly HostProject _hostProjectTwo;
-    private readonly HostProject _hostProjectThree;
-    private readonly Solution _emptySolution;
-    private readonly Solution _solutionWithOneProject;
-    private readonly Solution _solutionWithTwoProjects;
-    private readonly Solution _solutionWithDependentProject;
-    private readonly Project _projectNumberOne;
-    private readonly Project _projectNumberTwo;
-    private readonly Project _projectNumberThree;
+    private static readonly HostProject s_hostProject1 = TestHostProject.Create(PathUtilities.CreateRootedPath("path", "One", "One.csproj"));
+    private static readonly HostProject s_hostProject2 = TestHostProject.Create(PathUtilities.CreateRootedPath("path", "Two", "Two.csproj"));
+    private static readonly HostProject s_hostProject3 = TestHostProject.Create(PathUtilities.CreateRootedPath("path", "Three", "Three.csproj"));
 
-    private readonly DocumentId _cshtmlDocumentId;
-    private readonly DocumentId _razorDocumentId;
-    private readonly DocumentId _backgroundVirtualCSharpDocumentId;
-    private readonly DocumentId _partialComponentClassDocumentId;
+#nullable disable
+    private Solution _emptySolution;
+    private Solution _solutionWithOneProject;
+    private Solution _solutionWithTwoProjects;
+    private Solution _solutionWithDependentProject;
+    private Project _projectNumberOne;
+    private Project _projectNumberTwo;
+    private Project _projectNumberThree;
 
-    public WorkspaceProjectStateChangeDetectorTest(ITestOutputHelper testOutput)
-        : base(testOutput)
+    private DocumentId _cshtmlDocumentId;
+    private DocumentId _razorDocumentId;
+    private DocumentId _backgroundVirtualCSharpDocumentId;
+    private DocumentId _partialComponentClassDocumentId;
+    private DocumentId _razorDocumentIdForProjectThree;
+#nullable enable
+
+    protected override Task InitializeAsync()
     {
         _emptySolution = Workspace.CurrentSolution;
 
-        var projectId1 = ProjectId.CreateNewId("One");
-        var projectId2 = ProjectId.CreateNewId("Two");
-        var projectId3 = ProjectId.CreateNewId("Three");
+        var projectInfo1 = s_hostProject1.ToProjectInfo();
+        var projectInfo2 = s_hostProject2.ToProjectInfo();
+        var projectInfo3 = s_hostProject3.ToProjectInfo();
 
-        _cshtmlDocumentId = DocumentId.CreateNewId(projectId1);
-        var cshtmlDocumentInfo = DocumentInfo.Create(_cshtmlDocumentId, "Test", filePath: "file.cshtml.g.cs");
-        _razorDocumentId = DocumentId.CreateNewId(projectId1);
-        var razorDocumentInfo = DocumentInfo.Create(_razorDocumentId, "Test", filePath: "file.razor.g.cs");
-        _backgroundVirtualCSharpDocumentId = DocumentId.CreateNewId(projectId1);
-        var backgroundDocumentInfo = DocumentInfo.Create(_backgroundVirtualCSharpDocumentId, "Test", filePath: "file.razor__bg__virtual.cs");
-        _partialComponentClassDocumentId = DocumentId.CreateNewId(projectId1);
-        var partialComponentClassDocumentInfo = DocumentInfo.Create(_partialComponentClassDocumentId, "Test", filePath: "file.razor.cs");
+        var cshtmlDocumentInfo = projectInfo1.CreateDocumentInfo("file.cshtml.g.cs");
+        _cshtmlDocumentId = cshtmlDocumentInfo.Id;
 
-        _solutionWithTwoProjects = Workspace.CurrentSolution
-            .AddProject(ProjectInfo.Create(
-                projectId1,
-                VersionStamp.Default,
-                "One",
-                "One",
-                LanguageNames.CSharp,
-                filePath: "One.csproj",
-                documents: [cshtmlDocumentInfo, razorDocumentInfo, partialComponentClassDocumentInfo, backgroundDocumentInfo]).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj1\\One.dll")))
-            .AddProject(ProjectInfo.Create(
-                projectId2,
-                VersionStamp.Default,
-                "Two",
-                "Two",
-                LanguageNames.CSharp,
-                filePath: "Two.csproj").WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj2\\Two.dll")));
+        var razorDocumentInfo = projectInfo1.CreateDocumentInfo("file.razor.g.cs");
+        _razorDocumentId = razorDocumentInfo.Id;
+
+        var backgroundDocumentInfo = projectInfo1.CreateDocumentInfo("file.razor__bg__virtual.cs");
+        _backgroundVirtualCSharpDocumentId = backgroundDocumentInfo.Id;
+
+        var partialComponentClassDocumentInfo = projectInfo1.CreateDocumentInfo("file.razor.cs");
+        _partialComponentClassDocumentId = partialComponentClassDocumentInfo.Id;
+
+        var razorDocumentInfoForProjectThree = projectInfo3.CreateDocumentInfo("file.razor.g.cs");
+        _razorDocumentIdForProjectThree = razorDocumentInfoForProjectThree.Id;
+
+        _solutionWithTwoProjects = _emptySolution
+            .AddProject(projectInfo1
+                .WithDocuments([cshtmlDocumentInfo, razorDocumentInfo, partialComponentClassDocumentInfo, backgroundDocumentInfo]))
+            .AddProject(projectInfo2);
 
         _solutionWithOneProject = _emptySolution
-            .AddProject(ProjectInfo.Create(
-                projectId3,
-                VersionStamp.Default,
-                "Three",
-                "Three",
-                LanguageNames.CSharp,
-                filePath: "Three.csproj").WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj3\\Three.dll")));
+            .AddProject(projectInfo3);
 
-        var project2Reference = new ProjectReference(projectId2);
-        var project3Reference = new ProjectReference(projectId3);
-        _solutionWithDependentProject = Workspace.CurrentSolution
-            .AddProject(ProjectInfo.Create(
-                projectId1,
-                VersionStamp.Default,
-                "One",
-                "One",
-                LanguageNames.CSharp,
-                filePath: "One.csproj",
-                documents: [cshtmlDocumentInfo, razorDocumentInfo, partialComponentClassDocumentInfo, backgroundDocumentInfo],
-                projectReferences: [project2Reference]).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj1\\One.dll")))
-            .AddProject(ProjectInfo.Create(
-                projectId2,
-                VersionStamp.Default,
-                "Two",
-                "Two",
-                LanguageNames.CSharp,
-                filePath: "Two.csproj",
-                projectReferences: [project3Reference]).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj2\\Two.dll")))
-            .AddProject(ProjectInfo.Create(
-                projectId3,
-                VersionStamp.Default,
-                "Three",
-                "Three",
-                LanguageNames.CSharp,
-                filePath: "Three.csproj",
-                documents: [razorDocumentInfo]).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath("obj3\\Three.dll")));
+        _solutionWithDependentProject = _emptySolution
+            .AddProject(projectInfo1
+                .WithDocuments([cshtmlDocumentInfo, razorDocumentInfo, partialComponentClassDocumentInfo, backgroundDocumentInfo])
+                .WithProjectReferences(projectInfo2.Id))
+            .AddProject(projectInfo2
+                .WithProjectReferences(projectInfo3.Id))
+            .AddProject(projectInfo3
+                .WithDocuments([razorDocumentInfoForProjectThree]));
 
-        _projectNumberOne = _solutionWithTwoProjects.GetRequiredProject(projectId1);
-        _projectNumberTwo = _solutionWithTwoProjects.GetRequiredProject(projectId2);
-        _projectNumberThree = _solutionWithOneProject.GetRequiredProject(projectId3);
+        _projectNumberOne = _solutionWithTwoProjects.GetRequiredProject(projectInfo1.Id);
+        _projectNumberTwo = _solutionWithTwoProjects.GetRequiredProject(projectInfo2.Id);
+        _projectNumberThree = _solutionWithOneProject.GetRequiredProject(projectInfo3.Id);
 
-        _hostProjectOne = new HostProject("One.csproj", "obj1", FallbackRazorConfiguration.MVC_1_1, "One");
-        _hostProjectTwo = new HostProject("Two.csproj", "obj2", FallbackRazorConfiguration.MVC_1_1, "Two");
-        _hostProjectThree = new HostProject("Three.csproj", "obj3", FallbackRazorConfiguration.MVC_1_1, "Three");
+        return Task.CompletedTask;
+    }
+
+    private WorkspaceProjectStateChangeDetector CreateDetector(IProjectWorkspaceStateGenerator generator, ProjectSnapshotManager projectManager)
+    {
+        var detector = new WorkspaceProjectStateChangeDetector(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, TimeSpan.FromMilliseconds(10));
+        AddDisposable(detector);
+
+        return detector;
     }
 
     [UIFact]
@@ -134,7 +113,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.AddProject(_hostProjectOne);
+            updater.AddProject(s_hostProject1);
         });
 
         await workspaceChangedTask;
@@ -148,7 +127,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
             updater.SolutionClosed();
 
             // Trigger a project removed event while solution is closing to clear state.
-            updater.RemoveProject(_hostProjectOne.Key);
+            updater.RemoveProject(s_hostProject1.Key);
         });
 
         // Assert
@@ -170,9 +149,9 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.AddProject(_hostProjectOne);
-            updater.AddProject(_hostProjectTwo);
-            updater.AddProject(_hostProjectThree);
+            updater.AddProject(s_hostProject1);
+            updater.AddProject(s_hostProject2);
+            updater.AddProject(s_hostProject3);
         });
 
         // Initialize with a project. This will get removed.
@@ -183,7 +162,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         var solution = _solutionWithDependentProject.WithProjectAssemblyName(_projectNumberThree.Id, "Changed");
 
-        e = new WorkspaceChangeEventArgs(kind, oldSolution: _solutionWithDependentProject, newSolution: solution, projectId: _projectNumberThree.Id, documentId: _razorDocumentId);
+        e = new WorkspaceChangeEventArgs(kind, oldSolution: _solutionWithDependentProject, newSolution: solution, projectId: _projectNumberThree.Id, documentId: _razorDocumentIdForProjectThree);
 
         // Act
         detectorAccessor.WorkspaceChanged(e);
@@ -192,9 +171,9 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         // Assert
         Assert.Equal(3, generator.Updates.Count);
-        Assert.Contains(generator.Updates, u => u.ProjectSnapshot.Key == _projectNumberOne.ToProjectKey());
-        Assert.Contains(generator.Updates, u => u.ProjectSnapshot.Key == _projectNumberTwo.ToProjectKey());
-        Assert.Contains(generator.Updates, u => u.ProjectSnapshot.Key == _projectNumberThree.ToProjectKey());
+        Assert.Contains(generator.Updates, u => u.Key.Matches(_projectNumberOne));
+        Assert.Contains(generator.Updates, u => u.Key.Matches(_projectNumberTwo));
+        Assert.Contains(generator.Updates, u => u.Key.Matches(_projectNumberThree));
     }
 
     [UITheory]
@@ -211,9 +190,9 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.AddProject(_hostProjectOne);
-            updater.AddProject(_hostProjectTwo);
-            updater.AddProject(_hostProjectThree);
+            updater.AddProject(s_hostProject1);
+            updater.AddProject(s_hostProject2);
+            updater.AddProject(s_hostProject3);
         });
 
         // Initialize with a project. This will get removed.
@@ -233,9 +212,9 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         // Assert
         Assert.Equal(3, generator.Updates.Count);
-        Assert.Contains(generator.Updates, u => u.ProjectSnapshot.Key == _projectNumberOne.ToProjectKey());
-        Assert.Contains(generator.Updates, u => u.ProjectSnapshot.Key == _projectNumberTwo.ToProjectKey());
-        Assert.Contains(generator.Updates, u => u.ProjectSnapshot.Key == _projectNumberThree.ToProjectKey());
+        Assert.Contains(generator.Updates, u => u.Key.Matches(_projectNumberOne));
+        Assert.Contains(generator.Updates, u => u.Key.Matches(_projectNumberTwo));
+        Assert.Contains(generator.Updates, u => u.Key.Matches(_projectNumberThree));
     }
 
     [UITheory]
@@ -254,8 +233,8 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.AddProject(_hostProjectOne);
-            updater.AddProject(_hostProjectTwo);
+            updater.AddProject(s_hostProject1);
+            updater.AddProject(s_hostProject2);
         });
 
         var e = new WorkspaceChangeEventArgs(kind, oldSolution: _emptySolution, newSolution: _solutionWithTwoProjects);
@@ -268,8 +247,8 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         // Assert
         Assert.Collection(
             generator.Updates,
-            p => Assert.Equal(_projectNumberOne.Id, p.WorkspaceProject?.Id),
-            p => Assert.Equal(_projectNumberTwo.Id, p.WorkspaceProject?.Id));
+            update => Assert.Equal(_projectNumberOne.Id, update.Id),
+            update => Assert.Equal(_projectNumberTwo.Id, update.Id));
     }
 
     [UITheory]
@@ -288,9 +267,9 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.AddProject(_hostProjectOne);
-            updater.AddProject(_hostProjectTwo);
-            updater.AddProject(_hostProjectThree);
+            updater.AddProject(s_hostProject1);
+            updater.AddProject(s_hostProject2);
+            updater.AddProject(s_hostProject3);
         });
 
         // Initialize with a project. This will get removed.
@@ -309,10 +288,10 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         // Assert
         Assert.Collection(
             generator.Updates,
-            p => Assert.Equal(_projectNumberThree.Id, p.WorkspaceProject?.Id),
-            p => Assert.Null(p.WorkspaceProject),
-            p => Assert.Equal(_projectNumberOne.Id, p.WorkspaceProject?.Id),
-            p => Assert.Equal(_projectNumberTwo.Id, p.WorkspaceProject?.Id));
+            update => Assert.Equal(_projectNumberThree.Id, update.Id),
+            update => Assert.Null(update.Id),
+            update => Assert.Equal(_projectNumberOne.Id, update.Id),
+            update => Assert.Equal(_projectNumberTwo.Id, update.Id));
     }
 
     [UITheory]
@@ -328,7 +307,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.AddProject(_hostProjectOne);
+            updater.AddProject(s_hostProject1);
         });
 
         // Stop any existing work and clear out any updates that we might have received.
@@ -349,8 +328,8 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         // Assert
         var update = Assert.Single(generator.Updates);
-        Assert.Equal(_projectNumberOne.Id, update.WorkspaceProject?.Id);
-        Assert.Equal(_hostProjectOne.FilePath, update.ProjectSnapshot.FilePath);
+        Assert.Equal(_projectNumberOne.Id, update.Id);
+        Assert.Equal(s_hostProject1.Key, update.Key);
     }
 
     [UIFact]
@@ -366,7 +345,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.AddProject(_hostProjectOne);
+            updater.AddProject(s_hostProject1);
         });
 
         generator.Clear();
@@ -381,8 +360,8 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         // Assert
         var update = Assert.Single(generator.Updates);
-        Assert.Equal(_projectNumberOne.Id, update.WorkspaceProject?.Id);
-        Assert.Equal(_hostProjectOne.FilePath, update.ProjectSnapshot.FilePath);
+        Assert.Equal(_projectNumberOne.Id, update.Id);
+        Assert.Equal(s_hostProject1.Key, update.Key);
     }
 
     [UIFact]
@@ -398,7 +377,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.AddProject(_hostProjectOne);
+            updater.AddProject(s_hostProject1);
         });
 
         generator.Clear();
@@ -413,8 +392,8 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         // Assert
         var update = Assert.Single(generator.Updates);
-        Assert.Equal(_projectNumberOne.Id, update.WorkspaceProject?.Id);
-        Assert.Equal(_hostProjectOne.FilePath, update.ProjectSnapshot.FilePath);
+        Assert.Equal(_projectNumberOne.Id, update.Id);
+        Assert.Equal(s_hostProject1.Key, update.Key);
     }
 
     [UIFact]
@@ -430,7 +409,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.AddProject(_hostProjectOne);
+            updater.AddProject(s_hostProject1);
         });
 
         generator.Clear();
@@ -445,8 +424,8 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         // Assert
         var update = Assert.Single(generator.Updates);
-        Assert.Equal(_projectNumberOne.Id, update.WorkspaceProject?.Id);
-        Assert.Equal(_hostProjectOne.FilePath, update.ProjectSnapshot.FilePath);
+        Assert.Equal(_projectNumberOne.Id, update.Id);
+        Assert.Equal(s_hostProject1.Key, update.Key);
     }
 
     [UIFact]
@@ -462,7 +441,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.AddProject(_hostProjectOne);
+            updater.AddProject(s_hostProject1);
         });
 
         await detectorAccessor.WaitUntilCurrentBatchCompletesAsync();
@@ -494,8 +473,8 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         // Assert
         var update = Assert.Single(generator.Updates);
-        Assert.Equal(_projectNumberOne.Id, update.WorkspaceProject?.Id);
-        Assert.Equal(_hostProjectOne.FilePath, update.ProjectSnapshot.FilePath);
+        Assert.Equal(_projectNumberOne.Id, update.Id);
+        Assert.Equal(s_hostProject1.Key, update.Key);
     }
 
     [UIFact]
@@ -509,8 +488,8 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.AddProject(_hostProjectOne);
-            updater.AddProject(_hostProjectTwo);
+            updater.AddProject(s_hostProject1);
+            updater.AddProject(s_hostProject2);
         });
 
         var solution = _solutionWithTwoProjects.RemoveProject(_projectNumberOne.Id);
@@ -523,7 +502,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         // Assert
         Assert.Single(
             generator.Updates,
-            p => p.WorkspaceProject is null);
+            update => update.Id is null);
     }
 
     [UIFact]
@@ -537,7 +516,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.AddProject(_hostProjectThree);
+            updater.AddProject(s_hostProject3);
         });
 
         var solution = _solutionWithOneProject;
@@ -552,7 +531,7 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         // Assert
         Assert.Single(
             generator.Updates,
-            p => p.WorkspaceProject?.Id == _projectNumberThree.Id);
+            update => update.Id == _projectNumberThree.Id);
     }
 
     [Fact]
@@ -741,7 +720,4 @@ public class WorkspaceProjectStateChangeDetectorTest : VisualStudioWorkspaceTest
         // Assert
         Assert.False(result);
     }
-
-    private WorkspaceProjectStateChangeDetector CreateDetector(IProjectWorkspaceStateGenerator generator, ProjectSnapshotManager projectManager)
-        => new(generator, projectManager, TestLanguageServerFeatureOptions.Instance, WorkspaceProvider, TimeSpan.FromMilliseconds(10));
 }

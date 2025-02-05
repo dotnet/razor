@@ -128,12 +128,12 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : IRazorStartupServ
             if (_projectManager.TryGetProject(projectKey, out var project))
             {
                 var workspace = _workspaceProvider.GetWorkspace();
-                var workspaceProject = workspace.CurrentSolution.Projects.FirstOrDefault(wp => wp.ToProjectKey() == project.Key);
+                var workspaceProject = workspace.CurrentSolution.Projects.FirstOrDefault(wp => project.Key.Matches(wp));
                 if (workspaceProject is not null)
                 {
                     // Trigger a tag helper update by forcing the project manager to see the workspace Project
                     // from the current solution.
-                    _workspaceStateGenerator.EnqueueUpdate(workspaceProject, project);
+                    _workspaceStateGenerator.EnqueueUpdate(project.Key, workspaceProject.Id);
                 }
             }
         }
