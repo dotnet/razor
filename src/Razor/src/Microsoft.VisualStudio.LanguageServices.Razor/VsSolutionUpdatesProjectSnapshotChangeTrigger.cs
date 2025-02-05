@@ -3,9 +3,9 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Razor.Extensions;
@@ -123,17 +123,17 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : IRazorStartupServ
         }
 
         var projectKeys = _projectManager.GetProjectKeysWithFilePath(projectFilePath);
+
         foreach (var projectKey in projectKeys)
         {
-            if (_projectManager.TryGetProject(projectKey, out var project))
+            if (_projectManager.ContainsProject(projectKey))
             {
                 var workspace = _workspaceProvider.GetWorkspace();
-                var workspaceProject = workspace.CurrentSolution.Projects.FirstOrDefault(wp => project.Key.Matches(wp));
-                if (workspaceProject is not null)
+                if (workspace.CurrentSolution.TryGetProject(projectKey, out var workspaceProject))
                 {
                     // Trigger a tag helper update by forcing the project manager to see the workspace Project
                     // from the current solution.
-                    _workspaceStateGenerator.EnqueueUpdate(project.Key, workspaceProject.Id);
+                    _workspaceStateGenerator.EnqueueUpdate(projectKey, workspaceProject.Id);
                 }
             }
         }
