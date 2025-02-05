@@ -347,17 +347,16 @@ internal partial class WorkspaceProjectStateChangeDetector : IRazorStartupServic
             case ProjectChangeKind.ProjectAdded:
             case ProjectChangeKind.DocumentRemoved:
             case ProjectChangeKind.DocumentAdded:
-                var currentSolution = _workspace.CurrentSolution;
-                var associatedWorkspaceProject = currentSolution.Projects
-                    .FirstOrDefault(project => e.ProjectKey == project.ToProjectKey());
+                var solution = _workspace.CurrentSolution;
+                var workspaceProject = solution.Projects.FirstOrDefault(project => e.ProjectKey.Matches(project));
 
-                if (associatedWorkspaceProject is not null)
+                if (workspaceProject is not null)
                 {
                     var projectSnapshot = e.Newer.AssumeNotNull();
                     EnqueueUpdateOnProjectAndDependencies(
-                        associatedWorkspaceProject.Id,
-                        associatedWorkspaceProject,
-                        associatedWorkspaceProject.Solution,
+                        workspaceProject.Id,
+                        workspaceProject,
+                        solution,
                         projectSnapshot);
                 }
 
