@@ -21,7 +21,7 @@ internal sealed partial class ProjectBuildDetector : IRazorStartupService, IVsUp
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ProjectSnapshotManager _projectManager;
-    private readonly IProjectStateUpdater _workspaceStateGenerator;
+    private readonly IProjectStateUpdater _projectStateUpdater;
     private readonly IWorkspaceProvider _workspaceProvider;
     private readonly JoinableTaskFactory _jtf;
     private readonly CancellationTokenSource _disposeTokenSource;
@@ -36,13 +36,13 @@ internal sealed partial class ProjectBuildDetector : IRazorStartupService, IVsUp
     public ProjectBuildDetector(
         [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
         ProjectSnapshotManager projectManager,
-        IProjectStateUpdater workspaceStateGenerator,
+        IProjectStateUpdater projectStateUpdater,
         IWorkspaceProvider workspaceProvider,
         JoinableTaskContext joinableTaskContext)
     {
         _serviceProvider = serviceProvider;
         _projectManager = projectManager;
-        _workspaceStateGenerator = workspaceStateGenerator;
+        _projectStateUpdater = projectStateUpdater;
         _workspaceProvider = workspaceProvider;
         _jtf = joinableTaskContext.Factory;
 
@@ -110,7 +110,7 @@ internal sealed partial class ProjectBuildDetector : IRazorStartupService, IVsUp
         if (args.IsSolutionClosing)
         {
             // If the solution is closing, cancel all existing updates.
-            _workspaceStateGenerator.CancelUpdates();
+            _projectStateUpdater.CancelUpdates();
         }
     }
 
@@ -137,7 +137,7 @@ internal sealed partial class ProjectBuildDetector : IRazorStartupService, IVsUp
             {
                 // Trigger a tag helper update by forcing the project manager to see the workspace Project
                 // from the current solution.
-                _workspaceStateGenerator.EnqueueUpdate(projectKey, workspaceProject.Id);
+                _projectStateUpdater.EnqueueUpdate(projectKey, workspaceProject.Id);
             }
         }
     }

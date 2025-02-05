@@ -106,20 +106,16 @@ public class ProjectStateDetectorTest(ITestOutputHelper testOutput) : VisualStud
         using var detector = CreateDetector(updater, projectManager);
         var accessor = detector.GetTestAccessor();
 
-        var workspaceChangedTask = accessor.ListenForWorkspaceChangesAsync(
-            WorkspaceChangeKind.ProjectAdded,
-            WorkspaceChangeKind.ProjectAdded);
-
-        Workspace.TryApplyChanges(_solutionWithTwoProjects);
+        await UpdateWorkspaceAsync(_solutionWithTwoProjects);
 
         await projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(s_hostProject1);
         });
 
-        await workspaceChangedTask;
+        // Stop any existing work and clear out any updates that we might have received.
+        accessor.CancelExistingWork();
         await accessor.WaitUntilCurrentBatchCompletesAsync();
-
         updater.Clear();
 
         // Act
@@ -155,11 +151,14 @@ public class ProjectStateDetectorTest(ITestOutputHelper testOutput) : VisualStud
             updater.AddProject(s_hostProject3);
         });
 
+        // Stop any existing work and clear out any updates that we might have received.
+        accessor.CancelExistingWork();
+        await accessor.WaitUntilCurrentBatchCompletesAsync();
+        updater.Clear();
+
         // Initialize with a project. This will get removed.
         var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.SolutionAdded, oldSolution: _emptySolution, newSolution: _solutionWithOneProject);
         accessor.WorkspaceChanged(e);
-
-        e = new WorkspaceChangeEventArgs(kind, oldSolution: _solutionWithOneProject, newSolution: _solutionWithDependentProject);
 
         var solution = _solutionWithDependentProject.WithProjectAssemblyName(_projectNumberThree.Id, "Changed");
 
@@ -195,6 +194,11 @@ public class ProjectStateDetectorTest(ITestOutputHelper testOutput) : VisualStud
             updater.AddProject(s_hostProject2);
             updater.AddProject(s_hostProject3);
         });
+
+        // Stop any existing work and clear out any updates that we might have received.
+        accessor.CancelExistingWork();
+        await accessor.WaitUntilCurrentBatchCompletesAsync();
+        updater.Clear();
 
         // Initialize with a project. This will get removed.
         var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.SolutionAdded, oldSolution: _emptySolution, newSolution: _solutionWithOneProject);
@@ -237,6 +241,11 @@ public class ProjectStateDetectorTest(ITestOutputHelper testOutput) : VisualStud
             updater.AddProject(s_hostProject1);
             updater.AddProject(s_hostProject2);
         });
+
+        // Stop any existing work and clear out any updates that we might have received.
+        accessor.CancelExistingWork();
+        await accessor.WaitUntilCurrentBatchCompletesAsync();
+        updater.Clear();
 
         var e = new WorkspaceChangeEventArgs(kind, oldSolution: _emptySolution, newSolution: _solutionWithTwoProjects);
 
@@ -313,6 +322,7 @@ public class ProjectStateDetectorTest(ITestOutputHelper testOutput) : VisualStud
 
         // Stop any existing work and clear out any updates that we might have received.
         accessor.CancelExistingWork();
+        await accessor.WaitUntilCurrentBatchCompletesAsync();
         updater.Clear();
 
         // Create a listener for the workspace change we're about to send.
@@ -342,13 +352,16 @@ public class ProjectStateDetectorTest(ITestOutputHelper testOutput) : VisualStud
         using var detector = CreateDetector(updater, projectManager);
         var accessor = detector.GetTestAccessor();
 
-        Workspace.TryApplyChanges(_solutionWithTwoProjects);
+        await UpdateWorkspaceAsync(_solutionWithTwoProjects);
 
         await projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(s_hostProject1);
         });
 
+        // Stop any existing work and clear out any updates that we might have received.
+        accessor.CancelExistingWork();
+        await accessor.WaitUntilCurrentBatchCompletesAsync();
         updater.Clear();
 
         var solution = _solutionWithTwoProjects.WithDocumentText(_backgroundVirtualCSharpDocumentId, SourceText.From("public class Foo{}"));
@@ -374,13 +387,16 @@ public class ProjectStateDetectorTest(ITestOutputHelper testOutput) : VisualStud
         using var detector = CreateDetector(updater, projectManager);
         var accessor = detector.GetTestAccessor();
 
-        Workspace.TryApplyChanges(_solutionWithTwoProjects);
+        await UpdateWorkspaceAsync(_solutionWithTwoProjects);
 
         await projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(s_hostProject1);
         });
 
+        // Stop any existing work and clear out any updates that we might have received.
+        accessor.CancelExistingWork();
+        await accessor.WaitUntilCurrentBatchCompletesAsync();
         updater.Clear();
 
         var solution = _solutionWithTwoProjects.WithDocumentText(_cshtmlDocumentId, SourceText.From("Hello World"));
@@ -406,13 +422,16 @@ public class ProjectStateDetectorTest(ITestOutputHelper testOutput) : VisualStud
         using var detector = CreateDetector(updater, projectManager);
         var accessor = detector.GetTestAccessor();
 
-        Workspace.TryApplyChanges(_solutionWithTwoProjects);
+        await UpdateWorkspaceAsync(_solutionWithTwoProjects);
 
         await projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(s_hostProject1);
         });
 
+        // Stop any existing work and clear out any updates that we might have received.
+        accessor.CancelExistingWork();
+        await accessor.WaitUntilCurrentBatchCompletesAsync();
         updater.Clear();
 
         var solution = _solutionWithTwoProjects.WithDocumentText(_razorDocumentId, SourceText.From("Hello World"));
@@ -438,13 +457,15 @@ public class ProjectStateDetectorTest(ITestOutputHelper testOutput) : VisualStud
         using var detector = CreateDetector(updater, projectManager);
         var accessor = detector.GetTestAccessor();
 
-        Workspace.TryApplyChanges(_solutionWithTwoProjects);
+        await UpdateWorkspaceAsync(_solutionWithTwoProjects);
 
         await projectManager.UpdateAsync(updater =>
         {
             updater.AddProject(s_hostProject1);
         });
 
+        // Stop any existing work and clear out any updates that we might have received.
+        accessor.CancelExistingWork();
         await accessor.WaitUntilCurrentBatchCompletesAsync();
         updater.Clear();
 
@@ -536,7 +557,7 @@ public class ProjectStateDetectorTest(ITestOutputHelper testOutput) : VisualStud
     }
 
     [Fact]
-    public async Task IsPartialComponentClass_NoIComponent_ReturnsFalse()
+    public async Task ContainsPartialComponentClass_NoIComponent_ReturnsFalse()
     {
         // Arrange
         var sourceText = SourceText.From("""
@@ -553,14 +574,14 @@ public class ProjectStateDetectorTest(ITestOutputHelper testOutput) : VisualStud
         await document.GetSemanticModelAsync();
 
         // Act
-        var result = ProjectStateChangeDetector.IsPartialComponentClass(document);
+        var result = ProjectStateChangeDetector.ContainsPartialComponentClass(document);
 
         // Assert
         Assert.False(result);
     }
 
     [Fact]
-    public async Task IsPartialComponentClass_InitializedDocument_ReturnsTrue()
+    public async Task ContainsPartialComponentClass_InitializedDocument_ReturnsTrue()
     {
         // Arrange
         var sourceText = SourceText.From($$"""
@@ -581,14 +602,14 @@ public class ProjectStateDetectorTest(ITestOutputHelper testOutput) : VisualStud
         await document.GetSemanticModelAsync();
 
         // Act
-        var result = ProjectStateChangeDetector.IsPartialComponentClass(document);
+        var result = ProjectStateChangeDetector.ContainsPartialComponentClass(document);
 
         // Assert
         Assert.True(result);
     }
 
     [Fact]
-    public void IsPartialComponentClass_Uninitialized_ReturnsFalse()
+    public void ContainsPartialComponentClass_Uninitialized_ReturnsFalse()
     {
         // Arrange
         var sourceText = SourceText.From($$"""
@@ -605,14 +626,14 @@ public class ProjectStateDetectorTest(ITestOutputHelper testOutput) : VisualStud
         var document = solution.GetRequiredDocument(_partialComponentClassDocumentId);
 
         // Act
-        var result = ProjectStateChangeDetector.IsPartialComponentClass(document);
+        var result = ProjectStateChangeDetector.ContainsPartialComponentClass(document);
 
         // Assert
         Assert.False(result);
     }
 
     [Fact]
-    public async Task IsPartialComponentClass_UninitializedSemanticModel_ReturnsFalse()
+    public async Task ContainsPartialComponentClass_UninitializedSemanticModel_ReturnsFalse()
     {
         // Arrange
         var sourceText = SourceText.From($$"""
@@ -631,14 +652,14 @@ public class ProjectStateDetectorTest(ITestOutputHelper testOutput) : VisualStud
         await document.GetSyntaxRootAsync();
 
         // Act
-        var result = ProjectStateChangeDetector.IsPartialComponentClass(document);
+        var result = ProjectStateChangeDetector.ContainsPartialComponentClass(document);
 
         // Assert
         Assert.False(result);
     }
 
     [Fact]
-    public async Task IsPartialComponentClass_NonClass_ReturnsFalse()
+    public async Task ContainsPartialComponentClass_NonClass_ReturnsFalse()
     {
         // Arrange
         var sourceText = SourceText.From(string.Empty);
@@ -653,14 +674,14 @@ public class ProjectStateDetectorTest(ITestOutputHelper testOutput) : VisualStud
         await document.GetSemanticModelAsync();
 
         // Act
-        var result = ProjectStateChangeDetector.IsPartialComponentClass(document);
+        var result = ProjectStateChangeDetector.ContainsPartialComponentClass(document);
 
         // Assert
         Assert.False(result);
     }
 
     [Fact]
-    public async Task IsPartialComponentClass_MultipleClassesOneComponentPartial_ReturnsTrue()
+    public async Task ContainsPartialComponentClass_MultipleClassesOneComponentPartial_ReturnsTrue()
     {
         // Arrange
         var sourceText = SourceText.From($$"""
@@ -685,14 +706,14 @@ public class ProjectStateDetectorTest(ITestOutputHelper testOutput) : VisualStud
         await document.GetSemanticModelAsync();
 
         // Act
-        var result = ProjectStateChangeDetector.IsPartialComponentClass(document);
+        var result = ProjectStateChangeDetector.ContainsPartialComponentClass(document);
 
         // Assert
         Assert.True(result);
     }
 
     [Fact]
-    public async Task IsPartialComponentClass_NonComponents_ReturnsFalse()
+    public async Task ContainsPartialComponentClass_NonComponents_ReturnsFalse()
     {
         // Arrange
         var sourceText = SourceText.From("""
@@ -716,7 +737,7 @@ public class ProjectStateDetectorTest(ITestOutputHelper testOutput) : VisualStud
         await document.GetSemanticModelAsync();
 
         // Act
-        var result = ProjectStateChangeDetector.IsPartialComponentClass(document);
+        var result = ProjectStateChangeDetector.ContainsPartialComponentClass(document);
 
         // Assert
         Assert.False(result);

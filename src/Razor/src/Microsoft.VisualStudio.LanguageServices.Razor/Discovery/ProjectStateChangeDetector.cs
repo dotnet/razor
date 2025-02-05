@@ -2,14 +2,14 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
@@ -27,13 +27,18 @@ internal partial class ProjectStateChangeDetector : IRazorStartupService, IDispo
 
     private static readonly TimeSpan s_delay = TimeSpan.FromSeconds(1);
 
-    private readonly IProjectStateUpdater _generator;
+    private readonly IProjectStateUpdater _updater;
     private readonly ProjectSnapshotManager _projectManager;
     private readonly LanguageServerFeatureOptions _options;
     private readonly CodeAnalysis.Workspace _workspace;
 
     private readonly CancellationTokenSource _disposeTokenSource;
     private readonly AsyncBatchingWorkQueue<Work> _workQueue;
+
+    /// <summary>
+    ///  A map of assembly path strings to ProjectKeys. This will be cleared when the solution is closed.
+    /// </summary>
+    private readonly Dictionary<string, ProjectKey> _assemblyPathToProjectKeyMap = new(FilePathComparer.Instance);
 
     private WorkspaceChangedListener? _workspaceChangedListener;
 
@@ -48,13 +53,13 @@ internal partial class ProjectStateChangeDetector : IRazorStartupService, IDispo
     }
 
     public ProjectStateChangeDetector(
-        IProjectStateUpdater generator,
+        IProjectStateUpdater updater,
         ProjectSnapshotManager projectManager,
         LanguageServerFeatureOptions options,
         IWorkspaceProvider workspaceProvider,
         TimeSpan delay)
     {
-        _generator = generator;
+        _updater = updater;
         _projectManager = projectManager;
         _options = options;
 
@@ -71,7 +76,7 @@ internal partial class ProjectStateChangeDetector : IRazorStartupService, IDispo
 
         // This will usually no-op, in the case that another project snapshot change trigger
         // immediately adds projects we want to be able to handle those projects.
-        InitializeSolution(_workspace.CurrentSolution);
+        UpdateSolutionProjects(_workspace.CurrentSolution);
     }
 
     public void Dispose()
@@ -97,7 +102,7 @@ internal partial class ProjectStateChangeDetector : IRazorStartupService, IDispo
                 return default;
             }
 
-            _generator.EnqueueUpdate(projectKey, projectId);
+            _updater.EnqueueUpdate(projectKey, projectId);
         }
 
         return default;
@@ -115,7 +120,9 @@ internal partial class ProjectStateChangeDetector : IRazorStartupService, IDispo
                     var newSolution = e.NewSolution;
 
                     var project = newSolution.GetRequiredProject(projectId);
-                    EnqueueUpdateOnProjectAndDependencies(project, newSolution);
+
+                    UpdateProject(project);
+                    UpdateProjectDependents(projectId, newSolution);
                 }
 
                 break;
@@ -127,10 +134,8 @@ internal partial class ProjectStateChangeDetector : IRazorStartupService, IDispo
 
                     var project = oldSolution.GetRequiredProject(projectId);
 
-                    if (TryGetProjectSnapshot(project, out var projectSnapshot))
-                    {
-                        EnqueueUpdateOnProjectAndDependencies(projectId, project: null, oldSolution, projectSnapshot);
-                    }
+                    RemoveProject(project);
+                    UpdateProjectDependents(projectId, oldSolution);
                 }
 
                 break;
@@ -141,29 +146,8 @@ internal partial class ProjectStateChangeDetector : IRazorStartupService, IDispo
                     var documentId = e.DocumentId.AssumeNotNull();
                     var newSolution = e.NewSolution;
 
-                    // This is the case when a component declaration file changes on disk. We have an MSBuild
-                    // generator configured by the SDK that will poke these files on disk when a component
-                    // is saved, or loses focus in the editor.
-                    var project = newSolution.GetRequiredProject(projectId);
-
-                    if (project.GetDocument(documentId) is not Document newDocument ||
-                        newDocument.FilePath is null)
-                    {
-                        return;
-                    }
-
-                    if (IsRazorFileOrRazorVirtual(newDocument))
-                    {
-                        EnqueueUpdateOnProjectAndDependencies(project, newSolution);
-                        return;
-                    }
-
-                    // We now know we're not operating directly on a Razor file. However, it's possible the user
-                    // is operating on a partial class that is associated with a Razor file.
-                    if (IsPartialComponentClass(newDocument))
-                    {
-                        EnqueueUpdateOnProjectAndDependencies(project, newSolution);
-                    }
+                    var newDocument = newSolution.GetRequiredDocument(documentId);
+                    UpdateProjectAndDependentsIfNecessary(newDocument, projectId, newSolution);
                 }
 
                 break;
@@ -175,27 +159,8 @@ internal partial class ProjectStateChangeDetector : IRazorStartupService, IDispo
                     var oldSolution = e.OldSolution;
                     var newSolution = e.NewSolution;
 
-                    var project = oldSolution.GetRequiredProject(projectId);
-                    var removedDocument = project.GetRequiredDocument(documentId);
-
-                    if (removedDocument.FilePath is null)
-                    {
-                        return;
-                    }
-
-                    if (IsRazorFileOrRazorVirtual(removedDocument))
-                    {
-                        EnqueueUpdateOnProjectAndDependencies(project, newSolution);
-                        return;
-                    }
-
-                    // We now know we're not operating directly on a Razor file. However, it's possible the user
-                    // is operating on a partial class that is associated with a Razor file.
-
-                    if (IsPartialComponentClass(removedDocument))
-                    {
-                        EnqueueUpdateOnProjectAndDependencies(project, newSolution);
-                    }
+                    var removedDocument = oldSolution.GetRequiredDocument(documentId);
+                    UpdateProjectAndDependentsIfNecessary(removedDocument, projectId, newSolution);
                 }
 
                 break;
@@ -205,34 +170,10 @@ internal partial class ProjectStateChangeDetector : IRazorStartupService, IDispo
                 {
                     var projectId = e.ProjectId.AssumeNotNull();
                     var documentId = e.DocumentId.AssumeNotNull();
-                    var oldSolution = e.OldSolution;
-                    var newSolution = e.NewSolution;
+                    var newSolution = e.OldSolution;
 
-                    // This is the case when a component declaration file changes on disk. We have an MSBuild
-                    // generator configured by the SDK that will poke these files on disk when a component
-                    // is saved, or loses focus in the editor.
-                    var project = oldSolution.GetRequiredProject(projectId);
-                    var document = project.GetRequiredDocument(documentId);
-
-                    if (document.FilePath is null)
-                    {
-                        return;
-                    }
-
-                    if (IsRazorFileOrRazorVirtual(document))
-                    {
-                        var newProject = newSolution.GetRequiredProject(projectId);
-                        EnqueueUpdateOnProjectAndDependencies(newProject, newSolution);
-                        return;
-                    }
-
-                    // We now know we're not operating directly on a Razor file. However, it's possible the user
-                    // is operating on a partial class that is associated with a Razor file.
-                    if (IsPartialComponentClass(document))
-                    {
-                        var newProject = newSolution.GetRequiredProject(projectId);
-                        EnqueueUpdateOnProjectAndDependencies(newProject, newSolution);
-                    }
+                    var changedDocument = newSolution.GetRequiredDocument(documentId);
+                    UpdateProjectAndDependentsIfNecessary(changedDocument, projectId, newSolution);
                 }
 
                 break;
@@ -242,31 +183,56 @@ internal partial class ProjectStateChangeDetector : IRazorStartupService, IDispo
             case WorkspaceChangeKind.SolutionCleared:
             case WorkspaceChangeKind.SolutionReloaded:
             case WorkspaceChangeKind.SolutionRemoved:
-                {
-                    var oldSolution = e.OldSolution;
-                    var newSolution = e.NewSolution;
-
-                    foreach (var project in oldSolution.Projects)
-                    {
-                        if (TryGetProjectSnapshot(project, out var projectSnapshot))
-                        {
-                            EnqueueUpdate(project: null, projectSnapshot);
-                        }
-                    }
-
-                    InitializeSolution(newSolution);
-                }
-
+                RemoveSolutionProjects(e.OldSolution);
+                UpdateSolutionProjects(e.NewSolution);
                 break;
         }
 
         _workspaceChangedListener?.WorkspaceChanged(e.Kind);
     }
 
-    private bool IsRazorFileOrRazorVirtual(Document document)
+    private void ProjectManager_Changed(object? sender, ProjectChangeEventArgs e)
+    {
+        if (e.IsSolutionClosing)
+        {
+            // When the solution is closing...
+
+            // 1. Cancel any remaining work.
+            _workQueue.CancelExistingWork();
+
+            // 2. Clear out the assembly path to ProjectKey map.
+            lock (_assemblyPathToProjectKeyMap)
+            {
+                _assemblyPathToProjectKeyMap.Clear();
+            }
+
+            // 3. Return rather than adding more work.
+            return;
+        }
+
+        switch (e.Kind)
+        {
+            case ProjectChangeKind.ProjectAdded:
+            case ProjectChangeKind.DocumentRemoved:
+            case ProjectChangeKind.DocumentAdded:
+                var solution = _workspace.CurrentSolution;
+
+                if (solution.TryGetProject(e.ProjectKey, out var project))
+                {
+                    UpdateProject(e.ProjectKey, project);
+                    UpdateProjectDependents(project.Id, solution);
+                }
+
+                break;
+        }
+    }
+
+    private bool IsRazorOrRazorVirtualFile(Document document)
     {
         if (document.FilePath is not { } filePath)
+        {
             return false;
+        }
 
         // Using EndsWith because Path.GetExtension will ignore everything before .cs
         return filePath.EndsWith(_options.CSharpVirtualDocumentSuffix, FilePathComparison.Instance) ||
@@ -281,29 +247,35 @@ internal partial class ProjectStateChangeDetector : IRazorStartupService, IDispo
     }
 
     // Internal for testing
-    internal static bool IsPartialComponentClass(Document document)
+    internal static bool ContainsPartialComponentClass(Document document)
     {
-        if (!document.TryGetSyntaxRoot(out var root))
+        // These will occasionally return false resulting in us not refreshing TagHelpers
+        // for component partial classes. This means there are situations when a user's
+        // TagHelper definitions will not immediately update but we should eventually catch up.
+
+        if (!document.TryGetSyntaxRoot(out var syntaxRoot) ||
+            !document.TryGetSemanticModel(out var semanticModel))
         {
             return false;
         }
 
-        var classDeclarations = root.DescendantNodes().OfType<ClassDeclarationSyntax>();
-        if (!classDeclarations.Any())
+        using var classDeclarations = new PooledArrayBuilder<ClassDeclarationSyntax>();
+
+        foreach (var descendentNode in syntaxRoot.DescendantNodes())
+        {
+            if (descendentNode is ClassDeclarationSyntax classDeclaration)
+            {
+                classDeclarations.Add(classDeclaration);
+            }
+        }
+
+        if (classDeclarations.Count == 0)
         {
             return false;
         }
 
-        if (!document.TryGetSemanticModel(out var semanticModel))
-        {
-            // This will occasionally return false resulting in us not refreshing TagHelpers
-            // for component partial classes. This means there are situations when a user's
-            // TagHelper definitions will not immediately update but we will eventually achieve omniscience.
-            return false;
-        }
-
-        var icomponentType = semanticModel.Compilation.GetTypeByMetadataName(ComponentsApi.IComponent.MetadataName);
-        if (icomponentType is null)
+        var componentType = semanticModel.Compilation.GetTypeByMetadataName(ComponentsApi.IComponent.MetadataName);
+        if (componentType is null)
         {
             // IComponent is not available in the compilation.
             return false;
@@ -311,12 +283,8 @@ internal partial class ProjectStateChangeDetector : IRazorStartupService, IDispo
 
         foreach (var classDeclaration in classDeclarations)
         {
-            if (semanticModel.GetDeclaredSymbol(classDeclaration) is not INamedTypeSymbol classSymbol)
-            {
-                continue;
-            }
-
-            if (ComponentDetectionConventions.IsComponent(classSymbol, icomponentType))
+            if (semanticModel.GetDeclaredSymbol(classDeclaration) is INamedTypeSymbol classSymbol &&
+                ComponentDetectionConventions.IsComponent(classSymbol, componentType))
             {
                 return true;
             }
@@ -325,92 +293,93 @@ internal partial class ProjectStateChangeDetector : IRazorStartupService, IDispo
         return false;
     }
 
-    private void InitializeSolution(Solution solution)
+    private void RemoveSolutionProjects(Solution solution)
     {
         foreach (var project in solution.Projects)
         {
-            if (TryGetProjectSnapshot(project, out var projectSnapshot))
+            if (TryGetProjectKey(project, out var projectKey))
             {
-                EnqueueUpdate(project, projectSnapshot);
+                RemoveProject(projectKey);
             }
         }
     }
 
-    private void ProjectManager_Changed(object? sender, ProjectChangeEventArgs e)
+    private void UpdateSolutionProjects(Solution solution)
     {
-        // Don't do any work if the solution is closing. Any work in the queue will be cancelled on disposal
-        if (e.IsSolutionClosing)
+        foreach (var project in solution.Projects)
         {
-            _workQueue.CancelExistingWork();
-            return;
-        }
-
-        switch (e.Kind)
-        {
-            case ProjectChangeKind.ProjectAdded:
-            case ProjectChangeKind.DocumentRemoved:
-            case ProjectChangeKind.DocumentAdded:
-                var solution = _workspace.CurrentSolution;
-
-                if (solution.TryGetProject(e.ProjectKey, out var workspaceProject))
-                {
-                    var projectSnapshot = e.Newer.AssumeNotNull();
-
-                    EnqueueUpdateOnProjectAndDependencies(
-                        workspaceProject.Id,
-                        workspaceProject,
-                        solution,
-                        projectSnapshot);
-                }
-
-                break;
-
-            case ProjectChangeKind.ProjectRemoved:
-                // No-op. We don't need to recompute tag helpers if the project is being removed
-                break;
+            UpdateProject(project);
         }
     }
 
-    private void EnqueueUpdateOnProjectAndDependencies(Project project, Solution solution)
+    /// <summary>
+    ///  Enqueues updates for the specified project and its dependents if the given <see cref="Document"/>
+    ///  represents a file that impacts Razor.
+    /// </summary>
+    private void UpdateProjectAndDependentsIfNecessary(Document document, ProjectId projectId, Solution solution)
     {
-        if (TryGetProjectSnapshot(project, out var projectSnapshot))
+        // A file impacts Razor if it has one of the known file extensions or contains
+        // a class declaration that matches a Razor component declaration.
+        if (IsRazorOrRazorVirtualFile(document) || ContainsPartialComponentClass(document))
         {
-            EnqueueUpdateOnProjectAndDependencies(project.Id, project, solution, projectSnapshot);
+            UpdateProject(document.Project);
+            UpdateProjectDependents(projectId, solution);
         }
     }
 
-    private void EnqueueUpdateOnProjectAndDependencies(ProjectId projectId, Project? project, Solution solution, ProjectSnapshot projectSnapshot)
+    private void UpdateProjectDependents(ProjectId projectId, Solution solution)
     {
-        EnqueueUpdate(project, projectSnapshot);
-
         var dependencyGraph = solution.GetProjectDependencyGraph();
         var dependentProjectIds = dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId);
 
         foreach (var dependentProjectId in dependentProjectIds)
         {
-            if (solution.GetProject(dependentProjectId) is { } dependentProject &&
-                TryGetProjectSnapshot(dependentProject, out var dependentProjectSnapshot))
+            if (solution.TryGetProject(dependentProjectId, out var dependentProject))
             {
-                EnqueueUpdate(dependentProject, dependentProjectSnapshot);
+                UpdateProject(dependentProject);
             }
         }
     }
 
-    private void EnqueueUpdate(Project? project, ProjectSnapshot projectSnapshot)
+    private void UpdateProject(Project project)
     {
-        _workQueue.AddWork(new Work(projectSnapshot.Key, project?.Id));
+        if (TryGetProjectKey(project, out var projectKey))
+        {
+            UpdateProject(projectKey, project);
+        }
     }
 
-    private bool TryGetProjectSnapshot(Project? project, [NotNullWhen(true)] out ProjectSnapshot? projectSnapshot)
+    private void RemoveProject(Project project)
     {
-        if (project?.CompilationOutputInfo.AssemblyPath is null)
+        if (TryGetProjectKey(project, out var projectKey))
         {
-            projectSnapshot = null;
+            RemoveProject(projectKey);
+        }
+    }
+
+    private void UpdateProject(ProjectKey projectKey, Project project)
+    {
+        _workQueue.AddWork(new Work(projectKey, project.Id));
+    }
+
+    private void RemoveProject(ProjectKey projectKey)
+    {
+        _workQueue.AddWork(new Work(projectKey, Id: null));
+    }
+
+    private bool TryGetProjectKey(Project project, out ProjectKey projectKey)
+    {
+        if (project.CompilationOutputInfo.AssemblyPath is not string assemblyPath)
+        {
+            projectKey = default;
             return false;
         }
 
-        var projectKey = project.ToProjectKey();
+        lock (_assemblyPathToProjectKeyMap)
+        {
+            projectKey = _assemblyPathToProjectKeyMap.GetOrAdd(assemblyPath, _ => project.ToProjectKey());
+        }
 
-        return _projectManager.TryGetProject(projectKey, out projectSnapshot);
+        return true;
     }
 }
