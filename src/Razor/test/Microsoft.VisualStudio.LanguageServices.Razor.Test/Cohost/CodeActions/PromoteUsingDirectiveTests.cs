@@ -36,7 +36,7 @@ public class PromoteUsingDirectiveTests(FuseTestContext context, ITestOutputHelp
     }
 
     [FuseFact]
-    public async Task PromoteUsingDirective_Indented()
+    public async Task Indented()
     {
         await VerifyCodeActionAsync(
             input: """
@@ -64,7 +64,7 @@ public class PromoteUsingDirectiveTests(FuseTestContext context, ITestOutputHelp
     }
 
     [FuseFact]
-    public async Task PromoteUsingDirective_Mvc()
+    public async Task Mvc()
     {
         await VerifyCodeActionAsync(
             input: """
@@ -89,7 +89,7 @@ public class PromoteUsingDirectiveTests(FuseTestContext context, ITestOutputHelp
     }
 
     [FuseFact]
-    public async Task PromoteUsingDirective_ExistingImports()
+    public async Task ExistingImports()
     {
         await VerifyCodeActionAsync(
             input: """
@@ -120,7 +120,7 @@ public class PromoteUsingDirectiveTests(FuseTestContext context, ITestOutputHelp
     }
 
     [FuseFact]
-    public async Task PromoteUsingDirective_ExistingImports_BlankLineAtEnd()
+    public async Task ExistingImports_BlankLineAtEnd()
     {
         await VerifyCodeActionAsync(
             input: """
@@ -152,7 +152,7 @@ public class PromoteUsingDirectiveTests(FuseTestContext context, ITestOutputHelp
     }
 
     [FuseFact]
-    public async Task PromoteUsingDirective_ExistingImports_WhitespaceLineAtEnd()
+    public async Task ExistingImports_WhitespaceLineAtEnd()
     {
         await VerifyCodeActionAsync(
             input: """

@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 public class TypeAccessibilityTests(FuseTestContext context, ITestOutputHelper testOutputHelper) : CohostCodeActionsEndpointTestBase(context, testOutputHelper)
 {
     [FuseFact]
-    public async Task ComponentAccessibility_FixCasing()
+    public async Task FixCasing()
     {
         await VerifyCodeActionAsync(
             input: """
@@ -27,7 +27,7 @@ public class TypeAccessibilityTests(FuseTestContext context, ITestOutputHelper t
     }
 
     [FuseFact]
-    public async Task ComponentAccessibility_FullyQualify()
+    public async Task FullyQualify()
     {
         await VerifyCodeActionAsync(
             input: """
@@ -44,7 +44,7 @@ public class TypeAccessibilityTests(FuseTestContext context, ITestOutputHelper t
     }
 
     [FuseFact]
-    public async Task ComponentAccessibility_AddUsing()
+    public async Task AddUsing()
     {
         await VerifyCodeActionAsync(
             input: """
@@ -62,7 +62,7 @@ public class TypeAccessibilityTests(FuseTestContext context, ITestOutputHelper t
     }
 
     [FuseFact]
-    public async Task ComponentAccessibility_AddUsing_FixTypo()
+    public async Task AddUsing_FixTypo()
     {
         await VerifyCodeActionAsync(
             input: """

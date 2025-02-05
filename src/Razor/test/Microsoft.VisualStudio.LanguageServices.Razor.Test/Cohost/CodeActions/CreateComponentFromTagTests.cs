@@ -30,7 +30,7 @@ public class CreateComponentFromTagTests(FuseTestContext context, ITestOutputHel
     }
 
     [FuseFact]
-    public async Task CreateComponentFromTag_Attribute()
+    public async Task Attribute()
     {
         await VerifyCodeActionAsync(
             input: """

@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 public class GenerateEventHandlerTests(FuseTestContext context, ITestOutputHelper testOutputHelper) : CohostCodeActionsEndpointTestBase(context, testOutputHelper)
 {
     [FuseFact]
-    public async Task GenerateEventHandler_NoCodeBlock()
+    public async Task NoCodeBlock()
     {
         var input = """
             <button @onclick="{|CS0103:Does[||]NotExist|}"></button>
@@ -31,7 +31,7 @@ public class GenerateEventHandlerTests(FuseTestContext context, ITestOutputHelpe
     }
 
     [FuseFact]
-    public async Task GenerateEventHandler_CodeBlock()
+    public async Task CodeBlock()
     {
         var input = """
             <button @onclick="{|CS0103:Does[||]NotExist|}"></button>
@@ -57,7 +57,7 @@ public class GenerateEventHandlerTests(FuseTestContext context, ITestOutputHelpe
     }
 
     [FuseFact]
-    public async Task GenerateEventHandler_BindSet()
+    public async Task BindSet()
     {
         var input = """
             <InputText @bind-Value="Text" @bind-Value:set="{|CS0103:Does[||]NotExist|}" />
@@ -85,7 +85,7 @@ public class GenerateEventHandlerTests(FuseTestContext context, ITestOutputHelpe
     }
 
     [FuseFact]
-    public async Task GenerateEventHandler_BindAfter()
+    public async Task BindAfter()
     {
         var input = """
             <InputText @bind-Value="Text" @bind-Value:after="{|CS0103:Does[||]NotExist|}" />
@@ -113,7 +113,7 @@ public class GenerateEventHandlerTests(FuseTestContext context, ITestOutputHelpe
     }
 
     [FuseFact]
-    public async Task GenerateEventHandler_Callback()
+    public async Task Callback()
     {
         var input = """
             <InputFile OnChange="{|CS0103:Does[||]NotExist|}" />
@@ -139,7 +139,7 @@ public class GenerateEventHandlerTests(FuseTestContext context, ITestOutputHelpe
     }
 
     [FuseFact]
-    public async Task GenerateEventHandler_AsyncCallback()
+    public async Task AsyncCallback()
     {
         var input = """
             <InputText ValueChanged="{|CS0103:Does[||]NotExistAsync|}" />
@@ -165,7 +165,7 @@ public class GenerateEventHandlerTests(FuseTestContext context, ITestOutputHelpe
     }
 
     [FuseFact]
-    public async Task GenerateEventHandler_BadCodeBehind()
+    public async Task BadCodeBehind()
     {
         await VerifyCodeActionAsync(
             input: """
@@ -193,7 +193,7 @@ public class GenerateEventHandlerTests(FuseTestContext context, ITestOutputHelpe
     }
 
     [FuseFact]
-    public async Task GenerateEventHandler_CodeBehind()
+    public async Task CodeBehind()
     {
         await VerifyCodeActionAsync(
             input: """
@@ -232,7 +232,7 @@ public class GenerateEventHandlerTests(FuseTestContext context, ITestOutputHelpe
     }
 
     [FuseFact]
-    public async Task GenerateEventHandler_EmptyCodeBehind()
+    public async Task EmptyCodeBehind()
     {
         await VerifyCodeActionAsync(
             input: """

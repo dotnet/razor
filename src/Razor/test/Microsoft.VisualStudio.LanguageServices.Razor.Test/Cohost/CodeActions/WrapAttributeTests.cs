@@ -36,7 +36,7 @@ public class WrapAttributeTests(FuseTestContext context, ITestOutputHelper testO
     }
 
     [FuseFact]
-    public async Task WrapAttributes_Component()
+    public async Task Component()
     {
         await VerifyCodeActionAsync(
             input: """
@@ -57,7 +57,7 @@ public class WrapAttributeTests(FuseTestContext context, ITestOutputHelper testO
     }
 
     [FuseFact]
-    public async Task WrapAttributes_Whitespace()
+    public async Task Whitespace()
     {
         await VerifyCodeActionAsync(
             input: """
@@ -76,7 +76,7 @@ public class WrapAttributeTests(FuseTestContext context, ITestOutputHelper testO
     }
 
     [FuseFact]
-    public async Task WrapAttributes_MultiLine()
+    public async Task MultiLine()
     {
         await VerifyCodeActionAsync(
             input: """
@@ -90,7 +90,7 @@ public class WrapAttributeTests(FuseTestContext context, ITestOutputHelper testO
     }
 
     [FuseFact]
-    public async Task WrapAttributes_OneAttribute()
+    public async Task OneAttribute()
     {
         await VerifyCodeActionAsync(
             input: """
