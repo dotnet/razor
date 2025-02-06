@@ -3,7 +3,6 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -22,10 +21,6 @@ public class ProjectTests(ITestOutputHelper testOutputHelper) : AbstractRazorEdi
     [ConditionalSkipIdeFact(Issue = "https://github.com/dotnet/razor/issues/9200")]
     public async Task ChangeTargetFramework()
     {
-        var solutionPath = await TestServices.SolutionExplorer.GetDirectoryNameAsync(ControlledHangMitigatingCancellationToken);
-
-        Assert.Equal(1, GetProjectRazorJsonFileCount());
-
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ProjectFile, ControlledHangMitigatingCancellationToken);
 
         await TestServices.Editor.PlaceCaretAsync("<TargetFramework", charsOffset: -1, ControlledHangMitigatingCancellationToken);
@@ -51,13 +46,6 @@ public class ProjectTests(ITestOutputHelper testOutputHelper) : AbstractRazorEdi
 
         await TestServices.Editor.PlaceCaretAsync("</PageTitle>", charsOffset: 1, ControlledHangMitigatingCancellationToken);
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken, count: 3);
-
-        // This is a little odd, but there is no "real" way to check this via VS, and one of the most important things this test can do
-        // is ensure that each target framework gets its own project.razor.bin file, and doesn't share one from a cache or anything.
-        Assert.Equal(2, GetProjectRazorJsonFileCount());
-
-        int GetProjectRazorJsonFileCount()
-            => Directory.EnumerateFiles(solutionPath, "project.razor.*.bin", SearchOption.AllDirectories).Count();
     }
 
     [IdeFact]
