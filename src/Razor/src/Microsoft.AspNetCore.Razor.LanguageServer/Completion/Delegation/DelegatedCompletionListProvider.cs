@@ -77,7 +77,12 @@ internal class DelegatedCompletionListProvider
             positionInfo = provisionalCompletionValue.DocumentPositionInfo;
         }
 
-        completionContext = DelegatedCompletionHelper.RewriteContext(completionContext, positionInfo.LanguageKind, _completionTriggerAndCommitCharacters);
+        if (DelegatedCompletionHelper.RewriteContext(completionContext, positionInfo.LanguageKind, _completionTriggerAndCommitCharacters) is not { } rewrittenContext)
+        {
+            return null;
+        }
+
+        completionContext = rewrittenContext;
 
         var razorCodeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         // It's a bit confusing, but we have two different "add snippets" options - one is a part of

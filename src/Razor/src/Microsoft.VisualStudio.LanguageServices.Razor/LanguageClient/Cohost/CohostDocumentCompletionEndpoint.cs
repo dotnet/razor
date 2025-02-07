@@ -118,7 +118,12 @@ internal sealed class CohostDocumentCompletionEndpoint(
         var documentPositionInfo = completionPositionInfo.DocumentPositionInfo;
         if (documentPositionInfo.LanguageKind != RazorLanguageKind.Razor)
         {
-            completionContext = DelegatedCompletionHelper.RewriteContext(completionContext, documentPositionInfo.LanguageKind, _completionTriggerAndCommitCharacters);
+            if (DelegatedCompletionHelper.RewriteContext(completionContext, documentPositionInfo.LanguageKind, _completionTriggerAndCommitCharacters) is not { } rewrittenContext)
+            {
+                return null;
+            }
+
+            completionContext = rewrittenContext;
         }
 
         // First of all, see if we in HTML and get HTML completions before calling OOP to get Razor completions.

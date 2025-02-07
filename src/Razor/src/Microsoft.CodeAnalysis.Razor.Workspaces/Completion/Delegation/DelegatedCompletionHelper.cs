@@ -42,7 +42,7 @@ internal static class DelegatedCompletionHelper
     /// <remarks>For example, if we invoke C# completion in Razor via @ character, we will not
     /// want C# to see @ as the trigger character and instead will transform completion context
     /// into "invoked" and "explicit" rather than "typing", without a trigger character</remarks>
-    public static VSInternalCompletionContext RewriteContext(
+    public static VSInternalCompletionContext? RewriteContext(
         VSInternalCompletionContext context,
         RazorLanguageKind languageKind,
         CompletionTriggerAndCommitCharacters completionTriggerAndCommitCharacters)
@@ -64,11 +64,12 @@ internal static class DelegatedCompletionHelper
             return context;
         }
 
-        if (languageKind == RazorLanguageKind.Html
-            && completionTriggerAndCommitCharacters.HtmlTriggerCharacters.Contains(triggerCharacter))
+        if (languageKind == RazorLanguageKind.Html)
         {
-            // HTML trigger character for HTML content
-            return context;
+            // For HTML we don't want to delegate to HTML language server is completion is due to a trigger characters that is not
+            // HTML trigger character. Doing so causes bad side effects in VSCode HTML client as we will end up with non-matching
+            // completion entries
+            return completionTriggerAndCommitCharacters.HtmlTriggerCharacters.Contains(triggerCharacter) ? context : null;
         }
 
         // Trigger character not associated with the current language. Transform the context into an invoked context.
