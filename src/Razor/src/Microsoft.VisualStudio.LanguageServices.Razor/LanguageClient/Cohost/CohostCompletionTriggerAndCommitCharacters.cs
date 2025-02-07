@@ -9,4 +9,4 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 [Export(typeof(CompletionTriggerAndCommitCharacters))]
 [method: ImportingConstructor]
-class CohostCompletionTriggerAndCommitCharacters(LanguageServerFeatureOptions languageServerFeatureOptions) : CompletionTriggerAndCommitCharacters(languageServerFeatureOptions);
+internal sealed class CohostCompletionTriggerAndCommitCharacters(LanguageServerFeatureOptions languageServerFeatureOptions) : CompletionTriggerAndCommitCharacters(languageServerFeatureOptions);

@@ -47,5 +47,5 @@ internal class RemoteLanguageServerFeatureOptions : LanguageServerFeatureOptions
 
     public override bool SupportsSoftSelectionInCompletion => _options.SupportsSoftSelectionInCompletion;
 
-    public override bool VsCodeCompletionTriggerCharacters => _options.VsCodeCompletionTriggerCharacters;
+    public override bool UseVsCodeCompletionTriggerCharacters => _options.UseVsCodeCompletionTriggerCharacters;
 }

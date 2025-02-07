@@ -116,5 +116,5 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
     // VS actually needs explicit commit characters so don't avoid them.
     public override bool SupportsSoftSelectionInCompletion => true;
 
-    public override bool VsCodeCompletionTriggerCharacters => false;
+    public override bool UseVsCodeCompletionTriggerCharacters => false;
 }

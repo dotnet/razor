@@ -45,5 +45,5 @@ internal class TestLanguageServerFeatureOptions(
 
     public override bool SupportsSoftSelectionInCompletion => supportsSoftSelectionInCompletion;
 
-    public override bool VsCodeCompletionTriggerCharacters => vsCodeCompletionTriggerCharacters;
+    public override bool UseVsCodeCompletionTriggerCharacters => vsCodeCompletionTriggerCharacters;
 }

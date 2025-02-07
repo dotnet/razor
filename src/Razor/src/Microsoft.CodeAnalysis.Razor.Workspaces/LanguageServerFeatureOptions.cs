@@ -51,5 +51,5 @@ internal abstract class LanguageServerFeatureOptions
     /// <summary>
     /// Indicates that VSCode-compatible completion trigger character set should be used
     /// </summary>
-    public abstract bool VsCodeCompletionTriggerCharacters { get; }
+    public abstract bool UseVsCodeCompletionTriggerCharacters { get; }
 }

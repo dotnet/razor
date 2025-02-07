@@ -24,7 +24,7 @@ internal class CompletionTriggerAndCommitCharacters(LanguageServerFeatureOptions
     public static FrozenSet<string> RazorDelegationTriggerCharacters { get; } = new[] { "@" }.ToFrozenSet();
     public static FrozenSet<string> CSharpTriggerCharacters { get; } = new[] { " ", "(", "=", "#", ".", "<", "[", "{", "\"", "/", ":", "~" }.ToFrozenSet();
     public FrozenSet<string> HtmlTriggerCharacters =>
-        _languageServerFeatureOptions.VsCodeCompletionTriggerCharacters ? s_vsCodeHtmlTriggerCharacters : s_vsHtmlTriggerCharacters;
+        _languageServerFeatureOptions.UseVsCodeCompletionTriggerCharacters ? s_vsCodeHtmlTriggerCharacters : s_vsHtmlTriggerCharacters;
 
     public FrozenSet<string> AllDelegationTriggerCharacters => _allDelegationTriggerCharacters
         ??= RazorDelegationTriggerCharacters.Union(CSharpTriggerCharacters).Union(HtmlTriggerCharacters).ToFrozenSet();
