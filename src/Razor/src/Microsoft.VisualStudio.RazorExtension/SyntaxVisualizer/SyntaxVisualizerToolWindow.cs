@@ -31,7 +31,7 @@ internal class SyntaxVisualizerToolWindow : ToolWindowPane
     private const int CmdIdShowAllTagHelpers = 0x0113;
     private const int CmdIdShowInScopeTagHelpers = 0x0114;
     private const int CmdIdShowReferencedTagHelpers = 0x0115;
-    private const int CmdidShowFormattingDocument = 0x0117;
+    private const int CmdidShowFormattingDocument = 0x0116;
 
     private MenuCommand? _showSourceMappingsCommand;
     private SyntaxVisualizerControl _visualizerControl => (SyntaxVisualizerControl)Content;

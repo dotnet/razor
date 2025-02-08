@@ -147,7 +147,7 @@
       <IDSymbol name="cmdIdShowAllTagHelpers" value="0x0113" />
       <IDSymbol name="cmdIdShowInScopeTagHelpers" value="0x0114" />
       <IDSymbol name="cmdIdShowReferencedTagHelpers" value="0x0115" />
-      <IDSymbol name="cmdidShowFormattingDocument" value="0x0117" />
+      <IDSymbol name="cmdidShowFormattingDocument" value="0x0116" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>
