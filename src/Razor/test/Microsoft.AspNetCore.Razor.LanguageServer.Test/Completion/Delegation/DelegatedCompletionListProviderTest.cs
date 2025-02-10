@@ -103,7 +103,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
     }
 
     [Fact]
-    public async Task HtmlDelegation_UnsupportedTriggerCharacter_TranslatesToInvoked()
+    public async Task HtmlDelegation_UnsupportedTriggerCharacter_ReturnsNull()
     {
         // Arrange
         var completionContext = new VSInternalCompletionContext()
@@ -127,13 +127,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Assert
         var delegatedParameters = _provider.DelegatedParams;
-        Assert.NotNull(delegatedParameters);
-        Assert.Equal(RazorLanguageKind.Html, delegatedParameters.ProjectedKind);
-        Assert.Equal(VsLspFactory.CreatePosition(0, 1), delegatedParameters.ProjectedPosition);
-        Assert.Equal(CompletionTriggerKind.Invoked, delegatedParameters.Context.TriggerKind);
-        Assert.Equal(VSInternalCompletionInvokeKind.Typing, delegatedParameters.Context.InvokeKind);
-        Assert.Equal(1, delegatedParameters.Identifier.Version);
-        Assert.Null(delegatedParameters.ProvisionalTextEdit);
+        Assert.Null(delegatedParameters);
     }
 
     [Fact]
