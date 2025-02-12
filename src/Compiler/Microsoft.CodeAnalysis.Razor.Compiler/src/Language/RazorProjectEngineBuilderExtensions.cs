@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.CSharp;
 using RazorExtensionsV1_X = Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.RazorExtensions;
 using RazorExtensionsV2_X = Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.RazorExtensions;
 using RazorExtensionsV3 = Microsoft.AspNetCore.Mvc.Razor.Extensions.RazorExtensions;
@@ -206,6 +207,29 @@ public static class RazorProjectEngineBuilderExtensions
         return builder;
     }
 
+    /// <summary>
+    /// Sets the C# language version to target when generating code.
+    /// </summary>
+    /// <param name="builder">The <see cref="RazorProjectEngineBuilder"/>.</param>
+    /// <param name="csharpLanguageVersion">The C# <see cref="LanguageVersion"/>.</param>
+    /// <returns>The <see cref="RazorProjectEngineBuilder"/>.</returns>
+    public static RazorProjectEngineBuilder SetCSharpLanguageVersion(this RazorProjectEngineBuilder builder, LanguageVersion csharpLanguageVersion)
+    {
+        ArgHelper.ThrowIfNull(builder);
+
+        var existingFeature = builder.Features.OfType<ConfigureParserForCSharpVersionFeature>().FirstOrDefault();
+        if (existingFeature != null)
+        {
+            builder.Features.Remove(existingFeature);
+        }
+
+        // This will convert any "latest", "default" or "LatestMajor" LanguageVersions into their numerical equivalent.
+        var effectiveCSharpLanguageVersion = LanguageVersionFacts.MapSpecifiedToEffectiveVersion(csharpLanguageVersion);
+        builder.Features.Add(new ConfigureParserForCSharpVersionFeature(effectiveCSharpLanguageVersion));
+
+        return builder;
+    }
+
     private static DefaultRazorDirectiveFeature GetDirectiveFeature(RazorProjectEngineBuilder builder)
     {
         var directiveFeature = builder.Features.OfType<DefaultRazorDirectiveFeature>().FirstOrDefault();
@@ -270,6 +294,51 @@ public static class RazorProjectEngineBuilderExtensions
         public void Configure(RazorCodeGenerationOptionsBuilder builder)
         {
             builder.RootNamespace = rootNamespace;
+        }
+    }
+
+    private sealed class ConfigureParserForCSharpVersionFeature(LanguageVersion languageVersion) : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
+    {
+        public LanguageVersion CSharpLanguageVersion { get; } = languageVersion;
+
+        public int Order { get; set; }
+
+        public void Configure(RazorCodeGenerationOptionsBuilder builder)
+        {
+            if (builder.Configuration is { LanguageVersion.Major: < 3 })
+            {
+                // Prior to 3.0 there were no C# version specific controlled features. Suppress nullability enforcement.
+                builder.SuppressNullabilityEnforcement = true;
+            }
+            else if (CSharpLanguageVersion < LanguageVersion.CSharp8)
+            {
+                // Having nullable flags < C# 8.0 would cause compile errors.
+                builder.SuppressNullabilityEnforcement = true;
+            }
+            else
+            {
+                // Given that nullability enforcement can be a compile error we only turn it on for C# >= 8.0. There are
+                // cases in tooling when the project isn't fully configured yet at which point the CSharpLanguageVersion
+                // may be Default (value 0). In those cases that C# version is equivalently "unspecified" and is up to the consumer
+                // to act in a safe manner to not cause unneeded errors for older compilers. Therefore if the version isn't
+                // >= 8.0 (Latest has a higher value) then nullability enforcement is suppressed.
+                //
+                // Once the project finishes configuration the C# language version will be updated to reflect the effective
+                // language version for the project by our workspace change detectors. That mechanism extracts the correlated
+                // Roslyn project and acquires the effective C# version at that point.
+                builder.SuppressNullabilityEnforcement = false;
+            }
+
+            if (builder.Configuration is { LanguageVersion.Major: >= 5 })
+            {
+                // This is a useful optimization but isn't supported by older framework versions
+                builder.OmitMinimizedComponentAttributeValues = true;
+            }
+
+            if (CSharpLanguageVersion >= LanguageVersion.CSharp10)
+            {
+                builder.UseEnhancedLinePragma = true;
+            }
         }
     }
 }

@@ -17,7 +17,6 @@ using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
 

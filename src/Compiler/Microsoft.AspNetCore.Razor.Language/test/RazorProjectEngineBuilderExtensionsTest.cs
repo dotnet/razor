@@ -1,9 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Moq;
 using Xunit;
 
@@ -100,5 +100,34 @@ public class RazorProjectEngineBuilderExtensionsTest
         Assert.Same(directiveFeature, feature);
         var directive = Assert.Single(directiveFeature.Directives);
         Assert.Same(expecteDirective, directive);
+    }
+
+    [Fact]
+    public void SetCSharpLanguageVersion_ResolvesLatestCSharpLangVersions()
+    {
+        // Arrange
+        var csharpLanguageVersion = LanguageVersion.Latest;
+
+        // Act
+        var projectEngine = RazorProjectEngine.Create(builder =>
+        {
+            builder.SetCSharpLanguageVersion(csharpLanguageVersion);
+            builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default.WithLanguageVersion(csharpLanguageVersion)));
+        });
+
+        var features = projectEngine.Engine.GetFeatures<IConfigureRazorCodeGenerationOptionsFeature>();
+        var builder = new RazorCodeGenerationOptionsBuilder(RazorConfiguration.Default);
+
+        foreach (var feature in features)
+        {
+            feature.Configure(builder);
+        }
+
+        var options = builder.Build();
+
+        // Assert
+        Assert.False(options.SuppressNullabilityEnforcement);
+        Assert.True(options.UseEnhancedLinePragma);
+        Assert.True(options.OmitMinimizedComponentAttributeValues);
     }
 }
