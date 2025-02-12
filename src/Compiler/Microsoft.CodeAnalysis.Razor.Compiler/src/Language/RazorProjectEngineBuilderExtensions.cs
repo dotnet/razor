@@ -49,7 +49,7 @@ public static class RazorProjectEngineBuilderExtensions
         }
     }
 
-    public static RazorProjectEngineBuilder ConfigureParserOptions(this RazorProjectEngineBuilder builder, Action<RazorParserOptionsBuilder> configure)
+    public static RazorProjectEngineBuilder ConfigureParserOptions(this RazorProjectEngineBuilder builder, Action<RazorParserOptions.Builder> configure)
     {
         ArgHelper.ThrowIfNull(builder);
         ArgHelper.ThrowIfNull(configure);
@@ -179,11 +179,11 @@ public static class RazorProjectEngineBuilderExtensions
         return feature;
     }
 
-    private sealed class ConfigureParserOptionsFeature(Action<RazorParserOptionsBuilder> configure) : RazorEngineFeatureBase, IConfigureRazorParserOptionsFeature
+    private sealed class ConfigureParserOptionsFeature(Action<RazorParserOptions.Builder> configure) : RazorEngineFeatureBase, IConfigureRazorParserOptionsFeature
     {
         public int Order => 0;
 
-        public void Configure(RazorParserOptionsBuilder builder)
+        public void Configure(RazorParserOptions.Builder builder)
         {
             configure(builder);
         }

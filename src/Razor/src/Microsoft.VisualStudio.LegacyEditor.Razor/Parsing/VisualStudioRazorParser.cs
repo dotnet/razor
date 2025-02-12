@@ -597,7 +597,7 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
     }
 
     // Internal for testing
-    internal static void ConfigureParserOptions(RazorParserOptionsBuilder builder)
+    internal static void ConfigureParserOptions(RazorParserOptions.Builder builder)
     {
         builder.EnableSpanEditHandlers = true;
         builder.UseRoslynTokenizer = false;

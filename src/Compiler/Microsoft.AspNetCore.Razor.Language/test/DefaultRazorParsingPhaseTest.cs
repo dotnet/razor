@@ -81,7 +81,7 @@ public class DefaultRazorParsingPhaseTest
             t => { Assert.Same(t.Source, imports[1]); Assert.Equal("test", Assert.Single(t.Options.Directives).Directive); });
     }
 
-    private static void ConfigureDirective(RazorParserOptionsBuilder builder)
+    private static void ConfigureDirective(RazorParserOptions.Builder builder)
     {
         builder.Directives = [DirectiveDescriptor.CreateDirective("test", DirectiveKind.SingleLine)];
     }

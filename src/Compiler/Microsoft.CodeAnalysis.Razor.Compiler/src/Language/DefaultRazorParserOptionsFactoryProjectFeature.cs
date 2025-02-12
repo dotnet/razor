@@ -15,10 +15,10 @@ internal class DefaultRazorParserOptionsFactoryProjectFeature : RazorProjectEngi
         _configureOptions = ProjectEngine.Engine.GetFeatures<IConfigureRazorParserOptionsFeature>().OrderByAsArray(static x => x.Order);
     }
 
-    public RazorParserOptions Create(string fileKind, Action<RazorParserOptionsBuilder> configure)
+    public RazorParserOptions Create(string fileKind, Action<RazorParserOptions.Builder> configure)
     {
         var configuration = ProjectEngine.Configuration;
-        var builder = new RazorParserOptionsBuilder(configuration.LanguageVersion, fileKind);
+        var builder = new RazorParserOptions.Builder(configuration.LanguageVersion, fileKind);
 
         configure?.Invoke(builder);
 

@@ -9,5 +9,5 @@ public interface IConfigureRazorParserOptionsFeature : IRazorEngineFeature
 {
     int Order { get; }
 
-    void Configure(RazorParserOptionsBuilder options);
+    void Configure(RazorParserOptions.Builder options);
 }

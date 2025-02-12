@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public sealed class RazorParserOptions
+public sealed partial class RazorParserOptions
 {
     public static RazorParserOptions Default { get; } = new(
         languageVersion: RazorLanguageVersion.Latest,
@@ -19,7 +19,7 @@ public sealed class RazorParserOptions
         featureFlags: RazorParserFeatureFlags.Create(RazorLanguageVersion.Latest, FileKinds.Legacy),
         flags: 0);
 
-    private readonly RazorParserOptionsFlags _flags;
+    private readonly Flags _flags;
 
     public RazorLanguageVersion LanguageVersion { get; } = RazorLanguageVersion.Latest;
     internal string FileKind { get; }
@@ -28,18 +28,18 @@ public sealed class RazorParserOptions
     public CSharpParseOptions CSharpParseOptions { get; }
     internal RazorParserFeatureFlags FeatureFlags { get; }
 
-    internal RazorParserOptions(
+    private RazorParserOptions(
         RazorLanguageVersion languageVersion,
         string fileKind,
         ImmutableArray<DirectiveDescriptor> directives,
         CSharpParseOptions csharpParseOptions,
         RazorParserFeatureFlags featureFlags,
-        RazorParserOptionsFlags flags)
+        Flags flags)
     {
-        if (flags.IsFlagSet(RazorParserOptionsFlags.ParseLeadingDirectives) &&
-            flags.IsFlagSet(RazorParserOptionsFlags.UseRoslynTokenizer))
+        if (flags.IsFlagSet(Flags.ParseLeadingDirectives) &&
+            flags.IsFlagSet(Flags.UseRoslynTokenizer))
         {
-            throw new ArgumentException($"Cannot set {nameof(RazorParserOptionsFlags.ParseLeadingDirectives)} and {nameof(RazorParserOptionsFlags.UseRoslynTokenizer)} to true simultaneously.");
+            throw new ArgumentException($"Cannot set {nameof(Flags.ParseLeadingDirectives)} and {nameof(Flags.UseRoslynTokenizer)} to true simultaneously.");
         }
 
         LanguageVersion = languageVersion ?? RazorLanguageVersion.Latest;
@@ -51,7 +51,7 @@ public sealed class RazorParserOptions
     }
 
     public bool DesignTime
-        => _flags.IsFlagSet(RazorParserOptionsFlags.DesignTime);
+        => _flags.IsFlagSet(Flags.DesignTime);
 
     /// <summary>
     /// Gets a value which indicates whether the parser will parse only the leading directives. If <c>true</c>
@@ -62,13 +62,13 @@ public sealed class RazorParserOptions
     /// In a future release this may be updated to include all leading directive content.
     /// </remarks>
     public bool ParseLeadingDirectives
-        => _flags.IsFlagSet(RazorParserOptionsFlags.ParseLeadingDirectives);
+        => _flags.IsFlagSet(Flags.ParseLeadingDirectives);
 
     public bool UseRoslynTokenizer
-        => _flags.IsFlagSet(RazorParserOptionsFlags.UseRoslynTokenizer);
+        => _flags.IsFlagSet(Flags.UseRoslynTokenizer);
 
     internal bool EnableSpanEditHandlers
-        => _flags.IsFlagSet(RazorParserOptionsFlags.EnableSpanEditHandlers);
+        => _flags.IsFlagSet(Flags.EnableSpanEditHandlers);
 
     public RazorParserOptions WithDirectives(params ImmutableArray<DirectiveDescriptor> value)
         => Directives.SequenceEqual(value)
@@ -90,22 +90,22 @@ public sealed class RazorParserOptions
 
         if (designTime.HasValue)
         {
-            flags.UpdateFlag(RazorParserOptionsFlags.DesignTime, designTime.Value);
+            flags.UpdateFlag(Flags.DesignTime, designTime.Value);
         }
 
         if (parseLeadingDirectives.HasValue)
         {
-            flags.UpdateFlag(RazorParserOptionsFlags.ParseLeadingDirectives, parseLeadingDirectives.Value);
+            flags.UpdateFlag(Flags.ParseLeadingDirectives, parseLeadingDirectives.Value);
         }
 
         if (useRoslynTokenizer.HasValue)
         {
-            flags.UpdateFlag(RazorParserOptionsFlags.UseRoslynTokenizer, useRoslynTokenizer.Value);
+            flags.UpdateFlag(Flags.UseRoslynTokenizer, useRoslynTokenizer.Value);
         }
 
         if (enableSpanEditHandlers.HasValue)
         {
-            flags.UpdateFlag(RazorParserOptionsFlags.EnableSpanEditHandlers, enableSpanEditHandlers.Value);
+            flags.UpdateFlag(Flags.EnableSpanEditHandlers, enableSpanEditHandlers.Value);
         }
 
         return flags == _flags

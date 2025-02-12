@@ -144,7 +144,7 @@ public class RazorProjectEngine
 
     private RazorCodeDocument CreateCodeDocumentCore(
         RazorProjectItem projectItem,
-        Action<RazorParserOptionsBuilder>? configureParser = null,
+        Action<RazorParserOptions.Builder>? configureParser = null,
         Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration = null)
     {
         var source = projectItem.GetSource();
@@ -160,7 +160,7 @@ public class RazorProjectEngine
         ImmutableArray<RazorSourceDocument> importSources,
         IReadOnlyList<TagHelperDescriptor>? tagHelpers,
         string? cssScope,
-        Action<RazorParserOptionsBuilder>? configureParser,
+        Action<RazorParserOptions.Builder>? configureParser,
         Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration)
     {
         var parserOptions = GetRequiredFeature<IRazorParserOptionsFactoryProjectFeature>().Create(fileKind, builder =>
@@ -190,7 +190,7 @@ public class RazorProjectEngine
 
     private RazorCodeDocument CreateCodeDocumentDesignTimeCore(
         RazorProjectItem projectItem,
-        Action<RazorParserOptionsBuilder>? configureParser = null,
+        Action<RazorParserOptions.Builder>? configureParser = null,
         Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration = null)
     {
         var source = projectItem.GetSource();
@@ -204,7 +204,7 @@ public class RazorProjectEngine
         string fileKind,
         ImmutableArray<RazorSourceDocument> importSources,
         IReadOnlyList<TagHelperDescriptor>? tagHelpers,
-        Action<RazorParserOptionsBuilder>? configureParser,
+        Action<RazorParserOptions.Builder>? configureParser,
         Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration)
     {
         ArgHelper.ThrowIfNull(sourceDocument);
@@ -518,11 +518,11 @@ public class RazorProjectEngine
         return imports.DrainToImmutable();
     }
 
-    private static void ConfigureParserOptions(RazorParserOptionsBuilder builder)
+    private static void ConfigureParserOptions(RazorParserOptions.Builder builder)
     {
     }
 
-    private static void ConfigureDesignTimeParserOptions(RazorParserOptionsBuilder builder)
+    private static void ConfigureDesignTimeParserOptions(RazorParserOptions.Builder builder)
     {
         builder.DesignTime = true;
     }

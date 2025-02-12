@@ -342,7 +342,7 @@ public class MarkupTransitionCompletionItemProviderTest(ITestOutputHelper testOu
     {
         var sourceDocument = TestRazorSourceDocument.Create(text);
 
-        var builder = new RazorParserOptionsBuilder(RazorLanguageVersion.Latest, fileKind)
+        var builder = new RazorParserOptions.Builder(RazorLanguageVersion.Latest, fileKind)
         {
             Directives = [.. directives]
         };

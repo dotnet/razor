@@ -18,7 +18,7 @@ internal sealed class DefaultRazorParserOptionsFeature : RazorEngineFeatureBase,
 
     public RazorParserOptions GetOptions()
     {
-        var builder = new RazorParserOptionsBuilder(RazorLanguageVersion.Version_2_0, FileKinds.Legacy);
+        var builder = new RazorParserOptions.Builder(RazorLanguageVersion.Version_2_0, FileKinds.Legacy);
 
         foreach (var feature in _features)
         {

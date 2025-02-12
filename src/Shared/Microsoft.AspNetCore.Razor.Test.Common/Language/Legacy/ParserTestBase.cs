@@ -273,7 +273,7 @@ public abstract class ParserTestBase : IParserTest
     {
         fileKind ??= FileKinds.Legacy;
 
-        var builder = new RazorParserOptionsBuilder(version, fileKind)
+        var builder = new RazorParserOptions.Builder(version, fileKind)
         {
             DesignTime = designTime,
             Directives = [.. directives],
