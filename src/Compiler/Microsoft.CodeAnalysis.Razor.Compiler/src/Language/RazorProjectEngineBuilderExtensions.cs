@@ -52,6 +52,26 @@ public static class RazorProjectEngineBuilderExtensions
         }
     }
 
+    public static RazorProjectEngineBuilder ConfigureParserOptions(this RazorProjectEngineBuilder builder, Action<RazorParserOptionsBuilder> configure)
+    {
+        ArgHelper.ThrowIfNull(builder);
+        ArgHelper.ThrowIfNull(configure);
+
+        builder.Features.Add(new ConfigureParserOptionsFeature(configure));
+
+        return builder;
+    }
+
+    public static RazorProjectEngineBuilder ConfigureCodeGenerationOptions(this RazorProjectEngineBuilder builder, Action<RazorCodeGenerationOptionsBuilder> configure)
+    {
+        ArgHelper.ThrowIfNull(builder);
+        ArgHelper.ThrowIfNull(configure);
+
+        builder.Features.Add(new ConfigureCodeGenerationOptionsFeature(configure));
+
+        return builder;
+    }
+
     /// <summary>
     /// Registers a class configuration delegate that gets invoked during code generation.
     /// </summary>
@@ -264,6 +284,26 @@ public static class RazorProjectEngineBuilderExtensions
         }
 
         return configurationFeature;
+    }
+
+    private sealed class ConfigureParserOptionsFeature(Action<RazorParserOptionsBuilder> configure) : RazorEngineFeatureBase, IConfigureRazorParserOptionsFeature
+    {
+        public int Order => 0;
+
+        public void Configure(RazorParserOptionsBuilder builder)
+        {
+            configure(builder);
+        }
+    }
+
+    private sealed class ConfigureCodeGenerationOptionsFeature(Action<RazorCodeGenerationOptionsBuilder> configure) : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
+    {
+        public int Order => 0;
+
+        public void Configure(RazorCodeGenerationOptionsBuilder builder)
+        {
+            configure(builder);
+        }
     }
 
     private sealed class AdditionalImportsProjectFeature(string[] imports) : RazorProjectEngineFeatureBase, IImportProjectFeature
