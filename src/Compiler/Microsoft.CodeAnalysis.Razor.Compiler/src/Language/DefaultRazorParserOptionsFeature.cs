@@ -23,7 +23,7 @@ internal class DefaultRazorParserOptionsFeature : RazorEngineFeatureBase, IRazor
 
     protected override void OnInitialized()
     {
-        _configureOptions = Engine.GetFeatures<IConfigureRazorParserOptionsFeature>();
+        _configureOptions = Engine.GetFeatures<IConfigureRazorParserOptionsFeature>().OrderByAsArray(static x => x.Order);
     }
 
     public RazorParserOptions GetOptions()

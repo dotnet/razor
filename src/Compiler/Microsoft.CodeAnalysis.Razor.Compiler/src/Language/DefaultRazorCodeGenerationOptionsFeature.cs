@@ -19,7 +19,7 @@ internal class DefaultRazorCodeGenerationOptionsFeature : RazorEngineFeatureBase
 
     protected override void OnInitialized()
     {
-        _configureOptions = Engine.GetFeatures<IConfigureRazorCodeGenerationOptionsFeature>();
+        _configureOptions = Engine.GetFeatures<IConfigureRazorCodeGenerationOptionsFeature>().OrderByAsArray(static x => x.Order);
     }
 
     public RazorCodeGenerationOptions GetOptions()

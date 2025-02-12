@@ -12,7 +12,7 @@ internal class DefaultRazorCodeGenerationOptionsFactoryProjectFeature : RazorPro
 
     protected override void OnInitialized()
     {
-        _configureOptions = ProjectEngine.Engine.GetFeatures<IConfigureRazorCodeGenerationOptionsFeature>();
+        _configureOptions = ProjectEngine.Engine.GetFeatures<IConfigureRazorCodeGenerationOptionsFeature>().OrderByAsArray(static x => x.Order);
     }
 
     public RazorCodeGenerationOptions Create(Action<RazorCodeGenerationOptionsBuilder> configure)

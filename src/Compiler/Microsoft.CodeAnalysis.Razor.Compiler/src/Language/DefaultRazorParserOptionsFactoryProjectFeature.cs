@@ -12,7 +12,7 @@ internal class DefaultRazorParserOptionsFactoryProjectFeature : RazorProjectEngi
 
     protected override void OnInitialized()
     {
-        _configureOptions = ProjectEngine.Engine.GetFeatures<IConfigureRazorParserOptionsFeature>();
+        _configureOptions = ProjectEngine.Engine.GetFeatures<IConfigureRazorParserOptionsFeature>().OrderByAsArray(static x => x.Order);
     }
 
     public RazorParserOptions Create(string fileKind, Action<RazorParserOptionsBuilder> configure)
