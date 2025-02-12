@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Xunit;
 using Xunit.Sdk;
 
@@ -133,7 +132,12 @@ public class RazorIntegrationTestBase
             csharpParseOptions ??= CSharpParseOptions;
 
             b.SetCSharpLanguageVersion(csharpParseOptions.LanguageVersion);
-            b.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, csharpParseOptions));
+
+            b.ConfigureParserOptions(builder =>
+            {
+                builder.UseRoslynTokenizer = true;
+                builder.CSharpParseOptions = csharpParseOptions;
+            });
 
             CompilerFeatures.Register(b);
         });

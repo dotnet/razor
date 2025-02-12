@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
@@ -191,7 +190,12 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
                 builder.SetRootNamespace(RootNamespace);
                 builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
                 builder.SetSupportLocalizedComponentNames();
-                builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer, parseOptions));
+
+                builder.ConfigureParserOptions(builder =>
+                {
+                    builder.UseRoslynTokenizer = useRoslynTokenizer;
+                    builder.CSharpParseOptions = parseOptions;
+                });
             });
     }
 

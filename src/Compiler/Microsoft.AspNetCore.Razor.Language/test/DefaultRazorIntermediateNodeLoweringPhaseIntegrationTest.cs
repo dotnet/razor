@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Moq;
 using Xunit;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
@@ -467,7 +466,12 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
             b.AddTagHelpers(tagHelpers);
 
             b.Features.Add(new DesignTimeOptionsFeature(designTime));
-            b.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
+
+            b.ConfigureParserOptions(builder =>
+            {
+                builder.UseRoslynTokenizer = true;
+                builder.CSharpParseOptions = CSharpParseOptions.Default;
+            });
         };
 
         var projectEngine = RazorProjectEngine.Create(configureEngine);

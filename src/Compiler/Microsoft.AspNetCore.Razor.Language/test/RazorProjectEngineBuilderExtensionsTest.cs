@@ -3,7 +3,6 @@
 
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Moq;
 using Xunit;
 
@@ -112,7 +111,12 @@ public class RazorProjectEngineBuilderExtensionsTest
         var projectEngine = RazorProjectEngine.Create(builder =>
         {
             builder.SetCSharpLanguageVersion(csharpLanguageVersion);
-            builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default.WithLanguageVersion(csharpLanguageVersion)));
+
+            builder.ConfigureParserOptions(builder =>
+            {
+                builder.UseRoslynTokenizer = true;
+                builder.CSharpParseOptions = CSharpParseOptions.Default.WithLanguageVersion(csharpLanguageVersion);
+            });
         });
 
         var features = projectEngine.Engine.GetFeatures<IConfigureRazorCodeGenerationOptionsFeature>();

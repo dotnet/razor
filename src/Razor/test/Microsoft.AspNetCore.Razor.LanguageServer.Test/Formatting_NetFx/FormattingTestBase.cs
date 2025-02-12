@@ -26,7 +26,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Roslyn.Test.Utilities;
@@ -315,7 +314,13 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
             {
                 builder.SetRootNamespace(inGlobalNamespace ? string.Empty : "Test");
                 builder.Features.Add(new DefaultTypeNameFeature());
-                builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
+
+                builder.ConfigureParserOptions(builder =>
+                {
+                    builder.UseRoslynTokenizer = true;
+                    builder.CSharpParseOptions = CSharpParseOptions.Default;
+                });
+
                 RazorExtensions.Register(builder);
             });
 
