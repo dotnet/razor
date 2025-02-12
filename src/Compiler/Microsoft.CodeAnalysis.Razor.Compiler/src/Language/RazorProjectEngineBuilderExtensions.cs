@@ -131,7 +131,11 @@ public static class RazorProjectEngineBuilderExtensions
     {
         ArgHelper.ThrowIfNull(builder);
 
-        builder.Features.Add(new ConfigureRootNamespaceFeature(rootNamespace));
+        builder.ConfigureCodeGenerationOptions(builder =>
+        {
+            builder.RootNamespace = rootNamespace;
+        });
+
         return builder;
     }
 
@@ -144,7 +148,11 @@ public static class RazorProjectEngineBuilderExtensions
     {
         ArgHelper.ThrowIfNull(builder);
 
-        builder.Features.Add(new SetSupportLocalizedComponentNamesFeature());
+        builder.ConfigureCodeGenerationOptions(builder =>
+        {
+            builder.SupportLocalizedComponentNames = true;
+        });
+
         return builder;
     }
 
@@ -314,26 +322,6 @@ public static class RazorProjectEngineBuilderExtensions
         public void CollectImports(RazorProjectItem projectItem, ref PooledArrayBuilder<RazorProjectItem> imports)
         {
             imports.AddRange(_imports);
-        }
-    }
-
-    private class SetSupportLocalizedComponentNamesFeature : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
-    {
-        public int Order { get; set; }
-
-        public void Configure(RazorCodeGenerationOptionsBuilder builder)
-        {
-            builder.SupportLocalizedComponentNames = true;
-        }
-    }
-
-    private class ConfigureRootNamespaceFeature(string? rootNamespace) : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
-    {
-        public int Order { get; set; }
-
-        public void Configure(RazorCodeGenerationOptionsBuilder builder)
-        {
-            builder.RootNamespace = rootNamespace;
         }
     }
 

@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.Extensions.Internal;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Razor.Extensions;
@@ -500,7 +499,16 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
         }
 
         builder.SetRootNamespace(projectSnapshot?.RootNamespace);
-        builder.Features.Add(new VisualStudioParserOptionsFeature(_documentTracker.EditorSettings));
+
+        var settings = _documentTracker.EditorSettings;
+
+        builder.ConfigureCodeGenerationOptions(builder =>
+        {
+            builder.IndentSize = settings.IndentSize;
+            builder.IndentWithTabs = settings.IndentWithTabs;
+            builder.RemapLinePragmaPathsOnWindows = true;
+        });
+
         builder.Features.Add(new VisualStudioTagHelperFeature(_documentTracker.TagHelpers));
 
         builder.ConfigureParserOptions(ConfigureParserOptions);
@@ -570,25 +578,6 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
                 // At this point it's possible these requests have been cancelled, if that's the case Complete noops.
                 matchingRequests[i].Complete(codeDocument);
             }
-        }
-    }
-
-    private class VisualStudioParserOptionsFeature : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
-    {
-        private readonly ClientSpaceSettings _settings;
-
-        public VisualStudioParserOptionsFeature(ClientSpaceSettings settings)
-        {
-            _settings = settings;
-        }
-
-        public int Order { get; set; }
-
-        public void Configure(RazorCodeGenerationOptionsBuilder options)
-        {
-            options.IndentSize = _settings.IndentSize;
-            options.IndentWithTabs = _settings.IndentWithTabs;
-            options.RemapLinePragmaPathsOnWindows = true;
         }
     }
 

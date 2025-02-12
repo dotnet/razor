@@ -299,7 +299,11 @@ public abstract class IntegrationTestBase
     {
         return RazorProjectEngine.Create(configuration, FileSystem, b =>
         {
-            b.Features.Add(new ConfigureCodeGenerationOptionsFeature(LineEnding));
+            b.ConfigureCodeGenerationOptions(builder =>
+            {
+                builder.NewLine = LineEnding;
+                builder.SuppressUniqueIds = "__UniqueIdSuppressedForTesting__";
+            });
 
             b.RegisterExtensions();
 
@@ -783,17 +787,6 @@ public abstract class IntegrationTestBase
     private static string NormalizeNewLines(string content, string lineEnding)
     {
         return Regex.Replace(content, "(?<!\r)\n", lineEnding, RegexOptions.None, TimeSpan.FromSeconds(10));
-    }
-
-    private sealed class ConfigureCodeGenerationOptionsFeature(string lineEnding) : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
-    {
-        public int Order { get; }
-
-        public void Configure(RazorCodeGenerationOptionsBuilder options)
-        {
-            options.NewLine = lineEnding;
-            options.SuppressUniqueIds = "__UniqueIdSuppressedForTesting__";
-        }
     }
 
     // 'Default' imports won't have normalized line-endings, which is unfriendly for testing.
