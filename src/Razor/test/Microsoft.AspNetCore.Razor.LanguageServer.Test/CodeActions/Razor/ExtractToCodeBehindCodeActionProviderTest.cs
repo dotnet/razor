@@ -383,10 +383,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
 
         var codeDocument = TestRazorCodeDocument.Create(sourceDocument, imports: default);
         codeDocument.SetFileKind(FileKinds.Component);
-        codeDocument.SetCodeGenerationOptions(RazorCodeGenerationOptions.Create(o =>
-        {
-            o.RootNamespace = "ExtractToCodeBehindTest";
-        }));
+        codeDocument.SetCodeGenerationOptions(RazorCodeGenerationOptions.Default.WithRootNamespace("ExtractToCodeBehindTest"));
         codeDocument.SetSyntaxTree(syntaxTree);
 
         var documentSnapshotMock = new StrictMock<IDocumentSnapshot>();

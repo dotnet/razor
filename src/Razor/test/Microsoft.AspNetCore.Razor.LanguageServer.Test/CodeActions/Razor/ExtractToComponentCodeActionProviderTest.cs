@@ -625,10 +625,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
 
         var codeDocument = TestRazorCodeDocument.Create(sourceDocument, imports: default);
         codeDocument.SetFileKind(FileKinds.Component);
-        codeDocument.SetCodeGenerationOptions(RazorCodeGenerationOptions.Create(o =>
-        {
-            o.RootNamespace = "ExtractToComponentTest";
-        }));
+        codeDocument.SetCodeGenerationOptions(RazorCodeGenerationOptions.Default.WithRootNamespace("ExtractToComponentTest"));
         codeDocument.SetSyntaxTree(syntaxTree);
 
         var documentSnapshot = new StrictMock<IDocumentSnapshot>();

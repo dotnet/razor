@@ -49,10 +49,7 @@ public class MetadataAttributePassTest
 
         var irDocument = new DocumentIntermediateNode()
         {
-            Options = RazorCodeGenerationOptions.Create(o =>
-            {
-                o.SuppressMetadataAttributes = true;
-            }),
+            Options = RazorCodeGenerationOptions.Default.WithFlags(suppressMetadataAttributes: true)
         };
 
         // Act
@@ -78,10 +75,7 @@ public class MetadataAttributePassTest
         var irDocument = new DocumentIntermediateNode()
         {
             DocumentKind = ComponentDocumentClassifierPass.ComponentDocumentKind,
-            Options = RazorCodeGenerationOptions.Create(o =>
-            {
-                o.SuppressMetadataAttributes = true;
-            }),
+            Options = RazorCodeGenerationOptions.Default.WithFlags(suppressMetadataAttributes: true)
         };
 
         // Act
@@ -107,7 +101,7 @@ public class MetadataAttributePassTest
         var irDocument = new DocumentIntermediateNode()
         {
             DocumentKind = "test",
-            Options = RazorCodeGenerationOptions.Create((o) => { }),
+            Options = RazorCodeGenerationOptions.Default
         };
         var builder = IntermediateNodeBuilder.Create(irDocument);
         var @namespace = new NamespaceDeclarationIntermediateNode
@@ -164,7 +158,7 @@ public class MetadataAttributePassTest
         var irDocument = new DocumentIntermediateNode()
         {
             DocumentKind = "test",
-            Options = RazorCodeGenerationOptions.Create((o) => { }),
+            Options = RazorCodeGenerationOptions.Default
         };
         var builder = IntermediateNodeBuilder.Create(irDocument);
         var @namespace = new NamespaceDeclarationIntermediateNode
@@ -249,7 +243,7 @@ public class MetadataAttributePassTest
         var irDocument = new DocumentIntermediateNode()
         {
             DocumentKind = "test",
-            Options = RazorCodeGenerationOptions.Create((o) => { }),
+            Options = RazorCodeGenerationOptions.Default
         };
         var builder = IntermediateNodeBuilder.Create(irDocument);
         var @namespace = new NamespaceDeclarationIntermediateNode
@@ -294,7 +288,7 @@ public class MetadataAttributePassTest
         var irDocument = new DocumentIntermediateNode()
         {
             DocumentKind = "test",
-            Options = RazorCodeGenerationOptions.Create((o) => { }),
+            Options = RazorCodeGenerationOptions.Default
         };
         var builder = IntermediateNodeBuilder.Create(irDocument);
         var @namespace = new NamespaceDeclarationIntermediateNode
@@ -350,7 +344,7 @@ public class MetadataAttributePassTest
         var irDocument = new DocumentIntermediateNode()
         {
             DocumentKind = "test",
-            Options = RazorCodeGenerationOptions.Create((o) => { }),
+            Options = RazorCodeGenerationOptions.Default
         };
         var builder = IntermediateNodeBuilder.Create(irDocument);
         var @namespace = new NamespaceDeclarationIntermediateNode
@@ -410,7 +404,7 @@ public class MetadataAttributePassTest
         var irDocument = new DocumentIntermediateNode()
         {
             DocumentKind = "test",
-            Options = RazorCodeGenerationOptions.Create(o => o.SuppressMetadataSourceChecksumAttributes = true),
+            Options = RazorCodeGenerationOptions.Default.WithFlags(suppressMetadataSourceChecksumAttributes: true)
         };
         var builder = IntermediateNodeBuilder.Create(irDocument);
         var @namespace = new NamespaceDeclarationIntermediateNode

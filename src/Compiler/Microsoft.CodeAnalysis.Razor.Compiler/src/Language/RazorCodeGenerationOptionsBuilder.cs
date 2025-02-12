@@ -5,24 +5,25 @@ using System;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public sealed class RazorCodeGenerationOptionsBuilder
+public sealed class RazorCodeGenerationOptionsBuilder(RazorLanguageVersion languageVersion)
 {
+    public RazorLanguageVersion LanguageVersion { get; } = languageVersion ?? RazorLanguageVersion.Latest;
+
     private RazorCodeGenerationOptionsFlags _flags;
     private string _newLine = Environment.NewLine;
-
-    public RazorConfiguration? Configuration { get; }
-
-    public bool DesignTime => _flags.IsFlagSet(RazorCodeGenerationOptionsFlags.DesignTime);
 
     public int IndentSize { get; set; } = 4;
 
     public string NewLine
     {
         get => _newLine;
-        set
-        {
-            _newLine = value ?? Environment.NewLine;
-        }
+        set => _newLine = value ?? Environment.NewLine;
+    }
+
+    public bool DesignTime
+    {
+        get => _flags.IsFlagSet(RazorCodeGenerationOptionsFlags.DesignTime);
+        set => _flags.UpdateFlag(RazorCodeGenerationOptionsFlags.DesignTime, value);
     }
 
     public bool IndentWithTabs
@@ -154,40 +155,6 @@ public sealed class RazorCodeGenerationOptionsBuilder
         set => _flags.UpdateFlag(RazorCodeGenerationOptionsFlags.RemapLinePragmaPathsOnWindows, value);
     }
 
-    public RazorCodeGenerationOptionsBuilder(RazorConfiguration configuration)
-    {
-        ArgHelper.ThrowIfNull(configuration);
-
-        Configuration = configuration;
-        if (configuration.SuppressAddComponentParameter)
-        {
-            _flags.SetFlag(RazorCodeGenerationOptionsFlags.SuppressAddComponentParameter);
-        }
-    }
-
-    public RazorCodeGenerationOptionsBuilder(RazorCodeGenerationOptionsFlags flags)
-    {
-        _flags = flags;
-    }
-
-    public RazorCodeGenerationOptionsBuilder(bool designTime)
-    {
-        if (designTime)
-        {
-            _flags = RazorCodeGenerationOptionsFlags.DesignTime;
-        }
-    }
-
-    public RazorCodeGenerationOptions Build()
-        => new(
-            _flags,
-            IndentSize,
-            NewLine,
-            RootNamespace,
-            SuppressUniqueIds);
-
-    public void SetDesignTime(bool value)
-    {
-        _flags.UpdateFlag(RazorCodeGenerationOptionsFlags.DesignTime, value);
-    }
+    public RazorCodeGenerationOptions ToOptions()
+        => new(IndentSize, NewLine, RootNamespace, SuppressUniqueIds, _flags);
 }

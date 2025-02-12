@@ -110,11 +110,11 @@ public class DefaultDocumentWriterTest
         var document = new DocumentIntermediateNode();
 
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
-        var optionsBuilder = new RazorCodeGenerationOptionsBuilder(designTime: false)
+        var optionsBuilder = new RazorCodeGenerationOptionsBuilder(RazorLanguageVersion.Latest)
         {
             SuppressChecksum = true
         };
-        var options = optionsBuilder.Build();
+        var options = optionsBuilder.ToOptions();
 
         var target = CodeTarget.CreateDefault(codeDocument, options);
         var writer = new DefaultDocumentWriter(target, options);

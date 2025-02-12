@@ -533,7 +533,7 @@ public class RazorProjectEngine
 
     private static void ConfigureDesignTimeCodeGenerationOptions(RazorCodeGenerationOptionsBuilder builder)
     {
-        builder.SetDesignTime(true);
+        builder.DesignTime = true;
         builder.SuppressChecksum = true;
         builder.SuppressMetadataAttributes = true;
     }

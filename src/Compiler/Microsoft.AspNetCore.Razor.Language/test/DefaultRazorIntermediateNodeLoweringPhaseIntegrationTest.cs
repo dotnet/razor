@@ -474,7 +474,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
 
             b.ConfigureCodeGenerationOptions(builder =>
             {
-                builder.SetDesignTime(designTime);
+                builder.DesignTime = designTime;
             });
         };
 

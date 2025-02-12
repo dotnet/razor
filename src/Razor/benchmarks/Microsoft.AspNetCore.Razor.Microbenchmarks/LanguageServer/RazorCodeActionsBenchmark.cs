@@ -81,7 +81,7 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(CancellationToken.None);
         // Need a root namespace for the Extract to Code Behind light bulb to be happy
-        codeDocument.SetCodeGenerationOptions(RazorCodeGenerationOptions.Create(c => c.RootNamespace = "Root.Namespace"));
+        codeDocument.SetCodeGenerationOptions(RazorCodeGenerationOptions.Default.WithRootNamespace("Root.Namespace"));
 
         RazorRequestContext = new RazorRequestContext(documentContext, RazorLanguageServerHost.GetRequiredService<ILspServices>(), "lsp/method", uri: null);
     }

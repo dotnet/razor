@@ -296,7 +296,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
 
             b.ConfigureCodeGenerationOptions(builder =>
             {
-                builder.SetDesignTime(designTime);
+                builder.DesignTime = designTime;
             });
         }).Engine;
     }

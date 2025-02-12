@@ -207,7 +207,7 @@ public static class RazorProjectEngineBuilderExtensions
 
         public void Configure(RazorCodeGenerationOptionsBuilder builder)
         {
-            if (builder.Configuration is { LanguageVersion.Major: < 3 })
+            if (builder.LanguageVersion.Major is < 3)
             {
                 // Prior to 3.0 there were no C# version specific controlled features. Suppress nullability enforcement.
                 builder.SuppressNullabilityEnforcement = true;
@@ -231,7 +231,7 @@ public static class RazorProjectEngineBuilderExtensions
                 builder.SuppressNullabilityEnforcement = false;
             }
 
-            if (builder.Configuration is { LanguageVersion.Major: >= 5 })
+            if (builder.LanguageVersion.Major is >= 5)
             {
                 // This is a useful optimization but isn't supported by older framework versions
                 builder.OmitMinimizedComponentAttributeValues = true;

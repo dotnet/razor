@@ -17,7 +17,13 @@ internal class DefaultRazorCodeGenerationOptionsFactoryProjectFeature : RazorPro
 
     public RazorCodeGenerationOptions Create(Action<RazorCodeGenerationOptionsBuilder> configure)
     {
-        var builder = new RazorCodeGenerationOptionsBuilder(ProjectEngine.Configuration);
+        var configuration = ProjectEngine.Configuration;
+
+        var builder = new RazorCodeGenerationOptionsBuilder(configuration.LanguageVersion)
+        {
+            SuppressAddComponentParameter = configuration.SuppressAddComponentParameter
+        };
+
         configure?.Invoke(builder);
 
         foreach (var options in _configureOptions)
@@ -25,6 +31,6 @@ internal class DefaultRazorCodeGenerationOptionsFactoryProjectFeature : RazorPro
             options.Configure(builder);
         }
 
-        return builder.Build();
+        return builder.ToOptions();
     }
 }

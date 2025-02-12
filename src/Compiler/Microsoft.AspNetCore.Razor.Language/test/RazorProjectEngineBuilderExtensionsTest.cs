@@ -120,14 +120,13 @@ public class RazorProjectEngineBuilderExtensionsTest
         });
 
         var features = projectEngine.Engine.GetFeatures<IConfigureRazorCodeGenerationOptionsFeature>();
-        var builder = new RazorCodeGenerationOptionsBuilder(RazorConfiguration.Default);
-
+        var builder = new RazorCodeGenerationOptionsBuilder(RazorLanguageVersion.Latest);
         foreach (var feature in features)
         {
             feature.Configure(builder);
         }
 
-        var options = builder.Build();
+        var options = builder.ToOptions();
 
         // Assert
         Assert.False(options.SuppressNullabilityEnforcement);
