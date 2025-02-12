@@ -406,7 +406,7 @@ public class RazorSyntaxTreePartialParserTest(ITestOutputHelper testOutput) : To
                 builder.AddTagHelpers(tagHelpers);
             }
 
-            builder.Features.Add(new VisualStudioRazorParser.VisualStudioEnableTagHelpersFeature());
+            builder.ConfigureParserOptions(VisualStudioRazorParser.ConfigureParserOptions);
         });
 
         return projectEngine;

@@ -31,7 +31,11 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
             }
 
             RazorExtensions.Register(builder);
-            builder.Features.Add(new LeadingDirectiveParserOptionsFeature());
+
+            builder.ConfigureParserOptions(builder =>
+            {
+                builder.ParseLeadingDirectives = true;
+            });
         });
 
     protected override string DocumentKind => RazorPageDocumentKind;
@@ -133,16 +137,6 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
                 pageDirective.DirectiveNode.Diagnostics.Add(
                     RazorExtensionsDiagnosticFactory.CreatePageDirective_MustExistAtTheTopOfFile(pageDirective.DirectiveNode.Source.Value));
             }
-        }
-    }
-
-    private class LeadingDirectiveParserOptionsFeature : RazorEngineFeatureBase, IConfigureRazorParserOptionsFeature
-    {
-        public int Order { get; }
-
-        public void Configure(RazorParserOptionsBuilder options)
-        {
-            options.ParseLeadingDirectives = true;
         }
     }
 }

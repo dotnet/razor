@@ -465,12 +465,16 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
             SectionDirective.Register(b);
             b.AddTagHelpers(tagHelpers);
 
-            b.Features.Add(new DesignTimeOptionsFeature(designTime));
-
             b.ConfigureParserOptions(builder =>
             {
+                builder.SetDesignTime(designTime);
                 builder.UseRoslynTokenizer = true;
                 builder.CSharpParseOptions = CSharpParseOptions.Default;
+            });
+
+            b.ConfigureCodeGenerationOptions(builder =>
+            {
+                builder.SetDesignTime(designTime);
             });
         };
 
@@ -514,28 +518,5 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
         var descriptor = builder.Build();
 
         return descriptor;
-    }
-
-    private class DesignTimeOptionsFeature : RazorEngineFeatureBase, IConfigureRazorParserOptionsFeature, IConfigureRazorCodeGenerationOptionsFeature
-    {
-        private readonly bool _designTime;
-
-        public DesignTimeOptionsFeature(bool designTime)
-        {
-            _designTime = designTime;
-        }
-
-        public int Order { get; }
-
-        public void Configure(RazorParserOptionsBuilder options)
-        {
-            options.SetDesignTime(_designTime);
-            options.UseRoslynTokenizer = true;
-        }
-
-        public void Configure(RazorCodeGenerationOptionsBuilder options)
-        {
-            options.SetDesignTime(_designTime);
-        }
     }
 }

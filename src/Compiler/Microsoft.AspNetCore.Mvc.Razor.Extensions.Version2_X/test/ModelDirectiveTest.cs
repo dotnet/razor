@@ -292,7 +292,15 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
             b.Features.Add(new RazorPageDocumentClassifierPass());
             b.Features.Add(new MvcViewDocumentClassifierPass());
 
-            b.Features.Add(new DesignTimeOptionsFeature(designTime));
+            b.ConfigureParserOptions(builder =>
+            {
+                builder.SetDesignTime(designTime);
+            });
+
+            b.ConfigureCodeGenerationOptions(builder =>
+            {
+                builder.SetDesignTime(designTime);
+            });
         }).Engine;
     }
 
@@ -335,28 +343,6 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         public override void VisitNamespaceDeclaration(NamespaceDeclarationIntermediateNode node)
         {
             Node = node;
-        }
-    }
-
-    private class DesignTimeOptionsFeature : RazorEngineFeatureBase, IConfigureRazorParserOptionsFeature, IConfigureRazorCodeGenerationOptionsFeature
-    {
-        private readonly bool _designTime;
-
-        public DesignTimeOptionsFeature(bool designTime)
-        {
-            _designTime = designTime;
-        }
-
-        public int Order { get; }
-
-        public void Configure(RazorParserOptionsBuilder options)
-        {
-            options.SetDesignTime(_designTime);
-        }
-
-        public void Configure(RazorCodeGenerationOptionsBuilder options)
-        {
-            options.SetDesignTime(_designTime);
         }
     }
 }

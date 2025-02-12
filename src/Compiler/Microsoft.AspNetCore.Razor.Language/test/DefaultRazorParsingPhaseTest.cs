@@ -37,7 +37,7 @@ public class DefaultRazorParsingPhaseTest
         {
             builder.Phases.Add(phase);
             builder.Features.Add(new DefaultRazorParserOptionsFeature(designTime: false, version: RazorLanguageVersion.Latest, fileKind: null));
-            builder.Features.Add(new MyParserOptionsFeature());
+            builder.ConfigureParserOptions(ConfigureDirective);
         });
 
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
@@ -60,7 +60,7 @@ public class DefaultRazorParsingPhaseTest
         {
             builder.Phases.Add(phase);
             builder.Features.Add(new DefaultRazorParserOptionsFeature(designTime: false, version: RazorLanguageVersion.Latest, fileKind: null));
-            builder.Features.Add(new MyParserOptionsFeature());
+            builder.ConfigureParserOptions(ConfigureDirective);
         });
 
         var imports = ImmutableArray.Create(
@@ -81,13 +81,8 @@ public class DefaultRazorParsingPhaseTest
             t => { Assert.Same(t.Source, imports[1]); Assert.Equal("test", Assert.Single(t.Options.Directives).Directive); });
     }
 
-    private class MyParserOptionsFeature : RazorEngineFeatureBase, IConfigureRazorParserOptionsFeature
+    private static void ConfigureDirective(RazorParserOptionsBuilder builder)
     {
-        public int Order { get; }
-
-        public void Configure(RazorParserOptionsBuilder options)
-        {
-            options.Directives.Add(DirectiveDescriptor.CreateDirective("test", DirectiveKind.SingleLine));
-        }
+        builder.Directives.Add(DirectiveDescriptor.CreateDirective("test", DirectiveKind.SingleLine));
     }
 }
