@@ -5,7 +5,7 @@ using System.IO;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Xunit;
 using Xunit.Abstractions;
 

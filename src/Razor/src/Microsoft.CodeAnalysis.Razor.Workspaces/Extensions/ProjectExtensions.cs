@@ -2,9 +2,17 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Buffers;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -74,6 +82,8 @@ internal static class ProjectExtensions
         return project.GetDocument(documentId)
             ?? ThrowHelper.ThrowInvalidOperationException<Document>($"The document {documentId} did not exist in {project.Name}");
     }
+
+
 
     public static bool TryGetCSharpDocument(this Project project, Uri csharpDocumentUri, [NotNullWhen(true)] out Document? document)
     {
