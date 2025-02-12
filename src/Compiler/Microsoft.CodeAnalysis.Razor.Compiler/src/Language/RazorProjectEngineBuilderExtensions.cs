@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
-using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis.CSharp;
 using RazorExtensionsV1_X = Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.RazorExtensions;
 using RazorExtensionsV2_X = Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.RazorExtensions;
@@ -71,55 +70,6 @@ public static class RazorProjectEngineBuilderExtensions
     }
 
     /// <summary>
-    /// Registers a class configuration delegate that gets invoked during code generation.
-    /// </summary>
-    /// <param name="builder">The <see cref="RazorProjectEngineBuilder"/>.</param>
-    /// <param name="configureClass"><see cref="Action"/> invoked to configure
-    /// <see cref="ClassDeclarationIntermediateNode"/> during code generation.</param>
-    /// <returns>The <see cref="RazorProjectEngineBuilder"/>.</returns>
-    public static RazorProjectEngineBuilder ConfigureClass(
-        this RazorProjectEngineBuilder builder,
-        Action<RazorCodeDocument, ClassDeclarationIntermediateNode> configureClass)
-    {
-        ArgHelper.ThrowIfNull(builder);
-        ArgHelper.ThrowIfNull(configureClass);
-
-        var configurationFeature = builder.GetOrCreateFeature<DefaultDocumentClassifierPassFeature>();
-        configurationFeature.ConfigureClass.Add(configureClass);
-        return builder;
-    }
-
-    /// <summary>
-    /// Sets the base type for generated types.
-    /// </summary>
-    /// <param name="builder">The <see cref="RazorProjectEngineBuilder"/>.</param>
-    /// <param name="baseType">The name of the base type.</param>
-    /// <returns>The <see cref="RazorProjectEngineBuilder"/>.</returns>
-    public static RazorProjectEngineBuilder SetBaseType(this RazorProjectEngineBuilder builder, string baseType)
-    {
-        ArgHelper.ThrowIfNull(builder);
-
-        var configurationFeature = builder.GetOrCreateFeature<DefaultDocumentClassifierPassFeature>();
-        configurationFeature.ConfigureClass.Add((document, @class) => @class.BaseType = new BaseTypeWithModel(baseType));
-        return builder;
-    }
-
-    /// <summary>
-    /// Sets the namespace for generated types.
-    /// </summary>
-    /// <param name="builder">The <see cref="RazorProjectEngineBuilder"/>.</param>
-    /// <param name="namespaceName">The name of the namespace.</param>
-    /// <returns>The <see cref="RazorProjectEngineBuilder"/>.</returns>
-    public static RazorProjectEngineBuilder SetNamespace(this RazorProjectEngineBuilder builder, string namespaceName)
-    {
-        ArgHelper.ThrowIfNull(builder);
-
-        var configurationFeature = builder.GetOrCreateFeature<DefaultDocumentClassifierPassFeature>();
-        configurationFeature.ConfigureNamespace.Add((document, @namespace) => @namespace.Content = namespaceName);
-        return builder;
-    }
-
-    /// <summary>
     /// Sets the root namespace for the generated code.
     /// </summary>
     /// <param name="builder">The <see cref="RazorProjectEngineBuilder"/>.</param>
@@ -160,7 +110,7 @@ public static class RazorProjectEngineBuilderExtensions
     /// <param name="builder">The <see cref="RazorProjectEngineBuilder"/>.</param>
     /// <param name="extension">The <see cref="ICodeTargetExtension"/> to add.</param>
     /// <returns>The <see cref="RazorProjectEngineBuilder"/>.</returns>
-    public static RazorProjectEngineBuilder AddTargetExtension(this RazorProjectEngineBuilder builder, ICodeTargetExtension extension)
+    internal static RazorProjectEngineBuilder AddTargetExtension(this RazorProjectEngineBuilder builder, ICodeTargetExtension extension)
     {
         ArgHelper.ThrowIfNull(builder);
         ArgHelper.ThrowIfNull(extension);
