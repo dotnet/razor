@@ -11,7 +11,7 @@ public class ManualRunOnlyIdeFactAttribute : IdeFactAttribute
 {
     public ManualRunOnlyIdeFactAttribute()
     {
-        if (Environment.GetEnvironmentVariable("CI") is not null)
+        if (Environment.GetEnvironmentVariable("_IntegrationTestsRunningInCI") is not null)
         {
             Skip = "This test can only run manually";
         }
