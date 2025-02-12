@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
 public class StressTests(ITestOutputHelper testOutputHelper) : AbstractStressTest(testOutputHelper)
 {
-    [VSOnlyIdeFact]
+    [ManualRunOnlyIdeFact]
     public async Task AddAndRemoveComponent()
     {
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);

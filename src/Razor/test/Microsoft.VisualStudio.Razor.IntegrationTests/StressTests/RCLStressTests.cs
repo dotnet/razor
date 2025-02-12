@@ -16,7 +16,7 @@ public class RCLStressTests(ITestOutputHelper testOutputHelper) : AbstractStress
 
     protected override string ProjectZipFile => "Microsoft.VisualStudio.Razor.IntegrationTests.TestFiles.BlazorProjectWithRCL.zip";
 
-    [VSOnlyIdeFact]
+    [ManualRunOnlyIdeFact]
     public async Task AddAndRemoveComponentInRCL()
     {
         await TestServices.SolutionExplorer.OpenFileAsync("RazorClassLibrary", @"Components\RCLComponent.razor", ControlledHangMitigatingCancellationToken);

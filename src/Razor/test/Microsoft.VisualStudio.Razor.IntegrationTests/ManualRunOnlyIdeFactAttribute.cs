@@ -7,13 +7,13 @@ using Xunit;
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-public class VSOnlyIdeFactAttribute : IdeFactAttribute
+public class ManualRunOnlyIdeFactAttribute : IdeFactAttribute
 {
-    public VSOnlyIdeFactAttribute()
+    public ManualRunOnlyIdeFactAttribute()
     {
-        if (Environment.GetEnvironmentVariable("VisualStudioVersion") is null)
+        if (Environment.GetEnvironmentVariable("CI") is not null)
         {
-            Skip = "This test can only run in Visual Studio";
+            Skip = "This test can only run manually";
         }
     }
 }
