@@ -86,7 +86,7 @@ public static class RazorProjectEngineBuilderExtensions
         ArgHelper.ThrowIfNull(builder);
         ArgHelper.ThrowIfNull(configureClass);
 
-        var configurationFeature = GetDefaultDocumentClassifierPassFeature(builder);
+        var configurationFeature = builder.GetOrCreateFeature<DefaultDocumentClassifierPassFeature>();
         configurationFeature.ConfigureClass.Add(configureClass);
         return builder;
     }
@@ -101,7 +101,7 @@ public static class RazorProjectEngineBuilderExtensions
     {
         ArgHelper.ThrowIfNull(builder);
 
-        var configurationFeature = GetDefaultDocumentClassifierPassFeature(builder);
+        var configurationFeature = builder.GetOrCreateFeature<DefaultDocumentClassifierPassFeature>();
         configurationFeature.ConfigureClass.Add((document, @class) => @class.BaseType = new BaseTypeWithModel(baseType));
         return builder;
     }
@@ -116,7 +116,7 @@ public static class RazorProjectEngineBuilderExtensions
     {
         ArgHelper.ThrowIfNull(builder);
 
-        var configurationFeature = GetDefaultDocumentClassifierPassFeature(builder);
+        var configurationFeature = builder.GetOrCreateFeature<DefaultDocumentClassifierPassFeature>();
         configurationFeature.ConfigureNamespace.Add((document, @namespace) => @namespace.Content = namespaceName);
         return builder;
     }
@@ -167,25 +167,8 @@ public static class RazorProjectEngineBuilderExtensions
         ArgHelper.ThrowIfNull(builder);
         ArgHelper.ThrowIfNull(extension);
 
-        var targetExtensionFeature = GetTargetExtensionFeature(builder);
+        var targetExtensionFeature = builder.GetOrCreateFeature<IRazorTargetExtensionFeature, DefaultRazorTargetExtensionFeature>();
         targetExtensionFeature.TargetExtensions.Add(extension);
-
-        return builder;
-    }
-
-    /// <summary>
-    /// Adds the specified <see cref="DirectiveDescriptor"/>.
-    /// </summary>
-    /// <param name="builder">The <see cref="RazorProjectEngineBuilder"/>.</param>
-    /// <param name="directive">The <see cref="DirectiveDescriptor"/> to add.</param>
-    /// <returns>The <see cref="RazorProjectEngineBuilder"/>.</returns>
-    public static RazorProjectEngineBuilder AddDirective(this RazorProjectEngineBuilder builder, DirectiveDescriptor directive)
-    {
-        ArgHelper.ThrowIfNull(builder);
-        ArgHelper.ThrowIfNull(directive);
-
-        var directiveFeature = GetDirectiveFeature(builder);
-        directiveFeature.AddDirective(directive);
 
         return builder;
     }
@@ -197,13 +180,12 @@ public static class RazorProjectEngineBuilderExtensions
     /// <param name="directive">The <see cref="DirectiveDescriptor"/> to add.</param>
     /// <param name="fileKinds">The file kinds, for which to register the directive. See <see cref="FileKinds"/>.</param>
     /// <returns>The <see cref="RazorProjectEngineBuilder"/>.</returns>
-    public static RazorProjectEngineBuilder AddDirective(this RazorProjectEngineBuilder builder, DirectiveDescriptor directive, params string[] fileKinds)
+    internal static RazorProjectEngineBuilder AddDirective(this RazorProjectEngineBuilder builder, DirectiveDescriptor directive, params ReadOnlySpan<string> fileKinds)
     {
         ArgHelper.ThrowIfNull(builder);
         ArgHelper.ThrowIfNull(directive);
-        ArgHelper.ThrowIfNull(fileKinds);
 
-        var directiveFeature = GetDirectiveFeature(builder);
+        var directiveFeature = builder.GetOrCreateFeature<ConfigureDirectivesFeature>();
         directiveFeature.AddDirective(directive, fileKinds);
 
         return builder;
@@ -248,40 +230,21 @@ public static class RazorProjectEngineBuilderExtensions
         return builder;
     }
 
-    private static ConfigureDirectivesFeature GetDirectiveFeature(RazorProjectEngineBuilder builder)
+    private static T GetOrCreateFeature<T>(this RazorProjectEngineBuilder builder)
+        where T : class, IRazorEngineFeature, new()
+        => builder.GetOrCreateFeature<T, T>();
+
+    private static TInterface GetOrCreateFeature<TInterface, TFeature>(this RazorProjectEngineBuilder builder)
+        where TInterface : IRazorEngineFeature
+        where TFeature : class, TInterface, new()
     {
-        var directiveFeature = builder.Features.OfType<ConfigureDirectivesFeature>().FirstOrDefault();
-        if (directiveFeature == null)
+        if (builder.Features.OfType<TInterface>().FirstOrDefault() is not { } feature)
         {
-            directiveFeature = new ConfigureDirectivesFeature();
-            builder.Features.Add(directiveFeature);
+            feature = new TFeature();
+            builder.Features.Add(feature);
         }
 
-        return directiveFeature;
-    }
-
-    private static IRazorTargetExtensionFeature GetTargetExtensionFeature(RazorProjectEngineBuilder builder)
-    {
-        var targetExtensionFeature = builder.Features.OfType<IRazorTargetExtensionFeature>().FirstOrDefault();
-        if (targetExtensionFeature == null)
-        {
-            targetExtensionFeature = new DefaultRazorTargetExtensionFeature();
-            builder.Features.Add(targetExtensionFeature);
-        }
-
-        return targetExtensionFeature;
-    }
-
-    private static DefaultDocumentClassifierPassFeature GetDefaultDocumentClassifierPassFeature(RazorProjectEngineBuilder builder)
-    {
-        var configurationFeature = builder.Features.OfType<DefaultDocumentClassifierPassFeature>().FirstOrDefault();
-        if (configurationFeature == null)
-        {
-            configurationFeature = new DefaultDocumentClassifierPassFeature();
-            builder.Features.Add(configurationFeature);
-        }
-
-        return configurationFeature;
+        return feature;
     }
 
     private sealed class ConfigureParserOptionsFeature(Action<RazorParserOptionsBuilder> configure) : RazorEngineFeatureBase, IConfigureRazorParserOptionsFeature
