@@ -7,7 +7,6 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
-using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
@@ -223,7 +222,6 @@ public class ViewComponentTagHelperPassTest
             b.ConfigureParserOptions(builder =>
             {
                 builder.UseRoslynTokenizer = true;
-                builder.CSharpParseOptions = CSharpParseOptions.Default;
             });
         });
     }

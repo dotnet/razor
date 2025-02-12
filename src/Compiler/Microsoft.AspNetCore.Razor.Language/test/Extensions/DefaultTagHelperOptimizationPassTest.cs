@@ -97,7 +97,6 @@ public class DefaultTagHelperOptimizationPassTest
             b.ConfigureParserOptions(builder =>
             {
                 builder.UseRoslynTokenizer = true;
-                builder.CSharpParseOptions = CSharpParseOptions.Default;
             });
         }).Engine;
     }

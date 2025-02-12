@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -325,7 +324,6 @@ $$Path;
             builder.ConfigureParserOptions(builder =>
             {
                 builder.UseRoslynTokenizer = true;
-                builder.CSharpParseOptions = CSharpParseOptions.Default;
             });
         });
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, importSources: default, tagHelpers);

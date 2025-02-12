@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -84,7 +83,6 @@ public abstract class LanguageServerTestBase : ToolingTestBase
             b.ConfigureParserOptions(builder =>
             {
                 builder.UseRoslynTokenizer = true;
-                builder.CSharpParseOptions = CSharpParseOptions.Default;
             });
 
             b.Features.Add(new DefaultTypeNameFeature());

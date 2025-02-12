@@ -4,7 +4,6 @@
 #nullable disable
 
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
-using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
 using static Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeAssert;
 
@@ -88,7 +87,6 @@ public class SectionDirectivePassTest
             b.ConfigureParserOptions(builder =>
             {
                 builder.UseRoslynTokenizer = true;
-                builder.CSharpParseOptions = CSharpParseOptions.Default;
             });
         });
     }

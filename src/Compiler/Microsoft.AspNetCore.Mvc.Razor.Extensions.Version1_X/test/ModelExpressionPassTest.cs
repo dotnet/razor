@@ -8,7 +8,6 @@ using System.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
-using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X;
@@ -160,7 +159,6 @@ public class ModelExpressionPassTest
             b.ConfigureParserOptions(builder =>
             {
                 builder.UseRoslynTokenizer = true;
-                builder.CSharpParseOptions = CSharpParseOptions.Default;
             });
 
             b.Features.Add(new RazorPageDocumentClassifierPass());

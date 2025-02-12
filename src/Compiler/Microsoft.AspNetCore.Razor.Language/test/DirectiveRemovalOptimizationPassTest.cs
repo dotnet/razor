@@ -3,7 +3,6 @@
 
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
-using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
 using static Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeAssert;
 
@@ -25,7 +24,6 @@ public class DirectiveRemovalOptimizationPassTest
             b.ConfigureParserOptions(builder =>
             {
                 builder.UseRoslynTokenizer = true;
-                builder.CSharpParseOptions = CSharpParseOptions.Default;
             });
         }).Engine;
         var documentNode = Lower(codeDocument, defaultEngine);
@@ -65,7 +63,6 @@ public class DirectiveRemovalOptimizationPassTest
             b.ConfigureParserOptions(builder =>
             {
                 builder.UseRoslynTokenizer = true;
-                builder.CSharpParseOptions = CSharpParseOptions.Default;
             });
         }).Engine;
         var documentNode = Lower(codeDocument, defaultEngine);
@@ -101,7 +98,6 @@ public class DirectiveRemovalOptimizationPassTest
             b.ConfigureParserOptions(builder =>
             {
                 builder.UseRoslynTokenizer = true;
-                builder.CSharpParseOptions = CSharpParseOptions.Default;
             });
 
             b.AddDirective(DirectiveDescriptor.CreateDirective("custom", DirectiveKind.SingleLine, d => d.AddStringToken()));

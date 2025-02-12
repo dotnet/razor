@@ -5,7 +5,6 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol.Debugging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -272,7 +271,6 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
             builder.ConfigureParserOptions(builder =>
             {
                 builder.UseRoslynTokenizer = true;
-                builder.CSharpParseOptions = CSharpParseOptions.Default;
             });
         });
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind ?? FileKinds.Legacy, importSources: default, tagHelpers: []);

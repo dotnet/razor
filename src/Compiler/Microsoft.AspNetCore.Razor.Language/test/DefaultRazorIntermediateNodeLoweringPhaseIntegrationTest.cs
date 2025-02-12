@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Microsoft.CodeAnalysis.CSharp;
 using Moq;
 using Xunit;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
@@ -469,7 +468,6 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
             {
                 builder.DesignTime = designTime;
                 builder.UseRoslynTokenizer = true;
-                builder.CSharpParseOptions = CSharpParseOptions.Default;
             });
 
             b.ConfigureCodeGenerationOptions(builder =>

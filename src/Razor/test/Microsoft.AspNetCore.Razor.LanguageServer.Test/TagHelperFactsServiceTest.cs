@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.Editor.Razor;
 using Xunit;
 using Xunit.Abstractions;
@@ -249,7 +248,6 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
             builder.ConfigureParserOptions(builder =>
             {
                 builder.UseRoslynTokenizer = true;
-                builder.CSharpParseOptions = CSharpParseOptions.Default;
             });
         });
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, importSources: default, tagHelpers);

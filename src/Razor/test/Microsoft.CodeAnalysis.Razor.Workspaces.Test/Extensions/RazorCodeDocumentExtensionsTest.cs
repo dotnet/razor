@@ -4,7 +4,6 @@
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -334,7 +333,6 @@ public class RazorCodeDocumentExtensionsTest(ITestOutputHelper testOutput) : Too
             builder.ConfigureParserOptions(builder =>
             {
                 builder.UseRoslynTokenizer = true;
-                builder.CSharpParseOptions = CSharpParseOptions.Default;
             });
         });
 

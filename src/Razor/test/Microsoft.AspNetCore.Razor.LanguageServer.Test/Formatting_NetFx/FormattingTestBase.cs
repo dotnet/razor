@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -318,7 +317,6 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
                 builder.ConfigureParserOptions(builder =>
                 {
                     builder.UseRoslynTokenizer = true;
-                    builder.CSharpParseOptions = CSharpParseOptions.Default;
                 });
 
                 RazorExtensions.Register(builder);

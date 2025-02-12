@@ -79,7 +79,6 @@ public class CompilationTagHelperFeatureTest
                 configure.ConfigureParserOptions(builder =>
                 {
                     builder.UseRoslynTokenizer = true;
-                    builder.CSharpParseOptions = CSharpParseOptions.Default;
                 });
 
                 configure.Features.Add(new DefaultMetadataReferenceFeature());
@@ -120,7 +119,6 @@ public class CompilationTagHelperFeatureTest
                 configure.ConfigureParserOptions(builder =>
                 {
                     builder.UseRoslynTokenizer = true;
-                    builder.CSharpParseOptions = CSharpParseOptions.Default;
                 });
 
                 configure.Features.Add(new DefaultMetadataReferenceFeature { References = references });

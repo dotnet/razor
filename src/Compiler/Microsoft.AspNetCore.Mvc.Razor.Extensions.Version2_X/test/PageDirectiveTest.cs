@@ -4,7 +4,6 @@
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
-using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X;
@@ -131,7 +130,6 @@ public class PageDirectiveTest
             b.ConfigureParserOptions(builder =>
             {
                 builder.UseRoslynTokenizer = true;
-                builder.CSharpParseOptions = CSharpParseOptions.Default;
             });
         }).Engine;
     }
