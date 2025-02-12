@@ -3,11 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
 using RazorExtensionsV1_X = Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.RazorExtensions;
 using RazorExtensionsV2_X = Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.RazorExtensions;
@@ -192,22 +190,6 @@ public static class RazorProjectEngineBuilderExtensions
     }
 
     /// <summary>
-    /// Adds the provided <see cref="RazorProjectItem" />s as imports to all project items processed
-    /// by the <see cref="RazorProjectEngine"/>.
-    /// </summary>
-    /// <param name="builder">The <see cref="RazorProjectEngineBuilder"/>.</param>
-    /// <param name="imports">The collection of imports.</param>
-    /// <returns>The <see cref="RazorProjectEngineBuilder"/>.</returns>
-    public static RazorProjectEngineBuilder AddDefaultImports(this RazorProjectEngineBuilder builder, params string[] imports)
-    {
-        ArgHelper.ThrowIfNull(builder);
-
-        builder.Features.Add(new AdditionalImportsProjectFeature(imports));
-
-        return builder;
-    }
-
-    /// <summary>
     /// Sets the C# language version to target when generating code.
     /// </summary>
     /// <param name="builder">The <see cref="RazorProjectEngineBuilder"/>.</param>
@@ -264,17 +246,6 @@ public static class RazorProjectEngineBuilderExtensions
         public void Configure(RazorCodeGenerationOptionsBuilder builder)
         {
             configure(builder);
-        }
-    }
-
-    private sealed class AdditionalImportsProjectFeature(string[] imports) : RazorProjectEngineFeatureBase, IImportProjectFeature
-    {
-        private readonly ImmutableArray<RazorProjectItem> _imports = imports.SelectAsArray(
-            static import => (RazorProjectItem)new DefaultImportProjectItem("Additional default imports", import));
-
-        public void CollectImports(RazorProjectItem projectItem, ref PooledArrayBuilder<RazorProjectItem> imports)
-        {
-            imports.AddRange(_imports);
         }
     }
 
