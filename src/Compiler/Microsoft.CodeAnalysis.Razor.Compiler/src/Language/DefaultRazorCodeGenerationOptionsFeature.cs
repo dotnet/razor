@@ -6,32 +6,25 @@ using System.Collections.Immutable;
 namespace Microsoft.AspNetCore.Razor.Language;
 
 #pragma warning disable CS0618 // Type or member is obsolete
-internal class DefaultRazorCodeGenerationOptionsFeature : RazorEngineFeatureBase, IRazorCodeGenerationOptionsFeature
+internal sealed class DefaultRazorCodeGenerationOptionsFeature : RazorEngineFeatureBase, IRazorCodeGenerationOptionsFeature
 #pragma warning restore CS0618 // Type or member is obsolete
 {
-    private readonly bool _designTime;
-    private ImmutableArray<IConfigureRazorCodeGenerationOptionsFeature> _configureOptions;
-
-    public DefaultRazorCodeGenerationOptionsFeature(bool designTime)
-    {
-        _designTime = designTime;
-    }
+    private ImmutableArray<IConfigureRazorCodeGenerationOptionsFeature> _features;
 
     protected override void OnInitialized()
     {
-        _configureOptions = Engine.GetFeatures<IConfigureRazorCodeGenerationOptionsFeature>().OrderByAsArray(static x => x.Order);
+        _features = Engine.GetFeatures<IConfigureRazorCodeGenerationOptionsFeature>().OrderByAsArray(static x => x.Order);
     }
 
     public RazorCodeGenerationOptions GetOptions()
     {
-        return _designTime ? RazorCodeGenerationOptions.CreateDesignTime(ConfigureOptions) : RazorCodeGenerationOptions.Create(ConfigureOptions);
-    }
+        var builder = new RazorCodeGenerationOptionsBuilder(designTime: false);
 
-    private void ConfigureOptions(RazorCodeGenerationOptionsBuilder builder)
-    {
-        foreach (var options in _configureOptions)
+        foreach (var feature in _features)
         {
-            options.Configure(builder);
+            feature.Configure(builder);
         }
+
+        return builder.Build();
     }
 }

@@ -333,8 +333,8 @@ public class RazorProjectEngine
         // Legacy options features
         //
         // These features are obsolete as of 2.1. Our code will resolve this but not invoke them.
-        features.Add(new DefaultRazorParserOptionsFeature(designTime: false, version: RazorLanguageVersion.Version_2_0, fileKind: null));
-        features.Add(new DefaultRazorCodeGenerationOptionsFeature(designTime: false));
+        features.Add(new DefaultRazorParserOptionsFeature(RazorLanguageVersion.Version_2_0));
+        features.Add(new DefaultRazorCodeGenerationOptionsFeature());
 
         // Syntax Tree passes
         features.Add(new DefaultDirectiveSyntaxTreePass());

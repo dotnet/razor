@@ -27,7 +27,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         var engine = RazorProjectEngine.CreateEmpty(b =>
         {
             b.Phases.Add(phase);
-            b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature(designTime: false));
+            b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature());
             b.AddDirective(directive);
         });
         var options = RazorParserOptions.Create(builder =>
@@ -66,7 +66,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         var engine = RazorProjectEngine.CreateEmpty(b =>
         {
             b.Phases.Add(phase);
-            b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature(designTime: false));
+            b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature());
             b.AddDirective(directive);
         });
         var options = RazorParserOptions.Create(builder =>
@@ -105,7 +105,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         var engine = RazorProjectEngine.CreateEmpty(b =>
         {
             b.Phases.Add(phase);
-            b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature(designTime: false));
+            b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature());
             b.AddDirective(directive);
         });
         var options = RazorParserOptions.Create(builder =>
@@ -140,7 +140,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         var engine = RazorProjectEngine.CreateEmpty(b =>
         {
             b.Phases.Add(phase);
-            b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature(designTime: false));
+            b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature());
             b.AddDirective(codeBlockDirective);
             b.AddDirective(razorBlockDirective);
         });
@@ -176,7 +176,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         var engine = RazorProjectEngine.CreateEmpty(b =>
         {
             b.Phases.Add(phase);
-            b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature(designTime: false));
+            b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature());
             b.AddDirective(directive);
         });
         var options = RazorParserOptions.Create(builder =>
@@ -210,7 +210,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         var engine = RazorProjectEngine.CreateEmpty(b =>
         {
             b.Phases.Add(phase);
-            b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature(designTime: false));
+            b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature());
             b.AddDirective(directive);
         });
         var options = RazorParserOptions.Create(builder =>
@@ -244,7 +244,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         var engine = RazorProjectEngine.CreateEmpty(b =>
         {
             b.Phases.Add(phase);
-            b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature(designTime: false));
+            b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature());
         });
 
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
@@ -266,7 +266,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         var engine = RazorProjectEngine.CreateEmpty(b =>
         {
             b.Phases.Add(phase);
-            b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature(designTime: false));
+            b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature());
         });
 
         var options = RazorParserOptions.Create(builder =>
@@ -294,7 +294,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         var engine = RazorProjectEngine.CreateEmpty(b =>
         {
             b.Phases.Add(phase);
-            b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature(designTime: false));
+            b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature());
         });
 
         var parseOptions = RazorParserOptions.Create(builder =>

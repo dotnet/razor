@@ -6,33 +6,24 @@ using System.Collections.Immutable;
 namespace Microsoft.AspNetCore.Razor.Language;
 
 #pragma warning disable CS0618 // Type or member is obsolete
-internal class DefaultRazorParserOptionsFeature : RazorEngineFeatureBase, IRazorParserOptionsFeature
+internal sealed class DefaultRazorParserOptionsFeature(RazorLanguageVersion languageVersion) : RazorEngineFeatureBase, IRazorParserOptionsFeature
 #pragma warning restore CS0618 // Type or member is obsolete
 {
-    private readonly bool _designTime;
-    private readonly RazorLanguageVersion _version;
-    private readonly string? _fileKind;
-    private ImmutableArray<IConfigureRazorParserOptionsFeature> _configureOptions;
-
-    public DefaultRazorParserOptionsFeature(bool designTime, RazorLanguageVersion version, string? fileKind)
-    {
-        _designTime = designTime;
-        _version = version;
-        _fileKind = fileKind;
-    }
+    private readonly RazorLanguageVersion _version = languageVersion;
+    private ImmutableArray<IConfigureRazorParserOptionsFeature> _features;
 
     protected override void OnInitialized()
     {
-        _configureOptions = Engine.GetFeatures<IConfigureRazorParserOptionsFeature>().OrderByAsArray(static x => x.Order);
+        _features = Engine.GetFeatures<IConfigureRazorParserOptionsFeature>().OrderByAsArray(static x => x.Order);
     }
 
     public RazorParserOptions GetOptions()
     {
-        var builder = new RazorParserOptionsBuilder(_designTime, _version, _fileKind);
+        var builder = new RazorParserOptionsBuilder(designTime: false, _version, fileKind: null);
 
-        foreach (var options in _configureOptions)
+        foreach (var feature in _features)
         {
-            options.Configure(builder);
+            feature.Configure(builder);
         }
 
         return builder.Build();
