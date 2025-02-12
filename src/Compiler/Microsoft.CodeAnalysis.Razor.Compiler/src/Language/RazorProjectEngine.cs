@@ -323,7 +323,7 @@ public class RazorProjectEngine
         features.Add(new DefaultImportProjectFeature());
 
         // General extensibility
-        features.Add(new DefaultRazorDirectiveFeature());
+        features.Add(new ConfigureDirectivesFeature());
         features.Add(new DefaultMetadataIdentifierFeature());
 
         // Options features

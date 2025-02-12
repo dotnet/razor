@@ -185,7 +185,7 @@ public static class RazorProjectEngineBuilderExtensions
         ArgHelper.ThrowIfNull(directive);
 
         var directiveFeature = GetDirectiveFeature(builder);
-        directiveFeature.Directives.Add(directive);
+        directiveFeature.AddDirective(directive);
 
         return builder;
     }
@@ -204,17 +204,7 @@ public static class RazorProjectEngineBuilderExtensions
         ArgHelper.ThrowIfNull(fileKinds);
 
         var directiveFeature = GetDirectiveFeature(builder);
-
-        foreach (var fileKind in fileKinds)
-        {
-            if (!directiveFeature.DirectivesByFileKind.TryGetValue(fileKind, out var directives))
-            {
-                directives = [];
-                directiveFeature.DirectivesByFileKind.Add(fileKind, directives);
-            }
-
-            directives.Add(directive);
-        }
+        directiveFeature.AddDirective(directive, fileKinds);
 
         return builder;
     }
@@ -258,12 +248,12 @@ public static class RazorProjectEngineBuilderExtensions
         return builder;
     }
 
-    private static DefaultRazorDirectiveFeature GetDirectiveFeature(RazorProjectEngineBuilder builder)
+    private static ConfigureDirectivesFeature GetDirectiveFeature(RazorProjectEngineBuilder builder)
     {
-        var directiveFeature = builder.Features.OfType<DefaultRazorDirectiveFeature>().FirstOrDefault();
+        var directiveFeature = builder.Features.OfType<ConfigureDirectivesFeature>().FirstOrDefault();
         if (directiveFeature == null)
         {
-            directiveFeature = new DefaultRazorDirectiveFeature();
+            directiveFeature = new ConfigureDirectivesFeature();
             builder.Features.Add(directiveFeature);
         }
 
