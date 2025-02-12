@@ -374,11 +374,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
     private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, int absoluteIndex, string filePath, string text, string? relativePath, bool supportsFileCreation = true)
     {
         var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(filePath, relativePath));
-        var options = RazorParserOptions.Create(o =>
-        {
-            o.Directives.Add(ComponentCodeDirective.Directive);
-            o.Directives.Add(FunctionsDirective.Directive);
-        });
+        var options = RazorParserOptions.Default.WithDirectives(ComponentCodeDirective.Directive, FunctionsDirective.Directive);
         var syntaxTree = RazorSyntaxTree.Parse(sourceDocument, options);
 
         var codeDocument = TestRazorCodeDocument.Create(sourceDocument, imports: default);

@@ -218,13 +218,7 @@ public class RazorDirectiveCompletionSourceTest(ITestOutputHelper testOutput) : 
     private static RazorSyntaxTree CreateSyntaxTree(string text, params DirectiveDescriptor[] directives)
     {
         var sourceDocument = TestRazorSourceDocument.Create(text);
-        var options = RazorParserOptions.Create(builder =>
-        {
-            foreach (var directive in directives)
-            {
-                builder.Directives.Add(directive);
-            }
-        });
+        var options = RazorParserOptions.Default.WithDirectives([.. directives]);
         var syntaxTree = RazorSyntaxTree.Parse(sourceDocument, options);
         return syntaxTree;
     }

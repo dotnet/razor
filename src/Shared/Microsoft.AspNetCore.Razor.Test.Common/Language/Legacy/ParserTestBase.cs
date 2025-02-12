@@ -272,17 +272,25 @@ public abstract class ParserTestBase : IParserTest
         CSharpParseOptions csharpParseOptions)
     {
         fileKind ??= FileKinds.Legacy;
-        return new RazorParserOptions(
-            directives.ToArray(),
-            designTime,
-            parseLeadingDirectives: false,
-            useRoslynTokenizer: !useLegacyTokenizer,
-            version,
-            fileKind,
-            enableSpanEditHandlers,
-            csharpParseOptions ?? CSharpParseOptions.Default)
+
+        var builder = new RazorParserOptionsBuilder(version, fileKind)
         {
-            FeatureFlags = featureFlags ?? RazorParserFeatureFlags.Create(version, fileKind)
+            DesignTime = designTime,
+            Directives = [.. directives],
+            EnableSpanEditHandlers = enableSpanEditHandlers,
+            UseRoslynTokenizer = !useLegacyTokenizer
         };
+
+        if (csharpParseOptions is not null)
+        {
+            builder.CSharpParseOptions = csharpParseOptions;
+        }
+
+        if (featureFlags is not null)
+        {
+            builder.FeatureFlags = featureFlags;
+        }
+
+        return builder.ToOptions();
     }
 }

@@ -18,7 +18,7 @@ public class PagesPropertyInjectionPass : IntermediateNodePassBase, IRazorOptimi
         }
 
         // We only nullable-enable razor page `@model` for RazorLangVersion 9+ to avoid breaking users.
-        var nullableEnabled = codeDocument.GetParserOptions()?.Version >= RazorLanguageVersion.Version_9_0 &&
+        var nullableEnabled = codeDocument.GetParserOptions()?.LanguageVersion >= RazorLanguageVersion.Version_9_0 &&
             codeDocument.GetCodeGenerationOptions()?.SuppressNullabilityEnforcement == false;
 
         var modelType = ModelDirective.GetModelType(documentNode);

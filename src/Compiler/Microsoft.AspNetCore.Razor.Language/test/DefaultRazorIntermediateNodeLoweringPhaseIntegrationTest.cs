@@ -467,7 +467,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
 
             b.ConfigureParserOptions(builder =>
             {
-                builder.SetDesignTime(designTime);
+                builder.DesignTime = designTime;
                 builder.UseRoslynTokenizer = true;
                 builder.CSharpParseOptions = CSharpParseOptions.Default;
             });

@@ -250,17 +250,20 @@ public abstract class ToolingParserTestBase : ToolingTestBase, IParserTest
         string fileKind = null)
     {
         fileKind ??= FileKinds.Legacy;
-        return new RazorParserOptions(
-            directives.ToArray(),
-            designTime,
-            parseLeadingDirectives: false,
-            useRoslynTokenizer: true,
-            version: version,
-            fileKind: fileKind,
-            enableSpanEditHandlers,
-            csharpParseOptions: CSharpParseOptions.Default)
-            {
-                FeatureFlags = featureFlags ?? RazorParserFeatureFlags.Create(version, fileKind)
-            };
+
+        var builder = new RazorParserOptionsBuilder(version, fileKind)
+        {
+            DesignTime = designTime,
+            Directives = [.. directives],
+            EnableSpanEditHandlers = enableSpanEditHandlers,
+            UseRoslynTokenizer = true
+        };
+
+        if (featureFlags is not null)
+        {
+            builder.FeatureFlags = featureFlags;
+        }
+
+        return builder.ToOptions();
     }
 }

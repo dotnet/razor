@@ -30,11 +30,11 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
             b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature());
             b.AddDirective(directive);
         });
-        var options = RazorParserOptions.Create(builder =>
-        {
-            builder.Directives.Add(directive);
-            builder.UseRoslynTokenizer = true;
-        });
+
+        var options = RazorParserOptions.Default
+            .WithDirectives(directive)
+            .WithFlags(useRoslynTokenizer: true);
+
         var importSource = TestRazorSourceDocument.Create("@custom \"hello\"", filePath: "import.cshtml");
         var codeDocument = TestRazorCodeDocument.Create("<p>NonDirective</p>");
         codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(codeDocument.Source, options));
@@ -69,11 +69,11 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
             b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature());
             b.AddDirective(directive);
         });
-        var options = RazorParserOptions.Create(builder =>
-        {
-            builder.Directives.Add(directive);
-            builder.UseRoslynTokenizer = true;
-        });
+
+        var options = RazorParserOptions.Default
+            .WithDirectives(directive)
+            .WithFlags(useRoslynTokenizer: true);
+
         var importSource = TestRazorSourceDocument.Create("@custom \"hello\"", filePath: "import.cshtml");
         var codeDocument = TestRazorCodeDocument.Create("@custom \"world\"");
         codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(codeDocument.Source, options));
@@ -108,11 +108,11 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
             b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature());
             b.AddDirective(directive);
         });
-        var options = RazorParserOptions.Create(builder =>
-        {
-            builder.Directives.Add(directive);
-            builder.UseRoslynTokenizer = true;
-        });
+
+        var options = RazorParserOptions.Default
+            .WithDirectives(directive)
+            .WithFlags(useRoslynTokenizer: true);
+
         var importSource1 = TestRazorSourceDocument.Create("@custom \"hello\"", filePath: "import1.cshtml");
         var importSource2 = TestRazorSourceDocument.Create("@custom \"world\"", filePath: "import2.cshtml");
         var codeDocument = TestRazorCodeDocument.Create("<p>NonDirective</p>");
@@ -144,12 +144,11 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
             b.AddDirective(codeBlockDirective);
             b.AddDirective(razorBlockDirective);
         });
-        var options = RazorParserOptions.Create(builder =>
-        {
-            builder.Directives.Add(codeBlockDirective);
-            builder.Directives.Add(razorBlockDirective);
-            builder.UseRoslynTokenizer = true;
-        });
+
+        var options = RazorParserOptions.Default
+            .WithDirectives(codeBlockDirective, razorBlockDirective)
+            .WithFlags(useRoslynTokenizer: true);
+
         var importSource = TestRazorSourceDocument.Create(
 @"@code ""code block"" { }
 @razor ""razor block"" { }",
@@ -179,11 +178,11 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
             b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature());
             b.AddDirective(directive);
         });
-        var options = RazorParserOptions.Create(builder =>
-        {
-            builder.Directives.Add(directive);
-            builder.UseRoslynTokenizer = true;
-        });
+
+        var options = RazorParserOptions.Default
+            .WithDirectives(directive)
+            .WithFlags(useRoslynTokenizer: true);
+
         var importSource = TestRazorSourceDocument.Create("@custom { }", filePath: "import.cshtml");
         var codeDocument = TestRazorCodeDocument.Create("<p>NonDirective</p>");
         codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(codeDocument.Source, options));
@@ -213,11 +212,11 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
             b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature());
             b.AddDirective(directive);
         });
-        var options = RazorParserOptions.Create(builder =>
-        {
-            builder.Directives.Add(directive);
-            builder.UseRoslynTokenizer = true;
-        });
+
+        var options = RazorParserOptions.Default
+            .WithDirectives(directive)
+            .WithFlags(useRoslynTokenizer: true);
+
         var importSource = TestRazorSourceDocument.Create("@custom { }", filePath: "import.cshtml");
         var codeDocument = TestRazorCodeDocument.Create("<p>NonDirective</p>");
         codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(codeDocument.Source, options));
@@ -269,10 +268,9 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
             b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature());
         });
 
-        var options = RazorParserOptions.Create(builder =>
-        {
-            builder.UseRoslynTokenizer = true;
-        });
+        var options = RazorParserOptions.Default
+            .WithFlags(useRoslynTokenizer: true);
+
         var codeDocument = TestRazorCodeDocument.Create("<p class=@(");
         codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(codeDocument.Source, options));
 
@@ -297,10 +295,9 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
             b.Features.Add(new DefaultRazorCodeGenerationOptionsFeature());
         });
 
-        var parseOptions = RazorParserOptions.Create(builder =>
-        {
-            builder.UseRoslynTokenizer = true;
-        });
+        var parseOptions = RazorParserOptions.Default
+            .WithFlags(useRoslynTokenizer: true);
+
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
         codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(codeDocument.Source, parseOptions));
         codeDocument.SetImportSyntaxTrees(new[]

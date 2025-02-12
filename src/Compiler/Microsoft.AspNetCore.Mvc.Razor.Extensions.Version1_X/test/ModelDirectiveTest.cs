@@ -294,7 +294,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
 
             b.ConfigureParserOptions(builder =>
             {
-                builder.SetDesignTime(designTime);
+                builder.DesignTime = designTime;
             });
 
             b.ConfigureCodeGenerationOptions(builder =>

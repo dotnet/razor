@@ -16,7 +16,7 @@ public class DefaultRazorParsingPhaseTest
         var engine = RazorProjectEngine.CreateEmpty(builder =>
         {
             builder.Phases.Add(phase);
-            builder.Features.Add(new DefaultRazorParserOptionsFeature(RazorLanguageVersion.Latest));
+            builder.Features.Add(new DefaultRazorParserOptionsFeature());
         });
 
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
@@ -36,7 +36,7 @@ public class DefaultRazorParsingPhaseTest
         var engine = RazorProjectEngine.CreateEmpty((builder) =>
         {
             builder.Phases.Add(phase);
-            builder.Features.Add(new DefaultRazorParserOptionsFeature(RazorLanguageVersion.Latest));
+            builder.Features.Add(new DefaultRazorParserOptionsFeature());
             builder.ConfigureParserOptions(ConfigureDirective);
         });
 
@@ -59,7 +59,7 @@ public class DefaultRazorParsingPhaseTest
         var engine = RazorProjectEngine.CreateEmpty((builder) =>
         {
             builder.Phases.Add(phase);
-            builder.Features.Add(new DefaultRazorParserOptionsFeature(RazorLanguageVersion.Latest));
+            builder.Features.Add(new DefaultRazorParserOptionsFeature());
             builder.ConfigureParserOptions(ConfigureDirective);
         });
 
@@ -83,6 +83,6 @@ public class DefaultRazorParsingPhaseTest
 
     private static void ConfigureDirective(RazorParserOptionsBuilder builder)
     {
-        builder.Directives.Add(DirectiveDescriptor.CreateDirective("test", DirectiveKind.SingleLine));
+        builder.Directives = [DirectiveDescriptor.CreateDirective("test", DirectiveKind.SingleLine)];
     }
 }

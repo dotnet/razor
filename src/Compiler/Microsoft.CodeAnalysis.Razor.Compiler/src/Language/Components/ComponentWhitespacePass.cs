@@ -41,7 +41,7 @@ internal class ComponentWhitespacePass : ComponentIntermediateNodePassBase, IRaz
             return;
         }
 
-        var razorLanguageVersion = codeDocument.GetParserOptions().Version;
+        var razorLanguageVersion = codeDocument.GetParserOptions().LanguageVersion;
         var useLegacyBehavior = razorLanguageVersion < RazorLanguageVersion.Version_5_0;
         if (useLegacyBehavior)
         {

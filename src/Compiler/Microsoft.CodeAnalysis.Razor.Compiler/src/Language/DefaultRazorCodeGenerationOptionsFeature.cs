@@ -9,7 +9,6 @@ namespace Microsoft.AspNetCore.Razor.Language;
 internal sealed class DefaultRazorCodeGenerationOptionsFeature : RazorEngineFeatureBase, IRazorCodeGenerationOptionsFeature
 #pragma warning restore CS0618 // Type or member is obsolete
 {
-    private readonly RazorLanguageVersion _languageVersion = RazorLanguageVersion.Version_2_0;
     private ImmutableArray<IConfigureRazorCodeGenerationOptionsFeature> _features;
 
     protected override void OnInitialized()
@@ -19,7 +18,7 @@ internal sealed class DefaultRazorCodeGenerationOptionsFeature : RazorEngineFeat
 
     public RazorCodeGenerationOptions GetOptions()
     {
-        var builder = new RazorCodeGenerationOptionsBuilder(_languageVersion);
+        var builder = new RazorCodeGenerationOptionsBuilder(RazorLanguageVersion.Version_2_0);
 
         foreach (var feature in _features)
         {

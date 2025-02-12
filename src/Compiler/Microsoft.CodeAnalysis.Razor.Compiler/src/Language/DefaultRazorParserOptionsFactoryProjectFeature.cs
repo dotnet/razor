@@ -17,7 +17,9 @@ internal class DefaultRazorParserOptionsFactoryProjectFeature : RazorProjectEngi
 
     public RazorParserOptions Create(string fileKind, Action<RazorParserOptionsBuilder> configure)
     {
-        var builder = new RazorParserOptionsBuilder(ProjectEngine.Configuration, fileKind);
+        var configuration = ProjectEngine.Configuration;
+        var builder = new RazorParserOptionsBuilder(configuration.LanguageVersion, fileKind);
+
         configure?.Invoke(builder);
 
         foreach (var options in _configureOptions)
@@ -25,6 +27,6 @@ internal class DefaultRazorParserOptionsFactoryProjectFeature : RazorProjectEngi
             options.Configure(builder);
         }
 
-        return builder.Build();
+        return builder.ToOptions();
     }
 }
