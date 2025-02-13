@@ -169,68 +169,6 @@ public class RazorCodeDocumentExtensionsTest
     }
 
     [Fact]
-    public void GetParserOptions_ReturnsSuccessfully()
-    {
-        // Arrange
-        var codeDocument = TestRazorCodeDocument.CreateEmpty();
-
-        var expected = RazorParserOptions.Default;
-        codeDocument.Items[typeof(RazorParserOptions)] = expected;
-
-        // Act
-        var actual = codeDocument.GetParserOptions();
-
-        // Assert
-        Assert.Same(expected, actual);
-    }
-
-    [Fact]
-    public void SetParserOptions_SetsSuccessfully()
-    {
-        // Arrange
-        var codeDocument = TestRazorCodeDocument.CreateEmpty();
-
-        var expected = RazorParserOptions.Default;
-
-        // Act
-        codeDocument.SetParserOptions(expected);
-
-        // Assert
-        Assert.Same(expected, codeDocument.Items[typeof(RazorParserOptions)]);
-    }
-
-    [Fact]
-    public void GetCodeGenerationOptions_ReturnsSuccessfully()
-    {
-        // Arrange
-        var codeDocument = TestRazorCodeDocument.CreateEmpty();
-
-        var expected = RazorCodeGenerationOptions.Default;
-        codeDocument.Items[typeof(RazorCodeGenerationOptions)] = expected;
-
-        // Act
-        var actual = codeDocument.GetCodeGenerationOptions();
-
-        // Assert
-        Assert.Same(expected, actual);
-    }
-
-    [Fact]
-    public void SetCodeGenerationOptions_SetsSuccessfully()
-    {
-        // Arrange
-        var codeDocument = TestRazorCodeDocument.CreateEmpty();
-
-        var expected = RazorCodeGenerationOptions.Default;
-
-        // Act
-        codeDocument.SetCodeGenerationOptions(expected);
-
-        // Assert
-        Assert.Same(expected, codeDocument.Items[typeof(RazorCodeGenerationOptions)]);
-    }
-
-    [Fact]
     public void TryComputeNamespace_RootNamespaceNotSet_ReturnsNull()
     {
         // Arrange
