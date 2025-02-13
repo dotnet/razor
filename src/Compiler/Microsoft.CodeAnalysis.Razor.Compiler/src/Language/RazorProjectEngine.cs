@@ -175,7 +175,7 @@ public sealed class RazorProjectEngine
         Action<RazorCodeGenerationOptions.Builder>? configureCodeGeneration)
     {
         var parserOptions = ComputeParserOptions(fileKind, configureParser);
-        var codeGenerationOptions = ComputeCodeGenerationOptions(configureCodeGeneration);
+        var codeGenerationOptions = ComputeCodeGenerationOptions(fileKind, configureCodeGeneration);
 
         var codeDocument = RazorCodeDocument.Create(source, importSources, parserOptions, codeGenerationOptions);
 
@@ -218,7 +218,7 @@ public sealed class RazorProjectEngine
             configureParser?.Invoke(builder);
         });
 
-        var codeGenerationOptions = ComputeCodeGenerationOptions(builder =>
+        var codeGenerationOptions = ComputeCodeGenerationOptions(fileKind, builder =>
         {
             builder.DesignTime = true;
             builder.SuppressChecksum = true;
@@ -249,10 +249,10 @@ public sealed class RazorProjectEngine
         return builder.ToOptions();
     }
 
-    private RazorCodeGenerationOptions ComputeCodeGenerationOptions(Action<RazorCodeGenerationOptions.Builder>? configure)
+    private RazorCodeGenerationOptions ComputeCodeGenerationOptions(string fileKind, Action<RazorCodeGenerationOptions.Builder>? configure)
     {
         var configuration = Configuration;
-        var builder = new RazorCodeGenerationOptions.Builder(configuration.LanguageVersion)
+        var builder = new RazorCodeGenerationOptions.Builder(configuration.LanguageVersion, fileKind)
         {
             SuppressAddComponentParameter = configuration.SuppressAddComponentParameter
         };

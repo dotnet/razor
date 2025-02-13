@@ -18,7 +18,7 @@ internal sealed class DefaultRazorCodeGenerationOptionsFeature : RazorEngineFeat
 
     public RazorCodeGenerationOptions GetOptions()
     {
-        var builder = new RazorCodeGenerationOptions.Builder(RazorLanguageVersion.Version_2_0);
+        var builder = new RazorCodeGenerationOptions.Builder(RazorLanguageVersion.Version_2_0, FileKinds.Legacy);
 
         foreach (var feature in _features)
         {

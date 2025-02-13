@@ -8,21 +8,31 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public sealed partial class RazorCodeGenerationOptions
 {
+    private static RazorLanguageVersion DefaultLanguageVersion => RazorLanguageVersion.Latest;
+    private static string DefaultFileKind => FileKinds.Legacy;
+    private static int DefaultIndentSize => 4;
+    private static string DefaultNewLine => Environment.NewLine;
+
     public static RazorCodeGenerationOptions Default { get; } = new(
-        indentSize: 4,
-        newLine: Environment.NewLine,
+        languageVersion: DefaultLanguageVersion,
+        fileKind: DefaultFileKind,
+        indentSize: DefaultIndentSize,
+        newLine: DefaultNewLine,
         rootNamespace: null,
         suppressUniqueIds: null,
         flags: Flags.DefaultFlags);
 
     public static RazorCodeGenerationOptions DesignTimeDefault { get; } = new(
-        indentSize: 4,
-        newLine: Environment.NewLine,
+        languageVersion: DefaultLanguageVersion,
+        fileKind: DefaultFileKind,
+        indentSize: DefaultIndentSize,
+        newLine: DefaultNewLine,
         rootNamespace: null,
         suppressUniqueIds: null,
         flags: Flags.DefaultDesignTimeFlags);
 
-    private readonly Flags _flags;
+    public RazorLanguageVersion LanguageVersion { get; }
+    internal string FileKind { get; }
 
     public int IndentSize { get; }
     public string NewLine { get; }
@@ -37,18 +47,24 @@ public sealed partial class RazorCodeGenerationOptions
     /// </summary>
     public string? SuppressUniqueIds { get; }
 
+    private readonly Flags _flags;
+
     private RazorCodeGenerationOptions(
+        RazorLanguageVersion languageVersion,
+        string fileKind,
         int indentSize,
         string newLine,
         string? rootNamespace,
         string? suppressUniqueIds,
         Flags flags)
     {
-        _flags = flags;
+        LanguageVersion = languageVersion ?? DefaultLanguageVersion;
+        FileKind = fileKind ?? DefaultFileKind;
         IndentSize = indentSize;
         NewLine = newLine;
         RootNamespace = rootNamespace;
         SuppressUniqueIds = suppressUniqueIds;
+        _flags = flags;
     }
 
     public bool DesignTime
@@ -143,22 +159,22 @@ public sealed partial class RazorCodeGenerationOptions
     public RazorCodeGenerationOptions WithIndentSize(int value)
         => IndentSize == value
             ? this
-            : new(value, NewLine, RootNamespace, SuppressUniqueIds, _flags);
+            : new(LanguageVersion, FileKind, value, NewLine, RootNamespace, SuppressUniqueIds, _flags);
 
     public RazorCodeGenerationOptions WithNewLine(string value)
         => NewLine == value
             ? this
-            : new(IndentSize, value, RootNamespace, SuppressUniqueIds, _flags);
+            : new(LanguageVersion, FileKind, IndentSize, value, RootNamespace, SuppressUniqueIds, _flags);
 
     public RazorCodeGenerationOptions WithRootNamespace(string? value)
         => RootNamespace == value
             ? this
-            : new(IndentSize, NewLine, value, SuppressUniqueIds, _flags);
+            : new(LanguageVersion, FileKind, IndentSize, NewLine, value, SuppressUniqueIds, _flags);
 
     public RazorCodeGenerationOptions WithSuppressUniqueIds(string? value)
         => RootNamespace == value
             ? this
-            : new(IndentSize, NewLine, RootNamespace, value, _flags);
+            : new(LanguageVersion, FileKind, IndentSize, NewLine, RootNamespace, value, _flags);
 
     public RazorCodeGenerationOptions WithFlags(
         Optional<bool> designTime = default,
@@ -238,6 +254,6 @@ public sealed partial class RazorCodeGenerationOptions
 
         return flags == _flags
             ? this
-            : new(IndentSize, NewLine, RootNamespace, SuppressUniqueIds, flags);
+            : new(LanguageVersion, FileKind, IndentSize, NewLine, RootNamespace, SuppressUniqueIds, flags);
     }
 }

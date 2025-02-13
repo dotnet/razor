@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
-
 namespace Microsoft.AspNetCore.Razor.Language;
 
 public sealed partial class RazorCodeGenerationOptions
@@ -10,21 +8,29 @@ public sealed partial class RazorCodeGenerationOptions
     public sealed class Builder
     {
         public RazorLanguageVersion LanguageVersion { get; }
+        public string FileKind { get; }
 
         private Flags _flags;
-        private string _newLine = Environment.NewLine;
 
-        internal Builder(RazorLanguageVersion languageVersion)
+        public int IndentSize { get; set; }
+        public string NewLine { get; set => field = value ?? DefaultNewLine; }
+
+        /// <summary>
+        /// Gets or sets the root namespace of the generated code.
+        /// </summary>
+        public string? RootNamespace { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value that determines if unique ids are suppressed for testing.
+        /// </summary>
+        public string? SuppressUniqueIds { get; set; }
+
+        internal Builder(RazorLanguageVersion languageVersion, string fileKind)
         {
-            LanguageVersion = languageVersion ?? RazorLanguageVersion.Latest;
-        }
-
-        public int IndentSize { get; set; } = 4;
-
-        public string NewLine
-        {
-            get => _newLine;
-            set => _newLine = value ?? Environment.NewLine;
+            LanguageVersion = languageVersion ?? DefaultLanguageVersion;
+            FileKind = fileKind ?? DefaultFileKind;
+            IndentSize = DefaultIndentSize;
+            NewLine = DefaultNewLine;
         }
 
         public bool DesignTime
@@ -38,11 +44,6 @@ public sealed partial class RazorCodeGenerationOptions
             get => _flags.IsFlagSet(Flags.IndentWithTabs);
             set => _flags.UpdateFlag(Flags.IndentWithTabs, value);
         }
-
-        /// <summary>
-        /// Gets or sets the root namespace of the generated code.
-        /// </summary>
-        public string? RootNamespace { get; set; }
 
         /// <summary>
         /// Gets or sets a value that indicates whether to suppress the default <c>#pragma checksum</c> directive in the
@@ -140,11 +141,6 @@ public sealed partial class RazorCodeGenerationOptions
         }
 
         /// <summary>
-        /// Gets or sets a value that determines if unique ids are suppressed for testing.
-        /// </summary>
-        public string? SuppressUniqueIds { get; set; }
-
-        /// <summary>
         /// Determines whether RenderTreeBuilder.AddComponentParameter should not be used.
         /// </summary>
         public bool SuppressAddComponentParameter
@@ -163,6 +159,6 @@ public sealed partial class RazorCodeGenerationOptions
         }
 
         public RazorCodeGenerationOptions ToOptions()
-            => new(IndentSize, NewLine, RootNamespace, SuppressUniqueIds, _flags);
+            => new(LanguageVersion, FileKind, IndentSize, NewLine, RootNamespace, SuppressUniqueIds, _flags);
     }
 }

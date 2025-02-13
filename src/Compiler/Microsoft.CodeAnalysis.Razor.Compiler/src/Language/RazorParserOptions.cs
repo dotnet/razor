@@ -21,13 +21,13 @@ public sealed partial class RazorParserOptions
         csharpParseOptions: CSharpParseOptions.Default,
         flags: GetDefaultFlags(DefaultLanguageVersion, DefaultFileKind));
 
-    private readonly Flags _flags;
-
     public RazorLanguageVersion LanguageVersion { get; }
     internal string FileKind { get; }
 
     public ImmutableArray<DirectiveDescriptor> Directives { get; }
     public CSharpParseOptions CSharpParseOptions { get; }
+
+    private readonly Flags _flags;
 
     private RazorParserOptions(
         RazorLanguageVersion languageVersion,

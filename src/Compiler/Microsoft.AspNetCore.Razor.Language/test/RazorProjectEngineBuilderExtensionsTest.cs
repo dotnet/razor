@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp;
 using Moq;
@@ -89,16 +90,16 @@ public class RazorProjectEngineBuilderExtensionsTest
         var builder = new RazorProjectEngineBuilder(RazorConfiguration.Default, Mock.Of<RazorProjectFileSystem>());
         var directiveFeature = new ConfigureDirectivesFeature();
         builder.Features.Add(directiveFeature);
-        var expecteDirective = Mock.Of<DirectiveDescriptor>();
+        var expectedDirective = Mock.Of<DirectiveDescriptor>();
 
         // Act
-        builder.AddDirective(expecteDirective);
+        builder.AddDirective(expectedDirective);
 
         // Assert
         var feature = Assert.Single(builder.Features);
         Assert.Same(directiveFeature, feature);
         var directive = Assert.Single(directiveFeature.GetDirectives());
-        Assert.Same(expecteDirective, directive);
+        Assert.Same(expectedDirective, directive);
     }
 
     [Fact]
@@ -119,8 +120,9 @@ public class RazorProjectEngineBuilderExtensionsTest
             });
         });
 
-        var features = projectEngine.Engine.GetFeatures<IConfigureRazorCodeGenerationOptionsFeature>();
-        var builder = new RazorCodeGenerationOptions.Builder(RazorLanguageVersion.Latest);
+        var features = projectEngine.Engine.GetFeatures<IConfigureRazorCodeGenerationOptionsFeature>().OrderByAsArray(static x => x.Order);
+        var builder = new RazorCodeGenerationOptions.Builder(RazorLanguageVersion.Latest, FileKinds.Legacy);
+
         foreach (var feature in features)
         {
             feature.Configure(builder);
