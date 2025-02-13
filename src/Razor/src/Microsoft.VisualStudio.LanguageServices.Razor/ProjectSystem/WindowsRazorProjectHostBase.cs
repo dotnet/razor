@@ -38,9 +38,6 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
 
     internal const string ConfigurationGeneralSchemaName = "ConfigurationGeneral";
 
-    // Internal settable for testing
-    // 250ms between publishes to prevent bursts of changes yet still be responsive to changes.
-    internal int EnqueueDelay { get; set; } = 250;
     private bool _skipDirectoryExistCheck_TestOnly;
 
     protected WindowsRazorProjectHostBase(
