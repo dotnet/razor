@@ -627,7 +627,7 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         var host = new DefaultWindowsRazorProjectHost(services, _serviceProvider, _projectManager);
 
         // Act & Assert
-        await host.LoadAsync();
+        await host.GetTestAccessor().InitializeAsync();
         Assert.Empty(_projectManager.GetProjects());
 
         await host.DisposeAsync();
@@ -642,7 +642,7 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         var host = new DefaultWindowsRazorProjectHost(services, _serviceProvider, _projectManager);
 
         // Act & Assert
-        await Task.Run(async () => await host.LoadAsync());
+        await Task.Run(async () => await host.GetTestAccessor().InitializeAsync());
         Assert.Empty(_projectManager.GetProjects());
 
         await Task.Run(async () => await host.DisposeAsync());
@@ -660,11 +660,13 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
         var host = new DefaultWindowsRazorProjectHost(services, _serviceProvider, _projectManager);
 
+        var testAccessor = host.GetTestAccessor();
+
         // Act & Assert
-        await Task.Run(async () => await host.LoadAsync());
+        await Task.Run(async () => await testAccessor.InitializeAsync());
         Assert.Empty(_projectManager.GetProjects());
 
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
         Assert.Empty(_projectManager.GetProjects());
     }
 
@@ -704,11 +706,13 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
 
         var host = new DefaultWindowsRazorProjectHost(services, _serviceProvider, _projectManager);
 
-        await Task.Run(async () => await host.LoadAsync());
+        var testAccessor = host.GetTestAccessor();
+
+        await Task.Run(async () => await testAccessor.InitializeAsync());
         Assert.Empty(_projectManager.GetProjects());
 
         // Act
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert
         var project = Assert.Single(_projectManager.GetProjects());
@@ -783,7 +787,6 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
     {
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
         var host = new DefaultWindowsRazorProjectHost(services, _serviceProvider, _projectManager);
-        host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
 
         var state = TestProjectRuleSnapshot.CreateProperties(
             WindowsRazorProjectHostBase.ConfigurationGeneralSchemaName,
@@ -829,11 +832,13 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
         var host = new DefaultWindowsRazorProjectHost(services, _serviceProvider, _projectManager);
 
-        await Task.Run(async () => await host.LoadAsync());
+        var testAccessor = host.GetTestAccessor();
+
+        await Task.Run(async () => await testAccessor.InitializeAsync());
         Assert.Empty(_projectManager.GetProjects());
 
         // Act
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert
         Assert.Empty(_projectManager.GetProjects());
@@ -880,7 +885,9 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
         var host = new DefaultWindowsRazorProjectHost(services, _serviceProvider, _projectManager);
 
-        await Task.Run(async () => await host.LoadAsync());
+        var testAccessor = host.GetTestAccessor();
+
+        await Task.Run(async () => await testAccessor.InitializeAsync());
         Assert.Empty(_projectManager.GetProjects());
 
         // Act - 1
@@ -889,7 +896,7 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
             updater.SolutionClosed();
         });
 
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert - 1
         Assert.False(_projectManager.IsSolutionClosing);
@@ -933,11 +940,13 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
         var host = new DefaultWindowsRazorProjectHost(services, _serviceProvider, _projectManager);
 
-        await Task.Run(async () => await host.LoadAsync());
+        var testAccessor = host.GetTestAccessor();
+
+        await Task.Run(async () => await testAccessor.InitializeAsync());
         Assert.Empty(_projectManager.GetProjects());
 
         // Act - 1
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert - 1
         var project = Assert.Single(_projectManager.GetProjects());
@@ -998,7 +1007,7 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
             _configurationGeneral.ToChange(changes[5].After),
         };
 
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await host.GetTestAccessor().OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert - 2
         project = Assert.Single(_projectManager.GetProjects());
@@ -1088,11 +1097,13 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
         var host = new DefaultWindowsRazorProjectHost(services, _serviceProvider, _projectManager);
 
-        await Task.Run(async () => await host.LoadAsync());
+        var testAccessor = host.GetTestAccessor();
+
+        await Task.Run(async () => await testAccessor.InitializeAsync());
         Assert.Empty(_projectManager.GetProjects());
 
         // Act - 1
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert - 1
         var snapshot = Assert.Single(_projectManager.GetProjects());
@@ -1118,7 +1129,7 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
             _razorGenerateWithTargetPathItems.ToChange(changes[4].After),
         };
 
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert - 2
         Assert.Empty(_projectManager.GetProjects());
@@ -1162,11 +1173,13 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
         var host = new DefaultWindowsRazorProjectHost(services, _serviceProvider, _projectManager);
 
-        await Task.Run(async () => await host.LoadAsync());
+        var testAccessor = host.GetTestAccessor();
+
+        await Task.Run(async () => await testAccessor.InitializeAsync());
         Assert.Empty(_projectManager.GetProjects());
 
         // Act - 1
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert - 1
         var snapshot = Assert.Single(_projectManager.GetProjects());
@@ -1199,7 +1212,7 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
             _razorGenerateWithTargetPathItems.ToChange(changes[4].After),
         };
 
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert - 3
         Assert.Empty(_projectManager.GetProjects());
@@ -1241,11 +1254,13 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
 
         var host = new DefaultWindowsRazorProjectHost(services, _serviceProvider, _projectManager);
 
-        await Task.Run(async () => await host.LoadAsync());
+        var testAccessor = host.GetTestAccessor();
+
+        await Task.Run(async () => await testAccessor.InitializeAsync());
         Assert.Empty(_projectManager.GetProjects());
 
         // Act - 1
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert - 1
         var project = Assert.Single(_projectManager.GetProjects());
@@ -1271,7 +1286,7 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
 
         // Act - 2
         services.UnconfiguredProject.FullPath = TestProjectData.AnotherProject.FilePath;
-        await Task.Run(async () => await host.OnProjectRenamingAsync(TestProjectData.SomeProject.FilePath, TestProjectData.AnotherProject.FilePath));
+        await Task.Run(async () => await testAccessor.OnProjectRenamingAsync(TestProjectData.SomeProject.FilePath, TestProjectData.AnotherProject.FilePath));
 
         // Assert - 1
         project = Assert.Single(_projectManager.GetProjects());
@@ -1337,11 +1352,13 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
         var host = new DefaultWindowsRazorProjectHost(services, _serviceProvider, _projectManager);
 
-        await Task.Run(async () => await host.LoadAsync());
+        var testAccessor = host.GetTestAccessor();
+
+        await Task.Run(async () => await testAccessor.InitializeAsync());
         Assert.Empty(_projectManager.GetProjects());
 
         // Act - 1
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert - 1
         var project = Assert.Single(_projectManager.GetProjects());
@@ -1390,7 +1407,7 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
             _configurationGeneral.ToChange(changes[5].After),
         };
 
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert - 2
         // Changing intermediate output path is effectively removing the old project and adding a new one.

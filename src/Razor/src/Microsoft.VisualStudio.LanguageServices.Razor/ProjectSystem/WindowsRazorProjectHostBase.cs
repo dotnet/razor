@@ -41,6 +41,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
     // Internal settable for testing
     // 250ms between publishes to prevent bursts of changes yet still be responsive to changes.
     internal int EnqueueDelay { get; set; } = 250;
+    private bool _skipDirectoryExistCheck_TestOnly;
 
     protected WindowsRazorProjectHostBase(
         IUnconfiguredProjectCommonServices commonServices,
@@ -60,14 +61,6 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
     protected abstract Task HandleProjectChangeAsync(string sliceDimensions, IProjectVersionedValue<IProjectSubscriptionUpdate> update);
 
     protected IUnconfiguredProjectCommonServices CommonServices { get; }
-
-    internal bool SkipIntermediateOutputPathExistCheck_TestOnly { get; set; }
-
-    // internal for tests. The product will call through the IProjectDynamicLoadComponent interface.
-    internal Task LoadAsync()
-    {
-        return InitializeAsync();
-    }
 
     protected sealed override Task InitializeCoreAsync(CancellationToken cancellationToken)
     {
@@ -155,8 +148,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
         }
     }
 
-    // Internal for testing
-    internal Task OnProjectChangedAsync(string sliceDimensions, IProjectVersionedValue<IProjectSubscriptionUpdate> update)
+    private Task OnProjectChangedAsync(string sliceDimensions, IProjectVersionedValue<IProjectSubscriptionUpdate> update)
     {
         if (IsDisposing || IsDisposed)
         {
@@ -204,8 +196,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
         }
     }
 
-    // Internal for tests
-    internal Task OnProjectRenamingAsync(string oldProjectFilePath, string newProjectFilePath)
+    private Task OnProjectRenamingAsync(string oldProjectFilePath, string newProjectFilePath)
     {
         // When a project gets renamed we expect any rules watched by the derived class to fire.
         //
@@ -385,7 +376,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
         }
 
         var joinedPath = Path.Combine(projectDirectory, intermediateOutputPathValue);
-        if (!SkipIntermediateOutputPathExistCheck_TestOnly && !Directory.Exists(joinedPath))
+        if (!_skipDirectoryExistCheck_TestOnly && !Directory.Exists(joinedPath))
         {
             return null;
         }
