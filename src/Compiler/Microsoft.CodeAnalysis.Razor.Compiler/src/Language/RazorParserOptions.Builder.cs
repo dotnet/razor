@@ -19,15 +19,13 @@ public sealed partial class RazorParserOptions
         public ImmutableArray<DirectiveDescriptor> Directives { get; set => field = value.NullToEmpty(); }
         public CSharpParseOptions CSharpParseOptions { get; set => field = value ?? CSharpParseOptions.Default; }
 
-        internal RazorParserFeatureFlags FeatureFlags { get; set; }
-
         internal Builder(RazorLanguageVersion languageVersion, string fileKind)
         {
-            LanguageVersion = languageVersion ?? RazorLanguageVersion.Latest;
-            FileKind = fileKind ?? FileKinds.Legacy;
+            LanguageVersion = languageVersion ?? DefaultLanguageVersion;
+            FileKind = fileKind ?? DefaultFileKind;
             Directives = [];
             CSharpParseOptions = CSharpParseOptions.Default;
-            FeatureFlags = RazorParserFeatureFlags.Create(LanguageVersion, FileKind);
+            _flags = GetDefaultFlags(LanguageVersion, FileKind);
         }
 
         public bool DesignTime
@@ -54,7 +52,55 @@ public sealed partial class RazorParserOptions
             set => _flags.UpdateFlag(Flags.EnableSpanEditHandlers, value);
         }
 
+        internal bool AllowMinimizedBooleanTagHelperAttributes
+        {
+            get => _flags.IsFlagSet(Flags.AllowMinimizedBooleanTagHelperAttributes);
+            set => _flags.UpdateFlag(Flags.AllowMinimizedBooleanTagHelperAttributes, value);
+        }
+
+        internal bool AllowHtmlCommentsInTagHelpers
+        {
+            get => _flags.IsFlagSet(Flags.AllowHtmlCommentsInTagHelpers);
+            set => _flags.UpdateFlag(Flags.AllowHtmlCommentsInTagHelpers, value);
+        }
+
+        internal bool AllowComponentFileKind
+        {
+            get => _flags.IsFlagSet(Flags.AllowComponentFileKind);
+            set => _flags.UpdateFlag(Flags.AllowComponentFileKind, value);
+        }
+
+        internal bool AllowRazorInAllCodeBlocks
+        {
+            get => _flags.IsFlagSet(Flags.AllowRazorInAllCodeBlocks);
+            set => _flags.UpdateFlag(Flags.AllowRazorInAllCodeBlocks, value);
+        }
+
+        internal bool AllowUsingVariableDeclarations
+        {
+            get => _flags.IsFlagSet(Flags.AllowUsingVariableDeclarations);
+            set => _flags.UpdateFlag(Flags.AllowUsingVariableDeclarations, value);
+        }
+
+        internal bool AllowConditionalDataDashAttributes
+        {
+            get => _flags.IsFlagSet(Flags.AllowConditionalDataDashAttributes);
+            set => _flags.UpdateFlag(Flags.AllowConditionalDataDashAttributes, value);
+        }
+
+        internal bool AllowCSharpInMarkupAttributeArea
+        {
+            get => _flags.IsFlagSet(Flags.AllowCSharpInMarkupAttributeArea);
+            set => _flags.UpdateFlag(Flags.AllowCSharpInMarkupAttributeArea, value);
+        }
+
+        internal bool AllowNullableForgivenessOperator
+        {
+            get => _flags.IsFlagSet(Flags.AllowNullableForgivenessOperator);
+            set => _flags.UpdateFlag(Flags.AllowNullableForgivenessOperator, value);
+        }
+
         public RazorParserOptions ToOptions()
-            => new(LanguageVersion, FileKind, Directives, CSharpParseOptions, FeatureFlags, _flags);
+            => new(LanguageVersion, FileKind, Directives, CSharpParseOptions, _flags);
     }
 }

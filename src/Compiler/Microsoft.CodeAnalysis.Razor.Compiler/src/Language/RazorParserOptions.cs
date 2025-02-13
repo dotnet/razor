@@ -11,29 +11,29 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public sealed partial class RazorParserOptions
 {
+    private static RazorLanguageVersion DefaultLanguageVersion => RazorLanguageVersion.Latest;
+    private static string DefaultFileKind => FileKinds.Legacy;
+
     public static RazorParserOptions Default { get; } = new(
-        languageVersion: RazorLanguageVersion.Latest,
+        languageVersion: DefaultLanguageVersion,
         fileKind: FileKinds.Legacy,
         directives: [],
         csharpParseOptions: CSharpParseOptions.Default,
-        featureFlags: RazorParserFeatureFlags.Create(RazorLanguageVersion.Latest, FileKinds.Legacy),
-        flags: 0);
+        flags: GetDefaultFlags(DefaultLanguageVersion, DefaultFileKind));
 
     private readonly Flags _flags;
 
-    public RazorLanguageVersion LanguageVersion { get; } = RazorLanguageVersion.Latest;
+    public RazorLanguageVersion LanguageVersion { get; }
     internal string FileKind { get; }
 
     public ImmutableArray<DirectiveDescriptor> Directives { get; }
     public CSharpParseOptions CSharpParseOptions { get; }
-    internal RazorParserFeatureFlags FeatureFlags { get; }
 
     private RazorParserOptions(
         RazorLanguageVersion languageVersion,
         string fileKind,
         ImmutableArray<DirectiveDescriptor> directives,
         CSharpParseOptions csharpParseOptions,
-        RazorParserFeatureFlags featureFlags,
         Flags flags)
     {
         if (flags.IsFlagSet(Flags.ParseLeadingDirectives) &&
@@ -42,12 +42,11 @@ public sealed partial class RazorParserOptions
             throw new ArgumentException($"Cannot set {nameof(Flags.ParseLeadingDirectives)} and {nameof(Flags.UseRoslynTokenizer)} to true simultaneously.");
         }
 
-        LanguageVersion = languageVersion ?? RazorLanguageVersion.Latest;
-        FileKind = fileKind ?? FileKinds.Legacy;
+        LanguageVersion = languageVersion ?? DefaultLanguageVersion;
+        FileKind = fileKind ?? DefaultFileKind;
         Directives = directives;
         CSharpParseOptions = csharpParseOptions;
         _flags = flags;
-        FeatureFlags = featureFlags;
     }
 
     public bool DesignTime
@@ -70,21 +69,53 @@ public sealed partial class RazorParserOptions
     internal bool EnableSpanEditHandlers
         => _flags.IsFlagSet(Flags.EnableSpanEditHandlers);
 
+    internal bool AllowMinimizedBooleanTagHelperAttributes
+        => _flags.IsFlagSet(Flags.AllowMinimizedBooleanTagHelperAttributes);
+
+    internal bool AllowHtmlCommentsInTagHelpers
+        => _flags.IsFlagSet(Flags.AllowHtmlCommentsInTagHelpers);
+
+    internal bool AllowComponentFileKind
+        => _flags.IsFlagSet(Flags.AllowComponentFileKind);
+
+    internal bool AllowRazorInAllCodeBlocks
+        => _flags.IsFlagSet(Flags.AllowRazorInAllCodeBlocks);
+
+    internal bool AllowUsingVariableDeclarations
+        => _flags.IsFlagSet(Flags.AllowUsingVariableDeclarations);
+
+    internal bool AllowConditionalDataDashAttributes
+        => _flags.IsFlagSet(Flags.AllowConditionalDataDashAttributes);
+
+    internal bool AllowCSharpInMarkupAttributeArea
+        => _flags.IsFlagSet(Flags.AllowCSharpInMarkupAttributeArea);
+
+    internal bool AllowNullableForgivenessOperator
+        => _flags.IsFlagSet(Flags.AllowNullableForgivenessOperator);
+
     public RazorParserOptions WithDirectives(params ImmutableArray<DirectiveDescriptor> value)
         => Directives.SequenceEqual(value)
             ? this
-            : new(LanguageVersion, FileKind, value, CSharpParseOptions, FeatureFlags, _flags);
+            : new(LanguageVersion, FileKind, value, CSharpParseOptions, _flags);
 
     public RazorParserOptions WithCSharpParseOptions(CSharpParseOptions value)
         => CSharpParseOptions.Equals(value)
             ? this
-            : new(LanguageVersion, FileKind, Directives, value, FeatureFlags, _flags);
+            : new(LanguageVersion, FileKind, Directives, value, _flags);
 
     public RazorParserOptions WithFlags(
         Optional<bool> designTime = default,
         Optional<bool> parseLeadingDirectives = default,
         Optional<bool> useRoslynTokenizer = default,
-        Optional<bool> enableSpanEditHandlers = default)
+        Optional<bool> enableSpanEditHandlers = default,
+        Optional<bool> allowMinimizedBooleanTagHelperAttributes = default,
+        Optional<bool> allowHtmlCommentsInTagHelpers = default,
+        Optional<bool> allowComponentFileKind = default,
+        Optional<bool> allowRazorInAllCodeBlocks = default,
+        Optional<bool> allowUsingVariableDeclarations = default,
+        Optional<bool> allowConditionalDataDashAttributes = default,
+        Optional<bool> allowCSharpInMarkupAttributeArea = default,
+        Optional<bool> allowNullableForgivenessOperator = default)
     {
         var flags = _flags;
 
@@ -108,8 +139,48 @@ public sealed partial class RazorParserOptions
             flags.UpdateFlag(Flags.EnableSpanEditHandlers, enableSpanEditHandlers.Value);
         }
 
+        if (allowMinimizedBooleanTagHelperAttributes.HasValue)
+        {
+            flags.UpdateFlag(Flags.AllowMinimizedBooleanTagHelperAttributes, allowMinimizedBooleanTagHelperAttributes.Value);
+        }
+
+        if (allowHtmlCommentsInTagHelpers.HasValue)
+        {
+            flags.UpdateFlag(Flags.AllowHtmlCommentsInTagHelpers, allowHtmlCommentsInTagHelpers.Value);
+        }
+
+        if (allowComponentFileKind.HasValue)
+        {
+            flags.UpdateFlag(Flags.AllowComponentFileKind, allowComponentFileKind.Value);
+        }
+
+        if (allowRazorInAllCodeBlocks.HasValue)
+        {
+            flags.UpdateFlag(Flags.AllowRazorInAllCodeBlocks, allowRazorInAllCodeBlocks.Value);
+        }
+
+        if (allowUsingVariableDeclarations.HasValue)
+        {
+            flags.UpdateFlag(Flags.AllowUsingVariableDeclarations, allowUsingVariableDeclarations.Value);
+        }
+
+        if (allowConditionalDataDashAttributes.HasValue)
+        {
+            flags.UpdateFlag(Flags.AllowConditionalDataDashAttributes, allowConditionalDataDashAttributes.Value);
+        }
+
+        if (allowCSharpInMarkupAttributeArea.HasValue)
+        {
+            flags.UpdateFlag(Flags.AllowCSharpInMarkupAttributeArea, allowCSharpInMarkupAttributeArea.Value);
+        }
+
+        if (allowNullableForgivenessOperator.HasValue)
+        {
+            flags.UpdateFlag(Flags.AllowNullableForgivenessOperator, allowNullableForgivenessOperator.Value);
+        }
+
         return flags == _flags
             ? this
-            : new(LanguageVersion, FileKind, Directives, CSharpParseOptions, FeatureFlags, flags);
+            : new(LanguageVersion, FileKind, Directives, CSharpParseOptions, flags);
     }
 }

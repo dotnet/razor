@@ -52,9 +52,9 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         // lowering behaves.
         LoweringVisitor visitor;
         if (FileKinds.IsComponentImport(codeDocument.GetFileKind()) &&
-            syntaxTree.Options.FeatureFlags.AllowComponentFileKind)
+            syntaxTree.Options.AllowComponentFileKind)
         {
-            visitor = new ComponentImportFileKindVisitor(document, builder, syntaxTree.Options.FeatureFlags)
+            visitor = new ComponentImportFileKindVisitor(document, builder, syntaxTree.Options)
             {
                 SourceDocument = syntaxTree.Source,
             };
@@ -62,9 +62,9 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             visitor.Visit(syntaxTree.Root);
         }
         else if (FileKinds.IsComponent(codeDocument.GetFileKind()) &&
-            syntaxTree.Options.FeatureFlags.AllowComponentFileKind)
+            syntaxTree.Options.AllowComponentFileKind)
         {
-            visitor = new ComponentFileKindVisitor(document, builder, syntaxTree.Options.FeatureFlags)
+            visitor = new ComponentFileKindVisitor(document, builder, syntaxTree.Options)
             {
                 SourceDocument = syntaxTree.Source,
             };
@@ -73,7 +73,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         }
         else
         {
-            visitor = new LegacyFileKindVisitor(document, builder, tagHelperContext?.Prefix, syntaxTree.Options.FeatureFlags)
+            visitor = new LegacyFileKindVisitor(document, builder, tagHelperContext?.Prefix, syntaxTree.Options)
             {
                 SourceDocument = syntaxTree.Source,
             };
@@ -186,7 +186,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             return Array.Empty<UsingReference>();
         }
 
-        var importsVisitor = new ImportsVisitor(document, builder, options.FeatureFlags);
+        var importsVisitor = new ImportsVisitor(document, builder, options);
         foreach (var import in imports)
         {
             importsVisitor.SourceDocument = import.Source;
@@ -289,14 +289,14 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         protected readonly IntermediateNodeBuilder _builder;
         protected readonly DocumentIntermediateNode _document;
         protected readonly List<UsingReference> _usings;
-        protected readonly RazorParserFeatureFlags _featureFlags;
+        protected readonly RazorParserOptions _options;
 
-        public LoweringVisitor(DocumentIntermediateNode document, IntermediateNodeBuilder builder, RazorParserFeatureFlags featureFlags)
+        public LoweringVisitor(DocumentIntermediateNode document, IntermediateNodeBuilder builder, RazorParserOptions options)
         {
             _document = document;
             _builder = builder;
             _usings = new List<UsingReference>();
-            _featureFlags = featureFlags;
+            _options = options;
         }
 
         public IReadOnlyList<UsingReference> Usings => _usings;
@@ -601,8 +601,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         private readonly HashSet<string> _renderedBoundAttributeNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly string _tagHelperPrefix;
 
-        public LegacyFileKindVisitor(DocumentIntermediateNode document, IntermediateNodeBuilder builder, string tagHelperPrefix, RazorParserFeatureFlags featureFlags)
-            : base(document, builder, featureFlags)
+        public LegacyFileKindVisitor(DocumentIntermediateNode document, IntermediateNodeBuilder builder, string tagHelperPrefix, RazorParserOptions options)
+            : base(document, builder, options)
         {
             _tagHelperPrefix = tagHelperPrefix;
         }
@@ -623,7 +623,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             var prefix = (MarkupTextLiteralSyntax)SyntaxFactory.MarkupTextLiteral(prefixTokens, chunkGenerator: null).Green.CreateRed(node, node.NamePrefix?.Position ?? node.Name.Position);
 
             var name = node.Name.GetContent();
-            if (!_featureFlags.AllowConditionalDataDashAttributes && name.StartsWith("data-", StringComparison.OrdinalIgnoreCase))
+            if (!_options.AllowConditionalDataDashAttributes && name.StartsWith("data-", StringComparison.OrdinalIgnoreCase))
             {
                 Visit(prefix);
                 Visit(node.Value);
@@ -671,7 +671,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
         public override void VisitMarkupMinimizedAttributeBlock(MarkupMinimizedAttributeBlockSyntax node)
         {
-            if (!_featureFlags.AllowConditionalDataDashAttributes)
+            if (!_options.AllowConditionalDataDashAttributes)
             {
                 var name = node.Name.GetContent();
 
@@ -1074,7 +1074,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
         public override void VisitMarkupMinimizedTagHelperAttribute(MarkupMinimizedTagHelperAttributeSyntax node)
         {
-            if (!_featureFlags.AllowMinimizedBooleanTagHelperAttributes)
+            if (!_options.AllowMinimizedBooleanTagHelperAttributes)
             {
                 // Minimized attributes are not valid for non-boolean bound attributes. TagHelperBlockRewriter
                 // has already logged an error if it was a non-boolean bound attribute; so we can skip.
@@ -1274,8 +1274,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         public ComponentFileKindVisitor(
             DocumentIntermediateNode document,
             IntermediateNodeBuilder builder,
-            RazorParserFeatureFlags featureFlags)
-            : base(document, builder, featureFlags)
+            RazorParserOptions options)
+            : base(document, builder, options)
         {
         }
 
@@ -1861,7 +1861,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
         public override void VisitMarkupMinimizedTagHelperAttribute(MarkupMinimizedTagHelperAttributeSyntax node)
         {
-            if (!_featureFlags.AllowMinimizedBooleanTagHelperAttributes)
+            if (!_options.AllowMinimizedBooleanTagHelperAttributes)
             {
                 // Minimized attributes are not valid for non-boolean bound attributes. TagHelperBlockRewriter
                 // has already logged an error if it was a non-boolean bound attribute; so we can skip.
@@ -1924,7 +1924,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
         public override void VisitMarkupMinimizedTagHelperDirectiveAttribute(MarkupMinimizedTagHelperDirectiveAttributeSyntax node)
         {
-            if (!_featureFlags.AllowMinimizedBooleanTagHelperAttributes)
+            if (!_options.AllowMinimizedBooleanTagHelperAttributes)
             {
                 // Minimized attributes are not valid for non-boolean bound attributes. TagHelperBlockRewriter
                 // has already logged an error if it was a non-boolean bound attribute; so we can skip.
@@ -2243,8 +2243,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         public ComponentImportFileKindVisitor(
             DocumentIntermediateNode document,
             IntermediateNodeBuilder builder,
-            RazorParserFeatureFlags featureFlags)
-            : base(document, builder, featureFlags)
+            RazorParserOptions options)
+            : base(document, builder, options)
         {
         }
 
@@ -2360,8 +2360,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
     private class ImportsVisitor : LoweringVisitor
     {
-        public ImportsVisitor(DocumentIntermediateNode document, IntermediateNodeBuilder builder, RazorParserFeatureFlags featureFlags)
-            : base(document, new ImportBuilder(builder), featureFlags)
+        public ImportsVisitor(DocumentIntermediateNode document, IntermediateNodeBuilder builder, RazorParserOptions options)
+            : base(document, new ImportBuilder(builder), options)
         {
         }
 

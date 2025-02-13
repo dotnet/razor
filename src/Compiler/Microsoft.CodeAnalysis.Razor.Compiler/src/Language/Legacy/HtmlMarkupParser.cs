@@ -27,7 +27,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
     private Stack<TagTracker> _tagTracker = new Stack<TagTracker>();
 
     public HtmlMarkupParser(ParserContext context)
-        : base(context.ParseLeadingDirectives ? FirstDirectiveHtmlLanguageCharacteristics.Instance : HtmlLanguageCharacteristics.Instance, context)
+        : base(context.Options.ParseLeadingDirectives ? FirstDirectiveHtmlLanguageCharacteristics.Instance : HtmlLanguageCharacteristics.Instance, context)
     {
     }
 
@@ -1167,7 +1167,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         // If we encounter a transition (@) here, it can be parsed as CSharp or Markup depending on the feature flag.
         // For example, in Components, we want to parse it as Markup so we can support directive attributes.
         //
-        if (Context.FeatureFlags.AllowCSharpInMarkupAttributeArea)
+        if (Context.Options.AllowCSharpInMarkupAttributeArea)
         {
             if (At(SyntaxKind.Transition))
             {
@@ -2060,7 +2060,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
 
     private bool IsConditionalAttributeName(string name)
     {
-        if (Context.FeatureFlags.AllowConditionalDataDashAttributes)
+        if (Context.Options.AllowConditionalDataDashAttributes)
         {
             return true;
         }
