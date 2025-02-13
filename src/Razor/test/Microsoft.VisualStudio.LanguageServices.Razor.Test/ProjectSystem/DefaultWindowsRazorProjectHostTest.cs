@@ -703,7 +703,6 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
 
         var host = new DefaultWindowsRazorProjectHost(services, _serviceProvider, _projectManager);
-        host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
 
         await Task.Run(async () => await host.LoadAsync());
         Assert.Empty(_projectManager.GetProjects());
@@ -850,7 +849,6 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
 
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
         var host = new DefaultWindowsRazorProjectHost(services, _serviceProvider, _projectManager);
-        host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
 
         await Task.Run(async () => await host.LoadAsync());
         Assert.Empty(_projectManager.GetProjects());
@@ -904,7 +902,6 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
 
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
         var host = new DefaultWindowsRazorProjectHost(services, _serviceProvider, _projectManager);
-        host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
 
         await Task.Run(async () => await host.LoadAsync());
         Assert.Empty(_projectManager.GetProjects());
@@ -1060,7 +1057,6 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
 
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
         var host = new DefaultWindowsRazorProjectHost(services, _serviceProvider, _projectManager);
-        host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
 
         await Task.Run(async () => await host.LoadAsync());
         Assert.Empty(_projectManager.GetProjects());
@@ -1135,7 +1131,6 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
 
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
         var host = new DefaultWindowsRazorProjectHost(services, _serviceProvider, _projectManager);
-        host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
 
         await Task.Run(async () => await host.LoadAsync());
         Assert.Empty(_projectManager.GetProjects());
@@ -1215,7 +1210,6 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
 
         var host = new DefaultWindowsRazorProjectHost(services, _serviceProvider, _projectManager);
-        host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
 
         await Task.Run(async () => await host.LoadAsync());
         Assert.Empty(_projectManager.GetProjects());
@@ -1312,7 +1306,6 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
 
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
         var host = new DefaultWindowsRazorProjectHost(services, _serviceProvider, _projectManager);
-        host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
 
         await Task.Run(async () => await host.LoadAsync());
         Assert.Empty(_projectManager.GetProjects());

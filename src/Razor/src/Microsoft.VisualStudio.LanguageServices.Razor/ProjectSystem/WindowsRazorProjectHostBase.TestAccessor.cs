@@ -16,7 +16,6 @@ internal partial class WindowsRazorProjectHostBase
 
         internal bool GetIntermediateOutputPathFromProjectChange(IImmutableDictionary<string, IProjectRuleSnapshot> state, out string? result)
         {
-            _this.SkipIntermediateOutputPathExistCheck_TestOnly = true;
             return _this.TryGetIntermediateOutputPath(state, out result);
         }
     }
