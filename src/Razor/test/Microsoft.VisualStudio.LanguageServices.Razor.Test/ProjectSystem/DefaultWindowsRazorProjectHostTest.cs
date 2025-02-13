@@ -780,9 +780,9 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
 
     [UITheory]
     // This is what we see for Razor class libraries
-    [InlineData("obj/",    @"C:\my repo root\solution folder\projectFolder\", @"obj\Debug\net8.0", @"C:\my repo root\solution folder\projectFolder\obj\Debug\net8.0")]
+    [InlineData("obj/", @"C:\my repo root\solution folder\projectFolder\", @"obj\Debug\net8.0", @"C:\my repo root\solution folder\projectFolder\obj\Debug\net8.0")]
     [InlineData("../obj/", @"C:\my repo root\solution folder\projectFolder\", @"obj\Debug\net8.0", @"C:\my repo root\solution folder\projectFolder\obj\Debug\net8.0")]
-    [InlineData("../obj",  @"C:\my repo root\solution folder\projectFolder\", @"obj\Debug\net8.0", @"C:\my repo root\solution folder\projectFolder\obj\Debug\net8.0")]
+    [InlineData("../obj", @"C:\my repo root\solution folder\projectFolder\", @"obj\Debug\net8.0", @"C:\my repo root\solution folder\projectFolder\obj\Debug\net8.0")]
     public void IntermediateOutputPathCalculationHandlesRelativePaths_BaseIntermediateOutputPath(string baseIntermediateOutputPath, string msbuildProjectDirectoryPropertyName, string intermediateOutputPath, string expectedCombinedIOP)
     {
         var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
