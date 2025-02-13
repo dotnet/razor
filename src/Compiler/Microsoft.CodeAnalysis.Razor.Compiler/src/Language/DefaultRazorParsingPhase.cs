@@ -18,7 +18,7 @@ internal class DefaultRazorParsingPhase : RazorEnginePhaseBase, IRazorParsingPha
 
     protected override void ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
     {
-        var options = codeDocument.GetParserOptions() ?? _optionsFeature.AssumeNotNull().GetOptions();
+        var options = codeDocument.ParserOptions ?? _optionsFeature.AssumeNotNull().GetOptions();
         var syntaxTree = RazorSyntaxTree.Parse(codeDocument.Source, options);
         codeDocument.SetSyntaxTree(syntaxTree);
 

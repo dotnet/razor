@@ -365,7 +365,7 @@ public static class RazorCodeDocumentExtensions
             }
             else if (fallbackToRootNamespace)
             {
-                var options = document.GetCodeGenerationOptions() ?? document.GetDocumentIntermediateNode()?.Options;
+                var options = document.CodeGenerationOptions ?? document.GetDocumentIntermediateNode()?.Options;
                 baseNamespace = options?.RootNamespace;
                 appendSuffix = true;
 

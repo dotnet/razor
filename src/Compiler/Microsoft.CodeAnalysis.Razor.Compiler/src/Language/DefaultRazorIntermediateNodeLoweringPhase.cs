@@ -40,7 +40,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         var document = new DocumentIntermediateNode();
         var builder = IntermediateNodeBuilder.Create(document);
 
-        document.Options = codeDocument.GetCodeGenerationOptions() ?? _optionsFeature.GetOptions();
+        document.Options = codeDocument.CodeGenerationOptions ?? _optionsFeature.GetOptions();
 
         // The import documents should be inserted logically before the main document.
         var imports = codeDocument.GetImportSyntaxTrees();

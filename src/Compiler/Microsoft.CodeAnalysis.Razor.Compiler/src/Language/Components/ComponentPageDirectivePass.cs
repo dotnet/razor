@@ -66,7 +66,7 @@ internal class ComponentPageDirectivePass : IntermediateNodePassBase, IRazorDire
                 pageDirective.Diagnostics.Add(ComponentDiagnosticFactory.CreatePageDirective_MustSpecifyRoute(pageDirective.Source));
             }
 
-            if (codeDocument.GetCodeGenerationOptions() is { DesignTime: false } || pageDirective.Diagnostics.Count == 0)
+            if (codeDocument.CodeGenerationOptions is { DesignTime: false } || pageDirective.Diagnostics.Count == 0)
             {
                 @namespace.Children.Insert(index++, new RouteAttributeExtensionNode(routeToken.Content) { Source = routeToken.Source });
             }

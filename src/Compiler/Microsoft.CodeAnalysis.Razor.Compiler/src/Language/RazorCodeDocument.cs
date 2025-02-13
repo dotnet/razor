@@ -11,8 +11,8 @@ public sealed class RazorCodeDocument
     public ImmutableArray<RazorSourceDocument> Imports { get; }
     public ItemCollection Items { get; }
 
-    private RazorParserOptions? _parserOptions;
-    private RazorCodeGenerationOptions? _codeGenerationOptions;
+    public RazorParserOptions? ParserOptions { get; }
+    public RazorCodeGenerationOptions? CodeGenerationOptions { get; }
 
     private RazorCodeDocument(
         RazorSourceDocument source,
@@ -23,8 +23,8 @@ public sealed class RazorCodeDocument
         Source = source;
         Imports = imports.NullToEmpty();
 
-        _parserOptions = parserOptions;
-        _codeGenerationOptions = codeGenerationOptions;
+        ParserOptions = parserOptions;
+        CodeGenerationOptions = codeGenerationOptions;
 
         Items = new ItemCollection();
     }
@@ -54,21 +54,5 @@ public sealed class RazorCodeDocument
         ArgHelper.ThrowIfNull(source);
 
         return new RazorCodeDocument(source, imports, parserOptions, codeGenerationOptions);
-    }
-
-    public RazorParserOptions? GetParserOptions()
-        => _parserOptions;
-
-    public void SetParserOptions(RazorParserOptions parserOptions)
-    {
-        _parserOptions = parserOptions;
-    }
-
-    public RazorCodeGenerationOptions? GetCodeGenerationOptions()
-        => _codeGenerationOptions;
-
-    public void SetCodeGenerationOptions(RazorCodeGenerationOptions codeGenerationOptions)
-    {
-        _codeGenerationOptions = codeGenerationOptions;
     }
 }

@@ -229,8 +229,11 @@ public class RazorCodeDocumentExtensionsTest
     {
         // Arrange
         var sourceDocument = TestRazorSourceDocument.Create(filePath: "C:\\Hello\\Components\\Test.cshtml", relativePath: "\\Components\\Test.cshtml");
-        var codeDocument = RazorCodeDocument.Create(sourceDocument, imports: default);
-        codeDocument.SetCodeGenerationOptions(RazorCodeGenerationOptions.Default.WithRootNamespace("Hello"));
+        var codeDocument = RazorCodeDocument.Create(
+            sourceDocument,
+            imports: default,
+            parserOptions: RazorParserOptions.Default,
+            codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello"));
 
         // Act
         codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
@@ -282,8 +285,12 @@ public class RazorCodeDocumentExtensionsTest
     {
         // Arrange
         var sourceDocument = TestRazorSourceDocument.Create(filePath: "C:\\Hello\\Components\\Test.cshtml", relativePath: "\\Components\\Test.cshtml");
-        var codeDocument = RazorCodeDocument.Create(sourceDocument, imports: default);
-        codeDocument.SetCodeGenerationOptions(RazorCodeGenerationOptions.Default.WithRootNamespace("World"));
+        var codeDocument = RazorCodeDocument.Create(
+            sourceDocument,
+            imports: default,
+            parserOptions: RazorParserOptions.Default,
+            codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("World"));
+
         var documentNode = new DocumentIntermediateNode()
         {
             Options = RazorCodeGenerationOptions.Default.WithRootNamespace("Hello")

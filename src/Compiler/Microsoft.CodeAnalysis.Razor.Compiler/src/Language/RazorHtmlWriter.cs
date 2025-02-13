@@ -79,7 +79,7 @@ internal class RazorHtmlWriter : SyntaxWalker, IDisposable
 
     public static RazorHtmlDocument? GetHtmlDocument(RazorCodeDocument codeDocument)
     {
-        var options = codeDocument.GetCodeGenerationOptions();
+        var options = codeDocument.CodeGenerationOptions;
         if (options == null)
         {
             return null;
