@@ -361,7 +361,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
             TestRazorSourceDocument.Create("@using System.Globalization"),
             TestRazorSourceDocument.Create("@using System.Text"));
 
-        var codeDocument = TestRazorCodeDocument.Create(source, imports);
+        var codeDocument = RazorCodeDocument.Create(source, imports);
 
         // Act
         var documentNode = Lower(codeDocument);
@@ -384,7 +384,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
         var imports = ImmutableArray.Create(
             TestRazorSourceDocument.Create("@using System.Threading.Tasks"));
 
-        var codeDocument = TestRazorCodeDocument.Create(source, imports);
+        var codeDocument = RazorCodeDocument.Create(source, imports);
 
         // Act
         var documentNode = Lower(codeDocument);
@@ -405,7 +405,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
             TestRazorSourceDocument.Create("@test value1"),
             TestRazorSourceDocument.Create("@test value2"));
 
-        var codeDocument = TestRazorCodeDocument.Create(source, imports);
+        var codeDocument = RazorCodeDocument.Create(source, imports);
 
         // Act
         var documentNode = Lower(codeDocument, b =>
@@ -435,7 +435,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
         var imports = ImmutableArray.Create(
             TestRazorSourceDocument.Create("@block token { }"));
 
-        var codeDocument = TestRazorCodeDocument.Create(source, imports);
+        var codeDocument = RazorCodeDocument.Create(source, imports);
 
         // Act
         var documentNode = Lower(codeDocument, b =>

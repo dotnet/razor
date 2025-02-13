@@ -619,7 +619,7 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         var options = RazorParserOptions.Default.WithDirectives(ComponentCodeDirective.Directive, FunctionsDirective.Directive);
         var syntaxTree = RazorSyntaxTree.Parse(sourceDocument, options);
 
-        var codeDocument = TestRazorCodeDocument.Create(sourceDocument, imports: default);
+        var codeDocument = RazorCodeDocument.Create(sourceDocument, imports: default);
         codeDocument.SetFileKind(FileKinds.Component);
         codeDocument.SetCodeGenerationOptions(RazorCodeGenerationOptions.Default.WithRootNamespace("ExtractToComponentTest"));
         codeDocument.SetSyntaxTree(syntaxTree);

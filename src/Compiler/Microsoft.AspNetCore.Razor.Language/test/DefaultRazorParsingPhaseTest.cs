@@ -63,11 +63,13 @@ public class DefaultRazorParsingPhaseTest
             builder.ConfigureParserOptions(ConfigureDirective);
         });
 
+        var sourceDocument = TestRazorSourceDocument.Create();
+
         var imports = ImmutableArray.Create(
             TestRazorSourceDocument.Create(),
             TestRazorSourceDocument.Create());
 
-        var codeDocument = TestRazorCodeDocument.Create(TestRazorSourceDocument.Create(), imports);
+        var codeDocument = RazorCodeDocument.Create(sourceDocument, imports: default);
 
         // Act
         phase.Execute(codeDocument);
