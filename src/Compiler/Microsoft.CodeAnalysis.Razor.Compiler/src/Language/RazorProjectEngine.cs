@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public class RazorProjectEngine
+public sealed class RazorProjectEngine
 {
     public RazorConfiguration Configuration { get; }
     public RazorProjectFileSystem FileSystem { get; }
@@ -22,6 +22,9 @@ public class RazorProjectEngine
     public ImmutableArray<IRazorProjectEngineFeature> Features { get; }
 
     private readonly FeatureCache<IRazorProjectEngineFeature> _featureCache;
+
+    private readonly ImmutableArray<IConfigureRazorParserOptionsFeature> _configureParserOptionsFeatures;
+    private readonly ImmutableArray<IConfigureRazorCodeGenerationOptionsFeature> _configureCodeGenerationOptionsFeatures;
 
     internal RazorProjectEngine(
         RazorConfiguration configuration,
@@ -40,6 +43,14 @@ public class RazorProjectEngine
         {
             projectFeature.Initialize(this);
         }
+
+        _configureParserOptionsFeatures = Engine
+            .GetFeatures<IConfigureRazorParserOptionsFeature>()
+            .OrderByAsArray(static x => x.Order);
+
+        _configureCodeGenerationOptionsFeatures = Engine
+            .GetFeatures<IConfigureRazorCodeGenerationOptionsFeature>()
+            .OrderByAsArray(static x => x.Order);
     }
 
     public ImmutableArray<TFeature> GetFeatures<TFeature>()
@@ -163,17 +174,8 @@ public class RazorProjectEngine
         Action<RazorParserOptions.Builder>? configureParser,
         Action<RazorCodeGenerationOptions.Builder>? configureCodeGeneration)
     {
-        var parserOptions = GetRequiredFeature<IRazorParserOptionsFactoryProjectFeature>().Create(fileKind, builder =>
-        {
-            ConfigureParserOptions(builder);
-            configureParser?.Invoke(builder);
-        });
-
-        var codeGenerationOptions = GetRequiredFeature<IRazorCodeGenerationOptionsFactoryProjectFeature>().Create(builder =>
-        {
-            ConfigureCodeGenerationOptions(builder);
-            configureCodeGeneration?.Invoke(builder);
-        });
+        var parserOptions = ComputeParserOptions(fileKind, configureParser);
+        var codeGenerationOptions = ComputeCodeGenerationOptions(configureCodeGeneration);
 
         var codeDocument = RazorCodeDocument.Create(source, importSources, parserOptions, codeGenerationOptions);
 
@@ -209,15 +211,19 @@ public class RazorProjectEngine
     {
         ArgHelper.ThrowIfNull(sourceDocument);
 
-        var parserOptions = GetRequiredFeature<IRazorParserOptionsFactoryProjectFeature>().Create(fileKind, builder =>
+        var parserOptions = ComputeParserOptions(fileKind, builder =>
         {
-            ConfigureDesignTimeParserOptions(builder);
+            builder.DesignTime = true;
+
             configureParser?.Invoke(builder);
         });
 
-        var codeGenerationOptions = GetRequiredFeature<IRazorCodeGenerationOptionsFactoryProjectFeature>().Create(builder =>
+        var codeGenerationOptions = ComputeCodeGenerationOptions(builder =>
         {
-            ConfigureDesignTimeCodeGenerationOptions(builder);
+            builder.DesignTime = true;
+            builder.SuppressChecksum = true;
+            builder.SuppressMetadataAttributes = true;
+
             configureCodeGeneration?.Invoke(builder);
         });
 
@@ -229,25 +235,43 @@ public class RazorProjectEngine
         return codeDocument;
     }
 
+    private RazorParserOptions ComputeParserOptions(string fileKind, Action<RazorParserOptions.Builder>? configure)
+    {
+        var builder = new RazorParserOptions.Builder(Configuration.LanguageVersion, fileKind);
+
+        configure?.Invoke(builder);
+
+        foreach (var feature in _configureParserOptionsFeatures)
+        {
+            feature.Configure(builder);
+        }
+
+        return builder.ToOptions();
+    }
+
+    private RazorCodeGenerationOptions ComputeCodeGenerationOptions(Action<RazorCodeGenerationOptions.Builder>? configure)
+    {
+        var configuration = Configuration;
+        var builder = new RazorCodeGenerationOptions.Builder(configuration.LanguageVersion)
+        {
+            SuppressAddComponentParameter = configuration.SuppressAddComponentParameter
+        };
+
+        configure?.Invoke(builder);
+
+        foreach (var feature in _configureCodeGenerationOptionsFeatures)
+        {
+            feature.Configure(builder);
+        }
+
+        return builder.ToOptions();
+    }
+
     private void ProcessCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
     {
         ArgHelper.ThrowIfNull(codeDocument);
 
         Engine.Process(codeDocument, cancellationToken);
-    }
-
-    private TFeature GetRequiredFeature<TFeature>()
-        where TFeature : class, IRazorProjectEngineFeature
-    {
-        if (GetFeatures<TFeature>() is [var feature, ..])
-        {
-            return feature;
-        }
-
-        throw new InvalidOperationException(
-            Resources.FormatRazorProjectEngineMissingFeatureDependency(
-                typeof(RazorProjectEngine).FullName,
-                typeof(TFeature).FullName));
     }
 
     internal static RazorProjectEngine CreateEmpty(Action<RazorProjectEngineBuilder>? configure = null)
@@ -325,10 +349,6 @@ public class RazorProjectEngine
         // General extensibility
         features.Add(new ConfigureDirectivesFeature());
         features.Add(new DefaultMetadataIdentifierFeature());
-
-        // Options features
-        features.Add(new DefaultRazorParserOptionsFactoryProjectFeature());
-        features.Add(new DefaultRazorCodeGenerationOptionsFactoryProjectFeature());
 
         // Legacy options features
         //
@@ -516,25 +536,5 @@ public class RazorProjectEngine
         }
 
         return imports.DrainToImmutable();
-    }
-
-    private static void ConfigureParserOptions(RazorParserOptions.Builder builder)
-    {
-    }
-
-    private static void ConfigureDesignTimeParserOptions(RazorParserOptions.Builder builder)
-    {
-        builder.DesignTime = true;
-    }
-
-    private static void ConfigureCodeGenerationOptions(RazorCodeGenerationOptions.Builder builder)
-    {
-    }
-
-    private static void ConfigureDesignTimeCodeGenerationOptions(RazorCodeGenerationOptions.Builder builder)
-    {
-        builder.DesignTime = true;
-        builder.SuppressChecksum = true;
-        builder.SuppressMetadataAttributes = true;
     }
 }
