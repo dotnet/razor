@@ -42,8 +42,8 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
 
         var callback = new Mock<IConfigureRazorCodeGenerationOptionsFeature>();
         callback
-            .Setup(c => c.Configure(It.IsAny<RazorCodeGenerationOptionsBuilder>()))
-            .Callback<RazorCodeGenerationOptionsBuilder>(o =>
+            .Setup(c => c.Configure(It.IsAny<RazorCodeGenerationOptions.Builder>()))
+            .Callback<RazorCodeGenerationOptions.Builder>(o =>
             {
                 o.IndentSize = 17;
                 o.IndentWithTabs = true;

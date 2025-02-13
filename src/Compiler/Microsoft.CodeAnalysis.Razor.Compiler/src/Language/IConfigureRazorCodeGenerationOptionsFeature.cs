@@ -9,5 +9,5 @@ public interface IConfigureRazorCodeGenerationOptionsFeature : IRazorEngineFeatu
 {
     int Order { get; }
 
-    void Configure(RazorCodeGenerationOptionsBuilder options);
+    void Configure(RazorCodeGenerationOptions.Builder options);
 }

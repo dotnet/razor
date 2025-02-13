@@ -15,11 +15,11 @@ internal class DefaultRazorCodeGenerationOptionsFactoryProjectFeature : RazorPro
         _configureOptions = ProjectEngine.Engine.GetFeatures<IConfigureRazorCodeGenerationOptionsFeature>().OrderByAsArray(static x => x.Order);
     }
 
-    public RazorCodeGenerationOptions Create(Action<RazorCodeGenerationOptionsBuilder> configure)
+    public RazorCodeGenerationOptions Create(Action<RazorCodeGenerationOptions.Builder> configure)
     {
         var configuration = ProjectEngine.Configuration;
 
-        var builder = new RazorCodeGenerationOptionsBuilder(configuration.LanguageVersion)
+        var builder = new RazorCodeGenerationOptions.Builder(configuration.LanguageVersion)
         {
             SuppressAddComponentParameter = configuration.SuppressAddComponentParameter
         };

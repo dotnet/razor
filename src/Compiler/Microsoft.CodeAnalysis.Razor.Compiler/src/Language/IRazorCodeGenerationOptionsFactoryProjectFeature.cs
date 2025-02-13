@@ -9,5 +9,5 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 internal interface IRazorCodeGenerationOptionsFactoryProjectFeature : IRazorProjectEngineFeature
 {
-    RazorCodeGenerationOptions Create(Action<RazorCodeGenerationOptionsBuilder> configure);
+    RazorCodeGenerationOptions Create(Action<RazorCodeGenerationOptions.Builder> configure);
 }

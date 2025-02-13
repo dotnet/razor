@@ -59,7 +59,7 @@ public static class RazorProjectEngineBuilderExtensions
         return builder;
     }
 
-    public static RazorProjectEngineBuilder ConfigureCodeGenerationOptions(this RazorProjectEngineBuilder builder, Action<RazorCodeGenerationOptionsBuilder> configure)
+    public static RazorProjectEngineBuilder ConfigureCodeGenerationOptions(this RazorProjectEngineBuilder builder, Action<RazorCodeGenerationOptions.Builder> configure)
     {
         ArgHelper.ThrowIfNull(builder);
         ArgHelper.ThrowIfNull(configure);
@@ -189,11 +189,11 @@ public static class RazorProjectEngineBuilderExtensions
         }
     }
 
-    private sealed class ConfigureCodeGenerationOptionsFeature(Action<RazorCodeGenerationOptionsBuilder> configure) : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
+    private sealed class ConfigureCodeGenerationOptionsFeature(Action<RazorCodeGenerationOptions.Builder> configure) : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
     {
         public int Order => 0;
 
-        public void Configure(RazorCodeGenerationOptionsBuilder builder)
+        public void Configure(RazorCodeGenerationOptions.Builder builder)
         {
             configure(builder);
         }
@@ -205,7 +205,7 @@ public static class RazorProjectEngineBuilderExtensions
 
         public int Order { get; set; }
 
-        public void Configure(RazorCodeGenerationOptionsBuilder builder)
+        public void Configure(RazorCodeGenerationOptions.Builder builder)
         {
             if (builder.LanguageVersion.Major is < 3)
             {

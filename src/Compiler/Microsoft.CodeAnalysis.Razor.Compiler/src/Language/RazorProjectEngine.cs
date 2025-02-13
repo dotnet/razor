@@ -145,7 +145,7 @@ public class RazorProjectEngine
     private RazorCodeDocument CreateCodeDocumentCore(
         RazorProjectItem projectItem,
         Action<RazorParserOptions.Builder>? configureParser = null,
-        Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration = null)
+        Action<RazorCodeGenerationOptions.Builder>? configureCodeGeneration = null)
     {
         var source = projectItem.GetSource();
         var importSources = GetImportSources(projectItem, designTime: false);
@@ -161,7 +161,7 @@ public class RazorProjectEngine
         IReadOnlyList<TagHelperDescriptor>? tagHelpers,
         string? cssScope,
         Action<RazorParserOptions.Builder>? configureParser,
-        Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration)
+        Action<RazorCodeGenerationOptions.Builder>? configureCodeGeneration)
     {
         var parserOptions = GetRequiredFeature<IRazorParserOptionsFactoryProjectFeature>().Create(fileKind, builder =>
         {
@@ -191,7 +191,7 @@ public class RazorProjectEngine
     private RazorCodeDocument CreateCodeDocumentDesignTimeCore(
         RazorProjectItem projectItem,
         Action<RazorParserOptions.Builder>? configureParser = null,
-        Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration = null)
+        Action<RazorCodeGenerationOptions.Builder>? configureCodeGeneration = null)
     {
         var source = projectItem.GetSource();
         var importSources = GetImportSources(projectItem, designTime: true);
@@ -205,7 +205,7 @@ public class RazorProjectEngine
         ImmutableArray<RazorSourceDocument> importSources,
         IReadOnlyList<TagHelperDescriptor>? tagHelpers,
         Action<RazorParserOptions.Builder>? configureParser,
-        Action<RazorCodeGenerationOptionsBuilder>? configureCodeGeneration)
+        Action<RazorCodeGenerationOptions.Builder>? configureCodeGeneration)
     {
         ArgHelper.ThrowIfNull(sourceDocument);
 
@@ -527,11 +527,11 @@ public class RazorProjectEngine
         builder.DesignTime = true;
     }
 
-    private static void ConfigureCodeGenerationOptions(RazorCodeGenerationOptionsBuilder builder)
+    private static void ConfigureCodeGenerationOptions(RazorCodeGenerationOptions.Builder builder)
     {
     }
 
-    private static void ConfigureDesignTimeCodeGenerationOptions(RazorCodeGenerationOptionsBuilder builder)
+    private static void ConfigureDesignTimeCodeGenerationOptions(RazorCodeGenerationOptions.Builder builder)
     {
         builder.DesignTime = true;
         builder.SuppressChecksum = true;

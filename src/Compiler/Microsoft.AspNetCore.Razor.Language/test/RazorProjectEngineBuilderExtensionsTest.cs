@@ -120,7 +120,7 @@ public class RazorProjectEngineBuilderExtensionsTest
         });
 
         var features = projectEngine.Engine.GetFeatures<IConfigureRazorCodeGenerationOptionsFeature>();
-        var builder = new RazorCodeGenerationOptionsBuilder(RazorLanguageVersion.Latest);
+        var builder = new RazorCodeGenerationOptions.Builder(RazorLanguageVersion.Latest);
         foreach (var feature in features)
         {
             feature.Configure(builder);
