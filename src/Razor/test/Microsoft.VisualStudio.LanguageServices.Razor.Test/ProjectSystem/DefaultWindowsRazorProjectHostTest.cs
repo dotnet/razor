@@ -774,6 +774,36 @@ public class DefaultWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         Assert.Equal(expectedCombinedIOP, combinedIntermediateOutputPath);
     }
 
+    [UITheory]
+    // This is what we see for Razor class libraries
+    [InlineData("obj/",    @"C:\my repo root\solution folder\projectFolder\", @"obj\Debug\net8.0", @"C:\my repo root\solution folder\projectFolder\obj\Debug\net8.0")]
+    [InlineData("../obj/", @"C:\my repo root\solution folder\projectFolder\", @"obj\Debug\net8.0", @"C:\my repo root\solution folder\projectFolder\obj\Debug\net8.0")]
+    [InlineData("../obj",  @"C:\my repo root\solution folder\projectFolder\", @"obj\Debug\net8.0", @"C:\my repo root\solution folder\projectFolder\obj\Debug\net8.0")]
+    public void IntermediateOutputPathCalculationHandlesRelativePaths_BaseIntermediateOutputPath(string baseIntermediateOutputPath, string msbuildProjectDirectoryPropertyName, string intermediateOutputPath, string expectedCombinedIOP)
+    {
+        var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
+        var host = new DefaultWindowsRazorProjectHost(services, _serviceProvider, _projectManager);
+        host.SkipIntermediateOutputPathExistCheck_TestOnly = true;
+
+        var state = TestProjectRuleSnapshot.CreateProperties(
+            WindowsRazorProjectHostBase.ConfigurationGeneralSchemaName,
+            new Dictionary<string, string>()
+            {
+                [WindowsRazorProjectHostBase.IntermediateOutputPathPropertyName] = intermediateOutputPath,
+                [WindowsRazorProjectHostBase.BaseIntermediateOutputPathPropertyName] = baseIntermediateOutputPath,
+                [WindowsRazorProjectHostBase.MSBuildProjectDirectoryPropertyName] = msbuildProjectDirectoryPropertyName,
+            });
+
+        var dict = ImmutableDictionary<string, IProjectRuleSnapshot>.Empty;
+        dict = dict.Add(WindowsRazorProjectHostBase.ConfigurationGeneralSchemaName, state);
+
+        var result = host.GetTestAccessor().GetIntermediateOutputPathFromProjectChange(dict,
+            out var combinedIntermediateOutputPath);
+
+        Assert.True(result);
+        Assert.Equal(expectedCombinedIOP, combinedIntermediateOutputPath);
+    }
+
     [UIFact]
     public async Task OnProjectChanged_NoVersionFound_DoesNotInitializeProject()
     {
