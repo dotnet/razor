@@ -14,5 +14,5 @@ internal sealed class ExtractToComponentCodeActionParams
     public int End { get; set; }
 
     [JsonPropertyName("namespace")]
-    public required string Namespace { get; set; }
+    public required string? Namespace { get; set; }
 }
