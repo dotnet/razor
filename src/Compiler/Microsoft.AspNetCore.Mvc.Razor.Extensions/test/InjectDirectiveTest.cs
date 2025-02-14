@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Xunit;
@@ -13,27 +11,36 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
 {
     protected override RazorLanguageVersion Version => RazorLanguageVersion.Version_3_0;
 
+    protected override void ConfigureProjectEngine(RazorProjectEngineBuilder builder)
+    {
+        // Notice we're not registering the InjectDirective.Pass here so we can run it on demand.
+        builder.AddDirective(InjectDirective.Directive);
+        builder.AddDirective(ModelDirective.Directive);
+
+        builder.Features.Add(new RazorPageDocumentClassifierPass());
+        builder.Features.Add(new MvcViewDocumentClassifierPass());
+    }
+
     [Fact]
     public void InjectDirectivePass_Execute_DefinesProperty()
     {
         // Arrange
-        var codeDocument = CreateDocument(@"
+        var projectEngine = CreateProjectEngine();
+
+        var codeDocument = projectEngine.CreateCodeDocument(@"
 @inject PropertyType PropertyName
 ");
+        var runner = RazorProjectEngineRunner.From(projectEngine, codeDocument);
 
-        var engine = CreateEngine();
-        var pass = new InjectDirective.Pass()
-        {
-            Engine = engine,
-        };
-
-        var irDocument = CreateIRDocument(engine, codeDocument);
+        runner.RunPhasesTo<IRazorDocumentClassifierPhase>();
 
         // Act
-        pass.Execute(codeDocument, irDocument);
+        runner.ExecutePass<InjectDirective.Pass>();
+
+        var documentNode = codeDocument.GetDocumentIntermediateNode();
 
         // Assert
-        var @class = FindClassNode(irDocument);
+        var @class = documentNode.FindClassNode();
         Assert.NotNull(@class);
         Assert.Equal(2, @class.Children.Count);
 
@@ -46,24 +53,24 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
     public void InjectDirectivePass_Execute_DedupesPropertiesByName()
     {
         // Arrange
-        var codeDocument = CreateDocument(@"
+        var projectEngine = CreateProjectEngine();
+
+        var codeDocument = projectEngine.CreateCodeDocument(@"
 @inject PropertyType PropertyName
 @inject PropertyType2 PropertyName
 ");
 
-        var engine = CreateEngine();
-        var pass = new InjectDirective.Pass()
-        {
-            Engine = engine,
-        };
+        var runner = RazorProjectEngineRunner.From(projectEngine, codeDocument);
 
-        var irDocument = CreateIRDocument(engine, codeDocument);
+        runner.RunPhasesTo<IRazorDocumentClassifierPhase>();
 
         // Act
-        pass.Execute(codeDocument, irDocument);
+        runner.ExecutePass<InjectDirective.Pass>();
+
+        var documentNode = codeDocument.GetDocumentIntermediateNode();
 
         // Assert
-        var @class = FindClassNode(irDocument);
+        var @class = documentNode.FindClassNode();
         Assert.NotNull(@class);
         Assert.Equal(2, @class.Children.Count);
 
@@ -76,23 +83,23 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
     public void InjectDirectivePass_Execute_ExpandsTModel_WithDynamic()
     {
         // Arrange
-        var codeDocument = CreateDocument(@"
+        var projectEngine = CreateProjectEngine();
+
+        var codeDocument = projectEngine.CreateCodeDocument(@"
 @inject PropertyType<TModel> PropertyName
 ");
 
-        var engine = CreateEngine();
-        var pass = new InjectDirective.Pass()
-        {
-            Engine = engine,
-        };
+        var runner = RazorProjectEngineRunner.From(projectEngine, codeDocument);
 
-        var irDocument = CreateIRDocument(engine, codeDocument);
+        runner.RunPhasesTo<IRazorDocumentClassifierPhase>();
 
         // Act
-        pass.Execute(codeDocument, irDocument);
+        runner.ExecutePass<InjectDirective.Pass>();
+
+        var documentNode = codeDocument.GetDocumentIntermediateNode();
 
         // Assert
-        var @class = FindClassNode(irDocument);
+        var @class = documentNode.FindClassNode();
         Assert.NotNull(@class);
         Assert.Equal(2, @class.Children.Count);
 
@@ -105,24 +112,24 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
     public void InjectDirectivePass_Execute_ExpandsTModel_WithModelTypeFirst()
     {
         // Arrange
-        var codeDocument = CreateDocument(@"
+        var projectEngine = CreateProjectEngine();
+
+        var codeDocument = projectEngine.CreateCodeDocument(@"
 @model ModelType
 @inject PropertyType<TModel> PropertyName
 ");
 
-        var engine = CreateEngine();
-        var pass = new InjectDirective.Pass()
-        {
-            Engine = engine,
-        };
+        var runner = RazorProjectEngineRunner.From(projectEngine, codeDocument);
 
-        var irDocument = CreateIRDocument(engine, codeDocument);
+        runner.RunPhasesTo<IRazorDocumentClassifierPhase>();
 
         // Act
-        pass.Execute(codeDocument, irDocument);
+        runner.ExecutePass<InjectDirective.Pass>();
+
+        var documentNode = codeDocument.GetDocumentIntermediateNode();
 
         // Assert
-        var @class = FindClassNode(irDocument);
+        var @class = documentNode.FindClassNode();
         Assert.NotNull(@class);
         Assert.Equal(2, @class.Children.Count);
 
@@ -135,77 +142,29 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
     public void InjectDirectivePass_Execute_ExpandsTModel_WithModelType()
     {
         // Arrange
-        var codeDocument = CreateDocument(@"
+        var projectEngine = CreateProjectEngine();
+
+        var codeDocument = projectEngine.CreateCodeDocument(@"
 @inject PropertyType<TModel> PropertyName
 @model ModelType
 ");
 
-        var engine = CreateEngine();
-        var pass = new InjectDirective.Pass()
-        {
-            Engine = engine,
-        };
+        var runner = RazorProjectEngineRunner.From(projectEngine, codeDocument);
 
-        var irDocument = CreateIRDocument(engine, codeDocument);
+        runner.RunPhasesTo<IRazorDocumentClassifierPhase>();
 
         // Act
-        pass.Execute(codeDocument, irDocument);
+        runner.ExecutePass<InjectDirective.Pass>();
+
+        var documentNode = codeDocument.GetDocumentIntermediateNode();
 
         // Assert
-        var @class = FindClassNode(irDocument);
+        var @class = documentNode.FindClassNode();
         Assert.NotNull(@class);
         Assert.Equal(2, @class.Children.Count);
 
         var node = Assert.IsType<InjectIntermediateNode>(@class.Children[1]);
         Assert.Equal("PropertyType<ModelType>", node.TypeName);
         Assert.Equal("PropertyName", node.MemberName);
-    }
-
-    private RazorCodeDocument CreateDocument(string content)
-    {
-        var source = RazorSourceDocument.Create(content, "test.cshtml");
-        return RazorCodeDocument.Create(source);
-    }
-
-    private ClassDeclarationIntermediateNode FindClassNode(IntermediateNode node)
-    {
-        var visitor = new ClassNodeVisitor();
-        visitor.Visit(node);
-        return visitor.Node;
-    }
-
-    protected override void ConfigureProjectEngine(RazorProjectEngineBuilder builder)
-    {
-        // Notice we're not registering the InjectDirective.Pass here so we can run it on demand.
-        builder.AddDirective(InjectDirective.Directive);
-        builder.AddDirective(ModelDirective.Directive);
-
-        builder.Features.Add(new RazorPageDocumentClassifierPass());
-        builder.Features.Add(new MvcViewDocumentClassifierPass());
-    }
-
-    private DocumentIntermediateNode CreateIRDocument(RazorEngine engine, RazorCodeDocument codeDocument)
-    {
-        foreach (var phase in engine.Phases)
-        {
-            phase.Execute(codeDocument);
-
-            if (phase is IRazorDocumentClassifierPhase)
-            {
-                break;
-            }
-        }
-
-        return codeDocument.GetDocumentIntermediateNode();
-    }
-
-    private class ClassNodeVisitor : IntermediateNodeWalker
-    {
-        public ClassDeclarationIntermediateNode Node { get; set; }
-
-        public override void VisitClassDeclaration(ClassDeclarationIntermediateNode node)
-        {
-            Node = node;
-        }
     }
 }

@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -14,8 +12,6 @@ public abstract class RazorProjectEngineTestBase
     protected virtual void ConfigureProjectEngine(RazorProjectEngineBuilder builder)
     {
     }
-
-    protected RazorEngine CreateEngine() => CreateProjectEngine().Engine;
 
     protected RazorProjectEngine CreateProjectEngine()
     {
@@ -29,7 +25,7 @@ public abstract class RazorProjectEngineTestBase
         return RazorProjectEngine.Create(configuration, RazorProjectFileSystem.Empty, b =>
         {
             ConfigureProjectEngine(b);
-            configure?.Invoke(b);
+            configure.Invoke(b);
         });
     }
 }
