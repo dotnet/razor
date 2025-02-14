@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -32,7 +31,6 @@ public class DuplicateRazorFileIncludedAnalyzer : DiagnosticAnalyzer
             compStartAction.RegisterAdditionalFileAction(additionalFilesContext =>
             {
                 var additionalFile = additionalFilesContext.AdditionalFile;
-                var fileName = Path.GetFileName(additionalFile.Path);
 
                 if (additionalFile.Path.EndsWith(".cshtml", StringComparison.Ordinal) ||
                     additionalFile.Path.EndsWith(".razor", StringComparison.Ordinal))
