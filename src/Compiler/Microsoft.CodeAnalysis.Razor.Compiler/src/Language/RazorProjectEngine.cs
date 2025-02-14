@@ -146,11 +146,16 @@ public sealed class RazorProjectEngine
             : CreateCodeDocumentCore(projectItem);
     }
 
-    internal RazorCodeDocument CreateCodeDocument(RazorSourceDocument source, string fileKind)
+    internal RazorCodeDocument CreateCodeDocument(
+        RazorSourceDocument source,
+        string fileKind,
+        ImmutableArray<RazorSourceDocument> importSources,
+        IReadOnlyList<TagHelperDescriptor>? tagHelpers,
+        string? cssScope)
     {
         ArgHelper.ThrowIfNull(source);
 
-        return CreateCodeDocumentCore(source, fileKind, importSources: default, tagHelpers: null, cssScope: null, configureParser: null, configureCodeGeneration: null);
+        return CreateCodeDocumentCore(source, fileKind, importSources, tagHelpers, cssScope, configureParser: null, configureCodeGeneration: null);
     }
 
     private RazorCodeDocument CreateCodeDocumentCore(

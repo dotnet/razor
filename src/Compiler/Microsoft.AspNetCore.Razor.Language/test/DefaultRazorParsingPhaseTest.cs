@@ -13,13 +13,14 @@ public class DefaultRazorParsingPhaseTest
     {
         // Arrange
         var phase = new DefaultRazorParsingPhase();
-        var engine = RazorProjectEngine.CreateEmpty(builder =>
+
+        var projectEngine = RazorProjectEngine.CreateEmpty(builder =>
         {
             builder.Phases.Add(phase);
             builder.Features.Add(new DefaultRazorParserOptionsFeature());
         });
 
-        var codeDocument = TestRazorCodeDocument.CreateEmpty();
+        var codeDocument = projectEngine.CreateEmptyCodeDocument();
 
         // Act
         phase.Execute(codeDocument);
@@ -33,14 +34,15 @@ public class DefaultRazorParsingPhaseTest
     {
         // Arrange
         var phase = new DefaultRazorParsingPhase();
-        var engine = RazorProjectEngine.CreateEmpty((builder) =>
+
+        var projectEngine = RazorProjectEngine.CreateEmpty((builder) =>
         {
             builder.Phases.Add(phase);
             builder.Features.Add(new DefaultRazorParserOptionsFeature());
-            builder.ConfigureParserOptions(ConfigureDirective);
+            builder.AddDirective(CreateDirective());
         });
 
-        var codeDocument = TestRazorCodeDocument.CreateEmpty();
+        var codeDocument = projectEngine.CreateEmptyCodeDocument();
 
         // Act
         phase.Execute(codeDocument);
@@ -56,20 +58,20 @@ public class DefaultRazorParsingPhaseTest
     {
         // Arrange
         var phase = new DefaultRazorParsingPhase();
-        var engine = RazorProjectEngine.CreateEmpty((builder) =>
+
+        var projectEngine = RazorProjectEngine.CreateEmpty(builder =>
         {
             builder.Phases.Add(phase);
             builder.Features.Add(new DefaultRazorParserOptionsFeature());
-            builder.ConfigureParserOptions(ConfigureDirective);
+            builder.AddDirective(CreateDirective());
         });
 
-        var sourceDocument = TestRazorSourceDocument.Create();
-
-        var imports = ImmutableArray.Create(
+        var source = TestRazorSourceDocument.Create();
+        var importSources = ImmutableArray.Create(
             TestRazorSourceDocument.Create(),
             TestRazorSourceDocument.Create());
 
-        var codeDocument = RazorCodeDocument.Create(sourceDocument, imports: default);
+        var codeDocument = projectEngine.CreateCodeDocument(source, importSources);
 
         // Act
         phase.Execute(codeDocument);
@@ -79,12 +81,10 @@ public class DefaultRazorParsingPhaseTest
         Assert.False(importSyntaxTrees.IsDefault);
         Assert.Collection(
             importSyntaxTrees,
-            t => { Assert.Same(t.Source, imports[0]); Assert.Equal("test", Assert.Single(t.Options.Directives).Directive); },
-            t => { Assert.Same(t.Source, imports[1]); Assert.Equal("test", Assert.Single(t.Options.Directives).Directive); });
+            t => { Assert.Same(t.Source, importSources[0]); Assert.Equal("test", Assert.Single(t.Options.Directives).Directive); },
+            t => { Assert.Same(t.Source, importSources[1]); Assert.Equal("test", Assert.Single(t.Options.Directives).Directive); });
     }
 
-    private static void ConfigureDirective(RazorParserOptions.Builder builder)
-    {
-        builder.Directives = [DirectiveDescriptor.CreateDirective("test", DirectiveKind.SingleLine)];
-    }
+    private static DirectiveDescriptor CreateDirective()
+        => DirectiveDescriptor.CreateDirective("test", DirectiveKind.SingleLine);
 }
