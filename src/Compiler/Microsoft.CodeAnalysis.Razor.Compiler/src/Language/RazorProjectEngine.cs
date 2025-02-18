@@ -158,6 +158,17 @@ public sealed class RazorProjectEngine
         return CreateCodeDocumentCore(source, fileKind, importSources, tagHelpers, cssScope, configureParser: null, configureCodeGeneration: null);
     }
 
+    internal RazorCodeDocument CreateDesignTimeCodeDocument(
+        RazorSourceDocument source,
+        string fileKind,
+        ImmutableArray<RazorSourceDocument> importSources,
+        IReadOnlyList<TagHelperDescriptor>? tagHelpers)
+    {
+        ArgHelper.ThrowIfNull(source);
+
+        return CreateCodeDocumentDesignTimeCore(source, fileKind, importSources, tagHelpers, configureParser: null, configureCodeGeneration: null);
+    }
+
     private RazorCodeDocument CreateCodeDocumentCore(
         RazorProjectItem projectItem,
         Action<RazorParserOptions.Builder>? configureParser = null,
