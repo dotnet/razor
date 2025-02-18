@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -42,6 +43,73 @@ public abstract class RazorProjectEngineTestBase
         projectEngine ??= CreateProjectEngine();
 
         var codeDocument = projectEngine.CreateCodeDocument(content, importSources);
+        return InitializeDocument(projectEngine, codeDocument);
+    }
+
+    protected RazorCodeDocumentProcessor CreateAndInitializeCodeDocument(
+        string content,
+        ImmutableArray<RazorSourceDocument> importSources,
+        IReadOnlyList<TagHelperDescriptor> tagHelpers,
+        RazorProjectEngine? projectEngine = null)
+    {
+        projectEngine ??= CreateProjectEngine();
+
+        var codeDocument = projectEngine.CreateCodeDocument(content, importSources, tagHelpers);
+        return InitializeDocument(projectEngine, codeDocument);
+    }
+
+    protected RazorCodeDocumentProcessor CreateAndInitializeCodeDocument(
+        string content,
+        IReadOnlyList<TagHelperDescriptor> tagHelpers,
+        RazorProjectEngine? projectEngine = null)
+    {
+        projectEngine ??= CreateProjectEngine();
+
+        var codeDocument = projectEngine.CreateCodeDocument(content, tagHelpers);
+        return InitializeDocument(projectEngine, codeDocument);
+    }
+
+    protected RazorCodeDocumentProcessor CreateAndInitializeCodeDocument(
+        RazorSourceDocument source,
+        RazorProjectEngine? projectEngine = null)
+    {
+        projectEngine ??= CreateProjectEngine();
+
+        var codeDocument = projectEngine.CreateCodeDocument(source);
+        return InitializeDocument(projectEngine, codeDocument);
+    }
+
+    protected RazorCodeDocumentProcessor CreateAndInitializeCodeDocument(
+        RazorSourceDocument source,
+        ImmutableArray<RazorSourceDocument> importSources,
+        RazorProjectEngine? projectEngine = null)
+    {
+        projectEngine ??= CreateProjectEngine();
+
+        var codeDocument = projectEngine.CreateCodeDocument(source, importSources);
+        return InitializeDocument(projectEngine, codeDocument);
+    }
+
+    protected RazorCodeDocumentProcessor CreateAndInitializeCodeDocument(
+        RazorSourceDocument source,
+        ImmutableArray<RazorSourceDocument> importSources,
+        IReadOnlyList<TagHelperDescriptor> tagHelpers,
+        RazorProjectEngine? projectEngine = null)
+    {
+        projectEngine ??= CreateProjectEngine();
+
+        var codeDocument = projectEngine.CreateCodeDocument(source, importSources, tagHelpers);
+        return InitializeDocument(projectEngine, codeDocument);
+    }
+
+    protected RazorCodeDocumentProcessor CreateAndInitializeCodeDocument(
+        RazorSourceDocument source,
+        IReadOnlyList<TagHelperDescriptor> tagHelpers,
+        RazorProjectEngine? projectEngine = null)
+    {
+        projectEngine ??= CreateProjectEngine();
+
+        var codeDocument = projectEngine.CreateCodeDocument(source, tagHelpers);
         return InitializeDocument(projectEngine, codeDocument);
     }
 
