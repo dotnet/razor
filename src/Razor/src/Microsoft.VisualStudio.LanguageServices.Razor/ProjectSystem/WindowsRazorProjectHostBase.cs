@@ -40,9 +40,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
 
     internal const string ConfigurationGeneralSchemaName = "ConfigurationGeneral";
 
-    // Internal settable for testing
-    // 250ms between publishes to prevent bursts of changes yet still be responsive to changes.
-    internal int EnqueueDelay { get; set; } = 250;
+    private bool _skipDirectoryExistCheck_TestOnly;
 
     protected WindowsRazorProjectHostBase(
         IUnconfiguredProjectCommonServices commonServices,
@@ -64,19 +62,6 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
     protected abstract Task HandleProjectChangeAsync(string sliceDimensions, IProjectVersionedValue<IProjectSubscriptionUpdate> update);
 
     protected IUnconfiguredProjectCommonServices CommonServices { get; }
-
-    internal bool SkipIntermediateOutputPathExistCheck_TestOnly { get; set; }
-
-    // internal for tests. The product will call through the IProjectDynamicLoadComponent interface.
-    internal Task LoadAsync()
-    {
-        if (_languageServerFeatureOptions.UseRazorCohostServer)
-        {
-            return Task.CompletedTask;
-        }
-
-        return InitializeAsync();
-    }
 
     protected sealed override Task InitializeCoreAsync(CancellationToken cancellationToken)
     {
@@ -169,8 +154,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
         }
     }
 
-    // Internal for testing
-    internal Task OnProjectChangedAsync(string sliceDimensions, IProjectVersionedValue<IProjectSubscriptionUpdate> update)
+    private Task OnProjectChangedAsync(string sliceDimensions, IProjectVersionedValue<IProjectSubscriptionUpdate> update)
     {
         if (IsDisposing || IsDisposed)
         {
@@ -218,8 +202,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
         }
     }
 
-    // Internal for tests
-    internal Task OnProjectRenamingAsync(string oldProjectFilePath, string newProjectFilePath)
+    private Task OnProjectRenamingAsync(string oldProjectFilePath, string newProjectFilePath)
     {
         // When a project gets renamed we expect any rules watched by the derived class to fire.
         //
@@ -334,7 +317,6 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
         return TryGetIntermediateOutputPathFromProjectRuleSnapshot(beforeValues, out path);
     }
 
-    // virtual for testing
     protected virtual bool TryGetIntermediateOutputPath(
         IImmutableDictionary<string, IProjectRuleSnapshot> state,
         [NotNullWhen(returnValue: true)] out string? path)
@@ -371,15 +353,11 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
         var basePath = new DirectoryInfo(baseIntermediateOutputPathValue).Parent;
         var joinedPath = Path.Combine(basePath.FullName, intermediateOutputPathValue);
 
-        if (!SkipIntermediateOutputPathExistCheck_TestOnly && !Directory.Exists(joinedPath))
+        if (!Path.IsPathRooted(baseIntermediateOutputPathValue))
         {
-            // The directory doesn't exist for the currently executing application.
-            // This can occur in Razor class library scenarios because:
-            //   1. Razor class libraries base intermediate path is not absolute. Meaning instead of C:/project/obj it returns /obj.
-            //   2. Our `new DirectoryInfo(...).Parent` call above is forgiving so if the path passed to it isn't absolute (Razor class library scenario) it utilizes Directory.GetCurrentDirectory where
-            //      in this case would be the C:/Windows/System path
-            // Because of the above two issues the joinedPath ends up looking like "C:\WINDOWS\system32\obj\Debug\netstandard2.0\" which doesn't actually exist and of course isn't writeable. The end-user effect of this
-            // quirk means that you don't get any component completions for Razor class libraries because we're unable to capture their project state information.
+            // For Razor class libraries, the base intermediate path is relative. Meaning instead of C:/project/obj it returns /obj.
+            // The `new DirectoryInfo(...).Parent` call above is forgiving so if the path passed to it isn't absolute (Razor class library scenario) it utilizes Directory.GetCurrentDirectory, which
+            // could be the C:/Windows/System path, or the solution path, or anything really.
             //
             // To workaround these inconsistencies with Razor class libraries we fall back to the MSBuildProjectDirectory and build what we think is the intermediate output path.
             joinedPath = ResolveFallbackIntermediateOutputPath(rule, intermediateOutputPathValue);
@@ -395,7 +373,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
         return true;
     }
 
-    private static string? ResolveFallbackIntermediateOutputPath(IProjectRuleSnapshot rule, string intermediateOutputPathValue)
+    private string? ResolveFallbackIntermediateOutputPath(IProjectRuleSnapshot rule, string intermediateOutputPathValue)
     {
         if (!rule.Properties.TryGetValue(MSBuildProjectDirectoryPropertyName, out var projectDirectory))
         {
@@ -404,7 +382,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
         }
 
         var joinedPath = Path.Combine(projectDirectory, intermediateOutputPathValue);
-        if (!Directory.Exists(joinedPath))
+        if (!_skipDirectoryExistCheck_TestOnly && !Directory.Exists(joinedPath))
         {
             return null;
         }

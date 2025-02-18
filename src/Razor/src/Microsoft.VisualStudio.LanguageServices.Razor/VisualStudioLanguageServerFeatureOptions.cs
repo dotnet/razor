@@ -61,14 +61,14 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
         _forceRuntimeCodeGeneration = new Lazy<bool>(() =>
         {
             var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var forceRuntimeCodeGeneration = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.ForceRuntimeCodeGeneration, defaultValue: false);
+            var forceRuntimeCodeGeneration = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.ForceRuntimeCodeGeneration, defaultValue: true);
             return forceRuntimeCodeGeneration;
         });
 
         _useNewFormattingEngine = new Lazy<bool>(() =>
         {
             var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var useNewFormattingEngine = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.UseNewFormattingEngine, defaultValue: false);
+            var useNewFormattingEngine = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.UseNewFormattingEngine, defaultValue: true);
             return useNewFormattingEngine;
         });
     }

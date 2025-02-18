@@ -1,10 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -111,6 +113,11 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
         // We're finished processing the original file, which means we've done all of the indentation for the file, and we've done
         // the formatting changes for lines that are entirely C#, or start with C#, and lines that are Html or Razor. Now we process
         // the "additional changes", which is formatting for C# that is inside Html, via implicit or explicit expressions.
+
+        // Previous to this step, all of our changes will have been in order by definition of how we go through the document, so
+        // we haven't had to worry about overlaps, but now we do. In order to not loop constantly, we keep track of an extra index
+        // variable for where we are in the changes, to check for overlaps.
+        var iChanges = 0;
         for (; iFormatted < formattedCSharpText.Lines.Count; iFormatted++)
         {
             // Any C# that is in the middle of a line of Html/Razor will be emitted at the end of the generated document, with a
@@ -122,6 +129,27 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
             {
                 var (start, length) = CSharpDocumentGenerator.ParseAdditionalLineComment(line);
                 iFormatted++;
+
+                // Skip ahead to where changes are likely to become relevant, to save looping the whole set every time
+                while (iChanges < formattingChanges.Count)
+                {
+                    if (formattingChanges[iChanges].Span.End > start)
+                    {
+                        break;
+                    }
+
+                    iChanges++;
+                }
+
+                if (iChanges < formattingChanges.Count &&
+                    formattingChanges[iChanges].Span.Contains(start))
+                {
+                    // To avoid overlapping changes, which Roslyn will throw on, we just have to drop this change. It gives the user
+                    // something at least, and hopefully they'll report a bug for this case so we can find it.
+                    _logger.LogTestOnly($"Skipping a change that would have overlapped an existing change, starting at {start} for {length} chars, overlapping a change at {formattingChanges[iChanges].Span}");
+                    continue;
+                }
+
                 formattingChanges.Add(new TextChange(new TextSpan(start, length), formattedCSharpText.Lines[iFormatted].ToString()));
             }
         }
@@ -145,4 +173,8 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
 
         return generatedCSharpText.WithChanges(csharpChanges);
     }
+
+    [Obsolete("Only for the syntax visualizer, do not call")]
+    internal static string GetFormattingDocumentContentsForSyntaxVisualizer(RazorCodeDocument codeDocument)
+        => CSharpDocumentGenerator.Generate(codeDocument, new()).SourceText.ToString();
 }
