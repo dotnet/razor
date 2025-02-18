@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Immutable;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -33,11 +34,33 @@ public abstract class RazorProjectEngineTestBase
         return InitializeDocument(projectEngine, codeDocument);
     }
 
+    protected RazorCodeDocumentProcessor CreateAndInitializeCodeDocument(
+        string content,
+        ImmutableArray<RazorSourceDocument> importSources,
+        RazorProjectEngine? projectEngine = null)
+    {
+        projectEngine ??= CreateProjectEngine();
+
+        var codeDocument = projectEngine.CreateCodeDocument(content, importSources);
+        return InitializeDocument(projectEngine, codeDocument);
+    }
+
     protected RazorCodeDocumentProcessor CreateAndInitializeDesignTimeCodeDocument(string content, RazorProjectEngine? projectEngine = null)
     {
         projectEngine ??= CreateProjectEngine();
 
         var codeDocument = projectEngine.CreateDesignTimeCodeDocument(content);
+        return InitializeDocument(projectEngine, codeDocument);
+    }
+
+    protected RazorCodeDocumentProcessor CreateAndInitializeDesignTimeCodeDocument(
+        string content,
+        ImmutableArray<RazorSourceDocument> importSources,
+        RazorProjectEngine? projectEngine = null)
+    {
+        projectEngine ??= CreateProjectEngine();
+
+        var codeDocument = projectEngine.CreateDesignTimeCodeDocument(content, importSources);
         return InitializeDocument(projectEngine, codeDocument);
     }
 
