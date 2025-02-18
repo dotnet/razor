@@ -227,7 +227,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         var baseType = @class.BaseType;
 
         Assert.Equal("BaseType", baseType.BaseType.Content);
-        Assert.NotNull(baseType.BaseType.Source);
+        Assert.Null(baseType.BaseType.Source);
 
         Assert.NotNull(baseType.ModelType);
         Assert.Equal("dynamic", baseType.ModelType.Content);
@@ -265,7 +265,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         var baseType = @class.BaseType;
 
         Assert.Equal("BaseType", baseType.BaseType.Content);
-        Assert.NotNull(baseType.BaseType.Source);
+        Assert.Null(baseType.BaseType.Source);
 
         Assert.NotNull(baseType.ModelType);
         Assert.Equal("SomeType", baseType.ModelType.Content);
