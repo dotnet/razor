@@ -6,21 +6,21 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public sealed class RazorProjectEngineRunner
+public sealed class RazorCodeDocumentProcessor
 {
     public RazorProjectEngine ProjectEngine { get; }
     public RazorCodeDocument CodeDocument { get; }
 
-    private RazorProjectEngineRunner(RazorProjectEngine projectEngine, RazorCodeDocument codeDocument)
+    private RazorCodeDocumentProcessor(RazorProjectEngine projectEngine, RazorCodeDocument codeDocument)
     {
         ProjectEngine = projectEngine;
         CodeDocument = codeDocument;
     }
 
-    public static RazorProjectEngineRunner From(RazorProjectEngine projectEngine, RazorCodeDocument codeDocument)
+    public static RazorCodeDocumentProcessor From(RazorProjectEngine projectEngine, RazorCodeDocument codeDocument)
         => new(projectEngine, codeDocument);
 
-    public RazorProjectEngineRunner RunPhasesTo<T>()
+    public RazorCodeDocumentProcessor RunPhasesTo<T>()
         where T : IRazorEnginePhase
     {
         foreach (var phase in ProjectEngine.Engine.Phases)
@@ -36,7 +36,7 @@ public sealed class RazorProjectEngineRunner
         return this;
     }
 
-    public RazorProjectEngineRunner ExecutePass<T>(DocumentIntermediateNode? documentNode = null)
+    public RazorCodeDocumentProcessor ExecutePass<T>(DocumentIntermediateNode? documentNode = null)
         where T : IntermediateNodePassBase, new()
     {
         var pass = new T()
@@ -50,5 +50,13 @@ public sealed class RazorProjectEngineRunner
         pass.Execute(CodeDocument, documentNode);
 
         return this;
+    }
+
+    public DocumentIntermediateNode GetDocumentNode()
+    {
+        var documentNode = CodeDocument.GetDocumentIntermediateNode();
+        Assert.NotNull(documentNode);
+
+        return documentNode; ;
     }
 }

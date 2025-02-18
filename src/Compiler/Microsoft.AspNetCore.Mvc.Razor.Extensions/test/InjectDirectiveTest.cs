@@ -21,23 +21,23 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
         builder.Features.Add(new MvcViewDocumentClassifierPass());
     }
 
+    protected override void ConfigureProcessor(RazorCodeDocumentProcessor processor)
+    {
+        processor.RunPhasesTo<IRazorDocumentClassifierPhase>();
+    }
+
     [Fact]
     public void InjectDirectivePass_Execute_DefinesProperty()
     {
         // Arrange
-        var projectEngine = CreateProjectEngine();
-
-        var codeDocument = projectEngine.CreateCodeDocument(@"
+        var processor = CreateAndInitializeCodeDocument(@"
 @inject PropertyType PropertyName
 ");
-        var runner = RazorProjectEngineRunner.From(projectEngine, codeDocument);
-
-        runner.RunPhasesTo<IRazorDocumentClassifierPhase>();
 
         // Act
-        runner.ExecutePass<InjectDirective.Pass>();
+        processor.ExecutePass<InjectDirective.Pass>();
 
-        var documentNode = codeDocument.GetDocumentIntermediateNode();
+        var documentNode = processor.GetDocumentNode();
 
         // Assert
         var @class = documentNode.FindClassNode();
@@ -53,21 +53,15 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
     public void InjectDirectivePass_Execute_DedupesPropertiesByName()
     {
         // Arrange
-        var projectEngine = CreateProjectEngine();
-
-        var codeDocument = projectEngine.CreateCodeDocument(@"
+        var processor = CreateAndInitializeCodeDocument(@"
 @inject PropertyType PropertyName
 @inject PropertyType2 PropertyName
 ");
 
-        var runner = RazorProjectEngineRunner.From(projectEngine, codeDocument);
-
-        runner.RunPhasesTo<IRazorDocumentClassifierPhase>();
-
         // Act
-        runner.ExecutePass<InjectDirective.Pass>();
+        processor.ExecutePass<InjectDirective.Pass>();
 
-        var documentNode = codeDocument.GetDocumentIntermediateNode();
+        var documentNode = processor.GetDocumentNode();
 
         // Assert
         var @class = documentNode.FindClassNode();
@@ -83,20 +77,14 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
     public void InjectDirectivePass_Execute_ExpandsTModel_WithDynamic()
     {
         // Arrange
-        var projectEngine = CreateProjectEngine();
-
-        var codeDocument = projectEngine.CreateCodeDocument(@"
+        var processor = CreateAndInitializeCodeDocument(@"
 @inject PropertyType<TModel> PropertyName
 ");
 
-        var runner = RazorProjectEngineRunner.From(projectEngine, codeDocument);
-
-        runner.RunPhasesTo<IRazorDocumentClassifierPhase>();
-
         // Act
-        runner.ExecutePass<InjectDirective.Pass>();
+        processor.ExecutePass<InjectDirective.Pass>();
 
-        var documentNode = codeDocument.GetDocumentIntermediateNode();
+        var documentNode = processor.GetDocumentNode();
 
         // Assert
         var @class = documentNode.FindClassNode();
@@ -112,21 +100,15 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
     public void InjectDirectivePass_Execute_ExpandsTModel_WithModelTypeFirst()
     {
         // Arrange
-        var projectEngine = CreateProjectEngine();
-
-        var codeDocument = projectEngine.CreateCodeDocument(@"
+        var processor = CreateAndInitializeCodeDocument(@"
 @model ModelType
 @inject PropertyType<TModel> PropertyName
 ");
 
-        var runner = RazorProjectEngineRunner.From(projectEngine, codeDocument);
-
-        runner.RunPhasesTo<IRazorDocumentClassifierPhase>();
-
         // Act
-        runner.ExecutePass<InjectDirective.Pass>();
+        processor.ExecutePass<InjectDirective.Pass>();
 
-        var documentNode = codeDocument.GetDocumentIntermediateNode();
+        var documentNode = processor.GetDocumentNode();
 
         // Assert
         var @class = documentNode.FindClassNode();
@@ -142,21 +124,15 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
     public void InjectDirectivePass_Execute_ExpandsTModel_WithModelType()
     {
         // Arrange
-        var projectEngine = CreateProjectEngine();
-
-        var codeDocument = projectEngine.CreateCodeDocument(@"
+        var processor = CreateAndInitializeCodeDocument(@"
 @inject PropertyType<TModel> PropertyName
 @model ModelType
 ");
 
-        var runner = RazorProjectEngineRunner.From(projectEngine, codeDocument);
-
-        runner.RunPhasesTo<IRazorDocumentClassifierPhase>();
-
         // Act
-        runner.ExecutePass<InjectDirective.Pass>();
+        processor.ExecutePass<InjectDirective.Pass>();
 
-        var documentNode = codeDocument.GetDocumentIntermediateNode();
+        var documentNode = processor.GetDocumentNode();
 
         // Assert
         var @class = documentNode.FindClassNode();

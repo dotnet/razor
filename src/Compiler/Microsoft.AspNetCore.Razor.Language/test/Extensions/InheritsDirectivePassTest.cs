@@ -15,15 +15,13 @@ public class InheritsDirectivePassTest : RazorProjectEngineTestBase
     public void Execute_SkipsDocumentWithNoClassNode()
     {
         // Arrange
-        var projectEngine = CreateProjectEngine();
-        var codeDocument = projectEngine.CreateCodeDocument("@inherits Hello<World[]>");
-        var runner = RazorProjectEngineRunner.From(projectEngine, codeDocument);
+        var processor = CreateAndInitializeCodeDocument("@inherits Hello<World[]>");
 
         var documentNode = new DocumentIntermediateNode();
-        documentNode.Children.Add(new DirectiveIntermediateNode() { Directive = FunctionsDirective.Directive, });
+        documentNode.Children.Add(new DirectiveIntermediateNode() { Directive = FunctionsDirective.Directive });
 
         // Act
-        runner.ExecutePass<InheritsDirectivePass>(documentNode);
+        processor.ExecutePass<InheritsDirectivePass>(documentNode);
 
         // Assert
         Children(
@@ -35,16 +33,14 @@ public class InheritsDirectivePassTest : RazorProjectEngineTestBase
     public void Execute_Inherits_SetsClassDeclarationBaseType()
     {
         // Arrange
-        var projectEngine = CreateProjectEngine();
-        var codeDocument = projectEngine.CreateCodeDocument("@inherits Hello<World[]>");
-        var runner = RazorProjectEngineRunner.From(projectEngine, codeDocument);
+        var processor = CreateAndInitializeCodeDocument("@inherits Hello<World[]>");
 
-        runner.RunPhasesTo<IRazorDocumentClassifierPhase>();
+        processor.RunPhasesTo<IRazorDocumentClassifierPhase>();
 
         // Act
-        runner.ExecutePass<InheritsDirectivePass>();
+        processor.ExecutePass<InheritsDirectivePass>();
 
-        var documentNode = codeDocument.GetDocumentIntermediateNode();
+        var documentNode = processor.GetDocumentNode();
 
         // Assert
         Children(

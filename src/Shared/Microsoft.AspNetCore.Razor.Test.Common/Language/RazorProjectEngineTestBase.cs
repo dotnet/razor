@@ -13,6 +13,34 @@ public abstract class RazorProjectEngineTestBase
     {
     }
 
+    protected virtual void ConfigureProcessor(RazorCodeDocumentProcessor processor)
+    {
+    }
+
+    protected RazorCodeDocumentProcessor InitializeDocument(RazorProjectEngine projectEngine, RazorCodeDocument codeDocument)
+    {
+        var processor = RazorCodeDocumentProcessor.From(projectEngine, codeDocument);
+        ConfigureProcessor(processor);
+
+        return processor;
+    }
+
+    protected RazorCodeDocumentProcessor CreateAndInitializeCodeDocument(string content, RazorProjectEngine? projectEngine = null)
+    {
+        projectEngine ??= CreateProjectEngine();
+
+        var codeDocument = projectEngine.CreateCodeDocument(content);
+        return InitializeDocument(projectEngine, codeDocument);
+    }
+
+    protected RazorCodeDocumentProcessor CreateAndInitializeDesignTimeCodeDocument(string content, RazorProjectEngine? projectEngine = null)
+    {
+        projectEngine ??= CreateProjectEngine();
+
+        var codeDocument = projectEngine.CreateDesignTimeCodeDocument(content);
+        return InitializeDocument(projectEngine, codeDocument);
+    }
+
     protected RazorProjectEngine CreateProjectEngine()
     {
         var configuration = new RazorConfiguration(Version, "test", Extensions: []);
