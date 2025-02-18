@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
+using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using Xunit.Abstractions;
@@ -12,10 +13,10 @@ using Xunit.Abstractions;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion.Delegation;
 
 public class SnippetResponseRewriterTest(ITestOutputHelper testOutput)
-    : ResponseRewriterTestBase(new SnippetResponseRewriter(), testOutput)
+    : ResponseRewriterTestBase(testOutput)
 {
     [Fact]
-    public async Task RewriteAsync_ChangesUsingSnippetLabel()
+    public async Task RewriteAsync_RemovesUsingSnippetLabel()
     {
         // Arrange
         var documentContent = "@$$";
@@ -28,17 +29,12 @@ public class SnippetResponseRewriterTest(ITestOutputHelper testOutput)
 
         // Act
         var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
-            cursorPosition, documentContent, delegatedCompletionList, rewriter);
+            cursorPosition, documentContent, delegatedCompletionList);
 
         // Assert
         Assert.Null(rewrittenCompletionList.CommitCharacters);
         Assert.Collection(
             rewrittenCompletionList.Items,
-            completion =>
-            {
-                Assert.Equal("using statement", completion.Label);
-                Assert.Equal("using ", completion.SortText);
-            },
             completion =>
             {
                 Assert.Equal("if", completion.Label);
@@ -61,7 +57,7 @@ public class SnippetResponseRewriterTest(ITestOutputHelper testOutput)
 
         // Act
         var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
-            cursorPosition, documentContent, delegatedCompletionList, rewriter);
+            cursorPosition, documentContent, delegatedCompletionList);
 
         // Assert
         Assert.Null(rewrittenCompletionList.CommitCharacters);
@@ -94,7 +90,7 @@ public class SnippetResponseRewriterTest(ITestOutputHelper testOutput)
 
         // Act
         var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
-            cursorPosition, documentContent, delegatedCompletionList, rewriter);
+            cursorPosition, documentContent, delegatedCompletionList);
 
         // Assert
         Assert.Null(rewrittenCompletionList.CommitCharacters);
@@ -109,39 +105,6 @@ public class SnippetResponseRewriterTest(ITestOutputHelper testOutput)
             {
                 Assert.Equal("if", completion.Label);
                 Assert.Equal("if", completion.SortText);
-            }
-        );
-    }
-
-    [Fact]
-    public async Task RewriteAsync_HandlesNullLabels()
-    {
-        // Arrange
-        var documentContent = "@$$";
-        TestFileMarkupParser.GetPosition(documentContent, out documentContent, out var cursorPosition);
-        var delegatedCompletionList = GenerateCompletionList(
-            (null, CompletionItemKind.Keyword),
-            ("using", CompletionItemKind.Snippet)
-            );
-        var rewriter = new SnippetResponseRewriter();
-
-        // Act
-        var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
-            cursorPosition, documentContent, delegatedCompletionList, rewriter);
-
-        // Assert
-        Assert.Null(rewrittenCompletionList.CommitCharacters);
-        Assert.Collection(
-            rewrittenCompletionList.Items,
-            completion =>
-            {
-                Assert.Null(completion.Label);
-                Assert.Null(completion.SortText);
-            },
-            completion =>
-            {
-                Assert.Equal("using statement", completion.Label);
-                Assert.Equal("using ", completion.SortText);
             }
         );
     }

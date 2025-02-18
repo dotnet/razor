@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Razor.Language;
-
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
 internal abstract class LanguageServerFeatureOptions
@@ -38,10 +36,15 @@ internal abstract class LanguageServerFeatureOptions
     public abstract bool DisableRazorLanguageServer { get; }
 
     /// <summary>
-    /// When enabled, design time code will not be generated. All tooling will be using runtime code generation.
+    /// When enabled, design time code will not be generated. All tooling, except formatting, will be using runtime code generation.
     /// </summary>
     public abstract bool ForceRuntimeCodeGeneration { get; }
 
-    public LanguageServerFlags ToLanguageServerFlags()
-        => new(ForceRuntimeCodeGeneration);
+    public abstract bool UseNewFormattingEngine { get; }
+
+    /// <summary>
+    /// Indicates that client supports soft selection in completion list, meaning that typing a commit 
+    /// character with a soft-selected item will not commit that item.
+    /// </summary>
+    public abstract bool SupportsSoftSelectionInCompletion { get; }
 }

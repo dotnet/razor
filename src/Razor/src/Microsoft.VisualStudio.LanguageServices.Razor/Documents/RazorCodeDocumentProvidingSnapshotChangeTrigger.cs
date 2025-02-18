@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
@@ -20,12 +21,12 @@ internal class RazorCodeDocumentProvidingSnapshotChangeTrigger : IRazorStartupSe
 {
     private readonly HashSet<string> _openDocuments = new(FilePathComparer.Instance);
     private readonly Dictionary<string, ProjectKey> _documentProjectMap = new(FilePathComparer.Instance);
-    private readonly IProjectSnapshotManager _projectManager;
+    private readonly ProjectSnapshotManager _projectManager;
 
     public event EventHandler<string>? DocumentReady;
 
     [ImportingConstructor]
-    public RazorCodeDocumentProvidingSnapshotChangeTrigger(IProjectSnapshotManager projectManager)
+    public RazorCodeDocumentProvidingSnapshotChangeTrigger(ProjectSnapshotManager projectManager)
     {
         _projectManager = projectManager;
         _projectManager.Changed += ProjectManager_Changed;
@@ -61,7 +62,7 @@ internal class RazorCodeDocumentProvidingSnapshotChangeTrigger : IRazorStartupSe
         }
     }
 
-    public async Task<RazorCodeDocument?> GetRazorCodeDocumentAsync(string filePath)
+    public async Task<RazorCodeDocument?> GetRazorCodeDocumentAsync(string filePath, CancellationToken cancellationToken)
     {
         if (!_documentProjectMap.TryGetValue(filePath, out var projectKey))
         {
@@ -69,19 +70,16 @@ internal class RazorCodeDocumentProvidingSnapshotChangeTrigger : IRazorStartupSe
             return null;
         }
 
-        if (!_projectManager.TryGetLoadedProject(projectKey, out var project))
+        if (!_projectManager.TryGetProject(projectKey, out var project))
         {
             return null;
         }
 
-        var document = project.GetDocument(filePath);
-        if (document is null)
+        if (!project.TryGetDocument(filePath, out var document))
         {
             return null;
         }
 
-        var razorDocument = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
-
-        return razorDocument;
+        return await document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
     }
 }

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -22,8 +23,8 @@ internal class DocumentContext(Uri uri, IDocumentSnapshot snapshot, VSProjectCon
 
     public Uri Uri { get; } = uri;
     public IDocumentSnapshot Snapshot { get; } = snapshot;
-    public string FilePath => Snapshot.FilePath.AssumeNotNull();
-    public string FileKind => Snapshot.FileKind.AssumeNotNull();
+    public string FilePath => Snapshot.FilePath;
+    public string FileKind => Snapshot.FileKind;
     public IProjectSnapshot Project => Snapshot.Project;
 
     public TextDocumentIdentifier GetTextDocumentIdentifier()
@@ -50,9 +51,9 @@ internal class DocumentContext(Uri uri, IDocumentSnapshot snapshot, VSProjectCon
 
         async ValueTask<RazorCodeDocument> GetCodeDocumentCoreAsync(CancellationToken cancellationToken)
         {
-            var codeDocument = await Snapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
-
-            cancellationToken.ThrowIfCancellationRequested();
+            var codeDocument = await Snapshot
+                .GetGeneratedOutputAsync(cancellationToken)
+                .ConfigureAwait(false);
 
             // Interlock to ensure that we only ever return one instance of RazorCodeDocument.
             // In race scenarios, when more than one RazorCodeDocument is produced, we want to
@@ -69,9 +70,7 @@ internal class DocumentContext(Uri uri, IDocumentSnapshot snapshot, VSProjectCon
 
         async ValueTask<SourceText> GetSourceTextCoreAsync(CancellationToken cancellationToken)
         {
-            var sourceText = await Snapshot.GetTextAsync().ConfigureAwait(false);
-
-            cancellationToken.ThrowIfCancellationRequested();
+            var sourceText = await Snapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Interlock to ensure that we only ever return one instance of RazorCodeDocument.
             // In race scenarios, when more than one RazorCodeDocument is produced, we want to

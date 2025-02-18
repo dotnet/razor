@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,8 +38,9 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
             NoOpTelemetryReporter.Instance,
             configureServices: (collection) =>
             {
-                collection.AddSingleton<IOnInitialized, NoopClientNotifierService>();
-                collection.AddSingleton<IClientConnection, NoopClientNotifierService>();
+                collection.AddSingleton<IOnInitialized, NoOpClientNotifierService>();
+                collection.AddSingleton<IClientConnection, NoOpClientNotifierService>();
+                collection.AddSingleton<IRazorProjectInfoDriver, NoOpRazorProjectInfoDriver>();
                 Builder(collection);
             },
             featureOptions: BuildFeatureOptions());
@@ -63,7 +65,6 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
         using var fileStream = new FileStream(filePath, FileMode.Open);
         var text = SourceText.From(fileStream);
-        var textLoader = TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create()));
         var hostDocument = new HostDocument(filePath, targetPath, FileKinds.Component);
 
         var projectManager = CreateProjectSnapshotManager();
@@ -71,20 +72,17 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         await projectManager.UpdateAsync(
             updater =>
             {
-                updater.ProjectAdded(hostProject);
-                var tagHelpers = CommonResources.LegacyTagHelpers;
-                var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, CodeAnalysis.CSharp.LanguageVersion.CSharp11);
-                updater.ProjectWorkspaceStateChanged(hostProject.Key, projectWorkspaceState);
-                updater.DocumentAdded(hostProject.Key, hostDocument, textLoader);
+                updater.AddProject(hostProject);
+                var projectWorkspaceState = ProjectWorkspaceState.Create(CommonResources.LegacyTagHelpers);
+                updater.UpdateProjectWorkspaceState(hostProject.Key, projectWorkspaceState);
+                updater.AddDocument(hostProject.Key, hostDocument, text);
             },
             CancellationToken.None);
 
-        var projectSnapshot = projectManager.GetLoadedProject(hostProject.Key);
-
-        return projectSnapshot.GetDocument(filePath);
+        return projectManager.GetRequiredDocument(hostProject.Key, filePath);
     }
 
-    private class NoopClientNotifierService : IClientConnection, IOnInitialized
+    private sealed class NoOpClientNotifierService : IClientConnection, IOnInitialized
     {
         public Task OnInitializedAsync(ILspServices services, CancellationToken cancellationToken)
         {
@@ -105,5 +103,18 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         {
             throw new NotImplementedException();
         }
+    }
+
+    private sealed class NoOpRazorProjectInfoDriver : IRazorProjectInfoDriver
+    {
+        public void AddListener(IRazorProjectInfoListener listener)
+        {
+        }
+
+        public ImmutableArray<RazorProjectInfo> GetLatestProjectInfo()
+            => [];
+
+        public Task WaitForInitializationAsync()
+            => Task.CompletedTask;
     }
 }

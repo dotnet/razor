@@ -5,11 +5,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Language;
 using RazorExtensionsV1_X = Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.RazorExtensions;
 using RazorExtensionsV2_X = Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.RazorExtensions;
 using RazorExtensionsV3 = Microsoft.AspNetCore.Mvc.Razor.Extensions.RazorExtensions;
@@ -94,7 +96,7 @@ public static class RazorProjectEngineBuilderExtensions
         }
 
         var configurationFeature = GetDefaultDocumentClassifierPassFeature(builder);
-        configurationFeature.ConfigureClass.Add((document, @class) => @class.BaseType = baseType);
+        configurationFeature.ConfigureClass.Add((document, @class) => @class.BaseType = new BaseTypeWithModel(baseType));
         return builder;
     }
 
@@ -147,28 +149,6 @@ public static class RazorProjectEngineBuilderExtensions
 
         builder.Features.Add(new SetSupportLocalizedComponentNamesFeature());
         return builder;
-    }
-
-    public static void SetImportFeature(this RazorProjectEngineBuilder builder, IImportProjectFeature feature)
-    {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (feature == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        // Remove any existing import features in favor of the new one we're given.
-        var existingFeatures = builder.Features.OfType<IImportProjectFeature>().ToArray();
-        foreach (var existingFeature in existingFeatures)
-        {
-            builder.Features.Remove(existingFeature);
-        }
-
-        builder.Features.Add(feature);
     }
 
     /// <summary>
@@ -314,48 +294,14 @@ public static class RazorProjectEngineBuilderExtensions
         return configurationFeature;
     }
 
-    private class AdditionalImportsProjectFeature : RazorProjectEngineFeatureBase, IImportProjectFeature
+    private sealed class AdditionalImportsProjectFeature(string[] imports) : RazorProjectEngineFeatureBase, IImportProjectFeature
     {
-        private readonly IReadOnlyList<RazorProjectItem> _imports;
+        private readonly ImmutableArray<RazorProjectItem> _imports = imports.SelectAsArray(
+            static import => (RazorProjectItem)new DefaultImportProjectItem("Additional default imports", import));
 
-        public AdditionalImportsProjectFeature(params string[] imports)
+        public void CollectImports(RazorProjectItem projectItem, ref PooledArrayBuilder<RazorProjectItem> imports)
         {
-            _imports = imports.Select(import => new InMemoryProjectItem(import)).ToArray();
-        }
-
-        public IReadOnlyList<RazorProjectItem> GetImports(RazorProjectItem projectItem)
-        {
-            return _imports;
-        }
-
-        private class InMemoryProjectItem : RazorProjectItem
-        {
-            private readonly byte[] _importBytes;
-
-            public InMemoryProjectItem(string content)
-            {
-                if (string.IsNullOrEmpty(content))
-                {
-                    throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(content));
-                }
-
-                var preamble = Encoding.UTF8.GetPreamble();
-                var contentBytes = Encoding.UTF8.GetBytes(content);
-
-                _importBytes = new byte[preamble.Length + contentBytes.Length];
-                preamble.CopyTo(_importBytes, 0);
-                contentBytes.CopyTo(_importBytes, preamble.Length);
-            }
-
-            public override string BasePath => null;
-
-            public override string FilePath => null;
-
-            public override string PhysicalPath => null;
-
-            public override bool Exists => true;
-
-            public override Stream Read() => new MemoryStream(_importBytes);
+            imports.AddRange(_imports);
         }
     }
 
@@ -374,7 +320,7 @@ public static class RazorProjectEngineBuilderExtensions
         }
     }
 
-    private class ConfigureRootNamespaceFeature : IConfigureRazorCodeGenerationOptionsFeature
+    private class ConfigureRootNamespaceFeature : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
     {
         private readonly string _rootNamespace;
 
@@ -384,8 +330,6 @@ public static class RazorProjectEngineBuilderExtensions
         }
 
         public int Order { get; set; }
-
-        public RazorEngine Engine { get; set; }
 
         public void Configure(RazorCodeGenerationOptionsBuilder options)
         {

@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -29,37 +30,38 @@ internal class RazorFormattingService : IRazorFormattingService
     private static readonly FrozenSet<string> s_csharpTriggerCharacterSet = FrozenSet.ToFrozenSet(["}", ";"], StringComparer.Ordinal);
     private static readonly FrozenSet<string> s_htmlTriggerCharacterSet = FrozenSet.ToFrozenSet(["\n", "{", "}", ";"], StringComparer.Ordinal);
 
-    private readonly IFormattingCodeDocumentProvider _codeDocumentProvider;
-    private readonly IAdhocWorkspaceFactory _workspaceFactory;
-
     private readonly ImmutableArray<IFormattingPass> _documentFormattingPasses;
     private readonly ImmutableArray<IFormattingPass> _validationPasses;
     private readonly CSharpOnTypeFormattingPass _csharpOnTypeFormattingPass;
     private readonly HtmlOnTypeFormattingPass _htmlOnTypeFormattingPass;
 
     public RazorFormattingService(
-        IFormattingCodeDocumentProvider codeDocumentProvider,
         IDocumentMappingService documentMappingService,
-        IAdhocWorkspaceFactory workspaceFactory,
+        IHostServicesProvider hostServicesProvider,
+        LanguageServerFeatureOptions languageServerFeatureOptions,
         ILoggerFactory loggerFactory)
     {
-        _codeDocumentProvider = codeDocumentProvider;
-        _workspaceFactory = workspaceFactory;
-
         _htmlOnTypeFormattingPass = new HtmlOnTypeFormattingPass(loggerFactory);
-        _csharpOnTypeFormattingPass = new CSharpOnTypeFormattingPass(documentMappingService, loggerFactory);
+        _csharpOnTypeFormattingPass = new CSharpOnTypeFormattingPass(documentMappingService, hostServicesProvider, loggerFactory);
         _validationPasses =
         [
             new FormattingDiagnosticValidationPass(loggerFactory),
             new FormattingContentValidationPass(loggerFactory)
         ];
-        _documentFormattingPasses =
-        [
-            new HtmlFormattingPass(loggerFactory),
-            new RazorFormattingPass(),
-            new CSharpFormattingPass(documentMappingService, loggerFactory),
-            .. _validationPasses
-        ];
+
+        _documentFormattingPasses = languageServerFeatureOptions.UseNewFormattingEngine
+            ? [
+                new New.HtmlFormattingPass(loggerFactory),
+                new RazorFormattingPass(languageServerFeatureOptions, loggerFactory),
+                new New.CSharpFormattingPass(hostServicesProvider, loggerFactory),
+                .. _validationPasses
+            ]
+            : [
+                new HtmlFormattingPass(loggerFactory),
+                new RazorFormattingPass(languageServerFeatureOptions, loggerFactory),
+                new CSharpFormattingPass(documentMappingService, hostServicesProvider, loggerFactory),
+                .. _validationPasses
+            ];
     }
 
     public async Task<ImmutableArray<TextChange>> GetDocumentFormattingChangesAsync(
@@ -69,7 +71,13 @@ internal class RazorFormattingService : IRazorFormattingService
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await _codeDocumentProvider.GetCodeDocumentAsync(documentContext.Snapshot).ConfigureAwait(false);
+#if !FORMAT_FUSE
+        // Formatting always uses design time document
+        var generator = (IDesignTimeCodeGenerator)documentContext.Snapshot;
+        var codeDocument = await generator.GenerateDesignTimeOutputAsync(cancellationToken).ConfigureAwait(false);
+#else
+        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+#endif
 
         // Range formatting happens on every paste, and if there are Razor diagnostics in the file
         // that can make some very bad results. eg, given:
@@ -97,13 +105,10 @@ internal class RazorFormattingService : IRazorFormattingService
         var uri = documentContext.Uri;
         var documentSnapshot = documentContext.Snapshot;
         var hostDocumentVersion = documentContext.Snapshot.Version;
-        using var context = FormattingContext.Create(
-            uri,
+        var context = FormattingContext.Create(
             documentSnapshot,
             codeDocument,
-            options,
-            _codeDocumentProvider,
-            _workspaceFactory);
+            options);
         var originalText = context.SourceText;
 
         var result = htmlChanges;
@@ -121,34 +126,65 @@ internal class RazorFormattingService : IRazorFormattingService
         return originalText.MinimizeTextChanges(normalizedChanges);
     }
 
-    public Task<ImmutableArray<TextChange>> GetCSharpOnTypeFormattingChangesAsync(DocumentContext documentContext, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
-        => ApplyFormattedChangesAsync(
-            documentContext,
-            generatedDocumentChanges: [],
-            options,
-            hostDocumentIndex,
-            triggerCharacter,
-            [_csharpOnTypeFormattingPass, .. _validationPasses],
-            collapseChanges: false,
-            automaticallyAddUsings: false,
-            cancellationToken: cancellationToken);
+    public async Task<ImmutableArray<TextChange>> GetCSharpOnTypeFormattingChangesAsync(DocumentContext documentContext, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
+    {
+        var documentSnapshot = documentContext.Snapshot;
 
-    public Task<ImmutableArray<TextChange>> GetHtmlOnTypeFormattingChangesAsync(DocumentContext documentContext, ImmutableArray<TextChange> htmlChanges, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
-        => ApplyFormattedChangesAsync(
-            documentContext,
-            htmlChanges,
-            options,
-            hostDocumentIndex,
-            triggerCharacter,
-            [_htmlOnTypeFormattingPass, .. _validationPasses],
-            collapseChanges: false,
-            automaticallyAddUsings: false,
-            cancellationToken: cancellationToken);
+#if !FORMAT_FUSE
+        // Formatting always uses design time document
+        var generator = (IDesignTimeCodeGenerator)documentSnapshot;
+        var codeDocument = await generator.GenerateDesignTimeOutputAsync(cancellationToken).ConfigureAwait(false);
+#else
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+#endif
+
+        return await ApplyFormattedChangesAsync(
+                documentSnapshot,
+                codeDocument,
+                generatedDocumentChanges: [],
+                options,
+                hostDocumentIndex,
+                triggerCharacter,
+                [_csharpOnTypeFormattingPass, .. _validationPasses],
+                collapseChanges: false,
+                automaticallyAddUsings: false,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<ImmutableArray<TextChange>> GetHtmlOnTypeFormattingChangesAsync(DocumentContext documentContext, ImmutableArray<TextChange> htmlChanges, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
+    {
+        var documentSnapshot = documentContext.Snapshot;
+
+#if !FORMAT_FUSE
+        // Formatting always uses design time document
+        var generator = (IDesignTimeCodeGenerator)documentSnapshot;
+        var codeDocument = await generator.GenerateDesignTimeOutputAsync(cancellationToken).ConfigureAwait(false);
+#else
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+#endif
+
+        return await ApplyFormattedChangesAsync(
+                documentSnapshot,
+                codeDocument,
+                htmlChanges,
+                options,
+                hostDocumentIndex,
+                triggerCharacter,
+                [_htmlOnTypeFormattingPass, .. _validationPasses],
+                collapseChanges: false,
+                automaticallyAddUsings: false,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+    }
 
     public async Task<TextChange?> TryGetSingleCSharpEditAsync(DocumentContext documentContext, TextChange csharpEdit, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
+        var documentSnapshot = documentContext.Snapshot;
+        // Since we've been provided with an edit from the C# generated doc, forcing design time would make things not line up
+        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+
         var razorChanges = await ApplyFormattedChangesAsync(
-            documentContext,
+            documentSnapshot,
+            codeDocument,
             [csharpEdit],
             options,
             hostDocumentIndex: 0,
@@ -162,8 +198,13 @@ internal class RazorFormattingService : IRazorFormattingService
 
     public async Task<TextChange?> TryGetCSharpCodeActionEditAsync(DocumentContext documentContext, ImmutableArray<TextChange> csharpChanges, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
+        var documentSnapshot = documentContext.Snapshot;
+        // Since we've been provided with edits from the C# generated doc, forcing design time would make things not line up
+        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+
         var razorChanges = await ApplyFormattedChangesAsync(
-            documentContext,
+            documentSnapshot,
+            codeDocument,
             csharpChanges,
             options,
             hostDocumentIndex: 0,
@@ -179,8 +220,13 @@ internal class RazorFormattingService : IRazorFormattingService
     {
         csharpChanges = WrapCSharpSnippets(csharpChanges);
 
+        var documentSnapshot = documentContext.Snapshot;
+        // Since we've been provided with edits from the C# generated doc, forcing design time would make things not line up
+        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+
         var razorChanges = await ApplyFormattedChangesAsync(
-            documentContext,
+            documentSnapshot,
+            codeDocument,
             csharpChanges,
             options,
             hostDocumentIndex: 0,
@@ -208,7 +254,8 @@ internal class RazorFormattingService : IRazorFormattingService
     }
 
     private async Task<ImmutableArray<TextChange>> ApplyFormattedChangesAsync(
-        DocumentContext documentContext,
+        IDocumentSnapshot documentSnapshot,
+        RazorCodeDocument codeDocument,
         ImmutableArray<TextChange> generatedDocumentChanges,
         RazorFormattingOptions options,
         int hostDocumentIndex,
@@ -222,16 +269,10 @@ internal class RazorFormattingService : IRazorFormattingService
         // Otherwise, merge only if explicitly asked.
         collapseChanges |= generatedDocumentChanges.Length == 1;
 
-        var documentSnapshot = documentContext.Snapshot;
-        var uri = documentContext.Uri;
-        var codeDocument = await _codeDocumentProvider.GetCodeDocumentAsync(documentSnapshot).ConfigureAwait(false);
-        using var context = FormattingContext.CreateForOnTypeFormatting(
-            uri,
+        var context = FormattingContext.CreateForOnTypeFormatting(
             documentSnapshot,
             codeDocument,
             options,
-            _codeDocumentProvider,
-            _workspaceFactory,
             automaticallyAddUsings: automaticallyAddUsings,
             hostDocumentIndex,
             triggerCharacter);

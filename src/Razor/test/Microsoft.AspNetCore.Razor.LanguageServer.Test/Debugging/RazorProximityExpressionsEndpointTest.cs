@@ -46,7 +46,7 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Null(response);
@@ -66,12 +66,12 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
         {
             Uri = documentPath,
             Position = VsLspFactory.CreatePosition(1, 8),
-            HostDocumentSyncVersion = 0,
+            HostDocumentSyncVersion = 1,
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await endpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Contains("abc", response!.Expressions);
@@ -92,12 +92,12 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
         {
             Uri = documentPath,
             Position = VsLspFactory.CreatePosition(1, 0),
-            HostDocumentSyncVersion = 0,
+            HostDocumentSyncVersion = 1,
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await endpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Contains("abc", response!.Expressions);
@@ -123,7 +123,7 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Null(response);
@@ -151,7 +151,7 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Null(response);

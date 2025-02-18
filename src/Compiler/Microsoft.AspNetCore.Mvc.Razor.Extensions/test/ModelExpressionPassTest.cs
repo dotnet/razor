@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
@@ -154,6 +156,9 @@ public class ModelExpressionPassTest
         return RazorProjectEngine.Create(b =>
         {
             b.Features.Add(new TestTagHelperFeature(tagHelpers));
+            b.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
+            b.Features.Add(new RazorPageDocumentClassifierPass());
+            b.Features.Add(new MvcViewDocumentClassifierPass());
         }).Engine;
     }
 
@@ -169,10 +174,7 @@ public class ModelExpressionPassTest
             }
         }
 
-        var irNode = codeDocument.GetDocumentIntermediateNode();
-        irNode.DocumentKind = MvcViewDocumentClassifierPass.MvcViewDocumentKind;
-
-        return irNode;
+        return codeDocument.GetDocumentIntermediateNode();
     }
 
     private TagHelperIntermediateNode FindTagHelperNode(IntermediateNode node)

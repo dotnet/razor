@@ -31,7 +31,7 @@ internal partial class RazorCustomMessageTarget
         foreach (var project in projects)
         {
             if (project is ProjectSnapshot snapshot &&
-                project.GetDocument(documentFilePath) is not null)
+                project.ContainsDocument(documentFilePath))
             {
                 projectContexts.Add(new VSProjectContext
                 {

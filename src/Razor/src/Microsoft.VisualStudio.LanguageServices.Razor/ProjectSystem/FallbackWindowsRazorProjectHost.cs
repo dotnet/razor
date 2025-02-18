@@ -44,7 +44,7 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
     public FallbackWindowsRazorProjectHost(
         IUnconfiguredProjectCommonServices commonServices,
         [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-        IProjectSnapshotManager projectManager)
+        ProjectSnapshotManager projectManager)
         : base(commonServices, serviceProvider, projectManager)
     {
     }
@@ -73,7 +73,7 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
             await UpdateAsync(
                 updater =>
                 {
-                    var projectKeys = GetAllProjectKeys(CommonServices.UnconfiguredProject.FullPath);
+                    var projectKeys = GetProjectKeysWithFilePath(CommonServices.UnconfiguredProject.FullPath);
                     foreach (var projectKey in projectKeys)
                     {
                         RemoveProject(updater, projectKey);
@@ -91,7 +91,7 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
             await UpdateAsync(
                 updater =>
                 {
-                    var projectKeys = GetAllProjectKeys(CommonServices.UnconfiguredProject.FullPath);
+                    var projectKeys = GetProjectKeysWithFilePath(CommonServices.UnconfiguredProject.FullPath);
                     foreach (var projectKey in projectKeys)
                     {
                         RemoveProject(updater, projectKey);
@@ -147,13 +147,13 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
 
             for (var i = 0; i < changedDocuments.Length; i++)
             {
-                updater.DocumentRemoved(hostProject.Key, changedDocuments[i]);
+                updater.RemoveDocument(hostProject.Key, changedDocuments[i].FilePath);
             }
 
             for (var i = 0; i < documents.Length; i++)
             {
                 var document = documents[i];
-                updater.DocumentAdded(hostProject.Key, document, new FileTextLoader(document.FilePath, null));
+                updater.AddDocument(hostProject.Key, document, new FileTextLoader(document.FilePath, null));
             }
         }, CancellationToken.None).ConfigureAwait(false);
     }

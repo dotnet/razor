@@ -11,8 +11,13 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
 internal interface ITagHelperResolver
 {
+    /// <summary>
+    ///  Gets the available <see cref="TagHelperDescriptor">tag helpers</see> from the specified
+    ///  <see cref="Project"/> using the given <see cref="ProjectSnapshot"/> to provide a
+    ///  <see cref="RazorProjectEngine"/>.
+    /// </summary>
     ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(
-        Project workspaceProject,
-        IProjectSnapshot projectSnapshot,
+        Project project,
+        ProjectSnapshot projectSnapshot,
         CancellationToken cancellationToken);
 }

@@ -3,19 +3,20 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -28,7 +29,7 @@ internal static class AddUsingsHelper
 
     private readonly record struct RazorUsingDirective(RazorDirectiveSyntax Node, AddImportChunkGenerator Statement);
 
-    public static async Task<TextEdit[]> GetUsingStatementEditsAsync(RazorCodeDocument codeDocument, SourceText originalCSharpText, SourceText changedCSharpText, CancellationToken cancellationToken)
+    public static async Task<TextEdit[]> GetUsingStatementEditsAsync(RazorCodeDocument codeDocument, SourceText changedCSharpText, CancellationToken cancellationToken)
     {
         // Now that we're done with everything, lets see if there are any using statements to fix up
         // We do this by comparing the original generated C# code, and the changed C# code, and look for a difference
@@ -43,8 +44,10 @@ internal static class AddUsingsHelper
         // So because of the above, we look for a difference in C# using directive nodes directly from the C# syntax tree, and apply them manually
         // to the Razor document.
 
-        var oldUsings = await FindUsingDirectiveStringsAsync(originalCSharpText, cancellationToken).ConfigureAwait(false);
-        var newUsings = await FindUsingDirectiveStringsAsync(changedCSharpText, cancellationToken).ConfigureAwait(false);
+        var originalCSharpSyntaxTree = codeDocument.GetOrParseCSharpSyntaxTree(cancellationToken);
+        var changedCSharpSyntaxTree = originalCSharpSyntaxTree.WithChangedText(changedCSharpText);
+        var oldUsings = await FindUsingDirectiveStringsAsync(originalCSharpSyntaxTree, cancellationToken).ConfigureAwait(false);
+        var newUsings = await FindUsingDirectiveStringsAsync(changedCSharpSyntaxTree, cancellationToken).ConfigureAwait(false);
 
         using var edits = new PooledArrayBuilder<TextEdit>();
         foreach (var usingStatement in newUsings.Except(oldUsings))
@@ -136,23 +139,30 @@ internal static class AddUsingsHelper
         };
     }
 
-    private static async Task<IEnumerable<string>> FindUsingDirectiveStringsAsync(SourceText originalCSharpText, CancellationToken cancellationToken)
+    public static async Task<ImmutableArray<string>> FindUsingDirectiveStringsAsync(SyntaxTree syntaxTree, CancellationToken cancellationToken)
     {
-        var syntaxTree = CSharpSyntaxTree.ParseText(originalCSharpText, cancellationToken: cancellationToken);
         var syntaxRoot = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-        // We descend any compilation unit (ie, the file) or and namespaces because the compiler puts all usings inside
-        // the namespace node.
-        var usings = syntaxRoot.DescendantNodes(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax)
-            // Filter to using directives
+        return syntaxRoot
+            .DescendantNodes(static n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax)
             .OfType<UsingDirectiveSyntax>()
-            // Select everything after the initial "using " part of the statement, and excluding the ending semi-colon. The
-            // semi-colon is valid in Razor, but users find it surprising. This is slightly lazy, for sure, but has
-            // the advantage of us not caring about changes to C# syntax, we just grab whatever Roslyn wanted to put in, so
-            // we should still work in C# v26
-            .Select(u => u.ToString()["using ".Length..^1]);
+            .Where(static u => u.Name is not null) // If the Name is null then this isn't a using directive, it's probably an alias for a tuple type
+            .SelectAsArray(u => GetNamespaceFromDirective(u, sourceText));
 
-        return usings;
+        static string GetNamespaceFromDirective(UsingDirectiveSyntax usingDirectiveSyntax, SourceText sourceText)
+        {
+            var nameSyntax = usingDirectiveSyntax.Name.AssumeNotNull();
+
+            var end = nameSyntax.Span.End;
+
+            // FullSpan to get the end of the trivia before the next
+            // token. Testing shows that the trailing whitespace is always given
+            // as trivia to the using keyword.
+            var start = usingDirectiveSyntax.UsingKeyword.FullSpan.End;
+
+            return sourceText.GetSubTextString(TextSpan.FromBounds(start, end));
+        }
     }
 
     private static TextDocumentEdit GenerateSingleUsingEditsInterpolated(

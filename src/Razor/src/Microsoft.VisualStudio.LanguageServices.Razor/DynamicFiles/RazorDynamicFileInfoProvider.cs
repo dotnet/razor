@@ -6,13 +6,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Threading;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
@@ -43,7 +43,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         ILspEditorFeatureDetector lspEditorFeatureDetector,
         IFilePathService filePathService,
         IWorkspaceProvider workspaceProvider,
-        IProjectSnapshotManager projectManager,
+        ProjectSnapshotManager projectManager,
         FallbackProjectManager fallbackProjectManager)
     {
         _factory = factory;
@@ -168,9 +168,10 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
             // server to recognize the document.
             var documentServiceProvider = associatedEntry.Current.DocumentServiceProvider;
             var excerptService = documentServiceProvider.GetService<IRazorDocumentExcerptServiceImplementation>();
-            var mappingService = documentServiceProvider.GetService<IRazorSpanMappingService>();
+            var spanMappingService = documentServiceProvider.GetService<IRazorSpanMappingService>();
+            var mappingService = documentServiceProvider.GetService<IRazorMappingService>();
             var emptyContainer = new PromotedDynamicDocumentContainer(
-                documentUri, propertiesService, excerptService, mappingService, associatedEntry.Current.TextLoader);
+                documentUri, propertiesService, excerptService, spanMappingService, mappingService, associatedEntry.Current.TextLoader);
 
             lock (associatedEntry.Lock)
             {
@@ -305,7 +306,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         // however, it's the only way to get the correct file path for a document to map to a corresponding project
         // system.
 
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if (PlatformInformation.IsWindows)
         {
             // VSWin
             return uri.GetAbsoluteOrUNCPath().Replace('/', '\\');
@@ -319,7 +320,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
 
     private void ProjectManager_Changed(object? sender, ProjectChangeEventArgs args)
     {
-        if (args.SolutionIsClosing)
+        if (args.IsSolutionClosing)
         {
             if (_entries.Count > 0)
             {
@@ -353,12 +354,9 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
     {
         var workspace = _workspaceProvider.GetWorkspace();
 
-        foreach (var project in workspace.CurrentSolution.Projects)
+        if (workspace.CurrentSolution.TryGetProject(key, out var project))
         {
-            if (key.Matches(project))
-            {
-                return project.Id;
-            }
+            return project.Id;
         }
 
         return null;
@@ -468,12 +466,14 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         IRazorDocumentPropertiesService documentPropertiesService,
         IRazorDocumentExcerptServiceImplementation? documentExcerptService,
         IRazorSpanMappingService? spanMappingService,
+        IRazorMappingService? mappingService,
         TextLoader textLoader) : IDynamicDocumentContainer
     {
         private readonly Uri _documentUri = documentUri;
         private readonly IRazorDocumentPropertiesService _documentPropertiesService = documentPropertiesService;
         private readonly IRazorDocumentExcerptServiceImplementation? _documentExcerptService = documentExcerptService;
         private readonly IRazorSpanMappingService? _spanMappingService = spanMappingService;
+        private readonly IRazorMappingService? _mappingService = mappingService;
         private readonly TextLoader _textLoader = textLoader;
 
         public string FilePath => _documentUri.LocalPath;
@@ -489,9 +489,11 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
 
         public IRazorDocumentExcerptServiceImplementation? GetExcerptService() => _documentExcerptService;
 
-        public IRazorSpanMappingService? GetMappingService() => _spanMappingService;
+        public IRazorSpanMappingService? GetSpanMappingService() => _spanMappingService;
 
         public TextLoader GetTextLoader(string filePath) => _textLoader;
+
+        public IRazorMappingService? GetMappingService() => _mappingService;
     }
 
     public class TestAccessor

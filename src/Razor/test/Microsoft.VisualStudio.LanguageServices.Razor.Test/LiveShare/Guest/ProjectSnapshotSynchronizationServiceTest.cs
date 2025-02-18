@@ -66,7 +66,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
         Assert.Equal("/guest/path/project.csproj", project.FilePath);
         Assert.Same(RazorConfiguration.Default, project.Configuration);
 
-        var tagHelpers = await project.GetTagHelpersAsync(CancellationToken.None);
+        var tagHelpers = await project.GetTagHelpersAsync(DisposalToken);
         Assert.Equal(_projectWorkspaceStateWithTagHelpers.TagHelpers.Length, tagHelpers.Length);
         for (var i = 0; i < _projectWorkspaceStateWithTagHelpers.TagHelpers.Length; i++)
         {
@@ -101,7 +101,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
         Assert.Equal("/guest/path/project.csproj", project.FilePath);
         Assert.Same(RazorConfiguration.Default, project.Configuration);
 
-        var tagHelpers = await project.GetTagHelpersAsync(CancellationToken.None);
+        var tagHelpers = await project.GetTagHelpersAsync(DisposalToken);
         Assert.Equal(_projectWorkspaceStateWithTagHelpers.TagHelpers.Length, tagHelpers.Length);
         for (var i = 0; i < _projectWorkspaceStateWithTagHelpers.TagHelpers.Length; i++)
         {
@@ -129,7 +129,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
+            updater.AddProject(hostProject);
         });
 
         var args = new ProjectChangeEventProxyArgs(olderHandle, newer: null, ProjectProxyChangeKind.ProjectRemoved);
@@ -143,7 +143,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
     }
 
     [UIFact]
-    public async Task UpdateGuestProjectManager_ProjectChanged_ConfigurationChange()
+    public async Task UpdateGuestProjectManager_ProjectChanged_UpdateProjectConfiguration()
     {
         // Arrange
         var oldHandle = new ProjectSnapshotHandleProxy(
@@ -169,8 +169,8 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
-            updater.ProjectConfigurationChanged(hostProject);
+            updater.AddProject(hostProject);
+            updater.UpdateProjectConfiguration(hostProject);
         });
 
         var args = new ProjectChangeEventProxyArgs(oldHandle, newHandle, ProjectProxyChangeKind.ProjectChanged);
@@ -183,11 +183,11 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
         var project = Assert.Single(projects);
         Assert.Equal("/guest/path/project.csproj", project.FilePath);
         Assert.Same(newConfiguration, project.Configuration);
-        Assert.Empty(await project.GetTagHelpersAsync(CancellationToken.None));
+        Assert.Empty(await project.GetTagHelpersAsync(DisposalToken));
     }
 
     [UIFact]
-    public async Task UpdateGuestProjectManager_ProjectChanged_ProjectWorkspaceStateChange()
+    public async Task UpdateGuestProjectManager_ProjectChanged_UpdateProjectWorkspaceState()
     {
         // Arrange
         var oldHandle = new ProjectSnapshotHandleProxy(
@@ -213,8 +213,8 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
-            updater.ProjectWorkspaceStateChanged(hostProject.Key, oldHandle.ProjectWorkspaceState);
+            updater.AddProject(hostProject);
+            updater.UpdateProjectWorkspaceState(hostProject.Key, oldHandle.ProjectWorkspaceState);
         });
 
         var args = new ProjectChangeEventProxyArgs(oldHandle, newHandle, ProjectProxyChangeKind.ProjectChanged);
@@ -228,7 +228,7 @@ public class ProjectSnapshotSynchronizationServiceTest : VisualStudioWorkspaceTe
         Assert.Equal("/guest/path/project.csproj", project.FilePath);
         Assert.Same(RazorConfiguration.Default, project.Configuration);
 
-        var tagHelpers = await project.GetTagHelpersAsync(CancellationToken.None);
+        var tagHelpers = await project.GetTagHelpersAsync(DisposalToken);
         Assert.Equal(_projectWorkspaceStateWithTagHelpers.TagHelpers.Length, tagHelpers.Length);
         for (var i = 0; i < _projectWorkspaceStateWithTagHelpers.TagHelpers.Length; i++)
         {

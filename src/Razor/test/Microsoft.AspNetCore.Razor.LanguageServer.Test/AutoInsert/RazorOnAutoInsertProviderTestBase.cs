@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -59,7 +60,10 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
         fileKind ??= FileKinds.Component;
         tagHelpers ??= Array.Empty<TagHelperDescriptor>();
         var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(path, path));
-        var projectEngine = RazorProjectEngine.Create(builder => { });
+        var projectEngine = RazorProjectEngine.Create(builder =>
+        {
+            builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
+        });
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importSources: default, tagHelpers);
         return codeDocument;
     }

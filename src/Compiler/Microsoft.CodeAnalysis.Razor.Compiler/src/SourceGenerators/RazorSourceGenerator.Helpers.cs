@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
@@ -55,13 +54,14 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     options.SuppressChecksum = true;
                     options.SupportLocalizedComponentNames = razorSourceGeneratorOptions.SupportLocalizedComponentNames;
                 }));
+                b.Features.Add(new ConfigureRazorParserOptions(razorSourceGeneratorOptions.UseRoslynTokenizer, razorSourceGeneratorOptions.CSharpParseOptions));
 
                 b.SetRootNamespace(razorSourceGeneratorOptions.RootNamespace);
 
                 CompilerFeatures.Register(b);
                 RazorExtensions.Register(b);
 
-                b.SetCSharpLanguageVersion(razorSourceGeneratorOptions.CSharpLanguageVersion);
+                b.SetCSharpLanguageVersion(razorSourceGeneratorOptions.CSharpParseOptions.LanguageVersion);
             });
 
             return discoveryProjectEngine;
@@ -87,8 +87,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         private static SourceGeneratorProjectEngine GetGenerationProjectEngine(
             SourceGeneratorProjectItem item,
             IEnumerable<SourceGeneratorProjectItem> imports,
-            RazorSourceGenerationOptions razorSourceGeneratorOptions,
-            bool isAddComponentParameterAvailable)
+            RazorSourceGenerationOptions razorSourceGeneratorOptions)
         {
             var fileSystem = new VirtualRazorProjectFileSystem();
             fileSystem.Add(item);
@@ -107,13 +106,14 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     options.SuppressMetadataSourceChecksumAttributes = !razorSourceGeneratorOptions.GenerateMetadataSourceChecksumAttributes;
                     options.SupportLocalizedComponentNames = razorSourceGeneratorOptions.SupportLocalizedComponentNames;
                     options.SuppressUniqueIds = razorSourceGeneratorOptions.TestSuppressUniqueIds;
-                    options.SuppressAddComponentParameter = !isAddComponentParameterAvailable;
+                    options.SuppressAddComponentParameter = razorSourceGeneratorOptions.Configuration.SuppressAddComponentParameter;
                 }));
+                b.Features.Add(new ConfigureRazorParserOptions(razorSourceGeneratorOptions.UseRoslynTokenizer, razorSourceGeneratorOptions.CSharpParseOptions));
 
                 CompilerFeatures.Register(b);
                 RazorExtensions.Register(b);
 
-                b.SetCSharpLanguageVersion(razorSourceGeneratorOptions.CSharpLanguageVersion);
+                b.SetCSharpLanguageVersion(razorSourceGeneratorOptions.CSharpParseOptions.LanguageVersion);
             });
 
             return new SourceGeneratorProjectEngine(projectEngine);

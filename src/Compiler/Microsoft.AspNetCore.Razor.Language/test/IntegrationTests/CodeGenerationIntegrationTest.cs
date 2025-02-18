@@ -8,8 +8,11 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
@@ -22,8 +25,15 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         : base(layer: TestProject.Layer.Compiler)
     {
         this.designTime = designTime;
-        BaseCompilation = BaseCompilation.AddReferences(
-            MetadataReference.CreateFromFile(typeof(TestTagHelperDescriptors).Assembly.Location));
+        var testTagHelpers = CSharpCompilation.Create(
+            assemblyName: "Microsoft.AspNetCore.Razor.Language.Test",
+            syntaxTrees:
+            [
+                CSharpSyntaxTree.ParseText(TestTagHelperDescriptors.Code),
+            ],
+            references: ReferenceUtil.AspNetLatestAll,
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        BaseCompilation = BaseCompilation.AddReferences(testTagHelpers.VerifyDiagnostics().EmitToImageReference());
     }
 
     [IntegrationTestFact]
@@ -277,6 +287,9 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     public void Implements() => RunTest();
 
     [IntegrationTestFact]
+    public void Implements_Multiple() => RunTest();
+
+    [IntegrationTestFact]
     public void AttributeDirective() => RunTest();
 
     [IntegrationTestFact]
@@ -413,14 +426,14 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
     private static ImmutableArray<RazorSourceDocument> GetImports(RazorProjectEngine projectEngine, RazorProjectItem projectItem)
     {
-        var importFeatures = projectEngine.ProjectFeatures.OfType<IImportProjectFeature>();
-        var importItems = importFeatures.SelectMany(f => f.GetImports(projectItem));
-        var importSourceDocuments = importItems
-            .Where(i => i.Exists)
-            .Select(RazorSourceDocument.ReadFrom)
-            .ToImmutableArray();
+        using var result = new PooledArrayBuilder<RazorSourceDocument>();
 
-        return importSourceDocuments;
+        foreach (var import in projectEngine.GetImports(projectItem, static i => i.Exists))
+        {
+            result.Add(RazorSourceDocument.ReadFrom(import));
+        }
+
+        return result.ToImmutable();
     }
 
     private void AddTagHelperStubs(IEnumerable<TagHelperDescriptor> descriptors)

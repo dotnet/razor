@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
@@ -26,12 +27,13 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 /// </summary>
 internal sealed class CSharpOnTypeFormattingPass(
     IDocumentMappingService documentMappingService,
+    IHostServicesProvider hostServicesProvider,
     ILoggerFactory loggerFactory)
-    : CSharpFormattingPassBase(documentMappingService, isFormatOnType: true)
+    : CSharpFormattingPassBase(documentMappingService, hostServicesProvider, isFormatOnType: true)
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpOnTypeFormattingPass>();
 
-    public async override Task<ImmutableArray<TextChange>> ExecuteAsync(FormattingContext context, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
+    protected async override Task<ImmutableArray<TextChange>> ExecuteCoreAsync(FormattingContext context, RoslynWorkspaceHelper roslynWorkspaceHelper, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
     {
         // Normalize and re-map the C# edits.
         var codeDocument = context.CodeDocument;
@@ -41,8 +43,8 @@ internal sealed class CSharpOnTypeFormattingPass(
         {
             if (!DocumentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), context.HostDocumentIndex, out _, out var projectedIndex))
             {
-                _logger.LogWarning($"Failed to map to projected position for document {context.Uri}.");
-                return changes;
+                _logger.LogWarning($"Failed to map to projected position for document {context.OriginalSnapshot.FilePath}.");
+                return [];
             }
 
             // Ask C# for formatting changes.
@@ -50,7 +52,7 @@ internal sealed class CSharpOnTypeFormattingPass(
                 formatOnReturn: true, formatOnTyping: true, formatOnSemicolon: true, formatOnCloseBrace: true);
 
             var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
-                context.CSharpWorkspaceDocument,
+                roslynWorkspaceHelper.CreateCSharpDocument(context.CodeDocument),
                 typedChar: context.TriggerCharacter,
                 projectedIndex,
                 context.Options.ToIndentationOptions(),
@@ -61,7 +63,7 @@ internal sealed class CSharpOnTypeFormattingPass(
             if (formattingChanges.IsEmpty)
             {
                 _logger.LogInformation($"Received no results.");
-                return changes;
+                return [];
             }
 
             changes = formattingChanges;
@@ -77,14 +79,19 @@ internal sealed class CSharpOnTypeFormattingPass(
             var startPos = edit.Span.Start;
             var endPos = edit.Span.End;
             var count = csharpText.Length;
-            if (startPos >= count || endPos >= count)
+            if (startPos > count || endPos > count)
             {
                 _logger.LogWarning($"Got a bad edit that couldn't be applied. Edit is {startPos}-{endPos} but there are only {count} characters in C#.");
-                return changes;
+                return [];
             }
         }
 
+        _logger.LogTestOnly($"Original C#:\r\n{csharpText}");
+
         var normalizedChanges = csharpText.MinimizeTextChanges(changes, out var originalTextWithChanges);
+
+        _logger.LogTestOnly($"Formatted C#:\r\n{originalTextWithChanges}");
+
         var mappedChanges = RemapTextChanges(codeDocument, normalizedChanges);
         var filteredChanges = FilterCSharpTextChanges(context, mappedChanges);
         if (filteredChanges.Length == 0)
@@ -93,7 +100,7 @@ internal sealed class CSharpOnTypeFormattingPass(
             // because they are non mappable, but might be the only thing changed (eg from the Add Using code action)
             //
             // If there aren't any edits that are likely to contain using statement changes, this call will no-op.
-            filteredChanges = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, changes, originalTextWithChanges, filteredChanges, cancellationToken).ConfigureAwait(false);
+            filteredChanges = await AddUsingStatementEditsIfNecessaryAsync(context, changes, originalTextWithChanges, filteredChanges, cancellationToken).ConfigureAwait(false);
 
             return filteredChanges;
         }
@@ -102,11 +109,13 @@ internal sealed class CSharpOnTypeFormattingPass(
         var originalText = codeDocument.Source.Text;
         _logger.LogTestOnly($"Original text:\r\n{originalText}");
 
+        _logger.LogTestOnly($"Source Mappings:\r\n{RenderSourceMappings(context.CodeDocument)}");
+
         // Apply the format on type edits sent over by the client.
         var formattedText = ApplyChangesAndTrackChange(originalText, filteredChanges, out _, out var spanAfterFormatting);
         _logger.LogTestOnly($"After C# changes:\r\n{formattedText}");
 
-        var changedContext = await context.WithTextAsync(formattedText).ConfigureAwait(false);
+        var changedContext = await context.WithTextAsync(formattedText, cancellationToken).ConfigureAwait(false);
         var linePositionSpanAfterFormatting = formattedText.GetLinePositionSpan(spanAfterFormatting);
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -116,9 +125,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         var cleanedText = formattedText.WithChanges(cleanupChanges);
         _logger.LogTestOnly($"After CleanupDocument:\r\n{cleanedText}");
 
-        changedContext = await changedContext.WithTextAsync(cleanedText).ConfigureAwait(false);
-
-        cancellationToken.ThrowIfCancellationRequested();
+        changedContext = await changedContext.WithTextAsync(cleanedText, cancellationToken).ConfigureAwait(false);
 
         // At this point we should have applied all edits that adds/removes newlines.
         // Let's now ensure the indentation of each of those lines is correct.
@@ -166,7 +173,7 @@ internal sealed class CSharpOnTypeFormattingPass(
 
         Debug.Assert(cleanedText.Lines.Count > endLineInclusive, "Invalid range. This is unexpected.");
 
-        var indentationChanges = await AdjustIndentationAsync(changedContext, startLine, endLineInclusive, cancellationToken).ConfigureAwait(false);
+        var indentationChanges = await AdjustIndentationAsync(changedContext, startLine, endLineInclusive, roslynWorkspaceHelper.HostWorkspaceServices, _logger, cancellationToken).ConfigureAwait(false);
         if (indentationChanges.Length > 0)
         {
             // Apply the edits that modify indentation.
@@ -178,7 +185,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         // Now that we have made all the necessary changes to the document. Let's diff the original vs final version and return the diff.
         var finalChanges = cleanedText.GetTextChangesArray(originalText);
 
-        finalChanges = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, changes, originalTextWithChanges, finalChanges, cancellationToken).ConfigureAwait(false);
+        finalChanges = await AddUsingStatementEditsIfNecessaryAsync(context, changes, originalTextWithChanges, finalChanges, cancellationToken).ConfigureAwait(false);
 
         return finalChanges;
     }
@@ -195,15 +202,15 @@ internal sealed class CSharpOnTypeFormattingPass(
         return changes.ToImmutableArray();
     }
 
-    private static async Task<ImmutableArray<TextChange>> AddUsingStatementEditsIfNecessaryAsync(FormattingContext context, RazorCodeDocument codeDocument, SourceText csharpText, ImmutableArray<TextChange> changes, SourceText originalTextWithChanges, ImmutableArray<TextChange> finalChanges, CancellationToken cancellationToken)
+    private static async Task<ImmutableArray<TextChange>> AddUsingStatementEditsIfNecessaryAsync(FormattingContext context, ImmutableArray<TextChange> changes, SourceText originalTextWithChanges, ImmutableArray<TextChange> finalChanges, CancellationToken cancellationToken)
     {
         if (context.AutomaticallyAddUsings)
         {
             // Because we need to parse the C# code twice for this operation, lets do a quick check to see if its even necessary
             if (changes.Any(static e => e.NewText is not null && e.NewText.IndexOf("using") != -1))
             {
-                var usingStatementEdits = await AddUsingsHelper.GetUsingStatementEditsAsync(codeDocument, csharpText, originalTextWithChanges, cancellationToken).ConfigureAwait(false);
-                var usingStatementChanges = usingStatementEdits.Select(codeDocument.Source.Text.GetTextChange);
+                var usingStatementEdits = await AddUsingsHelper.GetUsingStatementEditsAsync(context.CodeDocument, originalTextWithChanges, cancellationToken).ConfigureAwait(false);
+                var usingStatementChanges = usingStatementEdits.Select(context.CodeDocument.Source.Text.GetTextChange);
                 finalChanges = [.. usingStatementChanges, .. finalChanges];
             }
         }
@@ -225,12 +232,41 @@ internal sealed class CSharpOnTypeFormattingPass(
 
     private static ImmutableArray<TextChange> FilterCSharpTextChanges(FormattingContext context, ImmutableArray<TextChange> changes)
     {
-        return changes.WhereAsArray(e => ShouldFormat(context, e.Span, allowImplicitStatements: false));
+        var indent = context.GetIndentationLevelString(1);
+
+        using var filteredChanges = new PooledArrayBuilder<TextChange>();
+
+        foreach (var change in changes)
+        {
+            if (!ShouldFormat(context, change.Span, allowImplicitStatements: false))
+            {
+                continue;
+            }
+
+            // One extra bit of filtering we do here, is to guard against quirks in runtime code-gen, where source mappings
+            // end after whitespace, rather than design time where they end before. This results in the C# formatter wanting
+            // to insert an indent in what ends up being the middle of a line of Razor code. Since there is no reason to ever
+            // insert anything but a single space in the middle of a line, it's easy to filter them out.
+            if (change.Span.Length == 0 &&
+                change.NewText == indent)
+            {
+                var linePosition = context.SourceText.GetLinePosition(change.Span.Start);
+                var first = context.SourceText.Lines[linePosition.Line].GetFirstNonWhitespaceOffset();
+                if (linePosition.Character > first)
+                {
+                    continue;
+                }
+            }
+
+            filteredChanges.Add(change);
+        }
+
+        return filteredChanges.ToImmutable();
     }
 
     private static int LineDelta(SourceText text, IEnumerable<TextChange> changes, out int firstLine, out int lastLine)
     {
-        firstLine = 0;
+        firstLine = int.MaxValue;
         lastLine = 0;
 
         // Let's compute the number of newlines added/removed by the incoming changes.

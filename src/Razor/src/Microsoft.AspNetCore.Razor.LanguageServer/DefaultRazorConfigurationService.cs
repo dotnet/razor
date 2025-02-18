@@ -95,10 +95,10 @@ internal class DefaultRazorConfigurationService : IConfigurationSyncService
         }
         else
         {
-            ExtractVSCodeOptions(result, out var enableFormatting, out var autoClosingTags, out var commitElementsWithSpace, out var codeBlockBraceOnNextLine);
+            ExtractVSCodeOptions(result, out var formatting, out var autoClosingTags, out var commitElementsWithSpace, out var codeBlockBraceOnNextLine);
             return RazorLSPOptions.Default with
             {
-                EnableFormatting = enableFormatting,
+                Formatting = formatting,
                 AutoClosingTags = autoClosingTags,
                 CommitElementsWithSpace = commitElementsWithSpace,
                 CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine
@@ -108,7 +108,7 @@ internal class DefaultRazorConfigurationService : IConfigurationSyncService
 
     private void ExtractVSCodeOptions(
         JsonObject[] result,
-        out bool enableFormatting,
+        out FormattingFlags formatting,
         out bool autoClosingTags,
         out bool commitElementsWithSpace,
         out bool codeBlockBraceOnNextLine)
@@ -116,7 +116,7 @@ internal class DefaultRazorConfigurationService : IConfigurationSyncService
         var razor = result[0];
         var html = result[1];
 
-        enableFormatting = RazorLSPOptions.Default.EnableFormatting;
+        formatting = RazorLSPOptions.Default.Formatting;
         autoClosingTags = RazorLSPOptions.Default.AutoClosingTags;
         codeBlockBraceOnNextLine = RazorLSPOptions.Default.CodeBlockBraceOnNextLine;
         // Deliberately not using the "default" here because we want a different default for VS Code, as
@@ -129,7 +129,15 @@ internal class DefaultRazorConfigurationService : IConfigurationSyncService
             if (parsedFormat.TryGetPropertyValue("enable", out var parsedEnableFormatting) &&
                 parsedEnableFormatting is not null)
             {
-                enableFormatting = GetObjectOrDefault(parsedEnableFormatting, enableFormatting);
+                var formattingEnabled = GetObjectOrDefault(parsedEnableFormatting, formatting.IsEnabled());
+                if (formattingEnabled)
+                {
+                    formatting |= FormattingFlags.Enabled;
+                }
+                else
+                {
+                    formatting = FormattingFlags.Disabled;
+                }
             }
 
             if (parsedFormat.TryGetPropertyValue("codeBlockBraceOnNextLine", out var parsedCodeBlockBraceOnNextLine) &&

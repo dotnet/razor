@@ -13,7 +13,7 @@ internal readonly record struct RemoteAutoInsertTextEdit(
     [property: DataMember(Order = 2)] InsertTextFormat InsertTextFormat)
 {
     public static RemoteAutoInsertTextEdit FromLspInsertTextEdit(VSInternalDocumentOnAutoInsertResponseItem edit)
-        => new (
+        => new(
             edit.TextEdit.Range.ToLinePositionSpan(),
             edit.TextEdit.NewText,
             edit.TextEditFormat);

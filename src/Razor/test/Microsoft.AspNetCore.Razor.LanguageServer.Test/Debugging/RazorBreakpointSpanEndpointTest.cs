@@ -5,8 +5,10 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol.Debugging;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -46,7 +48,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Null(response);
@@ -66,13 +68,13 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         {
             Uri = documentPath,
             Position = VsLspFactory.CreatePosition(1, 0),
-            HostDocumentSyncVersion = 0,
+            HostDocumentSyncVersion = 1,
         };
         var expectedRange = VsLspFactory.CreateSingleLineRange(line: 1, character: 5, length: 14);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Equal(expectedRange, response!.Range);
@@ -92,13 +94,13 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         {
             Uri = documentPath,
             Position = VsLspFactory.CreatePosition(1, 0),
-            HostDocumentSyncVersion = 0,
+            HostDocumentSyncVersion = 1,
         };
         var expectedRange = VsLspFactory.CreateSingleLineRange(line: 1, character: 4, length: 12);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Equal(expectedRange, response!.Range);
@@ -118,13 +120,13 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         {
             Uri = documentPath,
             Position = VsLspFactory.CreatePosition(1, 0),
-            HostDocumentSyncVersion = 0,
+            HostDocumentSyncVersion = 1,
         };
         var expectedRange = VsLspFactory.CreateSingleLineRange(line: 1, character: 5, length: 14);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Equal(expectedRange, response!.Range);
@@ -144,13 +146,13 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         {
             Uri = documentPath,
             Position = VsLspFactory.CreatePosition(1, 0),
-            HostDocumentSyncVersion = 0,
+            HostDocumentSyncVersion = 1,
         };
         var expectedRange = VsLspFactory.CreateSingleLineRange(line: 1, character: 4, length: 12);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Equal(expectedRange, response!.Range);
@@ -171,12 +173,12 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         {
             Uri = documentPath,
             Position = VsLspFactory.CreatePosition(1, 0),
-            HostDocumentSyncVersion = 0,
+            HostDocumentSyncVersion = 1,
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Null(response);
@@ -201,7 +203,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Null(response);
@@ -229,7 +231,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Null(response);
@@ -257,7 +259,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.Null(response);
@@ -266,7 +268,10 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
     private static RazorCodeDocument CreateCodeDocument(string text, string? fileKind = null)
     {
         var sourceDocument = TestRazorSourceDocument.Create(text);
-        var projectEngine = RazorProjectEngine.Create(builder => { });
+        var projectEngine = RazorProjectEngine.Create(builder =>
+        {
+            builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
+        });
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind ?? FileKinds.Legacy, importSources: default, tagHelpers: []);
         return codeDocument;
     }

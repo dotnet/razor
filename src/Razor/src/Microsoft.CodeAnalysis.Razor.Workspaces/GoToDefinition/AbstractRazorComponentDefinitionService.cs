@@ -3,8 +3,8 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -23,7 +23,12 @@ internal abstract class AbstractRazorComponentDefinitionService(
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ILogger _logger = logger;
 
-    public async Task<LspLocation?> GetDefinitionAsync(IDocumentSnapshot documentSnapshot, DocumentPositionInfo positionInfo, bool ignoreAttributes, CancellationToken cancellationToken)
+    public async Task<LspLocation?> GetDefinitionAsync(
+        IDocumentSnapshot documentSnapshot,
+        DocumentPositionInfo positionInfo,
+        ISolutionQueryOperations solutionQueryOperations,
+        bool ignoreAttributes,
+        CancellationToken cancellationToken)
     {
         // If we're in C# then there is no point checking for a component tag, because there won't be one
         if (positionInfo.LanguageKind == RazorLanguageKind.CSharp)
@@ -37,7 +42,7 @@ internal abstract class AbstractRazorComponentDefinitionService(
             return null;
         }
 
-        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         if (!RazorComponentDefinitionHelpers.TryGetBoundTagHelpers(codeDocument, positionInfo.HostDocumentIndex, ignoreAttributes, _logger, out var boundTagHelper, out var boundAttribute))
         {
@@ -45,14 +50,17 @@ internal abstract class AbstractRazorComponentDefinitionService(
             return null;
         }
 
-        var componentDocument = await _componentSearchEngine.TryLocateComponentAsync(documentSnapshot, boundTagHelper).ConfigureAwait(false);
+        var componentDocument = await _componentSearchEngine
+            .TryLocateComponentAsync(boundTagHelper, solutionQueryOperations, cancellationToken)
+            .ConfigureAwait(false);
+
         if (componentDocument is null)
         {
             _logger.LogInformation($"Could not locate component document.");
             return null;
         }
 
-        var componentFilePath = componentDocument.FilePath.AssumeNotNull();
+        var componentFilePath = componentDocument.FilePath;
 
         _logger.LogInformation($"Definition found at file path: {componentFilePath}");
 

@@ -8,6 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
@@ -34,7 +36,8 @@ internal class RazorCompletionEndpoint(
         serverCapabilities.CompletionProvider = new CompletionOptions()
         {
             ResolveProvider = true,
-            TriggerCharacters = _completionListProvider.AggregateTriggerCharacters.ToArray(),
+            TriggerCharacters = CompletionTriggerAndCommitCharacters.AllTriggerCharacters,
+            AllCommitCharacters = CompletionTriggerAndCommitCharacters.AllCommitCharacters
         };
     }
 
@@ -71,12 +74,18 @@ internal class RazorCompletionEndpoint(
         }
 
         var correlationId = Guid.NewGuid();
-        using var _ = _telemetryReporter?.TrackLspRequest(Methods.TextDocumentCompletionName, LanguageServerConstants.RazorLanguageServerName, correlationId);
+        using var _ = _telemetryReporter?.TrackLspRequest(Methods.TextDocumentCompletionName, LanguageServerConstants.RazorLanguageServerName, TelemetryThresholds.CompletionRazorTelemetryThreshold, correlationId);
+
+        var razorCompletionOptions = new RazorCompletionOptions(
+            SnippetsSupported: true,
+            AutoInsertAttributeQuotes: _optionsMonitor.CurrentValue.AutoInsertAttributeQuotes,
+            CommitElementsWithSpace: _optionsMonitor.CurrentValue.CommitElementsWithSpace);
         var completionList = await _completionListProvider.GetCompletionListAsync(
             hostDocumentIndex,
             completionContext,
             documentContext,
             _clientCapabilities!,
+            razorCompletionOptions,
             correlationId,
             cancellationToken).ConfigureAwait(false);
         return completionList;

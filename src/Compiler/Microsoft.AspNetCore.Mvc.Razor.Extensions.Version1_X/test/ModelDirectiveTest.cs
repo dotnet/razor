@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System.Text;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -75,8 +74,13 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
 
         // Assert
         var @class = FindClassNode(irDocument);
-        Assert.NotNull(@class);
-        Assert.Equal("BaseType<Type1>", @class.BaseType);
+        var baseType = @class.BaseType;
+
+        Assert.Equal("BaseType", baseType.BaseType.Content);
+        Assert.NotNull(baseType.BaseType.Source);
+
+        Assert.Equal("Type1", baseType.ModelType.Content);
+        Assert.NotNull(baseType.ModelType.Source);
     }
 
     [Fact]
@@ -102,8 +106,13 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
 
         // Assert
         var @class = FindClassNode(irDocument);
-        Assert.NotNull(@class);
-        Assert.Equal("BaseType<Type1>", @class.BaseType);
+        var baseType = @class.BaseType;
+
+        Assert.Equal("BaseType", baseType.BaseType.Content);
+        Assert.NotNull(baseType.BaseType.Source);
+
+        Assert.Equal("Type1", baseType.ModelType.Content);
+        Assert.NotNull(baseType.ModelType.Source);
     }
 
     [Fact]
@@ -129,7 +138,13 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         // Assert
         var @class = FindClassNode(irDocument);
         Assert.NotNull(@class);
-        Assert.Equal("BaseType", @class.BaseType);
+        var baseType = @class.BaseType;
+
+        Assert.Equal("BaseType", baseType.BaseType.Content);
+        Assert.NotNull(baseType.BaseType.Source);
+
+        // ISSUE: https://github.com/dotnet/razor/issues/10987 we don't issue a warning or emit anything for the unused model
+        Assert.Null(baseType.ModelType);
     }
 
     [Fact]
@@ -154,7 +169,13 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         // Assert
         var @class = FindClassNode(irDocument);
         Assert.NotNull(@class);
-        Assert.Equal("BaseType<dynamic>", @class.BaseType);
+        var baseType = @class.BaseType;
+
+        Assert.Equal("BaseType", baseType.BaseType.Content);
+        Assert.NotNull(baseType.BaseType.Source);
+
+        Assert.Equal("dynamic", baseType.ModelType.Content);
+        Assert.Null(baseType.ModelType.Source);
     }
 
     [Fact]
@@ -179,7 +200,13 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         // Assert
         var @class = FindClassNode(irDocument);
         Assert.NotNull(@class);
-        Assert.Equal("BaseType<dynamic>", @class.BaseType);
+        var baseType = @class.BaseType;
+
+        Assert.Equal("BaseType", baseType.BaseType.Content);
+        Assert.NotNull(baseType.BaseType.Source);
+
+        Assert.Equal("dynamic", baseType.ModelType.Content);
+        Assert.Null(baseType.ModelType.Source);
 
         var @namespace = FindNamespaceNode(irDocument);
         var usingNode = Assert.IsType<UsingDirectiveIntermediateNode>(@namespace.Children[0]);
@@ -209,7 +236,13 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         // Assert
         var @class = FindClassNode(irDocument);
         Assert.NotNull(@class);
-        Assert.Equal("BaseType<SomeType>", @class.BaseType);
+        var baseType = @class.BaseType;
+
+        Assert.Equal("BaseType", baseType.BaseType.Content);
+        Assert.NotNull(baseType.BaseType.Source);
+
+        Assert.Equal("SomeType", baseType.ModelType.Content);
+        Assert.Null(baseType.ModelType.Source);
 
         var @namespace = FindNamespaceNode(irDocument);
         var usingNode = Assert.IsType<UsingDirectiveIntermediateNode>(@namespace.Children[0]);
@@ -250,11 +283,14 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
     {
         return CreateProjectEngine(b =>
         {
-                // Notice we're not registering the ModelDirective.Pass here so we can run it on demand.
-                b.AddDirective(ModelDirective.Directive);
+            // Notice we're not registering the ModelDirective.Pass here so we can run it on demand.
+            b.AddDirective(ModelDirective.Directive);
 
-                // There's some special interaction with the inherits directive
-                InheritsDirective.Register(b);
+            // There's some special interaction with the inherits directive
+            InheritsDirective.Register(b);
+
+            b.Features.Add(new RazorPageDocumentClassifierPass());
+            b.Features.Add(new MvcViewDocumentClassifierPass());
 
             b.Features.Add(new DesignTimeOptionsFeature(designTime));
         }).Engine;
@@ -302,7 +338,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         }
     }
 
-    private class DesignTimeOptionsFeature : IConfigureRazorParserOptionsFeature, IConfigureRazorCodeGenerationOptionsFeature
+    private class DesignTimeOptionsFeature : RazorEngineFeatureBase, IConfigureRazorParserOptionsFeature, IConfigureRazorCodeGenerationOptionsFeature
     {
         private readonly bool _designTime;
 
@@ -312,8 +348,6 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         }
 
         public int Order { get; }
-
-        public RazorEngine Engine { get; set; }
 
         public void Configure(RazorParserOptionsBuilder options)
         {

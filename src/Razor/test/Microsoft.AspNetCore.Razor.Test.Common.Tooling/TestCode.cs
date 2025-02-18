@@ -41,11 +41,17 @@ internal readonly struct TestCode
     public int Position
         => Positions.Single();
 
+    public bool HasSpans
+        => TryGetNamedSpans(string.Empty, out _);
+
     public TextSpan Span
         => Spans.Single();
 
     public ImmutableArray<TextSpan> Spans
         => GetNamedSpans(string.Empty);
+
+    public ImmutableDictionary<string, ImmutableArray<TextSpan>> NamedSpans
+        => _nameToSpanMap;
 
     public ImmutableArray<TextSpan> GetNamedSpans(string name)
         => _nameToSpanMap[name];

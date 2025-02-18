@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -10,7 +9,7 @@ namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
 internal partial class BackgroundDocumentGenerator
 {
-    private sealed class Comparer : IEqualityComparer<(IProjectSnapshot, IDocumentSnapshot)>
+    private sealed class Comparer : IEqualityComparer<(ProjectSnapshot, DocumentSnapshot)>
     {
         public static readonly Comparer Instance = new();
 
@@ -18,21 +17,21 @@ internal partial class BackgroundDocumentGenerator
         {
         }
 
-        public bool Equals((IProjectSnapshot, IDocumentSnapshot) x, (IProjectSnapshot, IDocumentSnapshot) y)
+        public bool Equals((ProjectSnapshot, DocumentSnapshot) x, (ProjectSnapshot, DocumentSnapshot) y)
         {
             var (projectX, documentX) = x;
             var (projectY, documentY) = y;
 
-            var documentKeyX = new DocumentKey(projectX.Key, documentX.FilePath.AssumeNotNull());
-            var documentKeyY = new DocumentKey(projectY.Key, documentY.FilePath.AssumeNotNull());
+            var documentKeyX = new DocumentKey(projectX.Key, documentX.FilePath);
+            var documentKeyY = new DocumentKey(projectY.Key, documentY.FilePath);
 
             return documentKeyX.Equals(documentKeyY);
         }
 
-        public int GetHashCode((IProjectSnapshot, IDocumentSnapshot) obj)
+        public int GetHashCode((ProjectSnapshot, DocumentSnapshot) obj)
         {
             var (project, document) = obj;
-            var documentKey = new DocumentKey(project.Key, document.FilePath.AssumeNotNull());
+            var documentKey = new DocumentKey(project.Key, document.FilePath);
 
             return documentKey.GetHashCode();
         }

@@ -2,10 +2,10 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Razor.DynamicFiles;
 using Xunit;
 using Xunit.Abstractions;
@@ -28,7 +28,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 </html>
 ";
 
-        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource, DisposalToken);
 
         var service = CreateExcerptService(primary);
 
@@ -106,7 +106,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 </html>
 ";
 
-        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource, DisposalToken);
 
         var service = CreateExcerptService(primary);
 
@@ -159,7 +159,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 </html>
 ";
 
-        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource, DisposalToken);
 
         var service = CreateExcerptService(primary);
 
@@ -266,7 +266,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
             </html>
             """;
 
-        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource, DisposalToken);
 
         var service = CreateExcerptService(primary);
 
@@ -370,7 +370,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
             </html>
             """;
 
-        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource, DisposalToken);
 
         var service = CreateExcerptService(primary);
 
@@ -444,7 +444,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 </html>
 ";
 
-        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource, DisposalToken);
 
         var service = CreateExcerptService(primary);
 
@@ -553,7 +553,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
         // Arrange
         var razorSource = @"@{ var [|foo|] = ""Hello, World!""; }";
 
-        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource, DisposalToken);
 
         var service = CreateExcerptService(primary);
 

@@ -5,12 +5,13 @@ using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.Formatting;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -27,7 +28,7 @@ public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput
             [||]public class Foo { }
             }
             """;
-        using var context = CreateFormattingContext(source);
+        var context = CreateFormattingContext(source);
         var edits = ImmutableArray.Create(new TextChange(source.Span, "    "));
         var input = edits;
         var pass = GetPass();
@@ -49,7 +50,7 @@ public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput
             public class Foo { }
             }
             """;
-        using var context = CreateFormattingContext(source);
+        var context = CreateFormattingContext(source);
         var badEdit = new TextChange(source.Span, "@ "); // Creates a diagnostic
         var pass = GetPass();
 
@@ -83,24 +84,26 @@ public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput
         };
 
         var context = FormattingContext.Create(
-            uri,
             documentSnapshot,
             codeDocument,
-            options,
-            new LspFormattingCodeDocumentProvider(),
-            TestAdhocWorkspaceFactory.Instance);
+            options);
         return context;
     }
 
-    private static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, ImmutableArray<TagHelperDescriptor> tagHelpers = default, string? fileKind = default)
+    private static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, ImmutableArray<TagHelperDescriptor> tagHelpers = default, string? fileKind = null)
     {
         fileKind ??= FileKinds.Component;
         tagHelpers = tagHelpers.NullToEmpty();
         var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(path, path));
-        var projectEngine = RazorProjectEngine.Create(builder => builder.SetRootNamespace("Test"));
+        var projectEngine = RazorProjectEngine.Create(builder =>
+        {
+            builder.SetRootNamespace("Test");
+            builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
+        });
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importSources: default, tagHelpers);
 
-        var documentSnapshot = FormattingTestBase.CreateDocumentSnapshot(path, tagHelpers, fileKind, importsDocuments: [], imports: [], projectEngine, codeDocument);
+        var documentSnapshot = FormattingTestBase.CreateDocumentSnapshot(
+            path, fileKind, codeDocument, projectEngine, imports: [], importDocuments: [], tagHelpers, inGlobalNamespace: false);
 
         return (codeDocument, documentSnapshot);
     }

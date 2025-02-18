@@ -3,7 +3,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -61,7 +60,10 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
         if (positionInfo.LanguageKind is RazorLanguageKind.Html or RazorLanguageKind.Razor)
         {
             // First, see if this is a Razor component. We ignore attributes here, because they're better served by the C# handler.
-            var componentLocation = await _componentDefinitionService.GetDefinitionAsync(context.Snapshot, positionInfo, ignoreAttributes: true, cancellationToken).ConfigureAwait(false);
+            var componentLocation = await _componentDefinitionService
+                .GetDefinitionAsync(context.Snapshot, positionInfo, context.GetSolutionQueryOperations(), ignoreAttributes: true, cancellationToken)
+                .ConfigureAwait(false);
+
             if (componentLocation is not null)
             {
                 // Convert from VS LSP Location to Roslyn. This can be removed when Razor moves fully onto Roslyn's LSP types.
@@ -72,21 +74,17 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
             return CallHtml;
         }
 
-        if (!DocumentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), positionInfo.HostDocumentIndex, out var mappedPosition, out _))
-        {
-            // If we can't map to the generated C# file, we're done.
-            return NoFurtherHandling;
-        }
-
         // Finally, call into C#.
-        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync().ConfigureAwait(false);
+        var generatedDocument = await context.Snapshot
+            .GetGeneratedDocumentAsync(cancellationToken)
+            .ConfigureAwait(false);
 
         var locations = await ExternalHandlers.GoToDefinition
             .GetDefinitionsAsync(
                 RemoteWorkspaceAccessor.GetWorkspace(),
                 generatedDocument,
                 typeOnly: false,
-                mappedPosition,
+                positionInfo.Position.ToLinePosition(),
                 cancellationToken)
             .ConfigureAwait(false);
 

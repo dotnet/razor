@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Location = RLSP::Roslyn.LanguageServer.Protocol.Location;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -71,7 +72,7 @@ internal sealed class MapCodeEndpoint(
         }
 
         var mapCodeCorrelationId = mapperParams.MapCodeCorrelationId ?? Guid.NewGuid();
-        using var ts = _telemetryReporter.TrackLspRequest(VSInternalMethods.WorkspaceMapCodeName, LanguageServerConstants.RazorLanguageServerName, mapCodeCorrelationId);
+        using var ts = _telemetryReporter.TrackLspRequest(VSInternalMethods.WorkspaceMapCodeName, LanguageServerConstants.RazorLanguageServerName, TelemetryThresholds.MapCodeRazorTelemetryThreshold, mapCodeCorrelationId);
 
         return await HandleMappingsAsync(mapperParams.Mappings, mapCodeCorrelationId, cancellationToken).ConfigureAwait(false);
     }
@@ -106,7 +107,7 @@ internal sealed class MapCodeEndpoint(
 
                 // We create a new Razor file based on each content in each mapping order to get the syntax tree that we'll later use to map.
                 var newSnapshot = snapshot.WithText(SourceText.From(content));
-                var codeToMap = await newSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+                var codeToMap = await newSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
                 var mappingSuccess = await TryMapCodeAsync(
                     codeToMap, mapping.FocusLocations, changes, mapCodeCorrelationId, documentContext, cancellationToken).ConfigureAwait(false);
@@ -229,7 +230,7 @@ internal sealed class MapCodeEndpoint(
                     razorNodesToMap.Add(nodeToMap);
                 }
 
-                var sourceText = await documentContext.Snapshot.GetTextAsync().ConfigureAwait(false);
+                var sourceText = await documentContext.Snapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                 foreach (var nodeToMap in razorNodesToMap)
                 {

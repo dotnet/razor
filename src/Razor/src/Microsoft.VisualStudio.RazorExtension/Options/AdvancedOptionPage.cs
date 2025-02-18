@@ -25,6 +25,7 @@ internal class AdvancedOptionPage : DialogPage
     private bool? _commitElementsWithSpace;
     private SnippetSetting? _snippets;
     private LogLevel? _logLevel;
+    private bool? _formatOnPaste;
 
     public AdvancedOptionPage()
     {
@@ -91,12 +92,21 @@ internal class AdvancedOptionPage : DialogPage
         set => _codeBlockBraceOnNextLine = value;
     }
 
+    [LocCategory(nameof(VSPackage.Formatting))]
+    [LocDescription(nameof(VSPackage.Setting_FormattingOnPasteDescription))]
+    [LocDisplayName(nameof(VSPackage.Setting_FormattingOnPasteDisplayName))]
+    public bool FormatOnPaste
+    {
+        get => _formatOnPaste ?? _optionsStorage.Value.FormatOnPaste;
+        set => _formatOnPaste = value;
+    }
+
     [LocCategory(nameof(VSPackage.Completion))]
     [LocDescription(nameof(VSPackage.Setting_SnippetsDescription))]
     [LocDisplayName(nameof(VSPackage.Setting_SnippetsDisplayName))]
     public SnippetSetting Snippets
     {
-        get => _snippets ?? (SnippetSetting)_optionsStorage.Value.Snippets;
+        get => _snippets ?? _optionsStorage.Value.Snippets;
         set => _snippets = value;
     }
 
@@ -105,7 +115,7 @@ internal class AdvancedOptionPage : DialogPage
     [LocDisplayName(nameof(VSPackage.Setting_LogLevelDisplayName))]
     public LogLevel LogLevel
     {
-        get => _logLevel ?? (LogLevel)_optionsStorage.Value.LogLevel;
+        get => _logLevel ?? _optionsStorage.Value.LogLevel;
         set => _logLevel = value;
     }
 
@@ -126,14 +136,24 @@ internal class AdvancedOptionPage : DialogPage
             _optionsStorage.Value.AutoInsertAttributeQuotes = _autoInsertAttributeQuotes.Value;
         }
 
+        if (_commitElementsWithSpace is not null)
+        {
+            _optionsStorage.Value.CommitElementsWithSpace = _commitElementsWithSpace.Value;
+        }
+
         if (_colorBackground is not null)
         {
             _optionsStorage.Value.ColorBackground = _colorBackground.Value;
         }
 
-        if (_commitElementsWithSpace is not null)
+        if (_codeBlockBraceOnNextLine is not null)
         {
-            _optionsStorage.Value.CommitElementsWithSpace = _commitElementsWithSpace.Value;
+            _optionsStorage.Value.CodeBlockBraceOnNextLine = _codeBlockBraceOnNextLine.Value;
+        }
+
+        if (_formatOnPaste is not null)
+        {
+            _optionsStorage.Value.FormatOnPaste = _formatOnPaste.Value;
         }
 
         if (_snippets is SnippetSetting snippets)
@@ -152,8 +172,10 @@ internal class AdvancedOptionPage : DialogPage
         _formatOnType = null;
         _autoClosingTags = null;
         _autoInsertAttributeQuotes = null;
-        _colorBackground = null;
         _commitElementsWithSpace = null;
+        _colorBackground = null;
+        _codeBlockBraceOnNextLine = null;
+        _formatOnPaste = null;
         _snippets = null;
         _logLevel = null;
     }

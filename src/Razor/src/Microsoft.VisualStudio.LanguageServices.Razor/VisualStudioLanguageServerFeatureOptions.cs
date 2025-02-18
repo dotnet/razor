@@ -19,6 +19,7 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
     private readonly Lazy<bool> _useRazorCohostServer;
     private readonly Lazy<bool> _disableRazorLanguageServer;
     private readonly Lazy<bool> _forceRuntimeCodeGeneration;
+    private readonly Lazy<bool> _useNewFormattingEngine;
 
     [ImportingConstructor]
     public VisualStudioLanguageServerFeatureOptions(ILspEditorFeatureDetector lspEditorFeatureDetector)
@@ -68,14 +69,20 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
         _forceRuntimeCodeGeneration = new Lazy<bool>(() =>
         {
             var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var forceRuntimeCodeGeneration = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.ForceRuntimeCodeGeneration, defaultValue: false);
+            var forceRuntimeCodeGeneration = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.ForceRuntimeCodeGeneration, defaultValue: true);
             return forceRuntimeCodeGeneration;
+        });
+
+        _useNewFormattingEngine = new Lazy<bool>(() =>
+        {
+            var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
+            var useNewFormattingEngine = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.UseNewFormattingEngine, defaultValue: true);
+            return useNewFormattingEngine;
         });
     }
 
     // We don't currently support file creation operations on VS Codespaces or VS Liveshare
     public override bool SupportsFileManipulation => !IsCodespacesOrLiveshare;
-
 
     public override string CSharpVirtualDocumentSuffix => ".ide.g.cs";
 
@@ -103,4 +110,9 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
 
     /// <inheritdoc />
     public override bool ForceRuntimeCodeGeneration => _forceRuntimeCodeGeneration.Value;
+
+    public override bool UseNewFormattingEngine => _useNewFormattingEngine.Value;
+
+    // VS actually needs explicit commit characters so don't avoid them.
+    public override bool SupportsSoftSelectionInCompletion => true;
 }

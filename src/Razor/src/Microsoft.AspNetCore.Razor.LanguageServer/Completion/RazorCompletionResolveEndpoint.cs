@@ -9,21 +9,17 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
 [RazorLanguageServerEndpoint(Methods.TextDocumentCompletionResolveName)]
-internal class RazorCompletionResolveEndpoint
-    : IRazorDocumentlessRequestHandler<VSInternalCompletionItem, VSInternalCompletionItem>,
-      ICapabilitiesProvider
+internal class RazorCompletionResolveEndpoint(
+    AggregateCompletionItemResolver completionItemResolver,
+    CompletionListCache completionListCache,
+    IComponentAvailabilityService componentAvailabilityService)
+    : IRazorDocumentlessRequestHandler<VSInternalCompletionItem, VSInternalCompletionItem>, ICapabilitiesProvider
 {
-    private readonly AggregateCompletionItemResolver _completionItemResolver;
-    private readonly CompletionListCache _completionListCache;
-    private VSInternalClientCapabilities? _clientCapabilities;
+    private readonly AggregateCompletionItemResolver _completionItemResolver = completionItemResolver;
+    private readonly CompletionListCache _completionListCache = completionListCache;
+    private readonly IComponentAvailabilityService _componentAvailabilityService = componentAvailabilityService;
 
-    public RazorCompletionResolveEndpoint(
-        AggregateCompletionItemResolver completionItemResolver,
-        CompletionListCache completionListCache)
-    {
-        _completionItemResolver = completionItemResolver;
-        _completionListCache = completionListCache;
-    }
+    private VSInternalClientCapabilities? _clientCapabilities;
 
     public bool MutatesSolutionState => false;
 
@@ -51,9 +47,10 @@ internal class RazorCompletionResolveEndpoint
 
             // See if this is the right completion list for this corresponding completion item. We cross-check this based on label only given that
             // is what users interact with.
-            if (cacheEntry.CompletionList.Items.Any(completion => completionItem.Label == completion.Label &&
-              // Check the Kind as well, e.g. we may have a Razor snippet and a C# keyword with the same label, etc.
-                                                                  completionItem.Kind == completion.Kind))
+            if (cacheEntry.CompletionList.Items.Any(completion =>
+                completionItem.Label == completion.Label
+                // Check the Kind as well, e.g. we may have a Razor snippet and a C# keyword with the same label, etc.
+                && completionItem.Kind == completion.Kind))
             {
                 originalRequestContext = cacheEntry.Context;
                 containingCompletionList = cacheEntry.CompletionList;
@@ -67,12 +64,16 @@ internal class RazorCompletionResolveEndpoint
             return completionItem;
         }
 
-        var resolvedCompletionItem = await _completionItemResolver.ResolveAsync(
-            completionItem,
-            containingCompletionList,
-            originalRequestContext,
-            _clientCapabilities,
-            cancellationToken).ConfigureAwait(false);
+        var resolvedCompletionItem = await _completionItemResolver
+            .ResolveAsync(
+                completionItem,
+                containingCompletionList,
+                originalRequestContext,
+                _clientCapabilities,
+                _componentAvailabilityService,
+                cancellationToken)
+            .ConfigureAwait(false);
+
         resolvedCompletionItem ??= completionItem;
 
         return resolvedCompletionItem;

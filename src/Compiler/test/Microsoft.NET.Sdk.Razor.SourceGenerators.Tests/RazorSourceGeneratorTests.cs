@@ -314,7 +314,7 @@ namespace MyApp.Pages
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Events.Clear();
+            eventListener.Clear();
 
             result = RunGenerator(compilation!, ref driver)
                         .VerifyOutputsMatch(result);
@@ -398,7 +398,7 @@ namespace MyApp.Pages
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Events.Clear();
+            eventListener.Clear();
 
             result = RunGenerator(compilation!, ref driver)
                         .VerifyOutputsMatch(result);
@@ -532,7 +532,7 @@ namespace MyApp.Pages
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Events.Clear();
+            eventListener.Clear();
 
             result = RunGenerator(compilation!, ref driver)
                         .VerifyOutputsMatch(result);
@@ -652,7 +652,7 @@ namespace MyApp.Pages
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Events.Clear();
+            eventListener.Clear();
 
             result = RunGenerator(compilation!, ref driver, expectedDiagnostics)
                         .VerifyOutputsMatch(result);
@@ -752,7 +752,7 @@ namespace MyApp.Pages
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Events.Clear();
+            eventListener.Clear();
 
             result = RunGenerator(compilation!, ref driver)
                         .VerifyOutputsMatch(result);
@@ -920,7 +920,7 @@ namespace MyApp.Pages
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Events.Clear();
+            eventListener.Clear();
 
             result = RunGenerator(compilation!, ref driver)
                         .VerifyOutputsMatch(result);
@@ -1059,12 +1059,12 @@ namespace MyApp.Pages
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
 #nullable restore
-#line (2,2)-(3,1) ""Pages/Index.razor""
+#line (2,2)-(2,33) ""Pages/Index.razor""
 using SurveyPromptRootNamspace;
 
-#line default
-#line hidden
 #nullable disable
+    #line default
+    #line hidden
     #nullable restore
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -1113,7 +1113,7 @@ namespace MyApp.Pages
             Assert.Equal("RZ10012", diagnostic.Id);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Events.Clear();
+            eventListener.Clear();
 
             var surveyPromptAssembly = GetSurveyPromptMetadataReference(compilation!);
             compilation = compilation!.AddReferences(surveyPromptAssembly);
@@ -1132,12 +1132,12 @@ namespace MyApp.Pages
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
 #nullable restore
-#line (2,2)-(3,1) ""Pages/Index.razor""
+#line (2,2)-(2,33) ""Pages/Index.razor""
 using SurveyPromptRootNamspace;
 
-#line default
-#line hidden
 #nullable disable
+    #line default
+    #line hidden
     #nullable restore
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -1160,6 +1160,7 @@ using SurveyPromptRootNamspace;
             Assert.Equal(2, result.GeneratedSources.Length);
 
             Assert.Collection(eventListener.Events,
+                e => Assert.Equal("ComputeRazorSourceGeneratorOptions", e.EventName),
                 e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
                 e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
                 e => Assert.Equal("DiscoverTagHelpersFromReferencesStart", e.EventName),
@@ -1176,7 +1177,7 @@ using SurveyPromptRootNamspace;
             );
 
             // Verify caching
-            eventListener.Events.Clear();
+            eventListener.Clear();
             result = RunGenerator(compilation, ref driver);
 
             Assert.Empty(result.Diagnostics);
@@ -1617,7 +1618,7 @@ namespace AspNetCoreGeneratedDocument
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Events.Clear();
+            eventListener.Clear();
 
             result = RunGenerator(compilation!, ref driver)
                         .VerifyOutputsMatch(result);
@@ -1838,7 +1839,7 @@ namespace AspNetCoreGeneratedDocument
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Events.Clear();
+            eventListener.Clear();
 
             result = RunGenerator(compilation!, ref driver, expectedDiagnostics)
                        .VerifyOutputsMatch(result);
@@ -1993,7 +1994,7 @@ namespace AspNetCoreGeneratedDocument
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Events.Clear();
+            eventListener.Clear();
 
             result = RunGenerator(compilation!, ref driver)
                         .VerifyOutputsMatch(result);
@@ -2703,7 +2704,7 @@ namespace MyApp.Pages
             driver = SetSuppressionState(true);
 
             // results should be empty, and no events recorded
-            eventListener.Events.Clear();
+            eventListener.Clear();
             result = RunGenerator(compilation!, ref driver)
                 .VerifyPageOutput();
             Assert.Empty(eventListener.Events);
@@ -2823,7 +2824,7 @@ namespace MyApp.Pages
 
             // Flip suppression on, change the compilation, no changes
             driver = SetSuppressionState(true);
-            eventListener.Events.Clear();
+            eventListener.Clear();
             RunGenerator(compilation!, ref driver).VerifyPageOutput();
 
             project = project.AddDocument("viewcomponent.cs", """
@@ -2852,7 +2853,7 @@ namespace MyApp.Pages
 
             // Flip suppression on, change the parse options, no changes
             driver = SetSuppressionState(true);
-            eventListener.Events.Clear();
+            eventListener.Clear();
             project = project.WithParseOptions(((CSharpParseOptions)project.ParseOptions!).WithLanguageVersion(LanguageVersion.CSharp8));
             compilation = await project.GetCompilationAsync();
             driver = driver.WithUpdatedParseOptions(project.ParseOptions!);
@@ -3193,7 +3194,7 @@ namespace MyApp
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Events.Clear();
+            eventListener.Clear();
 
             result = RunGenerator(compilation!, ref driver)
                         .VerifyOutputsMatch(result);
@@ -3235,7 +3236,7 @@ namespace MyApp
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Events.Clear();
+            eventListener.Clear();
 
             result = RunGenerator(compilation!, ref driver)
                 .VerifyOutputsMatch(result);
@@ -3260,8 +3261,163 @@ namespace MyApp
             // reference causes the compilation to change so we re-run tag helper discovery there
             // but we didn't re-check the actual reference itself
             Assert.Collection(eventListener.Events,
+               e => Assert.Equal("ComputeRazorSourceGeneratorOptions", e.EventName),
                e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
                e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName));
+        }
+
+        [Theory]
+        [InlineData("true")]
+        [InlineData("True")]
+        [InlineData("TRUE")]
+        [InlineData("tRuE")]
+        public async Task RoslynTokenizerEnabledWithTrue(string value)
+        {
+            var parseOptions = CSharpParseOptions.Default.WithFeatures([new("use-roslyn-tokenizer", value)]);
+
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Index.razor"] = """"
+                    <div>@("""
+                        nested "
+                        """)</div>
+                    """",
+            }, cSharpParseOptions: parseOptions);
+
+            var compilation = await project.GetCompilationAsync();
+            var (driver, additionalTexts) = await GetDriverWithAdditionalTextAsync(project);
+
+            var result = RunGenerator(compilation!, ref driver);
+            result.VerifyPageOutput(
+                """"
+                #pragma checksum "Pages/Index.razor" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "c6855f3cabbcb69477e3f5a61f8d77fcfed086c2"
+                // <auto-generated/>
+                #pragma warning disable 1591
+                namespace MyApp.Pages
+                {
+                    #line default
+                    using global::System;
+                    using global::System.Collections.Generic;
+                    using global::System.Linq;
+                    using global::System.Threading.Tasks;
+                    using global::Microsoft.AspNetCore.Components;
+                    #line default
+                    #line hidden
+                    #nullable restore
+                    public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
+                    #nullable disable
+                    {
+                        #pragma warning disable 1998
+                        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+                        {
+                            __builder.OpenElement(0, "div");
+                            __builder.AddContent(1, 
+                #nullable restore
+                #line (1,8)-(3,8) "Pages/Index.razor"
+                """
+                    nested "
+                    """
+
+                #line default
+                #line hidden
+                #nullable disable
+                            );
+                            __builder.CloseElement();
+                        }
+                        #pragma warning restore 1998
+                    }
+                }
+                #pragma warning restore 1591
+
+                """");
+        }
+
+        [Theory]
+        [InlineData("false")]
+        [InlineData("False")]
+        [InlineData("FALSE")]
+        [InlineData("FaLsE")]
+        [InlineData("")]
+        [InlineData(null)]
+        public async Task RoslynTokenizerDisabledWithFalseOrNothing(string? value)
+        {
+            var parseOptions = CSharpParseOptions.Default;
+
+            if (value != null)
+            {
+                parseOptions = parseOptions.WithFeatures([new("use-roslyn-tokenizer", value)]);
+            }
+
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Index.razor"] = """"
+                    <div>@("""
+                        nested "
+                        """)</div>
+                    """",
+            }, cSharpParseOptions: parseOptions);
+
+            var compilation = await project.GetCompilationAsync();
+            var (driver, additionalTexts) = await GetDriverWithAdditionalTextAsync(project);
+
+            var result = RunGenerator(compilation!, ref driver,
+                // Pages/Index.razor(3,10): error CS1525: Invalid expression term '/'
+                //     """)</div>
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "/").WithArguments("/").WithLocation(3, 10),
+                // Pages/Index.razor(3,11): error CS0103: The name 'div' does not exist in the current context
+                //     """)</div>
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "div").WithArguments("div").WithLocation(3, 11),
+                // Pages/Index.razor(3,15): error CS1525: Invalid expression term ')'
+                //     """)</div>
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments(")").WithLocation(3, 15),
+                // Pages/Index.razor(3,15): error CS1002: ; expected
+                //     """)</div>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
+                // Pages/Index.razor(3,15): error CS1513: } expected
+                //     """)</div>
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 15));
+
+            result.VerifyPageOutput(
+                """"
+                #pragma checksum "Pages/Index.razor" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "c6855f3cabbcb69477e3f5a61f8d77fcfed086c2"
+                // <auto-generated/>
+                #pragma warning disable 1591
+                namespace MyApp.Pages
+                {
+                    #line default
+                    using global::System;
+                    using global::System.Collections.Generic;
+                    using global::System.Linq;
+                    using global::System.Threading.Tasks;
+                    using global::Microsoft.AspNetCore.Components;
+                    #line default
+                    #line hidden
+                    #nullable restore
+                    public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
+                    #nullable disable
+                    {
+                        #pragma warning disable 1998
+                        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+                        {
+                            __builder.OpenElement(0, "div");
+                            __builder.AddContent(1, 
+                #nullable restore
+                #line (1,8)-(3,15) "Pages/Index.razor"
+                """
+                    nested "
+                    """)</div>
+                #line default
+                #line hidden
+                #nullable disable
+                            );
+                            __builder.CloseElement();
+                        }
+                        #pragma warning restore 1998
+                    }
+                }
+                #pragma warning restore 1591
+
+                """");
         }
     }
 }

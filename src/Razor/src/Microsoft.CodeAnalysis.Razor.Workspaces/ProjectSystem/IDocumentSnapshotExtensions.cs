@@ -6,12 +6,26 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal static class IDocumentSnapshotExtensions
 {
-    public static async Task<TagHelperDescriptor?> TryGetTagHelperDescriptorAsync(this IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
+    public static async Task<RazorSourceDocument> GetSourceAsync(this IDocumentSnapshot document, RazorProjectEngine projectEngine, CancellationToken cancellationToken)
+    {
+        var projectItem = document is { FilePath: string filePath, FileKind: var fileKind }
+            ? projectEngine.FileSystem.GetItem(filePath, fileKind)
+            : null;
+
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var properties = RazorSourceDocumentProperties.Create(document.FilePath, projectItem?.RelativePhysicalPath);
+        return RazorSourceDocument.Create(text, properties);
+    }
+
+    public static async Task<TagHelperDescriptor?> TryGetTagHelperDescriptorAsync(
+        this IDocumentSnapshot documentSnapshot,
+        CancellationToken cancellationToken)
     {
         // No point doing anything if its not a component
         if (documentSnapshot.FileKind != FileKinds.Component)
@@ -19,7 +33,7 @@ internal static class IDocumentSnapshotExtensions
             return null;
         }
 
-        var razorCodeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+        var razorCodeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         if (razorCodeDocument is null)
         {
             return null;
@@ -52,10 +66,4 @@ internal static class IDocumentSnapshotExtensions
         var fileName = Path.GetFileNameWithoutExtension(documentSnapshot.FilePath);
         return fileName.AsSpan().Equals(path.Span, FilePathComparison.Instance);
     }
-
-    public static Task<RazorCodeDocument> GetGeneratedOutputAsync(this IDocumentSnapshot documentSnapshot)
-    {
-        return documentSnapshot.GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput: false);
-    }
-
 }

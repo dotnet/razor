@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
@@ -25,13 +24,13 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
 {
     private readonly Dictionary<DocumentKey, PublishData> _publishedCSharpData;
     private readonly Dictionary<string, PublishData> _publishedHtmlData;
-    private readonly IProjectSnapshotManager _projectManager;
+    private readonly ProjectSnapshotManager _projectManager;
     private readonly IClientConnection _clientConnection;
     private readonly LanguageServerFeatureOptions _options;
     private readonly ILogger _logger;
 
     public GeneratedDocumentPublisher(
-        IProjectSnapshotManager projectManager,
+        ProjectSnapshotManager projectManager,
         IClientConnection clientConnection,
         LanguageServerFeatureOptions options,
         ILoggerFactory loggerFactory)
@@ -75,7 +74,7 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
             if (previouslyPublishedData.HostDocumentVersion > hostDocumentVersion)
             {
                 // We've already published a newer version of this document. No-op.
-                _logger.LogWarning($"Skipping publish of C# for {filePath} because we've already published version {previouslyPublishedData.HostDocumentVersion}, and this request is for {hostDocumentVersion}.");
+                _logger.LogWarning($"Skipping publish of C# for {documentKey.ProjectKey}/{filePath} because we've already published version {previouslyPublishedData.HostDocumentVersion}, and this request is for {hostDocumentVersion} (and {projectKey}).");
                 return;
             }
 
@@ -100,7 +99,10 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
             ProjectKeyId = projectKey.Id,
             Changes = textChanges.Select(static t => t.ToRazorTextChange()).ToArray(),
             HostDocumentVersion = hostDocumentVersion,
-            PreviousWasEmpty = previouslyPublishedData.SourceText.Length == 0
+            PreviousWasEmpty = previouslyPublishedData.SourceText.Length == 0,
+            Checksum = Convert.ToBase64String(sourceText.GetChecksum().ToArray()),
+            ChecksumAlgorithm = sourceText.ChecksumAlgorithm,
+            SourceEncodingCodePage = sourceText.Encoding?.CodePage
         };
 
         _clientConnection.SendNotificationAsync(CustomMessageNames.RazorUpdateCSharpBufferEndpoint, request, CancellationToken.None).Forget();
@@ -144,7 +146,10 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
             ProjectKeyId = projectKey.Id,
             Changes = textChanges.Select(static t => t.ToRazorTextChange()).ToArray(),
             HostDocumentVersion = hostDocumentVersion,
-            PreviousWasEmpty = previouslyPublishedData.SourceText.Length == 0
+            PreviousWasEmpty = previouslyPublishedData.SourceText.Length == 0,
+            Checksum = Convert.ToBase64String(sourceText.GetChecksum().ToArray()),
+            ChecksumAlgorithm = sourceText.ChecksumAlgorithm,
+            SourceEncodingCodePage = sourceText.Encoding?.CodePage
         };
 
         _clientConnection.SendNotificationAsync(CustomMessageNames.RazorUpdateHtmlBufferEndpoint, request, CancellationToken.None).Forget();
@@ -153,13 +158,34 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
     private void ProjectManager_Changed(object? sender, ProjectChangeEventArgs args)
     {
         // Don't do any work if the solution is closing
-        if (args.SolutionIsClosing)
+        if (args.IsSolutionClosing)
         {
             return;
         }
 
         switch (args.Kind)
         {
+            case ProjectChangeKind.DocumentRemoved:
+                {
+                    if (!_options.IncludeProjectKeyInGeneratedFilePath)
+                    {
+                        break;
+                    }
+
+                    // When a C# document is removed we remove it from the publishing, because it could come back with the same name
+                    var key = new DocumentKey(args.ProjectKey, args.DocumentFilePath.AssumeNotNull());
+
+                    lock (_publishedCSharpData)
+                    {
+                        if (_publishedCSharpData.Remove(key))
+                        {
+                            _logger.LogDebug($"Removing previous C# publish data for {key.ProjectKey}/{key.DocumentFilePath}");
+                        }
+                    }
+
+                    break;
+                }
+
             case ProjectChangeKind.DocumentChanged:
                 var documentFilePath = args.DocumentFilePath.AssumeNotNull();
 
@@ -179,27 +205,17 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
 
                     lock (_publishedCSharpData)
                     {
-                        if (_publishedCSharpData.ContainsKey(documentKey))
+                        if (_publishedCSharpData.Remove(documentKey))
                         {
-                            var removed = _publishedCSharpData.Remove(documentKey);
-                            if (!removed)
-                            {
-                                _logger.LogError($"Published data should be protected by the project snapshot manager's thread and should never fail to remove.");
-                                Debug.Fail("Published data should be protected by the project snapshot manager's thread and should never fail to remove.");
-                            }
+                            _logger.LogDebug($"Removing previous C# publish data for {documentKey.ProjectKey}/{documentKey.DocumentFilePath}");
                         }
                     }
 
                     lock (_publishedHtmlData)
                     {
-                        if (_publishedHtmlData.ContainsKey(documentFilePath))
+                        if (_publishedHtmlData.Remove(documentFilePath))
                         {
-                            var removed = _publishedHtmlData.Remove(documentFilePath);
-                            if (!removed)
-                            {
-                                _logger.LogError($"Published data should be protected by the project snapshot manager's thread and should never fail to remove.");
-                                Debug.Fail("Published data should be protected by the project snapshot manager's thread and should never fail to remove.");
-                            }
+                            _logger.LogDebug($"Removing previous Html publish data for {documentKey.ProjectKey}/{documentKey.DocumentFilePath}");
                         }
                     }
                 }
@@ -230,7 +246,10 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
 
                         foreach (var key in keysToRemove)
                         {
-                            _publishedCSharpData.Remove(key);
+                            if (_publishedCSharpData.Remove(key))
+                            {
+                                _logger.LogDebug($"Removing previous C# publish data for {key.ProjectKey}/{key.DocumentFilePath}");
+                            }
                         }
                     }
 

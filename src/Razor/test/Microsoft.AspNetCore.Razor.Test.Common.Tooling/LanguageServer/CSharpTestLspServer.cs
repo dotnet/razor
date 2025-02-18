@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 public sealed class CSharpTestLspServer : IAsyncDisposable
 {
     private readonly AdhocWorkspace _testWorkspace;
-    private readonly IRazorLanguageServerTarget _languageServer;
+    private readonly ExportProvider _exportProvider;
 
     private readonly JsonRpc _clientRpc;
     private readonly JsonRpc _serverRpc;
@@ -39,6 +39,7 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
         CancellationToken cancellationToken)
     {
         _testWorkspace = testWorkspace;
+        _exportProvider = exportProvider;
         _cancellationToken = cancellationToken;
 
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
@@ -65,7 +66,7 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
 
         _clientRpc.StartListening();
 
-        _languageServer = CreateLanguageServer(_serverRpc, _serverMessageFormatter.JsonSerializerOptions, testWorkspace, languageServerFactory, exportProvider, serverCapabilities);
+        _ = CreateLanguageServer(_serverRpc, _serverMessageFormatter.JsonSerializerOptions, testWorkspace, languageServerFactory, exportProvider, serverCapabilities);
 
         static SystemTextJsonFormatter CreateSystemTextJsonMessageFormatter(AbstractRazorLanguageServerFactoryWrapper languageServerFactory)
         {
@@ -144,6 +145,7 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         _testWorkspace.Dispose();
+        _exportProvider.Dispose();
 
         _clientRpc.Dispose();
         _clientMessageFormatter.Dispose();

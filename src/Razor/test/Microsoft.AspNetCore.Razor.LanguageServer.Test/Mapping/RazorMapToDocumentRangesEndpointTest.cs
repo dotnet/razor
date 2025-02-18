@@ -51,7 +51,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await languageEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.NotNull(response);
@@ -79,7 +79,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await languageEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.NotNull(response);
@@ -107,7 +107,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await languageEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.NotNull(response);
@@ -128,14 +128,14 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         var request = new RazorMapToDocumentRangesParams()
         {
             Kind = RazorLanguageKind.CSharp,
-            ProjectedRanges = [VsLspFactory.CreateSingleLineRange(line: 0, character : 10, length: 13)],
+            ProjectedRanges = [VsLspFactory.CreateSingleLineRange(line: 0, character: 10, length: 13)],
             RazorDocumentUri = documentPath,
         };
 
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await languageEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.NotNull(response);
@@ -160,7 +160,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await languageEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.NotNull(response);
@@ -185,7 +185,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await languageEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.NotNull(response);
@@ -214,7 +214,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await languageEndpoint.HandleRequestAsync(request, requestContext, default);
+        var response = await languageEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
         Assert.NotNull(response);
@@ -224,13 +224,10 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
     private static RazorCodeDocument CreateCodeDocumentWithCSharpProjection(string razorSource, string projectedCSharpSource, ImmutableArray<SourceMapping> sourceMappings)
     {
         var codeDocument = CreateCodeDocument(razorSource, tagHelpers: []);
-        var csharpDocument = new RazorCSharpDocument(
+        var csharpDocument = TestRazorCSharpDocument.Create(
             codeDocument,
             projectedCSharpSource,
-            RazorCodeGenerationOptions.Default,
-            diagnostics: [],
-            sourceMappings,
-            linePragmas: []);
+            sourceMappings);
         codeDocument.SetCSharpDocument(csharpDocument);
         return codeDocument;
     }

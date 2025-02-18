@@ -48,7 +48,7 @@ internal sealed class SemanticTokensRangeEndpoint(
         var colorBackground = _razorLSPOptionsMonitor.CurrentValue.ColorBackground;
 
         var correlationId = Guid.NewGuid();
-        using var _ = _telemetryReporter?.TrackLspRequest(Methods.TextDocumentSemanticTokensRangeName, LanguageServerConstants.RazorLanguageServerName, correlationId);
+        using var _ = _telemetryReporter?.TrackLspRequest(Methods.TextDocumentSemanticTokensRangeName, LanguageServerConstants.RazorLanguageServerName, TelemetryThresholds.SemanticTokensRazorTelemetryThreshold, correlationId);
 
         var data = await _semanticTokensInfoService.GetSemanticTokensAsync(documentContext, request.Range.ToLinePositionSpan(), colorBackground, correlationId, cancellationToken).ConfigureAwait(false);
 

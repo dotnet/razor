@@ -119,30 +119,30 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
         // Add the logger as a service in case anything in CLaSP pulls it out to do logging
         services.AddSingleton<ILspLogger>(Logger);
 
-        services.AddSingleton<IAdhocWorkspaceFactory, AdhocWorkspaceFactory>();
-        services.AddSingleton<IWorkspaceProvider, LspWorkspaceProvider>();
-
-        services.AddSingleton<IFormattingCodeDocumentProvider, LspFormattingCodeDocumentProvider>();
-
         var featureOptions = _featureOptions ?? new DefaultLanguageServerFeatureOptions();
         services.AddSingleton(featureOptions);
 
         services.AddSingleton<IFilePathService, LSPFilePathService>();
+        services.AddSingleton<IFileSystem, FileSystem>();
 
         services.AddLifeCycleServices(this, _clientConnection, _lspServerActivationTracker);
 
-        services.AddDiagnosticServices();
         services.AddSemanticTokensServices(featureOptions);
         services.AddDocumentManagementServices(featureOptions);
-        services.AddCompletionServices();
         services.AddFormattingServices(featureOptions);
-        services.AddCodeActionsServices();
         services.AddOptionsServices(_lspOptions);
-        services.AddHoverServices();
         services.AddTextDocumentServices(featureOptions);
 
         if (!featureOptions.UseRazorCohostServer)
         {
+            // Diagnostics
+            services.AddDiagnosticServices();
+
+            services.AddCodeActionsServices();
+
+            // Completion
+            services.AddCompletionServices();
+
             // Auto insert
             services.AddSingleton<IOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
             services.AddSingleton<IOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();
@@ -157,15 +157,16 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
             services.AddSingleton<IRazorFoldingRangeProvider, UsingsFoldingRangeProvider>();
 
             services.AddSingleton<IFoldingRangeService, FoldingRangeService>();
+
+            // Hover
+            services.AddHoverServices();
         }
 
         // Other
         services.AddSingleton<IRazorComponentSearchEngine, RazorComponentSearchEngine>();
 
-        // Get the DefaultSession for telemetry. This is set by VS with
-        // TelemetryService.SetDefaultSession and provides the correct
-        // appinsights keys etc
         services.AddSingleton<ITelemetryReporter>(_telemetryReporter);
+        services.AddSingleton<AbstractTelemetryService, CLaSPTelemetryService>();
 
         // Defaults: For when the caller hasn't provided them through the `configure` action.
         services.TryAddSingleton<IHostServicesProvider, DefaultHostServicesProvider>();
@@ -209,15 +210,18 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
 
                 services.AddHandlerWithCapabilities<DocumentColorEndpoint>();
                 services.AddHandler<ColorPresentationEndpoint>();
+
+                services.AddHandlerWithCapabilities<ProjectContextsEndpoint>();
+
+                services.AddHandlerWithCapabilities<FindAllReferencesEndpoint>();
+
+                services.AddHandlerWithCapabilities<ValidateBreakpointRangeEndpoint>();
+                services.AddHandler<RazorBreakpointSpanEndpoint>();
+                services.AddHandler<RazorProximityExpressionsEndpoint>();
             }
 
             services.AddHandler<WrapWithTagEndpoint>();
-            services.AddHandler<RazorBreakpointSpanEndpoint>();
-            services.AddHandler<RazorProximityExpressionsEndpoint>();
 
-            services.AddHandlerWithCapabilities<ValidateBreakpointRangeEndpoint>();
-            services.AddHandlerWithCapabilities<FindAllReferencesEndpoint>();
-            services.AddHandlerWithCapabilities<ProjectContextsEndpoint>();
             services.AddHandlerWithCapabilities<MapCodeEndpoint>();
         }
     }

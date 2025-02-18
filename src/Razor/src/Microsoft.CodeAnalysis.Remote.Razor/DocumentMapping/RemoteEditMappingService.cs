@@ -4,6 +4,7 @@
 using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -17,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 internal sealed class RemoteEditMappingService(
     IDocumentMappingService documentMappingService,
     IFilePathService filePathService,
-    DocumentSnapshotFactory documentSnapshotFactory) : AbstractEditMappingService(documentMappingService, filePathService)
+    RemoteSnapshotManager snapshotManager) : AbstractEditMappingService(documentMappingService, filePathService)
 {
-    private readonly DocumentSnapshotFactory _documentSnapshotFactory = documentSnapshotFactory;
+    private readonly RemoteSnapshotManager _snapshotManager = snapshotManager;
 
     protected override bool TryGetDocumentContext(IDocumentSnapshot contextDocumentSnapshot, Uri razorDocumentUri, VSProjectContext? projectContext, [NotNullWhen(true)] out DocumentContext? documentContext)
     {
@@ -35,7 +36,7 @@ internal sealed class RemoteEditMappingService(
             return false;
         }
 
-        var razorDocumentSnapshot = _documentSnapshotFactory.GetOrCreate(razorDocument);
+        var razorDocumentSnapshot = _snapshotManager.GetSnapshot(razorDocument);
 
         documentContext = new RemoteDocumentContext(razorDocumentUri, razorDocumentSnapshot);
         return true;

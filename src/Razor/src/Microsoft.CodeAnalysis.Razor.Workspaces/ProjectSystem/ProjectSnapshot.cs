@@ -1,82 +1,100 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem.Legacy;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal class ProjectSnapshot : IProjectSnapshot
+internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot, ILegacyProjectSnapshot
 {
-    private readonly object _lock;
+    private readonly ProjectState _state = state;
 
-    private readonly Dictionary<string, DocumentSnapshot> _documents;
+    private readonly object _gate = new();
+    private readonly Dictionary<string, DocumentSnapshot> _filePathToDocumentMap = new(FilePathNormalizingComparer.Instance);
 
-    public ProjectSnapshot(ProjectState state)
+    public HostProject HostProject => _state.HostProject;
+    public RazorCompilerOptions CompilerOptions => _state.CompilerOptions;
+
+    public ProjectKey Key => _state.HostProject.Key;
+    public RazorConfiguration Configuration => _state.HostProject.Configuration;
+    public IEnumerable<string> DocumentFilePaths => _state.Documents.Keys;
+    public string FilePath => _state.HostProject.FilePath;
+    public string IntermediateOutputPath => _state.HostProject.IntermediateOutputPath;
+    public string? RootNamespace => _state.HostProject.RootNamespace;
+    public string DisplayName => _state.HostProject.DisplayName;
+    public LanguageVersion CSharpLanguageVersion => _state.CSharpLanguageVersion;
+    public ProjectWorkspaceState ProjectWorkspaceState => _state.ProjectWorkspaceState;
+
+    public int DocumentCount => _state.Documents.Count;
+
+    public RazorProjectEngine ProjectEngine => _state.ProjectEngine;
+
+    public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken)
+        => new(_state.TagHelpers);
+
+    public bool ContainsDocument(string filePath)
     {
-        State = state ?? throw new ArgumentNullException(nameof(state));
-
-        _lock = new object();
-        _documents = new Dictionary<string, DocumentSnapshot>(FilePathNormalizingComparer.Instance);
-    }
-
-    public ProjectKey Key => State.HostProject.Key;
-
-    public ProjectState State { get; }
-
-    public RazorConfiguration Configuration => HostProject.Configuration;
-
-    public IEnumerable<string> DocumentFilePaths => State.Documents.Keys;
-
-    public int DocumentCount => State.Documents.Count;
-
-    public string FilePath => State.HostProject.FilePath;
-
-    public string IntermediateOutputPath => State.HostProject.IntermediateOutputPath;
-
-    public string? RootNamespace => State.HostProject.RootNamespace;
-
-    public string DisplayName => State.HostProject.DisplayName;
-
-    public LanguageVersion CSharpLanguageVersion => State.CSharpLanguageVersion;
-
-    public HostProject HostProject => State.HostProject;
-
-    public virtual VersionStamp Version => State.Version;
-
-    public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken) => new(State.TagHelpers);
-
-    public ProjectWorkspaceState ProjectWorkspaceState => State.ProjectWorkspaceState;
-
-    public virtual IDocumentSnapshot? GetDocument(string filePath)
-    {
-        lock (_lock)
+        lock (_gate)
         {
-            if (!_documents.TryGetValue(filePath, out var result) &&
-                State.Documents.TryGetValue(filePath, out var state))
-            {
-                result = new DocumentSnapshot(this, state);
-                _documents.Add(filePath, result);
-            }
+            // PERF: It's intentional that we call _filePathToDocumentMap.ContainsKey(...)
+            // before State.Documents.ContainsKey(...), even though the latter check is
+            // enough to return the correct answer. This is because _filePathToDocumentMap is
+            // a Dictionary<,>, which has O(1) lookup, and State.Documents is an
+            // ImmutableDictionary<,>, which has O(log n) lookup. So, checking _filePathToDocumentMap
+            // first is faster if the DocumentSnapshot has already been created.
 
-            return result;
+            return _filePathToDocumentMap.ContainsKey(filePath) ||
+                   _state.Documents.ContainsKey(filePath);
         }
     }
 
-    public bool TryGetDocument(string filePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
+    public bool TryGetDocument(string filePath, [NotNullWhen(true)] out DocumentSnapshot? document)
     {
-        document = GetDocument(filePath);
-        return document is not null;
+        lock (_gate)
+        {
+            // Have we already seen this document? If so, return it!
+            if (_filePathToDocumentMap.TryGetValue(filePath, out var snapshot))
+            {
+                document = snapshot;
+                return true;
+            }
+
+            // Do we have DocumentSate for this document? If not, we're done!
+            if (!_state.Documents.TryGetValue(filePath, out var state))
+            {
+                document = null;
+                return false;
+            }
+
+            // If we have DocumentState, go ahead and create a new DocumentSnapshot.
+            snapshot = new DocumentSnapshot(this, state);
+            _filePathToDocumentMap.Add(filePath, snapshot);
+
+            document = snapshot;
+            return true;
+        }
+    }
+
+    bool IProjectSnapshot.TryGetDocument(string filePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
+    {
+        if (TryGetDocument(filePath, out var result))
+        {
+            document = result;
+            return true;
+        }
+
+        document = null;
+        return false;
     }
 
     /// <summary>
@@ -84,38 +102,46 @@ internal class ProjectSnapshot : IProjectSnapshot
     /// that include directives specified by the provided document. Otherwise returns an empty
     /// list.
     /// </summary>
-    public ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document)
+    public ImmutableArray<DocumentSnapshot> GetRelatedDocuments(DocumentSnapshot document)
     {
-        if (document is null)
+        var targetPath = document.TargetPath;
+
+        if (!_state.ImportsToRelatedDocuments.TryGetValue(targetPath, out var relatedDocuments))
         {
-            throw new ArgumentNullException(nameof(document));
+            return [];
         }
 
-        var targetPath = document.TargetPath.AssumeNotNull();
-
-        if (!State.ImportsToRelatedDocuments.TryGetValue(targetPath, out var relatedDocuments))
+        lock (_gate)
         {
-            return ImmutableArray<IDocumentSnapshot>.Empty;
-        }
-
-        lock (_lock)
-        {
-            using var _ = ArrayBuilderPool<IDocumentSnapshot>.GetPooledObject(out var builder);
+            using var builder = new PooledArrayBuilder<DocumentSnapshot>(capacity: relatedDocuments.Count);
 
             foreach (var relatedDocumentFilePath in relatedDocuments)
             {
-                if (GetDocument(relatedDocumentFilePath) is { } relatedDocument)
+                if (TryGetDocument(relatedDocumentFilePath, out var relatedDocument))
                 {
                     builder.Add(relatedDocument);
                 }
             }
 
-            return builder.ToImmutableArray();
+            return builder.DrainToImmutable();
         }
     }
 
-    public virtual RazorProjectEngine GetProjectEngine()
-    {
-        return State.ProjectEngine;
-    }
+    #region ILegacyProjectSnapshot support
+
+    RazorConfiguration ILegacyProjectSnapshot.Configuration => Configuration;
+    string ILegacyProjectSnapshot.FilePath => FilePath;
+    string? ILegacyProjectSnapshot.RootNamespace => RootNamespace;
+    LanguageVersion ILegacyProjectSnapshot.CSharpLanguageVersion => CSharpLanguageVersion;
+    ImmutableArray<TagHelperDescriptor> ILegacyProjectSnapshot.TagHelpers => ProjectWorkspaceState.TagHelpers;
+
+    RazorProjectEngine ILegacyProjectSnapshot.GetProjectEngine()
+        => _state.ProjectEngine;
+
+    ILegacyDocumentSnapshot? ILegacyProjectSnapshot.GetDocument(string filePath)
+        => TryGetDocument(filePath, out var document)
+            ? document
+            : null;
+
+    #endregion
 }

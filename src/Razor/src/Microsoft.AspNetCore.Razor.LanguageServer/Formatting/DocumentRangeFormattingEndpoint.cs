@@ -1,8 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -36,7 +38,7 @@ internal class DocumentRangeFormattingEndpoint(
 
     public async Task<TextEdit[]?> HandleRequestAsync(DocumentRangeFormattingParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        if (!_optionsMonitor.CurrentValue.EnableFormatting)
+        if (!_optionsMonitor.CurrentValue.Formatting.IsEnabled())
         {
             return null;
         }
@@ -51,6 +53,17 @@ internal class DocumentRangeFormattingEndpoint(
         if (codeDocument.IsUnsupported())
         {
             return null;
+        }
+
+        if (request.Options.OtherOptions is not null &&
+            request.Options.OtherOptions.TryGetValue("fromPaste", out var fromPasteObj) &&
+            fromPasteObj is JsonElement fromPasteElement)
+        {
+            var fromPaste = fromPasteElement.Deserialize<bool>();
+            if (fromPaste && !_optionsMonitor.CurrentValue.Formatting.IsOnPasteEnabled())
+            {
+                return null;
+            }
         }
 
         var options = RazorFormattingOptions.From(request.Options, _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine);

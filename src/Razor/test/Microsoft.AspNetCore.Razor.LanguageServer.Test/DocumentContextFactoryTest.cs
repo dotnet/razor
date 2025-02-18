@@ -65,12 +65,12 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(MiscFilesHostProject.Instance.Key, hostDocument, TestMocks.CreateTextLoader(filePath, ""));
+            updater.AddDocument(MiscFilesProject.Key, hostDocument, EmptyTextLoader.Instance);
         });
 
-        var miscFilesProject = _projectManager.GetMiscellaneousProject();
-        var documentSnapshot = miscFilesProject.GetDocument(filePath);
-        Assert.NotNull(documentSnapshot);
+        var documentSnapshot = _projectManager
+            .GetMiscellaneousProject()
+            .GetRequiredDocument(filePath);
 
         var factory = new DocumentContextFactory(_projectManager, LoggerFactory);
 
@@ -98,8 +98,8 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
-            updater.DocumentAdded(hostProject.Key, hostDocument, new EmptyTextLoader(filePath));
+            updater.AddProject(hostProject);
+            updater.AddDocument(hostProject.Key, hostDocument, EmptyTextLoader.Instance);
         });
 
         // Act
@@ -120,12 +120,12 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(MiscFilesHostProject.Instance.Key, hostDocument, TestMocks.CreateTextLoader(filePath, ""));
+            updater.AddDocument(MiscFilesProject.Key, hostDocument, EmptyTextLoader.Instance);
         });
 
-        var miscFilesProject = _projectManager.GetMiscellaneousProject();
-        var documentSnapshot = miscFilesProject.GetDocument(filePath);
-        Assert.NotNull(documentSnapshot);
+        var documentSnapshot = _projectManager
+            .GetMiscellaneousProject()
+            .GetRequiredDocument(filePath);
 
         var factory = new DocumentContextFactory(_projectManager, LoggerFactory);
 

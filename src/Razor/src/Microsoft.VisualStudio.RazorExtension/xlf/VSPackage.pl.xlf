@@ -92,6 +92,16 @@
         <target state="translated">Zatwierdź elementy za pomocą klawisza Spacja</target>
         <note />
       </trans-unit>
+      <trans-unit id="Setting_FormattingOnPasteDescription">
+        <source>If true, formatting will be enabled when pasting content</source>
+        <target state="translated">Jeśli wartość jest równa true, formatowanie będzie włączane podczas wklejania zawartości</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_FormattingOnPasteDisplayName">
+        <source>Format on paste</source>
+        <target state="translated">Formatuj przy wklejeniu</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Setting_FormattingOnTypeDescription">
         <source>If true, formatting will be enabled while typing</source>
         <target state="translated">Jeśli ma wartość „prawda”, formatowanie będzie włączone podczas pisania</target>
@@ -113,8 +123,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelDescription">
-        <source>Sets the level of logging to show in the Razor Logger Output catregory of the Output Window.</source>
-        <target state="translated">Ustawia poziom rejestrowania, który ma być wyświetlany w kategorii danych wyjściowych rejestratora Razor Logger w oknie Dane wyjściowe.</target>
+        <source>Sets the level of logging to show in the Razor Logger Output category of the Output Window.</source>
+        <target state="translated">Ustawia poziom rejestrowania, który ma być wyświetlany w kategorii danych wyjściowych rejestratora Razor w oknie Dane wyjściowe.</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelDisplayName">

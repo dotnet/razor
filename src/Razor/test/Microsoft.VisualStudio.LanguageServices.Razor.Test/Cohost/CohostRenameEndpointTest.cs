@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
@@ -18,9 +17,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
+public class CohostRenameEndpointTest(FuseTestContext context, ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper), IClassFixture<FuseTestContext>
 {
-    [Fact]
+    [FuseFact]
     public Task CSharp_Method()
         => VerifyRenamesAsync(
             input: """
@@ -55,7 +54,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 The end.
                 """);
 
-    [Theory]
+    [FuseTheory]
     [InlineData("$$Component")]
     [InlineData("Com$$ponent")]
     [InlineData("Component$$")]
@@ -80,16 +79,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 The end.
                 """,
             additionalFiles: [
-                // The source generator isn't hooked up to our test project, so we have to manually "compile" the razor file
-                (File("Component.cs"), """
-                    namespace SomeProject;
-
-                    public class Component : Microsoft.AspNetCore.Components.ComponentBase
-                    {
-                    }
-                    """),
-                // The above will make the component exist, but the .razor file needs to exist too for Uri presentation
-                (File("Component.razor"), "")
+                (FilePath("Component.razor"), "")
             ],
             newName: "DifferentName",
             expected: """
@@ -112,7 +102,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 """,
             renames: [("Component.razor", "DifferentName.razor")]);
 
-    [Theory]
+    [FuseTheory]
     [InlineData("$$Component")]
     [InlineData("Com$$ponent")]
     [InlineData("Component$$")]
@@ -137,16 +127,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 The end.
                 """,
             additionalFiles: [
-                // The source generator isn't hooked up to our test project, so we have to manually "compile" the razor file
-                (File("Component.cs"), """
-                    namespace SomeProject;
-
-                    public class Component : Microsoft.AspNetCore.Components.ComponentBase
-                    {
-                    }
-                    """),
-                // The above will make the component exist, but the .razor file needs to exist too for Uri presentation
-                (File("Component.razor"), "")
+                (FilePath("Component.razor"), "")
             ],
             newName: "DifferentName",
             expected: """
@@ -169,7 +150,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 """,
             renames: [("Component.razor", "DifferentName.razor")]);
 
-    [Fact]
+    [FuseFact]
     public Task Mvc()
        => VerifyRenamesAsync(
            input: """
@@ -180,16 +161,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 The end.
                 """,
            additionalFiles: [
-               // The source generator isn't hooked up to our test project, so we have to manually "compile" the razor file
-               (File("Component.cs"), """
-                    namespace SomeProject;
-
-                    public class Component : Microsoft.AspNetCore.Components.ComponentBase
-                    {
-                    }
-                    """),
-                // The above will make the component exist, but the .razor file needs to exist too for Uri presentation
-                (File("Component.razor"), "")
+                (FilePath("Component.razor"), "")
            ],
            newName: "DifferentName",
            expected: "",
@@ -197,8 +169,10 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
     private async Task VerifyRenamesAsync(string input, string newName, string expected, string? fileKind = null, (string fileName, string contents)[]? additionalFiles = null, (string oldName, string newName)[]? renames = null)
     {
+        UpdateClientInitializationOptions(c => c with { ForceRuntimeCodeGeneration = context.ForceRuntimeCodeGeneration });
+
         TestFileMarkupParser.GetPosition(input, out var source, out var cursorPosition);
-        var document = CreateProjectAndRazorDocument(source, fileKind, additionalFiles);
+        var document = await CreateProjectAndRazorDocumentAsync(source, fileKind, additionalFiles);
         var inputText = await document.GetTextAsync(DisposalToken);
         var position = inputText.GetPosition(cursorPosition);
 
@@ -260,7 +234,4 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
         return inputText.ToString();
     }
-
-    private static string File(string projectRelativeFileName)
-        => Path.Combine(TestProjectData.SomeProjectPath, projectRelativeFileName);
 }

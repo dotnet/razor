@@ -3,10 +3,10 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodBeAnalysis.Remote.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.Settings;
+using Microsoft.CodeAnalysis.Remote.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
@@ -17,9 +17,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
+public class CohostOnAutoInsertEndpointTest(FuseTestContext context, ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper), IClassFixture<FuseTestContext>
 {
-    [Theory]
+    [FuseTheory]
     [InlineData("PageTitle")]
     [InlineData("div")]
     [InlineData("text")]
@@ -43,7 +43,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             triggerCharacter: ">");
     }
 
-    [Theory]
+    [FuseTheory]
     [InlineData("PageTitle")]
     [InlineData("div")]
     [InlineData("text")]
@@ -62,7 +62,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             autoClosingTags: false);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task AttributeQuotes()
     {
         await VerifyOnAutoInsertAsync(
@@ -84,7 +84,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             delegatedResponseText: "\"$0\"");
     }
 
-    [Fact]
+    [FuseFact]
     public async Task CSharp_OnForwardSlash()
     {
         await VerifyOnAutoInsertAsync(
@@ -105,7 +105,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             triggerCharacter: "/");
     }
 
-    [Fact]
+    [FuseFact]
     public async Task DoNotAutoInsertCSharp_OnForwardSlashWithFormatOnTypeDisabled()
     {
         await VerifyOnAutoInsertAsync(
@@ -120,17 +120,35 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             formatOnType: false);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task CSharp_OnEnter()
     {
         await VerifyOnAutoInsertAsync(
             input: """
+                Hello
+                <div>
+                    Hello
+                    <p>Hello</p>
+                    <p class="@DateTime.Now.DayOfWeek">Hello</p>
+                </div>
+
+                Hello
+
                 @code {
                     void TestMethod() {
                 $$}
                 }
                 """,
             output: """
+                Hello
+                <div>
+                    Hello
+                    <p>Hello</p>
+                    <p class="@DateTime.Now.DayOfWeek">Hello</p>
+                </div>
+
+                Hello
+                
                 @code {
                     void TestMethod()
                     {
@@ -141,7 +159,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             triggerCharacter: "\n");
     }
 
-    [Fact]
+    [FuseFact]
     public async Task CSharp_OnEnter_TwoSpaceIndent()
     {
         await VerifyOnAutoInsertAsync(
@@ -163,7 +181,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             tabSize: 2);
     }
 
-    [Fact]
+    [FuseFact]
     public async Task CSharp_OnEnter_UseTabs()
     {
         const char tab = '\t';
@@ -195,8 +213,10 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
         int tabSize = 4,
         bool formatOnType = true,
         bool autoClosingTags = true)
-    {     
-        var document = CreateProjectAndRazorDocument(input.Text);
+    {
+        UpdateClientInitializationOptions(opt => opt with { ForceRuntimeCodeGeneration = context.ForceRuntimeCodeGeneration });
+
+        var document = await CreateProjectAndRazorDocumentAsync(input.Text);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         var clientSettingsManager = new ClientSettingsManager([], null, null);

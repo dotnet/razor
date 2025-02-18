@@ -123,7 +123,7 @@ public class DocumentDidChangeEndpointTest(ITestOutputHelper testOutput) : Langu
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        await endpoint.HandleNotificationAsync(request, requestContext, default);
+        await endpoint.HandleNotificationAsync(request, requestContext, DisposalToken);
 
         // Assert
         projectService.VerifyAll();

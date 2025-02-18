@@ -1,89 +1,78 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem.Legacy;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal class DocumentSnapshot : IDocumentSnapshot
+internal sealed class DocumentSnapshot(ProjectSnapshot project, DocumentState state) : IDocumentSnapshot, ILegacyDocumentSnapshot
+#if !FORMAT_FUSE
+    , IDesignTimeCodeGenerator
+#endif
 {
-    public string FileKind => State.HostDocument.FileKind;
-    public string FilePath => State.HostDocument.FilePath;
-    public string TargetPath => State.HostDocument.TargetPath;
-    public IProjectSnapshot Project => ProjectInternal;
-    public bool SupportsOutput => true;
+    public ProjectSnapshot Project { get; } = project;
 
-    public int Version => State.Version;
+    private readonly DocumentState _state = state;
 
-    public ProjectSnapshot ProjectInternal { get; }
-    public DocumentState State { get; }
+    public HostDocument HostDocument => _state.HostDocument;
 
-    public DocumentSnapshot(ProjectSnapshot project, DocumentState state)
-    {
-        ProjectInternal = project ?? throw new ArgumentNullException(nameof(project));
-        State = state ?? throw new ArgumentNullException(nameof(state));
-    }
+    public string FileKind => _state.HostDocument.FileKind;
+    public string FilePath => _state.HostDocument.FilePath;
+    public string TargetPath => _state.HostDocument.TargetPath;
+    public int Version => _state.Version;
 
-    public Task<SourceText> GetTextAsync()
-        => State.GetTextAsync();
-
-    public Task<VersionStamp> GetTextVersionAsync()
-        => State.GetTextVersionAsync();
+    IProjectSnapshot IDocumentSnapshot.Project => Project;
 
     public bool TryGetText([NotNullWhen(true)] out SourceText? result)
-        => State.TryGetText(out result);
+        => _state.TryGetText(out result);
+
+    public ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
+        => _state.GetTextAsync(cancellationToken);
 
     public bool TryGetTextVersion(out VersionStamp result)
-        => State.TryGetTextVersion(out result);
+        => _state.TryGetTextVersion(out result);
 
-    public virtual bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
-    {
-        if (State.IsGeneratedOutputResultAvailable)
-        {
-#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-            result = State.GetGeneratedOutputAndVersionAsync(ProjectInternal, this).Result.output;
-#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
-            return true;
-        }
+    public ValueTask<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken)
+        => _state.GetTextVersionAsync(cancellationToken);
 
-        result = null;
-        return false;
-    }
+    public bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
+        => _state.TryGetGeneratedOutput(out result);
+
+    public ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(CancellationToken cancellationToken)
+        => _state.GetGeneratedOutputAsync(this, cancellationToken);
 
     public IDocumentSnapshot WithText(SourceText text)
     {
-        return new DocumentSnapshot(ProjectInternal, State.WithText(text, VersionStamp.Create()));
+        return new DocumentSnapshot(Project, _state.WithText(text, VersionStamp.Create()));
     }
 
-    public async Task<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
+    public ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
     {
-        var codeDocument = await GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput: false).ConfigureAwait(false);
-        var csharpText = codeDocument.GetCSharpSourceText();
-        return CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
-    }
+        return TryGetGeneratedOutput(out var codeDocument)
+            ? new(codeDocument.GetOrParseCSharpSyntaxTree(cancellationToken))
+            : new(GetCSharpSyntaxTreeCoreAsync(cancellationToken));
 
-    public virtual async Task<RazorCodeDocument> GetGeneratedOutputAsync(bool forceDesignTimeGeneratedOutput)
-    {
-        if (forceDesignTimeGeneratedOutput)
+        async Task<SyntaxTree> GetCSharpSyntaxTreeCoreAsync(CancellationToken cancellationToken)
         {
-            return await GetDesignTimeGeneratedOutputAsync().ConfigureAwait(false);
+            var codeDocument = await GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+            return codeDocument.GetOrParseCSharpSyntaxTree(cancellationToken);
         }
-
-        var (output, _) = await State.GetGeneratedOutputAndVersionAsync(ProjectInternal, this).ConfigureAwait(false);
-        return output;
     }
 
-    private async Task<RazorCodeDocument> GetDesignTimeGeneratedOutputAsync()
-    {
-        var tagHelpers = await Project.GetTagHelpersAsync(CancellationToken.None).ConfigureAwait(false);
-        var projectEngine = Project.GetProjectEngine();
-        var imports = await DocumentState.GetImportsAsync(this, projectEngine).ConfigureAwait(false);
-        return await DocumentState.GenerateCodeDocumentAsync(this, projectEngine, imports, tagHelpers, forceRuntimeCodeGeneration: false).ConfigureAwait(false);
-    }
+#if !FORMAT_FUSE
+    public Task<RazorCodeDocument> GenerateDesignTimeOutputAsync(CancellationToken cancellationToken)
+        => CompilationHelpers.GenerateDesignTimeCodeDocumentAsync(this, Project.ProjectEngine, cancellationToken);
+#endif
+
+    #region ILegacyDocumentSnapshot support
+
+    string ILegacyDocumentSnapshot.FileKind => FileKind;
+
+    #endregion
 }

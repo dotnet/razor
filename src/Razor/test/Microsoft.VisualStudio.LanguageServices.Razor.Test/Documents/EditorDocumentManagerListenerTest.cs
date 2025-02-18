@@ -8,11 +8,11 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
-using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.VisualStudio.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.Razor.Documents;
 public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : VisualStudioTestBase(testOutput)
 {
     private static readonly HostProject s_hostProject = new(
-        projectFilePath: "/path/to/project.csproj",
+        filePath: "/path/to/project.csproj",
         intermediateOutputPath: "/path/to/obj",
         RazorConfiguration.Default,
         rootNamespace: null);
@@ -32,16 +32,19 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
         filePath: "/path/to/file1.razor",
         targetPath: "/path/to/file1.razor");
 
+    private static IFallbackProjectManager s_fallbackProjectManager = StrictMock.Of<IFallbackProjectManager>(x =>
+        x.IsFallbackProject(It.IsAny<ProjectSnapshot>()) == false);
+
     [UIFact]
-    public async Task ProjectManager_Changed_DocumentRemoved_RemovesDocument()
+    public async Task ProjectManager_Changed_RemoveDocument_RemovesDocument()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
+            updater.AddProject(s_hostProject);
+            updater.AddDocument(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
         });
 
         var editorDocumentMangerMock = new StrictMock<IEditorDocumentManager>();
@@ -55,14 +58,14 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
             .Verifiable();
 
         var listener = new EditorDocumentManagerListener(
-            editorDocumentMangerMock.Object, projectManager, JoinableTaskContext, NoOpTelemetryReporter.Instance);
+            editorDocumentMangerMock.Object, projectManager, s_fallbackProjectManager, JoinableTaskContext, NoOpTelemetryReporter.Instance);
 
         var listenerAccessor = listener.GetTestAccessor();
 
         // Act
         await projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentRemoved(s_hostProject.Key, s_hostDocument);
+            updater.RemoveDocument(s_hostProject.Key, s_hostDocument.FilePath);
         });
 
         await listenerAccessor.WaitUntilCurrentBatchCompletesAsync();
@@ -72,15 +75,15 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
     }
 
     [UIFact]
-    public async Task ProjectManager_Changed_ProjectRemoved_RemovesAllDocuments()
+    public async Task ProjectManager_Changed_RemoveProject_RemovesAllDocuments()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
+            updater.AddProject(s_hostProject);
+            updater.AddDocument(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
         });
 
         var editorDocumentMangerMock = new StrictMock<IEditorDocumentManager>();
@@ -94,14 +97,14 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
             .Verifiable();
 
         var listener = new EditorDocumentManagerListener(
-            editorDocumentMangerMock.Object, projectManager, JoinableTaskContext, NoOpTelemetryReporter.Instance);
+            editorDocumentMangerMock.Object, projectManager, s_fallbackProjectManager, JoinableTaskContext, NoOpTelemetryReporter.Instance);
 
         var listenerAccessor = listener.GetTestAccessor();
 
         // Act
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectRemoved(s_hostProject.Key);
+            updater.RemoveProject(s_hostProject.Key);
         });
 
         await listenerAccessor.WaitUntilCurrentBatchCompletesAsync();
@@ -111,14 +114,14 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
     }
 
     [UIFact]
-    public async Task ProjectManager_Changed_DocumentAdded_InvokesGetOrCreateDocument()
+    public async Task ProjectManager_Changed_AddDocument_InvokesGetOrCreateDocument()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
         });
 
         var editorDocumentMangerMock = new StrictMock<IEditorDocumentManager>();
@@ -134,14 +137,14 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
             .Verifiable();
 
         var listener = new EditorDocumentManagerListener(
-            editorDocumentMangerMock.Object, projectManager, JoinableTaskContext, NoOpTelemetryReporter.Instance);
+            editorDocumentMangerMock.Object, projectManager, s_fallbackProjectManager, JoinableTaskContext, NoOpTelemetryReporter.Instance);
 
         var listenerAccessor = listener.GetTestAccessor();
 
         // Act
         await projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
+            updater.AddDocument(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
         });
 
         await listenerAccessor.WaitUntilCurrentBatchCompletesAsync();
@@ -151,14 +154,14 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
     }
 
     [UIFact]
-    public async Task ProjectManager_Changed_OpenDocumentAdded_InvokesOnOpened()
+    public async Task ProjectManager_Changed_AddDocument_InvokesOnOpened()
     {
         // Arrange
         var projectManager = CreateProjectSnapshotManager();
 
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
         });
 
         var editorDocumentMangerMock = new StrictMock<IEditorDocumentManager>();
@@ -167,22 +170,17 @@ public class EditorDocumentManagerListenerTest(ITestOutputHelper testOutput) : V
             .Returns(GetEditorDocument(isOpen: true));
 
         var listener = new EditorDocumentManagerListener(
-            editorDocumentMangerMock.Object, projectManager, JoinableTaskContext, NoOpTelemetryReporter.Instance);
+            editorDocumentMangerMock.Object, projectManager, s_fallbackProjectManager, JoinableTaskContext, NoOpTelemetryReporter.Instance);
 
         var listenerAccessor = listener.GetTestAccessor();
 
         var called = false;
         listenerAccessor.OnOpened += delegate { called = true; };
 
-        var projectFilePath = "/Path/to/project.csproj";
-        var project = StrictMock.Of<IProjectSnapshot>(p =>
-            p.Key == TestProjectKey.Create("/Path/to/obj") &&
-            p.FilePath == projectFilePath);
-
         // Act
         await projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
+            updater.AddDocument(s_hostProject.Key, s_hostDocument, StrictMock.Of<TextLoader>());
         });
 
         await listenerAccessor.WaitUntilCurrentBatchCompletesAsync();

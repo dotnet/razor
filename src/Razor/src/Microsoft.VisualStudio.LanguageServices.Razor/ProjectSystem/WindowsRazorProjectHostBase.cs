@@ -9,7 +9,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -27,7 +26,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
     private static readonly DataflowLinkOptions s_dataflowLinkOptions = new DataflowLinkOptions() { PropagateCompletion = true };
 
     private readonly IServiceProvider _serviceProvider;
-    private readonly IProjectSnapshotManager _projectManager;
+    private readonly ProjectSnapshotManager _projectManager;
     private readonly AsyncSemaphore _lock;
 
     private readonly Dictionary<ProjectConfigurationSlice, IDisposable> _projectSubscriptions = new();
@@ -39,14 +38,12 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
 
     internal const string ConfigurationGeneralSchemaName = "ConfigurationGeneral";
 
-    // Internal settable for testing
-    // 250ms between publishes to prevent bursts of changes yet still be responsive to changes.
-    internal int EnqueueDelay { get; set; } = 250;
+    private bool _skipDirectoryExistCheck_TestOnly;
 
     protected WindowsRazorProjectHostBase(
         IUnconfiguredProjectCommonServices commonServices,
         IServiceProvider serviceProvider,
-        IProjectSnapshotManager projectManager)
+        ProjectSnapshotManager projectManager)
         : base(commonServices.ThreadingService.JoinableTaskContext)
     {
         CommonServices = commonServices;
@@ -61,14 +58,6 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
     protected abstract Task HandleProjectChangeAsync(string sliceDimensions, IProjectVersionedValue<IProjectSubscriptionUpdate> update);
 
     protected IUnconfiguredProjectCommonServices CommonServices { get; }
-
-    internal bool SkipIntermediateOutputPathExistCheck_TestOnly { get; set; }
-
-    // internal for tests. The product will call through the IProjectDynamicLoadComponent interface.
-    internal Task LoadAsync()
-    {
-        return InitializeAsync();
-    }
 
     protected sealed override Task InitializeCoreAsync(CancellationToken cancellationToken)
     {
@@ -156,8 +145,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
         }
     }
 
-    // Internal for testing
-    internal Task OnProjectChangedAsync(string sliceDimensions, IProjectVersionedValue<IProjectSubscriptionUpdate> update)
+    private Task OnProjectChangedAsync(string sliceDimensions, IProjectVersionedValue<IProjectSubscriptionUpdate> update)
     {
         if (IsDisposing || IsDisposed)
         {
@@ -205,8 +193,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
         }
     }
 
-    // Internal for tests
-    internal Task OnProjectRenamingAsync(string oldProjectFilePath, string newProjectFilePath)
+    private Task OnProjectRenamingAsync(string oldProjectFilePath, string newProjectFilePath)
     {
         // When a project gets renamed we expect any rules watched by the derived class to fire.
         //
@@ -215,37 +202,34 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
         // FilePath.
         return ExecuteWithLockAsync(() => UpdateAsync(updater =>
         {
-            var projectKeys = updater.GetAllProjectKeys(oldProjectFilePath);
+            var projectKeys = updater.GetProjectKeysWithFilePath(oldProjectFilePath);
             foreach (var projectKey in projectKeys)
             {
-                if (updater.TryGetLoadedProject(projectKey, out var current))
+                if (updater.TryGetProject(projectKey, out var project))
                 {
                     RemoveProject(updater, projectKey);
 
-                    var hostProject = new HostProject(newProjectFilePath, current.IntermediateOutputPath, current.Configuration, current.RootNamespace);
+                    var hostProject = new HostProject(newProjectFilePath, project.IntermediateOutputPath, project.Configuration, project.RootNamespace);
                     UpdateProject(updater, hostProject);
 
                     // This should no-op in the common case, just putting it here for insurance.
-                    foreach (var documentFilePath in current.DocumentFilePaths)
+                    foreach (var documentFilePath in project.DocumentFilePaths)
                     {
-                        var documentSnapshot = current.GetDocument(documentFilePath);
-                        Assumes.NotNull(documentSnapshot);
-                        // TODO: The creation of the HostProject here is silly
+                        var documentSnapshot = project.GetRequiredDocument(documentFilePath);
+
                         var hostDocument = new HostDocument(
-                            documentSnapshot.FilePath.AssumeNotNull(),
-                            documentSnapshot.TargetPath.AssumeNotNull(),
+                            documentSnapshot.FilePath,
+                            documentSnapshot.TargetPath,
                             documentSnapshot.FileKind);
-                        updater.DocumentAdded(projectKey, hostDocument, new FileTextLoader(hostDocument.FilePath, null));
+                        updater.AddDocument(projectKey, hostDocument, new FileTextLoader(hostDocument.FilePath, null));
                     }
                 }
             }
         }, CancellationToken.None));
     }
 
-    protected ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFilePath)
-    {
-        return _projectManager.GetAllProjectKeys(projectFilePath);
-    }
+    protected ImmutableArray<ProjectKey> GetProjectKeysWithFilePath(string projectFilePath)
+        => _projectManager.GetProjectKeysWithFilePath(projectFilePath);
 
     protected Task UpdateAsync(Action<ProjectSnapshotManager.Updater> action, CancellationToken cancellationToken)
     {
@@ -266,23 +250,23 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
 
     protected static void UpdateProject(ProjectSnapshotManager.Updater updater, HostProject project)
     {
-        if (!updater.TryGetLoadedProject(project.Key, out _))
+        if (!updater.ContainsProject(project.Key))
         {
             // Just in case we somehow got in a state where VS didn't tell us that solution close was finished, lets just
             // ensure we're going to actually do something with the new project that we've just been told about.
             // If VS did tell us, then this is a no-op.
             updater.SolutionOpened();
-            updater.ProjectAdded(project);
+            updater.AddProject(project);
         }
         else
         {
-            updater.ProjectConfigurationChanged(project);
+            updater.UpdateProjectConfiguration(project);
         }
     }
 
     protected void RemoveProject(ProjectSnapshotManager.Updater updater, ProjectKey projectKey)
     {
-        updater.ProjectRemoved(projectKey);
+        updater.RemoveProject(projectKey);
     }
 
     private async Task ExecuteWithLockAsync(Func<Task> func)
@@ -324,7 +308,6 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
         return TryGetIntermediateOutputPathFromProjectRuleSnapshot(beforeValues, out path);
     }
 
-    // virtual for testing
     protected virtual bool TryGetIntermediateOutputPath(
         IImmutableDictionary<string, IProjectRuleSnapshot> state,
         [NotNullWhen(returnValue: true)] out string? path)
@@ -361,15 +344,11 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
         var basePath = new DirectoryInfo(baseIntermediateOutputPathValue).Parent;
         var joinedPath = Path.Combine(basePath.FullName, intermediateOutputPathValue);
 
-        if (!SkipIntermediateOutputPathExistCheck_TestOnly && !Directory.Exists(joinedPath))
+        if (!Path.IsPathRooted(baseIntermediateOutputPathValue))
         {
-            // The directory doesn't exist for the currently executing application.
-            // This can occur in Razor class library scenarios because:
-            //   1. Razor class libraries base intermediate path is not absolute. Meaning instead of C:/project/obj it returns /obj.
-            //   2. Our `new DirectoryInfo(...).Parent` call above is forgiving so if the path passed to it isn't absolute (Razor class library scenario) it utilizes Directory.GetCurrentDirectory where
-            //      in this case would be the C:/Windows/System path
-            // Because of the above two issues the joinedPath ends up looking like "C:\WINDOWS\system32\obj\Debug\netstandard2.0\" which doesn't actually exist and of course isn't writeable. The end-user effect of this
-            // quirk means that you don't get any component completions for Razor class libraries because we're unable to capture their project state information.
+            // For Razor class libraries, the base intermediate path is relative. Meaning instead of C:/project/obj it returns /obj.
+            // The `new DirectoryInfo(...).Parent` call above is forgiving so if the path passed to it isn't absolute (Razor class library scenario) it utilizes Directory.GetCurrentDirectory, which
+            // could be the C:/Windows/System path, or the solution path, or anything really.
             //
             // To workaround these inconsistencies with Razor class libraries we fall back to the MSBuildProjectDirectory and build what we think is the intermediate output path.
             joinedPath = ResolveFallbackIntermediateOutputPath(rule, intermediateOutputPathValue);
@@ -385,7 +364,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
         return true;
     }
 
-    private static string? ResolveFallbackIntermediateOutputPath(IProjectRuleSnapshot rule, string intermediateOutputPathValue)
+    private string? ResolveFallbackIntermediateOutputPath(IProjectRuleSnapshot rule, string intermediateOutputPathValue)
     {
         if (!rule.Properties.TryGetValue(MSBuildProjectDirectoryPropertyName, out var projectDirectory))
         {
@@ -394,7 +373,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
         }
 
         var joinedPath = Path.Combine(projectDirectory, intermediateOutputPathValue);
-        if (!Directory.Exists(joinedPath))
+        if (!_skipDirectoryExistCheck_TestOnly && !Directory.Exists(joinedPath))
         {
             return null;
         }

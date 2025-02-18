@@ -3,7 +3,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -65,19 +64,15 @@ internal sealed class RemoteGoToImplementationService(in ServiceArgs args) : Raz
             return CallHtml;
         }
 
-        if (!DocumentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), positionInfo.HostDocumentIndex, out var mappedPosition, out _))
-        {
-            // If we can't map to the generated C# file, we're done.
-            return NoFurtherHandling;
-        }
-
         // Finally, call into C#.
-        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync().ConfigureAwait(false);
+        var generatedDocument = await context.Snapshot
+            .GetGeneratedDocumentAsync(cancellationToken)
+            .ConfigureAwait(false);
 
         var locations = await ExternalHandlers.GoToImplementation
             .FindImplementationsAsync(
                 generatedDocument,
-                mappedPosition,
+                positionInfo.Position.ToLinePosition(),
                 supportsVisualStudioExtensions: true,
                 cancellationToken)
             .ConfigureAwait(false);

@@ -3,9 +3,7 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -32,9 +30,9 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
     private RazorDynamicFileInfoProvider _provider;
     private TestAccessor _testAccessor;
     private TestProjectSnapshotManager _projectManager;
-    private IProjectSnapshot _project;
-    private IDocumentSnapshot _document1;
-    private IDocumentSnapshot _document2;
+    private ProjectSnapshot _project;
+    private DocumentSnapshot _document1;
+    private DocumentSnapshot _document2;
     private IDynamicDocumentContainer _lspDocumentContainer;
 #nullable enable
 
@@ -51,15 +49,14 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
-            updater.DocumentAdded(hostProject.Key, hostDocument1, new EmptyTextLoader(hostDocument1.FilePath));
-            updater.DocumentAdded(hostProject.Key, hostDocument2, new EmptyTextLoader(hostDocument2.FilePath));
+            updater.AddProject(hostProject);
+            updater.AddDocument(hostProject.Key, hostDocument1, EmptyTextLoader.Instance);
+            updater.AddDocument(hostProject.Key, hostDocument2, EmptyTextLoader.Instance);
         });
 
-        var projectKey = _projectManager.GetAllProjectKeys(hostProject.FilePath).Single();
-        _project = _projectManager.GetLoadedProject(projectKey);
-        _document1 = _project.GetDocument(hostDocument1.FilePath).AssumeNotNull();
-        _document2 = _project.GetDocument(hostDocument2.FilePath).AssumeNotNull();
+        _project = _projectManager.GetRequiredProject(hostProject.Key);
+        _document1 = _project.GetRequiredDocument(hostDocument1.FilePath);
+        _document2 = _project.GetRequiredDocument(hostDocument2.FilePath);
 
         var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true);
         var filePathService = new VisualStudioFilePathService(languageServerFeatureOptions);
@@ -73,7 +70,6 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
 
         var fallbackProjectManager = new FallbackProjectManager(
             serviceProvider,
-            languageServerFeatureOptions,
             _projectManager,
             WorkspaceProvider,
             NoOpTelemetryReporter.Instance);
@@ -88,7 +84,7 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
             .Verifiable();
         lspDocumentContainerMock
             .Setup(container => container.GetTextLoader(It.IsAny<string>()))
-            .Returns(new EmptyTextLoader(string.Empty));
+            .Returns(EmptyTextLoader.Instance);
         _lspDocumentContainer = lspDocumentContainerMock.Object;
 
         var projectInfo = ProjectInfo.Create(
@@ -99,7 +95,7 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
     }
 
     [Fact]
-    public void UpdateLSPFileInfo_UnknownFile_Noops()
+    public void UpdateLSPFileInfo_UnknownFile_Ignored()
     {
         // Arrange
         _provider.Updated += (sender, args) => throw new XunitException("Should not have been called.");
@@ -114,7 +110,7 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
     public async Task GetDynamicFileInfoAsync_IncludesProjectToken()
     {
         // Arrange
-        var info = await _testAccessor.GetDynamicFileInfoAsync(_projectId, _document1.FilePath.AssumeNotNull(), DisposalToken);
+        var info = await _testAccessor.GetDynamicFileInfoAsync(_projectId, _document1.FilePath, DisposalToken);
         Assert.NotNull(info);
 
         Assert.Equal(@"C:\document1.razor.fJcYlbdqjCXiWYY1.ide.g.cs", info.FilePath);
@@ -124,7 +120,7 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
     public async Task UpdateLSPFileInfo_Updates()
     {
         // Arrange
-        await _testAccessor.GetDynamicFileInfoAsync(_projectId, _document1.FilePath.AssumeNotNull(), DisposalToken);
+        await _testAccessor.GetDynamicFileInfoAsync(_projectId, _document1.FilePath, DisposalToken);
         var called = false;
         _provider.Updated += (sender, args) => called = true;
 
@@ -136,16 +132,16 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
     }
 
     [Fact]
-    public async Task UpdateLSPFileInfo_ProjectRemoved_Noops()
+    public async Task UpdateLSPFileInfo_ProjectRemoved_Ignored()
     {
         // Arrange
-        await _testAccessor.GetDynamicFileInfoAsync(_projectId, _document1.FilePath.AssumeNotNull(), DisposalToken);
+        await _testAccessor.GetDynamicFileInfoAsync(_projectId, _document1.FilePath, DisposalToken);
         var called = false;
         _provider.Updated += (sender, args) => called = true;
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectRemoved(_project.Key);
+            updater.RemoveProject(_project.Key);
         });
 
         // Act
@@ -159,14 +155,14 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
     public async Task UpdateLSPFileInfo_SolutionClosing_ClearsAllDocuments()
     {
         // Arrange
-        await _testAccessor.GetDynamicFileInfoAsync(_projectId, _document1.FilePath.AssumeNotNull(), DisposalToken);
-        await _testAccessor.GetDynamicFileInfoAsync(_projectId, _document2.FilePath.AssumeNotNull(), DisposalToken);
+        await _testAccessor.GetDynamicFileInfoAsync(_projectId, _document1.FilePath, DisposalToken);
+        await _testAccessor.GetDynamicFileInfoAsync(_projectId, _document2.FilePath, DisposalToken);
         _provider.Updated += (sender, documentFilePath) => throw new InvalidOperationException("Should not have been called!");
 
         await _projectManager.UpdateAsync(updater =>
         {
             updater.SolutionClosed();
-            updater.DocumentClosed(_project.Key, _document1.FilePath, new EmptyTextLoader(string.Empty));
+            updater.CloseDocument(_project.Key, _document1.FilePath, EmptyTextLoader.Instance);
         });
 
         // Act & Assert

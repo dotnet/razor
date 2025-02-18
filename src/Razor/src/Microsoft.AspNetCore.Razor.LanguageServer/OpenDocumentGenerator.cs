@@ -28,16 +28,16 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
     private static readonly TimeSpan s_delay = TimeSpan.FromMilliseconds(10);
 
     private readonly ImmutableArray<IDocumentProcessedListener> _listeners;
-    private readonly IProjectSnapshotManager _projectManager;
+    private readonly ProjectSnapshotManager _projectManager;
     private readonly LanguageServerFeatureOptions _options;
     private readonly ILogger _logger;
 
-    private readonly AsyncBatchingWorkQueue<IDocumentSnapshot> _workQueue;
+    private readonly AsyncBatchingWorkQueue<DocumentSnapshot> _workQueue;
     private readonly CancellationTokenSource _disposeTokenSource;
 
     public OpenDocumentGenerator(
         IEnumerable<IDocumentProcessedListener> listeners,
-        IProjectSnapshotManager projectManager,
+        ProjectSnapshotManager projectManager,
         LanguageServerFeatureOptions options,
         ILoggerFactory loggerFactory)
     {
@@ -46,7 +46,7 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
         _options = options;
 
         _disposeTokenSource = new();
-        _workQueue = new AsyncBatchingWorkQueue<IDocumentSnapshot>(
+        _workQueue = new AsyncBatchingWorkQueue<DocumentSnapshot>(
             s_delay,
             ProcessBatchAsync,
             _disposeTokenSource.Token);
@@ -66,7 +66,7 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
         _disposeTokenSource.Dispose();
     }
 
-    private async ValueTask ProcessBatchAsync(ImmutableArray<IDocumentSnapshot> items, CancellationToken token)
+    private async ValueTask ProcessBatchAsync(ImmutableArray<DocumentSnapshot> items, CancellationToken token)
     {
         foreach (var document in items.GetMostRecentUniqueItems(Comparer.Instance))
         {
@@ -75,7 +75,7 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
                 return;
             }
 
-            var codeDocument = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
+            var codeDocument = await document.GetGeneratedOutputAsync(token).ConfigureAwait(false);
 
             foreach (var listener in _listeners)
             {
@@ -92,7 +92,7 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
     private void ProjectManager_Changed(object? sender, ProjectChangeEventArgs args)
     {
         // Don't do any work if the solution is closing
-        if (args.SolutionIsClosing)
+        if (args.IsSolutionClosing)
         {
             return;
         }
@@ -148,7 +148,7 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
                     {
                         foreach (var relatedDocument in oldProject.GetRelatedDocuments(document))
                         {
-                            var relatedDocumentFilePath = relatedDocument.FilePath.AssumeNotNull();
+                            var relatedDocumentFilePath = relatedDocument.FilePath;
 
                             if (newProject.TryGetDocument(relatedDocumentFilePath, out var newRelatedDocument))
                             {
@@ -167,15 +167,15 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
                 }
         }
 
-        void EnqueueIfNecessary(IDocumentSnapshot document)
+        void EnqueueIfNecessary(DocumentSnapshot document)
         {
-            if (!_projectManager.IsDocumentOpen(document.FilePath.AssumeNotNull()) &&
+            if (!_projectManager.IsDocumentOpen(document.FilePath) &&
                 !_options.UpdateBuffersForClosedDocuments)
             {
                 return;
             }
 
-            _logger.LogDebug($"Enqueuing generation of {document.FilePath} in {document.Project.Key.Id}");
+            _logger.LogDebug($"Enqueuing generation of {document.FilePath} in {document.Project.Key.Id} at version {document.Version}");
 
             _workQueue.AddWork(document);
         }

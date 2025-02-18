@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -18,7 +17,6 @@ using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.InlineCompletion;
@@ -27,21 +25,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.InlineCompletion;
 internal sealed class InlineCompletionEndpoint(
     IDocumentMappingService documentMappingService,
     IClientConnection clientConnection,
-    IFormattingCodeDocumentProvider formattingCodeDocumentProvider,
-    IAdhocWorkspaceFactory adhocWorkspaceFactory,
     RazorLSPOptionsMonitor optionsMonitor,
     ILoggerFactory loggerFactory)
     : IRazorRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>, ICapabilitiesProvider
 {
-    private static readonly ImmutableHashSet<string> s_cSharpKeywords = ImmutableHashSet.Create(
-        "~", "Attribute", "checked", "class", "ctor", "cw", "do", "else", "enum", "equals", "Exception", "for", "foreach", "forr",
-        "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
-        "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while");
-
-    private readonly IDocumentMappingService _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
-    private readonly IClientConnection _clientConnection = clientConnection ?? throw new ArgumentNullException(nameof(clientConnection));
-    private readonly IFormattingCodeDocumentProvider _formattingCodeDocumentProvider = formattingCodeDocumentProvider;
-    private readonly IAdhocWorkspaceFactory _adhocWorkspaceFactory = adhocWorkspaceFactory ?? throw new ArgumentNullException(nameof(adhocWorkspaceFactory));
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
+    private readonly IClientConnection _clientConnection = clientConnection;
     private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<InlineCompletionEndpoint>();
 
@@ -49,10 +38,7 @@ internal sealed class InlineCompletionEndpoint(
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        serverCapabilities.InlineCompletionOptions = new VSInternalInlineCompletionOptions()
-        {
-            Pattern = new Regex(string.Join("|", s_cSharpKeywords))
-        };
+        serverCapabilities.InlineCompletionOptions = new VSInternalInlineCompletionOptions().EnableInlineCompletion();
     }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
@@ -62,10 +48,7 @@ internal sealed class InlineCompletionEndpoint(
 
     public async Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgHelper.ThrowIfNull(request);
 
         _logger.LogInformation($"Starting request for {request.TextDocument.Uri} at {request.Position}.");
 
@@ -117,7 +100,6 @@ internal sealed class InlineCompletionEndpoint(
         using var items = new PooledArrayBuilder<VSInternalInlineCompletionItem>(list.Items.Length);
         foreach (var item in list.Items)
         {
-            var containsSnippet = item.TextFormat == InsertTextFormat.Snippet;
             var range = item.Range ?? projectedPosition.ToZeroWidthRange();
 
             if (!_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), range, out var rangeInRazorDoc))
@@ -127,14 +109,11 @@ internal sealed class InlineCompletionEndpoint(
             }
 
             var options = RazorFormattingOptions.From(request.Options, _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine);
-            using var formattingContext = FormattingContext.Create(
-                request.TextDocument.Uri,
+            var formattingContext = FormattingContext.Create(
                 documentContext.Snapshot,
                 codeDocument,
-                options,
-                _formattingCodeDocumentProvider,
-                _adhocWorkspaceFactory);
-            if (!TryGetSnippetWithAdjustedIndentation(formattingContext, item.Text, hostDocumentIndex, out var newSnippetText))
+                options);
+            if (!SnippetFormatter.TryGetSnippetWithAdjustedIndentation(formattingContext, item.Text, hostDocumentIndex, out var newSnippetText))
             {
                 continue;
             }
@@ -160,50 +139,6 @@ internal sealed class InlineCompletionEndpoint(
         {
             Items = items.ToArray()
         };
-    }
-
-    private static bool TryGetSnippetWithAdjustedIndentation(FormattingContext formattingContext, string snippetText, int hostDocumentIndex, [NotNullWhen(true)] out string? newSnippetText)
-    {
-        newSnippetText = null;
-        if (!formattingContext.TryGetFormattingSpan(hostDocumentIndex, out var formattingSpan))
-        {
-            return false;
-        }
-
-        // Take the amount of indentation razor and html are adding, then remove the amount of C# indentation that is 'hidden'.
-        // This should give us the desired base indentation that must be applied to each line.
-        var razorAndHtmlContributionsToIndentation = formattingSpan.RazorIndentationLevel + formattingSpan.HtmlIndentationLevel;
-        var amountToAddToCSharpIndentation = razorAndHtmlContributionsToIndentation - formattingSpan.MinCSharpIndentLevel;
-
-        var snippetSourceText = SourceText.From(snippetText);
-        List<TextChange> indentationChanges = new();
-        // Adjust each line, skipping the first since it must start at the snippet keyword.
-        foreach (var line in snippetSourceText.Lines.Skip(1))
-        {
-            var lineText = snippetSourceText.GetSubText(line.Span);
-            if (lineText.Length == 0)
-            {
-                // We just have an empty line, nothing to do.
-                continue;
-            }
-
-            // Get the indentation of the line in the C# document based on what options the C# document was generated with.
-            var csharpLineIndentationSize = line.GetIndentationSize(formattingContext.Options.TabSize);
-            var csharpIndentationLevel = csharpLineIndentationSize / formattingContext.Options.TabSize;
-
-            // Get the new indentation level based on the context in the razor document.
-            var newIndentationLevel = csharpIndentationLevel + amountToAddToCSharpIndentation;
-            var newIndentationString = formattingContext.GetIndentationLevelString(newIndentationLevel);
-
-            // Replace the current indentation with the new indentation.
-            var spanToReplace = new TextSpan(line.Start, line.GetFirstNonWhitespaceOffset() ?? line.Span.End);
-            var textChange = new TextChange(spanToReplace, newIndentationString);
-            indentationChanges.Add(textChange);
-        }
-
-        var newSnippetSourceText = snippetSourceText.WithChanges(indentationChanges);
-        newSnippetText = newSnippetSourceText.ToString();
-        return true;
     }
 }
 

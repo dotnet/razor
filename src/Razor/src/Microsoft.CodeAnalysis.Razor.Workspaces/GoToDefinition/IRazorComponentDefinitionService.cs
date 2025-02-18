@@ -3,6 +3,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using LspLocation = Roslyn.LanguageServer.Protocol.Location;
@@ -14,5 +15,10 @@ namespace Microsoft.CodeAnalysis.Razor.GoToDefinition;
 /// </summary>
 internal interface IRazorComponentDefinitionService
 {
-    Task<LspLocation?> GetDefinitionAsync(IDocumentSnapshot documentSnapshot, DocumentPositionInfo positionInfo, bool ignoreAttributes, CancellationToken cancellationToken);
+    Task<LspLocation?> GetDefinitionAsync(
+        IDocumentSnapshot documentSnapshot,
+        DocumentPositionInfo positionInfo,
+        ISolutionQueryOperations solutionQueryOperations,
+        bool ignoreAttributes,
+        CancellationToken cancellationToken);
 }

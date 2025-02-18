@@ -7,15 +7,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Razor.CodeActions;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
-using LanguageServerSR = Microsoft.AspNetCore.Razor.LanguageServer.Resources.SR;
+using WorkspacesSR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
@@ -38,13 +44,12 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(0, 1));
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(0, 1));
 
-        var provider = new ComponentAccessibilityCodeActionProvider();
+        var provider = new ComponentAccessibilityCodeActionProvider(new FileSystem());
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Empty(commandOrCodeActionContainer);
@@ -67,14 +72,13 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(0, 0));
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(0, 0));
         context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
-        var provider = new ComponentAccessibilityCodeActionProvider();
+        var provider = new ComponentAccessibilityCodeActionProvider(new FileSystem());
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Empty(commandOrCodeActionContainer);
@@ -97,13 +101,12 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9));
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9));
 
-        var provider = new ComponentAccessibilityCodeActionProvider();
+        var provider = new ComponentAccessibilityCodeActionProvider(new FileSystem());
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Empty(commandOrCodeActionContainer);
@@ -126,13 +129,12 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: true);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: true);
 
-        var provider = new ComponentAccessibilityCodeActionProvider();
+        var provider = new ComponentAccessibilityCodeActionProvider(new FileSystem());
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Collection(commandOrCodeActionContainer,
@@ -151,7 +153,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             },
             e =>
             {
-                Assert.Equal(LanguageServerSR.Create_Component_FromTag_Title, e.Title);
+                Assert.Equal(WorkspacesSR.Create_Component_FromTag_Title, e.Title);
                 Assert.NotNull(e.Data);
                 Assert.Null(e.Edit);
             });
@@ -174,13 +176,12 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("CompOnent", StringComparison.Ordinal), 9), supportsFileCreation: true);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(contents.IndexOf("CompOnent", StringComparison.Ordinal), 9), supportsFileCreation: true);
 
-        var provider = new ComponentAccessibilityCodeActionProvider();
+        var provider = new ComponentAccessibilityCodeActionProvider(new FileSystem());
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Collection(commandOrCodeActionContainer,
@@ -199,7 +200,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             },
             e =>
             {
-                Assert.Equal(LanguageServerSR.Create_Component_FromTag_Title, e.Title);
+                Assert.Equal(WorkspacesSR.Create_Component_FromTag_Title, e.Title);
                 Assert.NotNull(e.Data);
                 Assert.Null(e.Edit);
             });
@@ -224,13 +225,12 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("CompOnent", StringComparison.Ordinal), 9), supportsFileCreation: true);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(contents.IndexOf("CompOnent", StringComparison.Ordinal), 9), supportsFileCreation: true);
 
-        var provider = new ComponentAccessibilityCodeActionProvider();
+        var provider = new ComponentAccessibilityCodeActionProvider(new FileSystem());
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Collection(commandOrCodeActionContainer,
@@ -243,7 +243,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             },
             e =>
             {
-                Assert.Equal(LanguageServerSR.Create_Component_FromTag_Title, e.Title);
+                Assert.Equal(WorkspacesSR.Create_Component_FromTag_Title, e.Title);
                 Assert.NotNull(e.Data);
                 Assert.Null(e.Edit);
             });
@@ -266,13 +266,12 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("GenericComponent", StringComparison.Ordinal), "GenericComponent".Length), supportsFileCreation: true);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(contents.IndexOf("GenericComponent", StringComparison.Ordinal), "GenericComponent".Length), supportsFileCreation: true);
 
-        var provider = new ComponentAccessibilityCodeActionProvider();
+        var provider = new ComponentAccessibilityCodeActionProvider(new FileSystem());
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Collection(commandOrCodeActionContainer,
@@ -291,7 +290,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             },
             e =>
             {
-                Assert.Equal(LanguageServerSR.Create_Component_FromTag_Title, e.Title);
+                Assert.Equal(WorkspacesSR.Create_Component_FromTag_Title, e.Title);
                 Assert.NotNull(e.Data);
                 Assert.Null(e.Edit);
             });
@@ -314,17 +313,16 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: true);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: true);
 
-        var provider = new ComponentAccessibilityCodeActionProvider();
+        var provider = new ComponentAccessibilityCodeActionProvider(new FileSystem());
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         var command = Assert.Single(commandOrCodeActionContainer);
-        Assert.Equal(LanguageServerSR.Create_Component_FromTag_Title, command.Title);
+        Assert.Equal(WorkspacesSR.Create_Component_FromTag_Title, command.Title);
         Assert.NotNull(command.Data);
     }
 
@@ -345,17 +343,16 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: true);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: true);
 
-        var provider = new ComponentAccessibilityCodeActionProvider();
+        var provider = new ComponentAccessibilityCodeActionProvider(new FileSystem());
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         var command = Assert.Single(commandOrCodeActionContainer);
-        Assert.Equal(LanguageServerSR.Create_Component_FromTag_Title, command.Title);
+        Assert.Equal(WorkspacesSR.Create_Component_FromTag_Title, command.Title);
         Assert.NotNull(command.Data);
     }
 
@@ -376,13 +373,12 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: false);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: false);
 
-        var provider = new ComponentAccessibilityCodeActionProvider();
+        var provider = new ComponentAccessibilityCodeActionProvider(new FileSystem());
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Empty(commandOrCodeActionContainer);
@@ -405,13 +401,12 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             Context = new VSInternalCodeActionContext()
         };
 
-        var location = new SourceLocation(cursorPosition, -1, -1);
-        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: false);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: false);
 
-        var provider = new ComponentAccessibilityCodeActionProvider();
+        var provider = new ComponentAccessibilityCodeActionProvider(new FileSystem());
 
         // Act
-        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, DisposalToken);
 
         // Assert
         Assert.Collection(commandOrCodeActionContainer,
@@ -430,7 +425,7 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             });
     }
 
-    private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, SourceLocation location, string filePath, string text, SourceSpan componentSourceSpan, bool supportsFileCreation = true)
+    private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, int absoluteIndex, string filePath, string text, SourceSpan componentSourceSpan, bool supportsFileCreation = true)
     {
         var shortComponent = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "Fully.Qualified.Component", "TestAssembly");
         shortComponent.CaseSensitive = true;
@@ -453,24 +448,40 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         var tagHelpers = ImmutableArray.Create(shortComponent.Build(), fullyQualifiedComponent.Build(), shortGenericComponent.Build(), fullyQualifiedGenericComponent.Build());
 
         var sourceDocument = TestRazorSourceDocument.Create(text, filePath: filePath, relativePath: filePath);
-        var projectEngine = RazorProjectEngine.Create(builder => builder.AddTagHelpers(tagHelpers));
+        var projectEngine = RazorProjectEngine.Create(builder =>
+        {
+            builder.AddTagHelpers(tagHelpers);
+            builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
+        });
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, importSources: default, tagHelpers);
 
         var csharpDocument = codeDocument.GetCSharpDocument();
         var diagnosticDescriptor = new RazorDiagnosticDescriptor("RZ10012", "diagnostic", RazorDiagnosticSeverity.Error);
         var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, componentSourceSpan);
-        var csharpDocumentWithDiagnostic = new RazorCSharpDocument(codeDocument, csharpDocument.GeneratedCode, csharpDocument.Options, [diagnostic]);
+        var csharpDocumentWithDiagnostic = new RazorCSharpDocument(codeDocument, csharpDocument.Text, csharpDocument.Options, [diagnostic]);
         codeDocument.SetCSharpDocument(csharpDocumentWithDiagnostic);
 
-        var documentSnapshot = Mock.Of<IDocumentSnapshot>(document =>
-            document.GetGeneratedOutputAsync(It.IsAny<bool>()) == Task.FromResult(codeDocument) &&
-            document.GetTextAsync() == Task.FromResult(codeDocument.Source.Text) &&
-            document.Project.GetTagHelpersAsync(It.IsAny<CancellationToken>()) == new ValueTask<ImmutableArray<TagHelperDescriptor>>(tagHelpers), MockBehavior.Strict);
+        var documentSnapshotMock = new StrictMock<IDocumentSnapshot>();
+        documentSnapshotMock
+            .Setup(x => x.GetGeneratedOutputAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(codeDocument);
+        documentSnapshotMock
+            .Setup(x => x.GetTextAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(codeDocument.Source.Text);
+        documentSnapshotMock
+            .Setup(x => x.Project.GetTagHelpersAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tagHelpers);
 
-        var sourceText = SourceText.From(text);
-
-        var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation, SupportsCodeActionResolve: true);
-
-        return context;
+        return new RazorCodeActionContext(
+            request,
+            documentSnapshotMock.Object,
+            codeDocument,
+            DelegatedDocumentUri: null,
+            StartAbsoluteIndex: absoluteIndex,
+            EndAbsoluteIndex: absoluteIndex,
+            RazorLanguageKind.Razor,
+            codeDocument.Source.Text,
+            supportsFileCreation,
+            SupportsCodeActionResolve: true);
     }
 }

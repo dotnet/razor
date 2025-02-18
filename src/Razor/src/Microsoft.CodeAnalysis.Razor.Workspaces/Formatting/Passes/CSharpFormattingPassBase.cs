@@ -13,21 +13,31 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal abstract class CSharpFormattingPassBase(IDocumentMappingService documentMappingService, bool isFormatOnType) : IFormattingPass
+internal abstract partial class CSharpFormattingPassBase(IDocumentMappingService documentMappingService, IHostServicesProvider hostServicesProvider, bool isFormatOnType) : IFormattingPass
 {
     private readonly bool _isFormatOnType = isFormatOnType;
 
     protected IDocumentMappingService DocumentMappingService { get; } = documentMappingService;
 
-    public abstract Task<ImmutableArray<TextChange>> ExecuteAsync(FormattingContext context, ImmutableArray<TextChange> changes, CancellationToken cancellationToken);
+    public async Task<ImmutableArray<TextChange>> ExecuteAsync(FormattingContext context, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
+    {
+        using var roslynWorkspaceHelper = new RoslynWorkspaceHelper(hostServicesProvider);
 
-    protected async Task<ImmutableArray<TextChange>> AdjustIndentationAsync(FormattingContext context, int startLine, int endLineInclusive, CancellationToken cancellationToken)
+        return await ExecuteCoreAsync(context, roslynWorkspaceHelper, changes, cancellationToken).ConfigureAwait(false);
+    }
+
+    protected abstract Task<ImmutableArray<TextChange>> ExecuteCoreAsync(FormattingContext context, RoslynWorkspaceHelper roslynWorkspaceHelper, ImmutableArray<TextChange> changes, CancellationToken cancellationToken);
+
+    protected async Task<ImmutableArray<TextChange>> AdjustIndentationAsync(FormattingContext context, int startLine, int endLineInclusive, HostWorkspaceServices hostWorkspaceServices, ILogger logger, CancellationToken cancellationToken)
     {
         // In this method, the goal is to make final adjustments to the indentation of each line.
         // We will take into account the following,
@@ -35,6 +45,7 @@ internal abstract class CSharpFormattingPassBase(IDocumentMappingService documen
         // 2. The indentation due to Razor and HTML constructs
 
         var text = context.SourceText;
+        var csharpDocument = context.CodeDocument.GetCSharpDocument();
 
         // To help with figuring out the correct indentation, first we will need the indentation
         // that the C# formatter wants to apply in the following locations,
@@ -48,7 +59,7 @@ internal abstract class CSharpFormattingPassBase(IDocumentMappingService documen
 
         // First, collect all the locations at the beginning and end of each source mapping.
         var sourceMappingMap = new Dictionary<int, int>();
-        foreach (var mapping in context.CodeDocument.GetCSharpDocument().SourceMappings)
+        foreach (var mapping in csharpDocument.SourceMappings)
         {
             var mappingSpan = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
 #if DEBUG
@@ -98,21 +109,62 @@ internal abstract class CSharpFormattingPassBase(IDocumentMappingService documen
             var lineStart = line.GetFirstNonWhitespacePosition() ?? line.Start;
 
             var lineStartSpan = new TextSpan(lineStart, 0);
-            if (!ShouldFormat(context, lineStartSpan, allowImplicitStatements: true))
+            if (!ShouldFormat(context, lineStartSpan, allowImplicitStatements: true, out var owner))
             {
                 // We don't care about this range as this can potentially lead to incorrect scopes.
+                logger.LogTestOnly($"Don't care about line: {line.ToString()}");
                 continue;
             }
 
-            if (DocumentMappingService.TryMapToGeneratedDocumentPosition(context.CodeDocument.GetCSharpDocument(), lineStart, out _, out var projectedLineStart))
+            if (DocumentMappingService.TryMapToGeneratedDocumentPosition(csharpDocument, lineStart, out _, out var projectedLineStart))
             {
                 lineStartMap[lineStart] = projectedLineStart;
                 significantLocations.Add(projectedLineStart);
             }
+            else if (owner is CSharpTransitionSyntax &&
+                owner.Parent is RazorDirectiveSyntax containingDirective &&
+                containingDirective.DirectiveDescriptor.Directive == SectionDirective.Directive.Directive)
+            {
+                // Section directives are a challenge because they have Razor indentation (we want to indent their contents one level)
+                // and their contents will have Html indentation, and the generated code for them is indented (contents are in a lambda)
+                // but they have no C# mapping themselves to rely on. In there is no C# in a section block at all, everything works great
+                // but even simple C# poses a challenge. For example:
+                //
+                // @section Goo {
+                //     @if (true)
+                //     {
+                //          // some C# content
+                //     }
+                // }
+                //
+                // The `if` in the generated code will be indented by virtue of being in a lambda, but with nothing in the @section directive
+                // itself that is mapped, the baseline indentation will be whatever happens to be the nearest C# mapping from outside the block
+                // which is not helpful. To solve this, we artificially introduce a mapping for the start of the section block, which points to
+                // the first C# mapping inside it.
+                if (((RazorDirectiveBodySyntax)containingDirective.Body).CSharpCode.Children is [.., MarkupBlockSyntax block, RazorMetaCodeSyntax /* close brace */])
+                {
+                    var blockSpan = block.Span;
+                    foreach (var mapping in csharpDocument.SourceMappings)
+                    {
+                        if (blockSpan.Contains(mapping.OriginalSpan.AbsoluteIndex))
+                        {
+                            var projectedStartLocation = mapping.GeneratedSpan.AbsoluteIndex;
+                            lineStartMap[blockSpan.Start] = projectedStartLocation;
+                            sourceMappingMap[blockSpan.Start] = projectedStartLocation;
+                            significantLocations.Add(projectedStartLocation);
+                            break;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                logger.LogTestOnly($"Couldn't map line: {line.ToString()}");
+            }
         }
 
         // Now, invoke the C# formatter to obtain the CSharpDesiredIndentation for all significant locations.
-        var significantLocationIndentation = await CSharpFormatter.GetCSharpIndentationAsync(context, significantLocations, cancellationToken).ConfigureAwait(false);
+        var significantLocationIndentation = await CSharpFormatter.GetCSharpIndentationAsync(context, significantLocations, hostWorkspaceServices, cancellationToken).ConfigureAwait(false);
 
         // Build source mapping indentation scopes.
         var sourceMappingIndentations = new SortedDictionary<int, IndentationData>();
@@ -367,7 +419,7 @@ internal abstract class CSharpFormattingPassBase(IDocumentMappingService documen
             return false;
         }
 
-        if (IsInSectionDirectiveBrace())
+        if (IsInSectionDirectiveOrBrace())
         {
             return false;
         }
@@ -538,23 +590,31 @@ internal abstract class CSharpFormattingPassBase(IDocumentMappingService documen
             return owner.AncestorsAndSelf().Any(n => n is CSharpTemplateBlockSyntax);
         }
 
-        bool IsInSectionDirectiveBrace()
+        bool IsInSectionDirectiveOrBrace()
         {
             // @section Scripts {
             //     <script></script>
             // }
-            //
-            // Due to how sections are generated (inside a multi-line lambda), we want to exclude the braces
+
+            // In design time there is a source mapping for the section name, but it doesn't appear in runtime, so
+            // we effectively pretend it doesn't exist so the formatting engine can handle both forms.
+            if (owner is CSharpStatementLiteralSyntax literal &&
+                owner.Parent?.Parent?.Parent is RazorDirectiveSyntax directive3 &&
+                directive3.DirectiveDescriptor.Directive == SectionDirective.Directive.Directive)
+            {
+                return true;
+            }
+
+            // Due to how sections are generated (inside a multi-line lambda), we also want to exclude the braces
             // from being formatted, or it will be indented by one level due to the lambda. The rest we don't
             // need to worry about, because the one level indent is actually desirable.
 
-            // Due to the Razor tree being so odd, the checks for open and close are surprisingly different
-
-            // Open brace is a child of the C# code block that is the directive itself
+            // Open brace is the 4th child of the C# code block that is the directive itself
+            // and close brace is the last child
             if (owner is RazorMetaCodeSyntax &&
                 owner.Parent is CSharpCodeBlockSyntax codeBlock &&
                 codeBlock.Children.Count > 3 &&
-                owner == codeBlock.Children[3] &&
+                (owner == codeBlock.Children[3] || owner == codeBlock.Children[^1]) &&
                 // CSharpCodeBlock -> RazorDirectiveBody -> RazorDirective
                 codeBlock.Parent?.Parent is RazorDirectiveSyntax directive2 &&
                 directive2.DirectiveDescriptor.Directive == SectionDirective.Directive.Directive)
@@ -562,19 +622,28 @@ internal abstract class CSharpFormattingPassBase(IDocumentMappingService documen
                 return true;
             }
 
-            // Close brace is a child of the section content, which is a MarkupBlock
-            if (owner is MarkupTextLiteralSyntax &&
-                owner.Parent is MarkupBlockSyntax block &&
-                owner == block.Children[^1] &&
-                // MarkupBlock -> CSharpCodeBlock -> RazorDirectiveBody -> RazorDirective
-                block.Parent?.Parent?.Parent is RazorDirectiveSyntax directive &&
-                directive.DirectiveDescriptor.Directive == SectionDirective.Directive.Directive)
-            {
-                return true;
-            }
-
             return false;
         }
+    }
+
+    protected static string RenderSourceMappings(RazorCodeDocument codeDocument)
+    {
+        var markers = codeDocument.GetCSharpDocument().SourceMappings.SelectMany(mapping =>
+            new[]
+            {
+                (index: mapping.OriginalSpan.AbsoluteIndex, text: "<#" ),
+                (index: mapping.OriginalSpan.AbsoluteIndex + mapping.OriginalSpan.Length, text: "#>"),
+            })
+            .OrderByDescending(mapping => mapping.index)
+            .ThenBy(mapping => mapping.text);
+
+        var output = codeDocument.Source.Text.ToString();
+        foreach (var (index, text) in markers)
+        {
+            output = output.Insert(index, text);
+        }
+
+        return output;
     }
 
     private record struct ShouldFormatOptions(bool AllowImplicitStatements, bool AllowImplicitExpressions, bool AllowSingleLineExplicitExpressions, bool IsLineRequest)

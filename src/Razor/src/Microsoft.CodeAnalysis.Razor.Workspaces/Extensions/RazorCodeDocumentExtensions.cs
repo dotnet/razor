@@ -6,8 +6,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -17,35 +20,30 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 internal static class RazorCodeDocumentExtensions
 {
-    private static readonly object s_csharpSourceTextKey = new();
-    private static readonly object s_htmlSourceTextKey = new();
+    private static readonly object s_csharpSyntaxTreeKey = new();
 
     public static SourceText GetCSharpSourceText(this RazorCodeDocument document)
-    {
-        if (!document.Items.TryGetValue(s_csharpSourceTextKey, out SourceText? sourceText))
-        {
-            var csharpDocument = document.GetCSharpDocument();
-            sourceText = SourceText.From(csharpDocument.GeneratedCode);
-            document.Items[s_csharpSourceTextKey] = sourceText;
-
-            return sourceText;
-        }
-
-        return sourceText.AssumeNotNull();
-    }
+        => document.GetCSharpDocument().Text;
 
     public static SourceText GetHtmlSourceText(this RazorCodeDocument document)
-    {
-        if (!document.Items.TryGetValue(s_htmlSourceTextKey, out SourceText? sourceText))
-        {
-            var htmlDocument = document.GetHtmlDocument();
-            sourceText = SourceText.From(htmlDocument.GeneratedCode);
-            document.Items[s_htmlSourceTextKey] = sourceText;
+        => document.GetHtmlDocument().Text;
 
-            return sourceText;
+    /// <summary>
+    ///  Retrieves a cached Roslyn <see cref="SyntaxTree"/> from the generated C# document.
+    ///  If a tree has not yet been cached, a new one will be parsed and added to the cache.
+    /// </summary>
+    public static SyntaxTree GetOrParseCSharpSyntaxTree(this RazorCodeDocument document, CancellationToken cancellationToken)
+    {
+        if (!document.Items.TryGetValue(s_csharpSyntaxTreeKey, out SyntaxTree? syntaxTree))
+        {
+            var csharpText = document.GetCSharpSourceText();
+            syntaxTree = CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
+            document.Items[s_csharpSyntaxTreeKey] = syntaxTree;
+
+            return syntaxTree;
         }
 
-        return sourceText.AssumeNotNull();
+        return syntaxTree.AssumeNotNull();
     }
 
     public static bool TryGetGeneratedDocument(

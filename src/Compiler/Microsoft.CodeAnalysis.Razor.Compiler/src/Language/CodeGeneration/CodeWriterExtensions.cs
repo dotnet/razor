@@ -8,8 +8,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
@@ -470,8 +470,8 @@ internal static class CodeWriterExtensions
         this CodeWriter writer,
         IList<string> modifiers,
         string name,
-        string baseType,
-        IList<string> interfaces,
+        BaseTypeWithModel baseType,
+        IList<IntermediateToken> interfaces,
         IList<TypeParameter> typeParameters,
         CodeRenderingContext context,
         bool useNullableContext = false)
@@ -518,7 +518,7 @@ internal static class CodeWriterExtensions
             writer.Write(">");
         }
 
-        var hasBaseType = !string.IsNullOrEmpty(baseType);
+        var hasBaseType = !string.IsNullOrWhiteSpace(baseType?.BaseType.Content);
         var hasInterfaces = interfaces != null && interfaces.Count > 0;
 
         if (hasBaseType || hasInterfaces)
@@ -527,7 +527,10 @@ internal static class CodeWriterExtensions
 
             if (hasBaseType)
             {
-                writer.Write(baseType);
+                WriteToken(baseType.BaseType);
+                WriteOptionalToken(baseType.GreaterThan);
+                WriteOptionalToken(baseType.ModelType);
+                WriteOptionalToken(baseType.LessThan);
 
                 if (hasInterfaces)
                 {
@@ -537,7 +540,12 @@ internal static class CodeWriterExtensions
 
             if (hasInterfaces)
             {
-                writer.Write(string.Join(", ", interfaces));
+                WriteToken(interfaces[0]);
+                for (var i = 1; i < interfaces.Count; i++)
+                {
+                    writer.Write(", ");
+                    WriteToken(interfaces[i]);
+                }
             }
         }
 
@@ -569,6 +577,26 @@ internal static class CodeWriterExtensions
         }
 
         return new CSharpCodeWritingScope(writer);
+
+        void WriteOptionalToken(IntermediateToken token)
+        {
+            if (token is not null)
+            {
+                WriteToken(token);
+            }
+        }
+
+        void WriteToken(IntermediateToken token)
+        {
+            if (token.Source is { } source)
+            {
+                WriteWithPragma(writer, token.Content, context, source);
+            }
+            else
+            {
+                writer.Write(token.Content);
+            }
+        }
 
         static void WriteWithPragma(CodeWriter writer, string content, CodeRenderingContext context, SourceSpan source)
         {
@@ -633,7 +661,7 @@ internal static class CodeWriterExtensions
 
     private static SourceSpan RemapFilePathIfNecessary(SourceSpan sourceSpan, CodeRenderingContext context)
     {
-        if (context.Options.RemapLinePragmaPathsOnWindows && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if (context.Options.RemapLinePragmaPathsOnWindows && PlatformInformation.IsWindows)
         {
             // ISSUE: https://github.com/dotnet/razor/issues/9108
             // The razor tooling normalizes paths to be forward slash based, regardless of OS.

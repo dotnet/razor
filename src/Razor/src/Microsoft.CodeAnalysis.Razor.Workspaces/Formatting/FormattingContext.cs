@@ -7,31 +7,26 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+
+#if !FORMAT_FUSE
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+#endif
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal sealed class FormattingContext : IDisposable
+internal sealed class FormattingContext
 {
-    private readonly IAdhocWorkspaceFactory _workspaceFactory;
-    private readonly IFormattingCodeDocumentProvider _codeDocumentProvider;
-
-    private Document? _csharpWorkspaceDocument;
-    private AdhocWorkspace? _csharpWorkspace;
-
     private IReadOnlyList<FormattingSpan>? _formattingSpans;
     private IReadOnlyDictionary<int, IndentationContext>? _indentations;
 
     private FormattingContext(
-        IFormattingCodeDocumentProvider codeDocumentProvider,
-        IAdhocWorkspaceFactory workspaceFactory,
-        Uri uri,
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         RazorFormattingOptions options,
@@ -39,9 +34,6 @@ internal sealed class FormattingContext : IDisposable
         int hostDocumentIndex,
         char triggerCharacter)
     {
-        _codeDocumentProvider = codeDocumentProvider;
-        _workspaceFactory = workspaceFactory;
-        Uri = uri;
         OriginalSnapshot = originalSnapshot;
         CodeDocument = codeDocument;
         Options = options;
@@ -52,7 +44,6 @@ internal sealed class FormattingContext : IDisposable
 
     public static bool SkipValidateComponents { get; set; }
 
-    public Uri Uri { get; }
     public IDocumentSnapshot OriginalSnapshot { get; }
     public RazorCodeDocument CodeDocument { get; }
     public RazorFormattingOptions Options { get; }
@@ -65,24 +56,6 @@ internal sealed class FormattingContext : IDisposable
     public SourceText CSharpSourceText => CodeDocument.GetCSharpSourceText();
 
     public string NewLineString => Environment.NewLine;
-
-    public Document CSharpWorkspaceDocument
-    {
-        get
-        {
-            if (_csharpWorkspaceDocument is null)
-            {
-                var workspace = CSharpWorkspace;
-                var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
-                var csharpSourceText = CodeDocument.GetCSharpSourceText();
-                _csharpWorkspaceDocument = workspace.AddDocument(project.Id, "TestDocument", csharpSourceText);
-            }
-
-            return _csharpWorkspaceDocument;
-        }
-    }
-
-    public AdhocWorkspace CSharpWorkspace => _csharpWorkspace ??= _workspaceFactory.Create();
 
     /// <summary>A Dictionary of int (line number) to IndentationContext.</summary>
     /// <remarks>
@@ -251,27 +224,21 @@ internal sealed class FormattingContext : IDisposable
         return false;
     }
 
-    public void Dispose()
-    {
-        _csharpWorkspace?.Dispose();
-        if (_csharpWorkspaceDocument != null)
-        {
-            _csharpWorkspaceDocument = null;
-        }
-    }
-
-    public async Task<FormattingContext> WithTextAsync(SourceText changedText)
+    public async Task<FormattingContext> WithTextAsync(SourceText changedText, CancellationToken cancellationToken)
     {
         var changedSnapshot = OriginalSnapshot.WithText(changedText);
 
-        var codeDocument = await _codeDocumentProvider.GetCodeDocumentAsync(changedSnapshot).ConfigureAwait(false);
+#if !FORMAT_FUSE
+        // Formatting always uses design time document
+        var generator = (IDesignTimeCodeGenerator)changedSnapshot;
+        var codeDocument = await generator.GenerateDesignTimeOutputAsync(cancellationToken).ConfigureAwait(false);
+#else
+        var codeDocument = await changedSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+#endif
 
         DEBUG_ValidateComponents(CodeDocument, codeDocument);
 
         var newContext = new FormattingContext(
-            _codeDocumentProvider,
-            _workspaceFactory,
-            Uri,
             OriginalSnapshot,
             codeDocument,
             Options,
@@ -301,20 +268,14 @@ internal sealed class FormattingContext : IDisposable
     }
 
     public static FormattingContext CreateForOnTypeFormatting(
-        Uri uri,
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         RazorFormattingOptions options,
-        IFormattingCodeDocumentProvider codeDocumentProvider,
-        IAdhocWorkspaceFactory workspaceFactory,
         bool automaticallyAddUsings,
         int hostDocumentIndex,
         char triggerCharacter)
     {
         return new FormattingContext(
-            codeDocumentProvider,
-            workspaceFactory,
-            uri,
             originalSnapshot,
             codeDocument,
             options,
@@ -324,23 +285,16 @@ internal sealed class FormattingContext : IDisposable
     }
 
     public static FormattingContext Create(
-        Uri uri,
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
-        RazorFormattingOptions options,
-        IFormattingCodeDocumentProvider codeDocumentProvider,
-        IAdhocWorkspaceFactory workspaceFactory)
+        RazorFormattingOptions options)
     {
         return new FormattingContext(
-            codeDocumentProvider,
-            workspaceFactory,
-            uri,
             originalSnapshot,
             codeDocument,
             options,
             automaticallyAddUsings: false,
             hostDocumentIndex: 0,
-            triggerCharacter: '\0'
-       );
+            triggerCharacter: '\0');
     }
 }

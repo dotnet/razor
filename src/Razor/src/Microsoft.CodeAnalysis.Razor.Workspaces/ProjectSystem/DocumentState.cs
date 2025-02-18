@@ -1,145 +1,68 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem.Sources;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal partial class DocumentState
+internal sealed partial class DocumentState
 {
-    private static readonly TextAndVersion s_emptyText = TextAndVersion.Create(
-        SourceText.From(string.Empty),
-        VersionStamp.Default);
+    public HostDocument HostDocument { get; }
+    public int Version { get; }
 
-    public static readonly Func<Task<TextAndVersion>> EmptyLoader = () => Task.FromResult(s_emptyText);
+    private readonly ITextAndVersionSource _textAndVersionSource;
+    private readonly GeneratedOutputSource _generatedOutputSource;
 
-    private readonly object _lock;
-
-    private ComputedStateTracker? _computedState;
-
-    private readonly Func<Task<TextAndVersion>> _loader;
-    private Task<TextAndVersion>? _loaderTask;
-    private SourceText? _sourceText;
-    private VersionStamp? _textVersion;
-    private readonly int _version;
-
-    public static DocumentState Create(
-        HostDocument hostDocument,
-        int version,
-        Func<Task<TextAndVersion>>? loader)
-    {
-        if (hostDocument is null)
-        {
-            throw new ArgumentNullException(nameof(hostDocument));
-        }
-
-        return new DocumentState(hostDocument, null, null, version, loader);
-    }
-
-    public static DocumentState Create(
-      HostDocument hostDocument,
-      Func<Task<TextAndVersion>>? loader)
-    {
-        if (hostDocument is null)
-        {
-            throw new ArgumentNullException(nameof(hostDocument));
-        }
-
-        return new DocumentState(hostDocument, null, null, version: 1, loader);
-    }
-
-    // Internal for testing
-    internal DocumentState(
-        HostDocument hostDocument,
-        SourceText? text,
-        VersionStamp? textVersion,
-        int version,
-        Func<Task<TextAndVersion>>? loader)
+    private DocumentState(HostDocument hostDocument, ITextAndVersionSource textAndVersionSource)
     {
         HostDocument = hostDocument;
-        _sourceText = text;
-        _textVersion = textVersion;
-        _version = version;
-        _loader = loader ?? EmptyLoader;
-        _lock = new object();
+        Version = 1;
+        _textAndVersionSource = textAndVersionSource;
+        _generatedOutputSource = new();
     }
 
-    public HostDocument HostDocument { get; }
-    public int Version => _version;
-
-    public bool IsGeneratedOutputResultAvailable => ComputedState.IsResultAvailable == true;
-
-    private ComputedStateTracker ComputedState
+    private DocumentState(DocumentState oldState, ITextAndVersionSource textAndVersionSource)
     {
-        get
-        {
-            if (_computedState is null)
-            {
-                lock (_lock)
-                {
-                    _computedState ??= new ComputedStateTracker(this);
-                }
-            }
-
-            return _computedState;
-        }
+        HostDocument = oldState.HostDocument;
+        Version = oldState.Version + 1;
+        _textAndVersionSource = textAndVersionSource;
+        _generatedOutputSource = new();
     }
 
-    public Task<(RazorCodeDocument output, VersionStamp inputVersion)> GetGeneratedOutputAndVersionAsync(ProjectSnapshot project, DocumentSnapshot document)
-    {
-        return ComputedState.GetGeneratedOutputAndVersionAsync(project, document);
-    }
+    public static DocumentState Create(HostDocument hostDocument, SourceText text)
+        => new(hostDocument, CreateTextAndVersionSource(text));
 
-    public async Task<SourceText> GetTextAsync()
-    {
-        if (TryGetText(out var text))
-        {
-            return text;
-        }
+    public static DocumentState Create(HostDocument hostDocument, TextLoader textLoader)
+        => new(hostDocument, CreateTextAndVersionSource(textLoader));
 
-        lock (_lock)
-        {
-            _loaderTask = _loader();
-        }
+    private static ConstantTextAndVersionSource CreateTextAndVersionSource(SourceText text, VersionStamp? version = null)
+        => new(text, version ?? VersionStamp.Create());
 
-        return (await _loaderTask.ConfigureAwait(false)).Text;
-    }
+    private static LoadableTextAndVersionSource CreateTextAndVersionSource(TextLoader textLoader)
+        => new(textLoader);
 
-    public async Task<VersionStamp> GetTextVersionAsync()
-    {
-        if (TryGetTextVersion(out var version))
-        {
-            return version;
-        }
+    public bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
+        => _generatedOutputSource.TryGetValue(out result);
 
-        lock (_lock)
-        {
-            _loaderTask = _loader();
-        }
+    public ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(DocumentSnapshot document, CancellationToken cancellationToken)
+        => _generatedOutputSource.GetValueAsync(document, cancellationToken);
 
-        return (await _loaderTask.ConfigureAwait(false)).Version;
-    }
+    public bool TryGetTextAndVersion([NotNullWhen(true)] out TextAndVersion? result)
+        => _textAndVersionSource.TryGetValue(out result);
+
+    public ValueTask<TextAndVersion> GetTextAndVersionAsync(CancellationToken cancellationToken)
+        => _textAndVersionSource.GetValueAsync(cancellationToken);
 
     public bool TryGetText([NotNullWhen(true)] out SourceText? result)
     {
-        if (_sourceText is { } sourceText)
+        if (TryGetTextAndVersion(out var textAndVersion))
         {
-            result = sourceText;
-            return true;
-        }
-
-        if (_loaderTask is { } loaderTask && loaderTask.IsCompleted)
-        {
-#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-            result = loaderTask.Result.Text;
-#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
+            result = textAndVersion.Text;
             return true;
         }
 
@@ -147,19 +70,25 @@ internal partial class DocumentState
         return false;
     }
 
+    public ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
+    {
+        return TryGetText(out var text)
+            ? new(text)
+            : GetTextCoreAsync(cancellationToken);
+
+        async ValueTask<SourceText> GetTextCoreAsync(CancellationToken cancellationToken)
+        {
+            var textAsVersion = await GetTextAndVersionAsync(cancellationToken).ConfigureAwait(false);
+
+            return textAsVersion.Text;
+        }
+    }
+
     public bool TryGetTextVersion(out VersionStamp result)
     {
-        if (_textVersion is { } version)
+        if (TryGetTextAndVersion(out var textAndVersion))
         {
-            result = version;
-            return true;
-        }
-
-        if (_loaderTask is { } loaderTask && loaderTask.IsCompleted)
-        {
-#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-            result = loaderTask.Result.Version;
-#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
+            result = textAndVersion.Version;
             return true;
         }
 
@@ -167,160 +96,34 @@ internal partial class DocumentState
         return false;
     }
 
-    public virtual DocumentState WithConfigurationChange()
+    public ValueTask<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken)
     {
-        var state = new DocumentState(HostDocument, _sourceText, _textVersion, _version + 1, _loader)
+        return TryGetTextVersion(out var version)
+            ? new(version)
+            : GetTextVersionCoreAsync(cancellationToken);
+
+        async ValueTask<VersionStamp> GetTextVersionCoreAsync(CancellationToken cancellationToken)
         {
-            // The source could not have possibly changed.
-            _sourceText = _sourceText,
-            _textVersion = _textVersion,
-            _loaderTask = _loaderTask,
-        };
+            var textAsVersion = await GetTextAndVersionAsync(cancellationToken).ConfigureAwait(false);
 
-        // Do not cache computed state
-
-        return state;
-    }
-
-    public virtual DocumentState WithImportsChange()
-    {
-        var state = new DocumentState(HostDocument, _sourceText, _textVersion, _version + 1, _loader)
-        {
-            // The source could not have possibly changed.
-            _sourceText = _sourceText,
-            _textVersion = _textVersion,
-            _loaderTask = _loaderTask
-        };
-
-        // Optimistically cache the computed state
-        state._computedState = new ComputedStateTracker(state, _computedState);
-
-        return state;
-    }
-
-    public virtual DocumentState WithProjectWorkspaceStateChange()
-    {
-        var state = new DocumentState(HostDocument, _sourceText, _textVersion, _version + 1, _loader)
-        {
-            // The source could not have possibly changed.
-            _sourceText = _sourceText,
-            _textVersion = _textVersion,
-            _loaderTask = _loaderTask
-        };
-
-        // Optimistically cache the computed state
-        state._computedState = new ComputedStateTracker(state, _computedState);
-
-        return state;
-    }
-
-    public virtual DocumentState WithText(SourceText sourceText, VersionStamp textVersion)
-    {
-        if (sourceText is null)
-        {
-            throw new ArgumentNullException(nameof(sourceText));
+            return textAsVersion.Version;
         }
-
-        // Do not cache the computed state
-
-        return new DocumentState(HostDocument, sourceText, textVersion, _version + 1, null);
     }
 
-    public virtual DocumentState WithTextLoader(Func<Task<TextAndVersion>> loader)
-    {
-        if (loader is null)
-        {
-            throw new ArgumentNullException(nameof(loader));
-        }
+    public DocumentState WithConfigurationChange()
+        => new(this, _textAndVersionSource);
 
-        // Do not cache the computed state
+    public DocumentState WithImportsChange()
+        => new(this, _textAndVersionSource);
 
-        return new DocumentState(HostDocument, null, null, _version + 1, loader);
-    }
+    public DocumentState WithProjectWorkspaceStateChange()
+        => new(this, _textAndVersionSource);
 
-    // Internal, because we are temporarily sharing code with CohostDocumentSnapshot
-    internal static ImmutableArray<IDocumentSnapshot> GetImportsCore(IProjectSnapshot project, RazorProjectEngine projectEngine, string filePath, string fileKind)
-    {
-        var projectItem = projectEngine.FileSystem.GetItem(filePath, fileKind);
+    public DocumentState WithText(SourceText text, VersionStamp textVersion)
+        => new(this, CreateTextAndVersionSource(text, textVersion));
 
-        using var _1 = ListPool<RazorProjectItem>.GetPooledObject(out var importItems);
-
-        foreach (var feature in projectEngine.ProjectFeatures.OfType<IImportProjectFeature>())
-        {
-            if (feature.GetImports(projectItem) is { } featureImports)
-            {
-                importItems.AddRange(featureImports);
-            }
-        }
-
-        if (importItems.Count == 0)
-        {
-            return ImmutableArray<IDocumentSnapshot>.Empty;
-        }
-
-        using var _2 = ArrayBuilderPool<IDocumentSnapshot>.GetPooledObject(out var imports);
-
-        foreach (var item in importItems)
-        {
-            if (item is NotFoundProjectItem)
-            {
-                continue;
-            }
-
-            if (item.PhysicalPath is null)
-            {
-                // This is a default import.
-                var defaultImport = new ImportDocumentSnapshot(project, item);
-                imports.Add(defaultImport);
-            }
-            else if (project.GetDocument(item.PhysicalPath) is { } import)
-            {
-                imports.Add(import);
-            }
-        }
-
-        return imports.ToImmutable();
-    }
-
-    internal static async Task<RazorCodeDocument> GenerateCodeDocumentAsync(IDocumentSnapshot document, RazorProjectEngine projectEngine, ImmutableArray<ImportItem> imports, ImmutableArray<TagHelperDescriptor> tagHelpers, bool forceRuntimeCodeGeneration)
-    {
-        // OK we have to generate the code.
-        using var importSources = new PooledArrayBuilder<RazorSourceDocument>(imports.Length);
-        foreach (var item in imports)
-        {
-            var importProjectItem = item.FilePath is null ? null : projectEngine.FileSystem.GetItem(item.FilePath, item.FileKind);
-            var sourceDocument = await GetRazorSourceDocumentAsync(item.Document, importProjectItem).ConfigureAwait(false);
-            importSources.Add(sourceDocument);
-        }
-
-        var projectItem = document.FilePath is null ? null : projectEngine.FileSystem.GetItem(document.FilePath, document.FileKind);
-        var documentSource = await GetRazorSourceDocumentAsync(document, projectItem).ConfigureAwait(false);
-
-        if (forceRuntimeCodeGeneration)
-        {
-            return projectEngine.Process(documentSource, fileKind: document.FileKind, importSources.DrainToImmutable(), tagHelpers);
-        }
-
-        return projectEngine.ProcessDesignTime(documentSource, fileKind: document.FileKind, importSources.DrainToImmutable(), tagHelpers);
-    }
-
-    internal static async Task<ImmutableArray<ImportItem>> GetImportsAsync(IDocumentSnapshot document, RazorProjectEngine projectEngine)
-    {
-        var imports = GetImportsCore(document.Project, projectEngine, document.FilePath.AssumeNotNull(), document.FileKind.AssumeNotNull());
-        using var result = new PooledArrayBuilder<ImportItem>(imports.Length);
-
-        foreach (var snapshot in imports)
-        {
-            var versionStamp = await snapshot.GetTextVersionAsync().ConfigureAwait(false);
-            result.Add(new ImportItem(snapshot.FilePath, versionStamp, snapshot));
-        }
-
-        return result.DrainToImmutable();
-    }
-
-    private static async Task<RazorSourceDocument> GetRazorSourceDocumentAsync(IDocumentSnapshot document, RazorProjectItem? projectItem)
-    {
-        var sourceText = await document.GetTextAsync().ConfigureAwait(false);
-        return RazorSourceDocument.Create(sourceText, RazorSourceDocumentProperties.Create(document.FilePath, projectItem?.RelativePhysicalPath));
-    }
+    public DocumentState WithTextLoader(TextLoader textLoader)
+        => ReferenceEquals(textLoader, _textAndVersionSource.TextLoader)
+            ? this
+            : new(this, CreateTextAndVersionSource(textLoader));
 }

@@ -3,14 +3,12 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
@@ -80,7 +78,7 @@ public class CSharpVirtualDocumentFactoryTest : VisualStudioTestBase
             _textDocumentFactoryService,
             uriProvider,
             _filePathService,
-            StrictMock.Of<IProjectSnapshotManager>(),
+            CreateProjectSnapshotManager(),
             TestLanguageServerFeatureOptions.Instance,
             LoggerFactory,
             telemetryReporter: null!);
@@ -107,7 +105,7 @@ public class CSharpVirtualDocumentFactoryTest : VisualStudioTestBase
             _textDocumentFactoryService,
             uriProvider,
             _filePathService,
-            StrictMock.Of<IProjectSnapshotManager>(),
+            CreateProjectSnapshotManager(),
             TestLanguageServerFeatureOptions.Instance,
             LoggerFactory,
             telemetryReporter: null!);
@@ -133,10 +131,13 @@ public class CSharpVirtualDocumentFactoryTest : VisualStudioTestBase
 
         var projectManager = CreateProjectSnapshotManager();
 
+        var hostProject = TestHostProject.Create(@"C:\path\to\project.csproj");
+        var hostDocument = TestHostDocument.Create(hostProject, @"C:\path\to\file.razor");
+
         await projectManager.UpdateAsync(updater =>
         {
-            var project = updater.CreateAndAddProject(@"C:\path\to\project.csproj");
-            updater.CreateAndAddDocument(project, @"C:\path\to\file.razor");
+            updater.AddProject(hostProject);
+            updater.AddDocument(hostProject.Key, hostDocument, EmptyTextLoader.Instance);
         });
 
         var factory = new CSharpVirtualDocumentFactory(
@@ -171,25 +172,25 @@ public class CSharpVirtualDocumentFactoryTest : VisualStudioTestBase
 
         var projectManager = CreateProjectSnapshotManager();
 
+        var hostProject1 = TestHostProject.Create(
+            filePath: @"C:\path\to\project1.csproj",
+            intermediateOutputPath: @"C:\path\to\obj1");
+
+        var hostDocument1 = TestHostDocument.Create(hostProject1, @"C:\path\to\file.razor");
+
+        var hostProject2 = TestHostProject.Create(
+            filePath: @"C:\path\to\project2.csproj",
+            intermediateOutputPath: @"C:\path\to\obj2");
+
+        var hostDocument2 = TestHostDocument.Create(hostProject2, @"C:\path\to\file.razor");
+
         await projectManager.UpdateAsync(updater =>
         {
-            var project1 = TestProjectSnapshot.Create(
-                @"C:\path\to\project1.csproj",
-                @"C:\path\to\obj1",
-                documentFilePaths: [],
-                RazorConfiguration.Default,
-                projectWorkspaceState: null);
-            updater.ProjectAdded(project1.HostProject);
-            updater.CreateAndAddDocument(project1, @"C:\path\to\file.razor");
+            updater.AddProject(hostProject1);
+            updater.AddDocument(hostProject1.Key, hostDocument1, EmptyTextLoader.Instance);
 
-            var project2 = TestProjectSnapshot.Create(
-                @"C:\path\to\project2.csproj",
-                @"C:\path\to\obj2",
-                documentFilePaths: [],
-                RazorConfiguration.Default,
-                projectWorkspaceState: null);
-            updater.ProjectAdded(project2.HostProject);
-            updater.CreateAndAddDocument(project2, @"C:\path\to\file.razor");
+            updater.AddProject(hostProject2);
+            updater.AddDocument(hostProject2.Key, hostDocument2, EmptyTextLoader.Instance);
         });
 
         var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true);

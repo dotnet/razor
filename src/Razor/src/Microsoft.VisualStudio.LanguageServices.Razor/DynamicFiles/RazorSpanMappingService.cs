@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.Razor.DynamicFiles;
@@ -42,8 +42,8 @@ internal class RazorSpanMappingService(IDocumentSnapshot document) : IRazorSpanM
             return ImmutableArray<RazorMappedSpanResult>.Empty;
         }
 
-        var source = await _document.GetTextAsync().ConfigureAwait(false);
-        var output = await _document.GetGeneratedOutputAsync().ConfigureAwait(false);
+        var output = await _document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var source = output.Source.Text;
 
         var csharpDocument = output.GetCSharpDocument();
         var filePath = output.Source.FilePath.AssumeNotNull();

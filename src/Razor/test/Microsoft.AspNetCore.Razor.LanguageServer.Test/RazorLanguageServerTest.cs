@@ -8,12 +8,14 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting.Logging;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting.NamedPipes;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Nerdbank.Streams;
@@ -28,57 +30,71 @@ public class RazorLanguageServerTest(ITestOutputHelper testOutput) : ToolingTest
     public async Task LocaleIsSetCorrectly()
     {
         var (_, serverStream) = FullDuplexStream.CreatePair();
-        using var host = CreateLanguageServerHost(serverStream, serverStream);
-
-        var server = host.GetTestAccessor().Server;
-        server.Initialize();
-        var queue = server.GetTestAccessor().GetRequestExecutionQueue();
-
-        var initializeParams = JsonSerializer.SerializeToElement(new InitializeParams
+        RazorLanguageServer server;
+        using (var host = CreateLanguageServerHost(serverStream, serverStream))
         {
-            Capabilities = new(),
-            Locale = "de-DE"
-        });
+            server = host.GetTestAccessor().Server;
 
-        await queue.ExecuteAsync(initializeParams, Methods.InitializeName, server.GetLspServices(), DisposalToken);
+            server.Initialize();
+            var queue = server.GetTestAccessor().GetRequestExecutionQueue();
 
-        // We have to send one more request, because culture is set before any request starts, but the first initialize request has to
-        // be started in order to set the culture.
-        // The request isn't actually valid, so we wrap it in a try catch, but we don't care for this test
-        try
-        {
-            await queue.ExecuteAsync(JsonSerializer.SerializeToElement(new object()), VSInternalMethods.DocumentPullDiagnosticName, server.GetLspServices(), DisposalToken);
+            var initializeParams = JsonSerializer.SerializeToElement(new InitializeParams
+            {
+                Capabilities = new(),
+                Locale = "de-DE"
+            });
+
+            await queue.ExecuteAsync(initializeParams, Methods.InitializeName, server.GetLspServices(), DisposalToken);
+
+            // We have to send one more request, because culture is set before any request starts, but the first initialize request has to
+            // be started in order to set the culture. The request must be valid because the culture is set in `BeforeRequest` but it doesn't
+            // have to succeed.
+            try
+            {
+                var namedPipeParams = new RazorNamedPipeConnectParams()
+                {
+                    PipeName = ""
+                };
+
+                await queue.ExecuteAsync(JsonSerializer.SerializeToElement(namedPipeParams), CustomMessageNames.RazorNamedPipeConnectEndpointName, server.GetLspServices(), DisposalToken);
+            }
+            catch { }
+
+            var cultureInfo = queue.GetTestAccessor().GetCultureInfo();
+
+            Assert.NotNull(cultureInfo);
+            Assert.Equal("de-DE", cultureInfo.Name);
         }
-        catch { }
 
-        var cultureInfo = queue.GetTestAccessor().GetCultureInfo();
-
-        Assert.NotNull(cultureInfo);
-        Assert.Equal("de-DE", cultureInfo.Name);
+        await server.WaitForExitAsync();
     }
 
     [Fact]
-    public void AllHandlersRegisteredAsync()
+    public async Task AllHandlersRegisteredAsync()
     {
         var (_, serverStream) = FullDuplexStream.CreatePair();
-        using var host = CreateLanguageServerHost(serverStream, serverStream);
-
-        var server = host.GetTestAccessor().Server;
-        var handlerProvider = server.GetTestAccessor().HandlerProvider;
-
-        var registeredMethods = handlerProvider.GetRegisteredMethods();
-        var handlerTypes = typeof(RazorLanguageServerHost).Assembly.GetTypes()
-            .Where(t => typeof(IMethodHandler).IsAssignableFrom(t) && !t.IsAbstract && !t.IsInterface);
-
-        // We turn this into a Set to handle cases like Completion where we have two handlers, only one of which will be registered
-        // CLaSP will throw if two handlers register for the same method, so if THAT doesn't hold it's a CLaSP bug, not a Razor bug.
-        var typeMethods = handlerTypes.Select(t => GetMethodFromType(t)).ToHashSet();
-
-        if (registeredMethods.Length != typeMethods.Count)
+        RazorLanguageServer server;
+        using (var host = CreateLanguageServerHost(serverStream, serverStream))
         {
-            var unregisteredHandlers = typeMethods.Where(t => !registeredMethods.Any(m => m.MethodName == t));
-            Assert.Fail($"Unregistered handlers: {string.Join(";", unregisteredHandlers.Select(t => t))}");
+            server = host.GetTestAccessor().Server;
+            var handlerProvider = server.GetTestAccessor().HandlerProvider;
+
+            var registeredMethods = handlerProvider.GetRegisteredMethods();
+            var handlerTypes = typeof(RazorLanguageServerHost).Assembly.GetTypes()
+                .Where(t => typeof(IMethodHandler).IsAssignableFrom(t) && !t.IsAbstract && !t.IsInterface);
+
+            // We turn this into a Set to handle cases like Completion where we have two handlers, only one of which will be registered
+            // CLaSP will throw if two handlers register for the same method, so if THAT doesn't hold it's a CLaSP bug, not a Razor bug.
+            var typeMethods = handlerTypes.Select(t => GetMethodFromType(t)).ToHashSet();
+
+            if (registeredMethods.Length != typeMethods.Count)
+            {
+                var unregisteredHandlers = typeMethods.Where(t => !registeredMethods.Any(m => m.MethodName == t));
+                Assert.Fail($"Unregistered handlers: {string.Join(";", unregisteredHandlers.Select(t => t))}");
+            }
         }
+
+        await server.WaitForExitAsync();
 
         static string GetMethodFromType(Type t)
         {
@@ -116,8 +132,10 @@ public class RazorLanguageServerTest(ITestOutputHelper testOutput) : ToolingTest
             {
                 s.AddSingleton<IRazorProjectInfoDriver, TestProjectInfoDriver>();
 
-                // VS Code only handler is added by rzls, but add here for testing purposes
+                // VS Code only handlers are added by rzls, but add here for testing purposes
                 s.AddHandler<RazorNamedPipeConnectEndpoint>();
+                s.AddSingleton(new LogLevelProvider(CodeAnalysis.Razor.Logging.LogLevel.None));
+                s.AddHandler<UpdateLogLevelEndpoint>();
             });
     }
 

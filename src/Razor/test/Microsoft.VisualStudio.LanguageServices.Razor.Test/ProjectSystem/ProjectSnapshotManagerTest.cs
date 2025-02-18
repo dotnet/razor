@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -36,17 +35,15 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         TestProjectData.SomeProjectComponentFile2,
     ];
 
-    private static readonly HostProject s_hostProject = new(
-        TestProjectData.SomeProject.FilePath,
-        TestProjectData.SomeProject.IntermediateOutputPath,
-        FallbackRazorConfiguration.MVC_2_0,
-        TestProjectData.SomeProject.RootNamespace);
+    private static readonly HostProject s_hostProject = TestProjectData.SomeProject with
+    {
+        Configuration = FallbackRazorConfiguration.MVC_2_0
+    };
 
-    private static readonly HostProject s_hostProjectWithConfigurationChange = new(
-        TestProjectData.SomeProject.FilePath,
-        TestProjectData.SomeProject.IntermediateOutputPath,
-        FallbackRazorConfiguration.MVC_1_0,
-        TestProjectData.SomeProject.RootNamespace);
+    private static readonly HostProject s_hostProjectWithConfigurationChange = TestProjectData.SomeProject with
+    {
+        Configuration = FallbackRazorConfiguration.MVC_1_0
+    };
 
     private readonly ProjectWorkspaceState _projectWorkspaceStateWithTagHelpers;
     private readonly TestProjectSnapshotManager _projectManager;
@@ -77,7 +74,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(
+            updater.AddProject(
                 new("C:/path/to/project.csproj", "C:/path/to/obj", RazorConfiguration.Default, rootNamespace: null));
         });
 
@@ -86,12 +83,12 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public async Task DocumentAdded_AddsDocument()
+    public async Task AddDocument_AddsDocument()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -99,11 +96,11 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], null!);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], EmptyTextLoader.Instance);
         });
 
         // Assert
-        var project = _projectManager.GetLoadedProject(s_hostProject.Key);
+        var project = _projectManager.GetRequiredProject(s_hostProject.Key);
         Assert.Single(project.DocumentFilePaths,
             filePath => filePath == s_documents[0].FilePath);
 
@@ -112,12 +109,12 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public async Task DocumentAdded_AddsDocument_Legacy()
+    public async Task AddDocument_AddsDocument_Legacy()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -125,27 +122,27 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], null!);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], EmptyTextLoader.Instance);
         });
 
         // Assert
-        var project = _projectManager.GetLoadedProject(s_hostProject.Key);
+        var project = _projectManager.GetRequiredProject(s_hostProject.Key);
         Assert.Single(
             project.DocumentFilePaths,
             filePath => filePath == s_documents[0].FilePath &&
-                        project.GetDocument(filePath).AssumeNotNull().FileKind == FileKinds.Legacy);
+                        project.GetRequiredDocument(filePath).FileKind == FileKinds.Legacy);
 
         listener.AssertNotifications(
             x => x.DocumentAdded());
     }
 
     [UIFact]
-    public async Task DocumentAdded_AddsDocument_Component()
+    public async Task AddDocument_AddsDocument_Component()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -153,28 +150,28 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_documents[3], null!);
+            updater.AddDocument(s_hostProject.Key, s_documents[3], EmptyTextLoader.Instance);
         });
 
         // Assert
-        var project = _projectManager.GetLoadedProject(s_hostProject.Key);
+        var project = _projectManager.GetRequiredProject(s_hostProject.Key);
         Assert.Single(
             project.DocumentFilePaths,
             filePath => filePath == s_documents[3].FilePath &&
-                        project.GetDocument(filePath).AssumeNotNull().FileKind == FileKinds.Component);
+                        project.GetRequiredDocument(filePath).FileKind == FileKinds.Component);
 
         listener.AssertNotifications(
             x => x.DocumentAdded());
     }
 
     [UIFact]
-    public async Task DocumentAdded_IgnoresDuplicate()
+    public async Task AddDocument_IgnoresDuplicate()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], null!);
+            updater.AddProject(s_hostProject);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], EmptyTextLoader.Instance);
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -182,67 +179,66 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], null!);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], EmptyTextLoader.Instance);
         });
 
         // Assert
-        var project = _projectManager.GetLoadedProject(s_hostProject.Key);
+        var project = _projectManager.GetRequiredProject(s_hostProject.Key);
         Assert.Single(project.DocumentFilePaths,
             filePath => filePath == s_documents[0].FilePath);
 
         listener.AssertNoNotifications();
 
-        Assert.Equal(1, project.GetDocument(s_documents[0].FilePath)!.Version);
+        Assert.Equal(1, project.GetRequiredDocument(s_documents[0].FilePath).Version);
     }
 
     [UIFact]
-    public async Task DocumentAdded_IgnoresUnknownProject()
+    public async Task AddDocument_IgnoresUnknownProject()
     {
         // Arrange
 
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], null!);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], StrictMock.Of<TextLoader>());
         });
 
         // Assert
-        var projectKeys = _projectManager.GetAllProjectKeys(s_hostProject.FilePath);
+        var projectKeys = _projectManager.GetProjectKeysWithFilePath(s_hostProject.FilePath);
         Assert.Empty(projectKeys);
     }
 
     [UIFact]
-    public async Task DocumentAdded_NullLoader_HasEmptyText()
+    public async Task AddDocument_EmptyLoader_HasEmptyText()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
         });
 
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], null!);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], EmptyTextLoader.Instance);
         });
 
         // Assert
-        var project = _projectManager.GetLoadedProject(s_hostProject.Key);
+        var project = _projectManager.GetRequiredProject(s_hostProject.Key);
         var documentFilePath = Assert.Single(project.DocumentFilePaths);
-        var document = project.GetDocument(documentFilePath);
-        Assert.NotNull(document);
+        var document = project.GetRequiredDocument(documentFilePath);
 
-        var text = await document.GetTextAsync();
+        var text = await document.GetTextAsync(DisposalToken);
         Assert.Equal(0, text.Length);
     }
 
     [UIFact]
-    public async Task DocumentAdded_WithLoader_LoadesText()
+    public async Task AddDocument_WithLoader_LoadsText()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
         });
 
         var expected = SourceText.From("Hello");
@@ -250,39 +246,42 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], TextLoader.From(TextAndVersion.Create(expected, VersionStamp.Default)));
+            updater.AddDocument(s_hostProject.Key, s_documents[0], TextLoader.From(TextAndVersion.Create(expected, VersionStamp.Default)));
         });
 
         // Assert
-        var project = _projectManager.GetLoadedProject(s_hostProject.Key);
+        var project = _projectManager.GetRequiredProject(s_hostProject.Key);
         var documentFilePath = Assert.Single(project.DocumentFilePaths);
-        var document = project.GetDocument(documentFilePath);
-        Assert.NotNull(document);
+        var document = project.GetRequiredDocument(documentFilePath);
 
-        var actual = await document.GetTextAsync();
+        var actual = await document.GetTextAsync(DisposalToken);
         Assert.Same(expected, actual);
     }
 
     [UIFact]
-    public async Task DocumentAdded_CachesTagHelpers()
+    public async Task AddDocument_CachesTagHelpers()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
-            updater.ProjectWorkspaceStateChanged(s_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
+            updater.AddProject(s_hostProject);
+            updater.UpdateProjectWorkspaceState(s_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
         });
 
-        var originalTagHelpers = await _projectManager.GetLoadedProject(s_hostProject.Key).GetTagHelpersAsync(DisposalToken);
+        var originalTagHelpers = await _projectManager
+            .GetRequiredProject(s_hostProject.Key)
+            .GetTagHelpersAsync(DisposalToken);
 
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], null!);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], EmptyTextLoader.Instance);
         });
 
         // Assert
-        var newTagHelpers = await _projectManager.GetLoadedProject(s_hostProject.Key).GetTagHelpersAsync(DisposalToken);
+        var newTagHelpers = await _projectManager
+            .GetRequiredProject(s_hostProject.Key)
+            .GetTagHelpersAsync(DisposalToken);
 
         Assert.Equal(originalTagHelpers.Length, newTagHelpers.Length);
         for (var i = 0; i < originalTagHelpers.Length; i++)
@@ -292,38 +291,39 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public async Task DocumentAdded_CachesProjectEngine()
+    public async Task AddDocument_CachesProjectEngine()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
         });
 
-        var project = _projectManager.GetLoadedProject(s_hostProject.Key);
-        var projectEngine = project.GetProjectEngine();
+        var project = _projectManager.GetRequiredProject(s_hostProject.Key);
+        var projectEngine = project.ProjectEngine;
 
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], null!);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], EmptyTextLoader.Instance);
         });
 
         // Assert
-        project = _projectManager.GetLoadedProject(s_hostProject.Key);
-        Assert.Same(projectEngine, project.GetProjectEngine());
+        var newProjectEngine = _projectManager.GetRequiredProject(s_hostProject.Key).ProjectEngine;
+
+        Assert.Same(projectEngine, newProjectEngine);
     }
 
     [UIFact]
-    public async Task DocumentRemoved_RemovesDocument()
+    public async Task RemoveDocument_RemovesDocument()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], null!);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[1], null!);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[2], null!);
+            updater.AddProject(s_hostProject);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], EmptyTextLoader.Instance);
+            updater.AddDocument(s_hostProject.Key, s_documents[1], EmptyTextLoader.Instance);
+            updater.AddDocument(s_hostProject.Key, s_documents[2], EmptyTextLoader.Instance);
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -331,11 +331,11 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentRemoved(s_hostProject.Key, s_documents[1]);
+            updater.RemoveDocument(s_hostProject.Key, s_documents[1].FilePath);
         });
 
         // Assert
-        var project = _projectManager.GetLoadedProject(s_hostProject.Key);
+        var project = _projectManager.GetRequiredProject(s_hostProject.Key);
         Assert.Collection(
             project.DocumentFilePaths.OrderBy(f => f),
             f => Assert.Equal(s_documents[2].FilePath, f),
@@ -346,12 +346,12 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public async Task DocumentRemoved_IgnoresNotFoundDocument()
+    public async Task RemoveDocument_IgnoresNotFoundDocument()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -359,55 +359,59 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentRemoved(s_hostProject.Key, s_documents[0]);
+            updater.RemoveDocument(s_hostProject.Key, s_documents[0].FilePath);
         });
 
         // Assert
-        var project = _projectManager.GetLoadedProject(s_hostProject.Key);
+        var project = _projectManager.GetRequiredProject(s_hostProject.Key);
         Assert.Empty(project.DocumentFilePaths);
 
         listener.AssertNoNotifications();
     }
 
     [UIFact]
-    public async Task DocumentRemoved_IgnoresUnknownProject()
+    public async Task RemoveDocument_IgnoresUnknownProject()
     {
         // Arrange
 
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentRemoved(s_hostProject.Key, s_documents[0]);
+            updater.RemoveDocument(s_hostProject.Key, s_documents[0].FilePath);
         });
 
         // Assert
-        var projectKeys = _projectManager.GetAllProjectKeys(s_hostProject.FilePath);
+        var projectKeys = _projectManager.GetProjectKeysWithFilePath(s_hostProject.FilePath);
         Assert.Empty(projectKeys);
     }
 
     [UIFact]
-    public async Task DocumentRemoved_CachesTagHelpers()
+    public async Task RemoveDocument_CachesTagHelpers()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
-            updater.ProjectWorkspaceStateChanged(s_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], null!);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[1], null!);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[2], null!);
+            updater.AddProject(s_hostProject);
+            updater.UpdateProjectWorkspaceState(s_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], EmptyTextLoader.Instance);
+            updater.AddDocument(s_hostProject.Key, s_documents[1], EmptyTextLoader.Instance);
+            updater.AddDocument(s_hostProject.Key, s_documents[2], EmptyTextLoader.Instance);
         });
 
-        var originalTagHelpers = await _projectManager.GetLoadedProject(s_hostProject.Key).GetTagHelpersAsync(DisposalToken);
+        var originalTagHelpers = await _projectManager
+            .GetRequiredProject(s_hostProject.Key)
+            .GetTagHelpersAsync(DisposalToken);
 
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentRemoved(s_hostProject.Key, s_documents[1]);
+            updater.RemoveDocument(s_hostProject.Key, s_documents[1].FilePath);
         });
 
         // Assert
-        var newTagHelpers = await _projectManager.GetLoadedProject(s_hostProject.Key).GetTagHelpersAsync(DisposalToken);
+        var newTagHelpers = await _projectManager
+            .GetRequiredProject(s_hostProject.Key)
+            .GetTagHelpersAsync(DisposalToken);
 
         Assert.Equal(originalTagHelpers.Length, newTagHelpers.Length);
         for (var i = 0; i < originalTagHelpers.Length; i++)
@@ -417,39 +421,40 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public async Task DocumentRemoved_CachesProjectEngine()
+    public async Task RemoveDocument_CachesProjectEngine()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], null!);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[1], null!);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[2], null!);
+            updater.AddProject(s_hostProject);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], EmptyTextLoader.Instance);
+            updater.AddDocument(s_hostProject.Key, s_documents[1], EmptyTextLoader.Instance);
+            updater.AddDocument(s_hostProject.Key, s_documents[2], EmptyTextLoader.Instance);
         });
 
-        var project = _projectManager.GetLoadedProject(s_hostProject.Key);
-        var projectEngine = project.GetProjectEngine();
+        var project = _projectManager.GetRequiredProject(s_hostProject.Key);
+        var projectEngine = project.ProjectEngine;
 
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentRemoved(s_hostProject.Key, s_documents[1]);
+            updater.RemoveDocument(s_hostProject.Key, s_documents[1].FilePath);
         });
 
         // Assert
-        project = _projectManager.GetLoadedProject(s_hostProject.Key);
-        Assert.Same(projectEngine, project.GetProjectEngine());
+        var newProjectEngine = _projectManager.GetRequiredProject(s_hostProject.Key).ProjectEngine;
+
+        Assert.Same(projectEngine, newProjectEngine);
     }
 
     [UIFact]
-    public async Task DocumentOpened_UpdatesDocument()
+    public async Task OpenDocument_UpdatesDocument()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], null!);
+            updater.AddProject(s_hostProject);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], EmptyTextLoader.Instance);
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -457,17 +462,16 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentOpened(s_hostProject.Key, s_documents[0].FilePath, _sourceText);
+            updater.OpenDocument(s_hostProject.Key, s_documents[0].FilePath, _sourceText);
         });
 
         // Assert
         listener.AssertNotifications(
             x => x.DocumentChanged());
 
-        var project = _projectManager.GetLoadedProject(s_hostProject.Key);
-        var document = project.GetDocument(s_documents[0].FilePath);
-        Assert.NotNull(document);
-        var text = await document.GetTextAsync();
+        var document = _projectManager.GetRequiredDocument(s_hostProject.Key, s_documents[0].FilePath);
+
+        var text = await document.GetTextAsync(DisposalToken);
         Assert.Same(_sourceText, text);
 
         Assert.True(_projectManager.IsDocumentOpen(s_documents[0].FilePath));
@@ -476,14 +480,14 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public async Task DocumentClosed_UpdatesDocument()
+    public async Task CloseDocument_UpdatesDocument()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], null!);
-            updater.DocumentOpened(s_hostProject.Key, s_documents[0].FilePath, _sourceText);
+            updater.AddProject(s_hostProject);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], EmptyTextLoader.Instance);
+            updater.OpenDocument(s_hostProject.Key, s_documents[0].FilePath, _sourceText);
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -496,30 +500,29 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentClosed(s_hostProject.Key, s_documents[0].FilePath, TextLoader.From(textAndVersion));
+            updater.CloseDocument(s_hostProject.Key, s_documents[0].FilePath, TextLoader.From(textAndVersion));
         });
 
         // Assert
         listener.AssertNotifications(
             x => x.DocumentChanged());
 
-        var project = _projectManager.GetLoadedProject(s_hostProject.Key);
-        var document = project.GetDocument(s_documents[0].FilePath);
-        Assert.NotNull(document);
-        var text = await document.GetTextAsync();
+        var document = _projectManager.GetRequiredDocument(s_hostProject.Key, s_documents[0].FilePath);
+
+        var text = await document.GetTextAsync(DisposalToken);
         Assert.Same(expected, text);
         Assert.False(_projectManager.IsDocumentOpen(s_documents[0].FilePath));
         Assert.Equal(3, document.Version);
     }
 
     [UIFact]
-    public async Task DocumentClosed_AcceptsChange()
+    public async Task CloseDocument_AcceptsChange()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], null!);
+            updater.AddProject(s_hostProject);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], EmptyTextLoader.Instance);
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -530,29 +533,28 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentClosed(s_hostProject.Key, s_documents[0].FilePath, TextLoader.From(textAndVersion));
+            updater.CloseDocument(s_hostProject.Key, s_documents[0].FilePath, TextLoader.From(textAndVersion));
         });
 
         // Assert
         listener.AssertNotifications(
             x => x.DocumentChanged());
 
-        var project = _projectManager.GetLoadedProject(s_hostProject.Key);
-        var document = project.GetDocument(s_documents[0].FilePath);
-        Assert.NotNull(document);
-        var text = await document.GetTextAsync();
+        var document = _projectManager.GetRequiredDocument(s_hostProject.Key, s_documents[0].FilePath);
+
+        var text = await document.GetTextAsync(DisposalToken);
         Assert.Same(expected, text);
     }
 
     [UIFact]
-    public async Task DocumentChanged_Snapshot_UpdatesDocument()
+    public async Task UpdateDocumentText_Snapshot_UpdatesDocument()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], null!);
-            updater.DocumentOpened(s_hostProject.Key, s_documents[0].FilePath, _sourceText);
+            updater.AddProject(s_hostProject);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], EmptyTextLoader.Instance);
+            updater.OpenDocument(s_hostProject.Key, s_documents[0].FilePath, _sourceText);
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -562,30 +564,29 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentChanged(s_hostProject.Key, s_documents[0].FilePath, expected);
+            updater.UpdateDocumentText(s_hostProject.Key, s_documents[0].FilePath, expected);
         });
 
         // Assert
         listener.AssertNotifications(
             x => x.DocumentChanged());
 
-        var project = _projectManager.GetLoadedProject(s_hostProject.Key);
-        var document = project.GetDocument(s_documents[0].FilePath);
-        Assert.NotNull(document);
-        var text = await document.GetTextAsync();
+        var document = _projectManager.GetRequiredDocument(s_hostProject.Key, s_documents[0].FilePath);
+
+        var text = await document.GetTextAsync(DisposalToken);
         Assert.Same(expected, text);
         Assert.Equal(3, document.Version);
     }
 
     [UIFact]
-    public async Task DocumentChanged_Loader_UpdatesDocument()
+    public async Task UpdateDocumentText_Loader_UpdatesDocument()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], null!);
-            updater.DocumentOpened(s_hostProject.Key, s_documents[0].FilePath, _sourceText);
+            updater.AddProject(s_hostProject);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], EmptyTextLoader.Instance);
+            updater.OpenDocument(s_hostProject.Key, s_documents[0].FilePath, _sourceText);
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -596,23 +597,22 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentChanged(s_hostProject.Key, s_documents[0].FilePath, TextLoader.From(textAndVersion));
+            updater.UpdateDocumentText(s_hostProject.Key, s_documents[0].FilePath, TextLoader.From(textAndVersion));
         });
 
         // Assert
         listener.AssertNotifications(
             x => x.DocumentChanged());
 
-        var project = _projectManager.GetLoadedProject(s_hostProject.Key);
-        var document = project.GetDocument(s_documents[0].FilePath);
-        Assert.NotNull(document);
-        var text = await document.GetTextAsync();
+        var document = _projectManager.GetRequiredDocument(s_hostProject.Key, s_documents[0].FilePath);
+
+        var text = await document.GetTextAsync(DisposalToken);
         Assert.Same(expected, text);
         Assert.Equal(3, document.Version);
     }
 
     [UIFact]
-    public async Task ProjectAdded_WithoutWorkspaceProject_NotifiesListeners()
+    public async Task AddProject_WithoutWorkspaceProject_NotifiesListeners()
     {
         // Arrange
         using var listener = _projectManager.ListenToNotifications();
@@ -620,7 +620,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
         });
 
         // Assert
@@ -629,12 +629,12 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public async Task ProjectConfigurationChanged_ConfigurationChange_ProjectWorkspaceState_NotifiesListeners()
+    public async Task UpdateProjectConfiguration_ConfigurationChange_NotifiesListeners()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -642,7 +642,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectConfigurationChanged(s_hostProjectWithConfigurationChange);
+            updater.UpdateProjectConfiguration(s_hostProjectWithConfigurationChange);
         });
 
         // Assert
@@ -651,13 +651,13 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public async Task ProjectConfigurationChanged_ConfigurationChange_WithProjectWorkspaceState_NotifiesListeners()
+    public async Task UpdateProjectWorkspaceState_ConfigurationChange_WithProjectWorkspaceState_NotifiesListeners()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
-            updater.ProjectWorkspaceStateChanged(s_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
+            updater.AddProject(s_hostProject);
+            updater.UpdateProjectWorkspaceState(s_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -665,7 +665,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectConfigurationChanged(s_hostProjectWithConfigurationChange);
+            updater.UpdateProjectConfiguration(s_hostProjectWithConfigurationChange);
         });
 
         // Assert
@@ -674,30 +674,31 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public async Task ProjectConfigurationChanged_ConfigurationChange_DoesNotCacheProjectEngine()
+    public async Task UpdateProjectWorkspaceState_ConfigurationChange_DoesNotCacheProjectEngine()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
         });
 
-        var project = _projectManager.GetLoadedProject(s_hostProject.Key);
-        var projectEngine = project.GetProjectEngine();
+        var project = _projectManager.GetRequiredProject(s_hostProject.Key);
+        var projectEngine = project.ProjectEngine;
 
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectConfigurationChanged(s_hostProjectWithConfigurationChange);
+            updater.UpdateProjectConfiguration(s_hostProjectWithConfigurationChange);
         });
 
         // Assert
-        project = _projectManager.GetLoadedProject(s_hostProjectWithConfigurationChange.Key);
-        Assert.NotSame(projectEngine, project.GetProjectEngine());
+        var newProjectEngine = _projectManager.GetRequiredProject(s_hostProjectWithConfigurationChange.Key).ProjectEngine;
+
+        Assert.NotSame(projectEngine, newProjectEngine);
     }
 
     [UIFact]
-    public async Task ProjectConfigurationChanged_IgnoresUnknownProject()
+    public async Task UpdateProjectWorkspaceState_IgnoresUnknownProject()
     {
         // Arrange
         using var listener = _projectManager.ListenToNotifications();
@@ -705,7 +706,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectConfigurationChanged(s_hostProject);
+            updater.UpdateProjectConfiguration(s_hostProject);
         });
 
         // Assert
@@ -715,12 +716,12 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public async Task ProjectRemoved_RemovesProject_NotifiesListeners()
+    public async Task RemoveProject_RemovesProject_NotifiesListeners()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -728,7 +729,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectRemoved(s_hostProject.Key);
+            updater.RemoveProject(s_hostProject.Key);
         });
 
         // Assert
@@ -739,7 +740,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public async Task ProjectWorkspaceStateChanged_WithoutHostProject_IgnoresWorkspaceState()
+    public async Task UpdateProjectWorkspaceState_UnknownProject()
     {
         // Arrange
         using var listener = _projectManager.ListenToNotifications();
@@ -747,7 +748,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectWorkspaceStateChanged(s_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
+            updater.UpdateProjectWorkspaceState(s_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
         });
 
         // Assert
@@ -757,35 +758,34 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public async Task ProjectWorkspaceStateChanged_UpdateDocuments()
+    public async Task UpdateProjectWorkspaceState_UpdateDocuments()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], null!);
+            updater.AddProject(s_hostProject);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], EmptyTextLoader.Instance);
         });
 
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectWorkspaceStateChanged(s_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
+            updater.UpdateProjectWorkspaceState(s_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
         });
 
         // Assert
-        var document = _projectManager.GetLoadedProject(s_hostProject.Key).GetDocument(s_documents[0].FilePath);
+        var document = _projectManager.GetRequiredDocument(s_hostProject.Key, s_documents[0].FilePath);
 
-        Assert.NotNull(document);
         Assert.Equal(2, document.Version);
     }
 
     [UIFact]
-    public async Task ProjectWorkspaceStateChanged_WithHostProject_FirstTime_NotifiesListeners()
+    public async Task UpdateProjectWorkspaceState_KnownProject_FirstTime_NotifiesListeners()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -793,7 +793,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectWorkspaceStateChanged(s_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
+            updater.UpdateProjectWorkspaceState(s_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
         });
 
         // Assert
@@ -802,13 +802,13 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public async Task WorkspaceProjectChanged_WithHostProject_NotifiesListeners()
+    public async Task UpdateProjectWorkspaceState_KnownProject_NotifiesListeners()
     {
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
-            updater.ProjectWorkspaceStateChanged(s_hostProject.Key, ProjectWorkspaceState.Default);
+            updater.AddProject(s_hostProject);
+            updater.UpdateProjectWorkspaceState(s_hostProject.Key, ProjectWorkspaceState.Default);
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -816,7 +816,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectWorkspaceStateChanged(s_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
+            updater.UpdateProjectWorkspaceState(s_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
         });
 
         // Assert
@@ -832,7 +832,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -844,19 +844,19 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
             if (args.Kind == ProjectChangeKind.DocumentAdded)
             {
                 _projectManager.UpdateAsync(updater =>
-                    updater.DocumentOpened(s_hostProject.Key, s_documents[0].FilePath, _sourceText)).Forget();
+                    updater.OpenDocument(s_hostProject.Key, s_documents[0].FilePath, _sourceText)).Forget();
             }
             else if (args.Kind == ProjectChangeKind.DocumentChanged)
             {
                 _projectManager.UpdateAsync(updater =>
-                    updater.DocumentRemoved(s_hostProject.Key, s_documents[0])).Forget();
+                    updater.RemoveDocument(s_hostProject.Key, s_documents[0].FilePath)).Forget();
             }
         };
 
         // Act
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], null!);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], EmptyTextLoader.Instance);
         });
 
         // Assert
@@ -872,7 +872,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         // Arrange
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
+            updater.AddProject(s_hostProject);
         });
 
         using var listener = _projectManager.ListenToNotifications();
@@ -883,7 +883,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         await _projectManager.UpdateAsync(updater =>
         {
             updater.SolutionClosed();
-            updater.DocumentAdded(s_hostProject.Key, s_documents[0], textLoader.Object);
+            updater.AddDocument(s_hostProject.Key, s_documents[0], textLoader.Object);
         });
 
         // Assert
