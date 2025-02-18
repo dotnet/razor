@@ -353,7 +353,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             {
                 var (documents, tagHelpers) = pair;
                 
-                var documentDictionary = documents.Select(p => new KeyValuePair<string, (string, RazorCodeDocument)>(p.codeDocument.Source.FilePath!, (p.hintName, p.codeDocument))).ToImmutableDictionary();
+                var documentDictionary = documents.Select(p => KeyValuePair.Create(p.codeDocument.Source.FilePath!, (p.hintName, p.codeDocument))).ToImmutableDictionary();
                 context.AddOutput(nameof(RazorGeneratorResult), new RazorGeneratorResult(tagHelpers, documentDictionary));
             });
         }

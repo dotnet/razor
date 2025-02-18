@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
-    internal class RazorGeneratorResult(IReadOnlyList<TagHelperDescriptor> tagHelpers, ImmutableDictionary<string, (string hintName, RazorCodeDocument document)> documents)
+    internal sealed class RazorGeneratorResult(IReadOnlyList<TagHelperDescriptor> tagHelpers, ImmutableDictionary<string, (string hintName, RazorCodeDocument document)> documents)
     {
         public IReadOnlyList<TagHelperDescriptor> TagHelpers => tagHelpers;
 
