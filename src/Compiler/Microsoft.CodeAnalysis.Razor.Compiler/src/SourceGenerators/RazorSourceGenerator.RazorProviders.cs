@@ -27,7 +27,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 return default;
             }
 
-            Log.ComputeRazorSourceGeneratorOptions();
+            RazorSourceGeneratorEventSource.Log.ComputeRazorSourceGeneratorOptions();
 
             globalOptions.TryGetValue("build_property.RazorConfiguration", out var configurationName);
             globalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace);
