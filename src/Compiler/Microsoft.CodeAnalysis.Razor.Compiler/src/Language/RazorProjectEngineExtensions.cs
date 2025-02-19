@@ -64,7 +64,9 @@ public static class RazorProjectEngineExtensions
         ImmutableArray<RazorSourceDocument> importSources = default,
         IReadOnlyList<TagHelperDescriptor>? tagHelpers = null)
     {
-        fileKind ??= DefaultFileKind;
+        fileKind ??= source.FilePath is string filePath
+            ? FileKinds.GetFileKindFromFilePath(filePath)
+            : DefaultFileKind;
 
         return projectEngine.CreateCodeDocument(source, fileKind, importSources, tagHelpers, cssScope: null);
     }
@@ -123,7 +125,9 @@ public static class RazorProjectEngineExtensions
         ImmutableArray<RazorSourceDocument> importSources = default,
         IReadOnlyList<TagHelperDescriptor>? tagHelpers = null)
     {
-        fileKind ??= DefaultFileKind;
+        fileKind ??= source.FilePath is string filePath
+            ? FileKinds.GetFileKindFromFilePath(filePath)
+            : DefaultFileKind;
 
         return projectEngine.CreateDesignTimeCodeDocument(source, fileKind, importSources, tagHelpers);
     }

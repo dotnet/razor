@@ -1,6 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -22,81 +24,102 @@ internal static class IntermediateNodeExtensions
         return builder.ToString();
     }
 
-    public static NamespaceDeclarationIntermediateNode? FindNamespaceNode(this IntermediateNode node)
+    public static ImmutableArray<NamespaceDeclarationIntermediateNode> GetNamespaceNodes(this IntermediateNode node)
     {
         var visitor = new Visitor();
         visitor.Visit(node);
 
-        return visitor.NamespaceNode;
+        return visitor.NamespaceNodes;
     }
+
+    public static ImmutableArray<ClassDeclarationIntermediateNode> GetClassNodes(this IntermediateNode node)
+    {
+        var visitor = new Visitor();
+        visitor.Visit(node);
+
+        return visitor.ClassNodes;
+    }
+
+    public static ImmutableArray<MethodDeclarationIntermediateNode> GetMethodNodes(this IntermediateNode node)
+    {
+        var visitor = new Visitor();
+        visitor.Visit(node);
+
+        return visitor.MethodNodes;
+    }
+
+    public static ImmutableArray<ExtensionIntermediateNode> GetExtensionNodes(this IntermediateNode node)
+    {
+        var visitor = new Visitor();
+        visitor.Visit(node);
+
+        return visitor.ExtensionNodes;
+    }
+
+    public static ImmutableArray<TagHelperIntermediateNode> GetTagHelperNodes(this IntermediateNode node)
+    {
+        var visitor = new Visitor();
+        visitor.Visit(node);
+
+        return visitor.TagHelperNodes;
+    }
+
+    public static NamespaceDeclarationIntermediateNode? FindNamespaceNode(this IntermediateNode node)
+        => node.GetNamespaceNodes().FirstOrDefault();
 
     public static ClassDeclarationIntermediateNode? FindClassNode(this IntermediateNode node)
-    {
-        var visitor = new Visitor();
-        visitor.Visit(node);
-
-        return visitor.ClassNode;
-    }
+        => node.GetClassNodes().FirstOrDefault();
 
     public static MethodDeclarationIntermediateNode? FindMethodNode(this IntermediateNode node)
-    {
-        var visitor = new Visitor();
-        visitor.Visit(node);
-
-        return visitor.MethodNode;
-    }
+        => node.GetMethodNodes().FirstOrDefault();
 
     public static ExtensionIntermediateNode? FindExtensionNode(this IntermediateNode node)
-    {
-        var visitor = new Visitor();
-        visitor.Visit(node);
-
-        return visitor.ExtensionNode;
-    }
+        => node.GetExtensionNodes().FirstOrDefault();
 
     public static TagHelperIntermediateNode? FindTagHelperNode(this IntermediateNode node)
-    {
-        var visitor = new Visitor();
-        visitor.Visit(node);
-
-        return visitor.TagHelperNode;
-    }
+        => node.GetTagHelperNodes().FirstOrDefault();
 
     private sealed class Visitor : IntermediateNodeWalker
     {
-        public NamespaceDeclarationIntermediateNode? NamespaceNode { get; private set; }
-        public ClassDeclarationIntermediateNode? ClassNode { get; private set; }
-        public MethodDeclarationIntermediateNode? MethodNode { get; private set; }
-        public ExtensionIntermediateNode? ExtensionNode { get; private set; }
-        public TagHelperIntermediateNode? TagHelperNode { get; private set; }
+        private readonly ImmutableArray<NamespaceDeclarationIntermediateNode>.Builder _namespaceNodes = ImmutableArray.CreateBuilder<NamespaceDeclarationIntermediateNode>();
+        private readonly ImmutableArray<ClassDeclarationIntermediateNode>.Builder _classNodes = ImmutableArray.CreateBuilder<ClassDeclarationIntermediateNode>();
+        private readonly ImmutableArray<MethodDeclarationIntermediateNode>.Builder _methodNodes = ImmutableArray.CreateBuilder<MethodDeclarationIntermediateNode>();
+        private readonly ImmutableArray<ExtensionIntermediateNode>.Builder _extensionNodes = ImmutableArray.CreateBuilder<ExtensionIntermediateNode>();
+        private readonly ImmutableArray<TagHelperIntermediateNode>.Builder _tagHelperNodes = ImmutableArray.CreateBuilder<TagHelperIntermediateNode>();
+
+        public ImmutableArray<NamespaceDeclarationIntermediateNode> NamespaceNodes => _namespaceNodes.ToImmutable();
+        public ImmutableArray<ClassDeclarationIntermediateNode> ClassNodes => _classNodes.ToImmutable();
+        public ImmutableArray<MethodDeclarationIntermediateNode> MethodNodes => _methodNodes.ToImmutable();
+        public ImmutableArray<ExtensionIntermediateNode> ExtensionNodes => _extensionNodes.ToImmutable();
+        public ImmutableArray<TagHelperIntermediateNode> TagHelperNodes => _tagHelperNodes.ToImmutable();
 
         public override void VisitMethodDeclaration(MethodDeclarationIntermediateNode node)
         {
-            MethodNode ??= node;
+            _methodNodes.Add(node);
             base.VisitMethodDeclaration(node);
         }
 
         public override void VisitNamespaceDeclaration(NamespaceDeclarationIntermediateNode node)
         {
-            NamespaceNode ??= node;
+            _namespaceNodes.Add(node);
             base.VisitNamespaceDeclaration(node);
         }
 
         public override void VisitClassDeclaration(ClassDeclarationIntermediateNode node)
         {
-            ClassNode ??= node;
+            _classNodes.Add(node);
             base.VisitClassDeclaration(node);
         }
 
         public override void VisitExtension(ExtensionIntermediateNode node)
         {
-            ExtensionNode ??= node;
+            _extensionNodes.Add(node);
             base.VisitExtension(node);
         }
 
         public override void VisitTagHelper(TagHelperIntermediateNode node)
         {
-            TagHelperNode ??= node;
+            _tagHelperNodes.Add(node);
             base.VisitTagHelper(node);
         }
     }

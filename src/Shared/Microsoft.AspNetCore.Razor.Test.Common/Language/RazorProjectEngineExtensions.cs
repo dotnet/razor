@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -258,13 +259,31 @@ public static class RazorProjectEngineExtensions
     public static void ExecutePass<T>(
         this RazorProjectEngine projectEngine,
         RazorCodeDocument codeDocument,
+        Func<T> passFactory)
+        where T : IntermediateNodePassBase
+    {
+        var documentNode = codeDocument.GetDocumentIntermediateNode();
+        Assert.NotNull(documentNode);
+
+        projectEngine.ExecutePass<T>(codeDocument, documentNode, passFactory);
+    }
+
+    public static void ExecutePass<T>(
+        this RazorProjectEngine projectEngine,
+        RazorCodeDocument codeDocument,
         DocumentIntermediateNode documentNode)
         where T : IntermediateNodePassBase, new()
+        => projectEngine.ExecutePass<T>(codeDocument, documentNode, () => new T());
+
+    public static void ExecutePass<T>(
+        this RazorProjectEngine projectEngine,
+        RazorCodeDocument codeDocument,
+        DocumentIntermediateNode documentNode,
+        Func<T> passFactory)
+        where T : IntermediateNodePassBase
     {
-        var pass = new T()
-        {
-            Engine = projectEngine.Engine
-        };
+        var pass = passFactory();
+        pass.Initialize(projectEngine.Engine);
 
         pass.Execute(codeDocument, documentNode);
     }
