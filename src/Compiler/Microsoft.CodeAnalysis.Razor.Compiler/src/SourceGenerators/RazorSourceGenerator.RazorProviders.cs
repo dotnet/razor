@@ -49,9 +49,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Where(r => r.Display is { } display && display.EndsWith("Microsoft.AspNetCore.Components.dll", StringComparison.Ordinal))
                 .ToImmutableArray();
 
-            var isComponentParameterSupported = minimalReferences.Length == 0
-                ? false
-                : CSharpCompilation.Create("components", references: minimalReferences).HasAddComponentParameter();
+            var isComponentParameterSupported = minimalReferences.Length != 0 && CSharpCompilation.Create("components", references: minimalReferences).HasAddComponentParameter();
 
             var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName ?? "default", Extensions: [], UseConsolidatedMvcViews: true, SuppressAddComponentParameter: !isComponentParameterSupported);
 
