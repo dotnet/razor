@@ -293,19 +293,11 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     });
             }
 
-            var razorDocuments = processed(designTime: false)
+            var csharpDocuments = processed(designTime: false)
                 .Select(static (pair, _) =>
                 {
                     var (filePath, document) = pair;
-                    return (hintName: GetIdentifierFromPath(filePath), codeDocument: document.CodeDocument);
-                })
-                .WithTrackingName("RazorDocuments");
-
-            var csharpDocuments = razorDocuments
-                .Select(static (pair, _) =>
-                {
-                    var (hintName, document) = pair;
-                    return (hintName, csharpDocument: document.GetCSharpDocument());
+                    return (hintName: GetIdentifierFromPath(filePath), codeDocument: document.CodeDocument, csharpDocument: document.CodeDocument.GetCSharpDocument());
                 })
                 .WithLambdaComparer(static (a, b) =>
                 {
@@ -326,7 +318,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             context.RegisterImplementationSourceOutput(csharpDocumentsWithSuppressionFlag, static (context, pair) =>
             {
-                var ((hintName, csharpDocument), isGeneratorSuppressed) = pair;
+                var ((hintName, _, csharpDocument), isGeneratorSuppressed) = pair;
 
                 // When the generator is suppressed, we may still have a lot of cached data for perf, but we don't want to actually add any of the files to the output
                 if (!isGeneratorSuppressed)
@@ -342,7 +334,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 }
             });
 
-            var hostOutputs = razorDocuments
+            var hostOutputs = csharpDocuments
                 .Collect()
                 .Combine(allTagHelpers)
                 .WithTrackingName("HostOutputs");
