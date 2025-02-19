@@ -470,13 +470,13 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         Uri documentUri,
         IRazorDocumentPropertiesService documentPropertiesService,
         IRazorDocumentExcerptServiceImplementation? documentExcerptService,
-        IRazorMappingService mappingService,
+        IRazorMappingService? mappingService,
         TextLoader textLoader) : IDynamicDocumentContainer
     {
         private readonly Uri _documentUri = documentUri;
         private readonly IRazorDocumentPropertiesService _documentPropertiesService = documentPropertiesService;
         private readonly IRazorDocumentExcerptServiceImplementation? _documentExcerptService = documentExcerptService;
-        private readonly IRazorMappingService _mappingService = mappingService;
+        private readonly IRazorMappingService? _mappingService = mappingService;
         private readonly TextLoader _textLoader = textLoader;
 
         public string FilePath => _documentUri.LocalPath;
@@ -494,7 +494,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
 
         public TextLoader GetTextLoader(string filePath) => _textLoader;
 
-        public IRazorMappingService GetMappingService() => _mappingService;
+        public IRazorMappingService? GetMappingService() => _mappingService;
     }
 
     public class TestAccessor
