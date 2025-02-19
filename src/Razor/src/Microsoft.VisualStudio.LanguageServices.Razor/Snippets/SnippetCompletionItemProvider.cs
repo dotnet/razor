@@ -6,7 +6,6 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.Razor.Snippets;
 

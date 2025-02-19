@@ -13,8 +13,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
+using Microsoft.CodeAnalysis.Text;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -57,7 +56,7 @@ public class CSharpCodeActionResolverTest(ITestOutputHelper testOutput) : Langua
         Assert.Equal(1, returnedCodeAction.Edit.DocumentChanges.Value.Count());
         var returnedEdits = returnedCodeAction.Edit.DocumentChanges.Value;
         Assert.True(returnedEdits.TryGetFirst(out var textDocumentEdits));
-        var returnedTextDocumentEdit = Assert.Single(textDocumentEdits[0].Edits);
+        var returnedTextDocumentEdit = (TextEdit)Assert.Single(textDocumentEdits[0].Edits);
         Assert.Equal(s_defaultFormattedEdit.NewText, returnedTextDocumentEdit.NewText);
         Assert.Equal(s_defaultFormattedEdit.Range, returnedTextDocumentEdit.Range);
     }

@@ -3,7 +3,8 @@
 
 using System;
 using System.Text.Json;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 

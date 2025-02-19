@@ -57,9 +57,8 @@ internal class DocumentRangeFormattingEndpoint(
 
         if (request.Options.OtherOptions is not null &&
             request.Options.OtherOptions.TryGetValue("fromPaste", out var fromPasteObj) &&
-            fromPasteObj is JsonElement fromPasteElement)
+            fromPasteObj.TryGetFirst(out var fromPaste))
         {
-            var fromPaste = fromPasteElement.Deserialize<bool>();
             if (fromPaste && !_optionsMonitor.CurrentValue.Formatting.IsOnPasteEnabled())
             {
                 return null;

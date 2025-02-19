@@ -164,7 +164,7 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
             {
                 var delegatedParams = new DocumentDiagnosticParams
                 {
-                    TextDocument = new TextDocumentIdentifier { Uri = VsLspFactory.CreateFilePathUri(document.FilePath) },
+                    TextDocument = new TextDocumentIdentifier { Uri = LspFactory.CreateFilePathUri(document.FilePath) },
                 };
 
                 var delegatedResponse = await _clientConnection
@@ -255,7 +255,7 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
                 Methods.TextDocumentPublishDiagnosticsName,
                 new PublishDiagnosticParams()
                 {
-                    Uri = VsLspFactory.CreateFilePathUri(filePath),
+                    Uri = LspFactory.CreateFilePathUri(filePath),
                     Diagnostics = diagnostics,
                 },
                 _disposeTokenSource.Token)

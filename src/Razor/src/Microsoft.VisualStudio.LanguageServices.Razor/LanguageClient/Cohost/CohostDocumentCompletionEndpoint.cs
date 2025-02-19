@@ -17,12 +17,10 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.Settings;
 using Microsoft.VisualStudio.Razor.Snippets;
-using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalCompletionList?>;
+using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.VSInternalCompletionList?>;
 using RoslynCompletionParams = Roslyn.LanguageServer.Protocol.CompletionParams;
-using RoslynLspExtensions = Roslyn.LanguageServer.Protocol.RoslynLspExtensions;
 using RoslynPosition = Roslyn.LanguageServer.Protocol.Position;
 using RoslynCompletionContext = Roslyn.LanguageServer.Protocol.CompletionContext;
 
@@ -75,7 +73,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
     }
 
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(RoslynCompletionParams request)
-        => request.TextDocument is null ? null : RoslynLspExtensions.ToRazorTextDocumentIdentifier(request.TextDocument);
+        => request.TextDocument is null ? null : request.TextDocument.ToRazorTextDocumentIdentifier();
 
     protected override Task<VSInternalCompletionList?> HandleRequestAsync(RoslynCompletionParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
         => HandleRequestAsync(request, context.TextDocument.AssumeNotNull(), cancellationToken);
@@ -202,7 +200,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
             return null;
         }
 
-        request.TextDocument = RoslynLspExtensions.WithUri(request.TextDocument, htmlDocument.Uri);
+        request.TextDocument = request.TextDocument.WithUri(htmlDocument.Uri);
 
         _logger.LogDebug($"Resolving auto-insertion edit for {htmlDocument.Uri}");
 

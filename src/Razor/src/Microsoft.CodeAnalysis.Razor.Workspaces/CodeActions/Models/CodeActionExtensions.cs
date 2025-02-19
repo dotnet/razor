@@ -5,6 +5,8 @@ using System;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Microsoft.AspNetCore.Razor;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 

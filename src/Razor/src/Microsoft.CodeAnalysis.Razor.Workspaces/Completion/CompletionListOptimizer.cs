@@ -1,11 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-extern alias RLSP;
-
 using System.Collections.Generic;
 using System.Linq;
-using AliasedVSCommitCharacters = RLSP::Roslyn.LanguageServer.Protocol.SumType<string[], RLSP::Roslyn.LanguageServer.Protocol.VSInternalCommitCharacter[]>;
+using AliasedVSCommitCharacters = Roslyn.LanguageServer.Protocol.SumType<string[], Roslyn.LanguageServer.Protocol.VSInternalCommitCharacter[]>;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 

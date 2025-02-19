@@ -210,7 +210,7 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         return (input, expected);
     }
 
-    protected async Task RunCodeActionFormattingTestAsync(
+    private protected async Task RunCodeActionFormattingTestAsync(
         string input,
         TextEdit[] codeActionEdits,
         string expected,

@@ -415,7 +415,7 @@ internal sealed class MapCodeEndpoint(
             foreach (var edit in edits.Changes)
             {
                 var generatedUri = new Uri(edit.Key);
-                var success = await TryProcessEditAsync(generatedUri, edit.Value, csharpChanges, cancellationToken).ConfigureAwait(false);
+                var success = await TryProcessEditAsync(generatedUri, edit.Value.Select(e => (SumType<TextEdit, AnnotatedTextEdit>)e), csharpChanges, cancellationToken).ConfigureAwait(false);
                 if (!success)
                 {
                     return false;
@@ -428,11 +428,11 @@ internal sealed class MapCodeEndpoint(
 
         async Task<bool> TryProcessEditAsync(
             Uri generatedUri,
-            TextEdit[] textEdits,
+            IEnumerable<SumType<TextEdit, AnnotatedTextEdit>> textEdits,
             List<TextDocumentEdit> csharpChanges,
             CancellationToken cancellationToken)
         {
-            foreach (var documentEdit in textEdits)
+            foreach (TextEdit documentEdit in textEdits)
             {
                 var (hostDocumentUri, hostDocumentRange) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(
                     generatedUri, documentEdit.Range, cancellationToken).ConfigureAwait(false);
@@ -465,12 +465,12 @@ internal sealed class MapCodeEndpoint(
         foreach (var documentChanges in groupedChanges)
         {
             var edits = documentChanges.ToList();
-            edits.Sort((x, y) => x.Edits.Single().Range.Start.CompareTo(y.Edits.Single().Range.Start));
+            edits.Sort((x, y) => ((TextEdit)x.Edits.Single()).Range.Start.CompareTo(((TextEdit)y.Edits.Single()).Range.Start));
 
             for (var i = edits.Count - 1; i < edits.Count && i > 0; i--)
             {
-                var previousEdit = edits[i - 1].Edits.Single();
-                var currentEdit = edits[i].Edits.Single();
+                var previousEdit = (TextEdit)edits[i - 1].Edits.Single();
+                var currentEdit = (TextEdit)edits[i].Edits.Single();
                 if (currentEdit.Range.Start == previousEdit.Range.Start)
                 {
                     // Append the text of the current edit to the previous edit

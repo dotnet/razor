@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-extern alias RLSP;
-
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
@@ -19,8 +17,8 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using LspDiagnostic = RLSP::Roslyn.LanguageServer.Protocol.Diagnostic;
-using LspDiagnosticSeverity = RLSP::Roslyn.LanguageServer.Protocol.DiagnosticSeverity;
+using LspDiagnostic = Roslyn.LanguageServer.Protocol.Diagnostic;
+using LspDiagnosticSeverity = Roslyn.LanguageServer.Protocol.DiagnosticSeverity;
 
 namespace Microsoft.CodeAnalysis.Razor.Diagnostics;
 

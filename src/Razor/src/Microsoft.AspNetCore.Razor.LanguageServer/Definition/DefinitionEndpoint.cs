@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using DefinitionResult = RLSP::Roslyn.LanguageServer.Protocol.SumType<
+    RLSP::Roslyn.LanguageServer.Protocol.Location,
     RLSP::Roslyn.LanguageServer.Protocol.VSInternalLocation,
     RLSP::Roslyn.LanguageServer.Protocol.VSInternalLocation[],
     RLSP::Roslyn.LanguageServer.Protocol.DocumentLink[]>;
@@ -32,7 +33,7 @@ internal sealed class DefinitionEndpoint(
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IClientConnection clientConnection,
     ILoggerFactory loggerFactory)
-    : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, DefinitionResult>(
+    : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, DefinitionResult?>(
         languageServerFeatureOptions,
         documentMappingService,
         clientConnection,
@@ -53,7 +54,7 @@ internal sealed class DefinitionEndpoint(
         serverCapabilities.DefinitionProvider = new DefinitionOptions();
     }
 
-    protected async override Task<DefinitionResult> TryHandleAsync(
+    protected async override Task<DefinitionResult?> TryHandleAsync(
         TextDocumentPositionParams request,
         RazorRequestContext requestContext,
         DocumentPositionInfo positionInfo,
@@ -68,9 +69,16 @@ internal sealed class DefinitionEndpoint(
         }
 
         // If single server support is on, then we ignore attributes, as they are better handled by delegating to Roslyn
-        return await _componentDefinitionService
+        var location = await _componentDefinitionService
             .GetDefinitionAsync(documentContext.Snapshot, positionInfo, _projectManager.GetQueryOperations(), ignoreAttributes: SingleServerSupport, cancellationToken)
             .ConfigureAwait(false);
+
+        if (location is null)
+        {
+            return null;
+        }
+
+        return location;
     }
 
     protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(
@@ -91,13 +99,18 @@ internal sealed class DefinitionEndpoint(
             positionInfo.LanguageKind));
     }
 
-    protected async override Task<DefinitionResult> HandleDelegatedResponseAsync(
-        DefinitionResult response,
+    protected async override Task<DefinitionResult?> HandleDelegatedResponseAsync(
+        DefinitionResult? response,
         TextDocumentPositionParams originalRequest,
         RazorRequestContext requestContext,
         DocumentPositionInfo positionInfo,
         CancellationToken cancellationToken)
     {
+        if (response is null)
+        {
+            return null;
+        }
+
         var result = response.GetValueOrDefault().Value;
 
         // Not using .TryGetXXX because this does the null check for us too

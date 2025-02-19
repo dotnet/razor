@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
@@ -20,6 +21,8 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 
@@ -81,7 +84,7 @@ internal class GenerateMethodCodeActionResolver(
                 cancellationToken).ConfigureAwait(false);
         }
 
-        var codeBehindUri = VsLspFactory.CreateFilePathUri(codeBehindPath);
+        var codeBehindUri = LspFactory.CreateFilePathUri(codeBehindPath);
 
         var codeBehindTextDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = codeBehindUri };
 
@@ -105,7 +108,7 @@ internal class GenerateMethodCodeActionResolver(
         var codeBehindTextDocEdit = new TextDocumentEdit()
         {
             TextDocument = codeBehindTextDocumentIdentifier,
-            Edits = result ?? [edit]
+            Edits = (SumType<TextEdit, AnnotatedTextEdit>[])[.. result.AssumeNotNull()] ?? [edit]
         };
 
         return new WorkspaceEdit() { DocumentChanges = new[] { codeBehindTextDocEdit } };
@@ -189,7 +192,7 @@ internal class GenerateMethodCodeActionResolver(
         var razorTextDocEdit = new TextDocumentEdit()
         {
             TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = documentContext.Uri },
-            Edits = edits,
+            Edits = [.. edits],
         };
 
         return new WorkspaceEdit() { DocumentChanges = new[] { razorTextDocEdit } };

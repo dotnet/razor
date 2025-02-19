@@ -4,7 +4,6 @@
 using System;
 using System.Text.Json;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.CodeAnalysis.Razor.Protocol;

@@ -48,7 +48,7 @@ internal class CreateComponentCodeActionResolver(LanguageServerFeatureOptions la
         var updatedPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !actionParams.Path.StartsWith("/")
             ? '/' + actionParams.Path
             : actionParams.Path;
-        var newComponentUri = VsLspFactory.CreateFilePathUri(updatedPath);
+        var newComponentUri = LspFactory.CreateFilePathUri(updatedPath);
 
         using var documentChanges = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
         documentChanges.Add(new CreateFile() { Uri = newComponentUri });

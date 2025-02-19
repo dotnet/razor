@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+extern alias RLSP;
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -16,6 +18,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using LspHover = RLSP::Roslyn.LanguageServer.Protocol.Hover;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 

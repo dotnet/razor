@@ -18,10 +18,8 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
-using LspDiagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
-using RoslynDiagnostic = Roslyn.LanguageServer.Protocol.Diagnostic;
+using LspDiagnostic = Roslyn.LanguageServer.Protocol.Diagnostic;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -139,7 +137,7 @@ internal class CohostDocumentPullDiagnosticsEndpoint(
         var csharpDiagnostics = await ExternalHandlers.Diagnostics.GetDocumentDiagnosticsAsync(generatedDocument, supportsVisualStudioExtensions: true, cancellationToken).ConfigureAwait(false);
 
         // This is, to say the least, not ideal. In future we're going to normalize on to Roslyn LSP types, and this can go.
-        if (JsonHelpers.ToVsLSP<LspDiagnostic[], ImmutableArray<RoslynDiagnostic>>(csharpDiagnostics) is not { } convertedDiagnostics)
+        if (JsonHelpers.ToVsLSP<LspDiagnostic[], ImmutableArray<LspDiagnostic>>(csharpDiagnostics) is not { } convertedDiagnostics)
         {
             return [];
         }

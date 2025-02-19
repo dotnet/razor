@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Tooltip;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 

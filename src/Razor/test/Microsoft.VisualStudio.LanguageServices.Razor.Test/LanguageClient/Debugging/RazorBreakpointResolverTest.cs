@@ -134,7 +134,7 @@ public class RazorBreakpointResolverTest : ToolingTestBase
     {
         // Arrange
         var hostDocumentPosition = GetPosition(ValidBreakpointCSharp, _hostTextBuffer);
-        var hostBreakpointRange = VsLspFactory.CreateSingleLineRange(start: hostDocumentPosition, length: ValidBreakpointCSharp.Length);
+        var hostBreakpointRange = LspFactory.CreateSingleLineRange(start: hostDocumentPosition, length: ValidBreakpointCSharp.Length);
         var projectionProvider = new TestLSPBreakpointSpanProvider(
             _documentUri,
             new Dictionary<Position, LspRange>()

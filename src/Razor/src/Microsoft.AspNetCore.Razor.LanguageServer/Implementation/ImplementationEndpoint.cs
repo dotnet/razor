@@ -61,7 +61,7 @@ internal sealed class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<T
 
     protected async override Task<ImplementationResult> HandleDelegatedResponseAsync(ImplementationResult delegatedResponse, TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
-        var result = delegatedResponse.GetValueOrDefault().Value;
+        var result = delegatedResponse.Value;
 
         // Not using .TryGetXXX because this does the null check for us too
         if (result is Location[] locations)
@@ -77,12 +77,12 @@ internal sealed class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<T
         {
             foreach (var item in referenceItems)
             {
-                (item.Location.Uri, item.Location.Range) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(item.Location.Uri, item.Location.Range, cancellationToken).ConfigureAwait(false);
+                (item.Location!.Uri, item.Location.Range) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(item.Location.Uri, item.Location.Range, cancellationToken).ConfigureAwait(false);
             }
 
             return referenceItems;
         }
 
-        return null;
+        return default;
     }
 }

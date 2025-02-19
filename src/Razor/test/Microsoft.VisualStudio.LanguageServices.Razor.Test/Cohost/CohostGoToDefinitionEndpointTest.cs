@@ -9,12 +9,11 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 using RoslynDocumentLink = Roslyn.LanguageServer.Protocol.DocumentLink;
 using RoslynLocation = Roslyn.LanguageServer.Protocol.Location;
-using RoslynLspExtensions = Roslyn.LanguageServer.Protocol.RoslynLspExtensions;
 using TextDocument = Microsoft.CodeAnalysis.TextDocument;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -153,7 +152,7 @@ public class CohostGoToDefinitionEndpointTest(FuseTestContext context, ITestOutp
         var location = Assert.Single(locations);
 
         var text = SourceText.From(surveyPrompt.Text);
-        var range = RoslynLspExtensions.GetRange(text, surveyPrompt.Span);
+        var range = text.GetRange(surveyPrompt.Span);
         Assert.Equal(range, location.Range);
     }
 
@@ -199,7 +198,7 @@ public class CohostGoToDefinitionEndpointTest(FuseTestContext context, ITestOutp
         var location = Assert.Single(locations);
 
         var text = SourceText.From(surveyPrompt.Text);
-        var range = RoslynLspExtensions.GetRange(text, surveyPrompt.Span);
+        var range = text.GetRange(surveyPrompt.Span);
         Assert.Equal(range, location.Range);
     }
 
@@ -250,7 +249,7 @@ public class CohostGoToDefinitionEndpointTest(FuseTestContext context, ITestOutp
         var location = Assert.Single(locations);
 
         var text = SourceText.From(input.Text);
-        var range = RoslynLspExtensions.GetRange(text, input.Span);
+        var range = text.GetRange(input.Span);
         Assert.Equal(range, location.Range);
 
         Assert.Equal(document.CreateUri(), location.Uri);

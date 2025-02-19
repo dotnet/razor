@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
@@ -334,6 +333,18 @@ internal static class FormattingUtilities
             return edits;
 
         var changes = edits.SelectAsArray(htmlSourceText.GetTextChange);
+
+        var fixedChanges = htmlSourceText.MinimizeTextChanges(changes);
+        return [.. fixedChanges.Select(htmlSourceText.GetTextEdit)];
+    }
+
+    internal static SumType<TextEdit, AnnotatedTextEdit>[] FixHtmlTextEdits(SourceText htmlSourceText, SumType<TextEdit, AnnotatedTextEdit>[] edits)
+    {
+        // Avoid computing a minimal diff if we don't need to
+        if (!edits.Any(static e => ((TextEdit)e).NewText.Contains("~")))
+            return edits;
+
+        var changes = edits.SelectAsArray(e => htmlSourceText.GetTextChange((TextEdit)e));
 
         var fixedChanges = htmlSourceText.MinimizeTextChanges(changes);
         return [.. fixedChanges.Select(htmlSourceText.GetTextEdit)];

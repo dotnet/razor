@@ -10,11 +10,11 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.LanguageClient.DocumentMapping;
+using Roslyn.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
+using Range = Roslyn.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
@@ -53,7 +53,7 @@ public class RazorLSPMappingServiceTest(ITestOutputHelper testOutput) : ToolingT
         var textSnapshot = new StringTextSnapshot(s_mockGeneratedContent, 1);
 
         var textSpanAsRange = _sourceTextGenerated.GetRange(textSpan);
-        var mappedRange = VsLspFactory.CreateSingleLineRange(2, character: 1, length: 10);
+        var mappedRange = LspFactory.CreateSingleLineRange(2, character: 1, length: 10);
 
         var mappingResult = new RazorMapToDocumentRangesResponse()
         {
@@ -132,7 +132,7 @@ public class RazorLSPMappingServiceTest(ITestOutputHelper testOutput) : ToolingT
     {
         // Arrange
         var sourceTextRazor = SourceText.From("");
-        var response = new RazorMapToDocumentRangesResponse { Ranges = new Range[] { VsLspFactory.UndefinedRange } };
+        var response = new RazorMapToDocumentRangesResponse { Ranges = new Range[] { LspFactory.UndefinedRange } };
 
         // Act
         var results = RazorLSPSpanMappingService.GetMappedSpanResults(_mockDocumentUri.LocalPath, sourceTextRazor, response);

@@ -15,9 +15,7 @@ using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.LanguageServer.Protocol;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert.RemoteAutoInsertTextEdit?>;
-using RoslynInsertTextFormat = Roslyn.LanguageServer.Protocol.InsertTextFormat;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -157,7 +155,7 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
 
         var csharpSourceText = await remoteDocumentContext.GetCSharpSourceTextAsync(cancellationToken).ConfigureAwait(false);
         var csharpTextChange = new TextChange(csharpSourceText.GetTextSpan(autoInsertResponseItem.TextEdit.Range), autoInsertResponseItem.TextEdit.NewText);
-        var mappedChange = autoInsertResponseItem.TextEditFormat == RoslynInsertTextFormat.Snippet
+        var mappedChange = autoInsertResponseItem.TextEditFormat == InsertTextFormat.Snippet
             ? await _razorFormattingService.TryGetCSharpSnippetFormattingEditAsync(
                 remoteDocumentContext,
                 [csharpTextChange],

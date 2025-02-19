@@ -21,4 +21,7 @@
     <EmbeddedResource Include="Semantic\TestFiles\**\*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.LanguageServer.Protocol" Aliases="RLSP" />
+  </ItemGroup>
 </Project>

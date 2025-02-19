@@ -393,7 +393,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
 
             foreach (var currentEdit in edit.Edits)
             {
-                sourceText = sourceText.WithChanges(sourceText.GetTextChange(currentEdit));
+                sourceText = sourceText.WithChanges(sourceText.GetTextChange(((TextEdit)currentEdit)));
             }
         }
 

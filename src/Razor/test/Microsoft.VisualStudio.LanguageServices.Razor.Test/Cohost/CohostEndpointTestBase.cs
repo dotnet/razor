@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 

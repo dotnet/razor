@@ -118,7 +118,7 @@ internal class RazorProximityExpressionResolver(
             return cachedExpressions;
         }
 
-        var position = VsLspFactory.CreatePosition(lineIndex, characterIndex);
+        var position = LspFactory.CreatePosition(lineIndex, characterIndex);
         var proximityExpressions = await _proximityExpressionsProvider.GetProximityExpressionsAsync(documentSnapshot, hostDocumentSyncVersion, position, cancellationToken).ConfigureAwait(false);
 
         // Cache range so if we're asked again for this document/line/character we don't have to go async.

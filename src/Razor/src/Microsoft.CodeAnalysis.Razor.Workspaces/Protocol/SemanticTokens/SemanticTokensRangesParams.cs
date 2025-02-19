@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.SemanticTokens;
 
-internal class SemanticTokensRangesParams : SemanticTokensParams
+internal class SemanticTokensRangesParams : SemanticTokensRangeParams
 {
     [JsonPropertyName("ranges")]
     public required LspRange[] Ranges { get; set; }

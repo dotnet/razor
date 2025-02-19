@@ -152,7 +152,7 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
         var request = new RazorLanguageQueryParams()
         {
             Uri = documentPath,
-            Position = VsLspFactory.CreatePosition(1, 0),
+            Position = LspFactory.CreatePosition(1, 0),
         };
 
         var requestContext = CreateRazorRequestContext(documentContext);

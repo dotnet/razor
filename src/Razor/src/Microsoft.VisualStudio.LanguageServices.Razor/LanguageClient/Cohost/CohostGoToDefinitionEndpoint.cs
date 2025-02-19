@@ -13,12 +13,8 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using static Roslyn.LanguageServer.Protocol.RoslynLspExtensions;
 using RoslynDocumentLink = Roslyn.LanguageServer.Protocol.DocumentLink;
 using RoslynLocation = Roslyn.LanguageServer.Protocol.Location;
-using RoslynLspFactory = Roslyn.LanguageServer.Protocol.RoslynLspFactory;
-using VsLspLocation = Microsoft.VisualStudio.LanguageServer.Protocol.Location;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -70,7 +66,7 @@ internal sealed class CohostGoToDefinitionEndpoint(
 
     private async Task<SumType<RoslynLocation, RoslynLocation[], RoslynDocumentLink[]>?> HandleRequestAsync(TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        var position = RoslynLspFactory.CreatePosition(request.Position.ToLinePosition());
+        var position = LspFactory.CreatePosition(request.Position.ToLinePosition());
 
         var response = await _remoteServiceInvoker
             .TryInvokeAsync<IRemoteGoToDefinitionService, RemoteResponse<RoslynLocation[]?>>(
@@ -104,7 +100,7 @@ internal sealed class CohostGoToDefinitionEndpoint(
         request.TextDocument.Uri = htmlDocument.Uri;
 
         var result = await _requestInvoker
-            .ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SumType<VsLspLocation, VsLspLocation[], DocumentLink[]>?>(
+            .ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SumType<RoslynLocation, RoslynLocation[], DocumentLink[]>?>(
                 htmlDocument.Buffer,
                 Methods.TextDocumentDefinitionName,
                 RazorLSPConstants.HtmlLanguageServerName,
@@ -119,11 +115,11 @@ internal sealed class CohostGoToDefinitionEndpoint(
 
         if (response.TryGetFirst(out var singleLocation))
         {
-            return RoslynLspFactory.CreateLocation(RemapVirtualHtmlUri(singleLocation.Uri), singleLocation.Range.ToLinePositionSpan());
+            return LspFactory.CreateLocation(RemapVirtualHtmlUri(singleLocation.Uri), singleLocation.Range.ToLinePositionSpan());
         }
         else if (response.TryGetSecond(out var multipleLocations))
         {
-            return Array.ConvertAll(multipleLocations, l => RoslynLspFactory.CreateLocation(RemapVirtualHtmlUri(l.Uri), l.Range.ToLinePositionSpan()));
+            return Array.ConvertAll(multipleLocations, l => LspFactory.CreateLocation(RemapVirtualHtmlUri(l.Uri), l.Range.ToLinePositionSpan()));
         }
         else if (response.TryGetThird(out var documentLinks))
         {
@@ -133,7 +129,7 @@ internal sealed class CohostGoToDefinitionEndpoint(
             {
                 if (documentLink.Target is Uri target)
                 {
-                    builder.Add(RoslynLspFactory.CreateDocumentLink(RemapVirtualHtmlUri(target), documentLink.Range.ToLinePositionSpan()));
+                    builder.Add(LspFactory.CreateDocumentLink(RemapVirtualHtmlUri(target), documentLink.Range.ToLinePositionSpan()));
                 }
             }
 

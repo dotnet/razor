@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;

@@ -147,7 +147,7 @@ internal class RenameService(
         var updatedPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !filePath.StartsWith("/")
                     ? '/' + filePath
                     : filePath;
-        return VsLspFactory.CreateFilePathUri(updatedPath);
+        return LspFactory.CreateFilePathUri(updatedPath);
     }
 
     private static string MakeNewPath(string originalPath, string newName)

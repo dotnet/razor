@@ -10,10 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using RoslynHover = Roslyn.LanguageServer.Protocol.Hover;
-using RoslynLspFactory = Roslyn.LanguageServer.Protocol.RoslynLspFactory;
-using VsHover = Microsoft.VisualStudio.LanguageServer.Protocol.Hover;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -28,7 +25,7 @@ internal sealed class CohostHoverEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     LSPRequestInvoker requestInvoker)
-    : AbstractRazorCohostDocumentRequestHandler<TextDocumentPositionParams, SumType<RoslynHover, VsHover>?>, IDynamicRegistrationProvider
+    : AbstractRazorCohostDocumentRequestHandler<TextDocumentPositionParams, RoslynHover?>, IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
@@ -55,15 +52,15 @@ internal sealed class CohostHoverEndpoint(
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(TextDocumentPositionParams request)
         => request.TextDocument.ToRazorTextDocumentIdentifier();
 
-    protected override Task<SumType<RoslynHover, VsHover>?> HandleRequestAsync(TextDocumentPositionParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+    protected override Task<RoslynHover?> HandleRequestAsync(TextDocumentPositionParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
         => HandleRequestAsync(
             request,
             context.TextDocument.AssumeNotNull(),
             cancellationToken);
 
-    private async Task<SumType<RoslynHover, VsHover>?> HandleRequestAsync(TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    private async Task<RoslynHover?> HandleRequestAsync(TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        var position = RoslynLspFactory.CreatePosition(request.Position.ToLinePosition());
+        var position = LspFactory.CreatePosition(request.Position.ToLinePosition());
 
         var response = await _remoteServiceInvoker
             .TryInvokeAsync<IRemoteHoverService, RemoteResponse<RoslynHover?>>(
@@ -86,7 +83,7 @@ internal sealed class CohostHoverEndpoint(
         return await GetHtmlHoverAsync(request, razorDocument, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<VsHover?> GetHtmlHoverAsync(TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    private async Task<RoslynHover?> GetHtmlHoverAsync(TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         var htmlDocument = await _htmlDocumentSynchronizer.TryGetSynchronizedHtmlDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
         if (htmlDocument is null)
@@ -97,7 +94,7 @@ internal sealed class CohostHoverEndpoint(
         request.TextDocument = request.TextDocument.WithUri(htmlDocument.Uri);
 
         var result = await _requestInvoker
-            .ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VsHover?>(
+            .ReinvokeRequestOnServerAsync<TextDocumentPositionParams, RoslynHover?>(
                 htmlDocument.Buffer,
                 Methods.TextDocumentHoverName,
                 RazorLSPConstants.HtmlLanguageServerName,
@@ -112,7 +109,7 @@ internal sealed class CohostHoverEndpoint(
 
     internal readonly struct TestAccessor(CohostHoverEndpoint instance)
     {
-        public Task<SumType<RoslynHover, VsHover>?> HandleRequestAsync(
+        public Task<RoslynHover?> HandleRequestAsync(
             TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
             => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
     }

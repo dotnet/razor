@@ -172,6 +172,12 @@ internal static class LspFactory
     public static Location CreateLocation(Uri uri, LspRange range)
         => new() { Uri = uri, Range = range };
 
+    public static DocumentLink CreateDocumentLink(Uri target, LspRange range)
+        => new() { Target = target, Range = range };
+
+    public static DocumentLink CreateDocumentLink(Uri target, LinePositionSpan span)
+        => new() { Target = target, Range = CreateRange(span) };
+
     public static TextEdit CreateTextEdit(Range range, string newText)
         => new() { Range = range, NewText = newText };
 

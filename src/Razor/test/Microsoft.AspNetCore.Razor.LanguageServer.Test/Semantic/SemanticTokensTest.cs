@@ -41,7 +41,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
 
     private static readonly VSInternalServerCapabilities s_semanticTokensServerCapabilities = new()
     {
-        SemanticTokensOptions = new()
+        SemanticTokensOptions = new SemanticTokensOptions()
         {
             Full = false,
             Range = true

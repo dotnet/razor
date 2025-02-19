@@ -9,15 +9,14 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Settings;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.Razor.Settings;
 using Microsoft.VisualStudio.Razor.Snippets;
+using Roslyn.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 using RoslynCompletionParams = Roslyn.LanguageServer.Protocol.CompletionParams;
 using RoslynCompletionTriggerKind = Roslyn.LanguageServer.Protocol.CompletionTriggerKind;
-using RoslynLspExtensions = Roslyn.LanguageServer.Protocol.RoslynLspExtensions;
 using RoslynTextDocumentIdentifier = Roslyn.LanguageServer.Protocol.TextDocumentIdentifier;
 using RoslynVSInternalCompletionContext = Roslyn.LanguageServer.Protocol.VSInternalCompletionContext;
 using RoslynVSInternalCompletionInvokeKind = Roslyn.LanguageServer.Protocol.VSInternalCompletionInvokeKind;
@@ -599,7 +598,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             {
                 Uri = document.CreateUri()
             },
-            Position = RoslynLspExtensions.GetPosition(sourceText, input.Position),
+            Position = sourceText.GetPosition(input.Position),
             Context = completionContext
         };
 

@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 
@@ -60,7 +59,7 @@ internal class ExtractToComponentCodeActionResolver(
             ? '/' + componentPath
             : componentPath;
 
-        var newComponentUri = VsLspFactory.CreateFilePathUri(componentPath);
+        var newComponentUri = LspFactory.CreateFilePathUri(componentPath);
 
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
@@ -108,7 +107,7 @@ internal class ExtractToComponentCodeActionResolver(
                     new TextEdit
                     {
                         NewText = builder.ToString(),
-                        Range = VsLspFactory.DefaultRange,
+                        Range = LspFactory.DefaultRange,
                     }
                 ],
             }

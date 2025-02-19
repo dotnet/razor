@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+extern alias RLSP;
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -14,11 +16,7 @@ using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalCompletionList?>;
-using RoslynCompletionContext = Roslyn.LanguageServer.Protocol.CompletionContext;
-using RoslynCompletionList = Roslyn.LanguageServer.Protocol.CompletionList;
-using RoslynCompletionSetting = Roslyn.LanguageServer.Protocol.CompletionSetting;
+using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<RLSP::Roslyn.LanguageServer.Protocol.VSInternalCompletionList?>;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -175,14 +173,14 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         }
 
         // This is, to say the least, not ideal. In future we're going to normalize on to Roslyn LSP types, and this can go.
-        if (JsonHelpers.ToRoslynLSP<RoslynCompletionContext, CompletionContext>(completionContext) is not { } roslynCompletionContext)
+        if (JsonHelpers.ToRoslynLSP<CompletionContext, CompletionContext>(completionContext) is not { } roslynCompletionContext)
         {
             Debug.Fail("Unable to convert VS to Roslyn LSP completion context");
             return null;
         }
 
         var clientCapabilities = _clientCapabilitiesService.ClientCapabilities;
-        if (JsonHelpers.ToRoslynLSP<RoslynCompletionSetting, CompletionSetting>(clientCapabilities.TextDocument?.Completion) is not { } roslynCompletionSetting)
+        if (JsonHelpers.ToRoslynLSP<CompletionSetting, CompletionSetting>(clientCapabilities.TextDocument?.Completion) is not { } roslynCompletionSetting)
         {
             Debug.Fail("Unable to convert VS to Roslyn LSP completion setting");
             return null;
@@ -211,7 +209,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             };
         }
 
-        var vsPlatformCompletionList = JsonHelpers.ToVsLSP<VSInternalCompletionList, RoslynCompletionList>(roslynCompletionList);
+        var vsPlatformCompletionList = JsonHelpers.ToVsLSP<VSInternalCompletionList, CompletionList>(roslynCompletionList);
 
         var rewrittenResponse = await DelegatedCompletionHelper.RewriteCSharpResponseAsync(
             vsPlatformCompletionList,

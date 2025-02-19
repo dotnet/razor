@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.SemanticTokens;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Telemetry;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Endpoints;
@@ -52,7 +53,7 @@ internal partial class RazorCustomMessageTarget
     private async Task<ProvideSemanticTokensResponse?> ProvideSemanticTokensAsync(
         ProvideSemanticTokensRangesParams semanticTokensParams,
         string lspMethodName,
-        SemanticTokensParams requestParams,
+        SemanticTokensRangeParams requestParams,
         CancellationToken cancellationToken)
     {
         _logger.LogDebug($"Semantic tokens request for {semanticTokensParams.Ranges.Max(static r => r.End.Line)} max line number, host version {semanticTokensParams.RequiredHostDocumentVersion}, correlation ID {semanticTokensParams.CorrelationId}");
@@ -87,7 +88,7 @@ internal partial class RazorCustomMessageTarget
         {
             try
             {
-                var result = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens?>(
+                var result = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, SemanticTokens?>(
                     textBuffer,
                     lspMethodName,
                     languageServerName,

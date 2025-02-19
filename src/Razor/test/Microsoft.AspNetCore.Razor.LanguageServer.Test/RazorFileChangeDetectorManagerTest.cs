@@ -22,7 +22,7 @@ public class RazorFileChangeDetectorManagerTest(ITestOutputHelper testOutput) : 
 
         var initializeParams = new InitializeParams()
         {
-            RootUri = VsLspFactory.CreateFilePathUri(initialWorkspaceDirectory),
+            RootUri = LspFactory.CreateFilePathUri(initialWorkspaceDirectory),
         };
 
         var capabilitiesManager = new CapabilitiesManager(StrictMock.Of<ILspServices>());

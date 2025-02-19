@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-extern alias RLSP;
-
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
@@ -13,10 +11,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Tooltip;
-using RLSP::Roslyn.Core.Imaging;
-using RLSP::Roslyn.Text.Adornments;
+using Microsoft.CodeAnalysis.Classification;
+using Roslyn.Core.Imaging;
+using Roslyn.Text.Adornments;
 
 namespace Microsoft.CodeAnalysis.Razor.Tooltip;
 

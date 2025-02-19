@@ -271,7 +271,7 @@ public class CohostUriPresentationEndpointTest(FuseTestContext context, ITestOut
         {
             Assert.NotNull(result);
             Assert.NotNull(result.DocumentChanges);
-            Assert.Equal(expected, result.DocumentChanges.Value.First[0].Edits[0].NewText);
+            Assert.Equal(expected, ((TextEdit)result.DocumentChanges.Value.First[0].Edits[0]).NewText);
             Assert.Equal(document.CreateUri(), result.DocumentChanges.Value.First[0].TextDocument.Uri);
         }
     }

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+extern alias RLSP;
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -9,9 +11,8 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentSymbols;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
-using Roslyn.LanguageServer.Protocol;
 using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
-using RoslynSymbolSumType = Roslyn.LanguageServer.Protocol.SumType<Roslyn.LanguageServer.Protocol.DocumentSymbol[], Roslyn.LanguageServer.Protocol.SymbolInformation[]>;
+using RoslynSymbolSumType = RLSP::Roslyn.LanguageServer.Protocol.SumType<RLSP::Roslyn.LanguageServer.Protocol.DocumentSymbol[], RLSP::Roslyn.LanguageServer.Protocol.SymbolInformation[]>;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -27,7 +28,7 @@ internal sealed partial class RemoteDocumentSymbolService(in ServiceArgs args) :
     private readonly IClientCapabilitiesService _clientCapabilitiesService = args.ExportProvider.GetExportedValue<IClientCapabilitiesService>();
 
     public ValueTask<SumType<DocumentSymbol[], SymbolInformation[]>?> GetDocumentSymbolsAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, bool useHierarchicalSymbols, CancellationToken cancellationToken)
-       => RunServiceAsync(
+        => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
             context => GetDocumentSymbolsAsync(context, useHierarchicalSymbols, cancellationToken),

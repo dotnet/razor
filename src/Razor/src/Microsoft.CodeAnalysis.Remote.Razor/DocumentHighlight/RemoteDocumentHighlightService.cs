@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol.DocumentHighlight;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.LanguageServer.Protocol;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.DocumentHighlight.RemoteDocumentHighlight[]?>;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;

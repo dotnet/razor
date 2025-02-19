@@ -1,6 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+// This file is shared, but not all of the usings are needed for all files
+#pragma warning disable IDE0005 // Using directive is unnecessary.
+
 // The <Using> item doesn't support aliases so we need to define aliased global usings in a .cs file not in the .csproj
 // https://github.com/dotnet/sdk/issues/37814
 extern alias RLSP;

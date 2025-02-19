@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -326,13 +325,13 @@ public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutp
             );
 
         var edits = changes.Where(change => change.TextDocument.Uri.AbsolutePath == componentFilePath).Single();
-        var actual = edits.Edits.Select(edit => edit.NewText).Single();
+        var actual = edits.Edits.Select(edit => ((TextEdit)edit).NewText).Single();
 
         AssertEx.EqualOrDiff(expectedNewComponent, actual);
 
         var originalDocumentEdits = changes
             .Where(change => change.TextDocument.Uri.AbsolutePath == razorFilePath)
-            .SelectMany(change => change.Edits.Select(sourceText.GetTextChange));
+            .SelectMany(change => change.Edits.Select(e => sourceText.GetTextChange(((TextEdit)e))));
         var documentText = sourceText.WithChanges(originalDocumentEdits).ToString();
         AssertEx.EqualOrDiff(expectedOriginalDocument, documentText);
     }

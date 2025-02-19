@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
-using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 

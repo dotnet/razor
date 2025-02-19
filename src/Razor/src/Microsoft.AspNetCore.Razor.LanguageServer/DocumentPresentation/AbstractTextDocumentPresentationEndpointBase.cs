@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -132,7 +133,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
                 continue;
             }
 
-            var remappedEdits = MapTextEdits(mapRanges, codeDocument, edits);
+            var remappedEdits = MapTextEdits(mapRanges, codeDocument, edits.Select(e => (SumType<TextEdit, AnnotatedTextEdit>)e));
             if (remappedEdits.Length == 0)
             {
                 // Nothing to do.
@@ -181,23 +182,25 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
         return remappedDocumentEdits.ToArray();
     }
 
-    private TextEdit[] MapTextEdits(bool mapRanges, RazorCodeDocument codeDocument, TextEdit[] edits)
+    private TextEdit[] MapTextEdits(bool mapRanges, RazorCodeDocument codeDocument, IEnumerable<SumType<TextEdit, AnnotatedTextEdit>> edits)
     {
+        using var mappedEdits = new PooledArrayBuilder<TextEdit>();
         if (!mapRanges)
         {
-            return edits;
+            mappedEdits.AddRange(edits.Select(e => (TextEdit)e));
         }
-
-        using var mappedEdits = new PooledArrayBuilder<TextEdit>();
-        foreach (var edit in edits)
+        else
         {
-            if (!_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), edit.Range, out var newRange))
+            foreach (var edit in edits)
             {
-                return [];
-            }
+                if (!_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), ((TextEdit)edit).Range, out var newRange))
+                {
+                    return [];
+                }
 
-            var newEdit = LspFactory.CreateTextEdit(newRange, edit.NewText);
-            mappedEdits.Add(newEdit);
+                var newEdit = LspFactory.CreateTextEdit(newRange, ((TextEdit)edit).NewText);
+                mappedEdits.Add(newEdit);
+            }
         }
 
         return mappedEdits.ToArray();

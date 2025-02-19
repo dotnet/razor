@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -338,7 +339,14 @@ internal partial class RazorCustomMessageTarget
         {
             TabSize = formattingOptions.TabSize,
             InsertSpaces = formattingOptions.InsertSpaces,
-            OtherOptions = formattingOptions.OtherOptions,
+            // Options come from the VS protocol DLL, which uses Dict<string, object> for options, but Roslyn is more strongly typed.
+            OtherOptions = formattingOptions.OtherOptions.ToDictionary(k => k.Key, v => v.Value switch
+            {
+                bool b => b,
+                int i => i,
+                string s => s,
+                _ => Assumes.NotReachable<SumType<bool, int, string>>(),
+            }),
         };
         return Task.FromResult<FormattingOptions?>(roslynFormattingOptions);
     }

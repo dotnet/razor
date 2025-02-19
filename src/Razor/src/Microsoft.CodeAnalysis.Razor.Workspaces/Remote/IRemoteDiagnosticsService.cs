@@ -5,16 +5,16 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using RoslynLspDiagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
+using LspDiagnostic = Roslyn.LanguageServer.Protocol.Diagnostic;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteDiagnosticsService : IRemoteJsonService
 {
-    ValueTask<ImmutableArray<RoslynLspDiagnostic>> GetDiagnosticsAsync(
+    ValueTask<ImmutableArray<LspDiagnostic>> GetDiagnosticsAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
-        RoslynLspDiagnostic[] csharpDiagnostics,
-        RoslynLspDiagnostic[] htmlDiagnostics,
+        LspDiagnostic[] csharpDiagnostics,
+        LspDiagnostic[] htmlDiagnostics,
         CancellationToken cancellationToken);
 }

@@ -31,7 +31,7 @@ public class DocumentRangeFormattingEndpointTest(ITestOutputHelper testOutput) :
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
             Options = new FormattingOptions(),
-            Range = VsLspFactory.DefaultRange
+            Range = LspFactory.DefaultRange
         };
         var requestContext = CreateRazorRequestContext(documentContext);
 
@@ -117,15 +117,13 @@ public class DocumentRangeFormattingEndpointTest(ITestOutputHelper testOutput) :
         var optionsMonitor = GetOptionsMonitor(formatOnPaste: false);
         var htmlFormatter = new TestHtmlFormatter();
         var endpoint = new DocumentRangeFormattingEndpoint(formattingService, htmlFormatter, optionsMonitor);
-        var bytes = Encoding.UTF8.GetBytes("\"True\"");
-        var reader = new Utf8JsonReader(bytes);
         var @params = new DocumentRangeFormattingParams()
         {
             Options = new()
             {
                 OtherOptions = new()
                 {
-                    { "fromPaste", JsonElement.ParseValue(ref reader) }
+                    { "fromPaste", true }
                 }
             }
         };

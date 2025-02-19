@@ -111,8 +111,8 @@ public class ImplementationEndpointTest(ITestOutputHelper testOutput) : SingleSe
         var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
         // Assert
-        Assert.NotNull(result.Value.First);
-        var locations = result.Value.First;
+        Assert.NotNull(result.First);
+        var locations = result.First;
 
         Assert.Equal(expectedSpans.Length, locations.Length);
 

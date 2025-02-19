@@ -28,7 +28,7 @@ internal class CohostInlayHintEndpoint(IRemoteServiceInvoker remoteServiceInvoke
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<VSLSP.Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.InlayHint?.DynamicRegistration == true)
         {

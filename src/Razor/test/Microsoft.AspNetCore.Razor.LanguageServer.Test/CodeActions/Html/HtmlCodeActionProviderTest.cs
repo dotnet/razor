@@ -86,7 +86,7 @@ public class HtmlCodeActionProviderTest(ITestOutputHelper testOutput) : Language
                     {
                         Uri = new Uri(documentPath),
                     },
-                    Edits = [VsLspFactory.CreateTextEdit(context.SourceText.GetRange(span), "Goo /*~~~~~~~~~~~*/ Bar")]
+                    Edits = [LspFactory.CreateTextEdit(context.SourceText.GetRange(span), "Goo /*~~~~~~~~~~~*/ Bar")]
                 }
             }
         };
@@ -131,11 +131,11 @@ public class HtmlCodeActionProviderTest(ITestOutputHelper testOutput) : Language
         Assert.Collection(documentEdits[0].Edits,
             e =>
             {
-                Assert.Equal("", e.NewText);
+                Assert.Equal("", ((TextEdit)e).NewText);
             },
             e =>
             {
-                Assert.Equal("", e.NewText);
+                Assert.Equal("", ((TextEdit)e).NewText);
             });
     }
 

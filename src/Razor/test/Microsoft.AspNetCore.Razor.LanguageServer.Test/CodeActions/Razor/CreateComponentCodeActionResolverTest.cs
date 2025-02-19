@@ -126,7 +126,7 @@ public class CreateComponentCodeActionResolverTest(ITestOutputHelper testOutput)
 
         var editNewComponentChange = workspaceEdit.DocumentChanges.Value.Last();
         var editNewComponentEdit = editNewComponentChange.First.Edits.First();
-        Assert.Contains("@namespace Another.Namespace", editNewComponentEdit.NewText, StringComparison.Ordinal);
+        Assert.Contains("@namespace Another.Namespace", ((TextEdit)editNewComponentEdit).NewText, StringComparison.Ordinal);
     }
 
     private static RazorCodeDocument CreateCodeDocument(string text)

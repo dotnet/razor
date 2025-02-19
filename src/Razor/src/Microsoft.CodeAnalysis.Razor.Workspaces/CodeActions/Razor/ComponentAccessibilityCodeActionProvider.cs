@@ -279,7 +279,7 @@ internal class ComponentAccessibilityCodeActionProvider(IFileSystem fileSystem) 
 
     private static WorkspaceEdit CreateRenameTagEdit(RazorCodeActionContext context, IStartTagSyntaxNode startTag, string newTagName)
     {
-        using var textEdits = new PooledArrayBuilder<TextEdit>();
+        using var textEdits = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>();
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
 
         var startTagTextEdit = LspFactory.CreateTextEdit(startTag.Name.GetRange(context.CodeDocument.Source), newTagName);

@@ -33,7 +33,7 @@ internal partial class RazorCustomMessageTarget
         var htmlTextBuffer = htmlDoc.Snapshot.TextBuffer;
         var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<DocumentColorParams, ColorInformation[]>(
             htmlTextBuffer,
-            Methods.DocumentColorRequest.Name,
+            Methods.TextDocumentDocumentColor.Name,
             documentColorParams,
             cancellationToken).ConfigureAwait(false);
 
