@@ -81,14 +81,14 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Combine(importFiles.Collect())
                 .Combine(razorSourceGeneratorOptions)
                 .WithLambdaComparer((old, @new) => old.Right.Equals(@new.Right) && old.Left.Left.Equals(@new.Left.Left) && old.Left.Right.SequenceEqual(@new.Left.Right))
-                .Select(static (pair, _) =>
+                .Select(static (pair, cancellationToken) =>
                 {
                     var ((sourceItem, importFiles), razorSourceGeneratorOptions) = pair;
                     RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStart(sourceItem.FilePath);
 
                     var projectEngine = GetDeclarationProjectEngine(sourceItem, importFiles, razorSourceGeneratorOptions);
 
-                    var codeGen = projectEngine.Process(sourceItem);
+                    var codeGen = projectEngine.Process(sourceItem, cancellationToken);
 
                     var result = new SourceGeneratorText(codeGen.GetCSharpDocument().Text);
 
