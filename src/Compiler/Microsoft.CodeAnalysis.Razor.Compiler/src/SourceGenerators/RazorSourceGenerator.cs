@@ -337,16 +337,21 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var hostOutputs = csharpDocuments
                 .Collect()
                 .Combine(allTagHelpers)
+                .Combine(isGeneratorSuppressed)
                 .WithTrackingName("HostOutputs");
 
 #pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             context.RegisterHostOutput(hostOutputs, (context, pair) =>
 #pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             {
-                var (documents, tagHelpers) = pair;
-                
-                var documentDictionary = documents.Select(p => KeyValuePair.Create(p.codeDocument.Source.FilePath!, (p.hintName, p.codeDocument))).ToImmutableDictionary();
-                context.AddOutput(nameof(RazorGeneratorResult), new RazorGeneratorResult(tagHelpers, documentDictionary));
+                var ((documents, tagHelpers), isGeneratorSuppressed) = pair;
+
+
+                if (!isGeneratorSuppressed)
+                {
+                    var documentDictionary = documents.Select(p => KeyValuePair.Create(p.codeDocument.Source.FilePath!, (p.hintName, p.codeDocument))).ToImmutableDictionary();
+                    context.AddOutput(nameof(RazorGeneratorResult), new RazorGeneratorResult(tagHelpers, documentDictionary));
+                }
             });
         }
     }
