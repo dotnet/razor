@@ -3,6 +3,8 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -224,5 +226,46 @@ public static class RazorProjectEngineExtensions
         fileKind ??= DefaultFileKind;
 
         return projectEngine.CreateDesignTimeCodeDocument(source, fileKind, importSources, tagHelpers);
+    }
+
+    public static void RunPhasesTo<T>(
+        this RazorProjectEngine projectEngine,
+        RazorCodeDocument codeDocument)
+        where T : IRazorEnginePhase
+    {
+        foreach (var phase in projectEngine.Engine.Phases)
+        {
+            phase.Execute(codeDocument);
+
+            if (phase is T)
+            {
+                break;
+            }
+        }
+    }
+
+    public static void ExecutePass<T>(
+        this RazorProjectEngine projectEngine,
+        RazorCodeDocument codeDocument)
+        where T : IntermediateNodePassBase, new()
+    {
+        var documentNode = codeDocument.GetDocumentIntermediateNode();
+        Assert.NotNull(documentNode);
+
+        projectEngine.ExecutePass<T>(codeDocument, documentNode);
+    }
+
+    public static void ExecutePass<T>(
+        this RazorProjectEngine projectEngine,
+        RazorCodeDocument codeDocument,
+        DocumentIntermediateNode documentNode)
+        where T : IntermediateNodePassBase, new()
+    {
+        var pass = new T()
+        {
+            Engine = projectEngine.Engine
+        };
+
+        pass.Execute(codeDocument, documentNode);
     }
 }

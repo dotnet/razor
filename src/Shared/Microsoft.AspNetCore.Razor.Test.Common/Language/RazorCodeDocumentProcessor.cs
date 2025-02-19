@@ -23,31 +23,15 @@ public sealed class RazorCodeDocumentProcessor
     public RazorCodeDocumentProcessor RunPhasesTo<T>()
         where T : IRazorEnginePhase
     {
-        foreach (var phase in ProjectEngine.Engine.Phases)
-        {
-            phase.Execute(CodeDocument);
-
-            if (phase is T)
-            {
-                break;
-            }
-        }
+        ProjectEngine.RunPhasesTo<T>(CodeDocument);
 
         return this;
     }
 
-    public RazorCodeDocumentProcessor ExecutePass<T>(DocumentIntermediateNode? documentNode = null)
+    public RazorCodeDocumentProcessor ExecutePass<T>()
         where T : IntermediateNodePassBase, new()
     {
-        var pass = new T()
-        {
-            Engine = ProjectEngine.Engine
-        };
-
-        documentNode ??= CodeDocument.GetDocumentIntermediateNode();
-        Assert.NotNull(documentNode);
-
-        pass.Execute(CodeDocument, documentNode);
+        ProjectEngine.ExecutePass<T>(CodeDocument);
 
         return this;
     }

@@ -15,13 +15,15 @@ public class InheritsDirectivePassTest : RazorProjectEngineTestBase
     public void Execute_SkipsDocumentWithNoClassNode()
     {
         // Arrange
+        var projectEngine = CreateProjectEngine();
+        var codeDocument = projectEngine.CreateCodeDocument("@inherits Hello<World[]>");
         var processor = CreateAndInitializeCodeDocument("@inherits Hello<World[]>");
 
         var documentNode = new DocumentIntermediateNode();
         documentNode.Children.Add(new DirectiveIntermediateNode() { Directive = FunctionsDirective.Directive });
 
         // Act
-        processor.ExecutePass<InheritsDirectivePass>(documentNode);
+        projectEngine.ExecutePass<InheritsDirectivePass>(codeDocument, documentNode);
 
         // Assert
         Children(

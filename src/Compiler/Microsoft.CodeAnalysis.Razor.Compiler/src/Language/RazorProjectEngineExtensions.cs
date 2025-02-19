@@ -125,6 +125,6 @@ public static class RazorProjectEngineExtensions
     {
         fileKind ??= DefaultFileKind;
 
-        return projectEngine.CreateCodeDocument(source, fileKind, importSources, tagHelpers, cssScope: null);
+        return projectEngine.CreateDesignTimeCodeDocument(source, fileKind, importSources, tagHelpers);
     }
 }
