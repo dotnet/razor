@@ -46,7 +46,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Combine(parseOptions)
                 .Combine(metadataRefs.Collect())
                 .SuppressIfNeeded(isGeneratorSuppressed)
-                .Select(ComputeRazorSourceGeneratorOptions)
+                .Select((p, _) => ComputeRazorSourceGeneratorOptions(p.Item1.Item1, p.Item1.Item2, p.Item1.Item3, p.Item2))
                 .ReportDiagnostics(context);
 
             var sourceItems = additionalTexts
@@ -80,10 +80,10 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var generatedDeclarationText = componentFiles
                 .Combine(importFiles.Collect())
                 .Combine(razorSourceGeneratorOptions)
-                .WithLambdaComparer((old, @new) => old.Right.Equals(@new.Right) && old.Left.Left.Equals(@new.Left.Left) && old.Left.Right.SequenceEqual(@new.Left.Right))
+                .WithLambdaComparer((old, @new) => old.Item3.Equals(@new.Item3) && old.Item1.Equals(@new.Item1) && old.Item2.SequenceEqual(@new.Item2))
                 .Select(static (pair, cancellationToken) =>
                 {
-                    var ((sourceItem, importFiles), razorSourceGeneratorOptions) = pair;
+                    var (sourceItem, importFiles, razorSourceGeneratorOptions) = pair;
                     RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStart(sourceItem.FilePath);
 
                     var projectEngine = GetDeclarationProjectEngine(sourceItem, importFiles, razorSourceGeneratorOptions);
@@ -143,8 +143,8 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Combine(hasRazorFiles)
                 .WithLambdaComparer(static (a, b) =>
                 {
-                    var ((compilationA, razorSourceGeneratorOptionsA), hasRazorFilesA) = a;
-                    var ((compilationB, razorSourceGeneratorOptionsB), hasRazorFilesB) = b;
+                    var (compilationA, razorSourceGeneratorOptionsA, hasRazorFilesA) = a;
+                    var (compilationB, razorSourceGeneratorOptionsB, hasRazorFilesB) = b;
 
                     // When using the generator cache in the compiler it's possible to encounter metadata references that are different instances
                     // but ultimately represent the same underlying assembly. We compare the module version ids to determine if the references are the same
@@ -192,7 +192,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 })
                 .Select(static (pair, _) =>
                 {
-                    var ((compilation, razorSourceGeneratorOptions), hasRazorFiles) = pair;
+                    var (compilation, razorSourceGeneratorOptions, hasRazorFiles) = pair;
                     if (!hasRazorFiles)
                     {
                         // If there's no razor code in this app, don't do anything.
@@ -231,12 +231,11 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left) && old.Right.SequenceEqual(@new.Right))
                 .Combine(razorSourceGeneratorOptions);
 
-
             var processed =
                 withOptions
                 .Select((pair, _) =>
                 {
-                    var ((sourceItem, imports), razorSourceGeneratorOptions) = pair;
+                    var (sourceItem, imports, razorSourceGeneratorOptions) = pair;
 
                     RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStart(sourceItem.RelativePhysicalPath);
 
@@ -248,12 +247,12 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return (projectEngine, sourceItem.RelativePhysicalPath, document);
                 })
 
-                // Add the tag helpers in, but ignore if they've changed or not, only reprocessing the actual document changed
+                // Add the tag helpers in, but ignore if they've changed or not, only reprocessing if the actual document changed
                 .Combine(allTagHelpers)
-                .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left))
+                .WithLambdaComparer((old, @new) => old.Item3.Equals(@new.Item3))
                 .Select(static (pair, _) =>
                 {
-                    var ((projectEngine, filePath, codeDocument), allTagHelpers) = pair;
+                    var (projectEngine, filePath, codeDocument, allTagHelpers) = pair;
                     RazorSourceGeneratorEventSource.Log.RewriteTagHelpersStart(filePath);
 
                     codeDocument = projectEngine.ProcessTagHelpers(codeDocument, allTagHelpers, checkForIdempotency: false);
@@ -266,7 +265,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Combine(allTagHelpers)
                 .Select(static (pair, _) =>
                 {
-                    var ((projectEngine, filePath, document), allTagHelpers) = pair;
+                    var (projectEngine, filePath, document, allTagHelpers) = pair;
                     RazorSourceGeneratorEventSource.Log.CheckAndRewriteTagHelpersStart(filePath);
 
                     document = projectEngine.ProcessTagHelpers(document, allTagHelpers, checkForIdempotency: true);
@@ -310,7 +309,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             context.RegisterImplementationSourceOutput(csharpDocumentsWithSuppressionFlag, static (context, pair) =>
             {
-                var ((hintName, _, csharpDocument), isGeneratorSuppressed) = pair;
+                var (hintName, _, csharpDocument, isGeneratorSuppressed) = pair;
 
                 // When the generator is suppressed, we may still have a lot of cached data for perf, but we don't want to actually add any of the files to the output
                 if (!isGeneratorSuppressed)
@@ -336,7 +335,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             context.RegisterHostOutput(hostOutputs, (context, pair) =>
 #pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             {
-                var ((documents, tagHelpers), isGeneratorSuppressed) = pair;
+                var (documents, tagHelpers, isGeneratorSuppressed) = pair;
 
                 if (!isGeneratorSuppressed)
                 {
