@@ -13,15 +13,6 @@
   <Import
     Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), AspNetCoreSettings.props))\AspNetCoreSettings.props"
     Condition=" '$(CI)' != 'true' AND '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), AspNetCoreSettings.props))' != '' " />
-
-  <!--<ItemGroup>
-    <Reference Include="C:\Projects\roslyn\artifacts\bin\Microsoft.CodeAnalysis\Debug\netstandard2.0\Microsoft.CodeAnalysis.dll" />
-    <Reference Include="C:\Projects\roslyn\artifacts\bin\Microsoft.CodeAnalysis.CSharp\Debug\netstandard2.0\Microsoft.CodeAnalysis.CSharp.dll" />
-    <Reference Include="C:\Projects\roslyn\artifacts\bin\Microsoft.CodeAnalysis.Workspaces\Debug\netstandard2.0\Microsoft.CodeAnalysis.Workspaces.dll" />
-    <Reference Include="C:\Projects\roslyn\artifacts\bin\Microsoft.CodeAnalysis.EditorFeatures.Text\Debug\netstandard2.0\Microsoft.CodeAnalysis.EditorFeatures.Text.dll" />
-    <Reference Include="C:\Projects\roslyn\artifacts\bin\Microsoft.CodeAnalysis.CSharp.Features\Debug\netstandard2.0\Microsoft.CodeAnalysis.CSharp.Features.dll" />
-    <Reference Include="C:\Projects\roslyn\artifacts\bin\Microsoft.CodeAnalysis.LanguageServer.Protocol\Debug\netstandard2.0\Microsoft.CodeAnalysis.LanguageServer.Protocol.dll" />
-  </ItemGroup>-->
   
   <PropertyGroup Label="Build Settings">
     <LangVersion>preview</LangVersion>
