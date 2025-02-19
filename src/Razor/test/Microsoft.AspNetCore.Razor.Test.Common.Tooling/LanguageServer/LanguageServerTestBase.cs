@@ -19,7 +19,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -33,14 +33,14 @@ namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 
 public abstract class LanguageServerTestBase : ToolingTestBase
 {
-    private protected IRazorSpanMappingService SpanMappingService { get; }
+    private protected IRazorMappingService SpanMappingService { get; }
     private protected IFilePathService FilePathService { get; }
     private protected JsonSerializerOptions SerializerOptions { get; }
 
     protected LanguageServerTestBase(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        SpanMappingService = new ThrowingRazorSpanMappingService();
+        SpanMappingService = new ThrowingRazorMappingService();
 
         SerializerOptions = JsonHelpers.VsLspJsonSerializerOptions;
         FilePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
@@ -180,9 +180,14 @@ public abstract class LanguageServerTestBase : ToolingTestBase
         return flags;
     }
 
-    private class ThrowingRazorSpanMappingService : IRazorSpanMappingService
+    private class ThrowingRazorMappingService : IRazorMappingService
     {
         public Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ImmutableArray<RazorMappedEditoResult>> MapTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

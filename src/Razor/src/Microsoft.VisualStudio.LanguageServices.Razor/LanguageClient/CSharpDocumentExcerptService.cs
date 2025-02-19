@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Razor.DynamicFiles;
@@ -16,12 +17,12 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 internal sealed class CSharpDocumentExcerptService : DocumentExcerptService
 {
-    private readonly IRazorSpanMappingService _mappingService;
+    private readonly IRazorMappingService _mappingService;
 
     private readonly LSPDocumentSnapshot _documentSnapshot;
 
     public CSharpDocumentExcerptService(
-        IRazorSpanMappingService mappingService,
+        IRazorMappingService mappingService,
         LSPDocumentSnapshot documentSnapshot)
     {
         if (mappingService is null)

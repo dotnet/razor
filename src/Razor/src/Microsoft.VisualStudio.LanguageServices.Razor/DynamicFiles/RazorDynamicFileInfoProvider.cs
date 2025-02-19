@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -58,6 +59,11 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
     }
 
     public event EventHandler<string>? Updated;
+
+    public Task EnsureInitializedAsync(Func<CancellationToken, Task<IRazorClientLanguageServerManager>> getLanguageServerManager, CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
 
     // Called by us to update LSP document entries
     public void UpdateLSPFileInfo(Uri documentUri, IDynamicDocumentContainer documentContainer)
@@ -168,10 +174,9 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
             // server to recognize the document.
             var documentServiceProvider = associatedEntry.Current.DocumentServiceProvider;
             var excerptService = documentServiceProvider.GetService<IRazorDocumentExcerptServiceImplementation>();
-            var spanMappingService = documentServiceProvider.GetService<IRazorSpanMappingService>();
             var mappingService = documentServiceProvider.GetService<IRazorMappingService>();
             var emptyContainer = new PromotedDynamicDocumentContainer(
-                documentUri, propertiesService, excerptService, spanMappingService, mappingService, associatedEntry.Current.TextLoader);
+                documentUri, propertiesService, excerptService, mappingService, associatedEntry.Current.TextLoader);
 
             lock (associatedEntry.Lock)
             {
@@ -236,7 +241,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         }
     }
 
-    public Task<RazorDynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
+    public Task<IRazorDynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
         if (projectFilePath is null)
         {
@@ -253,7 +258,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         var projectKey = TryFindProjectKeyForProjectId(projectId);
         if (projectKey is not { } razorProjectKey)
         {
-            return SpecializedTasks.Null<RazorDynamicFileInfo>();
+            return SpecializedTasks.Null<IRazorDynamicFileInfo>();
         }
 
         _fallbackProjectManager.DynamicFileAdded(projectId, razorProjectKey, projectFilePath, filePath, cancellationToken);
@@ -261,7 +266,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         var key = new Key(projectId, filePath);
         var entry = _entries.GetOrAdd(key, _createEmptyEntry);
 
-        return Task.FromResult<RazorDynamicFileInfo?>(entry.Current);
+        return Task.FromResult<IRazorDynamicFileInfo?>(entry.Current);
     }
 
     public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
@@ -465,15 +470,13 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         Uri documentUri,
         IRazorDocumentPropertiesService documentPropertiesService,
         IRazorDocumentExcerptServiceImplementation? documentExcerptService,
-        IRazorSpanMappingService? spanMappingService,
-        IRazorMappingService? mappingService,
+        IRazorMappingService mappingService,
         TextLoader textLoader) : IDynamicDocumentContainer
     {
         private readonly Uri _documentUri = documentUri;
         private readonly IRazorDocumentPropertiesService _documentPropertiesService = documentPropertiesService;
         private readonly IRazorDocumentExcerptServiceImplementation? _documentExcerptService = documentExcerptService;
-        private readonly IRazorSpanMappingService? _spanMappingService = spanMappingService;
-        private readonly IRazorMappingService? _mappingService = mappingService;
+        private readonly IRazorMappingService _mappingService = mappingService;
         private readonly TextLoader _textLoader = textLoader;
 
         public string FilePath => _documentUri.LocalPath;
@@ -489,11 +492,9 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
 
         public IRazorDocumentExcerptServiceImplementation? GetExcerptService() => _documentExcerptService;
 
-        public IRazorSpanMappingService? GetSpanMappingService() => _spanMappingService;
-
         public TextLoader GetTextLoader(string filePath) => _textLoader;
 
-        public IRazorMappingService? GetMappingService() => _mappingService;
+        public IRazorMappingService GetMappingService() => _mappingService;
     }
 
     public class TestAccessor

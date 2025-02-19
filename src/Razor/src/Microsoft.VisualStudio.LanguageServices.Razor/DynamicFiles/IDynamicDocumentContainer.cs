@@ -3,6 +3,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 
 namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
@@ -16,8 +17,7 @@ internal interface IDynamicDocumentContainer
 
     TextLoader GetTextLoader(string filePath);
 
-    IRazorSpanMappingService? GetSpanMappingService();
-    IRazorMappingService? GetMappingService();
+    IRazorMappingService GetMappingService();
     IRazorDocumentExcerptServiceImplementation? GetExcerptService();
     IRazorDocumentPropertiesService GetDocumentPropertiesService();
 }

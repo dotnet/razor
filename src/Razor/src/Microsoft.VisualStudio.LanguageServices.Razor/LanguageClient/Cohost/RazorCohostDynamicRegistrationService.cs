@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -64,7 +65,7 @@ internal class RazorCohostDynamicRegistrationService(
             }
         }
 
-        var razorCohostClientLanguageServerManager = requestContext.GetRequiredService<IRazorCohostClientLanguageServerManager>();
+        var razorCohostClientLanguageServerManager = requestContext.GetRequiredService<IRazorClientLanguageServerManager>();
 
         await razorCohostClientLanguageServerManager.SendRequestAsync(
             Methods.ClientRegisterCapabilityName,
