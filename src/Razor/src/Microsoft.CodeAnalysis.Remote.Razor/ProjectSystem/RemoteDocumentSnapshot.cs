@@ -73,10 +73,10 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
             return _codeDocument;
         }
 
+        // TODO: What happens if we can't get the document? (https://github.com/dotnet/razor/issues/11522)
         var document = await ProjectSnapshot.GetCodeDocumentAsync(this, cancellationToken).ConfigureAwait(false)
-            ?? throw new InvalidOperationException("Could not get the code document"); // TODO: what happens if we can't get the code document?
+            ?? throw new InvalidOperationException("Could not get the code document");
 
-        // TODO: what do we do if we can't find the document?
         return InterlockedOperations.Initialize(ref _codeDocument, document);
     }
 
