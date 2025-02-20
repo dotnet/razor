@@ -78,7 +78,6 @@ public class RazorProjectEngineTest
             feature => Assert.IsType<DefaultDocumentClassifierPassFeature>(feature),
             feature => Assert.IsType<DefaultMetadataIdentifierFeature>(feature),
             feature => Assert.IsType<DefaultRazorCodeGenerationOptionsFeature>(feature),
-            feature => Assert.IsType<DefaultRazorParserOptionsFeature>(feature),
             feature => Assert.IsType<DefaultRazorTargetExtensionFeature>(feature),
             feature => Assert.IsType<DefaultTagHelperOptimizationPass>(feature),
             feature => Assert.IsType<DesignTimeDirectivePass>(feature),

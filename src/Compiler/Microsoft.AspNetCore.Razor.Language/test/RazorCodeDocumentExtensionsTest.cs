@@ -274,7 +274,7 @@ public class RazorCodeDocumentExtensionsTest
         var codeDocument = RazorCodeDocument.Create(
             source,
             imports: default,
-            parserOptions: null,
+            parserOptions: RazorParserOptions.Default,
             codeGenerationOptions: null);
 
         var documentNode = new DocumentIntermediateNode()
@@ -358,7 +358,7 @@ public class RazorCodeDocumentExtensionsTest
         var codeDocument = RazorCodeDocument.Create(
             source,
             imports: default,
-            parserOptions: null,
+            parserOptions: RazorParserOptions.Default,
             codeGenerationOptions: null);
 
         var documentNode = new DocumentIntermediateNode()

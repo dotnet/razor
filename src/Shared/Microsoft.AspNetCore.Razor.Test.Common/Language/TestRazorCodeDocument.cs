@@ -8,12 +8,12 @@ public static class TestRazorCodeDocument
     public static RazorCodeDocument CreateEmpty()
     {
         var source = TestRazorSourceDocument.Create(content: string.Empty);
-        return RazorCodeDocument.Create(source, imports: default, parserOptions: null, codeGenerationOptions: null);
+        return RazorCodeDocument.Create(source, imports: default, parserOptions: RazorParserOptions.Default, codeGenerationOptions: null);
     }
 
     public static RazorCodeDocument Create(string content, bool normalizeNewLines = false)
     {
         var source = TestRazorSourceDocument.Create(content, normalizeNewLines: normalizeNewLines);
-        return RazorCodeDocument.Create(source, imports: default, parserOptions: null, codeGenerationOptions: null);
+        return RazorCodeDocument.Create(source, imports: default, parserOptions: RazorParserOptions.Default, codeGenerationOptions: null);
     }
 }

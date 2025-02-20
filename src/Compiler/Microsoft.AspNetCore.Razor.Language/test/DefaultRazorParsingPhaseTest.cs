@@ -17,7 +17,6 @@ public class DefaultRazorParsingPhaseTest
         var projectEngine = RazorProjectEngine.CreateEmpty(builder =>
         {
             builder.Phases.Add(phase);
-            builder.Features.Add(new DefaultRazorParserOptionsFeature());
         });
 
         var codeDocument = projectEngine.CreateEmptyCodeDocument();
@@ -38,7 +37,6 @@ public class DefaultRazorParsingPhaseTest
         var projectEngine = RazorProjectEngine.CreateEmpty((builder) =>
         {
             builder.Phases.Add(phase);
-            builder.Features.Add(new DefaultRazorParserOptionsFeature());
             builder.AddDirective(CreateDirective());
         });
 
@@ -62,7 +60,6 @@ public class DefaultRazorParsingPhaseTest
         var projectEngine = RazorProjectEngine.CreateEmpty(builder =>
         {
             builder.Phases.Add(phase);
-            builder.Features.Add(new DefaultRazorParserOptionsFeature());
             builder.AddDirective(CreateDirective());
         });
 
