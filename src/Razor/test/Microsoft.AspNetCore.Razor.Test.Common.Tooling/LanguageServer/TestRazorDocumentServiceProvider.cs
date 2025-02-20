@@ -2,12 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 
-internal class TestRazorDocumentServiceProvider(IRazorSpanMappingService spanMappingService) : IRazorDocumentServiceProvider
+internal class TestRazorDocumentServiceProvider(IRazorMappingService mappingService) : IRazorDocumentServiceProvider
 {
-    private readonly IRazorSpanMappingService _spanMappingService = spanMappingService;
+    private readonly IRazorMappingService _mappingService = mappingService;
 
     public bool CanApplyChange => true;
 
@@ -17,9 +18,9 @@ internal class TestRazorDocumentServiceProvider(IRazorSpanMappingService spanMap
     {
         var serviceType = typeof(TService);
 
-        if (serviceType == typeof(IRazorSpanMappingService))
+        if (serviceType == typeof(IRazorMappingService))
         {
-            return (TService?)_spanMappingService;
+            return (TService?)_mappingService;
         }
 
         if (serviceType == typeof(IRazorDocumentPropertiesService))

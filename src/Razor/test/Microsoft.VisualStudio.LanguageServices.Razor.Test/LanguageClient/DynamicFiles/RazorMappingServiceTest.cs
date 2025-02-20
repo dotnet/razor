@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.DynamicFiles;
 
-public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : WorkspaceTestBase(testOutput)
+public class RazorMappingServiceTest(ITestOutputHelper testOutput) : WorkspaceTestBase(testOutput)
 {
     private readonly HostProject _hostProject = TestProjectData.SomeProject;
     private readonly HostDocument _hostDocument = TestProjectData.SomeProjectFile1;
@@ -43,7 +43,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
 
         // Act
         var text = await document.GetTextAsync(DisposalToken);
-        var result = RazorSpanMappingService.TryGetMappedSpans(span, text, generated, out var mappedLinePositionSpan, out var mappedSpan);
+        var result = RazorMappingService.TryGetMappedSpans(span, text, generated, out var mappedLinePositionSpan, out var mappedSpan);
 
         // Assert
         Assert.True(result);
@@ -78,7 +78,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
 
         // Act
         var text = await document.GetTextAsync(DisposalToken);
-        var result = RazorSpanMappingService.TryGetMappedSpans(span, text, generated, out var mappedLinePositionSpan, out var mappedSpan);
+        var result = RazorMappingService.TryGetMappedSpans(span, text, generated, out var mappedLinePositionSpan, out var mappedSpan);
 
         // Assert
         Assert.True(result);
@@ -112,7 +112,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
 
         // Act
         var text = await document.GetTextAsync(DisposalToken);
-        var result = RazorSpanMappingService.TryGetMappedSpans(span, text, generated, out var mappedLinePositionSpan, out var mappedSpan);
+        var result = RazorMappingService.TryGetMappedSpans(span, text, generated, out var mappedLinePositionSpan, out var mappedSpan);
 
         // Assert
         Assert.True(result);
@@ -146,7 +146,7 @@ public class RazorSpanMappingServiceTest(ITestOutputHelper testOutput) : Workspa
 
         // Act
         var text = await document.GetTextAsync(DisposalToken);
-        var result = RazorSpanMappingService.TryGetMappedSpans(span, text, generated, out _, out _);
+        var result = RazorMappingService.TryGetMappedSpans(span, text, generated, out _, out _);
 
         // Assert
         Assert.False(result);

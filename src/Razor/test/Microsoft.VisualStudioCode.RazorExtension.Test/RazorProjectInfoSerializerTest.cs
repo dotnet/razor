@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace.Test;
+namespace Microsoft.VisualStudioCode.RazorExtension.Test;
 
 public class RazorProjectInfoSerializerTest(ITestOutputHelper testOutputHelper) : ToolingTestBase(testOutputHelper)
 {

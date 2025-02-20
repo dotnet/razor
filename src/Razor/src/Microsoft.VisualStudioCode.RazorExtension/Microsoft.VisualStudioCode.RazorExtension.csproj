@@ -18,12 +18,12 @@
 
   <ItemGroup>
     <!-- Since we're including these DLLs in the package, we mark them as private assets so they're not also dependencies -->
-    <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" PrivateAssets="all"/>
-    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.ProjectEngineHost\Microsoft.AspNetCore.Razor.ProjectEngineHost.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension.Test" Key="$(RazorKey)" />
   </ItemGroup>
 
   <!--
@@ -36,7 +36,7 @@
       * Microsoft.AspNetCore.Razor.ProjectEngineHost.dll
       * Microsoft.AspNetCore.Razor.Utilities.Shared.dll
 
-    (and Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace.dll obviously)
+    (and Microsoft.VisualStudioCode.RazorExtension.dll obviously)
   -->
   <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">
     <ItemGroup>

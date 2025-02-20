@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 
@@ -17,10 +18,10 @@ namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
 internal class RazorDocumentExcerptService(
     IDocumentSnapshot document,
-    IRazorSpanMappingService mappingService) : DocumentExcerptService
+    IRazorMappingService mappingService) : DocumentExcerptService
 {
     private readonly IDocumentSnapshot _document = document;
-    private readonly IRazorSpanMappingService _mappingService = mappingService;
+    private readonly IRazorMappingService _mappingService = mappingService;
 
     internal override async Task<ExcerptResultInternal?> TryGetExcerptInternalAsync(
         Document document,

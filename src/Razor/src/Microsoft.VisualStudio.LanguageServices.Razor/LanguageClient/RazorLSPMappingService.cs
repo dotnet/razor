@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
@@ -84,7 +84,7 @@ internal sealed class RazorLSPMappingService(
         return mappedSpanResults;
     }
 
-    private static ImmutableArray<RazorMappedSpanResult> GetMappedSpanResults(
+    internal static ImmutableArray<RazorMappedSpanResult> GetMappedSpanResults(
         string localFilePath,
         SourceText sourceTextRazor,
         RazorMapToDocumentRangesResponse? mappedResult)

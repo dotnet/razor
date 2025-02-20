@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace.Test;
+namespace Microsoft.VisualStudioCode.RazorExtension.Test;
 
 public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : ToolingTestBase(testOutputHelper)
 {

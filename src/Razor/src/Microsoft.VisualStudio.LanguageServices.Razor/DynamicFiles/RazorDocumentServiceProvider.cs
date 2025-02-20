@@ -2,15 +2,15 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 
 namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
-internal class RazorDocumentServiceProvider(IDynamicDocumentContainer? documentContainer) : IRazorDocumentServiceProvider, IRazorDocumentOperationService
+internal class RazorDocumentServiceProvider(IDynamicDocumentContainer? documentContainer) : IRazorDocumentServiceProvider
 {
     private readonly IDynamicDocumentContainer? _documentContainer = documentContainer;
     private readonly object _lock = new object();
 
-    private IRazorSpanMappingService? _spanMappingService;
     private IRazorDocumentExcerptServiceImplementation? _documentExcerptService;
     private IRazorDocumentPropertiesService? _documentPropertiesService;
     private IRazorMappingService? _mappingService;
@@ -32,19 +32,6 @@ internal class RazorDocumentServiceProvider(IDynamicDocumentContainer? documentC
         }
 
         var serviceType = typeof(TService);
-
-        if (serviceType == typeof(IRazorSpanMappingService))
-        {
-            if (_spanMappingService is null)
-            {
-                lock (_lock)
-                {
-                    _spanMappingService ??= _documentContainer.GetSpanMappingService();
-                }
-            }
-
-            return (TService?)_spanMappingService;
-        }
 
         if (serviceType == typeof(IRazorDocumentExcerptServiceImplementation))
         {

@@ -5,7 +5,7 @@ using System.IO.Pipes;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace;
+namespace Microsoft.VisualStudioCode.RazorExtension;
 
 public sealed class RazorWorkspaceListener : RazorWorkspaceListenerBase
 {
