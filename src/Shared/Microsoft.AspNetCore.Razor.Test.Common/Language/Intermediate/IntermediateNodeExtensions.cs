@@ -64,20 +64,20 @@ internal static class IntermediateNodeExtensions
         return visitor.TagHelperNodes;
     }
 
-    public static NamespaceDeclarationIntermediateNode? FindNamespaceNode(this IntermediateNode node)
-        => node.GetNamespaceNodes().FirstOrDefault();
+    public static NamespaceDeclarationIntermediateNode GetNamespaceNode(this IntermediateNode node)
+        => node.GetNamespaceNodes().First();
 
-    public static ClassDeclarationIntermediateNode? FindClassNode(this IntermediateNode node)
-        => node.GetClassNodes().FirstOrDefault();
+    public static ClassDeclarationIntermediateNode GetClassNode(this IntermediateNode node)
+        => node.GetClassNodes().First();
 
-    public static MethodDeclarationIntermediateNode? FindMethodNode(this IntermediateNode node)
-        => node.GetMethodNodes().FirstOrDefault();
+    public static MethodDeclarationIntermediateNode GetMethodNode(this IntermediateNode node)
+        => node.GetMethodNodes().First();
 
-    public static ExtensionIntermediateNode? FindExtensionNode(this IntermediateNode node)
-        => node.GetExtensionNodes().FirstOrDefault();
+    public static ExtensionIntermediateNode GetExtensionNode(this IntermediateNode node)
+        => node.GetExtensionNodes().First();
 
-    public static TagHelperIntermediateNode? FindTagHelperNode(this IntermediateNode node)
-        => node.GetTagHelperNodes().FirstOrDefault();
+    public static TagHelperIntermediateNode GetTagHelperNode(this IntermediateNode node)
+        => node.GetTagHelperNodes().First();
 
     private sealed class Visitor : IntermediateNodeWalker
     {

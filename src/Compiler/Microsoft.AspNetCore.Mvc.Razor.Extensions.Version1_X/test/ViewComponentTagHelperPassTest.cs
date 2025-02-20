@@ -48,14 +48,14 @@ public class ViewComponentTagHelperPassTest : RazorProjectEngineTestBase
 
         // Act
         processor.ExecutePass<ViewComponentTagHelperPass>();
-        var documentNode = processor.GetDocumentNode();
 
         // Assert
-        var @class = documentNode.FindClassNode();
-        Assert.NotNull(@class);
-        Assert.Equal(3, @class.Children.Count); // No class node created for a VCTH
+        var documentNode = processor.GetDocumentNode();
+        var classNode = documentNode.GetClassNode();
 
-        foreach (var child in @class.Children)
+        Assert.Equal(3, classNode.Children.Count); // No class node created for a VCTH
+
+        foreach (var child in classNode.Children)
         {
             Assert.IsNotType<ViewComponentTagHelperIntermediateNode>(child);
         }
@@ -85,20 +85,17 @@ public class ViewComponentTagHelperPassTest : RazorProjectEngineTestBase
 
         // Act
         processor.ExecutePass<ViewComponentTagHelperPass>();
-        var documentNode = processor.GetDocumentNode();
 
         // Assert
-        var tagHelperNode = documentNode.FindTagHelperNode();
-        Assert.NotNull(tagHelperNode);
+        var documentNode = processor.GetDocumentNode();
+        var tagHelperNode = documentNode.GetTagHelperNode();
+        var classNode = documentNode.GetClassNode();
+
         Assert.Equal("AspNetCore.test.__Generated__TagCloudViewComponentTagHelper", Assert.IsType<DefaultTagHelperCreateIntermediateNode>(tagHelperNode.Children[1]).TypeName);
         Assert.Equal("Foo", Assert.IsType<DefaultTagHelperPropertyIntermediateNode>(tagHelperNode.Children[2]).PropertyName);
 
-
-        var @class = documentNode.FindClassNode();
-        Assert.NotNull(@class);
-        Assert.Equal(4, @class.Children.Count);
-
-        Assert.IsType<ViewComponentTagHelperIntermediateNode>(@class.Children.Last());
+        Assert.Equal(4, classNode.Children.Count);
+        Assert.IsType<ViewComponentTagHelperIntermediateNode>(classNode.Children.Last());
     }
 
     [Fact]
@@ -126,19 +123,17 @@ public class ViewComponentTagHelperPassTest : RazorProjectEngineTestBase
 
         // Act
         processor.ExecutePass<ViewComponentTagHelperPass>();
-        var documentNode = processor.GetDocumentNode();
 
         // Assert
-        var tagHelperNode = documentNode.FindTagHelperNode();
-        Assert.NotNull(tagHelperNode);
+        var documentNode = processor.GetDocumentNode();
+        var classNode = documentNode.GetClassNode();
+        var tagHelperNode = documentNode.GetTagHelperNode();
+
         Assert.Equal("AspNetCore.test.__Generated__TagCloudViewComponentTagHelper", Assert.IsType<DefaultTagHelperCreateIntermediateNode>(tagHelperNode.Children[1]).TypeName);
         Assert.IsType<DefaultTagHelperHtmlAttributeIntermediateNode>(tagHelperNode.Children[2]);
 
-        var @class = documentNode.FindClassNode();
-        Assert.NotNull(@class);
-        Assert.Equal(4, @class.Children.Count);
-
-        Assert.IsType<ViewComponentTagHelperIntermediateNode>(@class.Children[3]);
+        Assert.Equal(4, classNode.Children.Count);
+        Assert.IsType<ViewComponentTagHelperIntermediateNode>(classNode.Children[3]);
     }
 
     [Fact]
@@ -174,25 +169,22 @@ public class ViewComponentTagHelperPassTest : RazorProjectEngineTestBase
 
         // Act
         processor.ExecutePass<ViewComponentTagHelperPass>();
-        var documentNode = processor.GetDocumentNode();
 
         // Assert
-        var outerTagHelper = documentNode.FindTagHelperNode();
-        Assert.NotNull(outerTagHelper);
+        var documentNode = processor.GetDocumentNode();
+        var outerTagHelper = documentNode.GetTagHelperNode();
+        var viewComponentTagHelper = outerTagHelper.Children[0].GetTagHelperNode();
+        var classNode = documentNode.GetClassNode();
+
         Assert.Equal("PTestTagHelper", Assert.IsType<DefaultTagHelperCreateIntermediateNode>(outerTagHelper.Children[1]).TypeName);
         Assert.Equal("Foo", Assert.IsType<DefaultTagHelperPropertyIntermediateNode>(outerTagHelper.Children[2]).PropertyName);
 
-        var viewComponentTagHelper = outerTagHelper.Children[0].FindTagHelperNode();
-        Assert.NotNull(viewComponentTagHelper);
         Assert.Equal(
             "AspNetCore.test.__Generated__TagCloudViewComponentTagHelper",
             Assert.IsType<DefaultTagHelperCreateIntermediateNode>(viewComponentTagHelper.Children[1]).TypeName);
         Assert.Equal("Foo", Assert.IsType<DefaultTagHelperPropertyIntermediateNode>(viewComponentTagHelper.Children[2]).PropertyName);
 
-        var @class = documentNode.FindClassNode();
-        Assert.NotNull(@class);
-        Assert.Equal(5, @class.Children.Count);
-
-        Assert.IsType<ViewComponentTagHelperIntermediateNode>(@class.Children.Last());
+        Assert.Equal(5, classNode.Children.Count);
+        Assert.IsType<ViewComponentTagHelperIntermediateNode>(classNode.Children.Last());
     }
 }

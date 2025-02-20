@@ -80,12 +80,11 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
 
         // Act
         processor.ExecutePass<ModelDirective.Pass>();
-        var documentNode = processor.GetDocumentNode();
 
         // Assert
-        var @class = documentNode.FindClassNode();
-        Assert.NotNull(@class);
-        var baseType = @class.BaseType;
+        var documentNode = processor.GetDocumentNode();
+        var classNode = documentNode.GetClassNode();
+        var baseType = classNode.BaseType;
 
         Assert.Equal("BaseType", baseType.BaseType.Content);
         Assert.NotNull(baseType.BaseType.Source);
@@ -109,13 +108,11 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
 
         // Act
         processor.ExecutePass<ModelDirective.Pass>();
-        var documentNode = processor.GetDocumentNode();
 
         // Assert
-        var @class = documentNode.FindClassNode();
-        Assert.NotNull(@class);
-
-        var baseType = @class.BaseType;
+        var documentNode = processor.GetDocumentNode();
+        var classNode = documentNode.GetClassNode();
+        var baseType = classNode.BaseType;
 
         Assert.Equal("BaseType", baseType.BaseType.Content);
         Assert.NotNull(baseType.BaseType.Source);
@@ -138,12 +135,11 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
 
         // Act
         processor.ExecutePass<ModelDirective.Pass>();
-        var documentNode = processor.GetDocumentNode();
 
         // Assert
-        var @class = documentNode.FindClassNode();
-        Assert.NotNull(@class);
-        var baseType = @class.BaseType;
+        var documentNode = processor.GetDocumentNode();
+        var classNode = documentNode.GetClassNode();
+        var baseType = classNode.BaseType;
 
         Assert.Equal("BaseType", baseType.BaseType.Content);
         Assert.NotNull(baseType.BaseType.Source);
@@ -164,12 +160,11 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
 
         // Act
         processor.ExecutePass<ModelDirective.Pass>();
-        var documentNode = processor.GetDocumentNode();
 
         // Assert
-        var @class = documentNode.FindClassNode();
-        Assert.NotNull(@class);
-        var baseType = @class.BaseType;
+        var documentNode = processor.GetDocumentNode();
+        var classNode = documentNode.GetClassNode();
+        var baseType = classNode.BaseType;
 
         Assert.Equal("BaseType", baseType.BaseType.Content);
         Assert.NotNull(baseType.BaseType.Source);
@@ -191,12 +186,12 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
 
         // Act
         processor.ExecutePass<ModelDirective.Pass>();
-        var documentNode = processor.GetDocumentNode();
 
         // Assert
-        var @class = documentNode.FindClassNode();
-        Assert.NotNull(@class);
-        var baseType = @class.BaseType;
+        var documentNode = processor.GetDocumentNode();
+        var namespaceNode = documentNode.GetNamespaceNode();
+        var classNode = documentNode.GetClassNode();
+        var baseType = classNode.BaseType;
 
         Assert.Equal("BaseType", baseType.BaseType.Content);
         Assert.Null(baseType.BaseType.Source);
@@ -205,9 +200,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         Assert.Equal("dynamic", baseType.ModelType.Content);
         Assert.Null(baseType.ModelType.Source);
 
-        var @namespace = documentNode.FindNamespaceNode();
-        Assert.NotNull(@namespace);
-        var usingNode = Assert.IsType<UsingDirectiveIntermediateNode>(@namespace.Children[0]);
+        var usingNode = Assert.IsType<UsingDirectiveIntermediateNode>(namespaceNode.Children[0]);
         Assert.Equal($"TModel = global::{typeof(object).FullName}", usingNode.Content);
     }
 
@@ -224,12 +217,12 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
 
         // Act
         processor.ExecutePass<ModelDirective.Pass>();
-        var documentNode = processor.GetDocumentNode();
 
         // Assert
-        var @class = documentNode.FindClassNode();
-        Assert.NotNull(@class);
-        var baseType = @class.BaseType;
+        var documentNode = processor.GetDocumentNode();
+        var namespaceNode = documentNode.GetNamespaceNode();
+        var classNode = documentNode.GetClassNode();
+        var baseType = classNode.BaseType;
 
         Assert.Equal("BaseType", baseType.BaseType.Content);
         Assert.Null(baseType.BaseType.Source);
@@ -238,9 +231,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         Assert.Equal("SomeType", baseType.ModelType.Content);
         Assert.Null(baseType.ModelType.Source);
 
-        var @namespace = documentNode.FindNamespaceNode();
-        Assert.NotNull(@namespace);
-        var usingNode = Assert.IsType<UsingDirectiveIntermediateNode>(@namespace.Children[0]);
+        var usingNode = Assert.IsType<UsingDirectiveIntermediateNode>(namespaceNode.Children[0]);
         Assert.Equal($"TModel = global::System.Object", usingNode.Content);
     }
 }

@@ -41,9 +41,10 @@ public class InheritsDirectivePassTest : RazorProjectEngineTestBase
         // Act
         processor.ExecutePass<InheritsDirectivePass>();
 
-        var documentNode = processor.GetDocumentNode();
 
         // Assert
+        var documentNode = processor.GetDocumentNode();
+
         Children(
             documentNode,
             node => Assert.IsType<NamespaceDeclarationIntermediateNode>(node));

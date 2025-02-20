@@ -45,11 +45,10 @@ public class ModelExpressionPassTest : RazorProjectEngineTestBase
 
         // Act
         processor.ExecutePass<ModelExpressionPass>();
-        var documentNode = processor.GetDocumentNode();
 
         // Assert
-        var tagHelperNode = documentNode.FindTagHelperNode();
-        Assert.NotNull(tagHelperNode);
+        var documentNode = processor.GetDocumentNode();
+        var tagHelperNode = documentNode.GetTagHelperNode();
         var setProperty = tagHelperNode.Children.OfType<TagHelperPropertyIntermediateNode>().Single();
 
         var token = Assert.IsAssignableFrom<IntermediateToken>(Assert.Single(setProperty.Children));
@@ -78,11 +77,10 @@ public class ModelExpressionPassTest : RazorProjectEngineTestBase
 
         // Act
         processor.ExecutePass<ModelExpressionPass>();
-        var documentNode = processor.GetDocumentNode();
 
         // Assert
-        var tagHelperNode = documentNode.FindTagHelperNode();
-        Assert.NotNull(tagHelperNode);
+        var documentNode = processor.GetDocumentNode();
+        var tagHelperNode = documentNode.GetTagHelperNode();
         var setProperty = tagHelperNode.Children.OfType<TagHelperPropertyIntermediateNode>().Single();
 
         var expression = Assert.IsType<CSharpExpressionIntermediateNode>(Assert.Single(setProperty.Children));
@@ -116,11 +114,10 @@ public class ModelExpressionPassTest : RazorProjectEngineTestBase
 
         // Act
         processor.ExecutePass<ModelExpressionPass>();
-        var documentNode = processor.GetDocumentNode();
 
         // Assert
-        var tagHelperNode = documentNode.FindTagHelperNode();
-        Assert.NotNull(tagHelperNode);
+        var documentNode = processor.GetDocumentNode();
+        var tagHelperNode = documentNode.GetTagHelperNode();
         var setProperty = tagHelperNode.Children.OfType<TagHelperPropertyIntermediateNode>().Single();
 
         var expression = Assert.IsType<CSharpExpressionIntermediateNode>(Assert.Single(setProperty.Children));

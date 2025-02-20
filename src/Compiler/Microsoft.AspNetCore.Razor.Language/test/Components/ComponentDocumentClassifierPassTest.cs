@@ -50,11 +50,9 @@ public class ComponentDocumentClassifierPassTest : RazorProjectEngineTestBase
 
         // Assert
         var documentNode = processor.GetDocumentNode();
+        var namespaceNode = documentNode.GetNamespaceNode();
 
-        var @namespace = documentNode.FindNamespaceNode();
-        Assert.NotNull(@namespace);
-
-        Assert.Equal("MyApp", @namespace.Content);
+        Assert.Equal("MyApp", namespaceNode.Content);
     }
 
     [Fact]
@@ -75,13 +73,11 @@ public class ComponentDocumentClassifierPassTest : RazorProjectEngineTestBase
 
         // Assert
         var documentNode = processor.GetDocumentNode();
+        var classNode = documentNode.GetClassNode();
 
-        var @class = documentNode.FindClassNode();
-        Assert.NotNull(@class);
-
-        Assert.Equal($"global::{ComponentsApi.ComponentBase.FullTypeName}", @class.BaseType.BaseType.Content);
-        Assert.Equal(["public", "partial"], @class.Modifiers);
-        Assert.Equal("Test", @class.ClassName);
+        Assert.Equal($"global::{ComponentsApi.ComponentBase.FullTypeName}", classNode.BaseType.BaseType.Content);
+        Assert.Equal(["public", "partial"], classNode.Modifiers);
+        Assert.Equal("Test", classNode.ClassName);
     }
 
     [Fact]
@@ -103,15 +99,11 @@ public class ComponentDocumentClassifierPassTest : RazorProjectEngineTestBase
 
         // Assert
         var documentNode = processor.GetDocumentNode();
+        var namespaceNode = documentNode.GetNamespaceNode();
+        var classNode = documentNode.GetClassNode();
 
-        var @class = documentNode.FindClassNode();
-        Assert.NotNull(@class);
-
-        var @namespace = documentNode.FindNamespaceNode();
-        Assert.NotNull(@namespace);
-
-        Assert.Equal("Banner", @class.ClassName);
-        Assert.Equal("MyApp.Pages.Announcements", @namespace.Content);
+        Assert.Equal("Banner", classNode.ClassName);
+        Assert.Equal("MyApp.Pages.Announcements", namespaceNode.Content);
     }
 
     [Fact]
@@ -132,15 +124,11 @@ public class ComponentDocumentClassifierPassTest : RazorProjectEngineTestBase
 
         // Assert
         var documentNode = processor.GetDocumentNode();
+        var namespaceNode = documentNode.GetNamespaceNode();
+        var classNode = documentNode.GetClassNode();
 
-        var @class = documentNode.FindClassNode();
-        Assert.NotNull(@class);
-
-        var @namespace = documentNode.FindNamespaceNode();
-        Assert.NotNull(@namespace);
-
-        Assert.Equal("path_with_invalid_chars", @class.ClassName);
-        Assert.Equal("My._App", @namespace.Content);
+        Assert.Equal("path_with_invalid_chars", classNode.ClassName);
+        Assert.Equal("My._App", namespaceNode.Content);
     }
 
     [Fact]
@@ -156,11 +144,10 @@ public class ComponentDocumentClassifierPassTest : RazorProjectEngineTestBase
 
         // Assert
         var documentNode = processor.GetDocumentNode();
-        var method = documentNode.FindMethodNode();
-        Assert.NotNull(method);
+        var methodNode = documentNode.GetMethodNode();
 
-        Assert.Equal(ComponentsApi.ComponentBase.BuildRenderTree, method.MethodName);
-        Assert.Equal("void", method.ReturnType);
-        Assert.Equal(["protected", "override"], method.Modifiers);
+        Assert.Equal(ComponentsApi.ComponentBase.BuildRenderTree, methodNode.MethodName);
+        Assert.Equal("void", methodNode.ReturnType);
+        Assert.Equal(["protected", "override"], methodNode.Modifiers);
     }
 }
