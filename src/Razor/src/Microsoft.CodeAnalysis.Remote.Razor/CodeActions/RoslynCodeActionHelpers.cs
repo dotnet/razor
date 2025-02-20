@@ -7,12 +7,10 @@ using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
@@ -55,10 +53,6 @@ internal sealed class RoslynCodeActionHelpers : IRoslynCodeActionHelpers
             document = solution.GetRequiredDocument(documentIds.First(d => d.ProjectId == context.TextDocument.Project.Id));
         }
 
-        var convertedEdit = JsonHelpers.ToRoslynLSP<TextEdit, TextEdit>(edit).AssumeNotNull();
-
-        var edits = await ExternalHandlers.CodeActions.GetSimplifiedEditsAsync(document, convertedEdit, cancellationToken).ConfigureAwait(false);
-
-        return JsonHelpers.ToVsLSP<TextEdit[], TextEdit[]>(edits);
+        return await ExternalHandlers.CodeActions.GetSimplifiedEditsAsync(document, edit, cancellationToken).ConfigureAwait(false);
     }
 }

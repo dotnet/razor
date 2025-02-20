@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -134,15 +133,8 @@ internal class CohostDocumentPullDiagnosticsEndpoint(
         }
 
         _logger.LogDebug($"Getting C# diagnostics for {generatedDocument.FilePath}");
-        var csharpDiagnostics = await ExternalHandlers.Diagnostics.GetDocumentDiagnosticsAsync(generatedDocument, supportsVisualStudioExtensions: true, cancellationToken).ConfigureAwait(false);
-
-        // This is, to say the least, not ideal. In future we're going to normalize on to Roslyn LSP types, and this can go.
-        if (JsonHelpers.ToVsLSP<LspDiagnostic[], ImmutableArray<LspDiagnostic>>(csharpDiagnostics) is not { } convertedDiagnostics)
-        {
-            return [];
-        }
-
-        return convertedDiagnostics;
+        var diagnostics = await ExternalHandlers.Diagnostics.GetDocumentDiagnosticsAsync(generatedDocument, supportsVisualStudioExtensions: true, cancellationToken).ConfigureAwait(false);
+        return diagnostics.ToArray();
     }
 
     private async Task<LspDiagnostic[]> GetHtmlDiagnosticsAsync(TextDocument razorDocument, CancellationToken cancellationToken)

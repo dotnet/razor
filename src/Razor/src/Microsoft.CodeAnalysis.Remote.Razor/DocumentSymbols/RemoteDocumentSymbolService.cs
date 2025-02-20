@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol.DocumentSymbols;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
-using RoslynSymbolSumType = RLSP::Roslyn.LanguageServer.Protocol.SumType<RLSP::Roslyn.LanguageServer.Protocol.DocumentSymbol[], RLSP::Roslyn.LanguageServer.Protocol.SymbolInformation[]>;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -49,13 +48,6 @@ internal sealed partial class RemoteDocumentSymbolService(in ServiceArgs args) :
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var csharpDocument = codeDocument.GetCSharpDocument();
 
-        // This is, to say the least, not ideal. In future we're going to normalize on to Roslyn LSP types, and this can go.
-        var vsCSharpSymbols = JsonHelpers.ToVsLSP<SumType<DocumentSymbol[], SymbolInformation[]>?, RoslynSymbolSumType>(csharpSymbols);
-        if (vsCSharpSymbols is not { } convertedSymbols)
-        {
-            return null;
-        }
-
-        return _documentSymbolService.GetDocumentSymbols(context.Uri, csharpDocument, convertedSymbols);
+        return _documentSymbolService.GetDocumentSymbols(context.Uri, csharpDocument, csharpSymbols);
     }
 }

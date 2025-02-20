@@ -20,9 +20,6 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Razor.Settings;
 using Microsoft.VisualStudio.Razor.Snippets;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.VSInternalCompletionList?>;
-using RoslynCompletionParams = Roslyn.LanguageServer.Protocol.CompletionParams;
-using RoslynPosition = Roslyn.LanguageServer.Protocol.Position;
-using RoslynCompletionContext = Roslyn.LanguageServer.Protocol.CompletionContext;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -40,7 +37,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
     SnippetCompletionItemProvider snippetCompletionItemProvider,
     LSPRequestInvoker requestInvoker,
     ILoggerFactory loggerFactory)
-    : AbstractRazorCohostDocumentRequestHandler<RoslynCompletionParams, VSInternalCompletionList?>, IDynamicRegistrationProvider
+    : AbstractRazorCohostDocumentRequestHandler<CompletionParams, VSInternalCompletionList?>, IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
@@ -72,15 +69,16 @@ internal sealed class CohostDocumentCompletionEndpoint(
         return [];
     }
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(RoslynCompletionParams request)
+    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(CompletionParams request)
         => request.TextDocument is null ? null : request.TextDocument.ToRazorTextDocumentIdentifier();
 
-    protected override Task<VSInternalCompletionList?> HandleRequestAsync(RoslynCompletionParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+    protected override Task<VSInternalCompletionList?> HandleRequestAsync(CompletionParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
         => HandleRequestAsync(request, context.TextDocument.AssumeNotNull(), cancellationToken);
 
-    private async Task<VSInternalCompletionList?> HandleRequestAsync(RoslynCompletionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    private async Task<VSInternalCompletionList?> HandleRequestAsync(CompletionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        if (request.Context is null || JsonHelpers.ToVsLSP<VSInternalCompletionContext, RoslynCompletionContext>(request.Context) is not VSInternalCompletionContext completionContext)
+        if (request.Context is null ||
+            JsonHelpers.Convert<CompletionContext, VSInternalCompletionContext>(request.Context) is not { } completionContext)
         {
             _logger.LogError("Completion request context is null");
             return null;
@@ -103,7 +101,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
                             solutionInfo,
                             razorDocument.Id,
                             completionContext,
-                            JsonHelpers.ToVsLSP<Position, RoslynPosition>(request.Position).AssumeNotNull(),
+                            request.Position,
                             cancellationToken),
                 cancellationToken).ConfigureAwait(false) is not { } completionPositionInfo)
         {
@@ -134,7 +132,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
             if (documentPositionInfo.LanguageKind == RazorLanguageKind.Html)
             {
                 htmlCompletionList = await GetHtmlCompletionListAsync(request, razorDocument, razorCompletionOptions, cancellationToken)
-                                                                      .ConfigureAwait(false);
+                    .ConfigureAwait(false);
                 if (htmlCompletionList is not null)
                 {
                     existingHtmlCompletions.UnionWith(htmlCompletionList.Items.Select(i => i.Label));
@@ -189,7 +187,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
     }
 
     private async Task<VSInternalCompletionList?> GetHtmlCompletionListAsync(
-        RoslynCompletionParams request,
+        CompletionParams request,
         TextDocument razorDocument,
         RazorCompletionOptions razorCompletionOptions,
         CancellationToken cancellationToken)
@@ -204,7 +202,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
 
         _logger.LogDebug($"Resolving auto-insertion edit for {htmlDocument.Uri}");
 
-        var result = await _requestInvoker.ReinvokeRequestOnServerAsync<RoslynCompletionParams, VSInternalCompletionList?>(
+        var result = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, VSInternalCompletionList?>(
             htmlDocument.Buffer,
             Methods.TextDocumentCompletionName,
             RazorLSPConstants.HtmlLanguageServerName,
@@ -259,7 +257,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
     internal readonly struct TestAccessor(CohostDocumentCompletionEndpoint instance)
     {
         public Task<VSInternalCompletionList?> HandleRequestAsync(
-            RoslynCompletionParams request,
+            CompletionParams request,
             TextDocument razorDocument,
             CancellationToken cancellationToken)
                 => instance.HandleRequestAsync(request, razorDocument, cancellationToken);

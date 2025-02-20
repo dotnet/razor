@@ -2,7 +2,9 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Text.Json;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Newtonsoft.Json.Linq;
 
@@ -53,19 +55,37 @@ internal static class JsonHelpers
     internal static JsonSerializerOptions VsLspJsonSerializerOptions => s_vsLspJsonSerializerOptions.Value;
 
     /// <summary>
-    /// Converts a Roslyn LSP object to a VS Platform LSP object via serializing to text and deserializing to VS LSP type
+    /// Converts an LSP object to a different LSP object, either by casting or serializing and deserializing
     /// </summary>
-    internal static TVsLspResult? ToVsLSP<TVsLspResult, TRoslynLspSource>(TRoslynLspSource source)
+    internal static TResult? Convert<TSource, TResult>(TSource? source)
     {
-        return JsonSerializer.Deserialize<TVsLspResult>(JsonSerializer.SerializeToDocument(source, RoslynLspJsonSerializerOptions), VsLspJsonSerializerOptions);
+        if (source is TResult result)
+        {
+            return result;
+        }
+
+        return JsonSerializer.Deserialize<TResult>(JsonSerializer.SerializeToDocument(source, RoslynLspJsonSerializerOptions), RoslynLspJsonSerializerOptions);
     }
 
     /// <summary>
-    /// Converts a VS Platform LSP object to a Roslyn LSP object via serializing to text and deserializing to Roslyn LSP type
+    /// Converts an array of LSP objects to a different LSP object, either by casting or serializing and deserializing
     /// </summary>
-    internal static TRoslynLspResult? ToRoslynLSP<TRoslynLspResult, TVsLspSource>(TVsLspSource? source)
+    internal static TResult[] ConvertAll<TSource, TResult>(TSource[] source)
     {
-        return JsonSerializer.Deserialize<TRoslynLspResult>(JsonSerializer.SerializeToDocument(source, VsLspJsonSerializerOptions), RoslynLspJsonSerializerOptions);
+        using var results = new PooledArrayBuilder<TResult>(source.Length);
+        foreach (var item in source)
+        {
+            if (Convert<TSource, TResult>(item) is { } converted)
+            {
+                results.Add(converted);
+            }
+            else
+            {
+                Debug.Fail("Could not convert item to expected type.");
+            }
+        }
+
+        return results.ToArray();
     }
 
     /// <summary>
