@@ -18,13 +18,13 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using Roslyn.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Microsoft.VisualStudio.Razor.Settings;
 using Microsoft.VisualStudio.Razor.Snippets;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Moq;
+using Roslyn.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -515,11 +515,11 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
         var expectedCSharpResults = new SemanticTokens() { Data = new int[] { It.IsAny<int>() } };
         var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
         requestInvoker
-            .Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens>(
+            .Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, SemanticTokens>(
                 _textBuffer,
                 It.IsAny<string>(),
                 RazorLSPConstants.RazorCSharpLanguageServerName,
-                It.IsAny<SemanticTokensParams>(),
+                It.IsAny<SemanticTokensRangeParams>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ReinvocationResponse<SemanticTokens>("languageClient", expectedCSharpResults));
 
@@ -598,11 +598,11 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
         var expectedCSharpResults = new SemanticTokens();
         var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
         requestInvoker
-            .Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens>(
+            .Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, SemanticTokens>(
                 _textBuffer,
                 It.IsAny<string>(),
                 RazorLSPConstants.RazorCSharpLanguageServerName,
-                It.IsAny<SemanticTokensParams>(),
+                It.IsAny<SemanticTokensRangeParams>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ReinvocationResponse<SemanticTokens>("languageClient", expectedCSharpResults));
 

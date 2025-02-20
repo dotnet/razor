@@ -14,7 +14,6 @@ internal static class JsonHelpers
 {
     private const string s_convertedFlag = "__convertedFromJObject";
     private static readonly Lazy<JsonSerializerOptions> s_roslynLspJsonSerializerOptions = new(CreateRoslynLspJsonSerializerOptions);
-    private static readonly Lazy<JsonSerializerOptions> s_vsLspJsonSerializerOptions = new(CreateVsLspJsonSerializerOptions);
 
     /// <summary>
     /// Normalizes data from JObject to JsonElement as thats what we expect to process
@@ -50,11 +49,6 @@ internal static class JsonHelpers
     internal static JsonSerializerOptions RoslynLspJsonSerializerOptions => s_roslynLspJsonSerializerOptions.Value;
 
     /// <summary>
-    /// Serializer options to use when serializing or deserializing a VS Platform LSP type
-    /// </summary>
-    internal static JsonSerializerOptions VsLspJsonSerializerOptions => s_vsLspJsonSerializerOptions.Value;
-
-    /// <summary>
     /// Converts an LSP object to a different LSP object, either by casting or serializing and deserializing
     /// </summary>
     internal static TResult? Convert<TSource, TResult>(TSource? source)
@@ -88,15 +82,6 @@ internal static class JsonHelpers
         return results.ToArray();
     }
 
-    /// <summary>
-    /// Adds VS Platform LSP converters for VSInternal variation of types (e.g. VSInternalClientCapability from ClientCapability)
-    /// </summary>
-    internal static void AddVSInternalExtensionConverters(JsonSerializerOptions serializerOptions)
-    {
-        // In its infinite wisdom, the LSP client has a public method that takes Newtonsoft.Json types, but an internal method that takes System.Text.Json types.
-        typeof(VSInternalExtensionUtilities).GetMethod("AddVSInternalExtensionConverters", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.Invoke(null, [serializerOptions]);
-    }
-
     private static JsonSerializerOptions CreateRoslynLspJsonSerializerOptions()
     {
         var serializerOptions = new JsonSerializerOptions();
@@ -106,14 +91,6 @@ internal static class JsonHelpers
             serializerOptions.Converters.Add(converter);
         }
 
-        return serializerOptions;
-    }
-
-    private static JsonSerializerOptions CreateVsLspJsonSerializerOptions()
-    {
-        var serializerOptions = new JsonSerializerOptions();
-
-        AddVSInternalExtensionConverters(serializerOptions);
         return serializerOptions;
     }
 }

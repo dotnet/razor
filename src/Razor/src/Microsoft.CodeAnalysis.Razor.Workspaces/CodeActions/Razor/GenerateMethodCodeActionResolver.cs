@@ -108,7 +108,7 @@ internal class GenerateMethodCodeActionResolver(
         var codeBehindTextDocEdit = new TextDocumentEdit()
         {
             TextDocument = codeBehindTextDocumentIdentifier,
-            Edits = (SumType<TextEdit, AnnotatedTextEdit>[])[.. result.AssumeNotNull()] ?? [edit]
+            Edits = [.. result ?? [edit]]
         };
 
         return new WorkspaceEdit() { DocumentChanges = new[] { codeBehindTextDocEdit } };

@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text.Adornments;
+using RLSP::Roslyn.Text.Adornments;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
