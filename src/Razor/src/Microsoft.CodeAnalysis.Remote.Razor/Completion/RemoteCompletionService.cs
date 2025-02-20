@@ -172,7 +172,6 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             generatedDocument = generatedDocument.WithText(generatedText);
         }
 
-        // This is, to say the least, not ideal. In future we're going to normalize on to Roslyn LSP types, and this can go.
         var clientCapabilities = _clientCapabilitiesService.ClientCapabilities;
         if (clientCapabilities.TextDocument?.Completion is not { } completionSetting)
         {

@@ -80,14 +80,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             return NoFurtherHandling;
         }
 
-        // This is, to say the least, not ideal. In future we're going to normalize on to Roslyn LSP types, and this can go.
-        var vsEdit = JsonSerializer.Deserialize<WorkspaceEdit>(JsonSerializer.SerializeToDocument(csharpEdit));
-        if (vsEdit is null)
-        {
-            return NoFurtherHandling;
-        }
-
-        var mappedEdit = await _editMappingService.RemapWorkspaceEditAsync(context.Snapshot, vsEdit, cancellationToken).ConfigureAwait(false);
+        var mappedEdit = await _editMappingService.RemapWorkspaceEditAsync(context.Snapshot, csharpEdit, cancellationToken).ConfigureAwait(false);
         return Results(mappedEdit);
     }
 }
