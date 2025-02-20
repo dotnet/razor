@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
@@ -108,10 +107,7 @@ internal static class CompletionListMerger
             return;
         }
 
-        // We have to be agnostic to which serialization method the delegated servers use, including
-        // the scenario where they use different ones, so we normalize the data to JObject.
         TrySplitJsonElement(data, ref collector);
-        TrySplitJObject(data, ref collector);
     }
 
     private static void TrySplitJsonElement(object data, ref PooledArrayBuilder<JsonElement> collector)
@@ -139,35 +135,6 @@ internal static class CompletionListMerger
         else
         {
             collector.Add(jsonElement);
-        }
-    }
-
-    private static void TrySplitJObject(object data, ref PooledArrayBuilder<JsonElement> collector)
-    {
-        if (data is not JObject jObject)
-        {
-            return;
-        }
-
-        if ((jObject.ContainsKey(Data1Key) || jObject.ContainsKey(Data1Key.ToLowerInvariant())) &&
-            (jObject.ContainsKey(Data2Key) || jObject.ContainsKey(Data2Key.ToLowerInvariant())))
-        {
-            // Merged data
-            var mergedCompletionListData = jObject.ToObject<MergedCompletionListData>();
-
-            if (mergedCompletionListData is null)
-            {
-                Debug.Fail("Merged completion list data is null, this should never happen.");
-                return;
-            }
-
-            Split(mergedCompletionListData.Data1, ref collector);
-            Split(mergedCompletionListData.Data2, ref collector);
-        }
-        else
-        {
-            // Normal, non-merged data
-            collector.Add(JsonDocument.Parse(jObject.ToString()).RootElement);
         }
     }
 

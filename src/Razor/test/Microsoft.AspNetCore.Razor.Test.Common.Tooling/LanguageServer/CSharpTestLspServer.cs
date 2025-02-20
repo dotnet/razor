@@ -75,9 +75,6 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
             // Roslyn has its own converters since it doesn't use MS.VS.LS.Protocol
             languageServerFactory.AddJsonConverters(messageFormatter.JsonSerializerOptions);
 
-            // In its infinite wisdom, the LSP client has a public method that takes Newtonsoft.Json types, but an internal method that takes System.Text.Json types.
-            typeof(VSInternalExtensionUtilities).GetMethod("AddVSInternalExtensionConverters", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.Invoke(null, [messageFormatter.JsonSerializerOptions]);
-
             return messageFormatter;
         }
 

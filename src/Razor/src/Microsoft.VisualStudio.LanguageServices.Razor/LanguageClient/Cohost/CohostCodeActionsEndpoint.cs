@@ -153,12 +153,6 @@ internal sealed class CohostCodeActionsEndpoint(
                 return [];
             }
 
-            // WebTools is still using Newtonsoft, so we have to convert to STJ
-            foreach (var codeAction in result.Response)
-            {
-                codeAction.Data = JsonHelpers.TryConvertFromJObject(codeAction.Data);
-            }
-
             return result.Response;
         }
         finally
