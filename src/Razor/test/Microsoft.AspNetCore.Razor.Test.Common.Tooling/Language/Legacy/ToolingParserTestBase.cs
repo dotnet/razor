@@ -195,10 +195,10 @@ public abstract class ToolingParserTestBase : ToolingTestBase, IParserTest
         directives ??= [];
 
         var source = TestRazorSourceDocument.Create(document, filePath: null, relativePath: null, normalizeNewLines: true);
+        var parserOptions = CreateParserOptions(version, directives, designTime, fileKind, configureParserOptions);
+        var codeDocument = RazorCodeDocument.Create(source, imports: default, parserOptions, RazorCodeGenerationOptions.Default);
 
-        var options = CreateParserOptions(version, directives, designTime, fileKind, configureParserOptions);
-
-        using var context = new ParserContext(source, options);
+        using var context = new ParserContext(source, parserOptions);
         using var codeParser = new CSharpCodeParser(directives, context);
         using var markupParser = new HtmlMarkupParser(context);
 
@@ -209,9 +209,7 @@ public abstract class ToolingParserTestBase : ToolingTestBase, IParserTest
 
         var diagnostics = context.ErrorSink.GetErrorsAndClear();
 
-        var codeDocument = RazorCodeDocument.Create(source);
-
-        var syntaxTree = new RazorSyntaxTree(root, source, diagnostics, options);
+        var syntaxTree = new RazorSyntaxTree(root, source, diagnostics, parserOptions);
         codeDocument.SetSyntaxTree(syntaxTree);
 
         var defaultDirectivePass = new DefaultDirectiveSyntaxTreePass();

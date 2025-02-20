@@ -329,7 +329,11 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
                 return;
             }
 
-            var codeDocument = RazorCodeDocument.Create(currentCodeDocument.Source, currentCodeDocument.Imports);
+            var codeDocument = RazorCodeDocument.Create(
+                currentCodeDocument.Source,
+                currentCodeDocument.Imports,
+                currentCodeDocument.ParserOptions,
+                currentCodeDocument.CodeGenerationOptions);
 
             foreach (var item in currentCodeDocument.Items)
             {
