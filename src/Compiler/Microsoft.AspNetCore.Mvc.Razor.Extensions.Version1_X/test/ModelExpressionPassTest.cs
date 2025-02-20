@@ -19,9 +19,9 @@ public class ModelExpressionPassTest : RazorProjectEngineTestBase
         builder.Features.Add(new MvcViewDocumentClassifierPass());
     }
 
-    protected override void ConfigureProcessor(RazorCodeDocumentProcessor processor)
+    protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor.RunPhasesTo<IRazorDocumentClassifierPhase>();
+        processor.ExecutePhasesThrough<IRazorDocumentClassifierPhase>();
     }
 
     [Fact]
@@ -36,10 +36,12 @@ public class ModelExpressionPassTest : RazorProjectEngineTestBase
                 rule.RequireTagName("p"))
             .Build();
 
-        var processor = CreateAndInitializeCodeDocument(@"
+        var codeDocument = ProjectEngine.CreateCodeDocument(@"
 @addTagHelper TestTagHelper, TestAssembly
 <p foo=""17"">",
             [tagHelper]);
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<ModelExpressionPass>();
@@ -68,9 +70,11 @@ public class ModelExpressionPassTest : RazorProjectEngineTestBase
             .Build();
 
         // Using \r\n here because we verify line mappings
-        var processor = CreateAndInitializeCodeDocument(
+        var codeDocument = ProjectEngine.CreateCodeDocument(
             "@addTagHelper TestTagHelper, TestAssembly\r\n<p foo=\"Bar\">",
             [tagHelper]);
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<ModelExpressionPass>();
@@ -104,9 +108,11 @@ public class ModelExpressionPassTest : RazorProjectEngineTestBase
             .Build();
 
         // Using \r\n here because we verify line mappings
-        var processor = CreateAndInitializeCodeDocument(
+        var codeDocument = ProjectEngine.CreateCodeDocument(
             "@addTagHelper TestTagHelper, TestAssembly\r\n<p foo=\"@Bar\">",
             [tagHelper]);
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<ModelExpressionPass>();

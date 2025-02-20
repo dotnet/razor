@@ -19,9 +19,9 @@ public class ViewComponentTagHelperPassTest : RazorProjectEngineTestBase
         builder.Features.Add(new MvcViewDocumentClassifierPass());
     }
 
-    protected override void ConfigureProcessor(RazorCodeDocumentProcessor processor)
+    protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor.RunPhasesTo<IRazorDocumentClassifierPhase>();
+        processor.ExecutePhasesThrough<IRazorDocumentClassifierPhase>();
 
         // We also expect the default tag helper pass to run first.
         processor.ExecutePass<DefaultTagHelperOptimizationPass>();
@@ -39,10 +39,12 @@ public class ViewComponentTagHelperPassTest : RazorProjectEngineTestBase
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
             .Build();
 
-        var processor = CreateAndInitializeCodeDocument(@"
+        var codeDocument = ProjectEngine.CreateCodeDocument(@"
 @addTagHelper TestTagHelper, TestAssembly
 <p foo=""17"">",
             [tagHelper]);
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<ViewComponentTagHelperPass>();
@@ -74,10 +76,12 @@ public class ViewComponentTagHelperPassTest : RazorProjectEngineTestBase
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("tagcloud"))
             .Build();
 
-        var processor = CreateAndInitializeCodeDocument(@"
+        var codeDocument = ProjectEngine.CreateCodeDocument(@"
 @addTagHelper TestTagHelper, TestAssembly
 <tagcloud foo=""17"">",
             [tagHelper]);
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<ViewComponentTagHelperPass>();
@@ -113,10 +117,12 @@ public class ViewComponentTagHelperPassTest : RazorProjectEngineTestBase
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("tagcloud"))
             .Build();
 
-        var processor = CreateAndInitializeCodeDocument(@"
+        var codeDocument = ProjectEngine.CreateCodeDocument(@"
 @addTagHelper TestTagHelper, TestAssembly
 <tagcloud tag-foo=""17"">",
             [tagHelper]);
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<ViewComponentTagHelperPass>();
@@ -159,10 +165,12 @@ public class ViewComponentTagHelperPassTest : RazorProjectEngineTestBase
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("tagcloud"))
             .Build();
 
-        var processor = CreateAndInitializeCodeDocument(@"
+        var codeDocument = ProjectEngine.CreateCodeDocument(@"
 @addTagHelper *, TestAssembly
 <p foo=""17""><tagcloud foo=""17""></p>",
             [tagHelper1, tagHelper2]);
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<ViewComponentTagHelperPass>();

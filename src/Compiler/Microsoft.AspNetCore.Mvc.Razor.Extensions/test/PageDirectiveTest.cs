@@ -15,16 +15,17 @@ public class PageDirectiveTest : RazorProjectEngineTestBase
         PageDirective.Register(builder);
     }
 
-    protected override void ConfigureProcessor(RazorCodeDocumentProcessor processor)
+    protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor.RunPhasesTo<IRazorDocumentClassifierPhase>();
+        processor.ExecutePhasesThrough<IRazorDocumentClassifierPhase>();
     }
 
     [Fact]
     public void TryGetPageDirective_ReturnsTrue_IfPageIsMalformed()
     {
         // Arrange
-        var processor = CreateAndInitializeCodeDocument("@page \"some-route-template\" Invalid");
+        var codeDocument = ProjectEngine.CreateCodeDocument("@page \"some-route-template\" Invalid");
+        var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
 
         // Act
@@ -40,7 +41,8 @@ public class PageDirectiveTest : RazorProjectEngineTestBase
     {
         // Arrange
         var importSource = RazorSourceDocument.Create("@page", "import.cshtml");
-        var processor = CreateAndInitializeCodeDocument("Hello world", [importSource]);
+        var codeDocument = ProjectEngine.CreateCodeDocument("Hello world", [importSource]);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
 
         // Act
@@ -54,7 +56,8 @@ public class PageDirectiveTest : RazorProjectEngineTestBase
     public void TryGetPageDirective_ReturnsFalse_IfPageDoesNotHaveDirective()
     {
         // Arrange
-        var processor = CreateAndInitializeCodeDocument("Hello world");
+        var codeDocument = ProjectEngine.CreateCodeDocument("Hello world");
+        var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
 
         // Act & Assert
@@ -65,7 +68,8 @@ public class PageDirectiveTest : RazorProjectEngineTestBase
     public void TryGetPageDirective_ReturnsTrue_IfPageDoesStartWithDirective()
     {
         // Arrange
-        var processor = CreateAndInitializeCodeDocument("Hello @page");
+        var codeDocument = ProjectEngine.CreateCodeDocument("Hello @page");
+        var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
 
         // Act
@@ -80,7 +84,8 @@ public class PageDirectiveTest : RazorProjectEngineTestBase
     public void TryGetPageDirective_ReturnsTrue_IfContentHasDirective()
     {
         // Arrange
-        var processor = CreateAndInitializeCodeDocument("@page");
+        var codeDocument = ProjectEngine.CreateCodeDocument("@page");
+        var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
 
         // Act
@@ -94,7 +99,8 @@ public class PageDirectiveTest : RazorProjectEngineTestBase
     public void TryGetPageDirective_ParsesRouteTemplate()
     {
         // Arrange
-        var processor = CreateAndInitializeCodeDocument("@page \"some-route-template\"");
+        var codeDocument = ProjectEngine.CreateCodeDocument("@page \"some-route-template\"");
+        var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
 
         // Act

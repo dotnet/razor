@@ -21,9 +21,9 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         builder.Features.Add(new MvcViewDocumentClassifierPass());
     }
 
-    protected override void ConfigureProcessor(RazorCodeDocumentProcessor processor)
+    protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor.RunPhasesTo<IRazorDocumentClassifierPhase>();
+        processor.ExecutePhasesThrough<IRazorDocumentClassifierPhase>();
 
         // Note: InheritsDirectivePass needs to run before ModelDirective.Pass.
         processor.ExecutePass<InheritsDirectivePass>();
@@ -33,11 +33,13 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
     public void ModelDirective_GetModelType_GetsTypeFromFirstWellFormedDirective()
     {
         // Arrange
-        var processor = CreateAndInitializeCodeDocument(@"
+        var codeDocument = ProjectEngine.CreateCodeDocument(@"
 @model Type1
 @model Type2
 @model
 ");
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         var documentNode = processor.GetDocumentNode();
 
@@ -52,7 +54,8 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
     public void ModelDirective_GetModelType_DefaultsToDynamic()
     {
         // Arrange
-        var processor = CreateAndInitializeCodeDocument(@" ");
+        var codeDocument = ProjectEngine.CreateCodeDocument(@" ");
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         var documentNode = processor.GetDocumentNode();
 
@@ -67,10 +70,12 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
     public void ModelDirectivePass_Execute_ReplacesTModelInBaseType()
     {
         // Arrange
-        var processor = CreateAndInitializeCodeDocument(@"
+        var codeDocument = ProjectEngine.CreateCodeDocument(@"
 @inherits BaseType<TModel>
 @model Type1
 ");
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<ModelDirective.Pass>();
@@ -94,11 +99,13 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
     public void ModelDirectivePass_Execute_ReplacesTModelInBaseType_DifferentOrdering()
     {
         // Arrange
-        var processor = CreateAndInitializeCodeDocument(@"
+        var codeDocument = ProjectEngine.CreateCodeDocument(@"
 @model Type1
 @inherits BaseType<TModel>
 @model Type2
 ");
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<ModelDirective.Pass>();
@@ -122,10 +129,12 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
     public void ModelDirectivePass_Execute_NoOpWithoutTModel()
     {
         // Arrange
-        var processor = CreateAndInitializeCodeDocument(@"
+        var codeDocument = ProjectEngine.CreateCodeDocument(@"
 @inherits BaseType
 @model Type1
 ");
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<ModelDirective.Pass>();
@@ -148,9 +157,11 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
     public void ModelDirectivePass_Execute_ReplacesTModelInBaseType_DefaultDynamic()
     {
         // Arrange
-        var processor = CreateAndInitializeCodeDocument(@"
+        var codeDocument = ProjectEngine.CreateCodeDocument(@"
 @inherits BaseType<TModel>
 ");
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<ModelDirective.Pass>();
@@ -174,9 +185,11 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
     public void ModelDirectivePass_DesignTime_AddsTModelUsingDirective()
     {
         // Arrange
-        var processor = CreateAndInitializeDesignTimeCodeDocument(@"
+        var codeDocument = ProjectEngine.CreateDesignTimeCodeDocument(@"
 @inherits BaseType<TModel>
 ");
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<ModelDirective.Pass>();
@@ -205,10 +218,12 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
     public void ModelDirectivePass_DesignTime_WithModel_AddsTModelUsingDirective()
     {
         // Arrange
-        var processor = CreateAndInitializeDesignTimeCodeDocument(@"
+        var codeDocument = ProjectEngine.CreateDesignTimeCodeDocument(@"
 @inherits BaseType<TModel>
 @model SomeType
 ");
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<ModelDirective.Pass>();

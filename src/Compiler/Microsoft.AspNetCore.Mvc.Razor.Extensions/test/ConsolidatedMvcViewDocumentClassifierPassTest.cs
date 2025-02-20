@@ -12,16 +12,17 @@ public class ConsolidatedMvcViewDocumentClassifierPassTest : RazorProjectEngineT
 {
     protected override RazorLanguageVersion Version => RazorLanguageVersion.Latest;
 
-    protected override void ConfigureProcessor(RazorCodeDocumentProcessor processor)
+    protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor.RunPhasesTo<IRazorIntermediateNodeLoweringPhase>();
+        processor.ExecutePhasesThrough<IRazorIntermediateNodeLoweringPhase>();
     }
 
     [Fact]
     public void ConsolidatedMvcViewDocumentClassifierPass_SetsDifferentNamespace()
     {
         // Arrange
-        var processor = CreateAndInitializeCodeDocument("some-content");
+        var codeDocument = ProjectEngine.CreateCodeDocument("some-content");
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<MvcViewDocumentClassifierPass>(() => new(useConsolidatedMvcViews: true));
@@ -40,7 +41,8 @@ public class ConsolidatedMvcViewDocumentClassifierPassTest : RazorProjectEngineT
     {
         // Arrange
         var source = TestRazorSourceDocument.Create("some-content", filePath: "ignored", relativePath: "Test.cshtml");
-        var processor = CreateAndInitializeCodeDocument(source);
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<MvcViewDocumentClassifierPass>(() => new(useConsolidatedMvcViews: true));
@@ -64,7 +66,8 @@ public class ConsolidatedMvcViewDocumentClassifierPassTest : RazorProjectEngineT
     {
         // Arrange
         var source = TestRazorSourceDocument.Create("some-content", filePath: null, relativePath: null);
-        var processor = CreateAndInitializeCodeDocument(source);
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<MvcViewDocumentClassifierPass>(() => new(useConsolidatedMvcViews: true));
@@ -90,7 +93,8 @@ public class ConsolidatedMvcViewDocumentClassifierPassTest : RazorProjectEngineT
     {
         // Arrange
         var source = TestRazorSourceDocument.Create("some-content", filePath: "ignored", relativePath: relativePath);
-        var processor = CreateAndInitializeCodeDocument(source);
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<MvcViewDocumentClassifierPass>(() => new(useConsolidatedMvcViews: true));
@@ -109,7 +113,8 @@ public class ConsolidatedMvcViewDocumentClassifierPassTest : RazorProjectEngineT
     public void ConsolidatedMvcViewDocumentClassifierPass_SetsUpExecuteAsyncMethod()
     {
         // Arrange
-        var processor = CreateAndInitializeCodeDocument("some-content");
+        var codeDocument = ProjectEngine.CreateCodeDocument("some-content");
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<MvcViewDocumentClassifierPass>(() => new(useConsolidatedMvcViews: true));

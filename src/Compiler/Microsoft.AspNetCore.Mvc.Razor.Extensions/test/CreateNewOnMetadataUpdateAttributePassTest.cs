@@ -17,9 +17,9 @@ public class CreateNewOnMetadataUpdateAttributePassTest : RazorProjectEngineTest
         PageDirective.Register(builder);
     }
 
-    protected override void ConfigureProcessor(RazorCodeDocumentProcessor processor)
+    protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor.RunPhasesTo<IRazorIntermediateNodeLoweringPhase>();
+        processor.ExecutePhasesThrough<IRazorIntermediateNodeLoweringPhase>();
     }
 
     [Fact]
@@ -27,7 +27,8 @@ public class CreateNewOnMetadataUpdateAttributePassTest : RazorProjectEngineTest
     {
         // Arrange
         var source = TestRazorSourceDocument.Create("Hello world", filePath: "ignored", relativePath: "Test.cshtml");
-        var processor = CreateAndInitializeCodeDocument(source);
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<MvcViewDocumentClassifierPass>();
@@ -56,7 +57,8 @@ public class CreateNewOnMetadataUpdateAttributePassTest : RazorProjectEngineTest
     {
         // Arrange
         var source = TestRazorSourceDocument.Create("Hello world", filePath: "ignored", relativePath: "Test.razor");
-        var processor = CreateAndInitializeCodeDocument(source, FileKinds.Component);
+        var codeDocument = ProjectEngine.CreateCodeDocument(source, FileKinds.Component);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<DefaultDocumentClassifierPass>();

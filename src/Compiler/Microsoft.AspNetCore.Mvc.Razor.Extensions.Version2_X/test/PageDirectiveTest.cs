@@ -15,9 +15,9 @@ public class PageDirectiveTest : RazorProjectEngineTestBase
         PageDirective.Register(builder);
     }
 
-    protected override void ConfigureProcessor(RazorCodeDocumentProcessor processor)
+    protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor.RunPhasesTo<IRazorDocumentClassifierPhase>();
+        processor.ExecutePhasesThrough<IRazorDocumentClassifierPhase>();
     }
 
     [Fact]
@@ -26,7 +26,8 @@ public class PageDirectiveTest : RazorProjectEngineTestBase
         // Arrange
         var content = "@page \"some-route-template\" Invalid";
         var source = TestRazorSourceDocument.Create(content, filePath: "file");
-        var processor = CreateAndInitializeCodeDocument(source);
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
 
         // Act
@@ -45,7 +46,8 @@ public class PageDirectiveTest : RazorProjectEngineTestBase
         var content = "Hello world";
         var source = TestRazorSourceDocument.Create(content, filePath: "file");
         var importSource = TestRazorSourceDocument.Create("@page", filePath: "imports.cshtml");
-        var processor = CreateAndInitializeCodeDocument(source, [importSource]);
+        var codeDocument = ProjectEngine.CreateCodeDocument(source, [importSource]);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
 
         // Act
@@ -62,7 +64,8 @@ public class PageDirectiveTest : RazorProjectEngineTestBase
         // Arrange
         var content = "Hello world";
         var source = TestRazorSourceDocument.Create(content, filePath: "file");
-        var processor = CreateAndInitializeCodeDocument(source);
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
 
         // Act
@@ -79,7 +82,8 @@ public class PageDirectiveTest : RazorProjectEngineTestBase
         // Arrange
         var content = "Hello @page";
         var source = TestRazorSourceDocument.Create(content, filePath: "file");
-        var processor = CreateAndInitializeCodeDocument(source);
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
 
         // Act
@@ -97,7 +101,8 @@ public class PageDirectiveTest : RazorProjectEngineTestBase
         // Arrange
         var content = "@page";
         var source = TestRazorSourceDocument.Create(content, filePath: "file");
-        var processor = CreateAndInitializeCodeDocument(source);
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
 
         // Act
@@ -114,7 +119,8 @@ public class PageDirectiveTest : RazorProjectEngineTestBase
         // Arrange
         var content = "@page \"some-route-template\"";
         var source = TestRazorSourceDocument.Create(content, filePath: "file");
-        var processor = CreateAndInitializeCodeDocument(source);
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
 
         // Act

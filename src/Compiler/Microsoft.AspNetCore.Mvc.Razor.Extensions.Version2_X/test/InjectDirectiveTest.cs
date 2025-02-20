@@ -21,18 +21,20 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
         builder.Features.Add(new MvcViewDocumentClassifierPass());
     }
 
-    protected override void ConfigureProcessor(RazorCodeDocumentProcessor processor)
+    protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor.RunPhasesTo<IRazorDocumentClassifierPhase>();
+        processor.ExecutePhasesThrough<IRazorDocumentClassifierPhase>();
     }
 
     [Fact]
     public void InjectDirectivePass_Execute_DefinesProperty()
     {
         // Arrange
-        var processor = CreateAndInitializeCodeDocument(@"
+        var codeDocument = ProjectEngine.CreateCodeDocument(@"
 @inject PropertyType PropertyName
 ");
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<InjectDirective.Pass>();
@@ -53,10 +55,12 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
     public void InjectDirectivePass_Execute_DedupesPropertiesByName()
     {
         // Arrange
-        var processor = CreateAndInitializeCodeDocument(@"
+        var codeDocument = ProjectEngine.CreateCodeDocument(@"
 @inject PropertyType PropertyName
 @inject PropertyType2 PropertyName
 ");
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<InjectDirective.Pass>();
@@ -77,9 +81,11 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
     public void InjectDirectivePass_Execute_ExpandsTModel_WithDynamic()
     {
         // Arrange
-        var processor = CreateAndInitializeCodeDocument(@"
+        var codeDocument = ProjectEngine.CreateCodeDocument(@"
 @inject PropertyType<TModel> PropertyName
 ");
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<InjectDirective.Pass>();
@@ -100,10 +106,12 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
     public void InjectDirectivePass_Execute_ExpandsTModel_WithModelTypeFirst()
     {
         // Arrange
-        var processor = CreateAndInitializeCodeDocument(@"
+        var codeDocument = ProjectEngine.CreateCodeDocument(@"
 @model ModelType
 @inject PropertyType<TModel> PropertyName
 ");
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<InjectDirective.Pass>();
@@ -124,10 +132,12 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
     public void InjectDirectivePass_Execute_ExpandsTModel_WithModelType()
     {
         // Arrange
-        var processor = CreateAndInitializeCodeDocument(@"
+        var codeDocument = ProjectEngine.CreateCodeDocument(@"
 @inject PropertyType<TModel> PropertyName
 @model ModelType
 ");
+
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<InjectDirective.Pass>();

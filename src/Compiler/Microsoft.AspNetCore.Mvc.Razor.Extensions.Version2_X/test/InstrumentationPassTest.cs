@@ -16,8 +16,7 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
     public void InstrumentationPass_NoOps_ForDesignTime()
     {
         // Arrange
-        var projectEngine = CreateProjectEngine(); ;
-        var codeDocument = projectEngine.CreateEmptyDesignTimeCodeDocument();
+        var codeDocument = ProjectEngine.CreateEmptyDesignTimeCodeDocument();
         var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
@@ -27,13 +26,13 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
         builder.Add(new IntermediateToken()
         {
             Content = "Hi",
-            Kind = TokenKind.Html,
+            Kind = TokenKind.Html
         });
 
         builder.Pop();
 
         // Act
-        projectEngine.ExecutePass<InstrumentationPass>(codeDocument, documentNode);
+        ProjectEngine.ExecutePass<InstrumentationPass>(codeDocument, documentNode);
 
         // Assert
         Children(
@@ -45,28 +44,27 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
     public void InstrumentationPass_InstrumentsHtml()
     {
         // Arrange
-        var projectEngine = CreateProjectEngine(); ;
-        var codeDocument = projectEngine.CreateEmptyCodeDocument();
+        var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
         var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
 
         builder.Push(new HtmlContentIntermediateNode()
         {
-            Source = InstrumentationPassTest.CreateSource(1),
+            Source = CreateSource(1),
         });
 
         builder.Add(new IntermediateToken()
         {
             Content = "Hi",
             Kind = TokenKind.Html,
-            Source = InstrumentationPassTest.CreateSource(1)
+            Source = CreateSource(1)
         });
 
         builder.Pop();
 
         // Act
-        projectEngine.ExecutePass<InstrumentationPass>(codeDocument, documentNode);
+        ProjectEngine.ExecutePass<InstrumentationPass>(codeDocument, documentNode);
 
         // Assert
         Children(
@@ -80,8 +78,7 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
     public void InstrumentationPass_SkipsHtml_WithoutLocation()
     {
         // Arrange
-        var projectEngine = CreateProjectEngine(); ;
-        var codeDocument = projectEngine.CreateEmptyCodeDocument();
+        var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
         var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
@@ -91,13 +88,13 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
         builder.Add(new IntermediateToken()
         {
             Content = "Hi",
-            Kind = TokenKind.Html,
+            Kind = TokenKind.Html
         });
 
         builder.Pop();
 
         // Act
-        projectEngine.ExecutePass<InstrumentationPass>(codeDocument, documentNode);
+        ProjectEngine.ExecutePass<InstrumentationPass>(codeDocument, documentNode);
 
         // Assert
         Children(
@@ -109,30 +106,24 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
     public void InstrumentationPass_InstrumentsCSharpExpression()
     {
         // Arrange
-        var projectEngine = CreateProjectEngine(); ;
-        var codeDocument = projectEngine.CreateEmptyCodeDocument();
+        var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
         var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
 
         builder.Push(new CSharpExpressionIntermediateNode()
         {
-            Source = InstrumentationPassTest.CreateSource(2),
+            Source = CreateSource(2),
         });
 
         builder.Add(new IntermediateToken()
         {
             Content = "Hi",
-            Kind = TokenKind.CSharp,
+            Kind = TokenKind.CSharp
         });
 
-        var pass = new InstrumentationPass()
-        {
-            Engine = RazorProjectEngine.CreateEmpty().Engine,
-        };
-
         // Act
-        projectEngine.ExecutePass<InstrumentationPass>(codeDocument, documentNode);
+        ProjectEngine.ExecutePass<InstrumentationPass>(codeDocument, documentNode);
 
         // Assert
         Children(
@@ -146,8 +137,7 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
     public void InstrumentationPass_SkipsCSharpExpression_WithoutLocation()
     {
         // Arrange
-        var projectEngine = CreateProjectEngine(); ;
-        var codeDocument = projectEngine.CreateEmptyCodeDocument();
+        var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
         var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
@@ -157,11 +147,11 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
         builder.Add(new IntermediateToken()
         {
             Content = "Hi",
-            Kind = TokenKind.CSharp,
+            Kind = TokenKind.CSharp
         });
 
         // Act
-        projectEngine.ExecutePass<InstrumentationPass>(codeDocument, documentNode);
+        ProjectEngine.ExecutePass<InstrumentationPass>(codeDocument, documentNode);
 
         // Assert
         Children(
@@ -173,8 +163,7 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
     public void InstrumentationPass_SkipsCSharpExpression_InsideTagHelperAttribute()
     {
         // Arrange
-        var projectEngine = CreateProjectEngine(); ;
-        var codeDocument = projectEngine.CreateEmptyCodeDocument();
+        var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
         var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
@@ -185,17 +174,17 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
 
         builder.Push(new CSharpExpressionIntermediateNode()
         {
-            Source = InstrumentationPassTest.CreateSource(5)
+            Source = CreateSource(5)
         });
 
         builder.Add(new IntermediateToken()
         {
             Content = "Hi",
-            Kind = TokenKind.CSharp,
+            Kind = TokenKind.CSharp
         });
 
         // Act
-        projectEngine.ExecutePass<InstrumentationPass>(codeDocument, documentNode);
+        ProjectEngine.ExecutePass<InstrumentationPass>(codeDocument, documentNode);
 
         // Assert
         Children(
@@ -219,8 +208,7 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
     public void InstrumentationPass_SkipsCSharpExpression_InsideTagHelperProperty()
     {
         // Arrange
-        var projectEngine = CreateProjectEngine(); ;
-        var codeDocument = projectEngine.CreateEmptyCodeDocument();
+        var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
         var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
@@ -231,17 +219,17 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
 
         builder.Push(new CSharpExpressionIntermediateNode()
         {
-            Source = InstrumentationPassTest.CreateSource(5)
+            Source = CreateSource(5)
         });
 
         builder.Add(new IntermediateToken()
         {
             Content = "Hi",
-            Kind = TokenKind.CSharp,
+            Kind = TokenKind.CSharp
         });
 
         // Act
-        projectEngine.ExecutePass<InstrumentationPass>(codeDocument, documentNode);
+        ProjectEngine.ExecutePass<InstrumentationPass>(codeDocument, documentNode);
 
         // Assert
         Children(
@@ -265,19 +253,18 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
     public void InstrumentationPass_InstrumentsTagHelper()
     {
         // Arrange
-        var projectEngine = CreateProjectEngine(); ;
-        var codeDocument = projectEngine.CreateEmptyCodeDocument();
+        var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
         var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
 
         builder.Add(new TagHelperIntermediateNode()
         {
-            Source = InstrumentationPassTest.CreateSource(3),
+            Source = CreateSource(3)
         });
 
         // Act
-        projectEngine.ExecutePass<InstrumentationPass>(codeDocument, documentNode);
+        ProjectEngine.ExecutePass<InstrumentationPass>(codeDocument, documentNode);
 
         // Assert
         Children(
@@ -291,8 +278,7 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
     public void InstrumentationPass_SkipsTagHelper_WithoutLocation()
     {
         // Arrange
-        var projectEngine = CreateProjectEngine(); ;
-        var codeDocument = projectEngine.CreateEmptyCodeDocument();
+        var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
         var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
@@ -300,7 +286,7 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
         builder.Push(new TagHelperIntermediateNode());
 
         // Act
-        projectEngine.ExecutePass<InstrumentationPass>(codeDocument, documentNode);
+        ProjectEngine.ExecutePass<InstrumentationPass>(codeDocument, documentNode);
 
         // Assert
         Children(

@@ -12,16 +12,17 @@ public class MvcViewDocumentClassifierPassTest : RazorProjectEngineTestBase
 {
     protected override RazorLanguageVersion Version => RazorLanguageVersion.Version_1_1;
 
-    protected override void ConfigureProcessor(RazorCodeDocumentProcessor processor)
+    protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor.RunPhasesTo<IRazorIntermediateNodeLoweringPhase>();
+        processor.ExecutePhasesThrough<IRazorIntermediateNodeLoweringPhase>();
     }
 
     [Fact]
     public void MvcViewDocumentClassifierPass_SetsDocumentKind()
     {
         // Arrange
-        var processor = CreateAndInitializeCodeDocument("some-content");
+        var codeDocument = ProjectEngine.CreateCodeDocument("some-content");
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<MvcViewDocumentClassifierPass>();
@@ -35,7 +36,8 @@ public class MvcViewDocumentClassifierPassTest : RazorProjectEngineTestBase
     public void MvcViewDocumentClassifierPass_NoOpsIfDocumentKindIsAlreadySet()
     {
         // Arrange
-        var processor = CreateAndInitializeCodeDocument("some-content");
+        var codeDocument = ProjectEngine.CreateCodeDocument("some-content");
+        var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
 
         documentNode.DocumentKind = "some-value";
@@ -51,7 +53,8 @@ public class MvcViewDocumentClassifierPassTest : RazorProjectEngineTestBase
     public void MvcViewDocumentClassifierPass_SetsNamespace()
     {
         // Arrange
-        var processor = CreateAndInitializeCodeDocument("some-content");
+        var codeDocument = ProjectEngine.CreateCodeDocument("some-content");
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<MvcViewDocumentClassifierPass>();
@@ -68,7 +71,8 @@ public class MvcViewDocumentClassifierPassTest : RazorProjectEngineTestBase
     {
         // Arrange
         var source = TestRazorSourceDocument.Create("some-content", filePath: "ignored", relativePath: "Test.cshtml");
-        var processor = CreateAndInitializeCodeDocument(source);
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<MvcViewDocumentClassifierPass>();
@@ -90,7 +94,8 @@ public class MvcViewDocumentClassifierPassTest : RazorProjectEngineTestBase
     {
         // Arrange
         var source = TestRazorSourceDocument.Create("some-content", filePath: null, relativePath: null);
-        var processor = CreateAndInitializeCodeDocument(source);
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<MvcViewDocumentClassifierPass>();
@@ -114,7 +119,8 @@ public class MvcViewDocumentClassifierPassTest : RazorProjectEngineTestBase
     {
         // Arrange
         var source = TestRazorSourceDocument.Create("some-content", filePath: "ignored", relativePath: relativePath);
-        var processor = CreateAndInitializeCodeDocument(source);
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<MvcViewDocumentClassifierPass>();
@@ -131,7 +137,8 @@ public class MvcViewDocumentClassifierPassTest : RazorProjectEngineTestBase
     {
         // Arrange
         var source = TestRazorSourceDocument.Create("some-content", filePath: @"x::\application\Views\Home\Index.cshtml", relativePath: null);
-        var processor = CreateAndInitializeCodeDocument(source);
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<MvcViewDocumentClassifierPass>();
@@ -148,7 +155,8 @@ public class MvcViewDocumentClassifierPassTest : RazorProjectEngineTestBase
     {
         // Arrange
         var source = TestRazorSourceDocument.Create("@page", filePath: @"x:\Test.cshtml", relativePath: "path.with+invalid-chars");
-        var processor = CreateAndInitializeCodeDocument(source);
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<MvcViewDocumentClassifierPass>();
@@ -165,7 +173,8 @@ public class MvcViewDocumentClassifierPassTest : RazorProjectEngineTestBase
     {
         // Arrange
         var source = RazorSourceDocument.Create("some-content", "Test.cshtml");
-        var processor = CreateAndInitializeCodeDocument(source);
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
         processor.ExecutePass<MvcViewDocumentClassifierPass>();
