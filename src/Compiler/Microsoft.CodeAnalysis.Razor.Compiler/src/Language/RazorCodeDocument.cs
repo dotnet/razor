@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -33,7 +34,7 @@ public sealed class RazorCodeDocument
     {
         ArgHelper.ThrowIfNull(source);
 
-        return Create(source, imports: default);
+        return new RazorCodeDocument(source, imports: default, parserOptions: null, codeGenerationOptions: null);
     }
 
     public static RazorCodeDocument Create(
@@ -48,8 +49,8 @@ public sealed class RazorCodeDocument
     public static RazorCodeDocument Create(
         RazorSourceDocument source,
         ImmutableArray<RazorSourceDocument> imports,
-        RazorParserOptions parserOptions,
-        RazorCodeGenerationOptions codeGenerationOptions)
+        RazorParserOptions? parserOptions,
+        RazorCodeGenerationOptions? codeGenerationOptions)
     {
         ArgHelper.ThrowIfNull(source);
 

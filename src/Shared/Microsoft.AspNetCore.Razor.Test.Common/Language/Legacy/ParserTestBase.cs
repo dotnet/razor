@@ -209,13 +209,13 @@ public abstract class ParserTestBase : IParserTest
         CSharpParseOptions csharpParseOptions = null,
         Action<RazorParserOptions.Builder> configureParserOptions = null)
     {
-        directives = directives ?? [];
+        directives ??= [];
 
         var source = TestRazorSourceDocument.Create(document, filePath: null, relativePath: null, normalizeNewLines: true);
+        var parseOptions = CreateParserOptions(version, fileKind, designTime, directives, csharpParseOptions, configureParserOptions);
+        var codeDocument = RazorCodeDocument.Create(source, imports: default, parseOptions, RazorCodeGenerationOptions.Default);
 
-        var options = CreateParserOptions(version, fileKind, designTime, directives, csharpParseOptions, configureParserOptions);
-
-        using var context = new ParserContext(source, options);
+        using var context = new ParserContext(source, parseOptions);
         using var codeParser = new CSharpCodeParser(directives, context);
         using var markupParser = new HtmlMarkupParser(context);
 
@@ -226,9 +226,7 @@ public abstract class ParserTestBase : IParserTest
 
         var diagnostics = context.ErrorSink.GetErrorsAndClear();
 
-        var codeDocument = RazorCodeDocument.Create(source);
-
-        var syntaxTree = new RazorSyntaxTree(root, source, diagnostics, options);
+        var syntaxTree = new RazorSyntaxTree(root, source, diagnostics, parseOptions);
         codeDocument.SetSyntaxTree(syntaxTree);
 
         var defaultDirectivePass = new DefaultDirectiveSyntaxTreePass();
