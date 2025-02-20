@@ -40,7 +40,7 @@ internal class RazorCohostDynamicRegistrationService(
             return;
         }
 
-        var clientCapabilities = JsonSerializer.Deserialize<VSInternalClientCapabilities>(clientCapabilitiesString, JsonHelpers.RoslynLspJsonSerializerOptions) ?? new();
+        var clientCapabilities = JsonSerializer.Deserialize<VSInternalClientCapabilities>(clientCapabilitiesString, JsonHelpers.JsonSerializerOptions) ?? new();
 
         _lazyRazorCohostClientCapabilitiesService.Value.SetCapabilities(clientCapabilities);
 

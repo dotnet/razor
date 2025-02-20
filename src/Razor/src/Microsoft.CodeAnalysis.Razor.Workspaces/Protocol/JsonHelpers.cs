@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor.Protocol;
 internal static class JsonHelpers
 {
     private const string s_convertedFlag = "__convertedFromJObject";
-    private static readonly Lazy<JsonSerializerOptions> s_roslynLspJsonSerializerOptions = new(CreateRoslynLspJsonSerializerOptions);
+    private static readonly Lazy<JsonSerializerOptions> s_roslynLspJsonSerializerOptions = new(CreateJsonSerializerOptions);
 
     /// <summary>
     /// Normalizes data from JObject to JsonElement as thats what we expect to process
@@ -46,7 +46,7 @@ internal static class JsonHelpers
     /// <summary>
     /// Serializer options to use when serializing or deserializing a Roslyn LSP type
     /// </summary>
-    internal static JsonSerializerOptions RoslynLspJsonSerializerOptions => s_roslynLspJsonSerializerOptions.Value;
+    internal static JsonSerializerOptions JsonSerializerOptions => s_roslynLspJsonSerializerOptions.Value;
 
     /// <summary>
     /// Converts an LSP object to a different LSP object, either by casting or serializing and deserializing
@@ -58,7 +58,7 @@ internal static class JsonHelpers
             return result;
         }
 
-        return JsonSerializer.Deserialize<TResult>(JsonSerializer.SerializeToDocument(source, RoslynLspJsonSerializerOptions), RoslynLspJsonSerializerOptions);
+        return JsonSerializer.Deserialize<TResult>(JsonSerializer.SerializeToDocument(source, JsonSerializerOptions), JsonSerializerOptions);
     }
 
     /// <summary>
@@ -82,7 +82,7 @@ internal static class JsonHelpers
         return results.ToArray();
     }
 
-    private static JsonSerializerOptions CreateRoslynLspJsonSerializerOptions()
+    private static JsonSerializerOptions CreateJsonSerializerOptions()
     {
         var serializerOptions = new JsonSerializerOptions();
 

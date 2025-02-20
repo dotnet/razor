@@ -142,7 +142,7 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             generatedDocument,
             mappedPosition,
             character,
-            options.FormattingOptions.ToRoslynFormattingOptions(),
+            options.FormattingOptions.ToLspFormattingOptions(),
             cancellationToken
         ).ConfigureAwait(false);
 

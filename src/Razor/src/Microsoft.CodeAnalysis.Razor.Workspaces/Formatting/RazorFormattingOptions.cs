@@ -34,7 +34,7 @@ internal readonly record struct RazorFormattingOptions
             TabSize: TabSize,
             IndentationSize: TabSize);
 
-    public FormattingOptions ToRoslynFormattingOptions()
+    public FormattingOptions ToLspFormattingOptions()
         => new()
         {
             InsertSpaces = InsertSpaces,

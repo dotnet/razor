@@ -78,7 +78,7 @@ internal sealed partial class RazorLanguageServerHost : IDisposable
     {
         var messageFormatter = new SystemTextJsonFormatter()
         {
-            JsonSerializerOptions = JsonHelpers.RoslynLspJsonSerializerOptions
+            JsonSerializerOptions = JsonHelpers.JsonSerializerOptions
         };
 
         var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(output, input, messageFormatter));

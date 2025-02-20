@@ -16,8 +16,7 @@ using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<RLSP::Roslyn.LanguageServer.Protocol.Location[]?>;
 using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
-using RoslynLocation = RLSP::Roslyn.LanguageServer.Protocol.Location;
-using RoslynPosition = RLSP::Roslyn.LanguageServer.Protocol.Position;
+using LspLocation = RLSP::Roslyn.LanguageServer.Protocol.Location;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -33,10 +32,10 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
 
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
 
-    public ValueTask<RemoteResponse<RoslynLocation[]?>> GetDefinitionAsync(
+    public ValueTask<RemoteResponse<LspLocation[]?>> GetDefinitionAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
-        RoslynPosition position,
+        Position position,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
@@ -44,9 +43,9 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
             context => GetDefinitionAsync(context, position, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<RemoteResponse<RoslynLocation[]?>> GetDefinitionAsync(
+    private async ValueTask<RemoteResponse<LspLocation[]?>> GetDefinitionAsync(
         RemoteDocumentContext context,
-        RoslynPosition position,
+        Position position,
         CancellationToken cancellationToken)
     {
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
@@ -96,7 +95,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
         }
 
         // Map the C# locations back to the Razor file.
-        using var mappedLocations = new PooledArrayBuilder<RoslynLocation>(locations.Length);
+        using var mappedLocations = new PooledArrayBuilder<LspLocation>(locations.Length);
 
         foreach (var location in locations)
         {

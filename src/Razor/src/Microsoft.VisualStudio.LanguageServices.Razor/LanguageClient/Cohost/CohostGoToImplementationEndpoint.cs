@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using RoslynLspLocation = Roslyn.LanguageServer.Protocol.Location;
+using LspLocation = Roslyn.LanguageServer.Protocol.Location;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -27,7 +27,7 @@ internal sealed class CohostGoToImplementationEndpoint(
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     LSPRequestInvoker requestInvoker,
     IFilePathService filePathService)
-    : AbstractRazorCohostDocumentRequestHandler<TextDocumentPositionParams, SumType<RoslynLspLocation[], VSInternalReferenceItem[]>?>, IDynamicRegistrationProvider
+    : AbstractRazorCohostDocumentRequestHandler<TextDocumentPositionParams, SumType<LspLocation[], VSInternalReferenceItem[]>?>, IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
@@ -55,25 +55,25 @@ internal sealed class CohostGoToImplementationEndpoint(
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(TextDocumentPositionParams request)
         => request.TextDocument.ToRazorTextDocumentIdentifier();
 
-    protected override Task<SumType<RoslynLspLocation[], VSInternalReferenceItem[]>?> HandleRequestAsync(TextDocumentPositionParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+    protected override Task<SumType<LspLocation[], VSInternalReferenceItem[]>?> HandleRequestAsync(TextDocumentPositionParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
         => HandleRequestAsync(
             request,
             context.TextDocument.AssumeNotNull(),
             cancellationToken);
 
-    private async Task<SumType<RoslynLspLocation[], VSInternalReferenceItem[]>?> HandleRequestAsync(TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    private async Task<SumType<LspLocation[], VSInternalReferenceItem[]>?> HandleRequestAsync(TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         var position = LspFactory.CreatePosition(request.Position.ToLinePosition());
 
         var response = await _remoteServiceInvoker
-            .TryInvokeAsync<IRemoteGoToImplementationService, RemoteResponse<RoslynLspLocation[]?>>(
+            .TryInvokeAsync<IRemoteGoToImplementationService, RemoteResponse<LspLocation[]?>>(
                 razorDocument.Project.Solution,
                 (service, solutionInfo, cancellationToken) =>
                     service.GetImplementationAsync(solutionInfo, razorDocument.Id, position, cancellationToken),
                 cancellationToken)
             .ConfigureAwait(false);
 
-        if (response.Result is RoslynLspLocation[] locations)
+        if (response.Result is LspLocation[] locations)
         {
             return locations;
         }
@@ -86,7 +86,7 @@ internal sealed class CohostGoToImplementationEndpoint(
         return await GetHtmlImplementationsAsync(request, razorDocument, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<SumType<RoslynLspLocation[], VSInternalReferenceItem[]>?> GetHtmlImplementationsAsync(TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    private async Task<SumType<LspLocation[], VSInternalReferenceItem[]>?> GetHtmlImplementationsAsync(TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         var htmlDocument = await _htmlDocumentSynchronizer.TryGetSynchronizedHtmlDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
         if (htmlDocument is null)
@@ -97,7 +97,7 @@ internal sealed class CohostGoToImplementationEndpoint(
         request.TextDocument = request.TextDocument.WithUri(htmlDocument.Uri);
 
         var result = await _requestInvoker
-            .ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SumType<RoslynLspLocation[], VSInternalReferenceItem[]>?>(
+            .ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SumType<LspLocation[], VSInternalReferenceItem[]>?>(
                 htmlDocument.Buffer,
                 Methods.TextDocumentImplementationName,
                 RazorLSPConstants.HtmlLanguageServerName,
@@ -132,7 +132,7 @@ internal sealed class CohostGoToImplementationEndpoint(
         return null;
     }
 
-    private void RemapVirtualHtmlUri(RoslynLspLocation? location)
+    private void RemapVirtualHtmlUri(LspLocation? location)
     {
         if (location is not null &&
             _filePathService.IsVirtualHtmlFile(location.Uri))
@@ -145,7 +145,7 @@ internal sealed class CohostGoToImplementationEndpoint(
 
     internal readonly struct TestAccessor(CohostGoToImplementationEndpoint instance)
     {
-        public Task<SumType<RoslynLspLocation[], VSInternalReferenceItem[]>?> HandleRequestAsync(
+        public Task<SumType<LspLocation[], VSInternalReferenceItem[]>?> HandleRequestAsync(
             TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
             => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
     }
