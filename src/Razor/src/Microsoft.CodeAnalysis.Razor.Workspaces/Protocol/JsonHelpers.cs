@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor.Protocol;
 internal static class JsonHelpers
 {
     private const string s_convertedFlag = "__convertedFromJObject";
-    private static readonly Lazy<JsonSerializerOptions> s_roslynLspJsonSerializerOptions = new(CreateJsonSerializerOptions);
+    private static readonly Lazy<JsonSerializerOptions> s_jsonSerializerOptions = new(CreateJsonSerializerOptions);
 
     /// <summary>
     /// Normalizes data from JObject to JsonElement as thats what we expect to process
@@ -46,7 +46,7 @@ internal static class JsonHelpers
     /// <summary>
     /// Serializer options to use when serializing or deserializing a Roslyn LSP type
     /// </summary>
-    internal static JsonSerializerOptions JsonSerializerOptions => s_roslynLspJsonSerializerOptions.Value;
+    internal static JsonSerializerOptions JsonSerializerOptions => s_jsonSerializerOptions.Value;
 
     /// <summary>
     /// Converts an LSP object to a different LSP object, either by casting or serializing and deserializing
