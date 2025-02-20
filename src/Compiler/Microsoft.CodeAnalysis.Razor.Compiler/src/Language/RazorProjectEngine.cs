@@ -366,11 +366,6 @@ public sealed class RazorProjectEngine
         features.Add(new ConfigureDirectivesFeature());
         features.Add(new DefaultMetadataIdentifierFeature());
 
-        // Legacy options features
-        //
-        // These features are obsolete as of 2.1. Our code will resolve this but not invoke them.
-        features.Add(new DefaultRazorCodeGenerationOptionsFeature());
-
         // Syntax Tree passes
         features.Add(new DefaultDirectiveSyntaxTreePass());
         features.Add(new HtmlNodeOptimizationPass());

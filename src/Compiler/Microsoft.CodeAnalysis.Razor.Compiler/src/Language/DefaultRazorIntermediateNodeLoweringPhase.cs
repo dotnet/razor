@@ -19,16 +19,8 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-#pragma warning disable CS0618 // Type or member is obsolete
 internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase, IRazorIntermediateNodeLoweringPhase
 {
-    private IRazorCodeGenerationOptionsFeature _optionsFeature;
-
-    protected override void OnInitialized()
-    {
-        _optionsFeature = GetRequiredFeature<IRazorCodeGenerationOptionsFeature>();
-    }
-
     protected override void ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
     {
         var syntaxTree = codeDocument.GetSyntaxTree();
@@ -37,14 +29,14 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         // This might not have been set if there are no tag helpers.
         var tagHelperContext = codeDocument.GetTagHelperContext();
 
-        var document = new DocumentIntermediateNode();
-        var builder = IntermediateNodeBuilder.Create(document);
+        var documentNode = new DocumentIntermediateNode();
+        var builder = IntermediateNodeBuilder.Create(documentNode);
 
-        document.Options = codeDocument.CodeGenerationOptions ?? _optionsFeature.GetOptions();
+        documentNode.Options = codeDocument.CodeGenerationOptions;
 
         // The import documents should be inserted logically before the main document.
         var imports = codeDocument.GetImportSyntaxTrees();
-        var importedUsings = ImportDirectives(document, builder, syntaxTree.Options, imports);
+        var importedUsings = ImportDirectives(documentNode, builder, syntaxTree.Options, imports);
 
         // Lower the main document, appending after the imported directives.
         //
@@ -54,7 +46,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         if (FileKinds.IsComponentImport(codeDocument.GetFileKind()) &&
             syntaxTree.Options.AllowComponentFileKind)
         {
-            visitor = new ComponentImportFileKindVisitor(document, builder, syntaxTree.Options)
+            visitor = new ComponentImportFileKindVisitor(documentNode, builder, syntaxTree.Options)
             {
                 SourceDocument = syntaxTree.Source,
             };
@@ -64,7 +56,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         else if (FileKinds.IsComponent(codeDocument.GetFileKind()) &&
             syntaxTree.Options.AllowComponentFileKind)
         {
-            visitor = new ComponentFileKindVisitor(document, builder, syntaxTree.Options)
+            visitor = new ComponentFileKindVisitor(documentNode, builder, syntaxTree.Options)
             {
                 SourceDocument = syntaxTree.Source,
             };
@@ -73,7 +65,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         }
         else
         {
-            visitor = new LegacyFileKindVisitor(document, builder, tagHelperContext?.Prefix, syntaxTree.Options)
+            visitor = new LegacyFileKindVisitor(documentNode, builder, tagHelperContext?.Prefix, syntaxTree.Options)
             {
                 SourceDocument = syntaxTree.Source,
             };
@@ -127,13 +119,13 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             lastDirective.AppendLineDefaultAndHidden = true;
         }
 
-        PostProcessImportedDirectives(document);
+        PostProcessImportedDirectives(documentNode);
 
         // The document should contain all errors that currently exist in the system. This involves
         // adding the errors from the primary and imported syntax trees.
         foreach (var diagnostic in syntaxTree.Diagnostics)
         {
-            document.Diagnostics.Add(diagnostic);
+            documentNode.Diagnostics.Add(diagnostic);
         }
 
         if (imports is { IsDefault: false } importsArray)
@@ -142,12 +134,12 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 foreach (var diagnostic in import.Diagnostics)
                 {
-                    document.Diagnostics.Add(diagnostic);
+                    documentNode.Diagnostics.Add(diagnostic);
                 }
             }
         }
 
-        codeDocument.SetDocumentIntermediateNode(document);
+        codeDocument.SetDocumentIntermediateNode(documentNode);
 
         static bool TryRemoveGlobalPrefixFromDefaultUsing(in UsingReference usingReference, out ReadOnlySpan<char> trimmedNamespace)
         {

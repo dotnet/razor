@@ -6,14 +6,16 @@ namespace Microsoft.AspNetCore.Razor.Language;
 public static class TestRazorCodeDocument
 {
     public static RazorCodeDocument CreateEmpty()
-    {
-        var source = TestRazorSourceDocument.Create(content: string.Empty);
-        return RazorCodeDocument.Create(source, imports: default, parserOptions: RazorParserOptions.Default, codeGenerationOptions: null);
-    }
+        => RazorCodeDocument.Create(
+            source: TestRazorSourceDocument.Create(content: string.Empty),
+            imports: default,
+            parserOptions: RazorParserOptions.Default,
+            codeGenerationOptions: RazorCodeGenerationOptions.Default);
 
     public static RazorCodeDocument Create(string content, bool normalizeNewLines = false)
-    {
-        var source = TestRazorSourceDocument.Create(content, normalizeNewLines: normalizeNewLines);
-        return RazorCodeDocument.Create(source, imports: default, parserOptions: RazorParserOptions.Default, codeGenerationOptions: null);
-    }
+        => RazorCodeDocument.Create(
+            source: TestRazorSourceDocument.Create(content, normalizeNewLines: normalizeNewLines),
+            imports: default,
+            parserOptions: RazorParserOptions.Default,
+            codeGenerationOptions: RazorCodeGenerationOptions.Default);
 }

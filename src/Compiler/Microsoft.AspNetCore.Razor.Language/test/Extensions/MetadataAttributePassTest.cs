@@ -36,19 +36,24 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
     public void Execute_SuppressMetadataAttributes_Noops()
     {
         // Arrange
-        var source = TestRazorSourceDocument.Create();
-        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var projectEngine = CreateProjectEngine(builder =>
+        {
+            builder.ConfigureCodeGenerationOptions(builder =>
+            {
+                builder.SuppressMetadataAttributes = true;
+            });
+        });
 
-        var options = codeDocument.CodeGenerationOptions;
-        Assert.NotNull(options);
+        var source = TestRazorSourceDocument.Create();
+        var codeDocument = projectEngine.CreateCodeDocument(source);
 
         var documentNode = new DocumentIntermediateNode()
         {
-            Options = options.WithFlags(suppressMetadataAttributes: true)
+            Options = codeDocument.CodeGenerationOptions
         };
 
         // Act
-        ProjectEngine.ExecutePass<MetadataAttributePass>(codeDocument, documentNode);
+        projectEngine.ExecutePass<MetadataAttributePass>(codeDocument, documentNode);
 
         // Assert
         NoChildren(documentNode);
@@ -58,20 +63,25 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
     public void Execute_ComponentDocumentKind_Noops()
     {
         // Arrange
-        var source = TestRazorSourceDocument.Create();
-        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var projectEngine = CreateProjectEngine(builder =>
+        {
+            builder.ConfigureCodeGenerationOptions(builder =>
+            {
+                builder.SuppressMetadataAttributes = true;
+            });
+        });
 
-        var options = codeDocument.CodeGenerationOptions;
-        Assert.NotNull(options);
+        var source = TestRazorSourceDocument.Create();
+        var codeDocument = projectEngine.CreateCodeDocument(source);
 
         var documentNode = new DocumentIntermediateNode()
         {
             DocumentKind = ComponentDocumentClassifierPass.ComponentDocumentKind,
-            Options = options.WithFlags(suppressMetadataAttributes: true)
+            Options = codeDocument.CodeGenerationOptions
         };
 
         // Act
-        ProjectEngine.ExecutePass<MetadataAttributePass>(codeDocument, documentNode);
+        projectEngine.ExecutePass<MetadataAttributePass>(codeDocument, documentNode);
 
         // Assert
         NoChildren(documentNode);
@@ -192,6 +202,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
             },
             Content = "Some.Namespace"
         };
+
         builder.Push(@namespace);
 
         var @class = new ClassDeclarationIntermediateNode
@@ -319,7 +330,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var documentNode = new DocumentIntermediateNode()
         {
             DocumentKind = "test",
-            Options = RazorCodeGenerationOptions.Default
+            Options = codeDocument.CodeGenerationOptions
         };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
@@ -370,17 +381,22 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
     public void Execute_SuppressMetadataSourceChecksumAttributes_DoesNotGenerateSourceChecksumAttributes()
     {
         // Arrange
+        var projectEngine = CreateProjectEngine(builder =>
+        {
+            builder.ConfigureCodeGenerationOptions(builder =>
+            {
+                builder.SuppressMetadataSourceChecksumAttributes = true;
+            });
+        });
+
         var source = TestRazorSourceDocument.Create("", RazorSourceDocumentProperties.Create(null, "Foo\\Bar.cshtml"));
         var importSource = TestRazorSourceDocument.Create("@using System", RazorSourceDocumentProperties.Create(null, "Foo\\Import.cshtml"));
-        var codeDocument = ProjectEngine.CreateCodeDocument(source, [importSource]);
-
-        var options = codeDocument.CodeGenerationOptions;
-        Assert.NotNull(options);
+        var codeDocument = projectEngine.CreateCodeDocument(source, [importSource]);
 
         var documentNode = new DocumentIntermediateNode()
         {
             DocumentKind = "test",
-            Options = options.WithFlags(suppressMetadataSourceChecksumAttributes: true)
+            Options = codeDocument.CodeGenerationOptions
         };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
@@ -407,7 +423,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         builder.Add(@class);
 
         // Act
-        ProjectEngine.ExecutePass<MetadataAttributePass>(codeDocument, documentNode);
+        projectEngine.ExecutePass<MetadataAttributePass>(codeDocument, documentNode);
 
         // Assert
         Assert.Equal(2, documentNode.Children.Count);

@@ -194,7 +194,7 @@ public class RazorCodeDocumentExtensionsTest
             source,
             imports: default,
             parserOptions: RazorParserOptions.Default,
-            codeGenerationOptions: RazorCodeGenerationOptions.Default);
+            codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello"));
 
         // Act
         codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
@@ -212,7 +212,7 @@ public class RazorCodeDocumentExtensionsTest
             source,
             imports: default,
             parserOptions: RazorParserOptions.Default,
-            codeGenerationOptions: RazorCodeGenerationOptions.Default);
+            codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello"));
 
         // Act
         codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
@@ -233,7 +233,7 @@ public class RazorCodeDocumentExtensionsTest
             source,
             imports: default,
             parserOptions: RazorParserOptions.Default,
-            codeGenerationOptions: RazorCodeGenerationOptions.Default);
+            codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello"));
 
         // Act
         codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
@@ -264,34 +264,6 @@ public class RazorCodeDocumentExtensionsTest
     }
 
     [Fact]
-    public void TryComputeNamespace_UsesIROptions_ComputesNamespace()
-    {
-        // Arrange
-        var source = TestRazorSourceDocument.Create(
-            filePath: "C:\\Hello\\Components\\Test.cshtml",
-            relativePath: "\\Components\\Test.cshtml");
-
-        var codeDocument = RazorCodeDocument.Create(
-            source,
-            imports: default,
-            parserOptions: RazorParserOptions.Default,
-            codeGenerationOptions: null);
-
-        var documentNode = new DocumentIntermediateNode()
-        {
-            Options = RazorCodeGenerationOptions.Default.WithRootNamespace("Hello")
-        };
-
-        codeDocument.SetDocumentIntermediateNode(documentNode);
-
-        // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
-
-        // Assert
-        Assert.Equal("Hello.Components", @namespace);
-    }
-
-    [Fact]
     public void TryComputeNamespace_NoRootNamespaceFallback_ReturnsNull()
     {
         // Arrange
@@ -303,48 +275,13 @@ public class RazorCodeDocumentExtensionsTest
             source,
             imports: default,
             parserOptions: RazorParserOptions.Default,
-            codeGenerationOptions: RazorCodeGenerationOptions.Default);
-
-        var documentNode = new DocumentIntermediateNode()
-        {
-            Options = RazorCodeGenerationOptions.Default.WithRootNamespace("Hello")
-        };
-
-        codeDocument.SetDocumentIntermediateNode(documentNode);
+            codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello"));
 
         // Act
         codeDocument.TryComputeNamespace(fallbackToRootNamespace: false, out var @namespace);
 
         // Assert
         Assert.Null(@namespace);
-    }
-
-    [Fact]
-    public void TryComputeNamespace_PrefersOptionsFromCodeDocument_ComputesNamespace()
-    {
-        // Arrange
-        var source = TestRazorSourceDocument.Create(
-            filePath: "C:\\Hello\\Components\\Test.cshtml",
-            relativePath: "\\Components\\Test.cshtml");
-
-        var codeDocument = RazorCodeDocument.Create(
-            source,
-            imports: default,
-            parserOptions: RazorParserOptions.Default,
-            codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("World"));
-
-        var documentNode = new DocumentIntermediateNode()
-        {
-            Options = RazorCodeGenerationOptions.Default.WithRootNamespace("Hello")
-        };
-
-        codeDocument.SetDocumentIntermediateNode(documentNode);
-
-        // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
-
-        // Assert
-        Assert.Equal("World.Components", @namespace);
     }
 
     [Fact]
@@ -359,14 +296,7 @@ public class RazorCodeDocumentExtensionsTest
             source,
             imports: default,
             parserOptions: RazorParserOptions.Default,
-            codeGenerationOptions: null);
-
-        var documentNode = new DocumentIntermediateNode()
-        {
-            Options = RazorCodeGenerationOptions.Default.WithRootNamespace("Hel?o.World")
-        };
-
-        codeDocument.SetDocumentIntermediateNode(documentNode);
+            codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hel?o.World"));
 
         // Act
         codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
@@ -388,17 +318,10 @@ public class RazorCodeDocumentExtensionsTest
             source,
             imports: default,
             parserOptions: RazorParserOptions.Default.WithDirectives(NamespaceDirective.Directive),
-            codeGenerationOptions: RazorCodeGenerationOptions.Default);
+            codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello.World"));
 
         codeDocument.SetFileKind(FileKinds.Component);
         codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
-
-        var documentNode = new DocumentIntermediateNode()
-        {
-            Options = RazorCodeGenerationOptions.Default.WithRootNamespace("Hello.World")
-        };
-
-        codeDocument.SetDocumentIntermediateNode(documentNode);
 
         // Act
         codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
@@ -419,7 +342,7 @@ public class RazorCodeDocumentExtensionsTest
             source,
             imports: default,
             parserOptions: RazorParserOptions.Default.WithDirectives(NamespaceDirective.Directive),
-            codeGenerationOptions: RazorCodeGenerationOptions.Default);
+            codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello.World"));
 
         codeDocument.SetFileKind(FileKinds.Component);
         codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
@@ -431,13 +354,6 @@ public class RazorCodeDocumentExtensionsTest
 
         var importSyntaxTree = RazorSyntaxTree.Parse(importSource, codeDocument.ParserOptions);
         codeDocument.SetImportSyntaxTrees([importSyntaxTree]);
-
-        var documentNode = new DocumentIntermediateNode()
-        {
-            Options = RazorCodeGenerationOptions.Default.WithRootNamespace("Hello.World")
-        };
-
-        codeDocument.SetDocumentIntermediateNode(documentNode);
 
         // Act
         codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
@@ -458,7 +374,7 @@ public class RazorCodeDocumentExtensionsTest
             source,
             imports: default,
             parserOptions: RazorParserOptions.Default.WithDirectives(NamespaceDirective.Directive),
-            codeGenerationOptions: RazorCodeGenerationOptions.Default);
+            codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello.World"));
 
         codeDocument.SetFileKind(FileKinds.Component);
         codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
@@ -470,13 +386,6 @@ public class RazorCodeDocumentExtensionsTest
 
         var importSyntaxTree = RazorSyntaxTree.Parse(importSource, codeDocument.ParserOptions);
         codeDocument.SetImportSyntaxTrees([importSyntaxTree]);
-
-        var documentNode = new DocumentIntermediateNode()
-        {
-            Options = RazorCodeGenerationOptions.Default.WithRootNamespace("Hello.World")
-        };
-
-        codeDocument.SetDocumentIntermediateNode(documentNode);
 
         // Act
         codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
@@ -510,13 +419,6 @@ public class RazorCodeDocumentExtensionsTest
 
         var importSyntaxTree = RazorSyntaxTree.Parse(importSource, codeDocument.ParserOptions);
         codeDocument.SetImportSyntaxTrees([importSyntaxTree]);
-
-        var documentNode = new DocumentIntermediateNode()
-        {
-            Options = RazorCodeGenerationOptions.Default.WithRootNamespace("Hello.World")
-        };
-
-        codeDocument.SetDocumentIntermediateNode(documentNode);
 
         // Act
         codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
