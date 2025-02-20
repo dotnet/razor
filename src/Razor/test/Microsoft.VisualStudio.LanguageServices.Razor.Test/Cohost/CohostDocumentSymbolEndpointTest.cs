@@ -94,12 +94,15 @@ public class CohostDocumentSymbolEndpointTest(FuseTestContext context, ITestOutp
             Assert.Equal(spansDict.Values.Count(), symbolsInformations.Length);
 
             var sourceText = SourceText.From(input);
+#pragma warning disable CS0618 // Type or member is obsolete
+            // SymbolInformation is obsolete, but things still return it so we have to handle it
             foreach (var symbolInformation in symbolsInformations)
             {
                 Assert.True(spansDict.TryGetValue(symbolInformation.Name, out var spans), $"Expected {symbolInformation.Name} to be in test provided markers");
                 var expectedRange = sourceText.GetRange(Assert.Single(spans));
                 Assert.Equal(expectedRange, symbolInformation.Location.Range);
             }
+#pragma warning restore CS0618 // Type or member is obsolete
         }
     }
 

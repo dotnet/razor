@@ -78,10 +78,19 @@ internal sealed class CapabilitiesManager : IInitializeManager<InitializeParams,
         var initializeParams = await _initializeParamsTaskSource.Task.ConfigureAwaitRunInline();
 #pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
 
+        if (initializeParams.WorkspaceFolders is [var firstFolder, ..])
+        {
+            return firstFolder.Uri.GetAbsoluteOrUNCPath();
+        }
+
+        // WorkspaceFolders was added in LSP3.6, fall back to RootUri
+
+#pragma warning disable CS0618 // Type or member is obsolete
         if (initializeParams.RootUri is Uri rootUri)
         {
             return rootUri.GetAbsoluteOrUNCPath();
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         // RootUri was added in LSP3, fall back to RootPath
 

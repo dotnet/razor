@@ -132,9 +132,10 @@ internal sealed class CohostGoToImplementationEndpoint(
         return null;
     }
 
-    private void RemapVirtualHtmlUri(RoslynLspLocation location)
+    private void RemapVirtualHtmlUri(RoslynLspLocation? location)
     {
-        if (_filePathService.IsVirtualHtmlFile(location.Uri))
+        if (location is not null &&
+            _filePathService.IsVirtualHtmlFile(location.Uri))
         {
             location.Uri = _filePathService.GetRazorDocumentUri(location.Uri);
         }

@@ -47,7 +47,6 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         // Assert
         Assert.NotNull(hover);
-        Assert.NotNull(hover.Contents);
         Assert.Contains("**Test1TagHelper**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         var expectedRange = LspFactory.CreateSingleLineRange(line: 1, character: 1, length: 5);
         Assert.Equal(expectedRange, hover.Range);
@@ -71,7 +70,6 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         // Assert
         Assert.NotNull(hover);
-        Assert.NotNull(hover.Contents);
         Assert.Contains("**SomeChild**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         var expectedRange = LspFactory.CreateSingleLineRange(line: 2, character: 5, length: 9);
         Assert.Equal(expectedRange, hover.Range);
@@ -95,7 +93,6 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         // Assert
         Assert.NotNull(hover);
-        Assert.NotNull(hover.Contents);
         Assert.Contains("**Attribute**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         var expectedRange = codeDocument.Source.Text.GetRange(code.Span);
         Assert.Equal(expectedRange, hover.Range);
@@ -117,7 +114,6 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         // Assert
         Assert.NotNull(hover);
-        Assert.NotNull(hover.Contents);
         Assert.Contains("**Test1TagHelper**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         var expectedRange = LspFactory.CreateSingleLineRange(line: 1, character: 9, length: 5);
         Assert.Equal(expectedRange, hover.Range);
@@ -139,7 +135,6 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         // Assert
         Assert.NotNull(hover);
-        Assert.NotNull(hover.Contents);
         Assert.Contains("**BoolVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         Assert.DoesNotContain("**IntVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         var expectedRange = LspFactory.CreateSingleLineRange(line: 1, character: 7, length: 8);
@@ -162,7 +157,6 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         // Assert
         Assert.NotNull(hover);
-        Assert.NotNull(hover.Contents);
         Assert.Contains("**BoolVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         Assert.DoesNotContain("**IntVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         var expectedRange = LspFactory.CreateSingleLineRange(line: 1, character: 7, length: 8);
@@ -239,7 +233,6 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         // Assert
         Assert.NotNull(hover);
-        Assert.NotNull(hover.Contents);
         Assert.Contains("**BoolVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         Assert.DoesNotContain("**IntVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         var expectedRange = LspFactory.CreateSingleLineRange(line: 1, character: 7, length: 8);
@@ -266,7 +259,6 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         // Assert
         Assert.NotNull(hover);
-        Assert.NotNull(hover.Contents);
         Assert.Contains("**Test**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         var expectedRange = LspFactory.CreateSingleLineRange(line: 1, character: 5, length: 5);
         Assert.Equal(expectedRange, hover.Range);
@@ -288,7 +280,6 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         // Assert
         Assert.NotNull(hover);
-        Assert.NotNull(hover.Contents);
         Assert.Contains("**Test1TagHelper**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         var expectedRange = LspFactory.CreateSingleLineRange(line: 1, character: 1, length: 5);
         Assert.Equal(expectedRange, hover.Range);
@@ -310,7 +301,6 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         // Assert
         Assert.NotNull(hover);
-        Assert.NotNull(hover.Contents);
         Assert.Contains("**BoolVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         Assert.DoesNotContain("**IntVal**", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         var expectedRange = LspFactory.CreateSingleLineRange(line: 1, character: 7, length: 8);
@@ -351,7 +341,6 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         // Assert
         Assert.NotNull(hover);
-        Assert.NotNull(hover.Contents);
         Assert.Contains("Test1TagHelper", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         Assert.Equal(MarkupKind.PlainText, ((MarkupContent)hover.Contents).Kind);
         var expectedRange = LspFactory.CreateSingleLineRange(line: 1, character: 1, length: 5);
@@ -374,7 +363,6 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         // Assert
         Assert.NotNull(hover);
-        Assert.NotNull(hover.Contents);
         Assert.Contains("Test1TagHelper", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         Assert.Equal(MarkupKind.PlainText, ((MarkupContent)hover.Contents).Kind);
         var expectedRange = LspFactory.CreateSingleLineRange(line: 1, character: 9, length: 5);
@@ -396,7 +384,6 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         // Assert
         Assert.NotNull(hover);
-        Assert.NotNull(hover.Contents);
         Assert.Contains("Text", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         Assert.Equal(MarkupKind.PlainText, ((MarkupContent)hover.Contents).Kind);
         var expectedRange = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 4);
@@ -420,7 +407,6 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         // Assert
         Assert.NotNull(hover);
-        Assert.NotNull(hover.Contents);
         Assert.Contains("Text", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         Assert.Equal(MarkupKind.PlainText, ((MarkupContent)hover.Contents).Kind);
         var expectedRange = LspFactory.CreateSingleLineRange(line: 1, character: 5, length: 4);
@@ -467,7 +453,6 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         // Assert
         Assert.NotNull(hover);
-        Assert.NotNull(hover.Contents);
         Assert.Contains("Text", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         Assert.Equal(MarkupKind.PlainText, ((MarkupContent)hover.Contents).Kind);
         var expectedRange = LspFactory.CreateSingleLineRange(line: 3, character: 9, length: 4);
@@ -490,7 +475,6 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         // Assert
         Assert.NotNull(hover);
-        Assert.NotNull(hover.Contents);
         Assert.Contains("BoolVal", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         Assert.DoesNotContain("IntVal", ((MarkupContent)hover.Contents).Value, StringComparison.Ordinal);
         Assert.Equal(MarkupKind.PlainText, ((MarkupContent)hover.Contents).Kind);
@@ -550,7 +534,6 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         // Assert
         Assert.NotNull(hover);
-        Assert.NotNull(hover.Contents);
         Assert.False(hover.Contents.TryGetFourth(out var _));
         Assert.True(hover.Contents.TryGetThird(out var _) && !hover.Contents.Third.Any());
         var expectedRange = LspFactory.CreateSingleLineRange(line: 1, character: 1, length: 5);
@@ -588,7 +571,6 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         // Assert
         Assert.NotNull(hover);
-        Assert.NotNull(hover.Contents);
         Assert.False(hover.Contents.TryGetFourth(out _));
         Assert.True(hover.Contents.TryGetThird(out var markedStrings) && !markedStrings.Any());
         var expectedRange = LspFactory.CreateSingleLineRange(line: 1, character: 7, length: 8);

@@ -22,7 +22,9 @@ public class RazorFileChangeDetectorManagerTest(ITestOutputHelper testOutput) : 
 
         var initializeParams = new InitializeParams()
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             RootUri = LspFactory.CreateFilePathUri(initialWorkspaceDirectory),
+#pragma warning restore CS0618 // Type or member is obsolete
         };
 
         var capabilitiesManager = new CapabilitiesManager(StrictMock.Of<ILspServices>());
@@ -64,7 +66,9 @@ public class RazorFileChangeDetectorManagerTest(ITestOutputHelper testOutput) : 
         var expectedWorkspaceDirectory = "\\\\testpath";
         var initializeParams = new InitializeParams()
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             RootUri = new Uri(expectedWorkspaceDirectory),
+#pragma warning restore CS0618 // Type or member is obsolete
         };
 
         var capabilitiesManager = new CapabilitiesManager(StrictMock.Of<ILspServices>());
