@@ -30,22 +30,6 @@ public sealed class RazorCodeDocument
         Items = new ItemCollection();
     }
 
-    public static RazorCodeDocument Create(RazorSourceDocument source)
-    {
-        ArgHelper.ThrowIfNull(source);
-
-        return new RazorCodeDocument(source, imports: default, parserOptions: null, codeGenerationOptions: null);
-    }
-
-    public static RazorCodeDocument Create(
-        RazorSourceDocument source,
-        ImmutableArray<RazorSourceDocument> imports)
-    {
-        ArgHelper.ThrowIfNull(source);
-
-        return new RazorCodeDocument(source, imports, parserOptions: null, codeGenerationOptions: null);
-    }
-
     public static RazorCodeDocument Create(
         RazorSourceDocument source,
         ImmutableArray<RazorSourceDocument> imports,
