@@ -206,9 +206,7 @@ public class RazorDirectiveCompletionSourceTest(ITestOutputHelper testOutput) : 
         var source = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Default);
         var codeDocument = RazorCodeDocument.Create(
             source,
-            imports: default,
-            parserOptions: RazorParserOptions.Default.WithDirectives([.. directives]),
-            codeGenerationOptions: RazorCodeGenerationOptions.Default);
+            parserOptions: RazorParserOptions.Default.WithDirectives([.. directives]));
 
         var syntaxTree = RazorSyntaxTree.Parse(source, codeDocument.ParserOptions);
         codeDocument.SetSyntaxTree(syntaxTree);

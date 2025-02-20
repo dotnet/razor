@@ -174,8 +174,6 @@ public class RazorCodeDocumentExtensionsTest
         var source = TestRazorSourceDocument.Create(filePath: "C:\\Hello\\Test.cshtml", relativePath: "Test.cshtml");
         var codeDocument = RazorCodeDocument.Create(
             source,
-            imports: default,
-            parserOptions: RazorParserOptions.Default,
             codeGenerationOptions: RazorCodeGenerationOptions.Default);
 
         // Act
@@ -192,8 +190,6 @@ public class RazorCodeDocumentExtensionsTest
         var source = TestRazorSourceDocument.Create(filePath: "C:\\Hello\\Test.cshtml", relativePath: null);
         var codeDocument = RazorCodeDocument.Create(
             source,
-            imports: default,
-            parserOptions: RazorParserOptions.Default,
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello"));
 
         // Act
@@ -210,8 +206,6 @@ public class RazorCodeDocumentExtensionsTest
         var source = TestRazorSourceDocument.Create(filePath: null, relativePath: "Test.cshtml");
         var codeDocument = RazorCodeDocument.Create(
             source,
-            imports: default,
-            parserOptions: RazorParserOptions.Default,
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello"));
 
         // Act
@@ -231,8 +225,6 @@ public class RazorCodeDocumentExtensionsTest
 
         var codeDocument = RazorCodeDocument.Create(
             source,
-            imports: default,
-            parserOptions: RazorParserOptions.Default,
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello"));
 
         // Act
@@ -252,8 +244,6 @@ public class RazorCodeDocumentExtensionsTest
 
         var codeDocument = RazorCodeDocument.Create(
             source,
-            imports: default,
-            parserOptions: RazorParserOptions.Default,
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello"));
 
         // Act
@@ -273,8 +263,6 @@ public class RazorCodeDocumentExtensionsTest
 
         var codeDocument = RazorCodeDocument.Create(
             source,
-            imports: default,
-            parserOptions: RazorParserOptions.Default,
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello"));
 
         // Act
@@ -294,8 +282,6 @@ public class RazorCodeDocumentExtensionsTest
 
         var codeDocument = RazorCodeDocument.Create(
             source,
-            imports: default,
-            parserOptions: RazorParserOptions.Default,
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hel?o.World"));
 
         // Act
@@ -316,7 +302,6 @@ public class RazorCodeDocumentExtensionsTest
 
         var codeDocument = RazorCodeDocument.Create(
             source,
-            imports: default,
             parserOptions: RazorParserOptions.Default.WithDirectives(NamespaceDirective.Directive),
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello.World"));
 
@@ -340,7 +325,6 @@ public class RazorCodeDocumentExtensionsTest
 
         var codeDocument = RazorCodeDocument.Create(
             source,
-            imports: default,
             parserOptions: RazorParserOptions.Default.WithDirectives(NamespaceDirective.Directive),
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello.World"));
 
@@ -372,7 +356,6 @@ public class RazorCodeDocumentExtensionsTest
 
         var codeDocument = RazorCodeDocument.Create(
             source,
-            imports: default,
             parserOptions: RazorParserOptions.Default.WithDirectives(NamespaceDirective.Directive),
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello.World"));
 
@@ -405,9 +388,7 @@ public class RazorCodeDocumentExtensionsTest
 
         var codeDocument = RazorCodeDocument.Create(
             source,
-            imports: default,
-            parserOptions: RazorParserOptions.Default.WithDirectives(NamespaceDirective.Directive),
-            codeGenerationOptions: RazorCodeGenerationOptions.Default);
+            parserOptions: RazorParserOptions.Default.WithDirectives(NamespaceDirective.Directive));
 
         codeDocument.SetFileKind(FileKinds.Component);
         codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
@@ -447,9 +428,7 @@ public class RazorCodeDocumentExtensionsTest
 
         var codeDocument = RazorCodeDocument.Create(
             source,
-            imports: default,
-            parserOptions: RazorParserOptions.Default.WithDirectives(NamespaceDirective.Directive),
-            codeGenerationOptions: RazorCodeGenerationOptions.Default);
+            parserOptions: RazorParserOptions.Default.WithDirectives(NamespaceDirective.Directive));
 
         codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
 
@@ -479,9 +458,7 @@ public class RazorCodeDocumentExtensionsTest
 
         var codeDocument = RazorCodeDocument.Create(
             source,
-            imports: default,
-            parserOptions: RazorParserOptions.Default.WithDirectives(NamespaceDirective.Directive),
-            codeGenerationOptions: RazorCodeGenerationOptions.Default);
+            parserOptions: RazorParserOptions.Default.WithDirectives(NamespaceDirective.Directive));
 
         codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
 

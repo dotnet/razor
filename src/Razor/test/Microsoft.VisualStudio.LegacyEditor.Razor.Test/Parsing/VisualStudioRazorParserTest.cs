@@ -244,7 +244,7 @@ public class VisualStudioRazorParserTest : VisualStudioTestBase
     {
         // Arrange
         var source = TestRazorSourceDocument.Create();
-        var codeDocument = RazorCodeDocument.Create(source, imports: default, RazorParserOptions.Default, RazorCodeGenerationOptions.Default);
+        var codeDocument = RazorCodeDocument.Create(source);
         var request = new VisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
 
         // Act & Assert
@@ -258,7 +258,7 @@ public class VisualStudioRazorParserTest : VisualStudioTestBase
     {
         // Arrange
         var source = TestRazorSourceDocument.Create();
-        var codeDocument = RazorCodeDocument.Create(source, imports: default, RazorParserOptions.Default, RazorCodeGenerationOptions.Default);
+        var codeDocument = RazorCodeDocument.Create(source);
         var request = new VisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
 
         // Act
@@ -314,7 +314,7 @@ public class VisualStudioRazorParserTest : VisualStudioTestBase
     {
         // Arrange
         var source = TestRazorSourceDocument.Create();
-        var codeDocument = RazorCodeDocument.Create(source, imports: default, RazorParserOptions.Default, RazorCodeGenerationOptions.Default);
+        var codeDocument = RazorCodeDocument.Create(source);
         var request = new VisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
 
         // Act - 1
@@ -335,7 +335,7 @@ public class VisualStudioRazorParserTest : VisualStudioTestBase
     {
         // Arrange
         var source = TestRazorSourceDocument.Create();
-        var codeDocument = RazorCodeDocument.Create(source, imports: default, RazorParserOptions.Default, RazorCodeGenerationOptions.Default);
+        var codeDocument = RazorCodeDocument.Create(source);
         var request = new VisualStudioRazorParser.CodeDocumentRequest(StringTextSnapshot.Empty, DisposalToken);
 
         // Act - 1

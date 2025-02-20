@@ -7,15 +7,9 @@ public static class TestRazorCodeDocument
 {
     public static RazorCodeDocument CreateEmpty()
         => RazorCodeDocument.Create(
-            source: TestRazorSourceDocument.Create(content: string.Empty),
-            imports: default,
-            parserOptions: RazorParserOptions.Default,
-            codeGenerationOptions: RazorCodeGenerationOptions.Default);
+            source: TestRazorSourceDocument.Create(content: string.Empty));
 
     public static RazorCodeDocument Create(string content, bool normalizeNewLines = false)
         => RazorCodeDocument.Create(
-            source: TestRazorSourceDocument.Create(content, normalizeNewLines: normalizeNewLines),
-            imports: default,
-            parserOptions: RazorParserOptions.Default,
-            codeGenerationOptions: RazorCodeGenerationOptions.Default);
+            source: TestRazorSourceDocument.Create(content, normalizeNewLines: normalizeNewLines));
 }

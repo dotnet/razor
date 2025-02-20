@@ -615,12 +615,13 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
     {
         relativePath ??= filePath;
 
-        var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(filePath, relativePath));
-        var parserOptions = RazorParserOptions.Default.WithDirectives(ComponentCodeDirective.Directive, FunctionsDirective.Directive);
-        var codeGenerationOptions = RazorCodeGenerationOptions.Default.WithRootNamespace("ExtractToComponentTest");
+        var source = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(filePath, relativePath));
+        var codeDocument = RazorCodeDocument.Create(
+            source,
+            parserOptions: RazorParserOptions.Default.WithDirectives(ComponentCodeDirective.Directive, FunctionsDirective.Directive),
+            codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("ExtractToComponentTest"));
 
-        var syntaxTree = RazorSyntaxTree.Parse(sourceDocument, parserOptions);
-        var codeDocument = RazorCodeDocument.Create(sourceDocument, imports: default, parserOptions, codeGenerationOptions);
+        var syntaxTree = RazorSyntaxTree.Parse(source, codeDocument.ParserOptions);
 
         codeDocument.SetFileKind(FileKinds.Component);
         codeDocument.SetSyntaxTree(syntaxTree);

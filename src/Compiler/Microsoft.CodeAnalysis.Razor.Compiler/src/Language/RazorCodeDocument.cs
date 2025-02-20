@@ -18,8 +18,8 @@ public sealed class RazorCodeDocument
     private RazorCodeDocument(
         RazorSourceDocument source,
         ImmutableArray<RazorSourceDocument> imports,
-        RazorParserOptions parserOptions,
-        RazorCodeGenerationOptions codeGenerationOptions)
+        RazorParserOptions? parserOptions,
+        RazorCodeGenerationOptions? codeGenerationOptions)
     {
         Source = source;
         Imports = imports.NullToEmpty();
@@ -32,13 +32,21 @@ public sealed class RazorCodeDocument
 
     public static RazorCodeDocument Create(
         RazorSourceDocument source,
-        ImmutableArray<RazorSourceDocument> imports,
-        RazorParserOptions parserOptions,
-        RazorCodeGenerationOptions codeGenerationOptions)
+        RazorParserOptions? parserOptions = null,
+        RazorCodeGenerationOptions? codeGenerationOptions = null)
     {
         ArgHelper.ThrowIfNull(source);
-        ArgHelper.ThrowIfNull(parserOptions);
-        ArgHelper.ThrowIfNull(codeGenerationOptions);
+
+        return new RazorCodeDocument(source, imports: [], parserOptions, codeGenerationOptions);
+    }
+
+    public static RazorCodeDocument Create(
+        RazorSourceDocument source,
+        ImmutableArray<RazorSourceDocument> imports,
+        RazorParserOptions? parserOptions = null,
+        RazorCodeGenerationOptions? codeGenerationOptions = null)
+    {
+        ArgHelper.ThrowIfNull(source);
 
         return new RazorCodeDocument(source, imports, parserOptions, codeGenerationOptions);
     }

@@ -213,7 +213,7 @@ public abstract class ParserTestBase : IParserTest
 
         var source = TestRazorSourceDocument.Create(document, filePath: null, relativePath: null, normalizeNewLines: true);
         var parseOptions = CreateParserOptions(version, fileKind, designTime, directives, csharpParseOptions, configureParserOptions);
-        var codeDocument = RazorCodeDocument.Create(source, imports: default, parseOptions, RazorCodeGenerationOptions.Default);
+        var codeDocument = RazorCodeDocument.Create(source, parseOptions);
 
         using var context = new ParserContext(source, parseOptions);
         using var codeParser = new CSharpCodeParser(directives, context);

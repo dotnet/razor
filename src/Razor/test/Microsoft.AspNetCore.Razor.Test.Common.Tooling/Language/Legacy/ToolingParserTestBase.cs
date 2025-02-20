@@ -196,7 +196,7 @@ public abstract class ToolingParserTestBase : ToolingTestBase, IParserTest
 
         var source = TestRazorSourceDocument.Create(document, filePath: null, relativePath: null, normalizeNewLines: true);
         var parserOptions = CreateParserOptions(version, directives, designTime, fileKind, configureParserOptions);
-        var codeDocument = RazorCodeDocument.Create(source, imports: default, parserOptions, RazorCodeGenerationOptions.Default);
+        var codeDocument = RazorCodeDocument.Create(source, parserOptions);
 
         using var context = new ParserContext(source, parserOptions);
         using var codeParser = new CSharpCodeParser(directives, context);
