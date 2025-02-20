@@ -346,7 +346,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             {
                 var ((documents, tagHelpers), isGeneratorSuppressed) = pair;
 
-
                 if (!isGeneratorSuppressed)
                 {
                     var documentDictionary = documents.Select(p => KeyValuePair.Create(p.codeDocument.Source.FilePath!, (p.hintName, p.codeDocument))).ToImmutableDictionary();

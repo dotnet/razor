@@ -34,7 +34,7 @@ public class CSharpVirtualDocumentPublisherTest : ToolingTestBase
     {
         // Arrange
         var fileInfoProvider = new StrictMock<IRazorDynamicFileInfoProviderInternal>();
-        var publisher = new CSharpVirtualDocumentPublisher(fileInfoProvider.Object, _documentMappingProvider, new TestLanguageServerFeatureOptions());
+        var publisher = new CSharpVirtualDocumentPublisher(fileInfoProvider.Object, _documentMappingProvider, TestLanguageServerFeatureOptions.Instance);
 
         // Act & Assert
         publisher.Changed(old: null, @new: Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict), virtualOld: null, virtualNew: null, LSPDocumentChangeKind.Added);
@@ -45,7 +45,7 @@ public class CSharpVirtualDocumentPublisherTest : ToolingTestBase
     {
         // Arrange
         var fileInfoProvider = new StrictMock<IRazorDynamicFileInfoProviderInternal>();
-        var publisher = new CSharpVirtualDocumentPublisher(fileInfoProvider.Object, _documentMappingProvider, new TestLanguageServerFeatureOptions());
+        var publisher = new CSharpVirtualDocumentPublisher(fileInfoProvider.Object, _documentMappingProvider, TestLanguageServerFeatureOptions.Instance);
 
         // Act & Assert
         publisher.Changed(old: Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict), @new: null, virtualOld: null, virtualNew: null, LSPDocumentChangeKind.Removed);
@@ -56,7 +56,7 @@ public class CSharpVirtualDocumentPublisherTest : ToolingTestBase
     {
         // Arrange
         var fileInfoProvider = new StrictMock<IRazorDynamicFileInfoProviderInternal>();
-        var publisher = new CSharpVirtualDocumentPublisher(fileInfoProvider.Object, _documentMappingProvider, new TestLanguageServerFeatureOptions());
+        var publisher = new CSharpVirtualDocumentPublisher(fileInfoProvider.Object, _documentMappingProvider, TestLanguageServerFeatureOptions.Instance);
 
         // Act & Assert
         publisher.Changed(old: StrictMock.Of<LSPDocumentSnapshot>(),
@@ -75,7 +75,7 @@ public class CSharpVirtualDocumentPublisherTest : ToolingTestBase
         var fileInfoProvider = new Mock<IRazorDynamicFileInfoProviderInternal>(MockBehavior.Strict);
         fileInfoProvider.Setup(provider => provider.UpdateLSPFileInfo(lspDocument.Uri, It.IsAny<IDynamicDocumentContainer>()))
             .Verifiable();
-        var publisher = new CSharpVirtualDocumentPublisher(fileInfoProvider.Object, _documentMappingProvider, new TestLanguageServerFeatureOptions());
+        var publisher = new CSharpVirtualDocumentPublisher(fileInfoProvider.Object, _documentMappingProvider, TestLanguageServerFeatureOptions.Instance);
 
         // Act
         publisher.Changed(old: Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict),

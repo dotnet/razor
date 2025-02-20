@@ -13,7 +13,7 @@
   <Import
     Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), AspNetCoreSettings.props))\AspNetCoreSettings.props"
     Condition=" '$(CI)' != 'true' AND '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), AspNetCoreSettings.props))' != '' " />
-  
+
   <PropertyGroup Label="Build Settings">
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
