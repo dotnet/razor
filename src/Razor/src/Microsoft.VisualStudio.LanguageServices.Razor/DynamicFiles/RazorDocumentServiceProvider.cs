@@ -2,14 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 
 namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
 internal class RazorDocumentServiceProvider(IDynamicDocumentContainer? documentContainer) : IRazorDocumentServiceProvider
 {
     private readonly IDynamicDocumentContainer? _documentContainer = documentContainer;
-    private readonly object _lock = new object();
+    private readonly object _lock = new();
 
     private IRazorDocumentExcerptServiceImplementation? _documentExcerptService;
     private IRazorDocumentPropertiesService? _documentPropertiesService;

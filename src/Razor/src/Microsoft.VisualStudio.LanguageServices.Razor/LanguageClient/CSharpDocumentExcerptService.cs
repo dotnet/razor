@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Razor.DynamicFiles;
@@ -53,7 +52,7 @@ internal sealed class CSharpDocumentExcerptService : DocumentExcerptService
         RazorClassificationOptionsWrapper options,
         CancellationToken cancellationToken)
     {
-        var mappedSpans = await _mappingService.MapSpansAsync(document, new[] { span }, cancellationToken).ConfigureAwait(false);
+        var mappedSpans = await _mappingService.MapSpansAsync(document, [span], cancellationToken).ConfigureAwait(false);
         if (mappedSpans.Length == 0 || mappedSpans[0].Equals(default(RazorMappedSpanResult)))
         {
             return null;

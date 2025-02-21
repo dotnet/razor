@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
@@ -41,7 +41,7 @@ internal sealed class RazorLSPMappingService(
             cancellationToken);
     }
 
-    public async Task<ImmutableArray<RazorMappedEditoResult>> MapTextChangesAsync(
+    public async Task<ImmutableArray<RazorMappedEditResult>> MapTextChangesAsync(
         Document oldDocument,
         Document newDocument,
         CancellationToken cancellationToken)
@@ -51,7 +51,7 @@ internal sealed class RazorLSPMappingService(
         var mappedEdits = await _lspDocumentMappingProvider.MapToDocumentEditsAsync(
             RazorLanguageKind.CSharp,
             _documentSnapshot.Uri,
-            changes.ToArray(),
+            [.. changes],
             cancellationToken);
 
         if (mappedEdits is null)
@@ -61,7 +61,7 @@ internal sealed class RazorLSPMappingService(
 
         var sourceTextRazor = _documentSnapshot.Snapshot.AsText();
         var mappedChanges = mappedEdits.TextChanges.Select(e => e.ToTextChange()).ToArray();
-        return [new RazorMappedEditoResult(_documentSnapshot.Uri.AbsolutePath, mappedChanges)];
+        return [new RazorMappedEditResult(_documentSnapshot.Uri.AbsolutePath, mappedChanges)];
     }
 
     private async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(

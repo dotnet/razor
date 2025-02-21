@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -175,9 +174,9 @@ internal static class CSharpTestLspServerHelpers
             return SpecializedTasks.EmptyImmutableArray<RazorMappedSpanResult>();
         }
 
-        public Task<ImmutableArray<RazorMappedEditoResult>> MapTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        public Task<ImmutableArray<RazorMappedEditResult>> MapTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyImmutableArray<RazorMappedEditoResult>();
+            return SpecializedTasks.EmptyImmutableArray<RazorMappedEditResult>();
         }
     }
 }

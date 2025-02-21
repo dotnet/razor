@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -59,11 +58,6 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
     }
 
     public event EventHandler<string>? Updated;
-
-    public Task EnsureInitializedAsync(Func<CancellationToken, Task<IRazorClientLanguageServerManager>> getLanguageServerManager, CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
-    }
 
     // Called by us to update LSP document entries
     public void UpdateLSPFileInfo(Uri documentUri, IDynamicDocumentContainer documentContainer)
@@ -241,7 +235,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         }
     }
 
-    public Task<IRazorDynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
+    public Task<RazorDynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
         if (projectFilePath is null)
         {
@@ -258,7 +252,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         var projectKey = TryFindProjectKeyForProjectId(projectId);
         if (projectKey is not { } razorProjectKey)
         {
-            return SpecializedTasks.Null<IRazorDynamicFileInfo>();
+            return SpecializedTasks.Null<RazorDynamicFileInfo>();
         }
 
         _fallbackProjectManager.DynamicFileAdded(projectId, razorProjectKey, projectFilePath, filePath, cancellationToken);
@@ -266,7 +260,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         var key = new Key(projectId, filePath);
         var entry = _entries.GetOrAdd(key, _createEmptyEntry);
 
-        return Task.FromResult<IRazorDynamicFileInfo?>(entry.Current);
+        return Task.FromResult<RazorDynamicFileInfo?>(entry.Current);
     }
 
     public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
@@ -394,17 +388,11 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
 
     // Using a separate handle to the 'current' file info so that can allow Roslyn to send
     // us the add/remove operations, while we process the update operations.
-    private class Entry
+    private class Entry(RazorDynamicFileInfo current)
     {
-        public Entry(RazorDynamicFileInfo current)
-        {
-            Current = current;
-            Lock = new object();
-        }
+        public RazorDynamicFileInfo Current { get; set; } = current;
 
-        public RazorDynamicFileInfo Current { get; set; }
-
-        public object Lock { get; }
+        public object Lock { get; } = new object();
 
         public override string ToString()
         {
@@ -415,16 +403,10 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         }
     }
 
-    private readonly struct Key : IEquatable<Key>
+    private readonly struct Key(ProjectId projectId, string filePath) : IEquatable<Key>
     {
-        public readonly ProjectId ProjectId;
-        public readonly string FilePath;
-
-        public Key(ProjectId projectId, string filePath)
-        {
-            ProjectId = projectId;
-            FilePath = filePath;
-        }
+        public readonly ProjectId ProjectId = projectId;
+        public readonly string FilePath = filePath;
 
         public bool Equals(Key other)
         {
@@ -447,16 +429,10 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         }
     }
 
-    private class EmptyTextLoader : TextLoader
+    private class EmptyTextLoader(string filePath) : TextLoader
     {
-        private readonly string _filePath;
-        private readonly VersionStamp _version;
-
-        public EmptyTextLoader(string filePath)
-        {
-            _filePath = filePath;
-            _version = VersionStamp.Default; // Version will never change so this can be reused.
-        }
+        private readonly string _filePath = filePath;
+        private readonly VersionStamp _version = VersionStamp.Default;
 
         public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
@@ -497,14 +473,9 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         public IRazorMappingService? GetMappingService() => _mappingService;
     }
 
-    public class TestAccessor
+    public class TestAccessor(RazorDynamicFileInfoProvider provider)
     {
-        private readonly RazorDynamicFileInfoProvider _provider;
-
-        public TestAccessor(RazorDynamicFileInfoProvider provider)
-        {
-            _provider = provider;
-        }
+        private readonly RazorDynamicFileInfoProvider _provider = provider;
 
         public async Task<TestDynamicFileInfoResult?> GetDynamicFileInfoAsync(ProjectId projectId, string filePath, CancellationToken cancellationToken)
         {
