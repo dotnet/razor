@@ -302,9 +302,10 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase, IDisposa
     protected void ReadWhile<TArg>(
         Func<SyntaxToken, TArg, bool> predicate,
         TArg arg,
-        ref PooledArrayBuilder<SyntaxToken> result)
+        ref PooledArrayBuilder<SyntaxToken> result,
+        bool expectsEmptyBuilder = true)
     {
-        Debug.Assert(result.Count == 0, "Expected empty builder.");
+        Debug.Assert(!expectsEmptyBuilder || result.Count == 0, "Expected empty builder.");
 
         if (!EnsureCurrent() || !predicate(CurrentToken, arg))
         {
