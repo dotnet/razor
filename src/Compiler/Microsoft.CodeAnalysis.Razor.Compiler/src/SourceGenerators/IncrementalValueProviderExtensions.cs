@@ -105,6 +105,24 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         {
             return optionsProvider.Select((provider, _) => provider.GlobalOptions.TryGetValue($"build_property.{flagName}", out var flagValue) && flagValue == "true");
         }
+
+        internal static IncrementalValuesProvider<ValueTuple<T1, T2, T3>> Combine<T1, T2, T3>(this IncrementalValuesProvider<ValueTuple<T1, T2>> provider, IncrementalValueProvider<T3> target)
+        {
+            return IncrementalValueProviderExtensions.Combine(provider, target)
+                .Select((p, _) => (p.Left.Item1, p.Left.Item2, p.Right));
+        }
+
+        internal static IncrementalValuesProvider<ValueTuple<T1, T2, T3, T4>> Combine<T1, T2, T3, T4>(this IncrementalValuesProvider<ValueTuple<T1, T2, T3>> provider, IncrementalValueProvider<T4> target)
+        {
+            return IncrementalValueProviderExtensions.Combine(provider, target)
+                .Select((p, _) => (p.Left.Item1, p.Left.Item2, p.Left.Item3, p.Right));
+        }
+
+        internal static IncrementalValueProvider<ValueTuple<T1, T2, T3>> Combine<T1, T2, T3>(this IncrementalValueProvider<ValueTuple<T1, T2>> provider, IncrementalValueProvider<T3> target)
+        {
+            return IncrementalValueProviderExtensions.Combine(provider, target)
+                .Select((p, _) => (p.Left.Item1, p.Left.Item2, p.Right));
+        }
     }
 
     internal sealed class LambdaComparer<T> : IEqualityComparer<T>

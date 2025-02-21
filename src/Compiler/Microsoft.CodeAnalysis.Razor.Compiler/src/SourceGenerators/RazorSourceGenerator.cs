@@ -17,8 +17,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 #pragma warning restore RS1041 // This compiler extension should not be implemented in an assembly with target framework '.NET 8.0'. References to other target frameworks will cause the compiler to behave unpredictably.
     public partial class RazorSourceGenerator : IIncrementalGenerator
     {
-        private static RazorSourceGeneratorEventSource Log => RazorSourceGeneratorEventSource.Log;
-
         internal static bool UseRazorCohostServer { get; set; } = false;
 
         // Testing usage only.
@@ -48,7 +46,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Combine(parseOptions)
                 .Combine(metadataRefs.Collect())
                 .SuppressIfNeeded(isGeneratorSuppressed)
-                .Select(ComputeRazorSourceGeneratorOptions)
+                .Select((p, _) => ComputeRazorSourceGeneratorOptions(p.Item1.Item1, p.Item1.Item2, p.Item1.Item3, p.Item2))
                 .ReportDiagnostics(context);
 
             var sourceItems = additionalTexts
@@ -82,15 +80,15 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var generatedDeclarationText = componentFiles
                 .Combine(importFiles.Collect())
                 .Combine(razorSourceGeneratorOptions)
-                .WithLambdaComparer((old, @new) => old.Right.Equals(@new.Right) && old.Left.Left.Equals(@new.Left.Left) && old.Left.Right.SequenceEqual(@new.Left.Right))
-                .Select(static (pair, _) =>
+                .WithLambdaComparer((old, @new) => old.Item3.Equals(@new.Item3) && old.Item1.Equals(@new.Item1) && old.Item2.SequenceEqual(@new.Item2))
+                .Select(static (pair, cancellationToken) =>
                 {
-                    var ((sourceItem, importFiles), razorSourceGeneratorOptions) = pair;
+                    var (sourceItem, importFiles, razorSourceGeneratorOptions) = pair;
                     RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStart(sourceItem.FilePath);
 
                     var projectEngine = GetDeclarationProjectEngine(sourceItem, importFiles, razorSourceGeneratorOptions);
 
-                    var codeGen = projectEngine.Process(sourceItem);
+                    var codeGen = projectEngine.Process(sourceItem, cancellationToken);
 
                     var result = new SourceGeneratorText(codeGen.GetCSharpDocument().Text);
 
@@ -145,8 +143,8 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Combine(hasRazorFiles)
                 .WithLambdaComparer(static (a, b) =>
                 {
-                    var ((compilationA, razorSourceGeneratorOptionsA), hasRazorFilesA) = a;
-                    var ((compilationB, razorSourceGeneratorOptionsB), hasRazorFilesB) = b;
+                    var (compilationA, razorSourceGeneratorOptionsA, hasRazorFilesA) = a;
+                    var (compilationB, razorSourceGeneratorOptionsB, hasRazorFilesB) = b;
 
                     // When using the generator cache in the compiler it's possible to encounter metadata references that are different instances
                     // but ultimately represent the same underlying assembly. We compare the module version ids to determine if the references are the same
@@ -194,7 +192,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 })
                 .Select(static (pair, _) =>
                 {
-                    var ((compilation, razorSourceGeneratorOptions), hasRazorFiles) = pair;
+                    var (compilation, razorSourceGeneratorOptions, hasRazorFiles) = pair;
                     if (!hasRazorFiles)
                     {
                         // If there's no razor code in this app, don't do anything.
@@ -233,67 +231,60 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left) && old.Right.SequenceEqual(@new.Right))
                 .Combine(razorSourceGeneratorOptions);
 
-            // Currently unused. See https://github.com/dotnet/roslyn/issues/71024.
-            var razorHostOutputsEnabled = analyzerConfigOptions.CheckGlobalFlagSet("EnableRazorHostOutputs");
-            var withOptionsDesignTime = withOptions.EmptyOrCachedWhen(razorHostOutputsEnabled, false);
+            var processed =
+                withOptions
+                .Select((pair, _) =>
+                {
+                    var (sourceItem, imports, razorSourceGeneratorOptions) = pair;
 
-            IncrementalValuesProvider<(string, SourceGeneratorRazorCodeDocument)> processed(bool designTime)
-            {
-                return (designTime ? withOptionsDesignTime : withOptions)
-                    .Select((pair, _) =>
-                    {
-                        var ((sourceItem, imports), razorSourceGeneratorOptions) = pair;
+                    RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStart(sourceItem.RelativePhysicalPath);
 
-                        RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStart(sourceItem.RelativePhysicalPath);
+                    var projectEngine = GetGenerationProjectEngine(sourceItem, imports, razorSourceGeneratorOptions);
 
-                        var projectEngine = GetGenerationProjectEngine(sourceItem, imports, razorSourceGeneratorOptions);
+                    var document = projectEngine.ProcessInitialParse(sourceItem, designTime: false);
 
-                        var document = projectEngine.ProcessInitialParse(sourceItem, designTime);
+                    RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStop(sourceItem.RelativePhysicalPath);
+                    return (projectEngine, sourceItem.RelativePhysicalPath, document);
+                })
 
-                        RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStop(sourceItem.RelativePhysicalPath);
-                        return (projectEngine, sourceItem.RelativePhysicalPath, document);
-                    })
+                // Add the tag helpers in, but ignore if they've changed or not, only reprocessing if the actual document changed
+                .Combine(allTagHelpers)
+                .WithLambdaComparer((old, @new) => old.Item3.Equals(@new.Item3))
+                .Select(static (pair, _) =>
+                {
+                    var (projectEngine, filePath, codeDocument, allTagHelpers) = pair;
+                    RazorSourceGeneratorEventSource.Log.RewriteTagHelpersStart(filePath);
 
-                    // Add the tag helpers in, but ignore if they've changed or not, only reprocessing the actual document changed
-                    .Combine(allTagHelpers)
-                    .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left))
-                    .Select(static (pair, _) =>
-                    {
-                        var ((projectEngine, filePath, codeDocument), allTagHelpers) = pair;
-                        RazorSourceGeneratorEventSource.Log.RewriteTagHelpersStart(filePath);
+                    codeDocument = projectEngine.ProcessTagHelpers(codeDocument, allTagHelpers, checkForIdempotency: false);
 
-                        codeDocument = projectEngine.ProcessTagHelpers(codeDocument, allTagHelpers, checkForIdempotency: false);
+                    RazorSourceGeneratorEventSource.Log.RewriteTagHelpersStop(filePath);
+                    return (projectEngine, filePath, codeDocument);
+                })
 
-                        RazorSourceGeneratorEventSource.Log.RewriteTagHelpersStop(filePath);
-                        return (projectEngine, filePath, codeDocument);
-                    })
+                // next we do a second parse, along with the helpers, but check for idempotency. If the tag helpers used on the previous parse match, the compiler can skip re-writing them
+                .Combine(allTagHelpers)
+                .Select(static (pair, _) =>
+                {
+                    var (projectEngine, filePath, document, allTagHelpers) = pair;
+                    RazorSourceGeneratorEventSource.Log.CheckAndRewriteTagHelpersStart(filePath);
 
-                    // next we do a second parse, along with the helpers, but check for idempotency. If the tag helpers used on the previous parse match, the compiler can skip re-writing them
-                    .Combine(allTagHelpers)
-                    .Select(static (pair, _) =>
-                    {
-                        var ((projectEngine, filePath, document), allTagHelpers) = pair;
-                        RazorSourceGeneratorEventSource.Log.CheckAndRewriteTagHelpersStart(filePath);
+                    document = projectEngine.ProcessTagHelpers(document, allTagHelpers, checkForIdempotency: true);
 
-                        document = projectEngine.ProcessTagHelpers(document, allTagHelpers, checkForIdempotency: true);
+                    RazorSourceGeneratorEventSource.Log.CheckAndRewriteTagHelpersStop(filePath);
+                    return (projectEngine, filePath, document);
+                })
+                .Select((pair, _) =>
+                {
+                    var (projectEngine, filePath, document) = pair;
 
-                        RazorSourceGeneratorEventSource.Log.CheckAndRewriteTagHelpersStop(filePath);
-                        return (projectEngine, filePath, document);
-                    })
-                    .Select((pair, _) =>
-                    {
-                        var (projectEngine, filePath, document) = pair;
+                    RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStart(filePath, "Runtime");
+                    document = projectEngine.ProcessRemaining(document);
 
-                        var kind = designTime ? "DesignTime" : "Runtime";
-                        RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStart(filePath, kind);
-                        document = projectEngine.ProcessRemaining(document);
+                    RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStop(filePath, "Runtime");
+                    return (filePath, document);
+                });
 
-                        RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStop(filePath, kind);
-                        return (filePath, document);
-                    });
-            }
-
-            var csharpDocuments = processed(designTime: false)
+            var csharpDocuments = processed
                 .Select(static (pair, _) =>
                 {
                     var (filePath, document) = pair;
@@ -318,7 +309,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             context.RegisterImplementationSourceOutput(csharpDocumentsWithSuppressionFlag, static (context, pair) =>
             {
-                var ((hintName, _, csharpDocument), isGeneratorSuppressed) = pair;
+                var (hintName, _, csharpDocument, isGeneratorSuppressed) = pair;
 
                 // When the generator is suppressed, we may still have a lot of cached data for perf, but we don't want to actually add any of the files to the output
                 if (!isGeneratorSuppressed)
@@ -344,7 +335,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             context.RegisterHostOutput(hostOutputs, (context, pair) =>
 #pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             {
-                var ((documents, tagHelpers), isGeneratorSuppressed) = pair;
+                var (documents, tagHelpers, isGeneratorSuppressed) = pair;
 
                 if (!isGeneratorSuppressed)
                 {
