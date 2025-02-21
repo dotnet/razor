@@ -56,6 +56,7 @@ Param
         }
 
         public static void CreateMyComponent_0_CaptureParameters<T>(global::Test.MyClass<T> __arg0, out global::Test.MyClass<T> __arg0_out)
+            where T : global::Test.IMyInterface
         {
             __arg0_out = __arg0;
         }
