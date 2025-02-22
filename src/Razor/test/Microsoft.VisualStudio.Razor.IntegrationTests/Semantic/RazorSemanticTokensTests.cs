@@ -54,7 +54,7 @@ public class RazorSemanticTokensTests(ITestOutputHelper testOutputHelper) : Abst
         await TestServices.Editor.VerifyGetClassificationsAsync(expectedClassifications, ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/5595")] // Broken in FUSE due to @inherits bug
+    [IdeFact]
     public async Task Components_AreColored()
     {
         // Arrange

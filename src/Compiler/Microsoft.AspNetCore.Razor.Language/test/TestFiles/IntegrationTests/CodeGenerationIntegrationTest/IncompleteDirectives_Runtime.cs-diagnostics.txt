@@ -1,0 +1,30 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml(25,67): error CS0115: 'TestFiles_IntegrationTests_CodeGenerationIntegrationTest_IncompleteDirectives.ExecuteAsync()': no suitable method found to override
+//         public async override global::System.Threading.Tasks.Task ExecuteAsync()
+Diagnostic(ErrorCode.ERR_OverrideNotExpected, "ExecuteAsync").WithArguments("AspNetCoreGeneratedDocument.TestFiles_IntegrationTests_CodeGenerationIntegrationTest_IncompleteDirectives.ExecuteAsync()").WithLocation(25, 67),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml(27,13): error CS0103: The name 'WriteLiteral' does not exist in the current context
+//             WriteLiteral("\r\n");
+Diagnostic(ErrorCode.ERR_NameNotInContext, "WriteLiteral").WithArguments("WriteLiteral").WithLocation(27, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml(28,13): error CS0103: The name 'WriteLiteral' does not exist in the current context
+//             WriteLiteral("\r\n");
+Diagnostic(ErrorCode.ERR_NameNotInContext, "WriteLiteral").WithArguments("WriteLiteral").WithLocation(28, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml(29,13): error CS0103: The name 'WriteLiteral' does not exist in the current context
+//             WriteLiteral("\r\n");
+Diagnostic(ErrorCode.ERR_NameNotInContext, "WriteLiteral").WithArguments("WriteLiteral").WithLocation(29, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml(30,13): error CS0103: The name 'WriteLiteral' does not exist in the current context
+//             WriteLiteral("\r\n");
+Diagnostic(ErrorCode.ERR_NameNotInContext, "WriteLiteral").WithArguments("WriteLiteral").WithLocation(30, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml(31,13): error CS0103: The name 'WriteLiteral' does not exist in the current context
+//             WriteLiteral("\r\n");
+Diagnostic(ErrorCode.ERR_NameNotInContext, "WriteLiteral").WithArguments("WriteLiteral").WithLocation(31, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml(32,13): error CS0103: The name 'WriteLiteral' does not exist in the current context
+//             WriteLiteral("\r\n\r\n");
+Diagnostic(ErrorCode.ERR_NameNotInContext, "WriteLiteral").WithArguments("WriteLiteral").WithLocation(32, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml(33,13): error CS0103: The name 'WriteLiteral' does not exist in the current context
+//             WriteLiteral("\r\n");
+Diagnostic(ErrorCode.ERR_NameNotInContext, "WriteLiteral").WithArguments("WriteLiteral").WithLocation(33, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml(34,13): error CS0103: The name 'WriteLiteral' does not exist in the current context
+//             WriteLiteral("\r\n\r\n");
+Diagnostic(ErrorCode.ERR_NameNotInContext, "WriteLiteral").WithArguments("WriteLiteral").WithLocation(34, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml(35,13): error CS0103: The name 'WriteLiteral' does not exist in the current context
+//             WriteLiteral("{\r\n");
+Diagnostic(ErrorCode.ERR_NameNotInContext, "WriteLiteral").WithArguments("WriteLiteral").WithLocation(35, 13)
