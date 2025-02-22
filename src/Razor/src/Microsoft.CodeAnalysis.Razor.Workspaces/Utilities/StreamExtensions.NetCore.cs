@@ -77,7 +77,7 @@ internal static class StreamExtensions
     {
         var bytes = projectInfo.Serialize();
         WriteSize(stream, bytes.Length);
-        await stream.WriteAsync(bytes, 0, bytes.Length, cancellationToken).ConfigureAwait(false);
+        await stream.WriteAsync(bytes, cancellationToken).ConfigureAwait(false);
     }
 
     public static async Task<RazorProjectInfo?> ReadProjectInfoAsync(this Stream stream, CancellationToken cancellationToken)
@@ -103,7 +103,7 @@ internal static class StreamExtensions
     public unsafe static int ReadSize(this Stream stream)
     {
         Span<byte> bytes = stackalloc byte[4];
-        stream.Read(bytes);
+        stream.ReadExactly(bytes);
         return BitConverter.ToInt32(bytes);
     }
 }

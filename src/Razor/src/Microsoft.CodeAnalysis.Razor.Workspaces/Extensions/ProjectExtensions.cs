@@ -83,8 +83,6 @@ internal static class ProjectExtensions
             ?? ThrowHelper.ThrowInvalidOperationException<Document>($"The document {documentId} did not exist in {project.Name}");
     }
 
-
-
     public static bool TryGetCSharpDocument(this Project project, Uri csharpDocumentUri, [NotNullWhen(true)] out Document? document)
     {
         document = null;
