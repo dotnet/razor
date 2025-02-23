@@ -7,7 +7,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.ProjectSystem;
@@ -67,7 +69,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             expectedItemLabels: ["char", "DateTime", "Exception"]);
     }
 
-    [FuseFact]
+    [FuseFact(Skip = "Can't modify a generated document to apply '.' character")]
     public async Task CSharpClassMembersAtProvisionalCompletion()
     {
         await VerifyCompletionListAsync(
@@ -87,7 +89,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"]);
     }
 
-    [FuseFact]
+    [FuseFact(Skip = "Can't modify a generated document to apply '.' character")]
     public async Task CSharpClassesInCodeBlock()
     {
         await VerifyCompletionListAsync(
@@ -472,8 +474,8 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             completionContext: new RoslynVSInternalCompletionContext()
             {
                 InvokeKind = RoslynVSInternalCompletionInvokeKind.Typing,
-                TriggerCharacter = "f",
-                TriggerKind = RoslynCompletionTriggerKind.TriggerCharacter
+                TriggerCharacter = null,
+                TriggerKind = RoslynCompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["style", "dir", "culture", "event", "format", "get", "set", "after"],
             delegatedItemLabels: ["style", "dir"]);
@@ -554,7 +556,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
     {
         UpdateClientInitializationOptions(c => c with { ForceRuntimeCodeGeneration = context.ForceRuntimeCodeGeneration });
 
-        var document = await CreateProjectAndRazorDocumentAsync(input.Text);
+        var document = CreateProjectAndRazorDocument(input.Text);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         var clientSettingsManager = new ClientSettingsManager([], null, null);
@@ -590,6 +592,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             clientSettingsManager,
             TestHtmlDocumentSynchronizer.Instance,
             snippetCompletionItemProvider,
+            new CompletionTriggerAndCommitCharacters(TestLanguageServerFeatureOptions.Instance),
             requestInvoker,
             LoggerFactory);
 
