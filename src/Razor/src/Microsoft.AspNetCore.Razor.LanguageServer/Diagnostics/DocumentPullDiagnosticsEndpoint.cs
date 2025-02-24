@@ -75,7 +75,15 @@ internal class DocumentPullDiagnosticsEndpoint(
         if (request.QueryingDiagnosticKind?.Value == VSInternalDiagnosticKind.Task.Value)
         {
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-            return TaskListDiagnosticProvider.GetTaskListDiagnostics(codeDocument, _razorLSPOptionsMonitor.CurrentValue.TaskListDescriptors);
+            var diagnostics = TaskListDiagnosticProvider.GetTaskListDiagnostics(codeDocument, _razorLSPOptionsMonitor.CurrentValue.TaskListDescriptors);
+            return
+            [
+                new()
+                {
+                    Diagnostics = [.. diagnostics],
+                    ResultId = Guid.NewGuid().ToString()
+                }
+            ];
         }
 
         var correlationId = Guid.NewGuid();
