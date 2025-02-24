@@ -52,6 +52,26 @@ public class CSharpDiagnosticsEndToEndTest(ITestOutputHelper testOutput) : Singl
         await ValidateDiagnosticsAsync(input, "File.razor");
     }
 
+    [Fact]
+    public async Task TODOComment()
+    {
+        var input = """
+
+            <div></div>
+
+            @functions
+            {
+                public void M()
+                {
+                    // {|TODO:|}TODO: This should be done
+                }
+            }
+
+            """;
+
+        await ValidateDiagnosticsAsync(input);
+    }
+
     private async Task ValidateDiagnosticsAsync(string input, string? filePath = null)
     {
         TestFileMarkupParser.GetSpans(input, out input, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
