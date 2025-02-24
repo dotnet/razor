@@ -1,0 +1,30 @@
+﻿RazorDocument - [0..25)::25 - [<div class="test"'></div>]
+    MarkupBlock - [0..25)::25
+        MarkupElement - [0..25)::25
+            MarkupStartTag - [0..25)::25 - [<div class="test"'></div>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[div];
+                MarkupAttributeBlock - [4..17)::13 - [ class="test"]
+                    MarkupTextLiteral - [4..5)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [5..10)::5 - [class] - Gen<Markup>
+                        Text;[class];
+                    Equals;[=];
+                    MarkupTextLiteral - [11..12)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [12..16)::4
+                        MarkupLiteralAttributeValue - [12..16)::4 - [test]
+                            MarkupTextLiteral - [12..16)::4 - [test] - Gen<Markup>
+                                Text;[test];
+                    MarkupTextLiteral - [16..17)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [17..25)::8
+                    MarkupTextLiteral - [17..25)::8 - ['></div>] - Gen<Markup>
+                        SingleQuote;['];
+                        CloseAngle;[>];
+                        OpenAngle;[<];
+                        ForwardSlash;[/];
+                        Text;[div];
+                        CloseAngle;[>];
+                CloseAngle;[<Missing>];
+    EndOfFile;[];

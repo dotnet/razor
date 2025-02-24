@@ -1065,4 +1065,30 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         Assert.Empty(result.Diagnostics);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/11327")]
+    public async Task QuoteInAttributeName()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Views/Home/Index.cshtml"] = """
+                @(await Html.RenderComponentAsync<MyApp.Shared.Component1>(RenderMode.Static))
+                """,
+            ["Shared/Component1.razor"] = """
+                <div class="test""></div>
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out compilation);
+
+        // Assert
+        result.Diagnostics.Verify(
+            // Shared/Component1.razor(1,1): error RZ9980: Unclosed tag 'div' with no matching end tag.
+            Diagnostic("RZ9980").WithLocation(1, 1));
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
+    }
 }
