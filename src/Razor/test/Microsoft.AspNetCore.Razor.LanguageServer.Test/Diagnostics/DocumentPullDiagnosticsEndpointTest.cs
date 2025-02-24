@@ -23,10 +23,12 @@ public sealed class DocumentPullDiagnosticsEndpointTest(ITestOutputHelper testOu
         var razorTranslate = new Mock<RazorTranslateDiagnosticsService>(MockBehavior.Strict,
             documentMappingService,
             LoggerFactory);
+        var optionsMonitor = TestRazorLSPOptionsMonitor.Create();
         var clientConnection = new Mock<IClientConnection>(MockBehavior.Strict);
         var endpoint = new DocumentPullDiagnosticsEndpoint(
             TestLanguageServerFeatureOptions.Instance,
             razorTranslate.Object,
+            optionsMonitor,
             clientConnection.Object,
             telemetryReporter: null);
 

@@ -153,7 +153,8 @@ public abstract class LanguageServerTestBase : ToolingTestBase
             autoInsertAttributeQuotes,
             colorBackground,
             codeBlockBraceOnNextLine,
-            commitElementsWithSpace);
+            commitElementsWithSpace,
+            TaskListDescriptors: []);
         var optionsMonitor = new RazorLSPOptionsMonitor(configService, options);
         return optionsMonitor;
     }

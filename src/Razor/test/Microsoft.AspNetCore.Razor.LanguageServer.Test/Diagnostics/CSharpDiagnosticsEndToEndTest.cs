@@ -42,7 +42,7 @@ public class CSharpDiagnosticsEndToEndTest(ITestOutputHelper testOutput) : Singl
 
     [Fact]
     public async Task Handle_Razor()
-    {     
+    {
         var input = """
 
             {|RZ10012:<NonExistentComponent />|}
@@ -65,7 +65,8 @@ public class CSharpDiagnosticsEndToEndTest(ITestOutputHelper testOutput) : Singl
         var requestContext = new RazorRequestContext(documentContext, null!, "lsp/method", uri: null);
 
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(DocumentMappingService, LoggerFactory);
-        var diagnosticsEndPoint = new DocumentPullDiagnosticsEndpoint(LanguageServerFeatureOptions, translateDiagnosticsService, languageServer, telemetryReporter: null);
+        var optionsMonitor = TestRazorLSPOptionsMonitor.Create();
+        var diagnosticsEndPoint = new DocumentPullDiagnosticsEndpoint(LanguageServerFeatureOptions, translateDiagnosticsService, optionsMonitor, languageServer, telemetryReporter: null);
 
         var diagnosticsRequest = new VSInternalDocumentDiagnosticsParams
         {
