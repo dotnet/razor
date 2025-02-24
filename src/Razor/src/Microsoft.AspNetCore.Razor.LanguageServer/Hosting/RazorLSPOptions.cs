@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Razor.Settings;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
@@ -16,7 +17,8 @@ internal record RazorLSPOptions(
     bool AutoInsertAttributeQuotes,
     bool ColorBackground,
     bool CodeBlockBraceOnNextLine,
-    bool CommitElementsWithSpace)
+    bool CommitElementsWithSpace,
+    ImmutableArray<string> TaskListDescriptors)
 {
     public readonly static RazorLSPOptions Default = new(Formatting: FormattingFlags.All,
                                                          AutoClosingTags: true,
@@ -27,7 +29,8 @@ internal record RazorLSPOptions(
                                                          AutoInsertAttributeQuotes: true,
                                                          ColorBackground: false,
                                                          CodeBlockBraceOnNextLine: false,
-                                                         CommitElementsWithSpace: true);
+                                                         CommitElementsWithSpace: true,
+                                                         TaskListDescriptors: []);
 
     /// <summary>
     /// Initializes the LSP options with the settings from the passed in client settings, and default values for anything
@@ -43,7 +46,8 @@ internal record RazorLSPOptions(
               settings.AdvancedSettings.AutoInsertAttributeQuotes,
               settings.AdvancedSettings.ColorBackground,
               settings.AdvancedSettings.CodeBlockBraceOnNextLine,
-              settings.AdvancedSettings.CommitElementsWithSpace);
+              settings.AdvancedSettings.CommitElementsWithSpace,
+              settings.AdvancedSettings.TaskListDescriptors);
 
     private static FormattingFlags GetFormattingFlags(ClientSettings settings)
     {
