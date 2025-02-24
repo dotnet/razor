@@ -1086,9 +1086,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var result = RunGenerator(compilation!, ref driver, out compilation);
 
         // Assert
-        result.Diagnostics.Verify(
-            // Shared/Component1.razor(1,1): error RZ9980: Unclosed tag 'div' with no matching end tag.
-            Diagnostic("RZ9980").WithLocation(1, 1));
+        result.Diagnostics.Verify();
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 }

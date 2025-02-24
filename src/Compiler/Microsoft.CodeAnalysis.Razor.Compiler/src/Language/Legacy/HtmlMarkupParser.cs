@@ -2250,8 +2250,6 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             tokenType != SyntaxKind.CloseAngle &&
             tokenType != SyntaxKind.OpenAngle &&
             tokenType != SyntaxKind.ForwardSlash &&
-            tokenType != SyntaxKind.DoubleQuote &&
-            tokenType != SyntaxKind.SingleQuote &&
             tokenType != SyntaxKind.Equals &&
             tokenType != SyntaxKind.Marker;
     }
