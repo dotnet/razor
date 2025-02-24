@@ -100,6 +100,15 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             isEnabledByDefault: true
         );
 
+        public static readonly DiagnosticDescriptor DuplicateRazorFileIncludedDescriptor = new DiagnosticDescriptor(
+            DiagnosticIds.DuplicateRazorFileFound,
+            new LocalizableResourceString(nameof(RazorSourceGeneratorResources.DuplicateRazorFileIncludedTitle), RazorSourceGeneratorResources.ResourceManager, typeof(RazorSourceGeneratorResources)),
+            new LocalizableResourceString(nameof(RazorSourceGeneratorResources.DuplicateRazorFileIncludedMessage), RazorSourceGeneratorResources.ResourceManager, typeof(RazorSourceGeneratorResources)),
+            "RazorSourceGenerator",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true
+        );
+
         public static Diagnostic AsDiagnostic(this RazorDiagnostic razorDiagnostic)
         {
             var descriptor = new DiagnosticDescriptor(
