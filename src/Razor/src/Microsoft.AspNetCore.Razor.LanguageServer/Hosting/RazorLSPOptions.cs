@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.Razor.Settings;
+using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 
@@ -31,6 +33,13 @@ internal record RazorLSPOptions(
                                                          CodeBlockBraceOnNextLine: false,
                                                          CommitElementsWithSpace: true,
                                                          TaskListDescriptors: []);
+
+    public ImmutableArray<string> TaskListDescriptors
+    {
+        get;
+        init => field = value.NullToEmpty();
+
+    } = TaskListDescriptors.NullToEmpty();
 
     /// <summary>
     /// Initializes the LSP options with the settings from the passed in client settings, and default values for anything
@@ -63,5 +72,38 @@ internal record RazorLSPOptions(
         }
 
         return flags;
+    }
+
+    public virtual bool Equals(RazorLSPOptions? other)
+    {
+        return other is not null &&
+            Formatting == other.Formatting &&
+            AutoClosingTags == other.AutoClosingTags &&
+            InsertSpaces == other.InsertSpaces &&
+            TabSize == other.TabSize &&
+            AutoShowCompletion == other.AutoShowCompletion &&
+            AutoListParams == other.AutoListParams &&
+            AutoInsertAttributeQuotes == other.AutoInsertAttributeQuotes &&
+            ColorBackground == other.ColorBackground &&
+            CodeBlockBraceOnNextLine == other.CodeBlockBraceOnNextLine &&
+            CommitElementsWithSpace == other.CommitElementsWithSpace &&
+            TaskListDescriptors.SequenceEqual(other.TaskListDescriptors);
+    }
+
+    public override int GetHashCode()
+    {
+        var hash = HashCodeCombiner.Start();
+        hash.Add(Formatting);
+        hash.Add(AutoClosingTags);
+        hash.Add(InsertSpaces);
+        hash.Add(TabSize);
+        hash.Add(AutoShowCompletion);
+        hash.Add(AutoListParams);
+        hash.Add(AutoInsertAttributeQuotes);
+        hash.Add(ColorBackground);
+        hash.Add(CodeBlockBraceOnNextLine);
+        hash.Add(CommitElementsWithSpace);
+        hash.Add(TaskListDescriptors);
+        return hash;
     }
 }
