@@ -15,7 +15,7 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
     public string GetRazorCSharpFilePath(ProjectKey projectKey, string razorFilePath)
         => GetGeneratedFilePath(projectKey, razorFilePath, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
 
-    public Uri GetRazorDocumentUri(Uri virtualDocumentUri)
+    public virtual Uri GetRazorDocumentUri(Uri virtualDocumentUri)
     {
         var uriPath = virtualDocumentUri.AbsoluteUri;
         var razorFilePath = GetRazorFilePath(uriPath);
@@ -23,7 +23,7 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
         return uri;
     }
 
-    public bool IsVirtualCSharpFile(Uri uri)
+    public virtual bool IsVirtualCSharpFile(Uri uri)
         => CheckIfFileUriAndExtensionMatch(uri, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
 
     public bool IsVirtualHtmlFile(Uri uri)
@@ -37,10 +37,12 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
 
     private string GetRazorFilePath(string filePath)
     {
-        var trimIndex = filePath.LastIndexOf(_languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
-        if (trimIndex == -1)
+        var trimIndex = filePath.LastIndexOf(_languageServerFeatureOptions.HtmlVirtualDocumentSuffix);
+        // We don't check for C# in cohosting, as it will throw, and people might call this method on any
+        // random path.
+        if (trimIndex == -1 && !_languageServerFeatureOptions.UseRazorCohostServer)
         {
-            trimIndex = filePath.LastIndexOf(_languageServerFeatureOptions.HtmlVirtualDocumentSuffix);
+            trimIndex = filePath.LastIndexOf(_languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
         }
         else if (_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
         {
