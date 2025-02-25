@@ -24,7 +24,6 @@ using LspDiagnosticSeverity = Roslyn.LanguageServer.Protocol.DiagnosticSeverity;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
-
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 internal class TypeAccessibilityCodeActionProvider : ICSharpCodeActionProvider

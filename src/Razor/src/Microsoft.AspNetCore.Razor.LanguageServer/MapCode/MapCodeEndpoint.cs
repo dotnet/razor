@@ -25,7 +25,7 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Telemetry;
 using Microsoft.CodeAnalysis.Text;
-using Location = RLSP::Roslyn.LanguageServer.Protocol.Location;
+using LspLocation = RLSP::Roslyn.LanguageServer.Protocol.Location;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.MapCode;
@@ -130,7 +130,7 @@ internal sealed class MapCodeEndpoint(
 
     private async Task<bool> TryMapCodeAsync(
         RazorCodeDocument codeToMap,
-        Location[][] locations,
+        LspLocation[][] locations,
         List<TextDocumentEdit> changes,
         Guid mapCodeCorrelationId,
         DocumentContext documentContext,
@@ -160,7 +160,7 @@ internal sealed class MapCodeEndpoint(
     }
 
     private async Task<bool> TryMapCodeAsync(
-        Location[][] focusLocations,
+        LspLocation[][] focusLocations,
         ImmutableArray<SyntaxNode> nodesToMap,
         Guid mapCodeCorrelationId,
         List<TextDocumentEdit> changes,
@@ -168,7 +168,7 @@ internal sealed class MapCodeEndpoint(
         CancellationToken cancellationToken)
     {
         var didCalculateCSharpFocusLocations = false;
-        var csharpFocusLocations = new Location[focusLocations.Length][];
+        var csharpFocusLocations = new LspLocation[focusLocations.Length][];
 
         // We attempt to map the code using each focus location in order of priority.
         // The outer array is an ordered priority list (from highest to lowest priority),
@@ -306,7 +306,7 @@ internal sealed class MapCodeEndpoint(
     private async Task<bool> TrySendCSharpDelegatedMappingRequestAsync(
         TextDocumentIdentifierAndVersion textDocumentIdentifier,
         SyntaxNode nodeToMap,
-        Location[][] focusLocations,
+        LspLocation[][] focusLocations,
         Guid mapCodeCorrelationId,
         List<TextDocumentEdit> changes,
         CancellationToken cancellationToken)
@@ -342,11 +342,11 @@ internal sealed class MapCodeEndpoint(
         return success;
     }
 
-    private async Task<Location[][]> GetCSharpFocusLocationsAsync(Location[][] focusLocations, CancellationToken cancellationToken)
+    private async Task<LspLocation[][]> GetCSharpFocusLocationsAsync(LspLocation[][] focusLocations, CancellationToken cancellationToken)
     {
         // If the focus locations are in a C# context, map them to the C# document.
-        var csharpFocusLocations = new Location[focusLocations.Length][];
-        using var csharpLocations = new PooledArrayBuilder<Location>();
+        var csharpFocusLocations = new LspLocation[focusLocations.Length][];
+        using var csharpLocations = new PooledArrayBuilder<LspLocation>();
         for (var i = 0; i < focusLocations.Length; i++)
         {
             csharpLocations.Clear();
@@ -371,7 +371,7 @@ internal sealed class MapCodeEndpoint(
 
                 if (_documentMappingService.TryMapToGeneratedDocumentRange(csharpDocument, hostDocumentRange, out var generatedDocumentRange))
                 {
-                    var csharpLocation = new Location
+                    var csharpLocation = new LspLocation
                     {
                         // We convert the URI to the C# generated document URI later on in
                         // LanguageServer.Client since we're unable to retrieve it here.
@@ -432,7 +432,7 @@ internal sealed class MapCodeEndpoint(
             List<TextDocumentEdit> csharpChanges,
             CancellationToken cancellationToken)
         {
-            foreach (TextEdit documentEdit in textEdits)
+            foreach (var documentEdit in textEdits.Select(e => (TextEdit)e))
             {
                 var (hostDocumentUri, hostDocumentRange) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(
                     generatedUri, documentEdit.Range, cancellationToken).ConfigureAwait(false);

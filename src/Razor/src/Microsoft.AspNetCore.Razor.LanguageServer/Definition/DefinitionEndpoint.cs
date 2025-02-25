@@ -69,16 +69,9 @@ internal sealed class DefinitionEndpoint(
         }
 
         // If single server support is on, then we ignore attributes, as they are better handled by delegating to Roslyn
-        var location = await _componentDefinitionService
+        return await _componentDefinitionService
             .GetDefinitionAsync(documentContext.Snapshot, positionInfo, _projectManager.GetQueryOperations(), ignoreAttributes: SingleServerSupport, cancellationToken)
             .ConfigureAwait(false);
-
-        if (location is null)
-        {
-            return null;
-        }
-
-        return location;
     }
 
     protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(
