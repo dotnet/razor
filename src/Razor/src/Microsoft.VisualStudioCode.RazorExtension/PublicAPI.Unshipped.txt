@@ -1,0 +1,6 @@
+#nullable enable
+Microsoft.VisualStudioCode.RazorExtension.RazorWorkspaceListener
+Microsoft.VisualStudioCode.RazorExtension.RazorWorkspaceListener.EnsureInitialized(Microsoft.CodeAnalysis.Workspace! workspace, string! pipeName) -> void
+Microsoft.VisualStudioCode.RazorExtension.RazorWorkspaceListener.RazorWorkspaceListener(Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory) -> void
+Microsoft.VisualStudioCode.RazorExtension.RazorWorkspaceListenerBase
+Microsoft.VisualStudioCode.RazorExtension.RazorWorkspaceListenerBase.NotifyDynamicFile(Microsoft.CodeAnalysis.ProjectId! projectId) -> void

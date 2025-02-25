@@ -31,20 +31,11 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 
-public abstract class LanguageServerTestBase : ToolingTestBase
+public abstract class LanguageServerTestBase(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    private protected IRazorSpanMappingService SpanMappingService { get; }
-    private protected IFilePathService FilePathService { get; }
-    private protected JsonSerializerOptions SerializerOptions { get; }
-
-    protected LanguageServerTestBase(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-        SpanMappingService = new ThrowingRazorSpanMappingService();
-
-        SerializerOptions = JsonHelpers.VsLspJsonSerializerOptions;
-        FilePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
-    }
+    private protected IRazorMappingService SpanMappingService { get; } = new ThrowingRazorMappingService();
+    private protected IFilePathService FilePathService { get; } = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
+    private protected JsonSerializerOptions SerializerOptions { get; } = JsonHelpers.VsLspJsonSerializerOptions;
 
     private protected override TestProjectSnapshotManager CreateProjectSnapshotManager(
         IProjectEngineFactoryProvider projectEngineFactoryProvider, LanguageServerFeatureOptions languageServerFeatureOptions)
@@ -180,9 +171,14 @@ public abstract class LanguageServerTestBase : ToolingTestBase
         return flags;
     }
 
-    private class ThrowingRazorSpanMappingService : IRazorSpanMappingService
+    private class ThrowingRazorMappingService : IRazorMappingService
     {
         public Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ImmutableArray<RazorMappedEditResult>> MapTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

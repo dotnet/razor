@@ -3,19 +3,24 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace;
+namespace Microsoft.VisualStudioCode.RazorExtension;
 
-public abstract class RazorWorkspaceListenerBase : IDisposable
+public abstract partial class RazorWorkspaceListenerBase : IDisposable
 {
     private static readonly TimeSpan s_debounceTime = TimeSpan.FromMilliseconds(500);
     private readonly CancellationTokenSource _disposeTokenSource = new();
 
     private readonly ILogger _logger;
     private readonly AsyncBatchingWorkQueue<Work> _workQueue;
+    private readonly CompilationTagHelperResolver _tagHelperResolver = new(NoOpTelemetryReporter.Instance);
+
+    // Only modified in the batching work queue so no need to lock for mutation
+    private readonly Dictionary<ProjectId, Checksum?> _projectChecksums = new();
 
     // Use an immutable dictionary for ImmutableInterlocked operations. The value isn't checked, just
     // the existance of the key so work is only done for projects with dynamic files.
@@ -23,11 +28,6 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
 
     private Stream? _stream;
     private Workspace? _workspace;
-    private bool _disposed;
-
-    internal record Work(ProjectId ProjectId);
-    internal record UpdateWork(ProjectId ProjectId) : Work(ProjectId);
-    internal record RemovalWork(ProjectId ProjectId, string IntermediateOutputPath) : Work(ProjectId);
 
     private protected RazorWorkspaceListenerBase(ILogger logger)
     {
@@ -42,22 +42,21 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
         if (_workspace is not null)
         {
             _workspace.WorkspaceChanged -= Workspace_WorkspaceChanged;
+            _workspace = null;
         }
 
-        if (_disposed)
+        if (_disposeTokenSource.IsCancellationRequested)
         {
             _logger.LogInformation("Disposal was called twice");
             return;
         }
 
-        _disposed = true;
         _logger.LogInformation("Tearing down named pipe for pid {pid}", Process.GetCurrentProcess().Id);
 
         _disposeTokenSource.Cancel();
         _disposeTokenSource.Dispose();
 
         _stream?.Dispose();
-        _stream = null;
     }
 
     public void NotifyDynamicFile(ProjectId projectId)
@@ -93,7 +92,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
         }
 
         // Early check for disposal just to reduce any work further
-        if (_disposed)
+        if (_disposeTokenSource.IsCancellationRequested)
         {
             return;
         }
@@ -173,7 +172,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
         //
         void EnqueueUpdate(Project? project)
         {
-            if (_disposed ||
+            if (_disposeTokenSource.IsCancellationRequested ||
                 project is not
                 {
                     Language: LanguageNames.CSharp
@@ -235,34 +234,37 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
         }
 
         await CheckConnectionAsync(stream, cancellationToken).ConfigureAwait(false);
-        await ProcessWorkCoreAsync(work, stream, solution, _logger, cancellationToken).ConfigureAwait(false);
+        await ProcessWorkCoreAsync(work, stream, solution, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task ProcessWorkCoreAsync(ImmutableArray<Work> work, Stream stream, Solution solution, ILogger logger, CancellationToken cancellationToken)
+    private async Task ProcessWorkCoreAsync(ImmutableArray<Work> work, Stream stream, Solution solution, CancellationToken cancellationToken)
     {
         foreach (var unit in work)
         {
             try
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
 
                 if (unit is RemovalWork removalWork)
                 {
-                    await ReportRemovalAsync(stream, removalWork, logger, cancellationToken).ConfigureAwait(false);
+                    await ReportRemovalAsync(stream, removalWork, _logger, cancellationToken).ConfigureAwait(false);
                 }
 
                 var project = solution.GetProject(unit.ProjectId);
                 if (project is null)
                 {
-                    logger.LogTrace("Project {projectId} is not in workspace", unit.ProjectId);
+                    _logger.LogTrace("Project {projectId} is not in workspace", unit.ProjectId);
                     continue;
                 }
 
-                await ReportUpdateProjectAsync(stream, project, logger, cancellationToken).ConfigureAwait(false);
+                await ReportUpdateProjectAsync(stream, project, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                logger.LogError(ex, "Encountered exception while processing unit: {message}", ex.Message);
+                _logger.LogError(ex, "Encountered exception while processing unit: {message}", ex.Message);
             }
         }
 
@@ -272,12 +274,39 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Encountered error flusingh stream");
+            _logger.LogError(ex, "Encountered error flushing stream");
         }
     }
 
-    private static async Task ReportUpdateProjectAsync(Stream stream, Project project, ILogger logger, CancellationToken cancellationToken)
+    private async Task ReportUpdateProjectAsync(Stream stream, Project project, CancellationToken cancellationToken)
     {
+<<<<<<< HEAD
+        _logger.LogTrace("Serializing information for {projectId}", project.Id);
+        var projectPath = Path.GetDirectoryName(project.FilePath);
+        if (projectPath is null)
+        {
+            _logger.LogInformation("projectPath is null, skip update for {projectId}", project.Id);
+            return;
+        }
+
+        var checksum = _projectChecksums.GetOrAdd(project.Id, static _ => null);
+        var projectEngine = RazorProjectInfoHelpers.GetProjectEngine(project, projectPath);
+        var tagHelpers = await _tagHelperResolver.GetTagHelpersAsync(project, projectEngine, cancellationToken).ConfigureAwait(false);
+        var projectInfo = RazorProjectInfoHelpers.TryConvert(project, projectPath, tagHelpers);
+        if (projectInfo is not null)
+        {
+            if (checksum == projectInfo.Checksum)
+            {
+                _logger.LogInformation("Checksum for {projectId} did not change. Skipped sending update", project.Id);
+                return;
+            }
+
+            _projectChecksums[project.Id] = projectInfo.Checksum;
+
+            stream.WriteProjectInfoAction(ProjectInfoAction.Update);
+            await stream.WriteProjectInfoAsync(projectInfo, cancellationToken).ConfigureAwait(false);
+        }
+=======
         logger.LogTrace("Serializing information for {projectId}", project.Id);
         var result = await RazorProjectInfoFactory.ConvertAsync(project, cancellationToken).ConfigureAwait(false);
         if (!result.Succeeded)
@@ -288,6 +317,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
 
         stream.WriteProjectInfoAction(ProjectInfoAction.Update);
         await stream.WriteProjectInfoAsync(result.ProjectInfo, cancellationToken).ConfigureAwait(false);
+>>>>>>> main
     }
 
     private static Task ReportRemovalAsync(Stream stream, RemovalWork unit, ILogger logger, CancellationToken cancellationToken)
