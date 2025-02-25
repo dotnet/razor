@@ -3,7 +3,6 @@
 
 extern alias RLSP;
 
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;

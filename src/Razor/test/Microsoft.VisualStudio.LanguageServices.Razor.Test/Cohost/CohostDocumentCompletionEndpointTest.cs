@@ -467,9 +467,9 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
                 """,
             completionContext: new VSInternalCompletionContext()
             {
-                InvokeKind = RoslynVSInternalCompletionInvokeKind.Typing,
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = null,
-                TriggerKind = RoslynCompletionTriggerKind.Invoked
+                TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["style", "dir", "culture", "event", "format", "get", "set", "after"],
             delegatedItemLabels: ["style", "dir"]);
