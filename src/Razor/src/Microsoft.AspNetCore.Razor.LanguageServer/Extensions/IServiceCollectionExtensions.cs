@@ -83,6 +83,7 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<CompletionListProvider>();
         services.AddSingleton<DelegatedCompletionListProvider>();
         services.AddSingleton<RazorCompletionListProvider>();
+        services.AddSingleton<CompletionTriggerAndCommitCharacters>();
 
         services.AddSingleton<AggregateCompletionItemResolver>();
         services.AddSingleton<CompletionItemResolver, RazorCompletionItemResolver>();
@@ -158,6 +159,8 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IRazorCodeActionResolver, GenerateMethodCodeActionResolver>();
         services.AddSingleton<IRazorCodeActionProvider, PromoteUsingCodeActionProvider>();
         services.AddSingleton<IRazorCodeActionResolver, PromoteUsingCodeActionResolver>();
+        services.AddSingleton<IRazorCodeActionProvider, WrapAttributesCodeActionProvider>();
+        services.AddSingleton<IRazorCodeActionResolver, WrapAttributesCodeActionResolver>();
 
         // Html Code actions
         services.AddSingleton<IHtmlCodeActionProvider, HtmlCodeActionProvider>();

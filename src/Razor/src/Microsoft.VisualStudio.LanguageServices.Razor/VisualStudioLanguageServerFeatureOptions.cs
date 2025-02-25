@@ -17,7 +17,6 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
     private readonly Lazy<bool> _includeProjectKeyInGeneratedFilePath;
     private readonly Lazy<bool> _usePreciseSemanticTokenRanges;
     private readonly Lazy<bool> _useRazorCohostServer;
-    private readonly Lazy<bool> _disableRazorLanguageServer;
     private readonly Lazy<bool> _forceRuntimeCodeGeneration;
     private readonly Lazy<bool> _useNewFormattingEngine;
 
@@ -57,13 +56,6 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
             var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
             var useRazorCohostServer = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.UseRazorCohostServer, defaultValue: false);
             return useRazorCohostServer;
-        });
-
-        _disableRazorLanguageServer = new Lazy<bool>(() =>
-        {
-            var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var disableRazorLanguageServer = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.DisableRazorLanguageServer, defaultValue: false);
-            return disableRazorLanguageServer;
         });
 
         _forceRuntimeCodeGeneration = new Lazy<bool>(() =>
@@ -106,8 +98,6 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
 
     public override bool UseRazorCohostServer => _useRazorCohostServer.Value;
 
-    public override bool DisableRazorLanguageServer => _disableRazorLanguageServer.Value;
-
     /// <inheritdoc />
     public override bool ForceRuntimeCodeGeneration => _forceRuntimeCodeGeneration.Value;
 
@@ -115,4 +105,6 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
 
     // VS actually needs explicit commit characters so don't avoid them.
     public override bool SupportsSoftSelectionInCompletion => true;
+
+    public override bool UseVsCodeCompletionTriggerCharacters => false;
 }
