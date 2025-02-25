@@ -121,13 +121,8 @@ internal class CohostDocumentPullDiagnosticsEndpoint(
 
     private async Task<LspDiagnostic[]> GetCSharpDiagnosticsAsync(TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        if (!razorDocument.TryComputeHintNameFromRazorDocument(out var hintName))
-        {
-            return [];
-        }
-
-        var generatedDocuments = await razorDocument.Project.GetSourceGeneratedDocumentsAsync(cancellationToken);
-        if (generatedDocuments.FirstOrDefault(d => d.HintName == hintName) is not { } generatedDocument)
+        if (!razorDocument.TryComputeHintNameFromRazorDocument(out var hintName) ||
+            await razorDocument.Project.TryGetSourceGeneratedDocumentFromHintNameAsync(hintName, cancellationToken).ConfigureAwait(false) is not { } generatedDocument)
         {
             return [];
         }
