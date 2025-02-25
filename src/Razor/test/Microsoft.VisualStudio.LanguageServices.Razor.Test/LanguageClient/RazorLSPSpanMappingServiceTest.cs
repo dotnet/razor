@@ -26,12 +26,12 @@ public class RazorLSPSpanMappingServiceTest(ITestOutputHelper testOutput) : Tool
 {
     private readonly Uri _mockDocumentUri = new("C://project/path/document.razor");
 
-    const string s_mockGeneratedContent = """
+    private const string MockGeneratedContent = """
             Hello
              This is the source text in the generated C# file.
              This is some more sample text for demo purposes.
             """;
-    const string s_mockRazorContent = """
+    private const string MockRazorContent = """
             Hello
              This is the
              source text
@@ -39,8 +39,8 @@ public class RazorLSPSpanMappingServiceTest(ITestOutputHelper testOutput) : Tool
              This is some more sample text for demo purposes.
             """;
 
-    private static readonly SourceText _sourceTextGenerated = SourceText.From(s_mockGeneratedContent);
-    private static readonly SourceText _sourceTextRazor = SourceText.From(s_mockRazorContent);
+    private static readonly SourceText s_sourceTextGenerated = SourceText.From(MockGeneratedContent);
+    private static readonly SourceText s_sourceTextRazor = SourceText.From(MockRazorContent);
 
     [Fact]
     public async Task MapSpans_WithinRange_ReturnsMapping()
@@ -52,9 +52,9 @@ public class RazorLSPSpanMappingServiceTest(ITestOutputHelper testOutput) : Tool
         var documentSnapshot = new Mock<LSPDocumentSnapshot>(MockBehavior.Strict);
         documentSnapshot.SetupGet(doc => doc.Uri).Returns(_mockDocumentUri);
 
-        var textSnapshot = new StringTextSnapshot(s_mockGeneratedContent, 1);
+        var textSnapshot = new StringTextSnapshot(MockGeneratedContent, 1);
 
-        var textSpanAsRange = _sourceTextGenerated.GetRange(textSpan);
+        var textSpanAsRange = s_sourceTextGenerated.GetRange(textSpan);
         var mappedRange = LspFactory.CreateSingleLineRange(2, character: 1, length: 10);
 
         var mappingResult = new RazorMapToDocumentRangesResponse()
@@ -63,7 +63,6 @@ public class RazorLSPSpanMappingServiceTest(ITestOutputHelper testOutput) : Tool
         };
         var requestInvoker = new TestLSPRequestInvoker([(LanguageServerConstants.RazorMapToDocumentRangesEndpoint, mappingResult)]);
 
-        
         var lazyDocumentManager = new Lazy<LSPDocumentManager>(() =>
         {
             var documentManager = new TestDocumentManager();
@@ -75,13 +74,13 @@ public class RazorLSPSpanMappingServiceTest(ITestOutputHelper testOutput) : Tool
 
         var service = new RazorLSPSpanMappingService(documentMappingProvider, documentSnapshot.Object, textSnapshot);
 
-        var expectedSpan = _sourceTextRazor.GetTextSpan(mappedRange);
-        var expectedLinePosition = _sourceTextRazor.GetLinePositionSpan(expectedSpan);
+        var expectedSpan = s_sourceTextRazor.GetTextSpan(mappedRange);
+        var expectedLinePosition = s_sourceTextRazor.GetLinePositionSpan(expectedSpan);
         var expectedFilePath = _mockDocumentUri.LocalPath;
         var expectedResult = (expectedFilePath, expectedLinePosition, expectedSpan);
 
         // Act
-        var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor);
+        var result = await service.MapSpansAsyncTest(spans, s_sourceTextGenerated, s_sourceTextRazor);
 
         // Assert
         Assert.Single(result, expectedResult);
@@ -97,9 +96,9 @@ public class RazorLSPSpanMappingServiceTest(ITestOutputHelper testOutput) : Tool
         var documentSnapshot = new Mock<LSPDocumentSnapshot>(MockBehavior.Strict);
         documentSnapshot.SetupGet(doc => doc.Uri).Returns(_mockDocumentUri);
 
-        var textSnapshot = new StringTextSnapshot(s_mockGeneratedContent, 1);
+        var textSnapshot = new StringTextSnapshot(MockGeneratedContent, 1);
 
-        var textSpanAsRange = _sourceTextGenerated.GetRange(textSpan);
+        var textSpanAsRange = s_sourceTextGenerated.GetRange(textSpan);
 
         var requestInvoker = new StrictMock<LSPRequestInvoker>();
         var lazyDocumentManager = new Lazy<LSPDocumentManager>(() => new TestDocumentManager());
@@ -109,7 +108,7 @@ public class RazorLSPSpanMappingServiceTest(ITestOutputHelper testOutput) : Tool
         var service = new RazorLSPSpanMappingService(documentMappingProvider, documentSnapshot.Object, textSnapshot);
 
         // Act
-        var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor);
+        var result = await service.MapSpansAsyncTest(spans, s_sourceTextGenerated, s_sourceTextRazor);
 
         // Assert
         Assert.Empty(result);
@@ -120,7 +119,7 @@ public class RazorLSPSpanMappingServiceTest(ITestOutputHelper testOutput) : Tool
     {
         // Arrange
         var sourceTextRazor = SourceText.From("");
-        var response = new RazorMapToDocumentRangesResponse { Ranges = new LspRange[] { LspFactory.UndefinedRange } };
+        var response = new RazorMapToDocumentRangesResponse { Ranges = [LspFactory.UndefinedRange] };
 
         // Act
         var results = RazorLSPSpanMappingService.GetMappedSpanResults(_mockDocumentUri.LocalPath, sourceTextRazor, response);
