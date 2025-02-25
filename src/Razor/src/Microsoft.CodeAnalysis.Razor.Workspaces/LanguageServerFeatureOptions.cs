@@ -33,8 +33,6 @@ internal abstract class LanguageServerFeatureOptions
 
     public abstract bool UseRazorCohostServer { get; }
 
-    public abstract bool DisableRazorLanguageServer { get; }
-
     /// <summary>
     /// When enabled, design time code will not be generated. All tooling, except formatting, will be using runtime code generation.
     /// </summary>
@@ -47,4 +45,9 @@ internal abstract class LanguageServerFeatureOptions
     /// character with a soft-selected item will not commit that item.
     /// </summary>
     public abstract bool SupportsSoftSelectionInCompletion { get; }
+
+    /// <summary>
+    /// Indicates that VSCode-compatible completion trigger character set should be used
+    /// </summary>
+    public abstract bool UseVsCodeCompletionTriggerCharacters { get; }
 }

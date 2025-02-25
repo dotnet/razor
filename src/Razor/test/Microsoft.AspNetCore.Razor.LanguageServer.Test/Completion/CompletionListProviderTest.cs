@@ -80,7 +80,7 @@ public class CompletionListProviderTest : LanguageServerTestBase
         private readonly VSInternalCompletionList _completionList;
 
         public TestDelegatedCompletionListProvider(VSInternalCompletionList completionList, IEnumerable<string> triggerCharacters)
-            : base(null, null, null)
+            : base(null, null, null, null)
         {
             _completionList = completionList;
             TriggerCharacters = triggerCharacters.ToFrozenSet();

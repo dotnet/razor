@@ -125,7 +125,7 @@ internal class RazorCompletionListProvider(
         }
 
         var tagHelperCompletionItemKind = CompletionItemKind.TypeParameter;
-        var supportedItemKinds = clientCapabilities.TextDocument?.Completion?.CompletionItemKind?.ValueSet ?? Array.Empty<CompletionItemKind>();
+        var supportedItemKinds = clientCapabilities.TextDocument?.Completion?.CompletionItemKind?.ValueSet ?? [];
         if (supportedItemKinds?.Contains(CompletionItemKind.TagHelper) == true)
         {
             tagHelperCompletionItemKind = CompletionItemKind.TagHelper;
