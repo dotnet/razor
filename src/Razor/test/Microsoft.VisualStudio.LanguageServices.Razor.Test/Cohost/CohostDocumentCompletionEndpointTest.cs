@@ -69,7 +69,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             expectedItemLabels: ["char", "DateTime", "Exception"]);
     }
 
-    [FuseFact(Skip = "Can't modify a generated document to apply '.' character")]
+    [FuseFact]
     public async Task CSharpClassMembersAtProvisionalCompletion()
     {
         await VerifyCompletionListAsync(
@@ -89,7 +89,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"]);
     }
 
-    [FuseFact(Skip = "Can't modify a generated document to apply '.' character")]
+    [FuseFact]
     public async Task CSharpClassesInCodeBlock()
     {
         await VerifyCompletionListAsync(
