@@ -1,0 +1,43 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT license. See License.txt in the project root for license information.
+
+using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
+using Xunit.Abstractions;
+using WorkspacesSR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
+
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
+
+public class ExtractToCodeBehindTests(FuseTestContext context, ITestOutputHelper testOutputHelper) : CohostCodeActionsEndpointTestBase(context, testOutputHelper)
+{
+    [FuseFact(Skip = "Need to map uri back to source generated document")]
+    public async Task ExtractToCodeBehind()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                @co[||]de
+                {
+                    private int x = 1;
+                }
+                """,
+            expected: """
+                <div></div>
+
+
+                """,
+            codeActionName: WorkspacesSR.ExtractTo_CodeBehind_Title,
+            additionalExpectedFiles: [
+                (FileUri("File1.razor.cs"), $$"""
+                    namespace SomeProject
+                    {
+                        public partial class File1
+                        {
+                            private int x = 1;
+                        }
+                    }
+                    """)]);
+    }
+}
