@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using LspLocation = Roslyn.LanguageServer.Protocol.Location;
 
 namespace Microsoft.CodeAnalysis.Razor.GoToDefinition;
 

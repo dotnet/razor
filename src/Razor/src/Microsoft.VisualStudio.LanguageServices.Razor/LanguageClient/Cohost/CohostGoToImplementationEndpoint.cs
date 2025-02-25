@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using LspLocation = Roslyn.LanguageServer.Protocol.Location;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 

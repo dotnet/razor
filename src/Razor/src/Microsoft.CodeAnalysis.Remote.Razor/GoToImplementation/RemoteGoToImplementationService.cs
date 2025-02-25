@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<RLSP::Roslyn.LanguageServer.Protocol.Location[]?>;
 using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
-using LspLocation = RLSP::Roslyn.LanguageServer.Protocol.Location;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 

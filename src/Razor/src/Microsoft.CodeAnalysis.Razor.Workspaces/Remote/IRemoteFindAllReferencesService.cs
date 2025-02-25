@@ -4,7 +4,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using LspLocation = Roslyn.LanguageServer.Protocol.Location;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 

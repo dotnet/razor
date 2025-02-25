@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.Razor;
 using Roslyn.Text.Adornments;
-using LspHover = Roslyn.LanguageServer.Protocol.Hover;
 
 namespace Microsoft.CodeAnalysis.Razor.Hover;
 

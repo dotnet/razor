@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using LspHover = Roslyn.LanguageServer.Protocol.Hover;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 

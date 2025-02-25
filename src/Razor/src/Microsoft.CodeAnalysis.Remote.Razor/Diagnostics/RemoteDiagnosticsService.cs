@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-extern alias RLSP;
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +10,6 @@ using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
-using LspDiagnostic = RLSP::Roslyn.LanguageServer.Protocol.Diagnostic;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 

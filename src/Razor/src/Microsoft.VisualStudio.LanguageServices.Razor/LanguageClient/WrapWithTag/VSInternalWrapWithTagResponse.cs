@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.WrapWithTag;
 [DataContract]
 internal class VSInternalWrapWithTagResponse
 {
-    public VSInternalWrapWithTagResponse(Range tagRange, TextEdit[] textEdits)
+    public VSInternalWrapWithTagResponse(LspRange tagRange, TextEdit[] textEdits)
     {
         TagRange = tagRange;
         TextEdits = textEdits;
@@ -24,7 +24,7 @@ internal class VSInternalWrapWithTagResponse
     /// </summary>
     [DataMember(Name = "_vs_tagRange")]
     [JsonPropertyName("_vs_tagRange")]
-    public Range TagRange { get; }
+    public LspRange TagRange { get; }
 
     /// <summary>
     /// Gets or sets the text edits.

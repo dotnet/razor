@@ -4,7 +4,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using LspSignatureHelp = Roslyn.LanguageServer.Protocol.SignatureHelp;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 

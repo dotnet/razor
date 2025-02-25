@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using LspDiagnostic = Roslyn.LanguageServer.Protocol.Diagnostic;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 

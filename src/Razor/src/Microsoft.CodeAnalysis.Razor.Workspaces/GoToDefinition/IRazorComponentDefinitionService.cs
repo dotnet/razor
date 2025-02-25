@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using LspLocation = Roslyn.LanguageServer.Protocol.Location;
 
 namespace Microsoft.CodeAnalysis.Razor.GoToDefinition;
 

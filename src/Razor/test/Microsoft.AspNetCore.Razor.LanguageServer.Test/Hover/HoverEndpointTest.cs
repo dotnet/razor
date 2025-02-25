@@ -20,11 +20,10 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using RLSP::Roslyn.Text.Adornments;
 using Moq;
+using RLSP::Roslyn.Text.Adornments;
 using Xunit;
 using Xunit.Abstractions;
-using LspHover = RLSP::Roslyn.LanguageServer.Protocol.Hover;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover;
 

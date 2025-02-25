@@ -3,7 +3,6 @@
 
 using System;
 using System.Text.Json.Serialization;
-using LspLocation = Roslyn.LanguageServer.Protocol.Location;
 
 // A file for delegated record types to be put. Each individually
 // should be a plain record. If more logic is needed than record

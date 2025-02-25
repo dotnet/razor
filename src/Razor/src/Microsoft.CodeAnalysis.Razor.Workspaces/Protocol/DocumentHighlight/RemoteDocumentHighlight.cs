@@ -3,7 +3,6 @@
 
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
-using LspDocumentHighlight = Roslyn.LanguageServer.Protocol.DocumentHighlight;
 
 namespace Microsoft.CodeAnalysis.Razor.Protocol.DocumentHighlight;
 

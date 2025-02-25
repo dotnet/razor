@@ -293,9 +293,9 @@ internal static class FormattingUtilities
         static bool IsWhitespace(char c)
             => c == ' ' || c == '\t';
 
-        static ImmutableArray<System.Range> GetLineRanges(string text)
+        static ImmutableArray<Range> GetLineRanges(string text)
         {
-            using var builder = new PooledArrayBuilder<System.Range>();
+            using var builder = new PooledArrayBuilder<Range>();
             var start = 0;
             var end = text.IndexOf('\n');
             while (true)

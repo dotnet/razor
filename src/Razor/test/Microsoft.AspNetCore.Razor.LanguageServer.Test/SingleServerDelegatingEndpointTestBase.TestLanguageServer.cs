@@ -24,7 +24,6 @@ using DefinitionResult = RLSP::Roslyn.LanguageServer.Protocol.SumType<
 using ImplementationResult = RLSP::Roslyn.LanguageServer.Protocol.SumType<
     RLSP::Roslyn.LanguageServer.Protocol.Location[],
     RLSP::Roslyn.LanguageServer.Protocol.VSInternalReferenceItem[]>;
-using LspSignatureHelp = RLSP::Roslyn.LanguageServer.Protocol.SignatureHelp;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 

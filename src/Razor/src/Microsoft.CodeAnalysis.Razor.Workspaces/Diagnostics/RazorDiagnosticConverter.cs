@@ -7,8 +7,6 @@ using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using LspDiagnostic = Roslyn.LanguageServer.Protocol.Diagnostic;
-using LspDiagnosticSeverity = Roslyn.LanguageServer.Protocol.DiagnosticSeverity;
 
 namespace Microsoft.CodeAnalysis.Razor.Diagnostics;
 

@@ -17,8 +17,6 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using LspDiagnostic = Roslyn.LanguageServer.Protocol.Diagnostic;
-using LspDiagnosticSeverity = Roslyn.LanguageServer.Protocol.DiagnosticSeverity;
 
 namespace Microsoft.CodeAnalysis.Razor.Diagnostics;
 
