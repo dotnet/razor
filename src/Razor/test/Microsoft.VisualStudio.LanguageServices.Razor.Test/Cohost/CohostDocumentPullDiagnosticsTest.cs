@@ -136,7 +136,22 @@ public class CohostDocumentPullDiagnosticsTest(FuseTestContext context, ITestOut
             </div>
             """);
 
-    private async Task VerifyDiagnosticsAsync(TestCode input, VSInternalDiagnosticReport[]? htmlResponse = null)
+    [FuseFact]
+    public Task TODOComments()
+        => VerifyDiagnosticsAsync("""
+            @using System.Threading.Tasks;
+
+            <div>
+
+                @*{|TODO: TODO: This does |}*@
+
+                @* TODONT: This doesn't *@
+
+            </div>
+            """,
+            taskListRequest: true);
+
+    private async Task VerifyDiagnosticsAsync(TestCode input, VSInternalDiagnosticReport[]? htmlResponse = null, bool taskListRequest = false)
     {
         UpdateClientInitializationOptions(c => c with { ForceRuntimeCodeGeneration = context.ForceRuntimeCodeGeneration });
 
@@ -148,7 +163,9 @@ public class CohostDocumentPullDiagnosticsTest(FuseTestContext context, ITestOut
         var clientSettingsManager = new ClientSettingsManager([]);
         var endpoint = new CohostDocumentPullDiagnosticsEndpoint(RemoteServiceInvoker, TestHtmlDocumentSynchronizer.Instance, requestInvoker, clientSettingsManager, LoggerFactory);
 
-        var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, DisposalToken);
+        var result = taskListRequest
+            ? await endpoint.GetTestAccessor().HandleTaskListItemRequestAsync(document, ["TODO"], DisposalToken)
+            : await endpoint.GetTestAccessor().HandleRequestAsync(document, DisposalToken);
 
         var markers = result!.SelectMany(d => d.Diagnostics.AssumeNotNull()).SelectMany(d =>
             new[] {
