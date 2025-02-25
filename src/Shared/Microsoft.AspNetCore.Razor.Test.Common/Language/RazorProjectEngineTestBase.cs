@@ -17,7 +17,7 @@ public abstract class RazorProjectEngineTestBase
     {
         get
         {
-            return _projectEngine ??= InterlockedOperations.Initialize(ref _projectEngine, CreateProjectEngine());
+            return _projectEngine ?? InterlockedOperations.Initialize(ref _projectEngine, CreateProjectEngine());
 
             RazorProjectEngine CreateProjectEngine()
             {
