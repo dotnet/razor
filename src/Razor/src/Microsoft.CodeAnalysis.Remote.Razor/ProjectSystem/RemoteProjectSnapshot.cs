@@ -169,7 +169,7 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
         return generatorResult.GetCodeDocument(documentSnapshot.FilePath);
     }
 
-    internal async Task<Document?> GetGeneratedDocumentAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
+    internal async Task<SourceGeneratedDocument?> GetGeneratedDocumentAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
         var generatorResult = await GetRazorGeneratorResultAsync(cancellationToken).ConfigureAwait(false);
         if (generatorResult is null)

@@ -40,7 +40,7 @@ internal static class ProjectExtensions
     /// <summary>
     /// Finds source generated documents by iterating through all of them. In OOP there are better options!
     /// </summary>
-    public static async Task<Document?> TryGetSourceGeneratedDocumentFromHintNameAsync(this Project project, string? hintName, CancellationToken cancellationToken)
+    public static async Task<SourceGeneratedDocument?> TryGetSourceGeneratedDocumentFromHintNameAsync(this Project project, string? hintName, CancellationToken cancellationToken)
     {
         // TODO: use this when the location is case-insensitive on windows (https://github.com/dotnet/roslyn/issues/76869)
         //var generator = typeof(RazorSourceGenerator);
