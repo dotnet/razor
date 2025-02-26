@@ -45,6 +45,12 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
         {
             trimIndex = filePath.LastIndexOf(_languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
 
+            if (trimIndex == -1)
+            {
+                // Not a C# file, and we wouldn't have got here if it was Html, so nothing left to do
+                return filePath;
+            }
+
             // If this is a C# generated file, and we're including the project suffix, then filename will be
             // <Page>.razor.<project slug><c# suffix>
             if (_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
@@ -58,7 +64,7 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
 
         if (trimIndex != -1)
         {
-            return filePath.Substring(0, trimIndex);
+            return filePath[..trimIndex];
         }
 
         return filePath;
@@ -91,5 +97,12 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
 
         Debug.Assert(!projectToken.Contains("."), "Project token can't contain a dot or the GetRazorFilePath method will fail.");
         return "." + projectToken;
+    }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(AbstractFilePathService instance)
+    {
+        internal string GetRazorFilePath(string filePath) => instance.GetRazorFilePath(filePath);
     }
 }
