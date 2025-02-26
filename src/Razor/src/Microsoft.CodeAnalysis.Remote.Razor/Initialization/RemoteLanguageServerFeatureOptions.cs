@@ -20,20 +20,9 @@ internal class RemoteLanguageServerFeatureOptions : LanguageServerFeatureOptions
     {
         _options = options;
 
-        if (options.UseRazorCohostServer)
-        {
-            // ensure the source generator is in the correct mode
-            SetGeneratorToCohostMode();
-        }
+        // ensure the source generator is in the correct mode
+        RazorCohostingOptions.UseRazorCohostServer = options.UseRazorCohostServer;
     }
-
-    /// <summary>
-    /// Sets the generator into cohosting mode.
-    /// </summary>
-    /// <remarks>
-    /// This is explicitly a separate method so that if not used we don't unnecessarily JIT any of the generator code.
-    /// </remarks>
-    private static void SetGeneratorToCohostMode() => RazorSourceGenerator.UseRazorCohostServer = true;
 
     public override bool SupportsFileManipulation => _options.SupportsFileManipulation;
 
