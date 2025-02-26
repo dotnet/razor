@@ -501,7 +501,7 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
             // for mapping when a user reports not seeing an error they thought they should
             if (diagnostic.Severity == LspDiagnosticSeverity.Error)
             {
-                this._logger.LogDebug($"Dropping diagnostic {diagnostic.Code}:{diagnostic.Message} at csharp range {diagnostic.Range}");
+                this._logger.LogWarning($"Dropping diagnostic {diagnostic.Code}:{diagnostic.Message} at csharp range {diagnostic.Range}");
             }
 
             return false;
