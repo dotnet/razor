@@ -47,7 +47,7 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
 
             if (trimIndex == -1)
             {
-                // Not a C# file, and we wouldn't have got here if it wasn't Html, so nothing left to do
+                // Not a C# file, and we wouldn't have got here if it was Html, so nothing left to do
                 return filePath;
             }
 
