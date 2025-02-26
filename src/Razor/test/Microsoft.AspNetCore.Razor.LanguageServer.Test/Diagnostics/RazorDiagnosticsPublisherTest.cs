@@ -195,7 +195,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
 
         var openDocument = _projectManager.GetRequiredDocument(s_hostProject.Key, s_openHostDocument.FilePath);
 
-        var generatedDocument = await openDocument.GetGeneratedOutputAsync(DisposalToken).ConfigureAwait(false);
+        var generatedDocument = await openDocument.GetGeneratedOutputAsync(DisposalToken);
         var csharpDocument = generatedDocument.GetCSharpDocument();
         var diagnosticRange = csharpDocument.Text.GetRange(csharpDocument.SourceMappings[0].GeneratedSpan);
 
