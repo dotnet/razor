@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class RemoveDebugInfoServiceTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
+public class RemoteDebugInfoServiceTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
     [Fact]
     public async Task ResolveProximityExpressionsAsync_Html()
@@ -182,11 +182,11 @@ public class RemoveDebugInfoServiceTest(ITestOutputHelper testOutputHelper) : Co
         var span = inputText.GetLinePosition(input.Position);
 
         var result = await RemoteServiceInvoker
-           .TryInvokeAsync<IRemoteDebugInfoService, string[]?>(
-               document.Project.Solution,
-               (service, solutionInfo, cancellationToken) =>
-                   service.ResolveProximityExpressionsAsync(solutionInfo, document.Id, span, cancellationToken),
-               DisposalToken);
+            .TryInvokeAsync<IRemoteDebugInfoService, string[]?>(
+                document.Project.Solution,
+                (service, solutionInfo, cancellationToken) =>
+                    service.ResolveProximityExpressionsAsync(solutionInfo, document.Id, span, cancellationToken),
+                DisposalToken);
 
         if (!input.HasSpans)
         {
@@ -208,11 +208,11 @@ public class RemoveDebugInfoServiceTest(ITestOutputHelper testOutputHelper) : Co
         var span = inputText.GetLinePosition(input.Position);
 
         var result = await RemoteServiceInvoker
-           .TryInvokeAsync<IRemoteDebugInfoService, LinePositionSpan?>(
-               document.Project.Solution,
-               (service, solutionInfo, cancellationToken) =>
-                   service.ResolveBreakpointRangeAsync(solutionInfo, document.Id, span, cancellationToken),
-               DisposalToken);
+            .TryInvokeAsync<IRemoteDebugInfoService, LinePositionSpan?>(
+                document.Project.Solution,
+                (service, solutionInfo, cancellationToken) =>
+                    service.ResolveBreakpointRangeAsync(solutionInfo, document.Id, span, cancellationToken),
+                DisposalToken);
 
         if (result is not { } breakpoint)
         {
