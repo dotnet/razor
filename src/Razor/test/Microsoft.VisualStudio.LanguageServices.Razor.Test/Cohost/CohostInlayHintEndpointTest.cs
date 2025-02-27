@@ -146,7 +146,7 @@ public class CohostInlayHintEndpointTest(FuseTestContext context, ITestOutputHel
         var request = new InlayHintParams()
         {
             TextDocument = new TextDocumentIdentifier() { Uri = document.CreateUri() },
-            Range = RoslynLspFactory.CreateRange(startLine, starChar, endLine, endChar)
+            Range = LspFactory.CreateRange(startLine, starChar, endLine, endChar)
         };
 
         var hints = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, displayAllOverride: false, DisposalToken);

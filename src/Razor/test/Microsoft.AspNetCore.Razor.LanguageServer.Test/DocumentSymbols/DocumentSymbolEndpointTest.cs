@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentSymbols;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -141,6 +140,7 @@ public class DocumentSymbolEndpointTest(ITestOutputHelper testOutput) : SingleSe
             var symbolsInformations = result.Value.Second;
             Assert.Equal(spansDict.Values.Count(), symbolsInformations.Length);
 
+#pragma warning disable CS0618 // Type or member is obsolete
             var sourceText = SourceText.From(input);
             foreach (var symbolInformation in symbolsInformations)
             {
@@ -148,6 +148,7 @@ public class DocumentSymbolEndpointTest(ITestOutputHelper testOutput) : SingleSe
                 var expectedRange = sourceText.GetRange(Assert.Single(spans));
                 Assert.Equal(expectedRange, symbolInformation.Location.Range);
             }
+#pragma warning restore CS0618 // Type or member is obsolete
         }
     }
 

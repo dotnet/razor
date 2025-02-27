@@ -96,7 +96,7 @@ public class CohostInlineCompletionEndpointTest(FuseTestContext context, ITestOu
             TabSize = tabSize
         };
 
-        var list = await endpoint.GetTestAccessor().HandleRequestAsync(document, position, options.ToRoslynFormattingOptions(), DisposalToken);
+        var list = await endpoint.GetTestAccessor().HandleRequestAsync(document, position, options.ToLspFormattingOptions(), DisposalToken);
 
         if (output is null)
         {

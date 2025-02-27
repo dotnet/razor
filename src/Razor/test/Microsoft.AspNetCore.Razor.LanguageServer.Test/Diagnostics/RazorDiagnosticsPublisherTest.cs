@@ -12,19 +12,15 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
-using Diagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
-using DiagnosticSeverity = Microsoft.VisualStudio.LanguageServer.Protocol.DiagnosticSeverity;
 using RazorDiagnosticFactory = Microsoft.AspNetCore.Razor.Language.RazorDiagnosticFactory;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
@@ -88,7 +84,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
             Code = "TestCode",
             Severity = DiagnosticSeverity.Error,
             Message = "TestMessage",
-            Range = VsLspFactory.CreateSingleLineRange(line: 0, character: 0, length: 1)
+            Range = LspFactory.CreateSingleLineRange(line: 0, character: 0, length: 1)
         }
     ];
 
