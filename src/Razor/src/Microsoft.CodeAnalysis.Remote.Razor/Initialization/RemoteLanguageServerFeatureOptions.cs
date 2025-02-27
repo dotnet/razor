@@ -20,13 +20,24 @@ internal class RemoteLanguageServerFeatureOptions : LanguageServerFeatureOptions
     {
         _options = options;
 
-        // ensure the source generator is in the correct mode
-        RazorSourceGenerator.UseRazorCohostServer = options.UseRazorCohostServer;
+        if (options.UseRazorCohostServer)
+        {
+            // ensure the source generator is in the correct mode
+            SetGeneratorToCohostMode();
+        }
     }
+
+    /// <summary>
+    /// Sets the generator into cohosting mode.
+    /// </summary>
+    /// <remarks>
+    /// This is explicitly a separate method so that if not used we don't unnecessarily JIT any of the generator code.
+    /// </remarks>
+    private static void SetGeneratorToCohostMode() => RazorSourceGenerator.UseRazorCohostServer = true;
 
     public override bool SupportsFileManipulation => _options.SupportsFileManipulation;
 
-    public override string CSharpVirtualDocumentSuffix => _options.CSharpVirtualDocumentSuffix;
+    public override string CSharpVirtualDocumentSuffix => throw new InvalidOperationException("This property is not valid in OOP");
 
     public override string HtmlVirtualDocumentSuffix => _options.HtmlVirtualDocumentSuffix;
 

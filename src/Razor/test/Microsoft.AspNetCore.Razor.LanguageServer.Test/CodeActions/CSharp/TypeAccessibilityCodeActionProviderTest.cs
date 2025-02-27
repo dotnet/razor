@@ -12,13 +12,10 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -449,7 +446,11 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         {
             builder.AddTagHelpers(tagHelpers);
             builder.AddDirective(InjectDirective.Directive);
-            builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
+
+            builder.ConfigureParserOptions(builder =>
+            {
+                builder.UseRoslynTokenizer = true;
+            });
         });
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, importSources: default, tagHelpers);
 
