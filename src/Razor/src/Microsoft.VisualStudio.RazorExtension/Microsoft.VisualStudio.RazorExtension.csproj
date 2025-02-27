@@ -20,7 +20,6 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <IsPackable>false</IsPackable>
-    <IsShippingAssembly>true</IsShippingAssembly>
 
     <GenerateResourceUsePreserializedResources Condition="'$(MSBuildRuntimeType)' == 'Core'">true</GenerateResourceUsePreserializedResources>
 
