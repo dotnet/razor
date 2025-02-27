@@ -10,7 +10,15 @@ namespace Test
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    [global::Microsoft.AspNetCore.Components.LayoutAttribute(typeof(System.Object))]
+    [global::Microsoft.AspNetCore.Components.LayoutAttribute(typeof(
+#nullable restore
+#line (1,9)-(1,22) "x:\dir\subdir\Test\TestComponent.cshtml"
+System.Object
+
+#line default
+#line hidden
+#nullable disable
+    ))]
     #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable

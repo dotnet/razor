@@ -10582,7 +10582,7 @@ namespace Test
                Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(5, 2),
                // (33,13): error CS0103: The name '__builder' does not exist in the current context
                //             __builder.AddContent(0,
-               Diagnostic(ErrorCode.ERR_NameNotInContext, "__builder").WithArguments("__builder").WithLocation(33, 13)]);
+               Diagnostic(ErrorCode.ERR_NameNotInContext, "__builder").WithArguments("__builder").WithLocation(41, 13)]);
     }
 
     [IntegrationTestFact]
