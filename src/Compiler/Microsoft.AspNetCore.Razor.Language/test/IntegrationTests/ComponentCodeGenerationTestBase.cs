@@ -2360,6 +2360,20 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact]
+    public void LayoutDirective()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @layout System.Object
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     #endregion
 
     #region Bind
