@@ -17,18 +17,16 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
     public partial class RazorSourceGenerator
     {
-        private (RazorSourceGenerationOptions?, Diagnostic?) ComputeRazorSourceGeneratorOptions((((AnalyzerConfigOptionsProvider, ParseOptions), ImmutableArray<MetadataReference>), bool) pair, CancellationToken ct)
+        private (RazorSourceGenerationOptions?, Diagnostic?) ComputeRazorSourceGeneratorOptions(AnalyzerConfigOptionsProvider analyzerConfigOptions, ParseOptions parseOptions, ImmutableArray<MetadataReference> references, bool isGeneratorSuppressed)
         {
-            var (((options, parseOptions), references), isSuppressed) = pair;
-            var globalOptions = options.GlobalOptions;
-
-            if (isSuppressed)
+            if (isGeneratorSuppressed)
             {
                 return default;
             }
 
-            Log.ComputeRazorSourceGeneratorOptions();
+            RazorSourceGeneratorEventSource.Log.ComputeRazorSourceGeneratorOptions();
 
+            var globalOptions = analyzerConfigOptions.GlobalOptions;
             globalOptions.TryGetValue("build_property.RazorConfiguration", out var configurationName);
             globalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace);
             globalOptions.TryGetValue("build_property.SupportLocalizedComponentNames", out var supportLocalizedComponentNames);
@@ -49,9 +47,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Where(r => r.Display is { } display && display.EndsWith("Microsoft.AspNetCore.Components.dll", StringComparison.Ordinal))
                 .ToImmutableArray();
 
-            var isComponentParameterSupported = minimalReferences.Length == 0
-                ? false
-                : CSharpCompilation.Create("components", references: minimalReferences).HasAddComponentParameter();
+            var isComponentParameterSupported = minimalReferences.Length != 0 && CSharpCompilation.Create("components", references: minimalReferences).HasAddComponentParameter();
 
             var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName ?? "default", Extensions: [], UseConsolidatedMvcViews: true, SuppressAddComponentParameter: !isComponentParameterSupported);
 
