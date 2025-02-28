@@ -19,12 +19,10 @@ using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.Settings;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LspDiagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 
@@ -170,11 +168,11 @@ public abstract class CohostCodeActionsEndpointTestBase(FuseTestContext context,
                 var text = await textDocument.GetTextAsync(DisposalToken).ConfigureAwait(false);
                 if (textDocument is Document)
                 {
-                    solution = solution.WithDocumentText(textDocument.Id, text.WithChanges(edit.Edits.Select(text.GetTextChange)));
+                    solution = solution.WithDocumentText(textDocument.Id, text.WithChanges(edit.Edits.Select(e => text.GetTextChange((TextEdit)e))));
                 }
                 else
                 {
-                    solution = solution.WithAdditionalDocumentText(textDocument.Id, text.WithChanges(edit.Edits.Select(text.GetTextChange)));
+                    solution = solution.WithAdditionalDocumentText(textDocument.Id, text.WithChanges(edit.Edits.Select(e => text.GetTextChange((TextEdit)e))));
                 }
             }
 

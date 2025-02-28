@@ -3,8 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using AliasedVSCommitCharacters = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<string[], Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalCommitCharacter[]>;
+using AliasedVSCommitCharacters = Roslyn.LanguageServer.Protocol.SumType<string[], Roslyn.LanguageServer.Protocol.VSInternalCommitCharacter[]>;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 

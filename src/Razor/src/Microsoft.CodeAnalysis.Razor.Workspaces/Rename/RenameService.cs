@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using RazorSyntaxKind = Microsoft.AspNetCore.Razor.Language.SyntaxKind;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
@@ -148,7 +147,7 @@ internal class RenameService(
         var updatedPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !filePath.StartsWith("/")
                     ? '/' + filePath
                     : filePath;
-        return VsLspFactory.CreateFilePathUri(updatedPath);
+        return LspFactory.CreateFilePathUri(updatedPath);
     }
 
     private static string MakeNewPath(string originalPath, string newName)
@@ -226,13 +225,13 @@ internal class RenameService(
         }
     }
 
-    private static TextEdit[] CreateEditsForMarkupTagHelperElement(MarkupTagHelperElementSyntax element, RazorCodeDocument codeDocument, string newName)
+    private static SumType<TextEdit, AnnotatedTextEdit>[] CreateEditsForMarkupTagHelperElement(MarkupTagHelperElementSyntax element, RazorCodeDocument codeDocument, string newName)
     {
-        var startTagEdit = VsLspFactory.CreateTextEdit(element.StartTag.Name.GetRange(codeDocument.Source), newName);
+        var startTagEdit = LspFactory.CreateTextEdit(element.StartTag.Name.GetRange(codeDocument.Source), newName);
 
         if (element.EndTag is MarkupTagHelperEndTagSyntax endTag)
         {
-            var endTagEdit = VsLspFactory.CreateTextEdit(endTag.Name.GetRange(codeDocument.Source), newName);
+            var endTagEdit = LspFactory.CreateTextEdit(endTag.Name.GetRange(codeDocument.Source), newName);
 
             return [startTagEdit, endTagEdit];
         }

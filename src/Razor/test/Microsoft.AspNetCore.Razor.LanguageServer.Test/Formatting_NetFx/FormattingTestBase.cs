@@ -25,7 +25,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -209,7 +208,7 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         return (input, expected);
     }
 
-    protected async Task RunCodeActionFormattingTestAsync(
+    private protected async Task RunCodeActionFormattingTestAsync(
         string input,
         TextEdit[] codeActionEdits,
         string expected,
@@ -261,8 +260,8 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         AssertEx.EqualOrDiff(expected, actual);
     }
 
-    protected static TextEdit Edit(int startLine, int startChar, int endLine, int endChar, string newText)
-        => VsLspFactory.CreateTextEdit(startLine, startChar, endLine, endChar, newText);
+    private protected static TextEdit Edit(int startLine, int startChar, int endLine, int endChar, string newText)
+        => LspFactory.CreateTextEdit(startLine, startChar, endLine, endChar, newText);
 
     private static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, ImmutableArray<TagHelperDescriptor> tagHelpers = default, string? fileKind = null, bool allowDiagnostics = false, bool inGlobalNamespace = false)
     {

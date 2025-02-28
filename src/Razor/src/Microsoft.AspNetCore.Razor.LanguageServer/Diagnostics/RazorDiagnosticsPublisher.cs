@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
@@ -165,7 +164,7 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
             {
                 var delegatedParams = new DocumentDiagnosticParams
                 {
-                    TextDocument = new TextDocumentIdentifier { Uri = VsLspFactory.CreateFilePathUri(document.FilePath) },
+                    TextDocument = new TextDocumentIdentifier { Uri = LspFactory.CreateFilePathUri(document.FilePath) },
                 };
 
                 var delegatedResponse = await _clientConnection
@@ -256,7 +255,7 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
                 Methods.TextDocumentPublishDiagnosticsName,
                 new PublishDiagnosticParams()
                 {
-                    Uri = VsLspFactory.CreateFilePathUri(filePath),
+                    Uri = LspFactory.CreateFilePathUri(filePath),
                     Diagnostics = diagnostics,
                 },
                 _disposeTokenSource.Token)

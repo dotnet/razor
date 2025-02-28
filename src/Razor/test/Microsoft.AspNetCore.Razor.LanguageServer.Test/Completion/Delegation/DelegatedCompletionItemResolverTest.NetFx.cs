@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 using Xunit;
 using Xunit.Abstractions;
@@ -58,7 +57,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
         var documentContext = TestDocumentContext.Create("C:/path/to/file.cshtml");
         _csharpCompletionParams = new DelegatedCompletionParams(
             documentContext.GetTextDocumentIdentifierAndVersion(),
-            VsLspFactory.CreatePosition(10, 6),
+            LspFactory.CreatePosition(10, 6),
             RazorLanguageKind.CSharp,
             new VSInternalCompletionContext(),
             ProvisionalTextEdit: null,
@@ -67,7 +66,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
 
         _htmlCompletionParams = new DelegatedCompletionParams(
             documentContext.GetTextDocumentIdentifierAndVersion(),
-            VsLspFactory.DefaultPosition,
+            LspFactory.DefaultPosition,
             RazorLanguageKind.Html,
             new VSInternalCompletionContext(),
             ProvisionalTextEdit: null,

@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -23,7 +22,9 @@ public class RazorFileChangeDetectorManagerTest(ITestOutputHelper testOutput) : 
 
         var initializeParams = new InitializeParams()
         {
-            RootUri = VsLspFactory.CreateFilePathUri(initialWorkspaceDirectory),
+#pragma warning disable CS0618 // Type or member is obsolete
+            RootUri = LspFactory.CreateFilePathUri(initialWorkspaceDirectory),
+#pragma warning restore CS0618 // Type or member is obsolete
         };
 
         var capabilitiesManager = new CapabilitiesManager(StrictMock.Of<ILspServices>());
@@ -65,7 +66,9 @@ public class RazorFileChangeDetectorManagerTest(ITestOutputHelper testOutput) : 
         var expectedWorkspaceDirectory = "\\\\testpath";
         var initializeParams = new InitializeParams()
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             RootUri = new Uri(expectedWorkspaceDirectory),
+#pragma warning restore CS0618 // Type or member is obsolete
         };
 
         var capabilitiesManager = new CapabilitiesManager(StrictMock.Of<ILspServices>());
