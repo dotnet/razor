@@ -169,7 +169,7 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
         return generatorResult.GetCodeDocument(documentSnapshot.FilePath);
     }
 
-    internal async Task<Document?> GetGeneratedDocumentAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
+    internal async Task<SourceGeneratedDocument?> GetGeneratedDocumentAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
         var generatorResult = await GetRazorGeneratorResultAsync(cancellationToken).ConfigureAwait(false);
         if (generatorResult is null)
@@ -182,6 +182,23 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
         var generatedDocument = await _project.TryGetSourceGeneratedDocumentFromHintNameAsync(hintName, cancellationToken).ConfigureAwait(false);
 
         return generatedDocument ?? throw new InvalidOperationException("Couldn't get the source generated document for a hint name that we got from the generator?");
+    }
+
+    public async Task<RazorCodeDocument?> TryGetCodeDocumentFromGeneratedHintNameAsync(string generatedDocumentHintName, CancellationToken cancellationToken)
+    {
+        var runResult = await GetRazorGeneratorResultAsync(cancellationToken).ConfigureAwait(false);
+        if (runResult is null)
+        {
+            return null;
+        }
+
+        if (runResult.GetFilePath(generatedDocumentHintName) is { } razorFilePath &&
+            runResult.GetCodeDocument(razorFilePath) is { } codeDocument)
+        {
+            return codeDocument;
+        }
+
+        return null;
     }
 
     private async Task<RazorGeneratorResult?> GetRazorGeneratorResultAsync(CancellationToken cancellationToken)
