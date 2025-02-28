@@ -2360,7 +2360,7 @@ namespace Test
         CompileToAssembly(generated);
     }
 
-    [IntegrationTestFact]
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11551")]
     public void LayoutDirective()
     {
         // Act
