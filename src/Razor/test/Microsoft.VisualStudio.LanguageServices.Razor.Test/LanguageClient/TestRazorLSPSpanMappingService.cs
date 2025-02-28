@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.LanguageClient.DocumentMapping;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient;

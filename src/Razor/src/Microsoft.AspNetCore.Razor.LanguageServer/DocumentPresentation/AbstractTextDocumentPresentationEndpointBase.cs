@@ -187,7 +187,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
         using var mappedEdits = new PooledArrayBuilder<TextEdit>();
         if (!mapRanges)
         {
-            mappedEdits.AddRange(edits.Select(e => (TextEdit)e));
+            mappedEdits.AddRange(edits.Select(static e => (TextEdit)e));
         }
         else
         {

@@ -5,6 +5,7 @@ extern alias RLSP;
 
 using System;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
@@ -99,12 +100,10 @@ internal sealed class DefinitionEndpoint(
         DocumentPositionInfo positionInfo,
         CancellationToken cancellationToken)
     {
-        if (response is null)
+        if (response is not { Value: var result })
         {
             return null;
         }
-
-        var result = response.GetValueOrDefault().Value;
 
         // Not using .TryGetXXX because this does the null check for us too
         if (result is Location location)

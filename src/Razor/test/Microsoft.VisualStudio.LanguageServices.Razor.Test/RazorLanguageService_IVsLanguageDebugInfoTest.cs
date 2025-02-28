@@ -9,7 +9,6 @@ using System.Threading;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.VisualStudio.Editor;
-using Roslyn.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.Debugging;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;

@@ -428,7 +428,7 @@ internal sealed class MapCodeEndpoint(
             List<TextDocumentEdit> csharpChanges,
             CancellationToken cancellationToken)
         {
-            foreach (var documentEdit in textEdits.Select(e => (TextEdit)e))
+            foreach (var documentEdit in textEdits.Select(static e => (TextEdit)e))
             {
                 var (hostDocumentUri, hostDocumentRange) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(
                     generatedUri, documentEdit.Range, cancellationToken).ConfigureAwait(false);

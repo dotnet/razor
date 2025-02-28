@@ -134,7 +134,7 @@ internal abstract class AbstractEditMappingService(
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
             // entry.Edits is SumType<TextEdit, AnnotatedTextEdit> but AnnotatedTextEdit inherits from TextEdit, so we can just cast
-            var remappedEdits = RemapTextEditsCore(generatedDocumentUri, codeDocument, entry.Edits.Select(e => (TextEdit)e).ToArray());
+            var remappedEdits = RemapTextEditsCore(generatedDocumentUri, codeDocument, entry.Edits.Select(static e => (TextEdit)e).ToArray());
             if (remappedEdits.Length == 0)
             {
                 // Nothing to do.
@@ -147,7 +147,7 @@ internal abstract class AbstractEditMappingService(
                 {
                     Uri = razorDocumentUri,
                 },
-                Edits = remappedEdits.Select(e => new SumType<TextEdit, AnnotatedTextEdit>(e)).ToArray()
+                Edits = [.. remappedEdits]
             });
         }
 

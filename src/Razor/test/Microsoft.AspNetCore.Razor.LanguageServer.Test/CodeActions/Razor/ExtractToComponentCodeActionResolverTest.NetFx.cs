@@ -325,7 +325,7 @@ public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutp
             );
 
         var edits = changes.Where(change => change.TextDocument.Uri.AbsolutePath == componentFilePath).Single();
-        var actual = edits.Edits.Select(edit => ((TextEdit)edit).NewText).Single();
+        var actual = edits.Edits.Select(static edit => ((TextEdit)edit).NewText).Single();
 
         AssertEx.EqualOrDiff(expectedNewComponent, actual);
 

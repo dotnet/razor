@@ -10,8 +10,6 @@ using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
