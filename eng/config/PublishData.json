@@ -105,7 +105,7 @@
       "vsBranch": "rel/d17.13",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.13 P3]"
+      "insertionTitlePrefix": "[d17.13]"
     },
     "release/dev17.14": {
       "nugetKind": [
