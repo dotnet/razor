@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using EnvDTE;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
@@ -184,6 +185,16 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
         return generatedDocument ?? throw new InvalidOperationException("Couldn't get the source generated document for a hint name that we got from the generator?");
     }
 
+    public async Task<RazorCodeDocument?> TryGetCodeDocumentFromGeneratedDocumentUriAsync(Uri generatedDocumentUri, CancellationToken cancellationToken)
+    {
+        if (await _project.TryGetHintNameFromGeneratedDocumentUriAsync(generatedDocumentUri, cancellationToken).ConfigureAwait(false) is not { } hintName)
+        {
+            return null;
+        }
+
+        return await TryGetCodeDocumentFromGeneratedHintNameAsync(hintName, cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<RazorCodeDocument?> TryGetCodeDocumentFromGeneratedHintNameAsync(string generatedDocumentHintName, CancellationToken cancellationToken)
     {
         var runResult = await GetRazorGeneratorResultAsync(cancellationToken).ConfigureAwait(false);
@@ -192,13 +203,9 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
             return null;
         }
 
-        if (runResult.GetFilePath(generatedDocumentHintName) is { } razorFilePath &&
-            runResult.GetCodeDocument(razorFilePath) is { } codeDocument)
-        {
-            return codeDocument;
-        }
-
-        return null;
+        return runResult.GetFilePath(generatedDocumentHintName) is { } razorFilePath
+            ? runResult.GetCodeDocument(razorFilePath)
+            : null;
     }
 
     private async Task<RazorGeneratorResult?> GetRazorGeneratorResultAsync(CancellationToken cancellationToken)

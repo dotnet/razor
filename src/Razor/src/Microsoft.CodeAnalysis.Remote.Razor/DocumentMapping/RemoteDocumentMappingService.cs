@@ -48,13 +48,15 @@ internal sealed class RemoteDocumentMappingService(
         }
 
         var project = originSnapshot.TextDocument.Project;
-        var solution = project.Solution;
-        if (await project.TryGetHintNameFromGeneratedDocumentUriAsync(generatedDocumentUri, cancellationToken).ConfigureAwait(false) is { } hintName &&
-            await project.TryGetSourceGeneratedDocumentFromHintNameAsync(hintName, cancellationToken).ConfigureAwait(false) is { } generatedDocument &&
-            await _snapshotManager.GetSnapshot(generatedDocument.Project).TryGetCodeDocumentFromGeneratedHintNameAsync(hintName, cancellationToken).ConfigureAwait(false) is { } razorCodeDocument &&
-            TryMapToHostDocumentRange(razorCodeDocument.GetCSharpDocument(), generatedDocumentRange, MappingBehavior.Strict, out var mappedRange))
+        var razorCodeDocument = await _snapshotManager.GetSnapshot(project).TryGetCodeDocumentFromGeneratedDocumentUriAsync(generatedDocumentUri, cancellationToken).ConfigureAwait(false);
+        if (razorCodeDocument is null)
         {
-            // TODO: Should we have a better way to do this? Store Uri in RazorCodeDocument?
+            return (generatedDocumentUri, generatedDocumentRange);
+        }
+
+        if (TryMapToHostDocumentRange(razorCodeDocument.GetCSharpDocument(), generatedDocumentRange, MappingBehavior.Strict, out var mappedRange))
+        {
+            var solution = project.Solution;
             var filePath = razorCodeDocument.Source.FilePath;
             var documentId = solution.GetDocumentIdsWithFilePath(filePath).First();
             var document = solution.GetAdditionalDocument(documentId).AssumeNotNull();
