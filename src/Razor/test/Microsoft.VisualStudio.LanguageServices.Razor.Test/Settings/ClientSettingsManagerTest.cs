@@ -82,7 +82,17 @@ public class ClientSettingsManagerTest(ITestOutputHelper testOutput) : VisualStu
         var manager = new ClientSettingsManager(_clientSettingsChangeTriggers);
         var called = false;
         manager.ClientSettingsChanged += (caller, args) => called = true;
-        var settings = new ClientAdvancedSettings(FormatOnType: false, AutoClosingTags: true, AutoInsertAttributeQuotes: true, ColorBackground: true, CodeBlockBraceOnNextLine: false, CommitElementsWithSpace: false, SnippetSetting: default, LogLevel: default, FormatOnPaste: false, TaskListDescriptors: []);
+        var settings = new ClientAdvancedSettings(
+            FormatOnType: false,
+            AutoClosingTags: true,
+            AutoInsertAttributeQuotes: true,
+            ColorBackground: true,
+            CodeBlockBraceOnNextLine: false,
+            CommitElementsWithSpace: false,
+            SnippetSetting: SnippetSetting.All,
+            LogLevel: LogLevel.None,
+            FormatOnPaste: false,
+            TaskListDescriptors: []);
 
         // Act
         manager.Update(settings);

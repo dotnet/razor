@@ -45,7 +45,8 @@ public sealed class DocumentPullDiagnosticsEndpointTest(ITestOutputHelper testOu
         Assert.Equal(2, serverCapabilities.DiagnosticProvider.DiagnosticKinds.Length);
 
         // use the expected value directly; if the underlying library changes values, there is likely a downstream impact
-        Assert.Equal("syntax", serverCapabilities.DiagnosticProvider.DiagnosticKinds[0].Value);
-        Assert.Equal("task", serverCapabilities.DiagnosticProvider.DiagnosticKinds[1].Value);
+        Assert.Collection(serverCapabilities.DiagnosticProvider.DiagnosticKinds,
+            item => Assert.Equal("syntax", item.Value),
+            item => Assert.Equal("task", item.Value));
     }
 }

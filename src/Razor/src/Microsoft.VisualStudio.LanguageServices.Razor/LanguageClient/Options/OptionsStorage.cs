@@ -132,7 +132,7 @@ internal class OptionsStorage : IAdvancedSettingsStorage, IDisposable
         ErrorHandler.ThrowOnFailure(taskListService.EnumTokens(out var enumerator));
         ErrorHandler.ThrowOnFailure(enumerator.Next((uint)count, tokens, out var numFetched));
 
-        using var tokensBuilder = new PooledArrayBuilder<string>();
+        using var tokensBuilder = new PooledArrayBuilder<string>(capacity: (int)numFetched);
         for (var i = 0; i < numFetched; i++)
         {
             tokens[i].Text(out var text);
@@ -152,16 +152,8 @@ internal class OptionsStorage : IAdvancedSettingsStorage, IDisposable
 
     private EventHandler<ClientAdvancedSettingsChangedEventArgs>? _changed;
 
-    public ClientAdvancedSettings GetAdvancedSettings() => new(FormatOnType,
-                                                               AutoClosingTags,
-                                                               AutoInsertAttributeQuotes,
-                                                               ColorBackground,
-                                                               CodeBlockBraceOnNextLine,
-                                                               CommitElementsWithSpace,
-                                                               Snippets,
-                                                               LogLevel,
-                                                               FormatOnPaste,
-                                                               TaskListDescriptors);
+    public ClientAdvancedSettings GetAdvancedSettings()
+        => new(FormatOnType, AutoClosingTags, AutoInsertAttributeQuotes, ColorBackground, CodeBlockBraceOnNextLine, CommitElementsWithSpace, Snippets, LogLevel, FormatOnPaste, TaskListDescriptors);
 
     public bool GetBool(string name, bool defaultValue)
     {

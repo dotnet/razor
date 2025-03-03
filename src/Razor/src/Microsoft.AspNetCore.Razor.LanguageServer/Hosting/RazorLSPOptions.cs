@@ -9,7 +9,7 @@ using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 
-internal record RazorLSPOptions(
+internal sealed record RazorLSPOptions(
     FormattingFlags Formatting,
     bool AutoClosingTags,
     bool InsertSpaces,
@@ -74,7 +74,7 @@ internal record RazorLSPOptions(
         return flags;
     }
 
-    public virtual bool Equals(RazorLSPOptions? other)
+    public bool Equals(RazorLSPOptions? other)
     {
         return other is not null &&
             Formatting == other.Formatting &&
