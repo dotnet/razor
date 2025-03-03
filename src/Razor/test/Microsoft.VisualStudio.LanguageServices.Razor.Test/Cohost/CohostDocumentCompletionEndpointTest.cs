@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.ProjectSystem;
@@ -470,6 +471,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             TestHtmlDocumentSynchronizer.Instance,
             snippetCompletionItemProvider,
             requestInvoker,
+            new CompletionListCache(),
             LoggerFactory);
 
         var request = new RoslynCompletionParams()

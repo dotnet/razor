@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
@@ -16,6 +17,11 @@ internal static class CompletionListMerger
 {
     private static readonly string Data1Key = nameof(MergedCompletionListData.Data1);
     private static readonly string Data2Key = nameof(MergedCompletionListData.Data2);
+    // NOTE: Capital T here is required to match Roslyn's DocumentResolveData structure, so that the Roslyn
+    //       language server can correctly route requests to us in cohosting. In future when we normalize
+    //       on to Roslyn types, we should inherit from that class so we don't have to remember to do this.
+    private const string TextDocumentKey = "TextDocument";
+    private const string DataKey = "data";
     private static readonly object EmptyData = new object();
 
     public static VSInternalCompletionList? Merge(VSInternalCompletionList? razorCompletionList, VSInternalCompletionList? delegatedCompletionList)
@@ -77,6 +83,20 @@ internal static class CompletionListMerger
         return new MergedCompletionListData(data1, data2);
     }
 
+    public static object? MergeResolveData(TextDocumentIdentifier textDocumentIdentifier, object? data)
+    {
+        var vsTextDocumentIdentifier = textDocumentIdentifier is VSTextDocumentIdentifier vsTextDocumentIdentifierValue
+        ? vsTextDocumentIdentifierValue
+            : new VSTextDocumentIdentifier() { Uri = textDocumentIdentifier.Uri };
+
+        if (data is null)
+        {
+            data = EmptyData;
+        }
+
+        return new MergedResolveCompletionListData(vsTextDocumentIdentifier, data);
+    }
+
     public static bool TrySplit(object? data, out ImmutableArray<JsonElement> splitData)
     {
         if (data is null)
@@ -100,6 +120,14 @@ internal static class CompletionListMerger
 
     private static void Split(object data, ref PooledArrayBuilder<JsonElement> collector)
     {
+        if (data is MergedResolveCompletionListData mergedResolveData)
+        {
+            // Merged data adds an extra object wrapper around the original data, so remove
+            // that to restore to the original form.
+            Split(mergedResolveData.Data, ref collector);
+            return;
+        }
+
         if (data is MergedCompletionListData mergedData)
         {
             // Merged data adds an extra object wrapper around the original data, so remove
@@ -122,7 +150,20 @@ internal static class CompletionListMerger
             return;
         }
 
-        if (jsonElement.TryGetProperty(Data1Key, out _) || jsonElement.TryGetProperty(Data1Key.ToLowerInvariant(), out _) &&
+        if (jsonElement.TryGetProperty(TextDocumentKey, out _) && jsonElement.TryGetProperty(DataKey, out _))
+        {
+            // Merged resolve data
+            var mergedResolveCompletionListData = jsonElement.Deserialize<MergedResolveCompletionListData>();
+
+            if (mergedResolveCompletionListData is null)
+            {
+                Debug.Fail("Merged completion list data is null, this should never happen.");
+                return;
+            }
+
+            Split(mergedResolveCompletionListData.Data, ref collector);
+        }
+        else if (jsonElement.TryGetProperty(Data1Key, out _) || jsonElement.TryGetProperty(Data1Key.ToLowerInvariant(), out _) &&
             jsonElement.TryGetProperty(Data2Key, out _) || jsonElement.TryGetProperty(Data2Key.ToLowerInvariant(), out _))
         {
             // Merged data
@@ -260,4 +301,8 @@ internal static class CompletionListMerger
     }
 
     private record MergedCompletionListData(object Data1, object Data2);
+
+    private record MergedResolveCompletionListData(
+        [property: JsonPropertyName(TextDocumentKey)] VSTextDocumentIdentifier TextDocument,
+        [property: JsonPropertyName(DataKey)] object Data);
 }

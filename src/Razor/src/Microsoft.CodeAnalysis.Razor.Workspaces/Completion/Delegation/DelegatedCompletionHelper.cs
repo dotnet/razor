@@ -1,8 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -236,5 +238,36 @@ internal static class DelegatedCompletionHelper
         {
             item.Data = JsonHelpers.TryConvertFromJObject(item.Data);
         }
+    }
+
+    public static object? GetOriginalCompletionItemData(
+        VSInternalCompletionItem requestCompletionItem,
+        VSInternalCompletionList originalCompletionList)
+    {
+        var requestLabel = requestCompletionItem.Label;
+        var requestKind = requestCompletionItem.Kind;
+        var originalDelegatedCompletionItem = originalCompletionList.Items.FirstOrDefault(
+            completionItem => string.Equals(requestLabel, completionItem.Label, StringComparison.Ordinal)
+                && requestKind == completionItem.Kind);
+
+        if (originalDelegatedCompletionItem is null)
+        {
+            return null;
+        }
+
+        object? originalData;
+
+        // If the data was merged to combine resultId with original data, undo that merge and set the data back
+        // to what it originally was for the delegated request
+        if (CompletionListMerger.TrySplit(originalDelegatedCompletionItem.Data, out var splitData) && splitData.Length == 2)
+        {
+            originalData = splitData[1];
+        }
+        else
+        {
+            originalData = originalDelegatedCompletionItem.Data ?? originalCompletionList.Data;
+        }
+
+        return originalData;
     }
 }

@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -41,23 +42,7 @@ internal class DelegatedCompletionItemResolver(
             return null;
         }
 
-        var labelQuery = item.Label;
-        var associatedDelegatedCompletion = containingCompletionList.Items.FirstOrDefault(completion => string.Equals(labelQuery, completion.Label, StringComparison.Ordinal));
-        if (associatedDelegatedCompletion is null)
-        {
-            return null;
-        }
-
-        // If the data was merged to combine resultId with original data, undo that merge and set the data back
-        // to what it originally was for the delegated request
-        if (CompletionListMerger.TrySplit(associatedDelegatedCompletion.Data, out var splitData) && splitData.Length == 2)
-        {
-            item.Data = splitData[1];
-        }
-        else
-        {
-            item.Data = associatedDelegatedCompletion.Data ?? resolutionContext.OriginalCompletionListData;
-        }
+        item.Data = DelegatedCompletionHelper.GetOriginalCompletionItemData(item, containingCompletionList);
 
         var delegatedParams = resolutionContext.OriginalRequestParams;
         var delegatedResolveParams = new DelegatedCompletionItemResolveParams(

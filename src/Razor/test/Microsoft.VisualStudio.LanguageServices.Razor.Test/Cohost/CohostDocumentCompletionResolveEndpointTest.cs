@@ -3,8 +3,10 @@
 
 using System.Text.Json;
 using System.Threading.Tasks;
+using Azure;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 using RoslynTextDocumentIdentifier = Roslyn.LanguageServer.Protocol.TextDocumentIdentifier;
@@ -36,7 +38,14 @@ public class CohostDocumentCompletionResolveEndpointTest(ITestOutputHelper testO
     {
         var document = await CreateProjectAndRazorDocumentAsync(input.Text);
 
-        var endpoint = new CohostDocumentCompletionResolveEndpoint();
+        var response = new RoslynVSInternalCompletionItem();
+        var requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentCompletionResolveName, response)]);
+
+        var endpoint = new CohostDocumentCompletionResolveEndpoint(
+            new CodeAnalysis.Razor.Completion.CompletionListCache(),
+            TestHtmlDocumentSynchronizer.Instance,
+            requestInvoker,
+            LoggerFactory);
 
         var textDocumentIdentifier = new RoslynTextDocumentIdentifier()
         {
@@ -51,7 +60,7 @@ public class CohostDocumentCompletionResolveEndpointTest(ITestOutputHelper testO
             Label = initialItemLabel
         };
 
-        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, DisposalToken);
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
 
         Assert.Equal(result.Label, expectedItemLabel);
     }

@@ -42,6 +42,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     SnippetCompletionItemProvider snippetCompletionItemProvider,
     LSPRequestInvoker requestInvoker,
+    CompletionListCache completionListCache,
     ILoggerFactory loggerFactory)
     : AbstractRazorCohostDocumentRequestHandler<RoslynCompletionParams, VSInternalCompletionList?>, IDynamicRegistrationProvider
 {
@@ -50,7 +51,9 @@ internal sealed class CohostDocumentCompletionEndpoint(
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
     private readonly SnippetCompletionItemProvider _snippetCompletionItemProvider = snippetCompletionItemProvider;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
+    private readonly CompletionListCache _completionListCache = completionListCache;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostDocumentCompletionEndpoint>();
+    private VSInternalClientCapabilities? _clientCapabilities;
 
     protected override bool MutatesSolutionState => false;
 
@@ -58,6 +61,8 @@ internal sealed class CohostDocumentCompletionEndpoint(
 
     public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
+        _clientCapabilities = clientCapabilities;
+
         if (clientCapabilities.TextDocument?.Completion?.DynamicRegistration is true)
         {
             return [new Registration()
@@ -213,7 +218,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
 
         request.TextDocument = RoslynLspExtensions.WithUri(request.TextDocument, htmlDocument.Uri);
 
-        _logger.LogDebug($"Resolving auto-insertion edit for {htmlDocument.Uri}");
+        _logger.LogDebug($"Getting completion list for {htmlDocument.Uri} at {request.Position}");
 
         var result = await _requestInvoker.ReinvokeRequestOnServerAsync<RoslynCompletionParams, VSInternalCompletionList?>(
             htmlDocument.Buffer,
@@ -229,10 +234,14 @@ internal sealed class CohostDocumentCompletionEndpoint(
 
         var rewrittenResponse = DelegatedCompletionHelper.RewriteHtmlResponse(result?.Response, razorCompletionOptions);
 
+        var completionCapability = _clientCapabilities?.TextDocument?.Completion as VSInternalCompletionSetting;
+        var resultId = _completionListCache.Add(rewrittenResponse, RazorLanguageKind.Html);
+        rewrittenResponse.SetResultId(resultId, completionCapability);
+
         return rewrittenResponse;
     }
 
-    private static T? ToVsLSP<T>(object source) where T : class
+    internal static T? ToVsLSP<T>(object source) where T : class
     {
         // This is, to say the least, not ideal. In future we're going to normalize on to Roslyn LSP types, and this can go.
         var options = new JsonSerializerOptions();
@@ -291,8 +300,14 @@ internal sealed class CohostDocumentCompletionEndpoint(
     {
         foreach (var item in completionList.Items)
         {
-            var resolutionParams = CohostDocumentCompletionResolveParams.Create(textDocumentIdentifier);
-            item.Data = JsonSerializer.SerializeToElement(resolutionParams);
+            if (ToVsLSP<VSTextDocumentIdentifier>(textDocumentIdentifier) is not { } vsTextDocumentIdentifier)
+            {
+                continue;
+            }
+
+            var mergedItemData = CompletionListMerger.MergeResolveData(vsTextDocumentIdentifier, item.Data);
+            var serializedMergedItemData = JsonSerializer.SerializeToElement(mergedItemData);
+            item.Data = serializedMergedItemData;
         }
     }
 

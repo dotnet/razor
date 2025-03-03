@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -40,7 +41,15 @@ internal class RazorCohostDynamicRegistrationService(
             return;
         }
 
-        var clientCapabilities = JsonSerializer.Deserialize<VSInternalClientCapabilities>(clientCapabilitiesString) ?? new();
+        var serializerOptions = new JsonSerializerOptions();
+        foreach (var converter in RazorServiceDescriptorsWrapper.GetLspConverters())
+        {
+            serializerOptions.Converters.Add(converter);
+        }
+
+        var clientCapabilities = JsonSerializer.Deserialize<VSInternalClientCapabilities>(clientCapabilitiesString, serializerOptions) ?? new();
+        var roslynClientCapabilities = JsonSerializer.Deserialize<Roslyn.LanguageServer.Protocol.VSInternalClientCapabilities>(clientCapabilitiesString, serializerOptions) ?? new();
+        if (roslynClientCapabilities != null) { }
 
         _lazyRazorCohostClientCapabilitiesService.Value.SetCapabilities(clientCapabilities);
 

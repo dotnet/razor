@@ -41,32 +41,7 @@ internal class RazorCompletionResolveEndpoint
 
     public async Task<VSInternalCompletionItem> HandleRequestAsync(VSInternalCompletionItem completionItem, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        if (!completionItem.TryGetCompletionListResultIds(out var resultIds))
-        {
-            // Unable to lookup completion item result info
-            return completionItem;
-        }
-
-        object? originalRequestContext = null;
-        VSInternalCompletionList? containingCompletionList = null;
-        foreach (var resultId in resultIds)
-        {
-            if (!_completionListCache.TryGet(resultId, out var cacheEntry))
-            {
-                continue;
-            }
-
-            // See if this is the right completion list for this corresponding completion item. We cross-check this based on label only given that
-            // is what users interact with.
-            if (cacheEntry.CompletionList.Items.Any(completion => completionItem.Label == completion.Label &&
-              // Check the Kind as well, e.g. we may have a Razor snippet and a C# keyword with the same label, etc.
-                                                                  completionItem.Kind == completion.Kind))
-            {
-                originalRequestContext = cacheEntry.Context;
-                containingCompletionList = cacheEntry.CompletionList;
-                break;
-            }
-        }
+        (var originalRequestContext, var containingCompletionList) = _completionListCache.GetOriginalData(completionItem);
 
         if (containingCompletionList is null)
         {
