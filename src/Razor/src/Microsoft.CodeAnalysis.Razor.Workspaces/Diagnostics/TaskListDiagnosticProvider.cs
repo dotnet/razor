@@ -36,9 +36,7 @@ internal static class TaskListDiagnosticProvider
 
                 foreach (var token in taskListDescriptors)
                 {
-                    if (i + token.Length + 2 > comment.EndCommentStar.SpanStart || // Enough room in the comment for the token and some content?
-                        !Matches(source, i, token) ||                              // Does the prefix match?
-                        char.IsLetter(source[i + token.Length + 1]))               // Is there something after the prefix, so we don't match "TODOLOL"
+                    if (!CommentMatchesToken(source, comment, i, token))
                     {
                         continue;
                     }
@@ -61,8 +59,14 @@ internal static class TaskListDiagnosticProvider
         return diagnostics.ToImmutable();
     }
 
-    private static bool Matches(SourceText source, int i, string token)
+    private static bool CommentMatchesToken(SourceText source, RazorCommentBlockSyntax comment, int i, string token)
     {
+        if (i + token.Length + 2 > comment.EndCommentStar.SpanStart)
+        {
+            // Not enough room in the comment for the token and some content
+            return false;
+        }
+
         for (var j = 0; j < token.Length; j++)
         {
             if (source.Length < i + j)
@@ -74,6 +78,12 @@ internal static class TaskListDiagnosticProvider
             {
                 return false;
             }
+        }
+
+        if (char.IsLetter(source[i + token.Length + 1]))
+        {
+            // The comment starts with the token, but the next character is a letter, which means it is something like "TODONT"
+            return false;
         }
 
         return true;
