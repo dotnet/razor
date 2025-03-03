@@ -65,7 +65,7 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
             context => GetTaskListDiagnosticsAsync(context, taskListDescriptors, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<ImmutableArray<LspDiagnostic>> GetTaskListDiagnosticsAsync(
+    private static async ValueTask<ImmutableArray<LspDiagnostic>> GetTaskListDiagnosticsAsync(
         RemoteDocumentContext context,
         ImmutableArray<string> taskListDescriptors,
         CancellationToken cancellationToken)
