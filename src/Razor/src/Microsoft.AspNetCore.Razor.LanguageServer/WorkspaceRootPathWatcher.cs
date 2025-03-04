@@ -6,26 +6,26 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.Threading;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal partial class RazorFileChangeDetector : IFileChangeDetector, IDisposable
+internal partial class WorkspaceRootPathWatcher : IOnInitialized, IDisposable
 {
     private static readonly TimeSpan s_delay = TimeSpan.FromSeconds(1);
     private static readonly ImmutableArray<string> s_razorFileExtensions = [".razor", ".cshtml"];
     private static readonly string[] s_ignoredDirectories = ["node_modules"];
 
-    private readonly ImmutableArray<IRazorFileChangeListener> _listeners;
+    private readonly IWorkspaceRootPathProvider _workspaceRootPathProvider;
+    private readonly IRazorProjectService _projectService;
 
     private readonly CancellationTokenSource _disposeTokenSource;
     private readonly AsyncBatchingWorkQueue<(string, RazorFileChangeKind)> _workQueue;
@@ -35,14 +35,24 @@ internal partial class RazorFileChangeDetector : IFileChangeDetector, IDisposabl
     private readonly IFileSystem _fileSystem;
     private readonly ILogger _logger;
 
-    public RazorFileChangeDetector(IEnumerable<IRazorFileChangeListener> listeners, IFileSystem fileSystem, ILoggerFactory loggerFactory)
-        : this(listeners, fileSystem, loggerFactory, s_delay)
+    public WorkspaceRootPathWatcher(
+        IWorkspaceRootPathProvider workspaceRootPathProvider,
+        IRazorProjectService projectService,
+        IFileSystem fileSystem,
+        ILoggerFactory loggerFactory)
+        : this(workspaceRootPathProvider, projectService, fileSystem, loggerFactory, s_delay)
     {
     }
 
-    protected RazorFileChangeDetector(IEnumerable<IRazorFileChangeListener> listeners, IFileSystem fileSystem, ILoggerFactory loggerFactory, TimeSpan delay)
+    protected WorkspaceRootPathWatcher(
+        IWorkspaceRootPathProvider workspaceRootPathProvider,
+        IRazorProjectService projectService,
+        IFileSystem fileSystem,
+        ILoggerFactory loggerFactory,
+        TimeSpan delay)
     {
-        _listeners = listeners.ToImmutableArray();
+        _workspaceRootPathProvider = workspaceRootPathProvider;
+        _projectService = projectService;
 
         _disposeTokenSource = new();
         _workQueue = new AsyncBatchingWorkQueue<(string, RazorFileChangeKind)>(delay, ProcessBatchAsync, _disposeTokenSource.Token);
@@ -50,7 +60,7 @@ internal partial class RazorFileChangeDetector : IFileChangeDetector, IDisposabl
         _indicesToSkip = [];
         _watchers = new List<FileSystemWatcher>(s_razorFileExtensions.Length);
         _fileSystem = fileSystem;
-        _logger = loggerFactory.GetOrCreateLogger<RazorFileChangeDetector>();
+        _logger = loggerFactory.GetOrCreateLogger<WorkspaceRootPathWatcher>();
     }
 
     public void Dispose()
@@ -61,6 +71,8 @@ internal partial class RazorFileChangeDetector : IFileChangeDetector, IDisposabl
         }
 
         _disposeTokenSource.Cancel();
+        StopFileWatchers();
+
         _disposeTokenSource.Dispose();
     }
 
@@ -133,14 +145,27 @@ internal partial class RazorFileChangeDetector : IFileChangeDetector, IDisposabl
             }
 
             // We only send notifications for the changes that we kept.
-            foreach (var listener in _listeners)
-            {
-                await listener.RazorFileChangedAsync(filePath, value.kind, token).ConfigureAwait(false);
-            }
+            await RazorFileChangedAsync(filePath, value.kind, token).ConfigureAwait(false);
         }
     }
 
-    public async Task StartAsync(string workspaceDirectory, CancellationToken cancellationToken)
+    public async Task OnInitializedAsync(ILspServices services, CancellationToken cancellationToken)
+    {
+        // Initialized request, this occurs once the server and client have agreed on what sort of features they both support. It only happens once.
+
+        var workspaceDirectoryPath = await _workspaceRootPathProvider.GetRootPathAsync(cancellationToken).ConfigureAwait(false);
+
+        await StartAsync(workspaceDirectoryPath, cancellationToken).ConfigureAwait(false);
+
+        if (_disposeTokenSource.IsCancellationRequested)
+        {
+            // Got disposed while starting our file change detectors. We need to re-stop our change detectors.
+            StopFileWatchers();
+        }
+    }
+
+    // Protected virtual for testing
+    protected virtual async Task StartAsync(string workspaceDirectory, CancellationToken cancellationToken)
     {
         // Dive through existing Razor files and fabricate "added" events so listeners can accurately listen to state changes for them.
 
@@ -150,10 +175,7 @@ internal partial class RazorFileChangeDetector : IFileChangeDetector, IDisposabl
 
         foreach (var razorFilePath in existingRazorFiles)
         {
-            foreach (var listener in _listeners)
-            {
-                await listener.RazorFileChangedAsync(razorFilePath, RazorFileChangeKind.Added, cancellationToken).ConfigureAwait(false);
-            }
+            await RazorFileChangedAsync(razorFilePath, RazorFileChangeKind.Added, cancellationToken).ConfigureAwait(false);
         }
 
         if (!InitializeFileWatchers)
@@ -202,10 +224,8 @@ internal partial class RazorFileChangeDetector : IFileChangeDetector, IDisposabl
         }
     }
 
-    public void Stop()
+    private void StopFileWatchers()
     {
-        // We're relying on callers to synchronize start/stops so we don't need to ensure one happens before the other.
-
         foreach (var watcher in _watchers)
         {
             watcher.Dispose();
@@ -213,6 +233,18 @@ internal partial class RazorFileChangeDetector : IFileChangeDetector, IDisposabl
 
         _watchers.Clear();
     }
+
+    private Task RazorFileChangedAsync(string filePath, RazorFileChangeKind kind, CancellationToken cancellationToken)
+        => kind switch
+        {
+            // We put the new file in the misc files project, so we don't confuse the client by sending updates for
+            // a razor file that we guess is going to be in a project, when the client might not have received that
+            // info yet. When the client does find out, it will tell us by updating the project info, and we'll
+            // migrate the file as necessary.
+            RazorFileChangeKind.Added => _projectService.AddDocumentToMiscProjectAsync(filePath, cancellationToken),
+            RazorFileChangeKind.Removed => _projectService.RemoveDocumentAsync(filePath, cancellationToken),
+            _ => Task.CompletedTask
+        };
 
     // Protected virtual for testing
     protected virtual bool InitializeFileWatchers => true;
