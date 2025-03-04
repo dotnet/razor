@@ -21,12 +21,12 @@ internal class RemoteLanguageServerFeatureOptions : LanguageServerFeatureOptions
         _options = options;
 
         // ensure the source generator is in the correct mode
-        RazorSourceGenerator.UseRazorCohostServer = options.UseRazorCohostServer;
+        RazorCohostingOptions.UseRazorCohostServer = options.UseRazorCohostServer;
     }
 
     public override bool SupportsFileManipulation => _options.SupportsFileManipulation;
 
-    public override string CSharpVirtualDocumentSuffix => _options.CSharpVirtualDocumentSuffix;
+    public override string CSharpVirtualDocumentSuffix => throw new InvalidOperationException("This property is not valid in OOP");
 
     public override string HtmlVirtualDocumentSuffix => _options.HtmlVirtualDocumentSuffix;
 

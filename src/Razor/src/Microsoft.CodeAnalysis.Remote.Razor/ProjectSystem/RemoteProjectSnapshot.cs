@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
@@ -163,42 +162,70 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
     {
         var generatorResult = await GetRazorGeneratorResultAsync(cancellationToken).ConfigureAwait(false);
         if (generatorResult is null)
+        {
             return null;
+        }
 
         return generatorResult.GetCodeDocument(documentSnapshot.FilePath);
     }
 
-    internal async Task<Document?> GetGeneratedDocumentAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
+    internal async Task<SourceGeneratedDocument?> GetGeneratedDocumentAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
         var generatorResult = await GetRazorGeneratorResultAsync(cancellationToken).ConfigureAwait(false);
         if (generatorResult is null)
+        {
             return null;
+        }
 
         var hintName = generatorResult.GetHintName(documentSnapshot.FilePath);
 
-        // TODO: use this when the location is case-insensitive on windows (https://github.com/dotnet/roslyn/issues/76869)
-        //var generator = typeof(RazorSourceGenerator);
-        //var generatorAssembly = generator.Assembly;
-        //var generatorName = generatorAssembly.GetName();
-        //var generatedDocuments = await _project.GetSourceGeneratedDocumentsForGeneratorAsync(generatorName.Name!, generatorAssembly.Location, generatorName.Version!, generator.Name, cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await _project.TryGetSourceGeneratedDocumentFromHintNameAsync(hintName, cancellationToken).ConfigureAwait(false);
 
-        var generatedDocuments = await _project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-        return generatedDocuments.Single(d => d.HintName == hintName);
+        return generatedDocument ?? throw new InvalidOperationException("Couldn't get the source generated document for a hint name that we got from the generator?");
+    }
+
+    public async Task<RazorCodeDocument?> TryGetCodeDocumentFromGeneratedDocumentUriAsync(Uri generatedDocumentUri, CancellationToken cancellationToken)
+    {
+        if (!_project.TryGetHintNameFromGeneratedDocumentUri(generatedDocumentUri, out var hintName))
+        {
+            return null;
+        }
+
+        return await TryGetCodeDocumentFromGeneratedHintNameAsync(hintName, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<RazorCodeDocument?> TryGetCodeDocumentFromGeneratedHintNameAsync(string generatedDocumentHintName, CancellationToken cancellationToken)
+    {
+        var runResult = await GetRazorGeneratorResultAsync(cancellationToken).ConfigureAwait(false);
+        if (runResult is null)
+        {
+            return null;
+        }
+
+        return runResult.GetFilePath(generatedDocumentHintName) is { } razorFilePath
+            ? runResult.GetCodeDocument(razorFilePath)
+            : null;
     }
 
     private async Task<RazorGeneratorResult?> GetRazorGeneratorResultAsync(CancellationToken cancellationToken)
     {
         var result = await _project.GetSourceGeneratorRunResultAsync(cancellationToken).ConfigureAwait(false);
         if (result is null)
+        {
             return null;
+        }
 
         var runResult = result.Results.SingleOrDefault(r => r.Generator.GetGeneratorType().Assembly.Location == typeof(RazorSourceGenerator).Assembly.Location);
         if (runResult.Generator is null)
+        {
             return null;
+        }
 
 #pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         if (!runResult.HostOutputs.TryGetValue(nameof(RazorGeneratorResult), out var objectResult) || objectResult is not RazorGeneratorResult generatorResult)
+        {
             return null;
+        }
 #pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
         return generatorResult;
@@ -240,7 +267,12 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
                 builder.SetRootNamespace(RootNamespace);
                 builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
                 builder.SetSupportLocalizedComponentNames();
-                builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer, parseOptions));
+
+                builder.ConfigureParserOptions(builder =>
+                {
+                    builder.UseRoslynTokenizer = useRoslynTokenizer;
+                    builder.CSharpParseOptions = parseOptions;
+                });
             });
     }
 #endif
