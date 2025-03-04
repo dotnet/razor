@@ -520,7 +520,7 @@ public class Tag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetCSharpDocument().GeneratedCode));
+        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetCSharpDocument().Text));
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Items1=items1 Items2=items2 Items3=items3>
@@ -598,7 +598,7 @@ public class Tag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetCSharpDocument().GeneratedCode));
+        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetCSharpDocument().Text));
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Item1=item1 Items2=items2>
@@ -741,7 +741,7 @@ public class Tag : ITag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetCSharpDocument().GeneratedCode));
+        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetCSharpDocument().Text));
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Item1=@item1 Items2=@items Item3=@item1>
@@ -818,7 +818,7 @@ public class Tag : ITag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetCSharpDocument().GeneratedCode));
+        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetCSharpDocument().Text));
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Item1=@item1 Items2=@items Item3=@item1>
@@ -2327,6 +2327,37 @@ namespace Test
             //             __builder.AddContent(3, 
             Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments(")").WithLocation(24, 36)
             ]);
+    }
+
+    [IntegrationTestFact]
+    public void ExplicitExpression_HtmlOnly()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @{
+                <p></p>
+            }
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
+    public void ExplicitExpression_Whitespace()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @{
+            }
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
     }
 
     #endregion

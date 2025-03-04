@@ -12,11 +12,11 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol.SemanticTokens;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -63,7 +63,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             new CSharpVirtualDocumentAddListener(LoggerFactory),
             Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
             TestLanguageServerFeatureOptions.Instance,
-            StrictMock.Of<IProjectSnapshotManager>(),
+            CreateProjectSnapshotManager(),
             new SnippetCompletionItemProvider(new SnippetCache()),
             StrictMock.Of<IWorkspaceProvider>(),
             StrictMock.Of<IHtmlDocumentSynchronizer>(),
@@ -71,7 +71,10 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
         var request = new UpdateBufferRequest()
         {
             HostDocumentFilePath = "C:/path/to/file.razor",
-            Changes = null
+            Changes = null,
+            Checksum = "",
+            ChecksumAlgorithm = SourceHashAlgorithm.Sha256,
+            SourceEncodingCodePage = null,
         };
 
         // Act & Assert
@@ -105,7 +108,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             new CSharpVirtualDocumentAddListener(LoggerFactory),
             Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
             TestLanguageServerFeatureOptions.Instance,
-            StrictMock.Of<IProjectSnapshotManager>(),
+            CreateProjectSnapshotManager(),
             new SnippetCompletionItemProvider(new SnippetCache()),
             StrictMock.Of<IWorkspaceProvider>(),
             StrictMock.Of<IHtmlDocumentSynchronizer>(),
@@ -115,6 +118,9 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             HostDocumentFilePath = "C:/path/to/file.razor",
             HostDocumentVersion = 1337,
             Changes = [],
+            Checksum = "",
+            ChecksumAlgorithm = SourceHashAlgorithm.Sha256,
+            SourceEncodingCodePage = null,
         };
 
         // Act
@@ -158,7 +164,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             new CSharpVirtualDocumentAddListener(LoggerFactory),
             Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
             new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true),
-            StrictMock.Of<IProjectSnapshotManager>(),
+            CreateProjectSnapshotManager(),
             new SnippetCompletionItemProvider(new SnippetCache()),
             StrictMock.Of<IWorkspaceProvider>(),
             StrictMock.Of<IHtmlDocumentSynchronizer>(),
@@ -169,6 +175,9 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             HostDocumentFilePath = "C:/path/to/file.razor",
             HostDocumentVersion = 1337,
             Changes = [],
+            Checksum = "",
+            ChecksumAlgorithm = SourceHashAlgorithm.Sha256,
+            SourceEncodingCodePage = null,
         };
 
         // Act
@@ -199,7 +208,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             new CSharpVirtualDocumentAddListener(LoggerFactory),
             Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
             TestLanguageServerFeatureOptions.Instance,
-            StrictMock.Of<IProjectSnapshotManager>(),
+            CreateProjectSnapshotManager(),
             new SnippetCompletionItemProvider(new SnippetCache()),
             StrictMock.Of<IWorkspaceProvider>(),
             StrictMock.Of<IHtmlDocumentSynchronizer>(),
@@ -281,7 +290,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             csharpVirtualDocumentAddListener,
             telemetryReporter.Object,
             TestLanguageServerFeatureOptions.Instance,
-            StrictMock.Of<IProjectSnapshotManager>(),
+            CreateProjectSnapshotManager(),
             new SnippetCompletionItemProvider(new SnippetCache()),
             StrictMock.Of<IWorkspaceProvider>(),
             StrictMock.Of<IHtmlDocumentSynchronizer>(),
@@ -368,7 +377,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             csharpVirtualDocumentAddListener,
             telemetryReporter.Object,
             TestLanguageServerFeatureOptions.Instance,
-            StrictMock.Of<IProjectSnapshotManager>(),
+            CreateProjectSnapshotManager(),
             new SnippetCompletionItemProvider(new SnippetCache()),
             StrictMock.Of<IWorkspaceProvider>(),
             StrictMock.Of<IHtmlDocumentSynchronizer>(),
@@ -410,7 +419,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             new CSharpVirtualDocumentAddListener(LoggerFactory),
             Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
             TestLanguageServerFeatureOptions.Instance,
-            StrictMock.Of<IProjectSnapshotManager>(),
+            CreateProjectSnapshotManager(),
             new SnippetCompletionItemProvider(new SnippetCache()),
             StrictMock.Of<IWorkspaceProvider>(),
             StrictMock.Of<IHtmlDocumentSynchronizer>(),
@@ -459,7 +468,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             new CSharpVirtualDocumentAddListener(LoggerFactory),
             Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
             TestLanguageServerFeatureOptions.Instance,
-            StrictMock.Of<IProjectSnapshotManager>(),
+            CreateProjectSnapshotManager(),
             new SnippetCompletionItemProvider(new SnippetCache()),
             StrictMock.Of<IWorkspaceProvider>(),
             StrictMock.Of<IHtmlDocumentSynchronizer>(),
@@ -541,7 +550,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             csharpVirtualDocumentAddListener,
             telemetryReporter.Object,
             TestLanguageServerFeatureOptions.Instance,
-            StrictMock.Of<IProjectSnapshotManager>(),
+            CreateProjectSnapshotManager(),
             new SnippetCompletionItemProvider(new SnippetCache()),
             StrictMock.Of<IWorkspaceProvider>(),
             StrictMock.Of<IHtmlDocumentSynchronizer>(),
@@ -624,7 +633,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             csharpVirtualDocumentAddListener,
             telemetryReporter.Object,
             TestLanguageServerFeatureOptions.Instance,
-            StrictMock.Of<IProjectSnapshotManager>(),
+            CreateProjectSnapshotManager(),
             new SnippetCompletionItemProvider(new SnippetCache()),
             StrictMock.Of<IWorkspaceProvider>(),
             StrictMock.Of<IHtmlDocumentSynchronizer>(),

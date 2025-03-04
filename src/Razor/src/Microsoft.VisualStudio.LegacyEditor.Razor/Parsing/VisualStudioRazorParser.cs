@@ -222,7 +222,10 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
 
         var projectSnapshot = _documentTracker.ProjectSnapshot.AssumeNotNull();
 
-        _projectEngine = _projectEngineFactoryProvider.Create(projectSnapshot, ConfigureProjectEngine).AssumeNotNull();
+        _projectEngine = _projectEngineFactoryProvider.Create(
+            projectSnapshot.Configuration,
+            rootDirectoryPath: Path.GetDirectoryName(projectSnapshot.FilePath).AssumeNotNull(),
+            ConfigureProjectEngine);
 
         Debug.Assert(_projectEngine.Engine is not null);
         Debug.Assert(_projectEngine.FileSystem is not null);
@@ -589,7 +592,7 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
         }
     }
 
-    private class VisualStudioTagHelperFeature : ITagHelperFeature
+    private class VisualStudioTagHelperFeature : RazorEngineFeatureBase, ITagHelperFeature
     {
         private readonly IReadOnlyList<TagHelperDescriptor>? _tagHelpers;
 
@@ -597,8 +600,6 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
         {
             _tagHelpers = tagHelpers;
         }
-
-        public RazorEngine? Engine { get; set; }
 
         public IReadOnlyList<TagHelperDescriptor>? GetDescriptors()
         {

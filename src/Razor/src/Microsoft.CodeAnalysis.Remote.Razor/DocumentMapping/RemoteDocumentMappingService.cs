@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -22,8 +21,9 @@ internal sealed class RemoteDocumentMappingService(
     IFilePathService filePathService,
     RemoteSnapshotManager snapshotManager,
     ILoggerFactory loggerFactory)
-    : AbstractDocumentMappingService(filePathService, loggerFactory.GetOrCreateLogger<RemoteDocumentMappingService>())
+    : AbstractDocumentMappingService(loggerFactory.GetOrCreateLogger<RemoteDocumentMappingService>())
 {
+    private readonly IFilePathService _filePathService = filePathService;
     private readonly RemoteSnapshotManager _snapshotManager = snapshotManager;
 
     public async Task<(Uri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(
@@ -32,16 +32,16 @@ internal sealed class RemoteDocumentMappingService(
         LinePositionSpan generatedDocumentRange,
         CancellationToken cancellationToken)
     {
-        var razorDocumentUri = FilePathService.GetRazorDocumentUri(generatedDocumentUri);
+        var razorDocumentUri = _filePathService.GetRazorDocumentUri(generatedDocumentUri);
 
         // For Html we just map the Uri, the range will be the same
-        if (FilePathService.IsVirtualHtmlFile(generatedDocumentUri))
+        if (_filePathService.IsVirtualHtmlFile(generatedDocumentUri))
         {
             return (razorDocumentUri, generatedDocumentRange);
         }
 
         // We only map from C# files
-        if (!FilePathService.IsVirtualCSharpFile(generatedDocumentUri))
+        if (!_filePathService.IsVirtualCSharpFile(generatedDocumentUri))
         {
             return (generatedDocumentUri, generatedDocumentRange);
         }
@@ -63,7 +63,7 @@ internal sealed class RemoteDocumentMappingService(
             return (generatedDocumentUri, generatedDocumentRange);
         }
 
-        if (!razorCodeDocument.TryGetGeneratedDocument(generatedDocumentUri, FilePathService, out var generatedDocument))
+        if (!razorCodeDocument.TryGetGeneratedDocument(generatedDocumentUri, _filePathService, out var generatedDocument))
         {
             return Assumed.Unreachable<(Uri, LinePositionSpan)>();
         }

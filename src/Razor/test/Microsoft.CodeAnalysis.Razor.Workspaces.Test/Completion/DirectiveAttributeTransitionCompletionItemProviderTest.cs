@@ -1,12 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
@@ -17,8 +15,6 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 public class DirectiveAttributeTransitionCompletionItemProviderTest : ToolingTestBase
 {
-    private static readonly RazorCompletionItem s_transitionCompletionItem = DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem;
-
     private readonly TagHelperDocumentContext _tagHelperDocumentContext;
     private readonly DirectiveAttributeTransitionCompletionItemProvider _provider;
 
@@ -26,7 +22,7 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest : ToolingTes
         : base(testOutput)
     {
         _tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, tagHelpers: []);
-        _provider = new DirectiveAttributeTransitionCompletionItemProvider();
+        _provider = new DirectiveAttributeTransitionCompletionItemProvider(TestLanguageServerFeatureOptions.Instance);
     }
 
     [Fact]
@@ -197,7 +193,7 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest : ToolingTes
 
         // Assert
         var item = Assert.Single(result);
-        Assert.Same(item, s_transitionCompletionItem);
+        Assert.True(DirectiveAttributeTransitionCompletionItemProvider.IsTransitionCompletionItem(item));
     }
 
     [Fact]
@@ -211,7 +207,7 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest : ToolingTes
 
         // Assert
         var item = Assert.Single(result);
-        Assert.Same(item, s_transitionCompletionItem);
+        Assert.True(DirectiveAttributeTransitionCompletionItemProvider.IsTransitionCompletionItem(item));
     }
 
     [Fact]
@@ -225,7 +221,7 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest : ToolingTes
 
         // Assert
         var item = Assert.Single(result);
-        Assert.Same(item, s_transitionCompletionItem);
+        Assert.True(DirectiveAttributeTransitionCompletionItemProvider.IsTransitionCompletionItem(item));
     }
 
     [Fact]
@@ -291,7 +287,7 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest : ToolingTes
 
         // Assert
         var item = Assert.Single(result);
-        Assert.Same(item, s_transitionCompletionItem);
+        Assert.True(DirectiveAttributeTransitionCompletionItemProvider.IsTransitionCompletionItem(item));
     }
 
     [Fact]
@@ -305,10 +301,35 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest : ToolingTes
 
         // Assert
         var item = Assert.Single(result);
-        Assert.Same(item, s_transitionCompletionItem);
+        Assert.True(DirectiveAttributeTransitionCompletionItemProvider.IsTransitionCompletionItem(item));
     }
 
-    private static RazorSyntaxTree GetSyntaxTree(string text, string fileKind = null)
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void GetCompletionItems_WithAvoidExplicitCommitOption_ReturnsAppropriateCommitCharacters(bool supportsSoftSelection)
+    {
+        // Arrange
+        var context = CreateContext(absoluteIndex: 7, "<input  />");
+        var provider = new DirectiveAttributeTransitionCompletionItemProvider(new TestLanguageServerFeatureOptions(supportsSoftSelectionInCompletion: supportsSoftSelection));
+
+        // Act
+        var result = provider.GetCompletionItems(context);
+
+        // Assert
+        var item = Assert.Single(result);
+        Assert.True(DirectiveAttributeTransitionCompletionItemProvider.IsTransitionCompletionItem(item));
+        if (supportsSoftSelection)
+        {
+            Assert.NotEmpty(item.CommitCharacters);
+        }
+        else
+        {
+            Assert.Empty(item.CommitCharacters);
+        }
+    }
+
+    private static RazorSyntaxTree GetSyntaxTree(string text, string? fileKind = null)
     {
         fileKind ??= FileKinds.Component;
         var sourceDocument = TestRazorSourceDocument.Create(text);
@@ -316,18 +337,18 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest : ToolingTes
         {
             builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
         });
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importSources: default, Array.Empty<TagHelperDescriptor>());
-        var syntaxTree = codeDocument.GetSyntaxTree();
 
-        return syntaxTree;
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importSources: default, tagHelpers: []);
+
+        return codeDocument.GetSyntaxTree();
     }
 
-    private RazorCompletionContext CreateContext(int absoluteIndex, string documentContent, string fileKind = null)
+    private RazorCompletionContext CreateContext(int absoluteIndex, string documentContent, string? fileKind = null)
     {
         var syntaxTree = GetSyntaxTree(documentContent, fileKind);
         var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex, includeWhitespace: true, walkMarkersBack: true);
         owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, absoluteIndex);
-        var context = new RazorCompletionContext(absoluteIndex, owner, syntaxTree, _tagHelperDocumentContext);
-        return context;
+
+        return new RazorCompletionContext(absoluteIndex, owner, syntaxTree, _tagHelperDocumentContext);
     }
 }

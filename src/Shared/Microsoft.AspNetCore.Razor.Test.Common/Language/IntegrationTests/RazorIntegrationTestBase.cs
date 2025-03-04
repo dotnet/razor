@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Xunit;
 using Xunit.Sdk;
@@ -241,7 +242,7 @@ public class RazorIntegrationTestBase
                 codeDocument = projectEngine.ProcessDeclarationOnly(item);
                 Assert.Empty(codeDocument.GetCSharpDocument().Diagnostics);
 
-                var syntaxTree = Parse(codeDocument.GetCSharpDocument().GeneratedCode, csharpParseOptions, path: item.FilePath);
+                var syntaxTree = Parse(codeDocument.GetCSharpDocument().Text, csharpParseOptions, path: item.FilePath);
                 AdditionalSyntaxTrees.Add(syntaxTree);
             }
 
@@ -252,7 +253,7 @@ public class RazorIntegrationTestBase
             {
                 BaseCompilation = baseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetCSharpDocument().GeneratedCode,
+                Code = codeDocument.GetCSharpDocument().Text.ToString(),
                 RazorDiagnostics = codeDocument.GetCSharpDocument().Diagnostics,
                 ParseOptions = csharpParseOptions,
             };
@@ -272,7 +273,7 @@ public class RazorIntegrationTestBase
                 Assert.Empty(codeDocument.GetCSharpDocument().Diagnostics);
 
                 // Replace the 'declaration' syntax tree
-                var syntaxTree = Parse(codeDocument.GetCSharpDocument().GeneratedCode, csharpParseOptions, path: item.FilePath);
+                var syntaxTree = Parse(codeDocument.GetCSharpDocument().Text, csharpParseOptions, path: item.FilePath);
                 AdditionalSyntaxTrees.RemoveAll(st => st.FilePath == item.FilePath);
                 AdditionalSyntaxTrees.Add(syntaxTree);
             }
@@ -283,7 +284,7 @@ public class RazorIntegrationTestBase
             {
                 BaseCompilation = baseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetCSharpDocument().GeneratedCode,
+                Code = codeDocument.GetCSharpDocument().Text.ToString(),
                 RazorDiagnostics = codeDocument.GetCSharpDocument().Diagnostics,
                 ParseOptions = csharpParseOptions,
             };
@@ -314,7 +315,7 @@ public class RazorIntegrationTestBase
             {
                 BaseCompilation = baseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetCSharpDocument().GeneratedCode,
+                Code = codeDocument.GetCSharpDocument().Text.ToString(),
                 RazorDiagnostics = codeDocument.GetCSharpDocument().Diagnostics,
                 ParseOptions = csharpParseOptions,
             };
@@ -396,9 +397,14 @@ public class RazorIntegrationTestBase
         return componentType;
     }
 
-    protected static CSharpSyntaxTree Parse(string text, CSharpParseOptions? parseOptions = null, string path = "")
+    protected static CSharpSyntaxTree Parse(SourceText text, CSharpParseOptions? parseOptions = null, string path = "")
     {
         return (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(text, parseOptions ?? CSharpParseOptions, path: path);
+    }
+
+    protected static CSharpSyntaxTree Parse(string text, CSharpParseOptions? parseOptions = null, string path = "")
+    {
+        return Parse(SourceText.From(text, Encoding.UTF8), parseOptions, path);
     }
 
     protected static void AssertSourceEquals(string expected, CompileToCSharpResult generated)
@@ -479,11 +485,9 @@ public class RazorIntegrationTestBase
         }
     }
 
-    private class SuppressChecksum : IConfigureRazorCodeGenerationOptionsFeature
+    private class SuppressChecksum : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
     {
         public int Order => 0;
-
-        public RazorEngine? Engine { get; set; }
 
         public void Configure(RazorCodeGenerationOptionsBuilder options)
         {
@@ -491,11 +495,9 @@ public class RazorIntegrationTestBase
         }
     }
 
-    private class SupportLocalizedComponentNames : IConfigureRazorCodeGenerationOptionsFeature
+    private class SupportLocalizedComponentNames : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
     {
         public int Order => 0;
-
-        public RazorEngine? Engine { get; set; }
 
         public void Configure(RazorCodeGenerationOptionsBuilder options)
         {
@@ -523,7 +525,7 @@ public class RazorIntegrationTestBase
         }
     }
 
-    private class TestImportProjectFeature : IImportProjectFeature
+    private class TestImportProjectFeature : RazorProjectEngineFeatureBase, IImportProjectFeature
     {
         private readonly List<RazorProjectItem> _imports;
 
@@ -531,8 +533,6 @@ public class RazorIntegrationTestBase
         {
             _imports = imports;
         }
-
-        public RazorProjectEngine? ProjectEngine { get; set; }
 
         public IReadOnlyList<RazorProjectItem> GetImports(RazorProjectItem projectItem)
         {

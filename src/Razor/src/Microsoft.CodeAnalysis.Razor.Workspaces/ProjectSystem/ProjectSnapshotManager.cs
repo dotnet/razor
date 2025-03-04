@@ -4,16 +4,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -25,11 +24,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 // (language version, extensions, named configuration).
 //
 // The implementation will create a ProjectSnapshot for each HostProject.
-internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDisposable
+internal partial class ProjectSnapshotManager : IDisposable
 {
     private readonly IProjectEngineFactoryProvider _projectEngineFactoryProvider;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly RazorCompilerOptions _compilerOptions;
     private readonly Dispatcher _dispatcher;
+    private readonly ILogger _logger;
     private readonly bool _initialized;
 
     public event EventHandler<ProjectChangeEventArgs>? PriorityChanged;
@@ -57,29 +57,46 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
 
     #endregion
 
-    // We have a queue for changes because if one change results in another change aka, add -> open
-    // we want to make sure the "add" finishes running first before "open" is notified.
+    #region protected by dispatcher
+
+    /// <summary>
+    ///  A queue of ordered notifications to process.
+    /// </summary>
+    /// <remarks>
+    ///  ⚠️ This field must only be accessed when running on the dispatcher.
+    /// </remarks>
     private readonly Queue<ProjectChangeEventArgs> _notificationQueue = new();
+
+    /// <summary>
+    ///  <see langword="true"/> while <see cref="_notificationQueue"/> is being processed.
+    /// </summary>
+    /// <remarks>
+    ///  ⚠️ This field must only be accessed when running on the dispatcher.
+    /// </remarks>
+    private bool _processingNotifications;
+
+    #endregion
 
     /// <summary>
     /// Constructs an instance of <see cref="ProjectSnapshotManager"/>.
     /// </summary>
     /// <param name="projectEngineFactoryProvider">The <see cref="IProjectEngineFactoryProvider"/> to
     /// use when creating <see cref="ProjectState"/>.</param>
-    /// <param name="languageServerFeatureOptions">The options that were used to start the language server</param>
+    /// <param name="compilerOptions">Options used to control Razor compilation.</param>
     /// <param name="loggerFactory">The <see cref="ILoggerFactory"/> to use.</param>
     /// <param name="initializer">An optional callback to set up the initial set of projects and documents.
     /// Note that this is called during construction, so it does not run on the dispatcher and notifications
     /// will not be sent.</param>
     public ProjectSnapshotManager(
         IProjectEngineFactoryProvider projectEngineFactoryProvider,
-        LanguageServerFeatureOptions languageServerFeatureOptions,
+        RazorCompilerOptions compilerOptions,
         ILoggerFactory loggerFactory,
         Action<Updater>? initializer = null)
     {
         _projectEngineFactoryProvider = projectEngineFactoryProvider;
-        _languageServerFeatureOptions = languageServerFeatureOptions;
+        _compilerOptions = compilerOptions;
         _dispatcher = new(loggerFactory);
+        _logger = loggerFactory.GetOrCreateLogger(GetType());
 
         initializer?.Invoke(new(this));
 
@@ -103,11 +120,11 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         }
     }
 
-    public ImmutableArray<IProjectSnapshot> GetProjects()
+    public ImmutableArray<ProjectSnapshot> GetProjects()
     {
         using (_readerWriterLock.DisposableRead())
         {
-            using var builder = new PooledArrayBuilder<IProjectSnapshot>(_projectMap.Count);
+            using var builder = new PooledArrayBuilder<ProjectSnapshot>(_projectMap.Count);
 
             foreach (var (_, entry) in _projectMap)
             {
@@ -126,20 +143,15 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         }
     }
 
-    public IProjectSnapshot GetLoadedProject(ProjectKey projectKey)
+    public bool ContainsProject(ProjectKey projectKey)
     {
         using (_readerWriterLock.DisposableRead())
         {
-            if (_projectMap.TryGetValue(projectKey, out var entry))
-            {
-                return entry.GetSnapshot();
-            }
+            return _projectMap.ContainsKey(projectKey);
         }
-
-        throw new InvalidOperationException($"No project snapshot exists with the key, '{projectKey}'");
     }
 
-    public bool TryGetLoadedProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? project)
+    public bool TryGetProject(ProjectKey projectKey, [NotNullWhen(true)] out ProjectSnapshot? project)
     {
         using (_readerWriterLock.DisposableRead())
         {
@@ -154,7 +166,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         return false;
     }
 
-    public ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName)
+    public ImmutableArray<ProjectKey> GetProjectKeysWithFilePath(string filePath)
     {
         using (_readerWriterLock.DisposableRead())
         {
@@ -162,7 +174,7 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
 
             foreach (var (key, entry) in _projectMap)
             {
-                if (FilePathComparer.Instance.Equals(entry.State.HostProject.FilePath, projectFileName))
+                if (FilePathComparer.Instance.Equals(entry.State.HostProject.FilePath, filePath))
                 {
                     projects.Add(key);
                 }
@@ -177,168 +189,6 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         using (_readerWriterLock.DisposableRead())
         {
             return _openDocumentSet.Contains(documentFilePath);
-        }
-    }
-
-    private void DocumentAdded(ProjectKey projectKey, HostDocument document, TextLoader textLoader)
-    {
-        if (_initialized)
-        {
-            _dispatcher.AssertRunningOnDispatcher();
-        }
-
-        if (TryUpdate(
-            projectKey,
-            document.FilePath,
-            new AddDocumentAction(document, textLoader),
-            out var oldSnapshot,
-            out var newSnapshot))
-        {
-            NotifyListeners(oldSnapshot, newSnapshot, document.FilePath, ProjectChangeKind.DocumentAdded);
-        }
-    }
-
-    private void DocumentRemoved(ProjectKey projectKey, HostDocument document)
-    {
-        if (_initialized)
-        {
-            _dispatcher.AssertRunningOnDispatcher();
-        }
-
-        if (TryUpdate(
-            projectKey,
-            document.FilePath,
-            new RemoveDocumentAction(document),
-            out var oldSnapshot,
-            out var newSnapshot))
-        {
-            NotifyListeners(oldSnapshot, newSnapshot, document.FilePath, ProjectChangeKind.DocumentRemoved);
-        }
-    }
-
-    private void DocumentOpened(ProjectKey projectKey, string documentFilePath, SourceText sourceText)
-    {
-        if (_initialized)
-        {
-            _dispatcher.AssertRunningOnDispatcher();
-        }
-
-        if (TryUpdate(
-            projectKey,
-            documentFilePath,
-            new OpenDocumentAction(sourceText),
-            out var oldSnapshot,
-            out var newSnapshot))
-        {
-            NotifyListeners(oldSnapshot, newSnapshot, documentFilePath, ProjectChangeKind.DocumentChanged);
-        }
-    }
-
-    private void DocumentClosed(ProjectKey projectKey, string documentFilePath, TextLoader textLoader)
-    {
-        if (_initialized)
-        {
-            _dispatcher.AssertRunningOnDispatcher();
-        }
-
-        if (TryUpdate(
-            projectKey,
-            documentFilePath,
-            new CloseDocumentAction(textLoader),
-            out var oldSnapshot,
-            out var newSnapshot))
-        {
-            NotifyListeners(oldSnapshot, newSnapshot, documentFilePath, ProjectChangeKind.DocumentChanged);
-        }
-    }
-
-    private void DocumentChanged(ProjectKey projectKey, string documentFilePath, SourceText sourceText)
-    {
-        if (_initialized)
-        {
-            _dispatcher.AssertRunningOnDispatcher();
-        }
-
-        if (TryUpdate(
-            projectKey,
-            documentFilePath,
-            new DocumentTextChangedAction(sourceText),
-            out var oldSnapshot,
-            out var newSnapshot))
-        {
-            NotifyListeners(oldSnapshot, newSnapshot, documentFilePath, ProjectChangeKind.DocumentChanged);
-        }
-    }
-
-    private void DocumentChanged(ProjectKey projectKey, string documentFilePath, TextLoader textLoader)
-    {
-        if (_initialized)
-        {
-            _dispatcher.AssertRunningOnDispatcher();
-        }
-
-        if (TryUpdate(
-            projectKey,
-            documentFilePath,
-            new DocumentTextLoaderChangedAction(textLoader),
-            out var oldSnapshot,
-            out var newSnapshot))
-        {
-            NotifyListeners(oldSnapshot, newSnapshot, documentFilePath, ProjectChangeKind.DocumentChanged);
-        }
-    }
-
-    private void ProjectAdded(HostProject hostProject)
-    {
-        if (_initialized)
-        {
-            _dispatcher.AssertRunningOnDispatcher();
-        }
-
-        if (TryUpdate(
-            hostProject.Key,
-            documentFilePath: null,
-            new ProjectAddedAction(hostProject),
-            out _,
-            out var newSnapshot))
-        {
-            NotifyListeners(older: null, newSnapshot, documentFilePath: null, ProjectChangeKind.ProjectAdded);
-        }
-    }
-
-    private void ProjectChanged(HostProject hostProject, ProjectWorkspaceState projectWorkspaceState)
-    {
-        if (_initialized)
-        {
-            _dispatcher.AssertRunningOnDispatcher();
-        }
-
-        if (TryUpdate(
-            hostProject.Key,
-            documentFilePath: null,
-            new ProjectChangeAction(hostProject, projectWorkspaceState),
-            out var oldSnapshot,
-            out var newSnapshot))
-        {
-            NotifyListeners(oldSnapshot, newSnapshot, documentFilePath: null, ProjectChangeKind.ProjectChanged);
-        }
-    }
-
-    private void ProjectRemoved(ProjectKey projectKey)
-    {
-        if (_initialized)
-        {
-            _dispatcher.AssertRunningOnDispatcher();
-        }
-
-        if (TryUpdate(
-            projectKey,
-            documentFilePath: null,
-            new ProjectRemovedAction(projectKey),
-            out var oldSnapshot,
-            out var newSnapshot))
-        {
-            NotifyListeners(oldSnapshot, newSnapshot, documentFilePath: null, ProjectChangeKind.ProjectRemoved);
         }
     }
 
@@ -368,230 +218,300 @@ internal partial class ProjectSnapshotManager : IProjectSnapshotManager, IDispos
         }
     }
 
-    private void NotifyListeners(IProjectSnapshot? older, IProjectSnapshot? newer, string? documentFilePath, ProjectChangeKind kind)
+    private void AddProject(HostProject hostProject)
+    {
+        if (TryAddProject(hostProject, out var newSnapshot, out var isSolutionClosing))
+        {
+            NotifyListeners(ProjectChangeEventArgs.ProjectAdded(newSnapshot, isSolutionClosing));
+        }
+    }
+
+    private void RemoveProject(ProjectKey projectKey)
+    {
+        if (TryRemoveProject(projectKey, out var oldProject, out var isSolutionClosing))
+        {
+            NotifyListeners(ProjectChangeEventArgs.ProjectRemoved(oldProject, isSolutionClosing));
+        }
+    }
+
+    private void UpdateProjectConfiguration(HostProject hostProject)
+    {
+        if (TryUpdateProject(
+            hostProject.Key,
+            transformer: state => state.WithHostProject(hostProject),
+            out var oldProject,
+            out var newProject,
+            out var isSolutionClosing))
+        {
+            NotifyListeners(ProjectChangeEventArgs.ProjectChanged(oldProject, newProject, isSolutionClosing));
+        }
+    }
+
+    private void UpdateProjectWorkspaceState(ProjectKey projectKey, ProjectWorkspaceState projectWorkspaceState)
+    {
+        if (TryUpdateProject(
+            projectKey,
+            transformer: state => state.WithProjectWorkspaceState(projectWorkspaceState),
+            out var oldProject,
+            out var newProject,
+            out var isSolutionClosing))
+        {
+            NotifyListeners(ProjectChangeEventArgs.ProjectChanged(oldProject, newProject, isSolutionClosing));
+        }
+    }
+
+    private void AddDocument(ProjectKey projectKey, HostDocument hostDocument, SourceText text)
+    {
+        if (TryUpdateProject(
+            projectKey,
+            transformer: state => state.AddDocument(hostDocument, text),
+            out var oldProject,
+            out var newSnapshot,
+            out var isSolutionClosing))
+        {
+            NotifyListeners(ProjectChangeEventArgs.DocumentAdded(oldProject, newSnapshot, hostDocument.FilePath, isSolutionClosing));
+        }
+    }
+
+    private void AddDocument(ProjectKey projectKey, HostDocument hostDocument, TextLoader textLoader)
+    {
+        if (TryUpdateProject(
+            projectKey,
+            transformer: state => state.AddDocument(hostDocument, textLoader),
+            out var oldProject,
+            out var newProject,
+            out var isSolutionClosing))
+        {
+            NotifyListeners(ProjectChangeEventArgs.DocumentAdded(oldProject, newProject, hostDocument.FilePath, isSolutionClosing));
+        }
+    }
+
+    private void RemoveDocument(ProjectKey projectKey, string documentFilePath)
+    {
+        if (TryUpdateProject(
+            projectKey,
+            transformer: state => state.RemoveDocument(documentFilePath),
+            out var oldProject,
+            out var newProject,
+            out var isSolutionClosing))
+        {
+            NotifyListeners(ProjectChangeEventArgs.DocumentRemoved(oldProject, newProject, documentFilePath, isSolutionClosing));
+        }
+    }
+
+    private void OpenDocument(ProjectKey projectKey, string documentFilePath, SourceText text)
+    {
+        if (TryUpdateProject(
+            projectKey,
+            transformer: state => state.WithDocumentText(documentFilePath, text),
+            onAfterUpdate: () => _openDocumentSet.Add(documentFilePath),
+            out var oldProject,
+            out var newProject,
+            out var isSolutionClosing))
+        {
+            NotifyListeners(ProjectChangeEventArgs.DocumentChanged(oldProject, newProject, documentFilePath, isSolutionClosing));
+        }
+    }
+
+    private void CloseDocument(ProjectKey projectKey, string documentFilePath, TextLoader textLoader)
+    {
+        if (TryUpdateProject(
+            projectKey,
+            transformer: state => state.WithDocumentText(documentFilePath, textLoader),
+            onAfterUpdate: () => _openDocumentSet.Remove(documentFilePath),
+            out var oldProject,
+            out var newProject,
+            out var isSolutionClosing))
+        {
+            NotifyListeners(ProjectChangeEventArgs.DocumentChanged(oldProject, newProject, documentFilePath, isSolutionClosing));
+        }
+    }
+
+    private void UpdateDocumentText(ProjectKey projectKey, string documentFilePath, SourceText text)
+    {
+        if (TryUpdateProject(
+            projectKey,
+            transformer: state => state.WithDocumentText(documentFilePath, text),
+            out var oldProject,
+            out var newProject,
+            out var isSolutionClosing))
+        {
+            NotifyListeners(ProjectChangeEventArgs.DocumentChanged(oldProject, newProject, documentFilePath, isSolutionClosing));
+        }
+    }
+
+    private void UpdateDocumentText(ProjectKey projectKey, string documentFilePath, TextLoader textLoader)
+    {
+        if (TryUpdateProject(
+            projectKey,
+            transformer: state => state.WithDocumentText(documentFilePath, textLoader),
+            out var oldProject,
+            out var newProject,
+            out var isSolutionClosing))
+        {
+            NotifyListeners(ProjectChangeEventArgs.DocumentChanged(oldProject, newProject, documentFilePath, isSolutionClosing));
+        }
+    }
+
+    private bool TryAddProject(HostProject hostProject, [NotNullWhen(true)] out ProjectSnapshot? newProject, out bool isSolutionClosing)
+    {
+        if (_initialized)
+        {
+            _dispatcher.AssertRunningOnDispatcher();
+        }
+
+        using var upgradeableLock = _readerWriterLock.DisposableUpgradeableRead();
+
+        isSolutionClosing = _isSolutionClosing;
+
+        // If the solution is closing or the project already exists, don't add a new project.
+        if (isSolutionClosing || _projectMap.ContainsKey(hostProject.Key))
+        {
+            newProject = null;
+            return false;
+        }
+
+        var state = ProjectState.Create(hostProject, _compilerOptions, _projectEngineFactoryProvider);
+
+        var newEntry = new Entry(state);
+
+        upgradeableLock.EnterWrite();
+        _projectMap.Add(hostProject.Key, newEntry);
+
+        newProject = newEntry.GetSnapshot();
+        return true;
+    }
+
+    private bool TryRemoveProject(ProjectKey projectKey, [NotNullWhen(true)] out ProjectSnapshot? oldProject, out bool isSolutionClosing)
+    {
+        if (_initialized)
+        {
+            _dispatcher.AssertRunningOnDispatcher();
+        }
+
+        using var upgradeableLock = _readerWriterLock.DisposableUpgradeableRead();
+
+        isSolutionClosing = _isSolutionClosing;
+
+        if (!_projectMap.TryGetValue(projectKey, out var entry))
+        {
+            oldProject = null;
+            return false;
+        }
+
+        oldProject = entry.GetSnapshot();
+
+        upgradeableLock.EnterWrite();
+        _projectMap.Remove(projectKey);
+
+        return true;
+    }
+
+    private bool TryUpdateProject(
+        ProjectKey projectKey,
+        Func<ProjectState, ProjectState> transformer,
+        [NotNullWhen(true)] out ProjectSnapshot? oldProject,
+        [NotNullWhen(true)] out ProjectSnapshot? newProject,
+        out bool isSolutionClosing)
+        => TryUpdateProject(projectKey, transformer, onAfterUpdate: null, out oldProject, out newProject, out isSolutionClosing);
+
+    private bool TryUpdateProject(
+        ProjectKey projectKey,
+        Func<ProjectState, ProjectState> transformer,
+        Action? onAfterUpdate,
+        [NotNullWhen(true)] out ProjectSnapshot? oldProject,
+        [NotNullWhen(true)] out ProjectSnapshot? newProject,
+        out bool isSolutionClosing)
+    {
+        if (_initialized)
+        {
+            _dispatcher.AssertRunningOnDispatcher();
+        }
+
+        using var upgradeableLock = _readerWriterLock.DisposableUpgradeableRead();
+
+        isSolutionClosing = _isSolutionClosing;
+
+        if (!_projectMap.TryGetValue(projectKey, out var oldEntry))
+        {
+            oldProject = newProject = null;
+            return false;
+        }
+
+        // If the solution is closing, we don't need to bother computing new state.
+        if (isSolutionClosing)
+        {
+            oldProject = newProject = oldEntry.GetSnapshot();
+            return true;
+        }
+
+        var oldState = oldEntry.State;
+        var newState = transformer(oldState);
+
+        if (ReferenceEquals(oldState, newState))
+        {
+            oldProject = newProject = null;
+            return false;
+        }
+
+        upgradeableLock.EnterWrite();
+
+        var newEntry = new Entry(newState);
+        _projectMap[projectKey] = newEntry;
+
+        onAfterUpdate?.Invoke();
+
+        oldProject = oldEntry.GetSnapshot();
+        newProject = newEntry.GetSnapshot();
+
+        return true;
+    }
+
+    private void NotifyListeners(ProjectChangeEventArgs notification)
     {
         if (!_initialized)
         {
             return;
         }
 
-        _notificationQueue.Enqueue(new ProjectChangeEventArgs(older, newer, documentFilePath, kind, IsSolutionClosing));
+        // Notifications are *always* sent using the dispatcher.
+        // This ensures that _notificationQueue and _processingNotifications are synchronized.
+        _dispatcher.AssertRunningOnDispatcher();
 
-        if (_notificationQueue.Count == 1)
+        // Enqueue the latest notification.
+        _notificationQueue.Enqueue(notification);
+
+        // We're already processing the notification queue, so we're done.
+        if (_processingNotifications)
         {
-            // Only one notification, go ahead and start notifying. In the situation where Count > 1
-            // it means an event was triggered as a response to another event. To ensure order we won't
-            // immediately re-invoke Changed here, we'll wait for the stack to unwind to notify others.
-            // This process still happens synchronously it just ensures that events happen in the correct
-            // order. For instance, let's take the situation where a document is added to a project.
-            // That document will be added and then opened. However, if the result of "adding" causes an
-            // "open" to trigger we want to ensure that "add" finishes prior to "open" being notified.
-
-            // Start unwinding the notification queue
-            do
-            {
-                // Don't dequeue yet, we want the notification to sit in the queue until we've finished
-                // notifying to ensure other calls to NotifyListeners know there's a currently running event loop.
-                var args = _notificationQueue.Peek();
-                PriorityChanged?.Invoke(this, args);
-                Changed?.Invoke(this, args);
-
-                _notificationQueue.Dequeue();
-            }
-            while (_notificationQueue.Count > 0);
-        }
-    }
-
-    private bool TryUpdate(
-        ProjectKey projectKey,
-        string? documentFilePath,
-        IUpdateProjectAction action,
-        [NotNullWhen(true)] out IProjectSnapshot? oldSnapshot,
-        [NotNullWhen(true)] out IProjectSnapshot? newSnapshot)
-    {
-        using var upgradeableLock = _readerWriterLock.DisposableUpgradeableRead();
-
-        if (action is ProjectAddedAction(var hostProject))
-        {
-            // If the project already exists, we can't add it again, so return false.
-            if (_projectMap.ContainsKey(hostProject.Key))
-            {
-                oldSnapshot = newSnapshot = null;
-                return false;
-            }
-
-            // ... otherwise, add the project and return true.
-
-            var state = ProjectState.Create(
-                _projectEngineFactoryProvider,
-                _languageServerFeatureOptions,
-                hostProject,
-                ProjectWorkspaceState.Default);
-
-            var newEntry = new Entry(state);
-
-            upgradeableLock.EnterWrite();
-            _projectMap[hostProject.Key] = newEntry;
-
-            oldSnapshot = newSnapshot = newEntry.GetSnapshot();
-            return true;
+            return;
         }
 
-        if (_projectMap.TryGetValue(projectKey, out var entry))
+        Debug.Assert(_notificationQueue.Count == 1, "There should only be a single queued notification when processing begins.");
+
+        // The notification queue is processed when it contains *exactly* one notification.
+        // Note that a notification subscriber may mutate the current solution and cause additional
+        // notifications to be be enqueued. However, because we are already running on the dispatcher,
+        // those updates will occur synchronously.
+
+        _processingNotifications = true;
+        try
         {
-            // if the solution is closing we don't need to bother computing new state
-            if (_isSolutionClosing)
+            while (_notificationQueue.Count > 0)
             {
-                oldSnapshot = newSnapshot = entry.GetSnapshot();
-                return true;
-            }
+                var current = _notificationQueue.Dequeue();
 
-            // If we're removing a project, we don't need to try and compute new state for it.
-            // We can just remove it.
-            if (action is ProjectRemovedAction)
-            {
-                upgradeableLock.EnterWrite();
-
-                _projectMap.Remove(projectKey);
-
-                oldSnapshot = newSnapshot = entry.GetSnapshot();
-                return true;
-            }
-
-            // ... otherwise, compute a new entry and update if it's changed from the old state.
-            var documentState = documentFilePath is not null
-                ? entry.State.Documents.GetValueOrDefault(documentFilePath)
-                : null;
-
-            var newEntry = ComputeNewEntry(entry, action, documentState);
-
-            if (!ReferenceEquals(newEntry.State, entry.State))
-            {
-                upgradeableLock.EnterWrite();
-
-                _projectMap[projectKey] = newEntry;
-
-                switch (action)
-                {
-                    case OpenDocumentAction:
-                        _openDocumentSet.Add(documentFilePath.AssumeNotNull());
-                        break;
-                    case CloseDocumentAction:
-                        _openDocumentSet.Remove(documentFilePath.AssumeNotNull());
-                        break;
-                }
-
-                oldSnapshot = entry.GetSnapshot();
-                newSnapshot = newEntry.GetSnapshot();
-
-                return true;
+                PriorityChanged?.Invoke(this, current);
+                Changed?.Invoke(this, current);
             }
         }
-
-        oldSnapshot = newSnapshot = null;
-        return false;
-    }
-
-    private static Entry ComputeNewEntry(Entry originalEntry, IUpdateProjectAction action, DocumentState? documentState)
-    {
-        switch (action)
+        catch (Exception ex)
         {
-            case AddDocumentAction(var newDocument, var textLoader):
-                return new Entry(originalEntry.State.WithAddedHostDocument(newDocument, textLoader));
-
-            case RemoveDocumentAction(var originalDocument):
-                return new Entry(originalEntry.State.WithRemovedHostDocument(originalDocument));
-
-            case CloseDocumentAction(var textLoader):
-                {
-                    // If the document being closed has already been removed from the project then we no-op
-                    if (documentState is null)
-                    {
-                        return originalEntry;
-                    }
-
-                    var state = originalEntry.State.WithChangedHostDocument(
-                        documentState.HostDocument,
-                        textLoader);
-
-                    return new Entry(state);
-                }
-
-            case OpenDocumentAction(var sourceText):
-                {
-                    documentState.AssumeNotNull();
-
-                    if (documentState.TryGetText(out var olderText) &&
-                        documentState.TryGetTextVersion(out var olderVersion))
-                    {
-                        var version = sourceText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
-                        var newState = originalEntry.State.WithChangedHostDocument(documentState.HostDocument, sourceText, version);
-                        return new Entry(newState);
-                    }
-                    else
-                    {
-                        var newState = originalEntry.State.WithChangedHostDocument(
-                            documentState.HostDocument,
-                            new UpdatedTextLoader(documentState, sourceText));
-
-                        return new Entry(newState);
-                    }
-                }
-
-            case DocumentTextLoaderChangedAction(var textLoader):
-                {
-                    var newState = originalEntry.State.WithChangedHostDocument(
-                        documentState.AssumeNotNull().HostDocument,
-                        textLoader);
-
-                    return new Entry(newState);
-                }
-
-            case DocumentTextChangedAction(var sourceText):
-                {
-                    // If the document being changed has already been removed from the project then we no-op
-                    if (documentState is null)
-                    {
-                        return originalEntry;
-                    }
-
-                    if (documentState.TryGetText(out var olderText) &&
-                        documentState.TryGetTextVersion(out var olderVersion))
-                    {
-                        var version = sourceText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
-                        var state = originalEntry.State.WithChangedHostDocument(documentState.HostDocument, sourceText, version);
-
-                        return new Entry(state);
-                    }
-                    else
-                    {
-                        var state = originalEntry.State.WithChangedHostDocument(
-                            documentState.HostDocument,
-                            new UpdatedTextLoader(documentState, sourceText));
-
-                        return new Entry(state);
-                    }
-                }
-
-            case ProjectChangeAction(var hostProject, var workspaceState):
-                return new Entry(originalEntry.State.WithHostProjectAndWorkspaceState(hostProject, workspaceState));
-
-            default:
-                throw new InvalidOperationException($"Unexpected action type {action.GetType()}");
+            _logger.LogError(ex, "Exception occurred while sending notifications.");
         }
-    }
-
-    private sealed class UpdatedTextLoader(DocumentState oldState, SourceText newSourceText) : TextLoader
-    {
-        public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        finally
         {
-            var oldTextAndVersion = await oldState.GetTextAndVersionAsync(cancellationToken).ConfigureAwait(false);
-
-            var version = newSourceText.ContentEquals(oldTextAndVersion.Text)
-                ? oldTextAndVersion.Version
-                : oldTextAndVersion.Version.GetNewerVersion();
-
-            return TextAndVersion.Create(newSourceText, version);
+            _processingNotifications = false;
         }
     }
 

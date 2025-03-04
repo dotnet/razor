@@ -6,13 +6,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -20,8 +21,8 @@ using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using CSharpSyntaxFactory = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 
@@ -36,15 +37,7 @@ internal class GenerateMethodCodeActionResolver(
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
     private readonly IFileSystem _fileSystem = fileSystem;
 
-    private const string ReturnType = "$$ReturnType$$";
-    private const string MethodName = "$$MethodName$$";
-    private const string EventArgs = "$$EventArgs$$";
     private const string BeginningIndents = $"{FormattingUtilities.InitialIndent}{FormattingUtilities.Indent}";
-    private static readonly string s_generateMethodTemplate =
-        $"{BeginningIndents}private {ReturnType} {MethodName}({EventArgs}){Environment.NewLine}" +
-        BeginningIndents + "{" + Environment.NewLine +
-        $"{BeginningIndents}{FormattingUtilities.Indent}throw new global::System.NotImplementedException();{Environment.NewLine}" +
-        BeginningIndents + "}";
 
     public string Action => LanguageServerConstants.CodeActions.GenerateEventHandler;
 
@@ -75,8 +68,10 @@ internal class GenerateMethodCodeActionResolver(
                 cancellationToken).ConfigureAwait(false);
         }
 
+        // TODO: Update IFileSystem.ReadFile(...) to return a SourceText without reading a huge string.
         var content = _fileSystem.ReadFile(codeBehindPath);
-        if (GetCSharpClassDeclarationSyntax(content, razorNamespace, razorClassName) is not { } @class)
+        var text = SourceText.From(content, Encoding.UTF8);
+        if (GetCSharpClassDeclarationSyntax(text, razorNamespace, razorClassName) is not { } @class)
         {
             // The code behind file is malformed, generate the code in the razor file instead.
             return await GenerateMethodInCodeBlockAsync(
@@ -89,16 +84,11 @@ internal class GenerateMethodCodeActionResolver(
                 cancellationToken).ConfigureAwait(false);
         }
 
-        var codeBehindUri = new UriBuilder
-        {
-            Scheme = Uri.UriSchemeFile,
-            Path = codeBehindPath,
-            Host = string.Empty,
-        }.Uri;
+        var codeBehindUri = VsLspFactory.CreateFilePathUri(codeBehindPath);
 
         var codeBehindTextDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = codeBehindUri };
 
-        var templateWithMethodSignature = await PopulateMethodSignatureAsync(documentContext, actionParams, cancellationToken).ConfigureAwait(false);
+        var templateWithMethodSignature = PopulateMethodSignature(actionParams);
         var classLocationLineSpan = @class.GetLocation().GetLineSpan();
         var formattedMethod = FormattingUtilities.AddIndentationToMethod(
             templateWithMethodSignature,
@@ -106,7 +96,7 @@ internal class GenerateMethodCodeActionResolver(
             options.InsertSpaces,
             @class.SpanStart,
             classLocationLineSpan.StartLinePosition.Character,
-            content);
+            text);
 
         var edit = VsLspFactory.CreateTextEdit(
             line: classLocationLineSpan.EndLinePosition.Line,
@@ -133,7 +123,7 @@ internal class GenerateMethodCodeActionResolver(
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
-        var templateWithMethodSignature = await PopulateMethodSignatureAsync(documentContext, actionParams, cancellationToken).ConfigureAwait(false);
+        var templateWithMethodSignature = PopulateMethodSignature(actionParams);
         var edits = CodeBlockService.CreateFormattedTextEdit(code, templateWithMethodSignature, options);
 
         // If there are 3 edits, this means that there is no existing @code block, so we have an edit for '@code {', the method stub, and '}'.
@@ -142,7 +132,7 @@ internal class GenerateMethodCodeActionResolver(
         if (edits.Length == 3
             && razorClassName is not null
             && (razorNamespace is not null || code.TryComputeNamespace(fallbackToRootNamespace: true, out razorNamespace))
-            && GetCSharpClassDeclarationSyntax(code.GetCSharpDocument().GeneratedCode, razorNamespace, razorClassName) is { } @class)
+            && GetCSharpClassDeclarationSyntax(code.GetOrParseCSharpSyntaxTree(cancellationToken), razorNamespace, razorClassName) is { } @class)
         {
             // There is no existing @code block. This means that there is no code block source mapping in the generated C# document
             // to place the code, so we cannot utilize the document mapping service and the formatting service.
@@ -208,27 +198,34 @@ internal class GenerateMethodCodeActionResolver(
         return new WorkspaceEdit() { DocumentChanges = new[] { razorTextDocEdit } };
     }
 
-    private static async Task<string> PopulateMethodSignatureAsync(DocumentContext documentContext, GenerateMethodCodeActionParams actionParams, CancellationToken cancellationToken)
+    private static string PopulateMethodSignature(GenerateMethodCodeActionParams actionParams)
     {
-        var templateWithMethodSignature = s_generateMethodTemplate.Replace(MethodName, actionParams.MethodName);
+        var returnType = actionParams.IsAsync
+            ? "global::System.Threading.Tasks.Task"
+            : "void";
 
-        var returnType = actionParams.IsAsync ? "global::System.Threading.Tasks.Task" : "void";
-        templateWithMethodSignature = templateWithMethodSignature.Replace(ReturnType, returnType);
-
-        var tagHelpers = await documentContext.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
-        var eventTagHelper = tagHelpers
-            .FirstOrDefault(th => th.Name == actionParams.EventName && th.IsEventHandlerTagHelper() && th.GetEventArgsType() is not null);
-        var eventArgsType = eventTagHelper is null
+        var parameters = actionParams.EventParameterType is null
             ? string.Empty // Couldn't find the params, generate no params instead.
-            : $"global::{eventTagHelper.GetEventArgsType()} e";
+            : $"global::{actionParams.EventParameterType} args";
 
-        return templateWithMethodSignature.Replace(EventArgs, eventArgsType);
+        return $$"""
+            {{BeginningIndents}}private {{returnType}} {{actionParams.MethodName}}({{parameters}})
+            {{BeginningIndents}}{
+            {{BeginningIndents}}{{FormattingUtilities.Indent}}throw new global::System.NotImplementedException();
+            {{BeginningIndents}}}
+            """;
     }
 
-    private static ClassDeclarationSyntax? GetCSharpClassDeclarationSyntax(string csharpContent, string razorNamespace, string razorClassName)
+    private static ClassDeclarationSyntax? GetCSharpClassDeclarationSyntax(SourceText csharpContent, string razorNamespace, string razorClassName)
     {
-        var mock = CSharpSyntaxFactory.ParseCompilationUnit(csharpContent);
-        var @namespace = mock.Members
+        var syntaxTree = CSharpSyntaxTree.ParseText(csharpContent);
+        return GetCSharpClassDeclarationSyntax(syntaxTree, razorNamespace, razorClassName);
+    }
+
+    private static ClassDeclarationSyntax? GetCSharpClassDeclarationSyntax(SyntaxTree csharpSyntaxTree, string razorNamespace, string razorClassName)
+    {
+        var compilationUnit = csharpSyntaxTree.GetCompilationUnitRoot();
+        var @namespace = compilationUnit.Members
             .FirstOrDefault(m => m is BaseNamespaceDeclarationSyntax { } @namespace && @namespace.Name.ToString() == razorNamespace);
         if (@namespace is null)
         {

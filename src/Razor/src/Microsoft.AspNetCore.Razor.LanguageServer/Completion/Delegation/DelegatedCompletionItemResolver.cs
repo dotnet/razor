@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
@@ -33,7 +34,7 @@ internal class DelegatedCompletionItemResolver(
         VSInternalCompletionList containingCompletionList,
         object? originalRequestContext,
         VSInternalClientCapabilities? clientCapabilities,
-        ISolutionQueryOperations solutionQueryOperations,
+        IComponentAvailabilityService componentAvailabilityService,
         CancellationToken cancellationToken)
     {
         if (originalRequestContext is not DelegatedCompletionResolutionContext resolutionContext)

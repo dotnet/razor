@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 internal class DefaultWindowsRazorProjectHost(
     IUnconfiguredProjectCommonServices commonServices,
     [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-    IProjectSnapshotManager projectManager)
+    ProjectSnapshotManager projectManager)
     : WindowsRazorProjectHostBase(commonServices, serviceProvider, projectManager)
 {
     private const string RootNamespaceProperty = "RootNamespace";
@@ -63,7 +63,7 @@ internal class DefaultWindowsRazorProjectHost(
                     updater =>
                     {
                         var beforeProjectKey = new ProjectKey(beforeIntermediateOutputPath);
-                        updater.ProjectRemoved(beforeProjectKey);
+                        updater.RemoveProject(beforeProjectKey);
                     },
                     CancellationToken.None)
                     .ConfigureAwait(false);
@@ -93,13 +93,13 @@ internal class DefaultWindowsRazorProjectHost(
 
                     for (var i = 0; i < changedDocuments.Length; i++)
                     {
-                        updater.DocumentRemoved(hostProject.Key, changedDocuments[i]);
+                        updater.RemoveDocument(hostProject.Key, changedDocuments[i].FilePath);
                     }
 
                     for (var i = 0; i < documents.Length; i++)
                     {
                         var document = documents[i];
-                        updater.DocumentAdded(hostProject.Key, document, new FileTextLoader(document.FilePath, null));
+                        updater.AddDocument(hostProject.Key, document, new FileTextLoader(document.FilePath, null));
                     }
                 },
                 CancellationToken.None)
@@ -111,7 +111,7 @@ internal class DefaultWindowsRazorProjectHost(
             await UpdateAsync(
                 updater =>
                 {
-                    var projectKeys = GetAllProjectKeys(CommonServices.UnconfiguredProject.FullPath);
+                    var projectKeys = GetProjectKeysWithFilePath(CommonServices.UnconfiguredProject.FullPath);
                     foreach (var projectKey in projectKeys)
                     {
                         RemoveProject(updater, projectKey);

@@ -22,37 +22,48 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 {
     private static readonly TimeSpan s_delay = TimeSpan.FromSeconds(2);
 
-    private readonly IProjectSnapshotManager _projectManager;
+    private readonly ProjectSnapshotManager _projectManager;
+    private readonly IFallbackProjectManager _fallbackProjectManager;
     private readonly IRazorDynamicFileInfoProviderInternal _infoProvider;
+    private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger _logger;
 
     private readonly CancellationTokenSource _disposeTokenSource;
-    private readonly AsyncBatchingWorkQueue<(IProjectSnapshot, IDocumentSnapshot)> _workQueue;
+    private readonly AsyncBatchingWorkQueue<(ProjectSnapshot, DocumentSnapshot)> _workQueue;
     private ImmutableHashSet<string> _suppressedDocuments;
     private bool _solutionIsClosing;
 
     [ImportingConstructor]
     public BackgroundDocumentGenerator(
-        IProjectSnapshotManager projectManager,
+        ProjectSnapshotManager projectManager,
+        IFallbackProjectManager fallbackProjectManager,
         IRazorDynamicFileInfoProviderInternal infoProvider,
         ILoggerFactory loggerFactory)
-        : this(projectManager, infoProvider, loggerFactory, s_delay)
+        : this(projectManager, fallbackProjectManager, infoProvider, loggerFactory, s_delay)
     {
     }
 
     // Provided for tests to be able to modify the timer delay
     protected BackgroundDocumentGenerator(
-        IProjectSnapshotManager projectManager,
+        ProjectSnapshotManager projectManager,
+        IFallbackProjectManager fallbackProjectManager,
         IRazorDynamicFileInfoProviderInternal infoProvider,
         ILoggerFactory loggerFactory,
         TimeSpan delay)
     {
         _projectManager = projectManager;
+        _fallbackProjectManager = fallbackProjectManager;
         _infoProvider = infoProvider;
+        _loggerFactory = loggerFactory;
         _logger = loggerFactory.GetOrCreateLogger<BackgroundDocumentGenerator>();
 
         _disposeTokenSource = new();
-        _workQueue = new AsyncBatchingWorkQueue<(IProjectSnapshot, IDocumentSnapshot)>(delay, ProcessBatchAsync, _disposeTokenSource.Token);
+        _workQueue = new AsyncBatchingWorkQueue<(ProjectSnapshot, DocumentSnapshot)>(
+            delay,
+            processBatchAsync: ProcessBatchAsync,
+            equalityComparer: null,
+            idleAction: RazorEventSource.Instance.BackgroundDocumentGeneratorIdle,
+            _disposeTokenSource.Token);
         _suppressedDocuments = ImmutableHashSet<string>.Empty.WithComparer(FilePathComparer.Instance);
         _projectManager.Changed += ProjectManager_Changed;
     }
@@ -71,21 +82,21 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
     protected Task WaitUntilCurrentBatchCompletesAsync()
         => _workQueue.WaitUntilCurrentBatchCompletesAsync();
 
-    protected virtual async Task ProcessDocumentAsync(IProjectSnapshot project, IDocumentSnapshot document, CancellationToken cancellationToken)
+    protected virtual async Task ProcessDocumentAsync(ProjectSnapshot project, DocumentSnapshot document, CancellationToken cancellationToken)
     {
         await document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         UpdateFileInfo(project, document);
     }
 
-    public virtual void Enqueue(IProjectSnapshot project, IDocumentSnapshot document)
+    public virtual void Enqueue(ProjectSnapshot project, DocumentSnapshot document)
     {
         if (_disposeTokenSource.IsCancellationRequested)
         {
             return;
         }
 
-        if (project is ProjectSnapshot { HostProject: FallbackHostProject })
+        if (_fallbackProjectManager.IsFallbackProject(project))
         {
             // We don't support closed file code generation for fallback projects
             return;
@@ -99,7 +110,7 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
         _workQueue.AddWork((project, document));
     }
 
-    protected virtual async ValueTask ProcessBatchAsync(ImmutableArray<(IProjectSnapshot, IDocumentSnapshot)> items, CancellationToken token)
+    protected virtual async ValueTask ProcessBatchAsync(ImmutableArray<(ProjectSnapshot, DocumentSnapshot)> items, CancellationToken token)
     {
         foreach (var (project, document) in items.GetMostRecentUniqueItems(Comparer.Instance))
         {
@@ -134,7 +145,7 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
         }
     }
 
-    private bool Suppressed(IProjectSnapshot project, IDocumentSnapshot document)
+    private bool Suppressed(ProjectSnapshot project, DocumentSnapshot document)
     {
         var filePath = document.FilePath;
 
@@ -149,13 +160,13 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
         return false;
     }
 
-    private void UpdateFileInfo(IProjectSnapshot project, IDocumentSnapshot document)
+    private void UpdateFileInfo(ProjectSnapshot project, DocumentSnapshot document)
     {
         var filePath = document.FilePath;
 
         if (!_suppressedDocuments.Contains(filePath))
         {
-            var container = new DefaultDynamicDocumentContainer(document);
+            var container = new DefaultDynamicDocumentContainer(document, _loggerFactory);
             _infoProvider.UpdateFileInfo(project.Key, container);
         }
     }
@@ -163,7 +174,7 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
     private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
     {
         // We don't want to do any work on solution close
-        if (args.SolutionIsClosing)
+        if (args.IsSolutionClosing)
         {
             _solutionIsClosing = true;
             return;

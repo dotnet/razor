@@ -6,11 +6,23 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal static class IDocumentSnapshotExtensions
 {
+    public static async Task<RazorSourceDocument> GetSourceAsync(this IDocumentSnapshot document, RazorProjectEngine projectEngine, CancellationToken cancellationToken)
+    {
+        var projectItem = document is { FilePath: string filePath, FileKind: var fileKind }
+            ? projectEngine.FileSystem.GetItem(filePath, fileKind)
+            : null;
+
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var properties = RazorSourceDocumentProperties.Create(document.FilePath, projectItem?.RelativePhysicalPath);
+        return RazorSourceDocument.Create(text, properties);
+    }
+
     public static async Task<TagHelperDescriptor?> TryGetTagHelperDescriptorAsync(
         this IDocumentSnapshot documentSnapshot,
         CancellationToken cancellationToken)
@@ -53,12 +65,5 @@ internal static class IDocumentSnapshotExtensions
 
         var fileName = Path.GetFileNameWithoutExtension(documentSnapshot.FilePath);
         return fileName.AsSpan().Equals(path.Span, FilePathComparison.Instance);
-    }
-
-    public static ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(
-        this IDocumentSnapshot documentSnapshot,
-        CancellationToken cancellationToken)
-    {
-        return documentSnapshot.GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput: false, cancellationToken);
     }
 }

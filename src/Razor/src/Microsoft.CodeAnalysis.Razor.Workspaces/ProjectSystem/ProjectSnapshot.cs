@@ -11,11 +11,11 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem.Legacy;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot
+internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot, ILegacyProjectSnapshot
 {
     private readonly ProjectState _state = state;
 
@@ -23,7 +23,7 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot
     private readonly Dictionary<string, DocumentSnapshot> _filePathToDocumentMap = new(FilePathNormalizingComparer.Instance);
 
     public HostProject HostProject => _state.HostProject;
-    public LanguageServerFeatureOptions LanguageServerFeatureOptions => _state.LanguageServerFeatureOptions;
+    public RazorCompilerOptions CompilerOptions => _state.CompilerOptions;
 
     public ProjectKey Key => _state.HostProject.Key;
     public RazorConfiguration Configuration => _state.HostProject.Configuration;
@@ -32,18 +32,12 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot
     public string IntermediateOutputPath => _state.HostProject.IntermediateOutputPath;
     public string? RootNamespace => _state.HostProject.RootNamespace;
     public string DisplayName => _state.HostProject.DisplayName;
-    public VersionStamp Version => _state.Version;
     public LanguageVersion CSharpLanguageVersion => _state.CSharpLanguageVersion;
     public ProjectWorkspaceState ProjectWorkspaceState => _state.ProjectWorkspaceState;
 
     public int DocumentCount => _state.Documents.Count;
 
-    public VersionStamp ConfigurationVersion => _state.ConfigurationVersion;
-    public VersionStamp ProjectWorkspaceStateVersion => _state.ProjectWorkspaceStateVersion;
-    public VersionStamp DocumentCollectionVersion => _state.DocumentCollectionVersion;
-
-    public RazorProjectEngine GetProjectEngine()
-        => _state.ProjectEngine;
+    public RazorProjectEngine ProjectEngine => _state.ProjectEngine;
 
     public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken)
         => new(_state.TagHelpers);
@@ -64,12 +58,7 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot
         }
     }
 
-    public IDocumentSnapshot? GetDocument(string filePath)
-        => TryGetDocument(filePath, out var document)
-            ? document
-            : null;
-
-    public bool TryGetDocument(string filePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
+    public bool TryGetDocument(string filePath, [NotNullWhen(true)] out DocumentSnapshot? document)
     {
         lock (_gate)
         {
@@ -96,12 +85,24 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot
         }
     }
 
+    bool IProjectSnapshot.TryGetDocument(string filePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
+    {
+        if (TryGetDocument(filePath, out var result))
+        {
+            document = result;
+            return true;
+        }
+
+        document = null;
+        return false;
+    }
+
     /// <summary>
     /// If the provided document is an import document, gets the other documents in the project
     /// that include directives specified by the provided document. Otherwise returns an empty
     /// list.
     /// </summary>
-    public ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document)
+    public ImmutableArray<DocumentSnapshot> GetRelatedDocuments(DocumentSnapshot document)
     {
         var targetPath = document.TargetPath;
 
@@ -112,7 +113,7 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot
 
         lock (_gate)
         {
-            using var builder = new PooledArrayBuilder<IDocumentSnapshot>(capacity: relatedDocuments.Length);
+            using var builder = new PooledArrayBuilder<DocumentSnapshot>(capacity: relatedDocuments.Count);
 
             foreach (var relatedDocumentFilePath in relatedDocuments)
             {
@@ -125,4 +126,22 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot
             return builder.DrainToImmutable();
         }
     }
+
+    #region ILegacyProjectSnapshot support
+
+    RazorConfiguration ILegacyProjectSnapshot.Configuration => Configuration;
+    string ILegacyProjectSnapshot.FilePath => FilePath;
+    string? ILegacyProjectSnapshot.RootNamespace => RootNamespace;
+    LanguageVersion ILegacyProjectSnapshot.CSharpLanguageVersion => CSharpLanguageVersion;
+    ImmutableArray<TagHelperDescriptor> ILegacyProjectSnapshot.TagHelpers => ProjectWorkspaceState.TagHelpers;
+
+    RazorProjectEngine ILegacyProjectSnapshot.GetProjectEngine()
+        => _state.ProjectEngine;
+
+    ILegacyDocumentSnapshot? ILegacyProjectSnapshot.GetDocument(string filePath)
+        => TryGetDocument(filePath, out var document)
+            ? document
+            : null;
+
+    #endregion
 }

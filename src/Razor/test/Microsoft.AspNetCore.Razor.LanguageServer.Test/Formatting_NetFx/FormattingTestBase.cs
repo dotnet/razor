@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
@@ -34,16 +35,22 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class FormattingTestBase : RazorToolingIntegrationTestBase
+public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
 {
     private readonly HtmlFormattingService _htmlFormattingService;
+    private readonly FormattingTestContext _context;
 
-    internal FormattingTestBase(HtmlFormattingService htmlFormattingService, ITestOutputHelper testOutput)
+    internal sealed override bool UseTwoPhaseCompilation => true;
+
+    internal sealed override bool DesignTime => true;
+
+    private protected FormattingTestBase(FormattingTestContext context, HtmlFormattingService htmlFormattingService, ITestOutputHelper testOutput)
         : base(testOutput)
     {
         ITestOnlyLoggerExtensions.TestOnlyLoggingEnabled = true;
 
         _htmlFormattingService = htmlFormattingService;
+        _context = context;
     }
 
     private protected async Task RunFormattingTestAsync(
@@ -54,22 +61,14 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         string? fileKind = null,
         ImmutableArray<TagHelperDescriptor> tagHelpers = default,
         bool allowDiagnostics = false,
-        RazorLSPOptions? razorLSPOptions = null,
-        bool inGlobalNamespace = false,
-        bool skipFlipLineEndingTest = false)
+        bool codeBlockBraceOnNextLine = false,
+        bool inGlobalNamespace = false)
     {
-        // Run with and without forceRuntimeCodeGeneration
+        (input, expected) = ProcessFormattingContext(input, expected);
+
+        var razorLSPOptions = RazorLSPOptions.Default with { CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine };
+
         await RunFormattingTestInternalAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace);
-
-        // some tests are failing, skip for now, tracked by https://github.com/dotnet/razor/issues/10836
-        if (!skipFlipLineEndingTest)
-        {
-            // flip the line endings of the stings (LF to CRLF and vice versa) and run again
-            input = FlipLineEndings(input);
-            expected = FlipLineEndings(expected);
-
-            await RunFormattingTestInternalAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace);
-        }
     }
 
     private async Task RunFormattingTestInternalAsync(string input, string expected, int tabSize, bool insertSpaces, string? fileKind, ImmutableArray<TagHelperDescriptor> tagHelpers, bool allowDiagnostics, RazorLSPOptions? razorLSPOptions, bool inGlobalNamespace)
@@ -95,7 +94,9 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         };
         var razorOptions = RazorFormattingOptions.From(options, codeBlockBraceOnNextLine: razorLSPOptions?.CodeBlockBraceOnNextLine ?? false);
 
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, razorLSPOptions);
+        var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(useNewFormattingEngine: _context.UseNewFormattingEngine);
+
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, razorLSPOptions, languageServerFeatureOptions);
         var documentContext = new DocumentContext(uri, documentSnapshot, projectContext: null);
 
         var client = new FormattingLanguageServerClient(_htmlFormattingService, LoggerFactory);
@@ -130,6 +131,8 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         RazorLSPOptions? razorLSPOptions = null,
         bool inGlobalNamespace = false)
     {
+        (input, expected) = ProcessFormattingContext(input, expected);
+
         // Arrange
         fileKind ??= FileKinds.Component;
 
@@ -140,12 +143,14 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var uri = new Uri(path);
         var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind, inGlobalNamespace: inGlobalNamespace);
 
-        var filePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
+        var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(useNewFormattingEngine: _context.UseNewFormattingEngine);
+
+        var filePathService = new LSPFilePathService(languageServerFeatureOptions);
         var mappingService = new LspDocumentMappingService(
             filePathService, new TestDocumentContextFactory(), LoggerFactory);
         var languageKind = codeDocument.GetLanguageKind(positionAfterTrigger, rightAssociative: false);
 
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, razorLSPOptions);
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, razorLSPOptions, languageServerFeatureOptions);
         var options = new FormattingOptions()
         {
             TabSize = tabSize,
@@ -189,6 +194,21 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             var delta = lastLine - firstLine + changes.Count(e => e.NewText.Contains(Environment.NewLine));
             Assert.Equal(expectedChangedLines.Value, delta + 1);
         }
+    }
+
+    private (string input, string expected) ProcessFormattingContext(string input, string expected)
+    {
+        Assert.True(_context.CreatedByFormattingDiscoverer, "Test class is using FormattingTestContext, but not using [FormattingTestFact] or [FormattingTestTheory]");
+        Assert.False(_context.ForceRuntimeCodeGeneration, "ForceRuntimeGeneration does not currently work in the language server. Creating tests for it is a false positive");
+
+        if (_context.ShouldFlipLineEndings)
+        {
+            // flip the line endings of the stings (LF to CRLF and vice versa) and run again
+            input = _context.FlipLineEndings(input);
+            expected = _context.FlipLineEndings(expected);
+        }
+
+        return (input, expected);
     }
 
     protected async Task RunCodeActionFormattingTestAsync(
@@ -261,32 +281,32 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             relativePath: inGlobalNamespace ? Path.GetFileName(path) : path));
 
         const string DefaultImports = """
-                @using BlazorApp1
-                @using BlazorApp1.Pages
-                @using BlazorApp1.Shared
-                @using Microsoft.AspNetCore.Components
-                @using Microsoft.AspNetCore.Components.Authorization
-                @using Microsoft.AspNetCore.Components.Routing
-                @using Microsoft.AspNetCore.Components.Web
-                """;
+            @using BlazorApp1
+            @using BlazorApp1.Pages
+            @using BlazorApp1.Shared
+            @using Microsoft.AspNetCore.Components
+            @using Microsoft.AspNetCore.Components.Authorization
+            @using Microsoft.AspNetCore.Components.Routing
+            @using Microsoft.AspNetCore.Components.Web
+            """;
 
-        var importsPath = new Uri("file:///path/to/_Imports.razor").AbsolutePath;
-        var importsSourceText = SourceText.From(DefaultImports);
-        var importsDocument = RazorSourceDocument.Create(importsSourceText, RazorSourceDocumentProperties.Create(importsPath, importsPath));
-        var importsSnapshot = new StrictMock<IDocumentSnapshot>();
-        importsSnapshot
+        var importPath = new Uri("file:///path/to/_Imports.razor").AbsolutePath;
+        var importText = SourceText.From(DefaultImports);
+        var importSource = RazorSourceDocument.Create(importText, RazorSourceDocumentProperties.Create(importPath, importPath));
+        var importSnapshotMock = new StrictMock<IDocumentSnapshot>();
+        importSnapshotMock
             .Setup(d => d.GetTextAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(importsSourceText);
-        importsSnapshot
+            .ReturnsAsync(importText);
+        importSnapshotMock
             .Setup(d => d.FilePath)
-            .Returns(importsPath);
-        importsSnapshot
+            .Returns(importPath);
+        importSnapshotMock
             .Setup(d => d.TargetPath)
-            .Returns(importsPath);
+            .Returns(importPath);
 
         var projectFileSystem = new TestRazorProjectFileSystem([
             new TestRazorProjectItem(path, fileKind: fileKind),
-            new TestRazorProjectItem(importsPath, fileKind: FileKinds.ComponentImport)]);
+            new TestRazorProjectItem(importPath, fileKind: FileKinds.ComponentImport)]);
 
         var projectEngine = RazorProjectEngine.Create(
             new RazorConfiguration(RazorLanguageVersion.Latest, "TestConfiguration", Extensions: []),
@@ -299,85 +319,76 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
                 RazorExtensions.Register(builder);
             });
 
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, [importsDocument], tagHelpers);
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, [importSource], tagHelpers);
 
         if (!allowDiagnostics)
         {
             Assert.False(codeDocument.GetCSharpDocument().Diagnostics.Any(), "Error creating document:" + Environment.NewLine + string.Join(Environment.NewLine, codeDocument.GetCSharpDocument().Diagnostics));
         }
 
-        var imports = ImmutableArray.Create(importsSnapshot.Object);
-        var importsDocuments = ImmutableArray.Create(importsDocument);
-        var documentSnapshot = CreateDocumentSnapshot(path, tagHelpers, fileKind, importsDocuments, imports, projectEngine, codeDocument, inGlobalNamespace: inGlobalNamespace);
+        var documentSnapshot = CreateDocumentSnapshot(
+            path, fileKind, codeDocument, projectEngine, [importSnapshotMock.Object], [importSource], tagHelpers, inGlobalNamespace);
 
         return (codeDocument, documentSnapshot);
     }
 
-    internal static IDocumentSnapshot CreateDocumentSnapshot(string path, ImmutableArray<TagHelperDescriptor> tagHelpers, string fileKind, ImmutableArray<RazorSourceDocument> importsDocuments, ImmutableArray<IDocumentSnapshot> imports, RazorProjectEngine projectEngine, RazorCodeDocument codeDocument, bool inGlobalNamespace = false)
+    internal static IDocumentSnapshot CreateDocumentSnapshot(
+        string path,
+        string fileKind,
+        RazorCodeDocument codeDocument,
+        RazorProjectEngine projectEngine,
+        ImmutableArray<IDocumentSnapshot> imports,
+        ImmutableArray<RazorSourceDocument> importDocuments,
+        ImmutableArray<TagHelperDescriptor> tagHelpers,
+        bool inGlobalNamespace)
     {
-        var documentSnapshot = new StrictMock<IDocumentSnapshot>();
-        documentSnapshot
-            .Setup(d => d.GetGeneratedOutputAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+        var snapshotMock = new StrictMock<IDocumentSnapshot>();
+
+        snapshotMock
+            .Setup(d => d.GetGeneratedOutputAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(codeDocument);
-        documentSnapshot
+        snapshotMock
             .Setup(d => d.FilePath)
             .Returns(path);
-        documentSnapshot
+        snapshotMock
             .Setup(d => d.Project.Key)
             .Returns(TestProjectKey.Create("/obj"));
-        documentSnapshot
+        snapshotMock
             .Setup(d => d.TargetPath)
             .Returns(path);
-        documentSnapshot
-            .Setup(d => d.Project.Configuration)
-            .Returns(projectEngine.Configuration);
-        documentSnapshot
+        snapshotMock
             .Setup(d => d.GetTextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(codeDocument.Source.Text);
-        documentSnapshot
+        snapshotMock
             .Setup(d => d.Project.GetTagHelpersAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(tagHelpers);
-        documentSnapshot
-            .Setup(d => d.Project.GetProjectEngine())
-            .Returns(projectEngine);
-        documentSnapshot
+        snapshotMock
             .Setup(d => d.FileKind)
             .Returns(fileKind);
-        documentSnapshot
+        snapshotMock
             .Setup(d => d.Version)
             .Returns(1);
-        documentSnapshot
+        snapshotMock
             .Setup(d => d.WithText(It.IsAny<SourceText>()))
             .Returns<SourceText>(text =>
             {
-                var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(
+                var source = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(
                     filePath: path,
                     relativePath: inGlobalNamespace ? Path.GetFileName(path) : path));
-                var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importsDocuments, tagHelpers);
-                return CreateDocumentSnapshot(path, tagHelpers, fileKind, importsDocuments, imports, projectEngine, codeDocument, inGlobalNamespace: inGlobalNamespace);
+
+                var codeDocument = projectEngine.ProcessDesignTime(source, fileKind, importDocuments, tagHelpers);
+
+                return CreateDocumentSnapshot(
+                    path, fileKind, codeDocument, projectEngine, imports, importDocuments, tagHelpers, inGlobalNamespace);
             });
-        return documentSnapshot.Object;
-    }
 
-    private static string FlipLineEndings(string input)
-    {
-        if (string.IsNullOrEmpty(input))
-        {
-            return input;
-        }
+#if !FORMAT_FUSE
+        var generatorMock = snapshotMock.As<IDesignTimeCodeGenerator>();
+        generatorMock
+            .Setup(x => x.GenerateDesignTimeOutputAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(codeDocument);
+#endif
 
-        var hasCRLF = input.Contains("\r\n");
-        var hasLF = !hasCRLF && input.Contains("\n");
-
-        if (hasCRLF)
-        {
-            return input.Replace("\r\n", "\n");
-        }
-        else if (hasLF)
-        {
-            return input.Replace("\n", "\r\n");
-        }
-
-        return input;
+        return snapshotMock.Object;
     }
 }

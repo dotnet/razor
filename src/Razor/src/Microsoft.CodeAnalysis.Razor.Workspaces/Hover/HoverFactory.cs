@@ -13,8 +13,8 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Threading;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -29,7 +29,7 @@ internal static class HoverFactory
         RazorCodeDocument codeDocument,
         int absoluteIndex,
         HoverDisplayOptions options,
-        ISolutionQueryOperations solutionQueryOperations,
+        IComponentAvailabilityService componentAvailabilityService,
         CancellationToken cancellationToken)
     {
         var syntaxTree = codeDocument.GetSyntaxTree();
@@ -95,7 +95,7 @@ internal static class HoverFactory
             var span = containingTagNameToken.GetLinePositionSpan(codeDocument.Source);
 
             return ElementInfoToHoverAsync(
-                codeDocument.Source.FilePath, binding.Descriptors, span, options, solutionQueryOperations, cancellationToken);
+                codeDocument.Source.FilePath, binding.Descriptors, span, options, componentAvailabilityService, cancellationToken);
         }
 
         if (HtmlFacts.TryGetAttributeInfo(owner, out containingTagNameToken, out _, out var selectedAttributeName, out var selectedAttributeNameLocation, out attributes) &&
@@ -221,16 +221,20 @@ internal static class HoverFactory
         ImmutableArray<TagHelperDescriptor> descriptors,
         LinePositionSpan span,
         HoverDisplayOptions options,
-        ISolutionQueryOperations solutionQueryOperations,
+        IComponentAvailabilityService componentAvailabilityService,
         CancellationToken cancellationToken)
     {
-        var descriptionInfos = descriptors.SelectAsArray(BoundElementDescriptionInfo.From);
+        // Filter out attribute descriptors since we're creating an element hover
+        var keepAttributeInfo = FileKinds.GetFileKindFromFilePath(documentFilePath) == FileKinds.Legacy;
+        var descriptionInfos = descriptors
+            .Where(d => keepAttributeInfo || !d.IsAttributeDescriptor())
+            .SelectAsArray(BoundElementDescriptionInfo.From);
         var elementDescriptionInfo = new AggregateBoundElementDescription(descriptionInfos);
 
         if (options.SupportsVisualStudioExtensions)
         {
             var classifiedTextElement = await ClassifiedTagHelperTooltipFactory
-                .TryCreateTooltipContainerAsync(documentFilePath, elementDescriptionInfo, solutionQueryOperations, cancellationToken)
+                .TryCreateTooltipContainerAsync(documentFilePath, elementDescriptionInfo, componentAvailabilityService, cancellationToken)
                 .ConfigureAwait(false);
 
             if (classifiedTextElement is not null)
@@ -245,7 +249,7 @@ internal static class HoverFactory
         }
 
         var tooltipContent = await MarkupTagHelperTooltipFactory
-            .TryCreateTooltipAsync(documentFilePath, elementDescriptionInfo, solutionQueryOperations, options.MarkupKind, cancellationToken)
+            .TryCreateTooltipAsync(documentFilePath, elementDescriptionInfo, componentAvailabilityService, options.MarkupKind, cancellationToken)
             .ConfigureAwait(false);
 
         if (tooltipContent is null)

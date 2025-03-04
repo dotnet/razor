@@ -22,7 +22,6 @@ using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
@@ -30,6 +29,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.SpellCheck;
+using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
@@ -107,6 +107,7 @@ internal static class IServiceCollectionExtensions
 
     public static void AddHoverServices(this IServiceCollection services)
     {
+        services.AddSingleton<IComponentAvailabilityService, ComponentAvailabilityService>();
         services.AddHandlerWithCapabilities<HoverEndpoint>();
     }
 
@@ -155,6 +156,8 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IRazorCodeActionResolver, AddUsingsCodeActionResolver>();
         services.AddSingleton<IRazorCodeActionProvider, GenerateMethodCodeActionProvider>();
         services.AddSingleton<IRazorCodeActionResolver, GenerateMethodCodeActionResolver>();
+        services.AddSingleton<IRazorCodeActionProvider, PromoteUsingCodeActionProvider>();
+        services.AddSingleton<IRazorCodeActionResolver, PromoteUsingCodeActionResolver>();
 
         // Html Code actions
         services.AddSingleton<IHtmlCodeActionProvider, HtmlCodeActionProvider>();
@@ -180,6 +183,7 @@ internal static class IServiceCollectionExtensions
         services.AddHandler<DocumentDidSaveEndpoint>();
 
         services.AddHandler<RazorMapToDocumentRangesEndpoint>();
+        services.AddHandler<RazorMapToDocumentEditsEndpoint>();
         services.AddHandler<RazorLanguageQueryEndpoint>();
     }
 
@@ -222,30 +226,9 @@ internal static class IServiceCollectionExtensions
         }
 
         services.AddSingleton<IDocumentProcessedListener, GeneratedDocumentSynchronizer>();
-        services.AddSingleton<IDocumentProcessedListener, CodeDocumentReferenceHolder>();
 
         // Add project snapshot manager
         services.AddSingleton<IProjectEngineFactoryProvider, LspProjectEngineFactoryProvider>();
-        services.AddSingleton<IProjectSnapshotManager, LspProjectSnapshotManager>();
-    }
-
-    public static void AddHandlerWithCapabilities<T>(this IServiceCollection services)
-        where T : class, IMethodHandler, ICapabilitiesProvider
-    {
-        services.AddSingleton<T>();
-        services.AddSingleton<IMethodHandler, T>(s => s.GetRequiredService<T>());
-        // Transient because it should only be used once and I'm hoping it doesn't stick around.
-        services.AddTransient<ICapabilitiesProvider, T>(s => s.GetRequiredService<T>());
-    }
-
-    public static void AddHandler<T>(this IServiceCollection services)
-        where T : class, IMethodHandler
-    {
-        if (typeof(ICapabilitiesProvider).IsAssignableFrom(typeof(T)))
-        {
-            throw new NotImplementedException($"{nameof(T)} is not using {nameof(AddHandlerWithCapabilities)} when it implements {nameof(ICapabilitiesProvider)}");
-        }
-
-        services.AddSingleton<IMethodHandler, T>();
+        services.AddSingleton<ProjectSnapshotManager, LspProjectSnapshotManager>();
     }
 }

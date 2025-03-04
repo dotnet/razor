@@ -65,7 +65,6 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
         using var fileStream = new FileStream(filePath, FileMode.Open);
         var text = SourceText.From(fileStream);
-        var textLoader = TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create()));
         var hostDocument = new HostDocument(filePath, targetPath, FileKinds.Component);
 
         var projectManager = CreateProjectSnapshotManager();
@@ -73,17 +72,14 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         await projectManager.UpdateAsync(
             updater =>
             {
-                updater.ProjectAdded(hostProject);
-                var tagHelpers = CommonResources.LegacyTagHelpers;
-                var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers, CodeAnalysis.CSharp.LanguageVersion.CSharp11);
-                updater.ProjectChanged(hostProject, projectWorkspaceState);
-                updater.DocumentAdded(hostProject.Key, hostDocument, textLoader);
+                updater.AddProject(hostProject);
+                var projectWorkspaceState = ProjectWorkspaceState.Create(CommonResources.LegacyTagHelpers);
+                updater.UpdateProjectWorkspaceState(hostProject.Key, projectWorkspaceState);
+                updater.AddDocument(hostProject.Key, hostDocument, text);
             },
             CancellationToken.None);
 
-        var projectSnapshot = projectManager.GetLoadedProject(hostProject.Key);
-
-        return projectSnapshot.GetDocument(filePath);
+        return projectManager.GetRequiredDocument(hostProject.Key, filePath);
     }
 
     private sealed class NoOpClientNotifierService : IClientConnection, IOnInitialized

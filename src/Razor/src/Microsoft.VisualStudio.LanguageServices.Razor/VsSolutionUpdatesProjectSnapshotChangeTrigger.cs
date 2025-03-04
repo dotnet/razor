@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Razor;
 internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : IRazorStartupService, IVsUpdateSolutionEvents2, IDisposable
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly IProjectSnapshotManager _projectManager;
+    private readonly ProjectSnapshotManager _projectManager;
     private readonly IProjectWorkspaceStateGenerator _workspaceStateGenerator;
     private readonly IWorkspaceProvider _workspaceProvider;
     private readonly JoinableTaskFactory _jtf;
@@ -35,7 +35,7 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : IRazorStartupServ
     [ImportingConstructor]
     public VsSolutionUpdatesProjectSnapshotChangeTrigger(
         [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-        IProjectSnapshotManager projectManager,
+        ProjectSnapshotManager projectManager,
         IProjectWorkspaceStateGenerator workspaceStateGenerator,
         IWorkspaceProvider workspaceProvider,
         JoinableTaskContext joinableTaskContext)
@@ -107,7 +107,7 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : IRazorStartupServ
 
     private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
     {
-        if (args.SolutionIsClosing)
+        if (args.IsSolutionClosing)
         {
             // If the solution is closing, cancel all existing updates.
             _workspaceStateGenerator.CancelUpdates();
@@ -122,18 +122,18 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : IRazorStartupServ
             return;
         }
 
-        var projectKeys = _projectManager.GetAllProjectKeys(projectFilePath);
+        var projectKeys = _projectManager.GetProjectKeysWithFilePath(projectFilePath);
         foreach (var projectKey in projectKeys)
         {
-            if (_projectManager.TryGetLoadedProject(projectKey, out var projectSnapshot))
+            if (_projectManager.TryGetProject(projectKey, out var project))
             {
                 var workspace = _workspaceProvider.GetWorkspace();
-                var workspaceProject = workspace.CurrentSolution.Projects.FirstOrDefault(wp => wp.ToProjectKey() == projectSnapshot.Key);
+                var workspaceProject = workspace.CurrentSolution.Projects.FirstOrDefault(wp => wp.ToProjectKey() == project.Key);
                 if (workspaceProject is not null)
                 {
                     // Trigger a tag helper update by forcing the project manager to see the workspace Project
                     // from the current solution.
-                    _workspaceStateGenerator.EnqueueUpdate(workspaceProject, projectSnapshot);
+                    _workspaceStateGenerator.EnqueueUpdate(workspaceProject, project);
                 }
             }
         }

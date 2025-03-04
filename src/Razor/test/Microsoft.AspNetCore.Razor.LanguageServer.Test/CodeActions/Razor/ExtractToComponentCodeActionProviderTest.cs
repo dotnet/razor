@@ -10,20 +10,22 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions.Razor;
 
@@ -465,6 +467,144 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
             </div>|}
             """);
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/11261")]
+    public Task Handle_Inside_ElseBlock()
+        => TestAsync("""
+            @page "/weather"
+
+            <PageTitle>Weather</PageTitle>
+
+            <h1>Weather</h1>
+
+            <p>This component demonstrates showing data.</p>
+
+            @if (forecasts == null)
+            {
+                <p><em>Loading...</em></p>
+            }
+            else
+            {
+            {|selection:    {|result:<table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th aria-label="Temperature in Celsius">Temp. (C)</th>
+                            <th aria-label="Temperature in Farenheit">Temp. (F)</th>
+                            <th>Summary</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var forecast in forecasts)
+                        {
+                            <tr>
+                                <td>@forecast.Date.ToShortDateString()</td>
+                                <td>@forecast.TemperatureC</td>
+                                <td>@forecast.TemperatureF</td>
+                                <td>@forecast.Summary</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>|}|}
+            }
+
+            @code {
+                private WeatherForecast[]? forecasts;
+
+                protected override async Task OnInitializedAsync()
+                {
+                    // Simulate asynchronous loading to demonstrate a loading indicator
+                    await Task.Delay(500);
+
+                    var startDate = DateOnly.FromDateTime(DateTime.Now);
+                    var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
+                    forecasts = Enumerable.Range(1, 5).Select(index => new WeatherForecast
+                    {
+                        Date = startDate.AddDays(index),
+                        TemperatureC = Random.Shared.Next(-20, 55),
+                        Summary = summaries[Random.Shared.Next(summaries.Length)]
+                    }).ToArray();
+                }
+
+                private class WeatherForecast
+                {
+                    public DateOnly Date { get; set; }
+                    public int TemperatureC { get; set; }
+                    public string? Summary { get; set; }
+                    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+                }
+            }
+            """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/11261")]
+    public Task Handle_Inside_ElseBlock_NoSelection()
+        => TestAsync("""
+            @page "/weather"
+
+            <PageTitle>Weather</PageTitle>
+
+            <h1>Weather</h1>
+
+            <p>This component demonstrates showing data.</p>
+
+            @if (forecasts == null)
+            {
+                <p><em>Loading...</em></p>
+            }
+            else
+            {
+            {|selection:|}  <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th aria-label="Temperature in Celsius">Temp. (C)</th>
+                            <th aria-label="Temperature in Farenheit">Temp. (F)</th>
+                            <th>Summary</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var forecast in forecasts)
+                        {
+                            <tr>
+                                <td>@forecast.Date.ToShortDateString()</td>
+                                <td>@forecast.TemperatureC</td>
+                                <td>@forecast.TemperatureF</td>
+                                <td>@forecast.Summary</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+
+            @code {
+                private WeatherForecast[]? forecasts;
+
+                protected override async Task OnInitializedAsync()
+                {
+                    // Simulate asynchronous loading to demonstrate a loading indicator
+                    await Task.Delay(500);
+
+                    var startDate = DateOnly.FromDateTime(DateTime.Now);
+                    var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
+                    forecasts = Enumerable.Range(1, 5).Select(index => new WeatherForecast
+                    {
+                        Date = startDate.AddDays(index),
+                        TemperatureC = Random.Shared.Next(-20, 55),
+                        Summary = summaries[Random.Shared.Next(summaries.Length)]
+                    }).ToArray();
+                }
+
+                private class WeatherForecast
+                {
+                    public DateOnly Date { get; set; }
+                    public int TemperatureC { get; set; }
+                    public string? Summary { get; set; }
+                    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+                }
+            }
+            """);
+
     private static RazorCodeActionContext CreateRazorCodeActionContext(
         VSCodeActionParams request,
         TextSpan selectionSpan,
@@ -557,7 +697,12 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         Assert.NotNull(razorCodeActionResolutionParams);
         var actionParams = ((JsonElement)razorCodeActionResolutionParams.Data!).Deserialize<ExtractToComponentCodeActionParams>();
         Assert.NotNull(actionParams);
-        Assert.Equal(resultSpan.Start, actionParams.Start);
-        Assert.Equal(resultSpan.End, actionParams.End);
+
+        if (resultSpan.Start != actionParams.Start || resultSpan.End != actionParams.End)
+        {
+            var resultText = context.SourceText.GetSubTextString(resultSpan);
+            var actualText = context.SourceText.GetSubTextString(TextSpan.FromBounds(actionParams.Start, actionParams.End));
+            AssertEx.EqualOrDiff(resultText, actualText, "Code action span does not match expected");
+        }
     }
 }

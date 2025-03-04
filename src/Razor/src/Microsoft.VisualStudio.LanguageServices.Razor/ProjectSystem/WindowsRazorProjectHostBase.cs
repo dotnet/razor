@@ -26,7 +26,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
     private static readonly DataflowLinkOptions s_dataflowLinkOptions = new DataflowLinkOptions() { PropagateCompletion = true };
 
     private readonly IServiceProvider _serviceProvider;
-    private readonly IProjectSnapshotManager _projectManager;
+    private readonly ProjectSnapshotManager _projectManager;
     private readonly AsyncSemaphore _lock;
 
     private readonly Dictionary<ProjectConfigurationSlice, IDisposable> _projectSubscriptions = new();
@@ -45,7 +45,7 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
     protected WindowsRazorProjectHostBase(
         IUnconfiguredProjectCommonServices commonServices,
         IServiceProvider serviceProvider,
-        IProjectSnapshotManager projectManager)
+        ProjectSnapshotManager projectManager)
         : base(commonServices.ThreadingService.JoinableTaskContext)
     {
         CommonServices = commonServices;
@@ -214,37 +214,34 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
         // FilePath.
         return ExecuteWithLockAsync(() => UpdateAsync(updater =>
         {
-            var projectKeys = updater.GetAllProjectKeys(oldProjectFilePath);
+            var projectKeys = updater.GetProjectKeysWithFilePath(oldProjectFilePath);
             foreach (var projectKey in projectKeys)
             {
-                if (updater.TryGetLoadedProject(projectKey, out var current))
+                if (updater.TryGetProject(projectKey, out var project))
                 {
                     RemoveProject(updater, projectKey);
 
-                    var hostProject = new HostProject(newProjectFilePath, current.IntermediateOutputPath, current.Configuration, current.RootNamespace);
+                    var hostProject = new HostProject(newProjectFilePath, project.IntermediateOutputPath, project.Configuration, project.RootNamespace);
                     UpdateProject(updater, hostProject);
 
                     // This should no-op in the common case, just putting it here for insurance.
-                    foreach (var documentFilePath in current.DocumentFilePaths)
+                    foreach (var documentFilePath in project.DocumentFilePaths)
                     {
-                        var documentSnapshot = current.GetDocument(documentFilePath);
-                        Assumes.NotNull(documentSnapshot);
+                        var documentSnapshot = project.GetRequiredDocument(documentFilePath);
 
                         var hostDocument = new HostDocument(
                             documentSnapshot.FilePath,
                             documentSnapshot.TargetPath,
                             documentSnapshot.FileKind);
-                        updater.DocumentAdded(projectKey, hostDocument, new FileTextLoader(hostDocument.FilePath, null));
+                        updater.AddDocument(projectKey, hostDocument, new FileTextLoader(hostDocument.FilePath, null));
                     }
                 }
             }
         }, CancellationToken.None));
     }
 
-    protected ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFilePath)
-    {
-        return _projectManager.GetAllProjectKeys(projectFilePath);
-    }
+    protected ImmutableArray<ProjectKey> GetProjectKeysWithFilePath(string projectFilePath)
+        => _projectManager.GetProjectKeysWithFilePath(projectFilePath);
 
     protected Task UpdateAsync(Action<ProjectSnapshotManager.Updater> action, CancellationToken cancellationToken)
     {
@@ -265,23 +262,23 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
 
     protected static void UpdateProject(ProjectSnapshotManager.Updater updater, HostProject project)
     {
-        if (!updater.TryGetLoadedProject(project.Key, out var current))
+        if (!updater.ContainsProject(project.Key))
         {
             // Just in case we somehow got in a state where VS didn't tell us that solution close was finished, lets just
             // ensure we're going to actually do something with the new project that we've just been told about.
             // If VS did tell us, then this is a no-op.
             updater.SolutionOpened();
-            updater.ProjectAdded(project);
+            updater.AddProject(project);
         }
         else
         {
-            updater.ProjectChanged(project, current.ProjectWorkspaceState);
+            updater.UpdateProjectConfiguration(project);
         }
     }
 
     protected void RemoveProject(ProjectSnapshotManager.Updater updater, ProjectKey projectKey)
     {
-        updater.ProjectRemoved(projectKey);
+        updater.RemoveProject(projectKey);
     }
 
     private async Task ExecuteWithLockAsync(Func<Task> func)

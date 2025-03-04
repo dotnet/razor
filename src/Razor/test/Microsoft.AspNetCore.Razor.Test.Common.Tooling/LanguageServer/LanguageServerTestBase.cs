@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
@@ -21,11 +22,11 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
@@ -41,10 +42,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
     {
         SpanMappingService = new ThrowingRazorSpanMappingService();
 
-        SerializerOptions = new JsonSerializerOptions();
-        // In its infinite wisdom, the LSP client has a public method that takes Newtonsoft.Json types, but an internal method that takes System.Text.Json types.
-        typeof(VSInternalExtensionUtilities).GetMethod("AddVSInternalExtensionConverters", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.Invoke(null, [SerializerOptions]);
-
+        SerializerOptions = JsonHelpers.VsLspJsonSerializerOptions;
         FilePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
     }
 
@@ -55,7 +53,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
             languageServerFeatureOptions,
             LoggerFactory,
             DisposalToken,
-            initializer: static updater => updater.ProjectAdded(MiscFilesHostProject.Instance));
+            initializer: static updater => updater.AddProject(MiscFilesProject.HostProject));
 
     private protected static RazorRequestContext CreateRazorRequestContext(
         DocumentContext? documentContext,
@@ -84,6 +82,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
 
             RazorExtensions.Register(b);
             b.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
+            b.Features.Add(new DefaultTypeNameFeature());
         });
         var importDocumentName = fileKind == FileKinds.Legacy ? "_ViewImports.cshtml" : "_Imports.razor";
         var defaultImportDocument = TestRazorSourceDocument.Create(

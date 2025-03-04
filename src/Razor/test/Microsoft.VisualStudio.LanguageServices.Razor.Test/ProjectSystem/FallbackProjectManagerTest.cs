@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
@@ -51,13 +50,12 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
         var hostProject = SomeProject with
         {
             Configuration = RazorConfiguration.Default,
-            RootNamespace = "RootNamespace",
-            DisplayName = "DisplayName"
+            RootNamespace = "RootNamespace"
         };
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(hostProject);
+            updater.AddProject(hostProject);
         });
 
         var projectId = ProjectId.CreateNewId();
@@ -77,7 +75,7 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
         await WaitForProjectManagerUpdatesAsync();
 
         var project = Assert.Single(_projectManager.GetProjects());
-        Assert.IsNotType<FallbackHostProject>(((ProjectSnapshot)project).HostProject);
+        Assert.False(_fallbackProjectManger.IsFallbackProject(project));
     }
 
     [UIFact]
@@ -104,11 +102,11 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
         Assert.Equal("DisplayName", project.DisplayName);
         Assert.Equal("RootNamespace", project.RootNamespace);
 
-        Assert.IsType<FallbackHostProject>(((ProjectSnapshot)project).HostProject);
+        Assert.True(_fallbackProjectManger.IsFallbackProject(project));
 
         var documentFilePath = Assert.Single(project.DocumentFilePaths);
         Assert.Equal(SomeProjectFile1.FilePath, documentFilePath);
-        Assert.Equal(SomeProjectFile1.TargetPath, project.GetDocument(documentFilePath)!.TargetPath);
+        Assert.Equal(SomeProjectFile1.TargetPath, project.GetRequiredDocument(documentFilePath).TargetPath);
     }
 
     [UIFact]
@@ -132,22 +130,21 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
         await WaitForProjectManagerUpdatesAsync();
 
         var project = Assert.Single(_projectManager.GetProjects());
-        Assert.IsType<FallbackHostProject>(((ProjectSnapshot)project).HostProject);
+        Assert.True(_fallbackProjectManger.IsFallbackProject(project));
 
         var hostProject = SomeProject with
         {
             Configuration = RazorConfiguration.Default,
-            RootNamespace = "RootNamespace",
-            DisplayName = "DisplayName"
+            RootNamespace = "RootNamespace"
         };
 
         await _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectChanged(hostProject, ProjectWorkspaceState.Default);
+            updater.UpdateProjectConfiguration(hostProject);
         });
 
         project = Assert.Single(_projectManager.GetProjects());
-        Assert.IsNotType<FallbackHostProject>(((ProjectSnapshot)project).HostProject);
+        Assert.False(_fallbackProjectManger.IsFallbackProject(project));
     }
 
     [UIFact]
@@ -191,10 +188,12 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
             f => Assert.Equal(SomeProjectFile2.FilePath, f),
             f => Assert.Equal(SomeProjectNestedComponentFile3.FilePath, f));
 
-        Assert.Equal(SomeProjectFile1.TargetPath, project.GetDocument(SomeProjectFile1.FilePath)!.TargetPath);
-        Assert.Equal(SomeProjectFile2.TargetPath, project.GetDocument(SomeProjectFile2.FilePath)!.TargetPath);
+        Assert.Equal(SomeProjectFile1.TargetPath, project.GetRequiredDocument(SomeProjectFile1.FilePath).TargetPath);
+        Assert.Equal(SomeProjectFile2.TargetPath, project.GetRequiredDocument(SomeProjectFile2.FilePath).TargetPath);
         // The test data is created with a "\" so when the test runs on Linux, and direct string comparison wouldn't work
-        Assert.True(FilePathNormalizer.AreFilePathsEquivalent(SomeProjectNestedComponentFile3.TargetPath, project.GetDocument(SomeProjectNestedComponentFile3.FilePath)!.TargetPath));
+        Assert.True(FilePathNormalizer.AreFilePathsEquivalent(
+            SomeProjectNestedComponentFile3.TargetPath,
+            project.GetRequiredDocument(SomeProjectNestedComponentFile3.FilePath).TargetPath));
     }
 
     [UIFact]
@@ -237,7 +236,7 @@ public class FallbackProjectManagerTest : VisualStudioWorkspaceTestBase
         Assert.Single(project.DocumentFilePaths,
             filePath => filePath == SomeProjectFile1.FilePath);
 
-        Assert.Equal(SomeProjectFile1.TargetPath, project.GetDocument(SomeProjectFile1.FilePath)!.TargetPath);
+        Assert.Equal(SomeProjectFile1.TargetPath, project.GetRequiredDocument(SomeProjectFile1.FilePath).TargetPath);
     }
 
     private Task WaitForProjectManagerUpdatesAsync()

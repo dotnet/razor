@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.AspNetCore.Razor;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor;
@@ -80,7 +82,8 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
             ForceRuntimeCodeGeneration = false,
             SupportsFileManipulation = true,
             ShowAllCSharpCodeActions = false,
-            UseRoslynTokenizer = false,
+            UseNewFormattingEngine = false,
+            SupportsSoftSelectionInCompletion = true,
         };
         UpdateClientInitializationOptions(c => c);
 
@@ -130,11 +133,15 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         SemanticTokensLegendService.SetLegend(_clientLSPInitializationOptions.TokenTypes, _clientLSPInitializationOptions.TokenModifiers);
     }
 
-    protected Task<TextDocument> CreateProjectAndRazorDocumentAsync(
+    private protected virtual TestComposition ConfigureRoslynDevenvComposition(TestComposition composition)
+        => composition;
+
+    protected async Task<TextDocument> CreateProjectAndRazorDocumentAsync(
         string contents,
         string? fileKind = null,
         (string fileName, string contents)[]? additionalFiles = null,
-        bool createSeparateRemoteAndLocalWorkspaces = false)
+        bool createSeparateRemoteAndLocalWorkspaces = false,
+        bool inGlobalNamespace = false)
     {
         // Using IsLegacy means null == component, so easier for test authors
         var isComponent = !FileKinds.IsLegacy(fileKind);
@@ -149,7 +156,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         var documentId = DocumentId.CreateNewId(projectId, debugName: documentFilePath);
 
         var remoteWorkspace = RemoteWorkspaceAccessor.GetWorkspace();
-        var remoteDocument = CreateProjectAndRazorDocument(remoteWorkspace, projectId, projectName, documentId, documentFilePath, contents, additionalFiles);
+        var remoteDocument = await CreateProjectAndRazorDocumentAsync(remoteWorkspace, projectId, projectName, documentId, documentFilePath, contents, additionalFiles, inGlobalNamespace);
 
         if (createSeparateRemoteAndLocalWorkspaces)
         {
@@ -158,20 +165,21 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
             // actual solution syncing set up for testing, and don't really use a service broker, but since we also would
             // expect to never make changes to a workspace, it should be fine to simply create duplicated solutions as part
             // of test setup.
-            return CreateLocalProjectAndRazorDocumentAsync(
+            return await CreateLocalProjectAndRazorDocumentAsync(
                 remoteDocument.Project.Solution,
                 projectId,
                 projectName,
                 documentId,
                 documentFilePath,
                 contents,
-                additionalFiles);
+                additionalFiles,
+                inGlobalNamespace);
         }
 
         // If we're just creating one workspace, then its the remote one and we just return the remote document
         // and assume that the endpoint under test doesn't need to do anything on the devenv side. This makes it
         // easier for tests to mutate solutions
-        return Task.FromResult(remoteDocument);
+        return remoteDocument;
     }
 
     private async Task<TextDocument> CreateLocalProjectAndRazorDocumentAsync(
@@ -181,27 +189,15 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         DocumentId documentId,
         string documentFilePath,
         string contents,
-        (string fileName, string contents)[]? additionalFiles)
+        (string fileName, string contents)[]? additionalFiles,
+        bool inGlobalNamespace)
     {
-        var exportProvider = TestComposition.Roslyn.ExportProviderFactory.CreateExportProvider();
+        var exportProvider = ConfigureRoslynDevenvComposition(TestComposition.Roslyn).ExportProviderFactory.CreateExportProvider();
         AddDisposable(exportProvider);
         var workspace = TestWorkspace.CreateWithDiagnosticAnalyzers(exportProvider);
         AddDisposable(workspace);
 
-        var razorDocument = CreateProjectAndRazorDocument(workspace, projectId, projectName, documentId, documentFilePath, contents, additionalFiles);
-
-        // Until the source generator is hooked up, the workspace representing "local" projects doesn't have anything
-        // to actually compile the Razor to C#, so we just do it now at creation
-        var solution = razorDocument.Project.Solution;
-        // We're cheating a bit here and using the remote export provider to get something to do the compilation
-        var snapshotManager = _exportProvider.AssumeNotNull().GetExportedValue<RemoteSnapshotManager>();
-        var snapshot = snapshotManager.GetSnapshot(razorDocument);
-        // Compile the Razor file
-        var codeDocument = await snapshot.GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput: false, DisposalToken);
-        // Update the generated doc contents
-        var generatedDocumentIds = solution.GetDocumentIdsWithFilePath(documentFilePath + CSharpVirtualDocumentSuffix);
-        solution = solution.WithDocumentText(generatedDocumentIds, codeDocument.GetCSharpSourceText());
-        razorDocument = solution.GetAdditionalDocument(documentId).AssumeNotNull();
+        var razorDocument = await CreateProjectAndRazorDocumentAsync(workspace, projectId, projectName, documentId, documentFilePath, contents, additionalFiles, inGlobalNamespace);
 
         // If we're creating remote and local workspaces, then we'll return the local document, and have to allow
         // the remote service invoker to map from the local solution to the remote one.
@@ -210,7 +206,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         return razorDocument;
     }
 
-    private static TextDocument CreateProjectAndRazorDocument(CodeAnalysis.Workspace workspace, ProjectId projectId, string projectName, DocumentId documentId, string documentFilePath, string contents, (string fileName, string contents)[]? additionalFiles)
+    private async Task<TextDocument> CreateProjectAndRazorDocumentAsync(CodeAnalysis.Workspace workspace, ProjectId projectId, string projectName, DocumentId documentId, string documentFilePath, string contents, (string fileName, string contents)[]? additionalFiles, bool inGlobalNamespace)
     {
         var projectInfo = ProjectInfo
             .Create(
@@ -219,9 +215,14 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
                 name: projectName,
                 assemblyName: projectName,
                 LanguageNames.CSharp,
-                documentFilePath)
-            .WithDefaultNamespace(TestProjectData.SomeProject.RootNamespace)
+                documentFilePath,
+                compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             .WithMetadataReferences(AspNet80.ReferenceInfos.All.Select(r => r.Reference));
+
+        if (!inGlobalNamespace)
+        {
+            projectInfo = projectInfo.WithDefaultNamespace(TestProjectData.SomeProject.RootNamespace);
+        }
 
         var solution = workspace.CurrentSolution.AddProject(projectInfo);
 
@@ -231,11 +232,6 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
                 documentFilePath,
                 SourceText.From(contents),
                 filePath: documentFilePath)
-            .AddDocument(
-                DocumentId.CreateNewId(projectId),
-                name: documentFilePath + CSharpVirtualDocumentSuffix,
-                SourceText.From(""),
-                filePath: documentFilePath + CSharpVirtualDocumentSuffix)
             .AddAdditionalDocument(
                 DocumentId.CreateNewId(projectId),
                 name: TestProjectData.SomeProjectComponentImportFile1.FilePath,
@@ -265,12 +261,50 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
             }
         }
 
+        // Until the source generator is hooked up, the workspace representing "local" projects doesn't have anything
+        // to actually compile the Razor to C#, so we just do it now at creation
+        var snapshotManager = _exportProvider.AssumeNotNull().GetExportedValue<RemoteSnapshotManager>();
+        solution = await CompileRazorDocumentAsync(snapshotManager, documentId, solution, DisposalToken);
+
+        if (additionalFiles is not null)
+        {
+            foreach (var file in additionalFiles)
+            {
+                if (Path.GetExtension(file.fileName) is ".cshtml" or ".razor" &&
+                    Path.GetFileNameWithoutExtension(file.fileName) is not ("_ViewImports" or "_Imports"))
+                {
+                    var additionalDocumentId = solution.GetDocumentIdsWithFilePath(file.fileName).Single();
+                    solution = await CompileRazorDocumentAsync(snapshotManager, additionalDocumentId, solution, DisposalToken);
+                }
+            }
+        }
+
         return solution.GetAdditionalDocument(documentId).AssumeNotNull();
+
+        static async Task<Solution> CompileRazorDocumentAsync(RemoteSnapshotManager snapshotManager, DocumentId documentId, Solution solution, CancellationToken cancellationToken)
+        {
+            // We're cheating a bit here and using the remote export provider to get something to do the compilation
+            var razorDocument = solution.GetAdditionalDocument(documentId).AssumeNotNull();
+            var snapshot = snapshotManager.GetSnapshot(razorDocument);
+            // Compile the Razor file
+            var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken);
+            // Update the generated doc contents
+            var filePath = razorDocument.FilePath + CSharpVirtualDocumentSuffix;
+            var generatedDocumentIds = solution.GetDocumentIdsWithFilePath(filePath);
+            if (generatedDocumentIds.Length == 0)
+            {
+                var generatedDocumentId = DocumentId.CreateNewId(documentId.ProjectId);
+                solution = solution.AddDocument(generatedDocumentId, name: filePath, text: SourceText.From(""), filePath: filePath);
+                generatedDocumentIds = solution.GetDocumentIdsWithFilePath(filePath);
+            }
+
+            return solution.WithDocumentText(generatedDocumentIds, codeDocument.GetCSharpSourceText());
+        }
     }
 
     protected static Uri FileUri(string projectRelativeFileName)
         => new(FilePath(projectRelativeFileName));
 
     protected static string FilePath(string projectRelativeFileName)
-        => Path.Combine(TestProjectData.SomeProjectPath, projectRelativeFileName);
+        => Path.GetFullPath(Path.Combine(TestProjectData.SomeProjectPath, projectRelativeFileName));
 }

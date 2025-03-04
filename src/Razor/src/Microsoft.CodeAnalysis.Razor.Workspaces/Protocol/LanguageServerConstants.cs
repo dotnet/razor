@@ -15,6 +15,8 @@ internal static class LanguageServerConstants
 
     public const string RazorMapToDocumentRangesEndpoint = "razor/mapToDocumentRanges";
 
+    public const string RazorMapToDocumentEditsEndpoint = "razor/mapToDocumentEdits";
+
     public const string RazorCodeActionRunnerCommand = "razor/runCodeAction";
 
     public const string RazorCompletionEndpointName = "razor/completion";
@@ -42,6 +44,8 @@ internal static class LanguageServerConstants
         public const string CreateComponentFromTag = "CreateComponentFromTag";
 
         public const string AddUsing = "AddUsing";
+
+        public const string PromoteUsingDirective = "PromoteUsingDirective";
 
         public const string CodeActionFromVSCode = "CodeActionFromVSCode";
 

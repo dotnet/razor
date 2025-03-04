@@ -1,16 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
@@ -106,31 +103,18 @@ internal sealed class CohostCodeActionsResolveEndpoint(
 
             var uri = resolveParams.DelegatedDocumentUri.AssumeNotNull();
 
-            var generatedDocumentIds = razorDocument.Project.Solution.GetDocumentIdsWithUri(uri);
-            var generatedDocumentId = generatedDocumentIds.FirstOrDefault(d => d.ProjectId == razorDocument.Project.Id);
-            if (generatedDocumentId is null)
+            if (!razorDocument.Project.TryGetCSharpDocument(uri, out var generatedDocument))
             {
                 return codeAction;
-            }
-
-            if (razorDocument.Project.GetDocument(generatedDocumentId) is not { } generatedDocument)
-            {
-                return codeAction;
-            }
-
-            var options = new JsonSerializerOptions();
-            foreach (var converter in RazorServiceDescriptorsWrapper.GetLspConverters())
-            {
-                options.Converters.Add(converter);
             }
 
             var resourceOptions = _clientCapabilitiesService.ClientCapabilities.Workspace?.WorkspaceEdit?.ResourceOperations ?? [];
-            var roslynCodeAction = JsonSerializer.Deserialize<Roslyn.LanguageServer.Protocol.VSInternalCodeAction>(JsonSerializer.SerializeToDocument(codeAction, options), options).AssumeNotNull();
-            var roslynResourceOptions = JsonSerializer.Deserialize<Roslyn.LanguageServer.Protocol.ResourceOperationKind[]>(JsonSerializer.SerializeToDocument(resourceOptions, options), options).AssumeNotNull();
+            var roslynCodeAction = JsonHelpers.ToRoslynLSP<Roslyn.LanguageServer.Protocol.VSInternalCodeAction, CodeAction>(codeAction).AssumeNotNull();
+            var roslynResourceOptions = JsonHelpers.ToRoslynLSP<Roslyn.LanguageServer.Protocol.ResourceOperationKind[], ResourceOperationKind[]>(resourceOptions).AssumeNotNull();
 
             var resolvedCodeAction = await CodeActions.ResolveCodeActionAsync(generatedDocument, roslynCodeAction, roslynResourceOptions, cancellationToken).ConfigureAwait(false);
 
-            return JsonSerializer.Deserialize<RazorVSInternalCodeAction>(JsonSerializer.SerializeToDocument(resolvedCodeAction, options), options).AssumeNotNull();
+            return JsonHelpers.ToVsLSP<RazorVSInternalCodeAction, Roslyn.LanguageServer.Protocol.CodeAction>(resolvedCodeAction).AssumeNotNull();
         }
         finally
         {
