@@ -147,9 +147,19 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
             .UpdateAsync(
                 updater =>
                 {
+                    var projects = _projectManager.GetProjects();
+
+                    // For each file, check to see if it's already in a project.
+                    // If it is, we don't want to add it to the misc project.
                     foreach (var filePath in filePaths)
                     {
-                        AddDocumentToMiscProjectCore(updater, filePath);
+                        foreach (var project in projects)
+                        {
+                            if (project.ContainsDocument(filePath))
+                            {
+                                AddDocumentToMiscProjectCore(updater, filePath);
+                            }
+                        }
                     }
                 },
                 cancellationToken)
@@ -162,26 +172,37 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
 
         await _projectManager
             .UpdateAsync(
-                updater => AddDocumentToMiscProjectCore(updater, filePath),
+                updater =>
+                {
+                    if (!_projectManager.TryFindContainingProject(filePath, out _))
+                    {
+                        AddDocumentToMiscProjectCore(updater, filePath);
+                    }
+                },
                 cancellationToken)
             .ConfigureAwait(false);
     }
 
     private void AddDocumentToMiscProjectCore(ProjectSnapshotManager.Updater updater, string filePath, SourceText? sourceText = null)
     {
-        var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        _logger.LogDebug($"Asked to add {textDocumentPath} to the miscellaneous files project, because we don't have project info (yet?)");
+        _logger.LogDebug($"Asked to add {filePath} to the miscellaneous files project, because we don't have project info (yet?)");
 
-        if (_projectManager.TryResolveDocumentInAnyProject(textDocumentPath, _logger, out var document))
+#if DEBUG
+        // Note: This shouldn't happen because every caller checks to see if the document is already in a project
+        // before attempting to add it. This is just a sanity check.
+
+        if (_projectManager.TryFindContainingProject(filePath, out var projectKey))
         {
             // Already in a known project, so we don't want it in the misc files project
-            _logger.LogDebug($"File {textDocumentPath} is already in {document.Project.Key}, so we're not adding it to the miscellaneous files project");
+            _logger.LogDebug($"File {filePath} is already in {projectKey}, so we're not adding it to the miscellaneous files project");
             return;
         }
+#endif
+
+        _logger.LogInformation($"Adding document '{filePath}' to miscellaneous files project.");
 
         var miscFilesProject = _projectManager.GetMiscellaneousProject();
-
-        _logger.LogInformation($"Adding document '{textDocumentPath}' to project '{miscFilesProject.Key}'.");
+        var textDocumentPath = FilePathNormalizer.Normalize(filePath);
 
         // Representing all of our host documents with a re-normalized target path to workaround GetRelatedDocument limitations.
         var normalizedTargetFilePath = textDocumentPath.Replace('/', '\\').TrimStart('\\');
@@ -205,12 +226,10 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
         await _projectManager.UpdateAsync(
             updater =>
             {
-                var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-
                 // We are okay to use the non-project-key overload of TryResolveDocument here because we really are just checking if the document
                 // has been added to _any_ project. AddDocument will take care of adding to all of the necessary ones, and then below we ensure
                 // we process them all too
-                if (!_projectManager.TryResolveDocumentInAnyProject(textDocumentPath, _logger, out var document))
+                if (!_projectManager.TryFindContainingProject(filePath, out _))
                 {
                     // Document hasn't been added. This usually occurs when VSCode trumps all other initialization
                     // processes and pre-initializes already open documents. We add this to the misc project, and
