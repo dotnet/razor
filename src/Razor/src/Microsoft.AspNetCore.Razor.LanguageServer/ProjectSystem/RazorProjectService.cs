@@ -145,16 +145,13 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
 
         await _projectManager
             .UpdateAsync(
-                static (updater, state) =>
+                updater =>
                 {
-                    var (@this, filePaths) = state;
-
                     foreach (var filePath in filePaths)
                     {
-                        @this.AddDocumentToMiscProjectCore(updater, filePath);
+                        AddDocumentToMiscProjectCore(updater, filePath);
                     }
                 },
-                state: (this, filePaths),
                 cancellationToken)
             .ConfigureAwait(false);
     }
@@ -165,13 +162,12 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
 
         await _projectManager
             .UpdateAsync(
-                updater: AddDocumentToMiscProjectCore,
-                state: filePath,
+                updater => AddDocumentToMiscProjectCore(updater, filePath),
                 cancellationToken)
             .ConfigureAwait(false);
     }
 
-    private void AddDocumentToMiscProjectCore(ProjectSnapshotManager.Updater updater, string filePath)
+    private void AddDocumentToMiscProjectCore(ProjectSnapshotManager.Updater updater, string filePath, SourceText? sourceText = null)
     {
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
         _logger.LogDebug($"Asked to add {textDocumentPath} to the miscellaneous files project, because we don't have project info (yet?)");
@@ -185,15 +181,21 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
 
         var miscFilesProject = _projectManager.GetMiscellaneousProject();
 
+        _logger.LogInformation($"Adding document '{textDocumentPath}' to project '{miscFilesProject.Key}'.");
+
         // Representing all of our host documents with a re-normalized target path to workaround GetRelatedDocument limitations.
         var normalizedTargetFilePath = textDocumentPath.Replace('/', '\\').TrimStart('\\');
 
         var hostDocument = new HostDocument(textDocumentPath, normalizedTargetFilePath);
-        var textLoader = _remoteTextLoaderFactory.Create(textDocumentPath);
 
-        _logger.LogInformation($"Adding document '{textDocumentPath}' to project '{miscFilesProject.Key}'.");
-
-        updater.AddDocument(miscFilesProject.Key, hostDocument, textLoader);
+        if (sourceText is not null)
+        {
+            updater.AddDocument(miscFilesProject.Key, hostDocument, sourceText);
+        }
+        else
+        {
+            updater.AddDocument(miscFilesProject.Key, hostDocument, _remoteTextLoaderFactory.Create(textDocumentPath));
+        }
     }
 
     public async Task OpenDocumentAsync(string filePath, SourceText sourceText, CancellationToken cancellationToken)
@@ -213,7 +215,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                     // Document hasn't been added. This usually occurs when VSCode trumps all other initialization
                     // processes and pre-initializes already open documents. We add this to the misc project, and
                     // if/when we get project info from the client, it will be migrated to a real project.
-                    AddDocumentToMiscProjectCore(updater, filePath);
+                    AddDocumentToMiscProjectCore(updater, filePath, sourceText);
                 }
 
                 ActOnDocumentInMultipleProjects(
