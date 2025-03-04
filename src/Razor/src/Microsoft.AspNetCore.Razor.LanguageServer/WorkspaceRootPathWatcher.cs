@@ -145,7 +145,14 @@ internal partial class WorkspaceRootPathWatcher : IOnInitialized, IDisposable
             }
 
             // We only send notifications for the changes that we kept.
-            await RazorFileChangedAsync(filePath, value.kind, token).ConfigureAwait(false);
+            if (value.kind == RazorFileChangeKind.Added)
+            {
+                await _projectService.AddDocumentToMiscProjectAsync(filePath, token).ConfigureAwait(false);
+            }
+            else if (value.kind == RazorFileChangeKind.Removed)
+            {
+                await _projectService.RemoveDocumentAsync(filePath, token).ConfigureAwait(false);
+            }
         }
     }
 
@@ -173,10 +180,7 @@ internal partial class WorkspaceRootPathWatcher : IOnInitialized, IDisposable
 
         var existingRazorFiles = GetExistingRazorFiles(workspaceDirectory);
 
-        foreach (var razorFilePath in existingRazorFiles)
-        {
-            await RazorFileChangedAsync(razorFilePath, RazorFileChangeKind.Added, cancellationToken).ConfigureAwait(false);
-        }
+        await _projectService.AddDocumentsToMiscProjectAsync(existingRazorFiles, cancellationToken).ConfigureAwait(false);
 
         if (!InitializeFileWatchers)
         {
@@ -233,18 +237,6 @@ internal partial class WorkspaceRootPathWatcher : IOnInitialized, IDisposable
 
         _watchers.Clear();
     }
-
-    private Task RazorFileChangedAsync(string filePath, RazorFileChangeKind kind, CancellationToken cancellationToken)
-        => kind switch
-        {
-            // We put the new file in the misc files project, so we don't confuse the client by sending updates for
-            // a razor file that we guess is going to be in a project, when the client might not have received that
-            // info yet. When the client does find out, it will tell us by updating the project info, and we'll
-            // migrate the file as necessary.
-            RazorFileChangeKind.Added => _projectService.AddDocumentToMiscProjectAsync(filePath, cancellationToken),
-            RazorFileChangeKind.Removed => _projectService.RemoveDocumentAsync(filePath, cancellationToken),
-            _ => Task.CompletedTask
-        };
 
     // Protected virtual for testing
     protected virtual bool InitializeFileWatchers => true;

@@ -58,16 +58,12 @@ public class WorkspaceRootPathWatcherTest(ITestOutputHelper testOutput) : Toolin
     public async Task StartAsync_NotifiesProjectServiceOfExistingRazorFiles()
     {
         // Arrange
-        var actual = new List<(string FilePath, RazorFileChangeKind Kind)>();
+        var actual = new List<string>();
 
         var projectServiceMock = new StrictMock<IRazorProjectService>();
         projectServiceMock
-            .Setup(x => x.AddDocumentToMiscProjectAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .Callback((string filePath, CancellationToken _) => actual.Add((filePath, RazorFileChangeKind.Added)))
-            .Returns(Task.CompletedTask);
-        projectServiceMock
-            .Setup(x => x.RemoveDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .Callback((string filePath, CancellationToken _) => actual.Add((filePath, RazorFileChangeKind.Removed)))
+            .Setup(x => x.AddDocumentsToMiscProjectAsync(It.IsAny<ImmutableArray<string>>(), It.IsAny<CancellationToken>()))
+            .Callback((ImmutableArray<string> filePaths, CancellationToken _) => actual.AddRange(filePaths))
             .Returns(Task.CompletedTask);
 
         var workspaceRootPathProviderMock = new StrictMock<IWorkspaceRootPathProvider>();
@@ -88,17 +84,7 @@ public class WorkspaceRootPathWatcherTest(ITestOutputHelper testOutput) : Toolin
         await watcher.OnInitializedAsync(StrictMock.Of<ILspServices>(), DisposalToken);
 
         // Assert
-        Assert.Collection(actual,
-            x =>
-            {
-                Assert.Equal(RazorFileChangeKind.Added, x.Kind);
-                Assert.Equal(existingRazorFiles[0], x.FilePath);
-            },
-            x =>
-            {
-                Assert.Equal(RazorFileChangeKind.Added, x.Kind);
-                Assert.Equal(existingRazorFiles[1], x.FilePath);
-            });
+        Assert.Equal(existingRazorFiles, actual);
     }
 
     [Theory]

@@ -139,6 +139,26 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
             .ConfigureAwait(false);
     }
 
+    public async Task AddDocumentsToMiscProjectAsync(ImmutableArray<string> filePaths, CancellationToken cancellationToken)
+    {
+        await WaitForInitializationAsync().ConfigureAwait(false);
+
+        await _projectManager
+            .UpdateAsync(
+                static (updater, state) =>
+                {
+                    var (@this, filePaths) = state;
+
+                    foreach (var filePath in filePaths)
+                    {
+                        @this.AddDocumentToMiscProjectCore(updater, filePath);
+                    }
+                },
+                state: (this, filePaths),
+                cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     public async Task AddDocumentToMiscProjectAsync(string filePath, CancellationToken cancellationToken)
     {
         await WaitForInitializationAsync().ConfigureAwait(false);
