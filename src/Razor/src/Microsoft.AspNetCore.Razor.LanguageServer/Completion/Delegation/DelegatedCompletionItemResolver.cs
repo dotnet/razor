@@ -43,7 +43,7 @@ internal class DelegatedCompletionItemResolver(
             return null;
         }
 
-        item.Data = DelegatedCompletionHelper.GetOriginalCompletionItemData(item, containingCompletionList);
+        item.Data = DelegatedCompletionHelper.GetOriginalCompletionItemData(item, containingCompletionList, resolutionContext.OriginalCompletionListData);
 
         var delegatedParams = resolutionContext.OriginalRequestParams;
         var delegatedResolveParams = new DelegatedCompletionItemResolveParams(

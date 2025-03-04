@@ -4,6 +4,7 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -241,23 +242,6 @@ internal sealed class CohostDocumentCompletionEndpoint(
         return rewrittenResponse;
     }
 
-    internal static T? ToVsLSP<T>(object source) where T : class
-    {
-        // This is, to say the least, not ideal. In future we're going to normalize on to Roslyn LSP types, and this can go.
-        var options = new JsonSerializerOptions();
-        foreach (var converter in RazorServiceDescriptorsWrapper.GetLspConverters())
-        {
-            options.Converters.Add(converter);
-        }
-
-        if (JsonSerializer.Deserialize<T>(JsonSerializer.SerializeToDocument(source), options) is not { } target)
-        {
-            return null;
-        }
-
-        return target;
-    }
-
     private VSInternalCompletionList? AddSnippets(
         VSInternalCompletionList? completionList,
         RazorLanguageKind languageKind,
@@ -300,7 +284,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
     {
         foreach (var item in completionList.Items)
         {
-            if (ToVsLSP<VSTextDocumentIdentifier>(textDocumentIdentifier) is not { } vsTextDocumentIdentifier)
+            if (JsonHelpers.ToVsLSP<VSTextDocumentIdentifier, RoslynTextDocumentIdentifier>(textDocumentIdentifier) is not { } vsTextDocumentIdentifier)
             {
                 continue;
             }

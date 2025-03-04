@@ -252,11 +252,12 @@ internal static class DelegatedCompletionHelper
 
     public static object? GetOriginalCompletionItemData(
         VSInternalCompletionItem requestCompletionItem,
-        VSInternalCompletionList originalCompletionList)
+        VSInternalCompletionList containingCompletionList,
+        object? originalCompletionListData)
     {
         var requestLabel = requestCompletionItem.Label;
         var requestKind = requestCompletionItem.Kind;
-        var originalDelegatedCompletionItem = originalCompletionList.Items.FirstOrDefault(
+        var originalDelegatedCompletionItem = containingCompletionList.Items.FirstOrDefault(
             completionItem => string.Equals(requestLabel, completionItem.Label, StringComparison.Ordinal)
                 && requestKind == completionItem.Kind);
 
@@ -275,7 +276,7 @@ internal static class DelegatedCompletionHelper
         }
         else
         {
-            originalData = originalDelegatedCompletionItem.Data ?? originalCompletionList.Data;
+            originalData = originalDelegatedCompletionItem.Data ?? originalCompletionListData;
         }
 
         return originalData;

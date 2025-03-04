@@ -77,7 +77,7 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
             return Task.FromResult(request);
         }
 
-        if (CohostDocumentCompletionEndpoint.ToVsLSP<VSInternalCompletionItem>(request) is not VSInternalCompletionItem completionItem)
+        if (JsonHelpers.ToVsLSP<VSInternalCompletionItem, RoslynVSInternalCompletionItem>(request) is not VSInternalCompletionItem completionItem)
         {
             return Task.FromResult(request);
         }
@@ -90,11 +90,13 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
             return Task.FromResult(request);
         }
 
+        // TODO: I don't think this is quite right, in LSP case we store DelegatedCompletionResolutionContext we orignalCompletionListData
         var languageKind = (RazorLanguageKind)originalRequestContext;
 
         if (languageKind == RazorLanguageKind.Html)
         {
-            request.Data = DelegatedCompletionHelper.GetOriginalCompletionItemData(completionItem, containingCompletionList);
+            // TODO: store and pass actual originalCompletionListData
+            request.Data = DelegatedCompletionHelper.GetOriginalCompletionItemData(completionItem, containingCompletionList, originalCompletionListData: null);
             _ = GetHtmlCompletionResolveAsync(request, completionItem, razorDocument, cancellationToken);
         }
 
