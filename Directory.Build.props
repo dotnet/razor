@@ -45,10 +45,6 @@
 
     <DefaultNetFxTargetFramework>net472</DefaultNetFxTargetFramework>
 
-    <NetVS>net8.0</NetVS>
-    <NetVSCode>net9.0</NetVSCode>
-    <NetRazorAll>net8.0;net9.0</NetRazorAll>
-
     <!-- Uncomment this line to run formatting on runtime code-gen if FUSE is turned on -->
     <!-- <DefineConstants>$(DefineConstants);FORMAT_FUSE</DefineConstants> -->
   </PropertyGroup>
@@ -85,8 +81,9 @@
     -->
     <Otherwise>
       <PropertyGroup>
-        <DefaultNetCoreTargetFramework>$(NetVS)</DefaultNetCoreTargetFramework>
-        <DefaultNetCoreTargetFrameworks>$(NetRazorAll)</DefaultNetCoreTargetFrameworks>
+        <DefaultNetCoreTargetFramework Condition="'$(IsVSCodeOnly)' == 'true'">net9.0</DefaultNetCoreTargetFramework>
+        <DefaultNetCoreTargetFramework Condition="'$(IsVSCodeOnly)' != 'true'">net8.0</DefaultNetCoreTargetFramework>
+        <DefaultNetCoreTargetFrameworks>$(DefaultNetCoreTargetFramework)</DefaultNetCoreTargetFrameworks>
       </PropertyGroup>
     </Otherwise>
   </Choose>
