@@ -84,8 +84,7 @@
     -->
     <Otherwise>
       <PropertyGroup>
-        <DefaultNetCoreTargetFramework Condition="'$(IsVSCodeOnly)' == 'true'">net9.0</DefaultNetCoreTargetFramework>
-        <DefaultNetCoreTargetFramework Condition="'$(IsVSCodeOnly)' != 'true'">net8.0</DefaultNetCoreTargetFramework>
+        <DefaultNetCoreTargetFramework>net8.0</DefaultNetCoreTargetFramework>
         <DefaultNetCoreTargetFrameworks>$(DefaultNetCoreTargetFramework)</DefaultNetCoreTargetFrameworks>
       </PropertyGroup>
     </Otherwise>

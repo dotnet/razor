@@ -9,7 +9,6 @@
     <EnableApiCheck>false</EnableApiCheck>
     <IsShippingPackage>true</IsShippingPackage>
     <RollForward>LatestMajor</RollForward>
-    <IsVSCodeOnly>true</IsVSCodeOnly>
     <!--
         Build a nuget package for this project.  This is not consumed as a standard NuGet package; it just
     contains
