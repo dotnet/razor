@@ -153,17 +153,26 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                     // If it is, we don't want to add it to the misc project.
                     foreach (var filePath in filePaths)
                     {
+                        var add = true;
+
                         foreach (var project in projects)
                         {
                             if (project.ContainsDocument(filePath))
                             {
-                                if (cancellationToken.IsCancellationRequested)
-                                {
-                                    return;
-                                }
-
-                                AddDocumentToMiscProjectCore(updater, filePath);
+                                // The file is already in a project, so we shouldn't add it to the misc project.
+                                add = false;
+                                break;
                             }
+                        }
+
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            break;
+                        }
+
+                        if (add)
+                        {
+                            AddDocumentToMiscProjectCore(updater, filePath);
                         }
                     }
                 },
