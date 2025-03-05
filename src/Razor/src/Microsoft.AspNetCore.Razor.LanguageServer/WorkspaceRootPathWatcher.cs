@@ -209,13 +209,17 @@ internal partial class WorkspaceRootPathWatcher : IOnInitialized, IDisposable
             {
                 // Translate file renames into remove->add
 
-                if (args.OldFullPath.EndsWith(filter, FilePathComparison.Instance))
+                // All of the filters are of the form, *.extension. So, we can just slice to the extension.
+                Debug.Assert(filter[0] == '*');
+                var extension = filter.AsSpan()[1..];
+
+                if (PathUtilities.GetExtension(args.OldFullPath.AsSpan()).Equals(extension, FilePathComparison.Instance))
                 {
                     // Renaming from Razor file to something else.
                     _workQueue.AddWork((args.OldFullPath, RazorFileChangeKind.Removed));
                 }
 
-                if (args.FullPath.EndsWith(filter, FilePathComparison.Instance))
+                if (PathUtilities.GetExtension(args.FullPath.AsSpan()).Equals(extension, FilePathComparison.Instance))
                 {
                     // Renaming to a Razor file.
                     _workQueue.AddWork((args.FullPath, RazorFileChangeKind.Added));
