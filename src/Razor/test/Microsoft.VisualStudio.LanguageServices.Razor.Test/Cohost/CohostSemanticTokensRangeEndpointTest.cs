@@ -60,7 +60,7 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
         await VerifySemanticTokensAsync(input, colorBackground, precise);
     }
 
-    [FuseTheory(Skip = "https://github.com/dotnet/razor/issues/10857 and https://github.com/dotnet/razor/issues/11329")]
+    [Theory]
     [CombinatorialData]
     public async Task Legacy(bool colorBackground, bool precise)
     {

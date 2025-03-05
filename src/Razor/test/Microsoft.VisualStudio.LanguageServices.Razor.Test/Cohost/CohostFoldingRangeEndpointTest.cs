@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [FuseFact(Skip = "https://github.com/dotnet/razor/issues/10860")]
+    [Fact]
     public Task IfStatements()
         => VerifyFoldingRangesAsync("""
             <div>
@@ -26,15 +26,15 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
                 <div>
                   Hello World
                 </div>
-              }|]
-            </div>
+              }
+            |]</div>
 
             @if (true) {[|
               <div>
                 Hello World
               </div>
-            }|]
-
+            }
+            |]
             @if (true) {[|
             }|]
             """);
@@ -53,7 +53,7 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
             }|]
             """);
 
-    [FuseFact(Skip = "https://github.com/dotnet/razor/issues/10860")]
+    [Fact]
     public Task IfElseStatements()
         => VerifyFoldingRangesAsync("""
             <div>
@@ -66,8 +66,8 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
                     Goodbye World
                 </div>
                 }|]
-              }|]
-            </div>
+              }
+            |]</div>
             """);
 
     [Fact]
