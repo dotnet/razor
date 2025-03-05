@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 internal partial class WorkspaceRootPathWatcher : IOnInitialized, IDisposable
 {
     private static readonly TimeSpan s_delay = TimeSpan.FromSeconds(1);
-    private static readonly ImmutableArray<string> s_razorFileExtensions = [".razor", ".cshtml"];
+    private static readonly ImmutableArray<string> s_filters = ["*.razor", "*.cshtml"];
     private static readonly string[] s_ignoredDirectories = ["node_modules"];
 
     private readonly IWorkspaceRootPathProvider _workspaceRootPathProvider;
@@ -58,7 +58,7 @@ internal partial class WorkspaceRootPathWatcher : IOnInitialized, IDisposable
         _workQueue = new AsyncBatchingWorkQueue<(string, RazorFileChangeKind)>(delay, ProcessBatchAsync, _disposeTokenSource.Token);
         _filePathToChangeMap = new(FilePathComparer.Instance);
         _indicesToSkip = [];
-        _watchers = new List<FileSystemWatcher>(s_razorFileExtensions.Length);
+        _watchers = [];
         _fileSystem = fileSystem;
         _logger = loggerFactory.GetOrCreateLogger<WorkspaceRootPathWatcher>();
     }
@@ -182,22 +182,15 @@ internal partial class WorkspaceRootPathWatcher : IOnInitialized, IDisposable
 
         await _projectService.AddDocumentsToMiscProjectAsync(existingRazorFiles, cancellationToken).ConfigureAwait(false);
 
-        if (!InitializeFileWatchers)
+        if (cancellationToken.IsCancellationRequested || !InitializeFileWatchers)
         {
-            return;
-        }
-
-        if (cancellationToken.IsCancellationRequested)
-        {
-            // Client cancelled connection, no need to setup any file watchers. Server is about to tear down.
             return;
         }
 
         // Start listening for project file changes (added/removed/renamed).
-
-        foreach (var extension in s_razorFileExtensions)
+        foreach (var filter in s_filters)
         {
-            var watcher = new RazorFileSystemWatcher(workspaceDirectory, "*" + extension)
+            var watcher = new RazorFileSystemWatcher(workspaceDirectory, filter)
             {
                 NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.CreationTime,
                 IncludeSubdirectories = true,
@@ -209,13 +202,13 @@ internal partial class WorkspaceRootPathWatcher : IOnInitialized, IDisposable
             {
                 // Translate file renames into remove->add
 
-                if (args.OldFullPath.EndsWith(extension, FilePathComparison.Instance))
+                if (args.OldFullPath.EndsWith(filter, FilePathComparison.Instance))
                 {
                     // Renaming from Razor file to something else.
                     _workQueue.AddWork((args.OldFullPath, RazorFileChangeKind.Removed));
                 }
 
-                if (args.FullPath.EndsWith(extension, FilePathComparison.Instance))
+                if (args.FullPath.EndsWith(filter, FilePathComparison.Instance))
                 {
                     // Renaming to a Razor file.
                     _workQueue.AddWork((args.FullPath, RazorFileChangeKind.Added));
@@ -246,9 +239,9 @@ internal partial class WorkspaceRootPathWatcher : IOnInitialized, IDisposable
     {
         using var result = new PooledArrayBuilder<string>();
 
-        foreach (var extension in s_razorFileExtensions)
+        foreach (var filter in s_filters)
         {
-            var existingFiles = _fileSystem.GetFilteredFiles(workspaceDirectory, "*" + extension, s_ignoredDirectories, _logger);
+            var existingFiles = _fileSystem.GetFilteredFiles(workspaceDirectory, filter, s_ignoredDirectories, _logger);
             result.AddRange(existingFiles);
         }
 

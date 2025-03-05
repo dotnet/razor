@@ -145,7 +145,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
 
         await _projectManager
             .UpdateAsync(
-                updater =>
+                (updater, cancellationToken) =>
                 {
                     var projects = _projectManager.GetProjects();
 
@@ -157,11 +157,17 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
                         {
                             if (project.ContainsDocument(filePath))
                             {
+                                if (cancellationToken.IsCancellationRequested)
+                                {
+                                    return;
+                                }
+
                                 AddDocumentToMiscProjectCore(updater, filePath);
                             }
                         }
                     }
                 },
+                state: cancellationToken,
                 cancellationToken)
             .ConfigureAwait(false);
     }
