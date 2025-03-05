@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(DefaultNetCoreTargetFrameworks);$(DefaultNetFxTargetFramework)</TargetFrameworks>
+    <TargetFrameworks>$(NetVSAndVSCode);$(DefaultNetFxTargetFramework)</TargetFrameworks>
     <IsShipping>false</IsShipping>
 
     <RootNamespace>Microsoft.AspNetCore.Razor.Test.Common</RootNamespace>

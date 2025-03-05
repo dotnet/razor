@@ -64,8 +64,9 @@
     -->
     <When Condition="'$(DotNetBuildSourceOnly)' == 'true' AND '$(DotNetBuildOrchestrator)' != 'true'">
       <PropertyGroup>
-        <DefaultNetCoreTargetFramework>$(NetCurrent)</DefaultNetCoreTargetFramework>
-        <DefaultNetCoreTargetFrameworks>$(DefaultNetCoreTargetFramework);$(NetPrevious)</DefaultNetCoreTargetFrameworks>
+        <NetVS>$(NetCurrent)</NetVS>
+        <NetVSCode>$(NetCurrent)</NetVSCode>
+        <NetVSAndVSCode>$(NetVS);$(NetVSCode);$(NetPrevious)</NetVSAndVSCode>
       </PropertyGroup>
     </When>
 
@@ -74,8 +75,9 @@
     -->
     <When Condition="'$(DotNetBuildSourceOnly)' == 'true' AND '$(DotNetBuildOrchestrator)' == 'true'">
       <PropertyGroup>
-        <DefaultNetCoreTargetFramework>$(NetCurrent)</DefaultNetCoreTargetFramework>
-        <DefaultNetCoreTargetFrameworks>$(DefaultNetCoreTargetFramework)</DefaultNetCoreTargetFrameworks>
+        <NetVS>$(NetCurrent)</NetVS>
+        <NetVSCode>$(NetCurrent)</NetVSCode>
+        <NetVSAndVSCode>$(NetVS);$(NetVSCode)</NetVSAndVSCode>
       </PropertyGroup>
     </When>
 
@@ -84,8 +86,9 @@
     -->
     <Otherwise>
       <PropertyGroup>
-        <DefaultNetCoreTargetFramework>net8.0</DefaultNetCoreTargetFramework>
-        <DefaultNetCoreTargetFrameworks>$(DefaultNetCoreTargetFramework)</DefaultNetCoreTargetFrameworks>
+        <NetVS>net8.0</NetVS>
+        <NetVSCode>net9.0</NetVSCode>
+        <NetVSAndVSCode>$(NetVS);$(NetVSCode)</NetVSAndVSCode>
       </PropertyGroup>
     </Otherwise>
   </Choose>
