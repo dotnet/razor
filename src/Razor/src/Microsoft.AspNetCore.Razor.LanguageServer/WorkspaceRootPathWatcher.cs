@@ -182,7 +182,12 @@ internal partial class WorkspaceRootPathWatcher : IOnInitialized, IDisposable
 
         workspaceDirectory = FilePathNormalizer.Normalize(workspaceDirectory);
 
-        if (_options.InitializeMiscFilesProjectWithWorkspaceFiles)
+        // There's a double negative below because we want to initialize the misc project unless the option is set to *not* initialize it.
+        // This is slightly awkward but is more convenient for command-line configuration.
+        //
+        // https://github.com/dotnet/razor/issues/11594 tracks removing this option and the code to support it.
+
+        if (!_options.DoNotInitializeMiscFilesProjectFromWorkspace)
         {
             var existingRazorFiles = GetExistingRazorFiles(workspaceDirectory);
 

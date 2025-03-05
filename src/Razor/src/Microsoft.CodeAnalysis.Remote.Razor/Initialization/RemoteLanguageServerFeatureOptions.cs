@@ -54,5 +54,5 @@ internal class RemoteLanguageServerFeatureOptions : LanguageServerFeatureOptions
 
     public override bool UseVsCodeCompletionTriggerCharacters => _options.UseVsCodeCompletionTriggerCharacters;
 
-    public override bool InitializeMiscFilesProjectWithWorkspaceFiles => throw new NotImplementedException("This option has not been synced to OOP.");
+    public override bool DoNotInitializeMiscFilesProjectFromWorkspace => throw new NotImplementedException("This option has not been synced to OOP.");
 }

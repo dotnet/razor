@@ -12,7 +12,7 @@ internal class TestLanguageServerFeatureOptions(
     bool useNewFormattingEngine = false,
     bool supportsSoftSelectionInCompletion = true,
     bool vsCodeCompletionTriggerCharacters = false,
-    bool initializeMiscFilesProjectWithWorkspaceFiles = true) : LanguageServerFeatureOptions
+    bool doNotInitializeMiscFilesProjectWithWorkspaceFiles = false) : LanguageServerFeatureOptions
 {
     public static readonly LanguageServerFeatureOptions Instance = new TestLanguageServerFeatureOptions();
 
@@ -46,5 +46,5 @@ internal class TestLanguageServerFeatureOptions(
 
     public override bool UseVsCodeCompletionTriggerCharacters => vsCodeCompletionTriggerCharacters;
 
-    public override bool InitializeMiscFilesProjectWithWorkspaceFiles => initializeMiscFilesProjectWithWorkspaceFiles;
+    public override bool DoNotInitializeMiscFilesProjectFromWorkspace => doNotInitializeMiscFilesProjectWithWorkspaceFiles;
 }

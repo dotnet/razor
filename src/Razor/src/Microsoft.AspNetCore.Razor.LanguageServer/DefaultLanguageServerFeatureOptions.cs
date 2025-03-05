@@ -43,5 +43,5 @@ internal class DefaultLanguageServerFeatureOptions : LanguageServerFeatureOption
 
     public override bool UseVsCodeCompletionTriggerCharacters => false;
 
-    public override bool InitializeMiscFilesProjectWithWorkspaceFiles => false;
+    public override bool DoNotInitializeMiscFilesProjectFromWorkspace => false;
 }

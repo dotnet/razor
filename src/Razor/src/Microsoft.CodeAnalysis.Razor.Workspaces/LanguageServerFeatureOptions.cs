@@ -55,5 +55,5 @@ internal abstract class LanguageServerFeatureOptions
     /// Indicates whether the language server's miscellanous files project will be initialized with
     /// all Razor files found under the workspace root path.
     /// </summary>
-    public abstract bool InitializeMiscFilesProjectWithWorkspaceFiles { get; }
+    public abstract bool DoNotInitializeMiscFilesProjectFromWorkspace { get; }
 }

@@ -108,5 +108,7 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
 
     public override bool UseVsCodeCompletionTriggerCharacters => false;
 
-    public override bool InitializeMiscFilesProjectWithWorkspaceFiles => false;
+    // In VS, we do not want the language server to add all documents in the workspace root path
+    // to the misc-files project when initialized.
+    public override bool DoNotInitializeMiscFilesProjectFromWorkspace => true;
 }
