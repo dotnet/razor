@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -153,7 +154,7 @@ public class WorkspaceRootPathWatcherTest(ITestOutputHelper testOutput) : Toolin
         ILoggerFactory loggerFactory,
         ImmutableArray<string> existingRazorFiles = default,
         Func<string, CancellationToken, Task>? onStartAsync = null)
-        : WorkspaceRootPathWatcher(workspaceRootPathProvider, projectService, fileSystem, loggerFactory, delay: TimeSpan.Zero)
+        : WorkspaceRootPathWatcher(workspaceRootPathProvider, projectService, TestLanguageServerFeatureOptions.Instance, fileSystem, loggerFactory, delay: TimeSpan.Zero)
     {
         protected override Task StartAsync(string workspaceDirectory, CancellationToken cancellationToken)
         {

@@ -39,6 +39,7 @@ internal class ConfigurableLanguageServerFeatureOptions : LanguageServerFeatureO
     public override bool UseNewFormattingEngine => _useNewFormattingEngine ?? _defaults.UseNewFormattingEngine;
     public override bool SupportsSoftSelectionInCompletion => false;
     public override bool UseVsCodeCompletionTriggerCharacters => true;
+    public override bool InitializeMiscFilesProjectWithWorkspaceFiles => true;
 
     public ConfigurableLanguageServerFeatureOptions(string[] args)
     {

@@ -26,6 +26,7 @@ internal partial class WorkspaceRootPathWatcher : IOnInitialized, IDisposable
 
     private readonly IWorkspaceRootPathProvider _workspaceRootPathProvider;
     private readonly IRazorProjectService _projectService;
+    private readonly LanguageServerFeatureOptions _options;
 
     private readonly CancellationTokenSource _disposeTokenSource;
     private readonly AsyncBatchingWorkQueue<(string, RazorFileChangeKind)> _workQueue;
@@ -38,21 +39,24 @@ internal partial class WorkspaceRootPathWatcher : IOnInitialized, IDisposable
     public WorkspaceRootPathWatcher(
         IWorkspaceRootPathProvider workspaceRootPathProvider,
         IRazorProjectService projectService,
+        LanguageServerFeatureOptions options,
         IFileSystem fileSystem,
         ILoggerFactory loggerFactory)
-        : this(workspaceRootPathProvider, projectService, fileSystem, loggerFactory, s_delay)
+        : this(workspaceRootPathProvider, projectService, options, fileSystem, loggerFactory, s_delay)
     {
     }
 
     protected WorkspaceRootPathWatcher(
         IWorkspaceRootPathProvider workspaceRootPathProvider,
         IRazorProjectService projectService,
+        LanguageServerFeatureOptions options,
         IFileSystem fileSystem,
         ILoggerFactory loggerFactory,
         TimeSpan delay)
     {
         _workspaceRootPathProvider = workspaceRootPathProvider;
         _projectService = projectService;
+        _options = options;
 
         _disposeTokenSource = new();
         _workQueue = new AsyncBatchingWorkQueue<(string, RazorFileChangeKind)>(delay, ProcessBatchAsync, _disposeTokenSource.Token);
@@ -178,9 +182,12 @@ internal partial class WorkspaceRootPathWatcher : IOnInitialized, IDisposable
 
         workspaceDirectory = FilePathNormalizer.Normalize(workspaceDirectory);
 
-        var existingRazorFiles = GetExistingRazorFiles(workspaceDirectory);
+        if (_options.InitializeMiscFilesProjectWithWorkspaceFiles)
+        {
+            var existingRazorFiles = GetExistingRazorFiles(workspaceDirectory);
 
-        await _projectService.AddDocumentsToMiscProjectAsync(existingRazorFiles, cancellationToken).ConfigureAwait(false);
+            await _projectService.AddDocumentsToMiscProjectAsync(existingRazorFiles, cancellationToken).ConfigureAwait(false);
+        }
 
         if (cancellationToken.IsCancellationRequested || !InitializeFileWatchers)
         {

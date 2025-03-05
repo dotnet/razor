@@ -107,4 +107,6 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
     public override bool SupportsSoftSelectionInCompletion => true;
 
     public override bool UseVsCodeCompletionTriggerCharacters => false;
+
+    public override bool InitializeMiscFilesProjectWithWorkspaceFiles => false;
 }
