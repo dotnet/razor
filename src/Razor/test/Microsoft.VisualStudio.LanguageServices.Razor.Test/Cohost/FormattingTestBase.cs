@@ -159,7 +159,6 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
 
         UpdateClientInitializationOptions(opt => opt with
         {
-            ForceRuntimeCodeGeneration = _context.ForceRuntimeCodeGeneration,
             UseNewFormattingEngine = _context.UseNewFormattingEngine
         });
 
