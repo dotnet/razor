@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -17,7 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class CohostFoldingRangeEndpointTest(FuseTestContext context, ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper), IClassFixture<FuseTestContext>
+public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
     [FuseFact(Skip = "https://github.com/dotnet/razor/issues/10860")]
     public Task IfStatements()
@@ -40,14 +39,14 @@ public class CohostFoldingRangeEndpointTest(FuseTestContext context, ITestOutput
             }|]
             """);
 
-    [FuseFact]
+    [Fact]
     public Task LockStatement()
         => VerifyFoldingRangesAsync("""
             @lock (new object()) {[|
             }|]
             """);
 
-    [FuseFact]
+    [Fact]
     public Task UsingStatement()
       => VerifyFoldingRangesAsync("""
             @using (new object()) {[|
@@ -71,7 +70,7 @@ public class CohostFoldingRangeEndpointTest(FuseTestContext context, ITestOutput
             </div>
             """);
 
-    [FuseFact]
+    [Fact]
     public Task Usings()
         => VerifyFoldingRangesAsync("""
             @using System[|
@@ -86,7 +85,7 @@ public class CohostFoldingRangeEndpointTest(FuseTestContext context, ITestOutput
             <p>hello!</p>
             """);
 
-    [FuseFact]
+    [Fact]
     public Task CSharpStatement()
         => VerifyFoldingRangesAsync("""
             <p>hello!</p>
@@ -101,7 +100,7 @@ public class CohostFoldingRangeEndpointTest(FuseTestContext context, ITestOutput
             <p>hello!</p>
             """);
 
-    [FuseFact]
+    [Fact]
     public Task CSharpStatement_Nested()
         => VerifyFoldingRangesAsync("""
             <p>hello!</p>
@@ -120,7 +119,7 @@ public class CohostFoldingRangeEndpointTest(FuseTestContext context, ITestOutput
             <p>hello!</p>
             """);
 
-    [FuseFact]
+    [Fact]
     public Task CSharpStatement_NotSingleLine()
         => VerifyFoldingRangesAsync("""
             <p>hello!</p>
@@ -130,7 +129,7 @@ public class CohostFoldingRangeEndpointTest(FuseTestContext context, ITestOutput
             <p>hello!</p>
             """);
 
-    [FuseFact]
+    [Fact]
     public Task CodeBlock()
         => VerifyFoldingRangesAsync("""
             <p>hello!</p>
@@ -142,7 +141,7 @@ public class CohostFoldingRangeEndpointTest(FuseTestContext context, ITestOutput
             <p>hello!</p>
             """);
 
-    [FuseFact]
+    [Fact]
     public Task CodeBlock_Mvc()
         => VerifyFoldingRangesAsync("""
             <p>hello!</p>
@@ -155,7 +154,7 @@ public class CohostFoldingRangeEndpointTest(FuseTestContext context, ITestOutput
             """,
             fileKind: FileKinds.Legacy);
 
-    [FuseFact]
+    [Fact]
     public Task Section()
         => VerifyFoldingRangesAsync("""
             <p>hello!</p>
@@ -168,7 +167,7 @@ public class CohostFoldingRangeEndpointTest(FuseTestContext context, ITestOutput
             """,
             fileKind: FileKinds.Legacy);
 
-    [FuseFact]
+    [Fact]
     public Task Section_Invalid()
         => VerifyFoldingRangesAsync("""
             <p>hello!</p>
@@ -181,7 +180,7 @@ public class CohostFoldingRangeEndpointTest(FuseTestContext context, ITestOutput
             """,
             fileKind: FileKinds.Legacy);
 
-    [FuseFact]
+    [Fact]
     public Task CSharpCodeInCodeBlocks()
        => VerifyFoldingRangesAsync("""
             <div>
@@ -196,7 +195,7 @@ public class CohostFoldingRangeEndpointTest(FuseTestContext context, ITestOutput
             }|]
             """);
 
-    [FuseFact]
+    [Fact]
     public Task HtmlAndCSharp()
       => VerifyFoldingRangesAsync("""
             <div>{|html:
@@ -217,8 +216,6 @@ public class CohostFoldingRangeEndpointTest(FuseTestContext context, ITestOutput
 
     private async Task VerifyFoldingRangesAsync(string input, string? fileKind = null)
     {
-        UpdateClientInitializationOptions(c => c with { ForceRuntimeCodeGeneration = context.ForceRuntimeCodeGeneration });
-
         TestFileMarkupParser.GetSpans(input, out var source, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
         var document = CreateProjectAndRazorDocument(source, fileKind);
         var inputText = await document.GetTextAsync(DisposalToken);
