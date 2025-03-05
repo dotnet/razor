@@ -200,19 +200,9 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
 
     private void AddDocumentToMiscProjectCore(ProjectSnapshotManager.Updater updater, string filePath, SourceText? sourceText = null)
     {
-        _logger.LogDebug($"Asked to add {filePath} to the miscellaneous files project, because we don't have project info (yet?)");
-
-#if DEBUG
-        // Note: This shouldn't happen because every caller checks to see if the document is already in a project
-        // before attempting to add it. This is just a sanity check.
-
-        if (_projectManager.TryFindContainingProject(filePath, out var projectKey))
-        {
-            // Already in a known project, so we don't want it in the misc files project
-            _logger.LogDebug($"File {filePath} is already in {projectKey}, so we're not adding it to the miscellaneous files project");
-            return;
-        }
-#endif
+        Debug.Assert(
+            !_projectManager.TryFindContainingProject(filePath, out _),
+            $"File already belongs to a project and can't be added to the misc files project");
 
         _logger.LogInformation($"Adding document '{filePath}' to miscellaneous files project.");
 
