@@ -59,6 +59,11 @@ internal sealed class FormattingTestCase : XunitTestCase
             return "Language server cannot run FUSE tests";
         }
 
+        if (!_forceRuntimeCodeGeneration && TestMethod.TestClass.TestCollection.TestAssembly.Assembly.Name.StartsWith("Microsoft.VisualStudio.LanguageServices.Razor"))
+        {
+            return "Language services (cohost) cannot run non-FUSE tests";
+        }
+
         return base.GetSkipReason(factAttribute);
     }
 
