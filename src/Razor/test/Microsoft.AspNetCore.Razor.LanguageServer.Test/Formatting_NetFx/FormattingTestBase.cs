@@ -8,16 +8,21 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Basic.Reference.Assemblies;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -35,6 +40,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
 {
+    private static readonly AsyncLazy<ImmutableArray<TagHelperDescriptor>> s_standardTagHelpers = AsyncLazy.Create(GetStandardTagHelpersAsync);
+
     private readonly HtmlFormattingService _htmlFormattingService;
     private readonly FormattingTestContext _context;
 
@@ -81,6 +88,8 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         LinePositionSpan? range = spans.IsEmpty
             ? null
             : source.GetLinePositionSpan(spans.Single());
+
+        tagHelpers = tagHelpers.AddRange(await s_standardTagHelpers.GetValueAsync(DisposalToken));
 
         var path = "file:///path/to/Document." + fileKind;
         var uri = new Uri(path);
@@ -136,10 +145,12 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
 
         TestFileMarkupParser.GetPosition(input, out input, out var positionAfterTrigger);
 
+        var tagHelpers = await s_standardTagHelpers.GetValueAsync(DisposalToken);
+
         var razorSourceText = SourceText.From(input);
         var path = "file:///path/to/Document.razor";
         var uri = new Uri(path);
-        var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind, inGlobalNamespace: inGlobalNamespace);
+        var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, tagHelpers, fileKind: fileKind, inGlobalNamespace: inGlobalNamespace);
 
         var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(useNewFormattingEngine: _context.UseNewFormattingEngine);
 
@@ -266,25 +277,19 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
     private static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, ImmutableArray<TagHelperDescriptor> tagHelpers = default, string? fileKind = null, bool allowDiagnostics = false, bool inGlobalNamespace = false)
     {
         fileKind ??= FileKinds.Component;
-        tagHelpers = tagHelpers.NullToEmpty();
-
-        if (fileKind == FileKinds.Component)
-        {
-            tagHelpers = tagHelpers.AddRange(RazorTestResources.BlazorServerAppTagHelpers);
-        }
 
         var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(
             filePath: path,
             relativePath: inGlobalNamespace ? Path.GetFileName(path) : path));
 
         const string DefaultImports = """
-            @using BlazorApp1
-            @using BlazorApp1.Pages
-            @using BlazorApp1.Shared
             @using Microsoft.AspNetCore.Components
             @using Microsoft.AspNetCore.Components.Authorization
+            @using Microsoft.AspNetCore.Components.Forms
             @using Microsoft.AspNetCore.Components.Routing
             @using Microsoft.AspNetCore.Components.Web
+
+            @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
             """;
 
         var importPath = new Uri("file:///path/to/_Imports.razor").AbsolutePath;
@@ -392,5 +397,54 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
 #endif
 
         return snapshotMock.Object;
+    }
+
+    private static async Task<ImmutableArray<TagHelperDescriptor>> GetStandardTagHelpersAsync(CancellationToken cancellationToken)
+    {
+        var projectId = ProjectId.CreateNewId();
+        var projectInfo = ProjectInfo
+            .Create(
+                projectId,
+                VersionStamp.Create(),
+                name: TestProjectData.SomeProject.FilePath,
+                assemblyName: TestProjectData.SomeProject.FilePath,
+                LanguageNames.CSharp,
+                TestProjectData.SomeProject.FilePath,
+                compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            .WithMetadataReferences(AspNet80.ReferenceInfos.All.Select(r => r.Reference))
+            .WithDefaultNamespace(TestProjectData.SomeProject.RootNamespace);
+
+        var workspace = new AdhocWorkspace();
+        var project = workspace.CurrentSolution.AddProject(projectInfo).GetProject(projectId);
+
+        var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+        if (compilation is null)
+        {
+            return [];
+        }
+
+        var configuration = new RazorConfiguration(
+            RazorLanguageVersion.Experimental,
+            "MVC-3.0",
+            Extensions: [],
+            CSharpLanguageVersion: CSharpParseOptions.Default.LanguageVersion,
+            UseConsolidatedMvcViews: true,
+            SuppressAddComponentParameter: false,
+            UseRoslynTokenizer: false,
+            PreprocessorSymbols: []);
+
+        var fileSystem = RazorProjectFileSystem.Create(TestProjectData.SomeProject.FilePath);
+
+        var engineFactory = ProjectEngineFactories.DefaultProvider.GetFactory(configuration);
+
+        var engine = engineFactory.Create(
+            configuration,
+            fileSystem,
+            configure: null);
+
+        var tagHelpers = await project.GetTagHelpersAsync(engine, NoOpTelemetryReporter.Instance, cancellationToken).ConfigureAwait(false);
+        Assert.NotEmpty(tagHelpers);
+
+        return tagHelpers;
     }
 }
