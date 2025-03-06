@@ -368,12 +368,6 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         var workspace = new AdhocWorkspace();
         var project = workspace.CurrentSolution.AddProject(projectInfo).GetProject(projectId);
 
-        var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-        if (compilation is null)
-        {
-            return [];
-        }
-
         var configuration = new RazorConfiguration(
             RazorLanguageVersion.Experimental,
             "MVC-3.0",
