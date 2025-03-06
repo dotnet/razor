@@ -5907,11 +5907,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 """);
     }
 
-#if COHOSTING
     [FormattingTestFact(SkipOldFormattingEngine = true)]
-#else
-    [FormattingTestFact(Skip = "Language server test infra doesn't have a partial tag helper")]
-#endif
     public async Task PartialTagHelper()
     {
         await RunFormattingTestAsync(
