@@ -197,7 +197,6 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
     private (string input, string expected) ProcessFormattingContext(string input, string expected)
     {
         Assert.True(_context.CreatedByFormattingDiscoverer, "Test class is using FormattingTestContext, but not using [FormattingTestFact] or [FormattingTestTheory]");
-        Assert.False(_context.ForceRuntimeCodeGeneration, "ForceRuntimeGeneration does not currently work in the language server. Creating tests for it is a false positive");
 
         if (_context.ShouldFlipLineEndings)
         {
