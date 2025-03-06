@@ -54,7 +54,7 @@
     If a C# file should only be compiled under NetFx, it can be named with a ".NetFx.cs" extension.
     Or, the file can be included in a folder called "NetFx" or has a name that ends in "_NetFx".
   -->
-  <ItemGroup Condition="'$(TargetFramework)' != '$(DefaultNetFxTargetFramework)'">
+  <ItemGroup Condition="'$(TargetFramework)' != '$(NetFxVS)'">
     <Compile Remove="**\*.NetFx.cs" />
     <Compile Remove="**\NetFx\**\*.*" />
     <Compile Remove="**\*_NetFx\**\*.*" />

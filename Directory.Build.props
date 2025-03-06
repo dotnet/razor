@@ -46,7 +46,7 @@
     <!-- By default, nothing builds from source build. Individual projects can opt in instead -->
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
 
-    <DefaultNetFxTargetFramework>net472</DefaultNetFxTargetFramework>
+    <NetFxVS>net472</NetFxVS>
 
     <!-- Uncomment this line to run formatting on runtime code-gen if FUSE is turned on -->
     <!-- <DefineConstants>$(DefineConstants);FORMAT_FUSE</DefineConstants> -->
