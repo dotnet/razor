@@ -157,11 +157,6 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
     {
         Assert.True(_context.CreatedByFormattingDiscoverer, "Test class is using FormattingTestContext, but not using [FormattingTestFact] or [FormattingTestTheory]");
 
-        UpdateClientInitializationOptions(opt => opt with
-        {
-            UseNewFormattingEngine = _context.UseNewFormattingEngine
-        });
-
         if (_context.ShouldFlipLineEndings)
         {
             // flip the line endings of the stings (LF to CRLF and vice versa) and run again

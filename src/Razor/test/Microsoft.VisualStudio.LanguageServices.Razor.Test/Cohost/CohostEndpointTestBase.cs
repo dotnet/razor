@@ -81,7 +81,6 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
             ReturnCodeActionAndRenamePathsWithPrefixedSlash = false,
             SupportsFileManipulation = true,
             ShowAllCSharpCodeActions = false,
-            UseNewFormattingEngine = false,
             SupportsSoftSelectionInCompletion = true,
             UseVsCodeCompletionTriggerCharacters = false,
         };

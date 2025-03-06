@@ -25,9 +25,6 @@ internal struct RemoteClientInitializationOptions
     [JsonPropertyName("showAllCSharpCodeActions")]
     public required bool ShowAllCSharpCodeActions { get; set; }
 
-    [JsonPropertyName("useNewFormattingEngine")]
-    public required bool UseNewFormattingEngine { get; set; }
-
     [JsonPropertyName("supportsSoftSelectionInCompletion")]
     public required bool SupportsSoftSelectionInCompletion { get; set; }
 
