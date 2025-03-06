@@ -274,7 +274,7 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
     protected static TextEdit Edit(int startLine, int startChar, int endLine, int endChar, string newText)
         => VsLspFactory.CreateTextEdit(startLine, startChar, endLine, endChar, newText);
 
-    private static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, ImmutableArray<TagHelperDescriptor> tagHelpers = default, string? fileKind = null, bool allowDiagnostics = false, bool inGlobalNamespace = false)
+    private (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, ImmutableArray<TagHelperDescriptor> tagHelpers, string? fileKind = null, bool allowDiagnostics = false, bool inGlobalNamespace = false)
     {
         fileKind ??= FileKinds.Component;
 
@@ -326,7 +326,10 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
                 RazorExtensions.Register(builder);
             });
 
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, [importSource], tagHelpers);
+        var designTimeCodeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, [importSource], tagHelpers);
+        var codeDocument = _context.ForceRuntimeCodeGeneration
+            ? projectEngine.Process(sourceDocument, fileKind, [importSource], tagHelpers)
+            : designTimeCodeDocument;
 
         if (!allowDiagnostics)
         {
@@ -334,7 +337,7 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         }
 
         var documentSnapshot = CreateDocumentSnapshot(
-            path, fileKind, codeDocument, projectEngine, [importSnapshotMock.Object], [importSource], tagHelpers, inGlobalNamespace);
+            path, fileKind, codeDocument, designTimeCodeDocument, projectEngine, [importSnapshotMock.Object], [importSource], tagHelpers, inGlobalNamespace, _context.ForceRuntimeCodeGeneration);
 
         return (codeDocument, documentSnapshot);
     }
@@ -343,11 +346,13 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         string path,
         string fileKind,
         RazorCodeDocument codeDocument,
+        RazorCodeDocument designTimeCodeDocument,
         RazorProjectEngine projectEngine,
         ImmutableArray<IDocumentSnapshot> imports,
         ImmutableArray<RazorSourceDocument> importDocuments,
         ImmutableArray<TagHelperDescriptor> tagHelpers,
-        bool inGlobalNamespace)
+        bool inGlobalNamespace,
+        bool forceRuntimeCodeGeneration)
     {
         var snapshotMock = new StrictMock<IDocumentSnapshot>();
 
@@ -383,18 +388,19 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
                     filePath: path,
                     relativePath: inGlobalNamespace ? Path.GetFileName(path) : path));
 
-                var codeDocument = projectEngine.ProcessDesignTime(source, fileKind, importDocuments, tagHelpers);
+                var designTimeCodeDocument = projectEngine.ProcessDesignTime(source, fileKind, importDocuments, tagHelpers);
+                var codeDocument = forceRuntimeCodeGeneration
+                    ? projectEngine.Process(source, fileKind, importDocuments, tagHelpers)
+                    : designTimeCodeDocument;
 
                 return CreateDocumentSnapshot(
-                    path, fileKind, codeDocument, projectEngine, imports, importDocuments, tagHelpers, inGlobalNamespace);
+                    path, fileKind, codeDocument, designTimeCodeDocument, projectEngine, imports, importDocuments, tagHelpers, inGlobalNamespace, forceRuntimeCodeGeneration);
             });
 
-#if !FORMAT_FUSE
         var generatorMock = snapshotMock.As<IDesignTimeCodeGenerator>();
         generatorMock
             .Setup(x => x.GenerateDesignTimeOutputAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(codeDocument);
-#endif
+            .ReturnsAsync(designTimeCodeDocument);
 
         return snapshotMock.Object;
     }
