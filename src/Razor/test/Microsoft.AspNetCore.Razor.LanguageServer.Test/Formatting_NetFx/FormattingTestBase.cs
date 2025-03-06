@@ -219,61 +219,6 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         return (input, expected);
     }
 
-    protected async Task RunCodeActionFormattingTestAsync(
-        string input,
-        TextEdit[] codeActionEdits,
-        string expected,
-        int tabSize = 4,
-        bool insertSpaces = true,
-        string? fileKind = null,
-        bool inGlobalNamespace = false)
-    {
-        // Arrange
-        fileKind ??= FileKinds.Component;
-
-        TestFileMarkupParser.GetPosition(input, out input, out var positionAfterTrigger);
-
-        var razorSourceText = SourceText.From(input);
-        var path = "file:///path/to/Document.razor";
-        var uri = new Uri(path);
-        var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind, inGlobalNamespace: inGlobalNamespace);
-
-        var filePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
-        var mappingService = new LspDocumentMappingService(filePathService, new TestDocumentContextFactory(), LoggerFactory);
-        var languageKind = codeDocument.GetLanguageKind(positionAfterTrigger, rightAssociative: false);
-        if (languageKind == RazorLanguageKind.Html)
-        {
-            throw new NotImplementedException("Code action formatting is not yet supported for HTML in Razor.");
-        }
-
-        if (!mappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), positionAfterTrigger, out _, out var _))
-        {
-            throw new InvalidOperationException("Could not map from Razor document to generated document");
-        }
-
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument);
-        var options = new RazorFormattingOptions()
-        {
-            TabSize = tabSize,
-            InsertSpaces = insertSpaces,
-        };
-        var documentContext = new DocumentContext(uri, documentSnapshot, projectContext: null);
-
-        // Act
-        var csharpSourceText = codeDocument.GetCSharpSourceText();
-        var changes = codeActionEdits.SelectAsArray(csharpSourceText.GetTextChange);
-        var edit = await formattingService.TryGetCSharpCodeActionEditAsync(documentContext, changes, options, DisposalToken);
-
-        // Assert
-        var edited = razorSourceText.WithChanges(edit.Value);
-        var actual = edited.ToString();
-
-        AssertEx.EqualOrDiff(expected, actual);
-    }
-
-    protected static TextEdit Edit(int startLine, int startChar, int endLine, int endChar, string newText)
-        => VsLspFactory.CreateTextEdit(startLine, startChar, endLine, endChar, newText);
-
     private (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, ImmutableArray<TagHelperDescriptor> tagHelpers, string? fileKind = null, bool allowDiagnostics = false, bool inGlobalNamespace = false)
     {
         fileKind ??= FileKinds.Component;
