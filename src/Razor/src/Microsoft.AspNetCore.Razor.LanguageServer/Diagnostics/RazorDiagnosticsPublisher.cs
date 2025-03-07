@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
@@ -116,13 +117,23 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
 
     private async Task PublishDiagnosticsAsync(DocumentSnapshot document, CancellationToken cancellationToken)
     {
+        var filePath = document.FilePath;
+        if (document.Project.IsMiscellaneousProject() && !_projectManager.IsDocumentOpen(filePath))
+        {
+            lock (_publishedDiagnostics)
+            {
+                _publishedDiagnostics.Remove(filePath);
+            }
+
+            return;
+        }
+
         var result = await document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var csharpDiagnostics = await GetCSharpDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
         var razorDiagnostics = result.GetCSharpDocument().Diagnostics;
 
         lock (_publishedDiagnostics)
         {
-            var filePath = document.FilePath;
 
             // See if these are the same diagnostics as last time. If so, we don't need to publish.
             if (_publishedDiagnostics.TryGetValue(filePath, out var previousDiagnostics))

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +26,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
 [RazorLanguageServerEndpoint(VSInternalMethods.DocumentPullDiagnosticName)]
-internal class DocumentPullDiagnosticsEndpoint(
+internal class VSDocumentPullDiagnosticsEndpoint(
     LanguageServerFeatureOptions languageServerFeatureOptions,
     RazorTranslateDiagnosticsService translateDiagnosticsService,
     RazorLSPOptionsMonitor razorLSPOptionsMonitor,
@@ -62,7 +63,7 @@ internal class DocumentPullDiagnosticsEndpoint(
     {
         if (!_languageServerFeatureOptions.SingleServerSupport)
         {
-            return default;
+            Debug.WriteLine("Pull diagnostics without single server");
         }
 
         var documentContext = context.DocumentContext;

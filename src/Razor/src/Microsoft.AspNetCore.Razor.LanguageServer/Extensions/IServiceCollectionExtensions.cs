@@ -98,9 +98,17 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IRazorCompletionItemProvider, TagHelperCompletionProvider>();
     }
 
-    public static void AddDiagnosticServices(this IServiceCollection services)
+    public static void AddDiagnosticServices(this IServiceCollection services, LanguageServerFeatureOptions languageServerFeatureOptions)
     {
-        services.AddHandlerWithCapabilities<DocumentPullDiagnosticsEndpoint>();
+        if (languageServerFeatureOptions.SingleServerSupport)
+        {
+            services.AddHandlerWithCapabilities<VSDocumentPullDiagnosticsEndpoint>();
+        }
+        else
+        {
+            services.AddHandlerWithCapabilities<DocumentDiagnosticsEndpoint>();
+        }
+
         services.AddSingleton<RazorTranslateDiagnosticsService>();
         services.AddSingleton(sp => new Lazy<RazorTranslateDiagnosticsService>(sp.GetRequiredService<RazorTranslateDiagnosticsService>));
         services.AddSingleton<IRazorStartupService, WorkspaceDiagnosticsRefresher>();
@@ -222,7 +230,7 @@ internal static class IServiceCollectionExtensions
         {
             // If single server is on, then we don't want to publish diagnostics, so best to just not hook up to any
             // events etc.
-            services.AddSingleton<IDocumentProcessedListener, RazorDiagnosticsPublisher>();
+            //services.AddSingleton<IDocumentProcessedListener, RazorDiagnosticsPublisher>();
         }
 
         services.AddSingleton<IDocumentProcessedListener, GeneratedDocumentSynchronizer>();
