@@ -225,14 +225,6 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<WorkspaceRootPathWatcher>();
         services.AddSingleton<IOnInitialized>(sp => sp.GetRequiredService<WorkspaceRootPathWatcher>());
 
-        // Document processed listeners
-        if (!featureOptions.SingleServerSupport)
-        {
-            // If single server is on, then we don't want to publish diagnostics, so best to just not hook up to any
-            // events etc.
-            //services.AddSingleton<IDocumentProcessedListener, RazorDiagnosticsPublisher>();
-        }
-
         services.AddSingleton<IDocumentProcessedListener, GeneratedDocumentSynchronizer>();
 
         // Add project snapshot manager
