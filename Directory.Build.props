@@ -50,9 +50,6 @@
     <NetVS>net8.0</NetVS>
     <NetVSCode>net9.0</NetVSCode>
     <NetVSAndVSCode>$(NetVS);$(NetVSCode)</NetVSAndVSCode>
-
-    <!-- Uncomment this line to run formatting on runtime code-gen if FUSE is turned on -->
-    <!-- <DefineConstants>$(DefineConstants);FORMAT_FUSE</DefineConstants> -->
   </PropertyGroup>
 
   <!--
