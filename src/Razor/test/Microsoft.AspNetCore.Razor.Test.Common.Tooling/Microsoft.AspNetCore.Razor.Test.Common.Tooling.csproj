@@ -44,7 +44,7 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzer.Testing" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
     <PackageReference Include="Microsoft.CodeAnalysis.EditorFeatures.Common" />
