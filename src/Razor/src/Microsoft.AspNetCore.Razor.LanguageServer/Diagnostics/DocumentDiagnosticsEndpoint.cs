@@ -27,6 +27,7 @@ internal sealed class DocumentDiagnosticsEndpoint(
     private readonly RazorTranslateDiagnosticsService _translateDiagnosticsService = translateDiagnosticsService;
     private readonly IClientConnection _clientConnection = clientConnection;
     private readonly ITelemetryReporter? _telemetryReporter = telemetryReporter;
+    private readonly MissingTagHelperTelemetryReporter? _missingTagHelperTelemetryReporter = telemetryReporter is null ? null : new(telemetryReporter);
 
     public bool MutatesSolutionState => false;
     public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentDiagnosticParams request)
@@ -55,7 +56,7 @@ internal sealed class DocumentDiagnosticsEndpoint(
         using var __ = _telemetryReporter?.TrackLspRequest(Methods.TextDocumentDiagnosticName, LanguageServerConstants.RazorLanguageServerName, TelemetryThresholds.DiagnosticsRazorTelemetryThreshold, correlationId);
 
         var documentSnapshot = documentContext.Snapshot;
-        var razorDiagnostics = await GetRazorDiagnosticsAsync(documentSnapshot, cancellationToken).ConfigureAwait(false);
+        var razorDiagnostics = await RazorDiagnosticHelper.GetRazorDiagnosticsAsync(documentSnapshot, cancellationToken).ConfigureAwait(false);
         var csharpDiagnostics = await GetCSharpDiagnosticsAsync(documentSnapshot, request.TextDocument, correlationId, cancellationToken).ConfigureAwait(false);
 
         var diagnosticCount =
@@ -69,6 +70,11 @@ internal sealed class DocumentDiagnosticsEndpoint(
         {
             // No extra work to do for Razor diagnostics
             allDiagnostics.AddRange(razorDiagnostics);
+
+            if (_missingTagHelperTelemetryReporter is not null)
+            {
+                await _missingTagHelperTelemetryReporter.ReportRZ10012TelemetryAsync(documentContext, razorDiagnostics, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         if (csharpDiagnostics is not null)
@@ -108,20 +114,5 @@ internal sealed class DocumentDiagnosticsEndpoint(
                 ? fullReport.Items
                 : null
             : null;
-    }
-
-    private static async Task<Diagnostic[]?> GetRazorDiagnosticsAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
-    {
-        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        var sourceText = codeDocument.Source.Text;
-        var csharpDocument = codeDocument.GetCSharpDocument();
-        var diagnostics = csharpDocument.Diagnostics;
-
-        if (diagnostics.Length == 0)
-        {
-            return null;
-        }
-
-        return RazorDiagnosticConverter.Convert(diagnostics, sourceText, documentSnapshot);
     }
 }
