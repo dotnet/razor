@@ -69,7 +69,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
                 {
                     ResolveProvider = false, // TODO - change to true when Resolve is implemented
                     TriggerCharacters = _triggerAndCommitCharacters.AllTriggerCharacters,
-                    AllCommitCharacters = CompletionTriggerAndCommitCharacters.AllCommitCharacters
+                    AllCommitCharacters = _triggerAndCommitCharacters.AllCommitCharacters
                 }
             }];
         }
