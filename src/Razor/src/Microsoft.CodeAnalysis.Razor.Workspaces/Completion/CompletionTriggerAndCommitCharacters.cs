@@ -28,7 +28,7 @@ internal class CompletionTriggerAndCommitCharacters(LanguageServerFeatureOptions
     public FrozenSet<string> HtmlTriggerCharacters =>
         _languageServerFeatureOptions.UseVsCodeCompletionTriggerCharacters ? s_vsCodeHtmlTriggerCharacters : s_vsHtmlTriggerCharacters;
 
-    public FrozenSet<string> AllDelegationTriggerCharacters => _allDelegationTriggerCharacters
+    private FrozenSet<string> AllDelegationTriggerCharacters => _allDelegationTriggerCharacters
         ??= s_razorDelegationTriggerCharacters.Union(s_csharpTriggerCharacters).Union(HtmlTriggerCharacters).ToFrozenSet();
 
     public string[] AllTriggerCharacters => _allTriggerCharacters ??= [.. s_razorTriggerCharacters.Union(AllDelegationTriggerCharacters)];
@@ -49,11 +49,17 @@ internal class CompletionTriggerAndCommitCharacters(LanguageServerFeatureOptions
     public bool IsValidCSharpTrigger(CompletionContext completionContext)
         => IsValidTrigger(s_csharpTriggerCharacters, completionContext);
 
+    public bool IsValidDelegationTrigger(CompletionContext completionContext)
+        => IsValidTrigger(AllDelegationTriggerCharacters, completionContext);
+
     public bool IsValidRazorTrigger(CompletionContext completionContext)
         => IsValidTrigger(s_razorTriggerCharacters, completionContext);
 
     public bool IsCSharpTriggerCharacter(string ch)
         => s_csharpTriggerCharacters.Contains(ch);
+
+    public bool IsDelegationTriggerCharacter(string ch)
+        => AllDelegationTriggerCharacters.Contains(ch);
 
     public bool IsRazorTriggerCharacter(string ch)
         => s_razorTriggerCharacters.Contains(ch);

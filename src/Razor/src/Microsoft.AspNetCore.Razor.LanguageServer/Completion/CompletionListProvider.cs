@@ -32,7 +32,7 @@ internal class CompletionListProvider(
         CancellationToken cancellationToken)
     {
         // First we delegate to get completion items from the individual language server
-        var delegatedCompletionList = CompletionTriggerAndCommitCharacters.IsValidTrigger(_delegatedCompletionListProvider.TriggerCharacters, completionContext)
+        var delegatedCompletionList = _triggerAndCommitCharacters.IsValidDelegationTrigger(completionContext)
             ? await _delegatedCompletionListProvider.GetCompletionListAsync(
                 absoluteIndex,
                 completionContext,

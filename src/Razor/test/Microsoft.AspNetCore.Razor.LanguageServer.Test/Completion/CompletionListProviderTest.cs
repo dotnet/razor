@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,8 +21,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
 public class CompletionListProviderTest : LanguageServerTestBase
 {
-    private const string SharedTriggerCharacter = "@";
-    private const string CompletionList2OnlyTriggerCharacter = "<";
     private readonly VSInternalCompletionList _completionList1;
     private readonly VSInternalCompletionList _completionList2;
     private readonly RazorCompletionListProvider _razorCompletionProvider;
@@ -40,7 +37,7 @@ public class CompletionListProviderTest : LanguageServerTestBase
         _completionList1 = new VSInternalCompletionList() { Items = [] };
         _completionList2 = new VSInternalCompletionList() { Items = [] };
         _razorCompletionProvider = new TestRazorCompletionListProvider(_completionList1, LoggerFactory);
-        _delegatedCompletionProvider = new TestDelegatedCompletionListProvider(_completionList2, new[] { SharedTriggerCharacter, CompletionList2OnlyTriggerCharacter });
+        _delegatedCompletionProvider = new TestDelegatedCompletionListProvider(_completionList2);
         _completionContext = new VSInternalCompletionContext();
         _documentContext = TestDocumentContext.Create("C:/path/to/file.cshtml");
         _clientCapabilities = new VSInternalClientCapabilities();
@@ -69,7 +66,9 @@ public class CompletionListProviderTest : LanguageServerTestBase
         // Arrange
         var provider = new CompletionListProvider(_razorCompletionProvider, _delegatedCompletionProvider, _triggerAndCommitCharacters);
         _completionContext.TriggerKind = CompletionTriggerKind.TriggerCharacter;
-        _completionContext.TriggerCharacter = CompletionList2OnlyTriggerCharacter;
+
+        // '{' is a commit character for the delegated completion provider but not the Razor completion provider.
+        _completionContext.TriggerCharacter = "{";
 
         // Act
         var completionList = await provider.GetCompletionListAsync(
@@ -83,14 +82,11 @@ public class CompletionListProviderTest : LanguageServerTestBase
     {
         private readonly VSInternalCompletionList _completionList;
 
-        public TestDelegatedCompletionListProvider(VSInternalCompletionList completionList, IEnumerable<string> triggerCharacters)
+        public TestDelegatedCompletionListProvider(VSInternalCompletionList completionList)
             : base(null, null, null, null)
         {
             _completionList = completionList;
-            TriggerCharacters = triggerCharacters.ToFrozenSet();
         }
-
-        public override FrozenSet<string> TriggerCharacters { get; }
 
         public override Task<VSInternalCompletionList> GetCompletionListAsync(
             int absoluteIndex,
