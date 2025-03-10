@@ -87,23 +87,19 @@ internal sealed class DocumentDiagnosticsEndpoint(
 
         return new()
         {
-            Items = allDiagnostics.ToArray()
+            Items = [.. allDiagnostics]
         };
     }
 
     private async Task<Diagnostic[]?> GetCSharpDiagnosticsAsync(IDocumentSnapshot documentSnapshot, TextDocumentIdentifier razorDocumentIdentifier, Guid correlationId, CancellationToken cancellationToken)
     {
-        var delegatedParams = new RazorDocumentDiagnosticParams
-        {
-            Version = documentSnapshot.Version,
-            DiagnosticParams = new()
-            {
-                TextDocument = razorDocumentIdentifier
-            }
-        };
+        var delegatedParams = new DelegatedDiagnosticParams(
+            new(razorDocumentIdentifier, documentSnapshot.Version),
+            correlationId
+        );
 
         var delegatedResponse = await _clientConnection
-                   .SendRequestAsync<RazorDocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
+                   .SendRequestAsync<DelegatedDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
                        CustomMessageNames.RazorCSharpPullDiagnosticsEndpointName,
                        delegatedParams,
                        cancellationToken)
