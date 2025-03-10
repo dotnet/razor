@@ -80,7 +80,7 @@ internal static class DelegatedCompletionHelper
         };
 
         if (languageKind == RazorLanguageKind.CSharp
-            && CompletionTriggerAndCommitCharacters.RazorDelegationTriggerCharacters.Contains(triggerCharacter))
+            && triggerAndCommitCharacters.IsRazorDelegationTriggerCharacter(triggerCharacter))
         {
             // The C# language server will not return any completions for the '@' character unless we
             // send the completion request explicitly.

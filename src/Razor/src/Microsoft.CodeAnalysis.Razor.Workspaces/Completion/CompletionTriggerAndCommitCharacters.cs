@@ -10,24 +10,26 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal class CompletionTriggerAndCommitCharacters(LanguageServerFeatureOptions languageServerFeatureOptions)
 {
+    /// <summary>
+    ///  Trigger character that can trigger both Razor and Delegation completion
+    /// </summary>
+    private const string RazorDelegationTriggerCharacter = "@";
+
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
-    private static readonly FrozenSet<string> s_vsHtmlTriggerCharacters = new[] { ":", "@", "#", ".", "!", "*", ",", "(", "[", "-", "<", "&", "\\", "/", "'", "\"", "=", ":", " ", "`" }.ToFrozenSet();
-    private static readonly FrozenSet<string> s_vsCodeHtmlTriggerCharacters = new[] { "@", "#", ".", "!", ",", "-", "<", }.ToFrozenSet();
+    private static readonly FrozenSet<string> s_vsHtmlTriggerCharacters = new[] { RazorDelegationTriggerCharacter, ":", "#", ".", "!", "*", ",", "(", "[", "-", "<", "&", "\\", "/", "'", "\"", "=", ":", " ", "`" }.ToFrozenSet();
+    private static readonly FrozenSet<string> s_vsCodeHtmlTriggerCharacters = new[] { RazorDelegationTriggerCharacter, "#", ".", "!", ",", "-", "<", }.ToFrozenSet();
     private FrozenSet<string>? _allDelegationTriggerCharacters;
     private string[]? _allTriggerCharacters;
 
-    private static readonly FrozenSet<string> s_razorTriggerCharacters = new[] { "@", "<", ":", " " }.ToFrozenSet();
-    /// <summary>
-    /// Tigger characters that can trigger both Razor and Delegation completion (e.g."@" triggers Razor directives and C#)
-    /// </summary>
-    public static FrozenSet<string> RazorDelegationTriggerCharacters { get; } = new[] { "@" }.ToFrozenSet();
+    private static readonly FrozenSet<string> s_razorTriggerCharacters = new[] { RazorDelegationTriggerCharacter, "<", ":", " " }.ToFrozenSet();
+    private static readonly FrozenSet<string> s_razorDelegationTriggerCharacters = new[] { RazorDelegationTriggerCharacter }.ToFrozenSet();
     private static readonly FrozenSet<string> s_csharpTriggerCharacters = new[] { " ", "(", "=", "#", ".", "<", "[", "{", "\"", "/", ":", "~" }.ToFrozenSet();
     public FrozenSet<string> HtmlTriggerCharacters =>
         _languageServerFeatureOptions.UseVsCodeCompletionTriggerCharacters ? s_vsCodeHtmlTriggerCharacters : s_vsHtmlTriggerCharacters;
 
     public FrozenSet<string> AllDelegationTriggerCharacters => _allDelegationTriggerCharacters
-        ??= RazorDelegationTriggerCharacters.Union(s_csharpTriggerCharacters).Union(HtmlTriggerCharacters).ToFrozenSet();
+        ??= s_razorDelegationTriggerCharacters.Union(s_csharpTriggerCharacters).Union(HtmlTriggerCharacters).ToFrozenSet();
 
     public string[] AllTriggerCharacters => _allTriggerCharacters ??= [.. s_razorTriggerCharacters.Union(AllDelegationTriggerCharacters)];
 
@@ -55,4 +57,7 @@ internal class CompletionTriggerAndCommitCharacters(LanguageServerFeatureOptions
 
     public bool IsRazorTriggerCharacter(string ch)
         => s_razorTriggerCharacters.Contains(ch);
+
+    public bool IsRazorDelegationTriggerCharacter(string ch)
+        => ch == RazorDelegationTriggerCharacter;
 }
