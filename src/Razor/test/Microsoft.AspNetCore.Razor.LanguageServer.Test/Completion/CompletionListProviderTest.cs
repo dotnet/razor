@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -31,25 +32,27 @@ public class CompletionListProviderTest : LanguageServerTestBase
     private readonly DocumentContext _documentContext;
     private readonly VSInternalClientCapabilities _clientCapabilities;
     private readonly RazorCompletionOptions _razorCompletionOptions;
+    private readonly CompletionTriggerAndCommitCharacters _triggerAndCommitCharacters;
 
     public CompletionListProviderTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         _completionList1 = new VSInternalCompletionList() { Items = [] };
         _completionList2 = new VSInternalCompletionList() { Items = [] };
-        _razorCompletionProvider = new TestRazorCompletionListProvider(_completionList1, new[] { SharedTriggerCharacter, }, LoggerFactory);
+        _razorCompletionProvider = new TestRazorCompletionListProvider(_completionList1, LoggerFactory);
         _delegatedCompletionProvider = new TestDelegatedCompletionListProvider(_completionList2, new[] { SharedTriggerCharacter, CompletionList2OnlyTriggerCharacter });
         _completionContext = new VSInternalCompletionContext();
         _documentContext = TestDocumentContext.Create("C:/path/to/file.cshtml");
         _clientCapabilities = new VSInternalClientCapabilities();
         _razorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true);
+        _triggerAndCommitCharacters = new(TestLanguageServerFeatureOptions.Instance);
     }
 
     [Fact]
     public async Task MultipleCompletionLists_Merges()
     {
         // Arrange
-        var provider = new CompletionListProvider(_razorCompletionProvider, _delegatedCompletionProvider);
+        var provider = new CompletionListProvider(_razorCompletionProvider, _delegatedCompletionProvider, _triggerAndCommitCharacters);
 
         // Act
         var completionList = await provider.GetCompletionListAsync(
@@ -64,7 +67,7 @@ public class CompletionListProviderTest : LanguageServerTestBase
     public async Task MultipleCompletionLists_DifferentCommitCharacters_OnlyCallsApplicable()
     {
         // Arrange
-        var provider = new CompletionListProvider(_razorCompletionProvider, _delegatedCompletionProvider);
+        var provider = new CompletionListProvider(_razorCompletionProvider, _delegatedCompletionProvider, _triggerAndCommitCharacters);
         _completionContext.TriggerKind = CompletionTriggerKind.TriggerCharacter;
         _completionContext.TriggerCharacter = CompletionList2OnlyTriggerCharacter;
 
@@ -108,15 +111,11 @@ public class CompletionListProviderTest : LanguageServerTestBase
 
         public TestRazorCompletionListProvider(
             VSInternalCompletionList completionList,
-            IEnumerable<string> triggerCharacters,
             ILoggerFactory loggerFactory)
             : base(completionFactsService: null, completionListCache: null, loggerFactory)
         {
             _completionList = completionList;
-            TriggerCharacters = triggerCharacters.ToFrozenSet();
         }
-
-        public override FrozenSet<string> TriggerCharacters { get; }
 
         public override Task<VSInternalCompletionList> GetCompletionListAsync(
             int absoluteIndex,

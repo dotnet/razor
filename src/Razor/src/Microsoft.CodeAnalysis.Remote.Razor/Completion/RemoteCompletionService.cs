@@ -134,7 +134,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             }
         }
 
-        var razorCompletionList = CompletionTriggerAndCommitCharacters.IsValidTrigger(CompletionTriggerAndCommitCharacters.RazorTriggerCharacters, completionContext)
+        var razorCompletionList = _triggerAndCommitCharacters.IsValidRazorTrigger(completionContext)
             ? await _razorCompletionListProvider.GetCompletionListAsync(
                 documentPositionInfo.HostDocumentIndex,
                 completionContext,

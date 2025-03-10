@@ -17,7 +17,7 @@ internal class CompletionTriggerAndCommitCharacters(LanguageServerFeatureOptions
     private FrozenSet<string>? _allDelegationTriggerCharacters;
     private string[]? _allTriggerCharacters;
 
-    public static FrozenSet<string> RazorTriggerCharacters { get; } = new[] { "@", "<", ":", " " }.ToFrozenSet();
+    private static readonly FrozenSet<string> s_razorTriggerCharacters = new[] { "@", "<", ":", " " }.ToFrozenSet();
     /// <summary>
     /// Tigger characters that can trigger both Razor and Delegation completion (e.g."@" triggers Razor directives and C#)
     /// </summary>
@@ -29,7 +29,7 @@ internal class CompletionTriggerAndCommitCharacters(LanguageServerFeatureOptions
     public FrozenSet<string> AllDelegationTriggerCharacters => _allDelegationTriggerCharacters
         ??= RazorDelegationTriggerCharacters.Union(s_csharpTriggerCharacters).Union(HtmlTriggerCharacters).ToFrozenSet();
 
-    public string[] AllTriggerCharacters => _allTriggerCharacters ??= [.. RazorTriggerCharacters.Union(AllDelegationTriggerCharacters)];
+    public string[] AllTriggerCharacters => _allTriggerCharacters ??= [.. s_razorTriggerCharacters.Union(AllDelegationTriggerCharacters)];
 
     /// <summary>
     /// This is the intersection of C# and HTML commit characters.
@@ -47,6 +47,12 @@ internal class CompletionTriggerAndCommitCharacters(LanguageServerFeatureOptions
     public bool IsValidCSharpTrigger(CompletionContext completionContext)
         => IsValidTrigger(s_csharpTriggerCharacters, completionContext);
 
+    public bool IsValidRazorTrigger(CompletionContext completionContext)
+        => IsValidTrigger(s_razorTriggerCharacters, completionContext);
+
     public bool IsCSharpTriggerCharacter(string ch)
         => s_csharpTriggerCharacters.Contains(ch);
+
+    public bool IsRazorTriggerCharacter(string ch)
+        => s_razorTriggerCharacters.Contains(ch);
 }
