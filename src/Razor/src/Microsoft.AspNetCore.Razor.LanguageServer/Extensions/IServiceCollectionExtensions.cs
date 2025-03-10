@@ -209,7 +209,7 @@ internal static class IServiceCollectionExtensions
         });
     }
 
-    public static void AddDocumentManagementServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)
+    public static void AddDocumentManagementServices(this IServiceCollection services)
     {
         services.AddSingleton<IGeneratedDocumentPublisher, GeneratedDocumentPublisher>();
         services.AddSingleton<IRazorStartupService>((services) => (GeneratedDocumentPublisher)services.GetRequiredService<IGeneratedDocumentPublisher>());
