@@ -102,7 +102,7 @@ internal static class IServiceCollectionExtensions
     {
         if (languageServerFeatureOptions.SingleServerSupport)
         {
-            services.AddHandlerWithCapabilities<VSDocumentPullDiagnosticsEndpoint>();
+            services.AddHandlerWithCapabilities<VSDocumentDiagnosticsEndpoint>();
         }
         else
         {

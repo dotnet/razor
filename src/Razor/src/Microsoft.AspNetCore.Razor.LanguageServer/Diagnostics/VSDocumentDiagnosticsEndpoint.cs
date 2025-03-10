@@ -26,7 +26,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
 [RazorLanguageServerEndpoint(VSInternalMethods.DocumentPullDiagnosticName)]
-internal class VSDocumentPullDiagnosticsEndpoint(
+internal class VSDocumentDiagnosticsEndpoint(
     LanguageServerFeatureOptions languageServerFeatureOptions,
     RazorTranslateDiagnosticsService translateDiagnosticsService,
     RazorLSPOptionsMonitor razorLSPOptionsMonitor,
