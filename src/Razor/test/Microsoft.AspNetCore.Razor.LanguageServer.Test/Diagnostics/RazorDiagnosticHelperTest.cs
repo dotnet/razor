@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
-public class RazorDiagnosticConverterTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
+public class RazorDiagnosticHelperTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
     [Fact]
     public void Convert_Converts()
