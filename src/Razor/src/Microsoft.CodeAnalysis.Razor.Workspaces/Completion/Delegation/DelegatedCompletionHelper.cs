@@ -69,7 +69,7 @@ internal static class DelegatedCompletionHelper
             // For HTML we don't want to delegate to HTML language server is completion is due to a trigger characters that is not
             // HTML trigger character. Doing so causes bad side effects in VSCode HTML client as we will end up with non-matching
             // completion entries
-            return triggerAndCommitCharacters.HtmlTriggerCharacters.Contains(triggerCharacter) ? context : null;
+            return triggerAndCommitCharacters.IsHtmlTriggerCharacter(triggerCharacter) ? context : null;
         }
 
         // Trigger character not associated with the current language. Transform the context into an invoked context.

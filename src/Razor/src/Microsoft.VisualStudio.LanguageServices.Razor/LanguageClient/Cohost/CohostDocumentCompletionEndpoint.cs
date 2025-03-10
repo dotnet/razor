@@ -137,14 +137,15 @@ internal sealed class CohostDocumentCompletionEndpoint(
             CommitElementsWithSpace: clientSettings.AdvancedSettings.CommitElementsWithSpace);
         using var _ = HashSetPool<string>.GetPooledObject(out var existingHtmlCompletions);
 
-        if (CompletionTriggerAndCommitCharacters.IsValidTrigger(_triggerAndCommitCharacters.HtmlTriggerCharacters, completionContext))
+        if (_triggerAndCommitCharacters.IsValidHtmlTrigger(completionContext))
         {
             // We can just blindly call HTML LSP because if we are in C#, generated HTML seen by HTML LSP may return
             // results we don't want to show. So we want to call HTML LSP only if we know we are in HTML content.
             if (documentPositionInfo.LanguageKind == RazorLanguageKind.Html)
             {
-                htmlCompletionList = await GetHtmlCompletionListAsync(request, razorDocument, razorCompletionOptions, cancellationToken)
-                                                                      .ConfigureAwait(false);
+                htmlCompletionList = await GetHtmlCompletionListAsync(
+                    request, razorDocument, razorCompletionOptions, cancellationToken).ConfigureAwait(false);
+
                 if (htmlCompletionList is not null)
                 {
                     existingHtmlCompletions.UnionWith(htmlCompletionList.Items.Select(i => i.Label));
