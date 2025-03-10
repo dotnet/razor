@@ -30,6 +30,7 @@ internal sealed class DocumentDiagnosticsEndpoint(
     private readonly MissingTagHelperTelemetryReporter? _missingTagHelperTelemetryReporter = telemetryReporter is null ? null : new(telemetryReporter);
 
     public bool MutatesSolutionState => false;
+
     public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentDiagnosticParams request)
         => request.TextDocument;
 
