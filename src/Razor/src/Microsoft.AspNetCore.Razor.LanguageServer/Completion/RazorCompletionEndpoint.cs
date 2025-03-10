@@ -40,8 +40,8 @@ internal class RazorCompletionEndpoint(
         serverCapabilities.CompletionProvider = new CompletionOptions()
         {
             ResolveProvider = true,
-            TriggerCharacters = _triggerAndCommitCharacters.AllTriggerCharacters,
-            AllCommitCharacters = _triggerAndCommitCharacters.AllCommitCharacters
+            TriggerCharacters = [.. _triggerAndCommitCharacters.AllTriggerCharacters],
+            AllCommitCharacters = [.. _triggerAndCommitCharacters.AllCommitCharacters]
         };
     }
 

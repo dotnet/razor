@@ -25,11 +25,8 @@ internal class CompletionTriggerAndCommitCharacters
     private readonly HashSet<char> _delegationTriggerCharacters;
     private readonly HashSet<char> _htmlTriggerCharacters;
     private readonly HashSet<char> _razorTriggerCharacters;
-    private readonly ImmutableArray<string> _allTriggerCharacters;
-    private readonly ImmutableArray<string> _allCommitCharacters;
 
-    // Note: Create a new array each time to avoid modifying the original array.
-    public string[] AllTriggerCharacters => [.. _allTriggerCharacters];
+    public ImmutableArray<string> AllTriggerCharacters { get; }
 
     /// <summary>
     /// This is the intersection of C# and HTML commit characters.
@@ -37,8 +34,7 @@ internal class CompletionTriggerAndCommitCharacters
     // We need to specify it so that platform can correctly calculate ApplicableToSpan in
     // https://devdiv.visualstudio.com/DevDiv/_git/VSLanguageServerClient?path=/src/product/RemoteLanguage/Impl/Features/Completion/AsyncCompletionSource.cs&version=GBdevelop&line=855&lineEnd=855&lineStartColumn=9&lineEndColumn=49&lineStyle=plain&_a=contents
     // This is needed to fix https://github.com/dotnet/razor/issues/10787 in particular
-    // Note: Create a new array each time to avoid modifying the original array.
-    public string[] AllCommitCharacters => [.. _allCommitCharacters];
+    public ImmutableArray<string> AllCommitCharacters { get; }
 
     public CompletionTriggerAndCommitCharacters(LanguageServerFeatureOptions languageServerFeatureOptions)
     {
@@ -79,8 +75,8 @@ internal class CompletionTriggerAndCommitCharacters
         _htmlTriggerCharacters = htmlTriggerCharacters;
         _razorTriggerCharacters = razorTriggerCharacters;
         _delegationTriggerCharacters = delegationTriggerCharacters;
-        _allTriggerCharacters = allTriggerCharacters.SelectAsArray(static c => c.ToString());
-        _allCommitCharacters = commitCharacters.SelectAsArray(static c => c.ToString());
+        AllTriggerCharacters = allTriggerCharacters.SelectAsArray(static c => c.ToString());
+        AllCommitCharacters = commitCharacters.SelectAsArray(static c => c.ToString());
     }
 
     public bool IsValidCSharpTrigger(CompletionContext completionContext)
