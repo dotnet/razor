@@ -33,14 +33,40 @@ public sealed class ComponentParameterNullableWarningSuppressor : DiagnosticSupp
                 var symbol = context.GetSemanticModel(propertySyntax.SyntaxTree).GetDeclaredSymbol(propertySyntax, context.CancellationToken);
                 if (symbol is IPropertySymbol property)
                 {
-                    var attributes = property.GetAttributes();
-                    if (attributes.Any(ad => SymbolEqualityComparer.Default.Equals(ad.AttributeClass, parameterSymbol))
-                        && attributes.Any(ad => SymbolEqualityComparer.Default.Equals(ad.AttributeClass, editorRequiredSymbol)))
+                    if (IsEditorRequiredParam(property.GetAttributes()))
                     {
                         context.ReportSuppression(Suppression.Create(SupportedSuppressions[0], diagnostic));
                     }
                 }
             }
+        }
+
+        bool IsEditorRequiredParam(ImmutableArray<AttributeData> attributes)
+        {
+            bool hasParameter = false, hasRequired = false;
+            foreach (var attribute in attributes)
+            {
+                if (!hasParameter && SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, parameterSymbol))
+                {
+                    hasParameter = true;
+                    if (hasRequired)
+                    {
+                        break;
+                    }
+                    continue;
+                }
+
+                if (!hasRequired && SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, editorRequiredSymbol))
+                {
+                    hasRequired = true;
+                    if (hasParameter)
+                    {
+                        break;
+                    }
+                    continue;
+                }
+            }
+            return hasParameter && hasRequired;
         }
     }
 }
