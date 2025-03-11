@@ -74,7 +74,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
 
         private Task<SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?> HandleCSharpDiagnosticsAsync<TParams>(TParams @params)
         {
-            Assert.IsType<RazorDocumentDiagnosticParams>(@params);
+            Assert.IsType<DelegatedDiagnosticParams>(@params);
             var actualParams = new DocumentDiagnosticParams()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = _csharpDocumentUri }
