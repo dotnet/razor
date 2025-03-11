@@ -65,14 +65,14 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
                 CustomMessageNames.RazorSimplifyMethodEndpointName => HandleSimplifyMethod(@params),
                 CustomMessageNames.RazorInlayHintEndpoint => await HandleInlayHintAsync(@params),
                 CustomMessageNames.RazorInlayHintResolveEndpoint => await HandleInlayHintResolveAsync(@params),
-                CustomMessageNames.RazorCSharpPullDiagnosticsEndpointName => await HandleCSharpDiagnostics(@params),
+                CustomMessageNames.RazorCSharpPullDiagnosticsEndpointName => await HandleCSharpDiagnosticsAsync(@params),
                 _ => throw new NotImplementedException($"I don't know how to handle the '{method}' method.")
             };
 
             return (TResponse)result;
         }
 
-        private Task<SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?> HandleCSharpDiagnostics<TParams>(TParams @params)
+        private Task<SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?> HandleCSharpDiagnosticsAsync<TParams>(TParams @params)
         {
             Assert.IsType<RazorDocumentDiagnosticParams>(@params);
             var actualParams = new DocumentDiagnosticParams()
