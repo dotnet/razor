@@ -17,7 +17,7 @@ public sealed class ComponentParameterNullableWarningSuppressor : DiagnosticSupp
     private static readonly LocalizableString Description = new LocalizableResourceString(nameof(AnalyzerResources.ComponentParameterNullableWarningSuppressorDescription), AnalyzerResources.ResourceManager, typeof(AnalyzerResources));
 
     public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions => [
-            new SuppressionDescriptor("RZS1001", "CS8618", Description)
+            new SuppressionDescriptor(AnalyzerIDs.ComponentParameterNullableWarningSuppressionId, "CS8618", Description)
         ];
 
     public override void ReportSuppressions(SuppressionAnalysisContext context)
