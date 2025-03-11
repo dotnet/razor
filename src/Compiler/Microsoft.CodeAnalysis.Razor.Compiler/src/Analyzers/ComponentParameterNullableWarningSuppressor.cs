@@ -16,6 +16,7 @@ public sealed class ComponentParameterNullableWarningSuppressor : DiagnosticSupp
 {
     private static readonly LocalizableString Description = new LocalizableResourceString(nameof(AnalyzerResources.ComponentParameterNullableWarningSuppressorDescription), AnalyzerResources.ResourceManager, typeof(AnalyzerResources));
 
+    //Suppress CS8618: "Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable."
     public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions => [
             new SuppressionDescriptor(AnalyzerIDs.ComponentParameterNullableWarningSuppressionId, "CS8618", Description)
         ];
