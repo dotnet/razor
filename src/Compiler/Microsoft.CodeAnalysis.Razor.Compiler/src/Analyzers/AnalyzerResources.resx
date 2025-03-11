@@ -118,6 +118,6 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ComponentParameterNullableWarningSuppressorDescription" xml:space="preserve">
-    <value>Suppress CS8618 when a component parameter is marked with Microsoft.AspNetCore.Components.EditorRequired</value>
+    <value>Suppress CS8618 when a component parameter is marked with Microsoft.AspNetCore.Components.EditorRequiredAttribute</value>
   </data>
 </root>
