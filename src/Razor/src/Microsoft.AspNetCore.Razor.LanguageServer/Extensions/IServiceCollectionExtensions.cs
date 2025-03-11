@@ -98,16 +98,9 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IRazorCompletionItemProvider, TagHelperCompletionProvider>();
     }
 
-    public static void AddDiagnosticServices(this IServiceCollection services, LanguageServerFeatureOptions languageServerFeatureOptions)
+    public static void AddDiagnosticServices(this IServiceCollection services)
     {
-        if (languageServerFeatureOptions.SingleServerSupport)
-        {
-            services.AddHandlerWithCapabilities<VSDocumentDiagnosticsEndpoint>();
-        }
-        else
-        {
-            services.AddHandlerWithCapabilities<DocumentDiagnosticsEndpoint>();
-        }
+        services.AddHandlerWithCapabilities<VSDocumentDiagnosticsEndpoint>();
 
         services.AddSingleton<RazorTranslateDiagnosticsService>();
         services.AddSingleton(sp => new Lazy<RazorTranslateDiagnosticsService>(sp.GetRequiredService<RazorTranslateDiagnosticsService>));

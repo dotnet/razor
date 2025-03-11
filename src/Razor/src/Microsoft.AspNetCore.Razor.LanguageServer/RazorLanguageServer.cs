@@ -136,7 +136,7 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
         if (!featureOptions.UseRazorCohostServer)
         {
             // Diagnostics
-            services.AddDiagnosticServices(featureOptions);
+            services.AddDiagnosticServices();
 
             services.AddCodeActionsServices();
 
