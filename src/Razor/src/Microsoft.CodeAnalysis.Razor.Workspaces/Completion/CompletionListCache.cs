@@ -8,11 +8,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal class CompletionListCache
 {
-    private record struct Slot(
-        int Id,
-        VSInternalCompletionList CompletionList,
-        object? Context,
-        bool Used = true);
+    private record struct Slot(int Id, VSInternalCompletionList CompletionList, object? Context);
 
     // Internal for testing
     internal const int MaxCacheSize = 10;
@@ -73,11 +69,6 @@ internal class CompletionListCache
                 }
 
                 var slot = _items[index];
-
-                if (!slot.Used)
-                {
-                    break;
-                }
 
                 if (slot.Id == id)
                 {
