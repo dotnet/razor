@@ -8,10 +8,8 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -86,7 +84,8 @@ public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput
         var context = FormattingContext.Create(
             documentSnapshot,
             codeDocument,
-            options);
+            options,
+            useNewFormattingEngine: false);
         return context;
     }
 
@@ -98,12 +97,16 @@ public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput
         var projectEngine = RazorProjectEngine.Create(builder =>
         {
             builder.SetRootNamespace("Test");
-            builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
+
+            builder.ConfigureParserOptions(builder =>
+            {
+                builder.UseRoslynTokenizer = true;
+            });
         });
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importSources: default, tagHelpers);
 
         var documentSnapshot = FormattingTestBase.CreateDocumentSnapshot(
-            path, fileKind, codeDocument, projectEngine, imports: [], importDocuments: [], tagHelpers, inGlobalNamespace: false);
+            path, fileKind, codeDocument, codeDocument, projectEngine, imports: [], importDocuments: [], tagHelpers, inGlobalNamespace: false, forceRuntimeCodeGeneration: false);
 
         return (codeDocument, documentSnapshot);
     }

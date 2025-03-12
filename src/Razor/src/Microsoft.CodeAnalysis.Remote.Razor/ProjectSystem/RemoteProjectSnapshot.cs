@@ -5,20 +5,17 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -30,10 +27,6 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
     public ProjectKey Key { get; }
 
     private readonly Project _project;
-#if !FORMAT_FUSE
-    private readonly AsyncLazy<RazorConfiguration> _lazyConfiguration;
-    private readonly AsyncLazy<RazorProjectEngine> _lazyProjectEngine;
-#endif
     private readonly Dictionary<TextDocument, RemoteDocumentSnapshot> _documentMap = [];
 
     public RemoteProjectSnapshot(Project project, RemoteSolutionSnapshot solutionSnapshot)
@@ -46,11 +39,6 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
         _project = project;
         SolutionSnapshot = solutionSnapshot;
         Key = _project.ToProjectKey();
-
-#if !FORMAT_FUSE
-        _lazyConfiguration = AsyncLazy.Create(ComputeConfigurationAsync);
-        _lazyProjectEngine = AsyncLazy.Create(ComputeProjectEngineAsync);
-#endif
     }
 
     public IEnumerable<string> DocumentFilePaths
@@ -162,85 +150,72 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
     {
         var generatorResult = await GetRazorGeneratorResultAsync(cancellationToken).ConfigureAwait(false);
         if (generatorResult is null)
+        {
             return null;
+        }
 
         return generatorResult.GetCodeDocument(documentSnapshot.FilePath);
     }
 
-    internal async Task<Document?> GetGeneratedDocumentAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
+    internal async Task<SourceGeneratedDocument?> GetGeneratedDocumentAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
         var generatorResult = await GetRazorGeneratorResultAsync(cancellationToken).ConfigureAwait(false);
         if (generatorResult is null)
+        {
             return null;
+        }
 
         var hintName = generatorResult.GetHintName(documentSnapshot.FilePath);
 
-        // TODO: use this when the location is case-insensitive on windows (https://github.com/dotnet/roslyn/issues/76869)
-        //var generator = typeof(RazorSourceGenerator);
-        //var generatorAssembly = generator.Assembly;
-        //var generatorName = generatorAssembly.GetName();
-        //var generatedDocuments = await _project.GetSourceGeneratedDocumentsForGeneratorAsync(generatorName.Name!, generatorAssembly.Location, generatorName.Version!, generator.Name, cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await _project.TryGetSourceGeneratedDocumentFromHintNameAsync(hintName, cancellationToken).ConfigureAwait(false);
 
-        var generatedDocuments = await _project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-        return generatedDocuments.Single(d => d.HintName == hintName);
+        return generatedDocument ?? throw new InvalidOperationException("Couldn't get the source generated document for a hint name that we got from the generator?");
+    }
+
+    public async Task<RazorCodeDocument?> TryGetCodeDocumentFromGeneratedDocumentUriAsync(Uri generatedDocumentUri, CancellationToken cancellationToken)
+    {
+        if (!_project.TryGetHintNameFromGeneratedDocumentUri(generatedDocumentUri, out var hintName))
+        {
+            return null;
+        }
+
+        return await TryGetCodeDocumentFromGeneratedHintNameAsync(hintName, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<RazorCodeDocument?> TryGetCodeDocumentFromGeneratedHintNameAsync(string generatedDocumentHintName, CancellationToken cancellationToken)
+    {
+        var runResult = await GetRazorGeneratorResultAsync(cancellationToken).ConfigureAwait(false);
+        if (runResult is null)
+        {
+            return null;
+        }
+
+        return runResult.GetFilePath(generatedDocumentHintName) is { } razorFilePath
+            ? runResult.GetCodeDocument(razorFilePath)
+            : null;
     }
 
     private async Task<RazorGeneratorResult?> GetRazorGeneratorResultAsync(CancellationToken cancellationToken)
     {
         var result = await _project.GetSourceGeneratorRunResultAsync(cancellationToken).ConfigureAwait(false);
         if (result is null)
+        {
             return null;
+        }
 
         var runResult = result.Results.SingleOrDefault(r => r.Generator.GetGeneratorType().Assembly.Location == typeof(RazorSourceGenerator).Assembly.Location);
         if (runResult.Generator is null)
+        {
             return null;
+        }
 
 #pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         if (!runResult.HostOutputs.TryGetValue(nameof(RazorGeneratorResult), out var objectResult) || objectResult is not RazorGeneratorResult generatorResult)
+        {
             return null;
+        }
 #pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
         return generatorResult;
     }
-
-#if !FORMAT_FUSE
-    /// <summary>
-    /// NOTE: This will be removed when the source generator is used directly.
-    /// </summary>
-    public ValueTask<RazorProjectEngine> GetProjectEngineAsync(CancellationToken cancellationToken)
-    {
-        if (_lazyProjectEngine.TryGetValue(out var result))
-        {
-            return new(result);
-        }
-
-        return new(_lazyProjectEngine.GetValueAsync(cancellationToken));
-    }
-
-    private async Task<RazorConfiguration> ComputeConfigurationAsync(CancellationToken cancellationToken)
-    {
-        var compilation = await _project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-        return RazorProjectInfoFactory.ComputeRazorConfigurationOptions(_project, compilation, out _);
-    }
-
-    private async Task<RazorProjectEngine> ComputeProjectEngineAsync(CancellationToken cancellationToken)
-    {
-        var configuration = await _lazyConfiguration.GetValueAsync(cancellationToken).ConfigureAwait(false);
-
-        var useRoslynTokenizer = configuration.UseRoslynTokenizer;
-        var parseOptions = new CSharpParseOptions(languageVersion: CSharpLanguageVersion, preprocessorSymbols: configuration.PreprocessorSymbols);
-
-        return ProjectEngineFactories.DefaultProvider.Create(
-            configuration,
-            rootDirectoryPath: Path.GetDirectoryName(FilePath).AssumeNotNull(),
-            configure: builder =>
-            {
-                builder.SetRootNamespace(RootNamespace);
-                builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
-                builder.SetSupportLocalizedComponentNames();
-                builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer, parseOptions));
-            });
-    }
-#endif
 }

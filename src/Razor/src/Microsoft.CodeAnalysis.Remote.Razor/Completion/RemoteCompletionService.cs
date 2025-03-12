@@ -32,6 +32,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
     private readonly RazorCompletionListProvider _razorCompletionListProvider = args.ExportProvider.GetExportedValue<RazorCompletionListProvider>();
     private readonly IClientCapabilitiesService _clientCapabilitiesService = args.ExportProvider.GetExportedValue<IClientCapabilitiesService>();
+    private readonly CompletionTriggerAndCommitCharacters _triggerAndCommitCharacters = args.ExportProvider.GetExportedValue<CompletionTriggerAndCommitCharacters>();
 
     public ValueTask<CompletionPositionInfo?> GetPositionInfoAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
@@ -113,7 +114,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         VSInternalCompletionList? csharpCompletionList = null;
         var documentPositionInfo = positionInfo.DocumentPositionInfo;
         if (documentPositionInfo.LanguageKind == RazorLanguageKind.CSharp &&
-            CompletionTriggerAndCommitCharacters.IsValidTrigger(CompletionTriggerAndCommitCharacters.CSharpTriggerCharacters, completionContext))
+            _triggerAndCommitCharacters.IsValidCSharpTrigger(completionContext))
         {
             var mappedPosition = documentPositionInfo.Position;
             csharpCompletionList = await GetCSharpCompletionAsync(
@@ -133,7 +134,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             }
         }
 
-        var razorCompletionList = CompletionTriggerAndCommitCharacters.IsValidTrigger(CompletionTriggerAndCommitCharacters.RazorTriggerCharacters, completionContext)
+        var razorCompletionList = _triggerAndCommitCharacters.IsValidRazorTrigger(completionContext)
             ? await _razorCompletionListProvider.GetCompletionListAsync(
                 documentPositionInfo.HostDocumentIndex,
                 completionContext,
@@ -171,7 +172,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             var generatedText = await generatedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var change = generatedText.GetTextChange(provisionalTextEdit);
             generatedText = generatedText.WithChanges([change]);
-            generatedDocument = generatedDocument.WithText(generatedText);
+            generatedDocument = (SourceGeneratedDocument)generatedDocument.WithText(generatedText);
         }
 
         // This is, to say the least, not ideal. In future we're going to normalize on to Roslyn LSP types, and this can go.

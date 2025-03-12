@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
+using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
@@ -72,27 +73,14 @@ internal sealed class CohostCodeActionsEndpoint(
         var correlationId = Guid.NewGuid();
         using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentCodeActionName, LanguageServerConstants.RazorLanguageServerName, TelemetryThresholds.CodeActionRazorTelemetryThreshold, correlationId);
 
-        // VS Provides `CodeActionParams.Context.SelectionRange` in addition to
-        // `CodeActionParams.Range`. The `SelectionRange` is relative to where the
-        // code action was invoked (ex. line 14, char 3) whereas the `Range` is
-        // always at the start of the line (ex. line 14, char 0). We want to utilize
-        // the relative positioning to ensure we provide code actions for the appropriate
-        // context.
-        //
-        // Note: VS Code doesn't provide a `SelectionRange`.
-        var vsCodeActionContext = request.Context;
-        if (vsCodeActionContext.SelectionRange != null)
-        {
-            request.Range = vsCodeActionContext.SelectionRange;
-        }
+        CodeActionsService.AdjustRequestRangeIfNecessary(request);
 
         var requestInfo = await _remoteServiceInvoker.TryInvokeAsync<IRemoteCodeActionsService, CodeActionRequestInfo>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken) => service.GetCodeActionRequestInfoAsync(solutionInfo, razorDocument.Id, request, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
-        if (requestInfo is null ||
-            requestInfo.LanguageKind == RazorLanguageKind.CSharp && requestInfo.CSharpRequest is null)
+        if (requestInfo is null or { LanguageKind: RazorLanguageKind.CSharp, CSharpRequest: null })
         {
             return null;
         }
@@ -148,18 +136,7 @@ internal sealed class CohostCodeActionsEndpoint(
                 request,
                 cancellationToken).ConfigureAwait(false);
 
-            if (result?.Response is null)
-            {
-                return [];
-            }
-
-            // WebTools is still using Newtonsoft, so we have to convert to STJ
-            foreach (var codeAction in result.Response)
-            {
-                codeAction.Data = JsonHelpers.TryConvertFromJObject(codeAction.Data);
-            }
-
-            return result.Response;
+            return result?.Response ?? [];
         }
         finally
         {

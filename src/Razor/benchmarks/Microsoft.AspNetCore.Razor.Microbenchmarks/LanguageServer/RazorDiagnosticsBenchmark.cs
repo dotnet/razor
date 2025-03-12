@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
@@ -30,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 [ShortRunJob]
 public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
 {
-    private DocumentPullDiagnosticsEndpoint? DocumentPullDiagnosticsEndpoint { get; set; }
+    private VSDocumentDiagnosticsEndpoint? DocumentPullDiagnosticsEndpoint { get; set; }
     private RazorRequestContext RazorRequestContext { get; set; }
     private RazorCodeDocument? RazorCodeDocument { get; set; }
     private SourceText? SourceText { get; set; }
@@ -91,8 +92,9 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         var languageServer = new ClientNotifierService(Diagnostics!);
         var documentMappingService = BuildRazorDocumentMappingService();
 
+        var optionsMonitor = Mock.Of<RazorLSPOptionsMonitor>(MockBehavior.Strict);
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(documentMappingService, loggerFactory);
-        DocumentPullDiagnosticsEndpoint = new DocumentPullDiagnosticsEndpoint(languageServerFeatureOptions, translateDiagnosticsService, languageServer, telemetryReporter: null);
+        DocumentPullDiagnosticsEndpoint = new VSDocumentDiagnosticsEndpoint(languageServerFeatureOptions, translateDiagnosticsService, optionsMonitor, languageServer, telemetryReporter: null);
     }
 
     private object BuildDiagnostics()

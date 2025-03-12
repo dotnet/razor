@@ -100,7 +100,8 @@ internal static class IServiceCollectionExtensions
 
     public static void AddDiagnosticServices(this IServiceCollection services)
     {
-        services.AddHandlerWithCapabilities<DocumentPullDiagnosticsEndpoint>();
+        services.AddHandlerWithCapabilities<VSDocumentDiagnosticsEndpoint>();
+
         services.AddSingleton<RazorTranslateDiagnosticsService>();
         services.AddSingleton(sp => new Lazy<RazorTranslateDiagnosticsService>(sp.GetRequiredService<RazorTranslateDiagnosticsService>));
         services.AddSingleton<IRazorStartupService, WorkspaceDiagnosticsRefresher>();
@@ -201,7 +202,7 @@ internal static class IServiceCollectionExtensions
         });
     }
 
-    public static void AddDocumentManagementServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)
+    public static void AddDocumentManagementServices(this IServiceCollection services)
     {
         services.AddSingleton<IGeneratedDocumentPublisher, GeneratedDocumentPublisher>();
         services.AddSingleton<IRazorStartupService>((services) => (GeneratedDocumentPublisher)services.GetRequiredService<IGeneratedDocumentPublisher>());
@@ -214,19 +215,8 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IRazorStartupService, OpenDocumentGenerator>();
         services.AddSingleton<IDocumentMappingService, LspDocumentMappingService>();
         services.AddSingleton<IEditMappingService, LspEditMappingService>();
-        services.AddSingleton<RazorFileChangeDetectorManager>();
-        services.AddSingleton<IOnInitialized>(sp => sp.GetRequiredService<RazorFileChangeDetectorManager>());
-
-        services.AddSingleton<IRazorFileChangeListener, RazorFileSynchronizer>();
-        services.AddSingleton<IFileChangeDetector, RazorFileChangeDetector>();
-
-        // Document processed listeners
-        if (!featureOptions.SingleServerSupport)
-        {
-            // If single server is on, then we don't want to publish diagnostics, so best to just not hook up to any
-            // events etc.
-            services.AddSingleton<IDocumentProcessedListener, RazorDiagnosticsPublisher>();
-        }
+        services.AddSingleton<WorkspaceRootPathWatcher>();
+        services.AddSingleton<IOnInitialized>(sp => sp.GetRequiredService<WorkspaceRootPathWatcher>());
 
         services.AddSingleton<IDocumentProcessedListener, GeneratedDocumentSynchronizer>();
 

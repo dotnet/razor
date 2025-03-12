@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -100,5 +101,35 @@ internal static class ProjectExtensions
         }
 
         return document is not null;
+    }
+
+    /// <summary>
+    /// Finds source generated documents by iterating through all of them. In OOP there are better options!
+    /// </summary>
+    public static async Task<SourceGeneratedDocument?> TryGetSourceGeneratedDocumentFromHintNameAsync(this Project project, string? hintName, CancellationToken cancellationToken)
+    {
+        // TODO: use this when the location is case-insensitive on windows (https://github.com/dotnet/roslyn/issues/76869)
+        //var generator = typeof(RazorSourceGenerator);
+        //var generatorAssembly = generator.Assembly;
+        //var generatorName = generatorAssembly.GetName();
+        //var generatedDocuments = await _project.GetSourceGeneratedDocumentsForGeneratorAsync(generatorName.Name!, generatorAssembly.Location, generatorName.Version!, generator.Name, cancellationToken).ConfigureAwait(false);
+
+        var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+        return generatedDocuments.SingleOrDefault(d => d.HintName == hintName);
+    }
+
+    /// <summary>
+    /// Finds source generated documents by iterating through all of them. In OOP there are better options!
+    /// </summary>
+    public static bool TryGetHintNameFromGeneratedDocumentUri(this Project project, Uri generatedDocumentUri, [NotNullWhen(true)] out string? hintName)
+    {
+        if (!RazorUri.IsGeneratedDocumentUri(generatedDocumentUri))
+        {
+            hintName = null;
+            return false;
+        }
+
+        hintName = RazorUri.GetHintNameFromGeneratedDocumentUri(project.Solution, generatedDocumentUri);
+        return true;
     }
 }

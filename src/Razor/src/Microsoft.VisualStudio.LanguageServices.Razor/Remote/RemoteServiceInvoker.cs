@@ -169,14 +169,10 @@ internal sealed class RemoteServiceInvoker(
                 {
                     UseRazorCohostServer = _languageServerFeatureOptions.UseRazorCohostServer,
                     UsePreciseSemanticTokenRanges = _languageServerFeatureOptions.UsePreciseSemanticTokenRanges,
-                    CSharpVirtualDocumentSuffix = _languageServerFeatureOptions.CSharpVirtualDocumentSuffix,
                     HtmlVirtualDocumentSuffix = _languageServerFeatureOptions.HtmlVirtualDocumentSuffix,
-                    IncludeProjectKeyInGeneratedFilePath = _languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath,
                     ReturnCodeActionAndRenamePathsWithPrefixedSlash = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash,
-                    ForceRuntimeCodeGeneration = _languageServerFeatureOptions.ForceRuntimeCodeGeneration,
                     SupportsFileManipulation = _languageServerFeatureOptions.SupportsFileManipulation,
                     ShowAllCSharpCodeActions = _languageServerFeatureOptions.ShowAllCSharpCodeActions,
-                    UseNewFormattingEngine = _languageServerFeatureOptions.UseNewFormattingEngine,
                     SupportsSoftSelectionInCompletion = _languageServerFeatureOptions.SupportsSoftSelectionInCompletion,
                     UseVsCodeCompletionTriggerCharacters = _languageServerFeatureOptions.UseVsCodeCompletionTriggerCharacters,
                 };
