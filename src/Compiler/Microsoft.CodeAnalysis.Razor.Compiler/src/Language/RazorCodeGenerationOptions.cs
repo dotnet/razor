@@ -9,13 +9,11 @@ namespace Microsoft.AspNetCore.Razor.Language;
 public sealed partial class RazorCodeGenerationOptions
 {
     private static RazorLanguageVersion DefaultLanguageVersion => RazorLanguageVersion.Latest;
-    private static string DefaultFileKind => FileKinds.Legacy;
     private static int DefaultIndentSize => 4;
     private static string DefaultNewLine => Environment.NewLine;
 
     public static RazorCodeGenerationOptions Default { get; } = new(
         languageVersion: DefaultLanguageVersion,
-        fileKind: DefaultFileKind,
         indentSize: DefaultIndentSize,
         newLine: DefaultNewLine,
         rootNamespace: null,
@@ -24,7 +22,6 @@ public sealed partial class RazorCodeGenerationOptions
 
     public static RazorCodeGenerationOptions DesignTimeDefault { get; } = new(
         languageVersion: DefaultLanguageVersion,
-        fileKind: DefaultFileKind,
         indentSize: DefaultIndentSize,
         newLine: DefaultNewLine,
         rootNamespace: null,
@@ -32,7 +29,6 @@ public sealed partial class RazorCodeGenerationOptions
         flags: Flags.DefaultDesignTimeFlags);
 
     public RazorLanguageVersion LanguageVersion { get; }
-    internal string FileKind { get; }
 
     public int IndentSize { get; }
     public string NewLine { get; }
@@ -51,7 +47,6 @@ public sealed partial class RazorCodeGenerationOptions
 
     private RazorCodeGenerationOptions(
         RazorLanguageVersion languageVersion,
-        string fileKind,
         int indentSize,
         string newLine,
         string? rootNamespace,
@@ -59,7 +54,6 @@ public sealed partial class RazorCodeGenerationOptions
         Flags flags)
     {
         LanguageVersion = languageVersion ?? DefaultLanguageVersion;
-        FileKind = fileKind ?? DefaultFileKind;
         IndentSize = indentSize;
         NewLine = newLine;
         RootNamespace = rootNamespace;
@@ -159,22 +153,22 @@ public sealed partial class RazorCodeGenerationOptions
     public RazorCodeGenerationOptions WithIndentSize(int value)
         => IndentSize == value
             ? this
-            : new(LanguageVersion, FileKind, value, NewLine, RootNamespace, SuppressUniqueIds, _flags);
+            : new(LanguageVersion, value, NewLine, RootNamespace, SuppressUniqueIds, _flags);
 
     public RazorCodeGenerationOptions WithNewLine(string value)
         => NewLine == value
             ? this
-            : new(LanguageVersion, FileKind, IndentSize, value, RootNamespace, SuppressUniqueIds, _flags);
+            : new(LanguageVersion, IndentSize, value, RootNamespace, SuppressUniqueIds, _flags);
 
     public RazorCodeGenerationOptions WithRootNamespace(string? value)
         => RootNamespace == value
             ? this
-            : new(LanguageVersion, FileKind, IndentSize, NewLine, value, SuppressUniqueIds, _flags);
+            : new(LanguageVersion, IndentSize, NewLine, value, SuppressUniqueIds, _flags);
 
     public RazorCodeGenerationOptions WithSuppressUniqueIds(string? value)
         => RootNamespace == value
             ? this
-            : new(LanguageVersion, FileKind, IndentSize, NewLine, RootNamespace, value, _flags);
+            : new(LanguageVersion, IndentSize, NewLine, RootNamespace, value, _flags);
 
     public RazorCodeGenerationOptions WithFlags(
         Optional<bool> designTime = default,
@@ -254,6 +248,6 @@ public sealed partial class RazorCodeGenerationOptions
 
         return flags == _flags
             ? this
-            : new(LanguageVersion, FileKind, IndentSize, NewLine, RootNamespace, SuppressUniqueIds, flags);
+            : new(LanguageVersion, IndentSize, NewLine, RootNamespace, SuppressUniqueIds, flags);
     }
 }

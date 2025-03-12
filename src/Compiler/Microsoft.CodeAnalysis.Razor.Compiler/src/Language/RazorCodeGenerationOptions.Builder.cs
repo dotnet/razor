@@ -8,7 +8,6 @@ public sealed partial class RazorCodeGenerationOptions
     public sealed class Builder
     {
         public RazorLanguageVersion LanguageVersion { get; }
-        public string FileKind { get; }
 
         private Flags _flags;
 
@@ -25,10 +24,9 @@ public sealed partial class RazorCodeGenerationOptions
         /// </summary>
         public string? SuppressUniqueIds { get; set; }
 
-        internal Builder(RazorLanguageVersion languageVersion, string fileKind)
+        internal Builder(RazorLanguageVersion languageVersion)
         {
             LanguageVersion = languageVersion ?? DefaultLanguageVersion;
-            FileKind = fileKind ?? DefaultFileKind;
             IndentSize = DefaultIndentSize;
             NewLine = DefaultNewLine;
         }
@@ -159,6 +157,6 @@ public sealed partial class RazorCodeGenerationOptions
         }
 
         public RazorCodeGenerationOptions ToOptions()
-            => new(LanguageVersion, FileKind, IndentSize, NewLine, RootNamespace, SuppressUniqueIds, _flags);
+            => new(LanguageVersion, IndentSize, NewLine, RootNamespace, SuppressUniqueIds, _flags);
     }
 }
