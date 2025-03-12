@@ -8,7 +8,6 @@ namespace Microsoft.VisualStudioCode.RazorExtension.Endpoints;
 
 [Shared]
 [RazorVSCodeEndpoint("razor/dynamicFileInfoChanged")]
-[ExportRazorStatelessLspService(typeof(RazorDynamicFileChangedEndpoint))]
 internal class RazorDynamicFileChangedEndpoint : AbstractRazorNotificationHandler<RazorDynamicFileChangedParams>
 {
     public override bool MutatesSolutionState => false;
