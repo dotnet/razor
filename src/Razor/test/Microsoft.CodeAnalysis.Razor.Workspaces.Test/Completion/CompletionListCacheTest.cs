@@ -8,17 +8,10 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-public class CompletionListCacheTest : ToolingTestBase
+public class CompletionListCacheTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    private readonly CompletionListCache _completionListCache;
-    private readonly object _context;
-
-    public CompletionListCacheTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-        _completionListCache = new CompletionListCache();
-        _context = new object();
-    }
+    private readonly CompletionListCache _completionListCache = new CompletionListCache();
+    private readonly ICompletionResolveContext _context = StrictMock.Of<ICompletionResolveContext>();
 
     [Fact]
     public void TryGet_SetCompletionList_ReturnsTrue()

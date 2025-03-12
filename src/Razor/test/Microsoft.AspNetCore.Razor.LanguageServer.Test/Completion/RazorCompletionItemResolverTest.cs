@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -297,7 +296,7 @@ public class RazorCompletionItemResolverTest : LanguageServerTestBase
 
         // Act
         var resolvedCompletionItem = await resolver.ResolveAsync(
-            completionItem, completionList, Array.Empty<RazorCompletionItem>(), _defaultClientCapability, _componentAvailabilityService, DisposalToken);
+            completionItem, completionList, StrictMock.Of<ICompletionResolveContext>(), _defaultClientCapability, _componentAvailabilityService, DisposalToken);
 
         // Assert
         Assert.Null(resolvedCompletionItem);

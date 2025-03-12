@@ -39,7 +39,7 @@ internal class RazorCompletionResolveEndpoint(
             return completionItem;
         }
 
-        object? originalRequestContext = null;
+        ICompletionResolveContext? originalRequestContext = null;
         VSInternalCompletionList? containingCompletionList = null;
         foreach (var resultId in resultIds)
         {
@@ -61,7 +61,7 @@ internal class RazorCompletionResolveEndpoint(
             }
         }
 
-        if (containingCompletionList is null)
+        if (containingCompletionList is null || originalRequestContext is null)
         {
             // Couldn't find an associated completion list
             return completionItem;

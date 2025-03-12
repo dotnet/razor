@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Formatting;
@@ -94,7 +95,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
         var resolver = new DelegatedCompletionItemResolver(_documentContextFactory, _formattingService.GetValue(), optionsMonitor, server);
         var item = new VSInternalCompletionItem();
         var notContainingCompletionList = new VSInternalCompletionList();
-        var originalRequestContext = new object();
+        var originalRequestContext = StrictMock.Of<ICompletionResolveContext>();
 
         // Act
         var resolvedItem = await resolver.ResolveAsync(
@@ -113,7 +114,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
         var resolver = new DelegatedCompletionItemResolver(_documentContextFactory, _formattingService.GetValue(), optionsMonitor, server);
         var item = new VSInternalCompletionItem();
         var containingCompletionList = new VSInternalCompletionList() { Items = new[] { item, } };
-        var originalRequestContext = new object();
+        var originalRequestContext = StrictMock.Of<ICompletionResolveContext>();
 
         // Act
         var resolvedItem = await resolver.ResolveAsync(
