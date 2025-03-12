@@ -25,6 +25,10 @@ public sealed class ComponentParameterNullableWarningSuppressor : DiagnosticSupp
     {
         var editorRequiredSymbol = context.Compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Components.EditorRequiredAttribute");
         var parameterSymbol = context.Compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Components.ParameterAttribute");
+        if (parameterSymbol is null || editorRequiredSymbol is null)
+        {
+            return;
+        }
 
         foreach (var diagnostic in context.ReportedDiagnostics)
         {
@@ -32,20 +36,24 @@ public sealed class ComponentParameterNullableWarningSuppressor : DiagnosticSupp
             if (node is PropertyDeclarationSyntax propertySyntax && propertySyntax.AttributeLists.Any())
             {
                 var symbol = context.GetSemanticModel(propertySyntax.SyntaxTree).GetDeclaredSymbol(propertySyntax, context.CancellationToken);
-                if (symbol is IPropertySymbol property)
+                if (IsValidEditorRequiredParameter(symbol))
                 {
-                    if (IsEditorRequiredParam(property.GetAttributes()))
-                    {
-                        context.ReportSuppression(Suppression.Create(SupportedSuppressions[0], diagnostic));
-                    }
+                    context.ReportSuppression(Suppression.Create(SupportedSuppressions[0], diagnostic));
                 }
             }
         }
 
-        bool IsEditorRequiredParam(ImmutableArray<AttributeData> attributes)
+        bool IsValidEditorRequiredParameter(ISymbol? symbol)
         {
+            // public instance property, with a public setter
+            if (symbol is not IPropertySymbol { DeclaredAccessibility: Accessibility.Public, IsStatic: false, SetMethod: not null and { DeclaredAccessibility: Accessibility.Public } })
+            {
+                return false;
+            }
+
+            // has both [Parameter] and [EditorRequired] attributes
             bool hasParameter = false, hasRequired = false;
-            foreach (var attribute in attributes)
+            foreach (var attribute in symbol.GetAttributes())
             {
                 if (!hasParameter && SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, parameterSymbol))
                 {
