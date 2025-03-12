@@ -300,7 +300,6 @@ public class RazorCodeDocumentExtensionsTest
             filePath: "C:\\Hello\\Components\\Test.cshtml",
             relativePath: "\\Components\\Test.cshtml");
 
-
         var codeDocument = RazorCodeDocument.Create(
             source,
             parserOptions: RazorParserOptions.Create(RazorLanguageVersion.Latest, FileKinds.Component, builder =>
