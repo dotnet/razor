@@ -340,7 +340,7 @@ public static class RazorCodeDocumentExtensions
                 appendSuffix = true;
 
                 // Empty RootNamespace is allowed only in components.
-                if (!FileKinds.IsComponent(codeDocument.GetFileKind()) && string.IsNullOrEmpty(baseNamespace))
+                if (!FileKinds.IsComponent(codeDocument.FileKind) && string.IsNullOrEmpty(baseNamespace))
                 {
                     @namespace = null;
                     return false;
