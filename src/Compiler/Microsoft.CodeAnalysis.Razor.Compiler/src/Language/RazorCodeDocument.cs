@@ -15,8 +15,6 @@ public sealed class RazorCodeDocument
     public RazorParserOptions ParserOptions { get; }
     public RazorCodeGenerationOptions CodeGenerationOptions { get; }
 
-    private string? _fileKind;
-
     private RazorCodeDocument(
         RazorSourceDocument source,
         ImmutableArray<RazorSourceDocument> imports,
@@ -54,10 +52,5 @@ public sealed class RazorCodeDocument
     }
 
     public string? GetFileKind()
-        => _fileKind;
-
-    public void SetFileKind(string fileKind)
-    {
-        _fileKind = fileKind;
-    }
+        => ParserOptions.FileKind;
 }
