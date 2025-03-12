@@ -1,8 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Components;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Razor.Compiler.Analyzers;
 using Microsoft.CodeAnalysis.Testing;
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
 
                 """;
 
-            await VerifyAnalyzerAsync(testCode, ReferenceAssemblies.Net.Net80,
+            await VerifyAnalyzerAsync(testCode, extraReferences: [],
                 // /0/Test0.cs(9,19): warning CS8618: Non-nullable property 'MyParameter' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 DiagnosticResult.CompilerWarning("CS8618").WithSpan(9, 19, 9, 30).WithSpan(9, 19, 9, 30).WithArguments("property", "MyParameter").WithIsSuppressed(true)
                 );
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
 
                 """;
 
-            await VerifyAnalyzerAsync(testCode, ReferenceAssemblies.Net.Net80,
+            await VerifyAnalyzerAsync(testCode, extraReferences: [],
                 // /0/Test0.cs(9,19): warning CS8618: Non-nullable property 'MyParameter' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 DiagnosticResult.CompilerWarning("CS8618").WithSpan(9, 19, 9, 30).WithSpan(9, 19, 9, 30).WithArguments("property", "MyParameter")
                 );
@@ -158,19 +158,20 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
 
         private static Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
             => VerifyAnalyzerAsync(source,
-                                   ReferenceAssemblies.Net.Net80.WithAssemblies([typeof(EditorRequiredAttribute).Assembly.Location[0..^4]]),
+                                   Basic.Reference.Assemblies.AspNet80.References.All,
                                    expected);
 
-        private static async Task VerifyAnalyzerAsync(string source, ReferenceAssemblies referenceAssemblies, params DiagnosticResult[] expected)
+        private static async Task VerifyAnalyzerAsync(string source, ImmutableArray<PortableExecutableReference> extraReferences, params DiagnosticResult[] expected)
         {
             var test = new CSharpAnalyzerTest<ComponentParameterNullableWarningSuppressor, DefaultVerifier>
             {
                 TestCode = source,
-                ReferenceAssemblies = referenceAssemblies,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
                 CompilerDiagnostics = CompilerDiagnostics.Warnings,
+                DisabledDiagnostics = { "CS1591" }
             };
 
-            test.DisabledDiagnostics.Add("CS1591");
+            test.TestState.AdditionalReferences.AddRange(extraReferences);
             test.ExpectedDiagnostics.AddRange(expected);
             await test.RunAsync();
         }
