@@ -54,6 +54,14 @@ public sealed partial class RazorCodeGenerationOptions
         _flags = flags;
     }
 
+    public static RazorCodeGenerationOptions Create(Action<Builder> configure)
+    {
+        var builder = new Builder();
+        configure?.Invoke(builder);
+
+        return builder.ToOptions();
+    }
+
     public bool DesignTime
         => _flags.HasFlag(Flags.DesignTime);
 
