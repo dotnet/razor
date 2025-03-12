@@ -7,8 +7,6 @@ public sealed partial class RazorCodeGenerationOptions
 {
     public sealed class Builder
     {
-        public RazorLanguageVersion LanguageVersion { get; }
-
         private Flags _flags;
 
         public int IndentSize { get; set; }
@@ -24,9 +22,8 @@ public sealed partial class RazorCodeGenerationOptions
         /// </summary>
         public string? SuppressUniqueIds { get; set; }
 
-        internal Builder(RazorLanguageVersion languageVersion)
+        internal Builder()
         {
-            LanguageVersion = languageVersion ?? DefaultLanguageVersion;
             IndentSize = DefaultIndentSize;
             NewLine = DefaultNewLine;
         }
@@ -157,6 +154,6 @@ public sealed partial class RazorCodeGenerationOptions
         }
 
         public RazorCodeGenerationOptions ToOptions()
-            => new(LanguageVersion, IndentSize, NewLine, RootNamespace, SuppressUniqueIds, _flags);
+            => new(IndentSize, NewLine, RootNamespace, SuppressUniqueIds, _flags);
     }
 }
