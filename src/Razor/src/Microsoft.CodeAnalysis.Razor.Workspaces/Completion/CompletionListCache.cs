@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
@@ -23,11 +23,6 @@ internal class CompletionListCache
 
     public int Add(VSInternalCompletionList completionList, ICompletionResolveContext context)
     {
-        if (completionList is null)
-        {
-            throw new ArgumentNullException(nameof(completionList));
-        }
-
         lock (_accessLock)
         {
             var index = _nextIndex++;
@@ -48,7 +43,7 @@ internal class CompletionListCache
         }
     }
 
-    public bool TryGet(int id, out (VSInternalCompletionList CompletionList, ICompletionResolveContext Context) result)
+    public bool TryGet(int id, [NotNullWhen(true)] out VSInternalCompletionList? completionList, [NotNullWhen(true)] out ICompletionResolveContext? context)
     {
         lock (_accessLock)
         {
@@ -72,7 +67,8 @@ internal class CompletionListCache
 
                 if (slot.Id == id)
                 {
-                    result = (slot.CompletionList, slot.Context);
+                    completionList = slot.CompletionList;
+                    context = slot.Context;
                     return true;
                 }
 
@@ -80,7 +76,8 @@ internal class CompletionListCache
             }
 
             // A cache entry associated with the given id was not found.
-            result = default;
+            completionList = null;
+            context = null;
             return false;
         }
     }
