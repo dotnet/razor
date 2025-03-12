@@ -2392,7 +2392,7 @@ namespace Test
         AssertSequencePointsMatchBaseline(result, generated.CodeDocument);
     }
 
-    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11551")]
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11552")]
     public void GenericComponentTypeUsage()
     {
         // Act
@@ -2404,6 +2404,26 @@ namespace Test
             }
 
             <TestComponent TItem="string" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11552")]
+    public void GenericComponentTypeUsageWithInference()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @typeparam TItem
+            @code {
+                [Parameter]
+                public TItem MyItem { get; set; }
+            }
+
+            <TestComponent MyItem="1" />
             """);
 
         // Assert
