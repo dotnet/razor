@@ -414,7 +414,18 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             context.CodeWriter.Write(".");
             context.CodeWriter.Write(ComponentsApi.RenderTreeBuilder.OpenComponent);
             context.CodeWriter.Write("<");
-            TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, node.TypeName);
+
+            TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, TypeNameHelper.GetNonGenericTypeName(node.TypeName));
+            if (node.TypeArguments.Any())
+            {
+                context.CodeWriter.Write("<");
+                foreach(var typeArg in node.TypeArguments)
+                {
+                    WriteComponentTypeArgument(context, typeArg);
+                }
+                context.CodeWriter.Write(">");
+            }
+
             context.CodeWriter.Write(">(");
             context.CodeWriter.Write((_sourceSequence++).ToString(CultureInfo.InvariantCulture));
             context.CodeWriter.Write(");");
@@ -874,8 +885,9 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
     public override void WriteComponentTypeArgument(CodeRenderingContext context, ComponentTypeArgumentIntermediateNode node)
     {
-        // We can skip type arguments during runtime codegen, they are handled in the
-        // type/parameter declarations.
+        Debug.Assert(node.Children.Count == 1);
+        Debug.Assert(node.Children[0] is IntermediateToken);
+        WriteCSharpToken(context, (IntermediateToken)node.Children[0]);
     }
 
     public override void WriteTemplate(CodeRenderingContext context, TemplateIntermediateNode node)
