@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -419,9 +420,15 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             if (node.TypeArguments.Any())
             {
                 context.CodeWriter.Write("<");
-                foreach(var typeArg in node.TypeArguments)
+                var arguments = node.TypeArguments.ToImmutableArray();
+                for (var i = 0; i < arguments.Length; i++)
                 {
+                    var typeArg = arguments[i];
                     WriteComponentTypeArgument(context, typeArg);
+                    if (i != arguments.Length - 1)
+                    {
+                        context.CodeWriter.Write(", ");
+                    }
                 }
                 context.CodeWriter.Write(">");
             }
@@ -886,8 +893,14 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
     public override void WriteComponentTypeArgument(CodeRenderingContext context, ComponentTypeArgumentIntermediateNode node)
     {
         Debug.Assert(node.Children.Count == 1);
-        Debug.Assert(node.Children[0] is IntermediateToken);
-        WriteCSharpToken(context, (IntermediateToken)node.Children[0]);
+        var token = node.Children[0] switch
+        {
+            IntermediateToken t => t,
+            CSharpExpressionIntermediateNode e => (IntermediateToken)e.Children[0],
+            _ => Assumed.Unreachable<IntermediateToken>()
+        };
+
+        WriteCSharpToken(context, token);
     }
 
     public override void WriteTemplate(CodeRenderingContext context, TemplateIntermediateNode node)
