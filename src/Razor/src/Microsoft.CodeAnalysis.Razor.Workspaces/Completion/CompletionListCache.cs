@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
@@ -64,6 +66,14 @@ internal class CompletionListCache
                 }
 
                 var slot = _items[index];
+
+                // CompletionList is annotated as non-nullable, but we are allocating an array of 10 items for our cache, so initially
+                // those array entries will be default. By checking for null here, we detect if we're hitting an unused part of the array
+                // so stop looping.
+                if (slot.CompletionList is null)
+                {
+                    break;
+                }
 
                 if (slot.Id == id)
                 {
