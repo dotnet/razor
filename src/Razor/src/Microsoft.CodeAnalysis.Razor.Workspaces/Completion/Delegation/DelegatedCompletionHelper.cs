@@ -113,17 +113,18 @@ internal static class DelegatedCompletionHelper
             return new VSInternalCompletionList() { IsIncomplete = true, Items = [] };
         }
 
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+
         var rewrittenResponse = delegatedResponse;
 
         foreach (var rewriter in s_delegatedCSharpCompletionResponseRewriters)
         {
-            rewrittenResponse = await rewriter.RewriteAsync(
+            rewrittenResponse = rewriter.Rewrite(
                 rewrittenResponse,
+                codeDocument,
                 absoluteIndex,
-                documentContext,
                 projectedPosition,
-                completionOptions,
-                cancellationToken).ConfigureAwait(false);
+                completionOptions);
         }
 
         return rewrittenResponse;
