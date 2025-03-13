@@ -51,17 +51,14 @@ internal class DelegatedCompletionListProvider
         Guid correlationId,
         CancellationToken cancellationToken)
     {
-        var positionInfo = await _documentMappingService
-            .GetPositionInfoAsync(documentContext, absoluteIndex, cancellationToken)
-            .ConfigureAwait(false);
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
+        var positionInfo = _documentMappingService.GetPositionInfo(codeDocument, absoluteIndex);
         if (positionInfo.LanguageKind == RazorLanguageKind.Razor)
         {
             // Nothing to delegate to.
             return null;
         }
-
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         TextEdit? provisionalTextEdit = null;
         if (DelegatedCompletionHelper.TryGetProvisionalCompletionInfo(codeDocument, completionContext, positionInfo, _documentMappingService, out var provisionalCompletion))
