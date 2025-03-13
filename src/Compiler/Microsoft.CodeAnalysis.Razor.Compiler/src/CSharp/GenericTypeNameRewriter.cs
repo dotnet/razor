@@ -4,8 +4,9 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -13,9 +14,9 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 internal class GenericTypeNameRewriter : TypeNameRewriter
 {
-    private readonly Dictionary<string, string> _bindings;
+    private readonly Dictionary<string, IntermediateToken> _bindings;
 
-    public GenericTypeNameRewriter(Dictionary<string, string> bindings)
+    public GenericTypeNameRewriter(Dictionary<string, IntermediateToken> bindings)
     {
         _bindings = bindings;
     }
@@ -29,9 +30,9 @@ internal class GenericTypeNameRewriter : TypeNameRewriter
 
     private class Visitor : CSharpSyntaxRewriter
     {
-        private readonly Dictionary<string, string> _bindings;
+        private readonly Dictionary<string, IntermediateToken> _bindings;
 
-        public Visitor(Dictionary<string, string> bindings)
+        public Visitor(Dictionary<string, IntermediateToken> bindings)
         {
             _bindings = bindings;
         }
@@ -48,7 +49,7 @@ internal class GenericTypeNameRewriter : TypeNameRewriter
                     // compared to leaving the type parameter in place.
                     //
                     // We add our own diagnostics for missing/invalid type parameters anyway.
-                    var replacement = binding ?? "object";
+                    var replacement = binding?.Content ?? "object";
                     return identifier.Update(SyntaxFactory.Identifier(replacement).WithTriviaFrom(identifier.Identifier));
                 }
             }

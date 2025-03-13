@@ -75,7 +75,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
 
                 var binding = bindings[typeArgumentNode.TypeParameterName];
                 binding.Node = typeArgumentNode;
-                binding.Content = GetContent(typeArgumentNode);
+                binding.Content = typeArgumentNode.Value;
 
                 // Offer this explicit type argument to descendants too
                 if (supplyCascadingTypeParameters.Contains(typeArgumentNode.TypeParameterName))
@@ -85,7 +85,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
                     {
                         GenericTypeNames = new[] { typeArgumentNode.TypeParameterName },
                         ValueType = typeArgumentNode.TypeParameterName,
-                        ValueExpression = $"default({binding.Content})",
+                        ValueExpression = $"default({binding.Content.Content})",
                     };
                 }
             }
@@ -279,11 +279,6 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
             return true;
         }
 
-        private string GetContent(ComponentTypeArgumentIntermediateNode node)
-        {
-            return string.Join(string.Empty, node.FindDescendantNodes<IntermediateToken>().Where(t => t.IsCSharp).Select(t => t.Content));
-        }
-
         private string GetContent(ComponentAttributeIntermediateNode node)
         {
             return string.Join(string.Empty, node.FindDescendantNodes<IntermediateToken>().Where(t => t.IsCSharp).Select(t => t.Content));
@@ -292,11 +287,11 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
         private static bool ValidateTypeArguments(ComponentIntermediateNode node, Dictionary<string, Binding> bindings)
         {
             var missing = new List<BoundAttributeDescriptor>();
-            foreach (var binding in bindings)
+            foreach (var (_, binding) in bindings)
             {
-                if (binding.Value.Node == null || string.IsNullOrWhiteSpace(binding.Value.Content))
+                if (binding.Node == null ||string.IsNullOrWhiteSpace(binding.Content?.Content))
                 {
-                    missing.Add(binding.Value.Attribute);
+                    missing.Add(binding.Attribute);
                 }
             }
 
@@ -486,7 +481,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
             if (parsed is IdentifierNameSyntax identifier)
             {
                 return Array.Empty<string>();
-    }
+            }
 
             if (TryParseCore(parsed) is { IsDefault: false } list)
             {
@@ -542,7 +537,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
 
         public BoundAttributeDescriptor Attribute { get; }
 
-        public string? Content { get; set; }
+        public IntermediateToken? Content { get; set; }
 
         public ComponentTypeArgumentIntermediateNode? Node { get; set; }
 

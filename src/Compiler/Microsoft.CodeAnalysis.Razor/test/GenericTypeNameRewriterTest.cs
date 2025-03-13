@@ -4,7 +4,7 @@
 #nullable disable
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor;
@@ -69,11 +69,11 @@ public class GenericTypeNameRewriterTest
     public void GenericTypeNameRewriter_CanReplaceTypeParametersWithTypeArguments(string original, string expected)
     {
         // Arrange
-        var visitor = new GenericTypeNameRewriter(new Dictionary<string, string>()
+        var visitor = new GenericTypeNameRewriter(new Dictionary<string, IntermediateToken>()
             {
-                { "TItem1", "Type1" },
-                { "TItem2", "Type2" },
-                { "TItem3", null },
+                { "TItem1", IntermediateToken.CreateCSharpToken("Type1") },
+                { "TItem2", IntermediateToken.CreateCSharpToken("Type2") },
+                { "TItem3", IntermediateToken.CreateCSharpToken(null) },
             });
 
         // Act

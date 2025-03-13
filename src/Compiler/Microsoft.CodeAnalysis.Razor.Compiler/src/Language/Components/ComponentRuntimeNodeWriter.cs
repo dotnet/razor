@@ -892,15 +892,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
     public override void WriteComponentTypeArgument(CodeRenderingContext context, ComponentTypeArgumentIntermediateNode node)
     {
-        Debug.Assert(node.Children.Count == 1);
-        var token = node.Children[0] switch
-        {
-            IntermediateToken t => t,
-            CSharpExpressionIntermediateNode e => (IntermediateToken)e.Children[0],
-            _ => Assumed.Unreachable<IntermediateToken>()
-        };
-
-        WriteCSharpToken(context, token);
+        WriteCSharpToken(context, node.Value);
     }
 
     public override void WriteTemplate(CodeRenderingContext context, TemplateIntermediateNode node)
