@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
 
                 public class MyComponent : ComponentBase
                 {
-                    [Parameter]
+                    [Parameter, EditorRequired]
                     {{modifiers}}
                     string MyParameter { get; set; }
                 }
@@ -214,6 +214,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
         }
 
         [Theory]
+        [InlineData("")]
         [InlineData("init;")]
         [InlineData("private set;")]
         [InlineData("private init;")]
@@ -226,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
 
                 public class MyComponent : ComponentBase
                 {
-                    [Parameter]
+                    [Parameter, EditorRequired]
                     public string MyParameter { get; {{setter}} }
                 }
                 """;
@@ -247,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
 
                 public class MyComponent : ComponentBase
                 {
-                    [Parameter]
+                    [Parameter, EditorRequired]
                     public required string MyParameter { get; set; }
                 }
                 """;
@@ -267,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 TestCode = source,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
                 CompilerDiagnostics = CompilerDiagnostics.Warnings,
-                DisabledDiagnostics = { "CS1591" },
+                DisabledDiagnostics = { "CS1591" }, // Missing XML comment for publicly visible type or member
             };
 
             test.TestState.AdditionalReferences.AddRange(extraReferences);
