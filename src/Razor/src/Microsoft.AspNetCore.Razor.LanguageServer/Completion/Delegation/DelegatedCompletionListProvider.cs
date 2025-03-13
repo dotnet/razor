@@ -42,7 +42,8 @@ internal class DelegatedCompletionListProvider
     }
 
     // virtual for tests
-    public virtual async Task<VSInternalCompletionList?> GetCompletionListAsync(
+    public virtual ValueTask<VSInternalCompletionList?> GetCompletionListAsync(
+        RazorCodeDocument codeDocument,
         int absoluteIndex,
         VSInternalCompletionContext completionContext,
         DocumentContext documentContext,
@@ -51,13 +52,11 @@ internal class DelegatedCompletionListProvider
         Guid correlationId,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-
         var positionInfo = _documentMappingService.GetPositionInfo(codeDocument, absoluteIndex);
         if (positionInfo.LanguageKind == RazorLanguageKind.Razor)
         {
             // Nothing to delegate to.
-            return null;
+            return default;
         }
 
         TextEdit? provisionalTextEdit = null;
@@ -69,7 +68,7 @@ internal class DelegatedCompletionListProvider
 
         if (DelegatedCompletionHelper.RewriteContext(completionContext, positionInfo.LanguageKind, _triggerAndCommitCharacters) is not { } rewrittenContext)
         {
-            return null;
+            return default;
         }
 
         completionContext = rewrittenContext;
@@ -80,8 +79,35 @@ internal class DelegatedCompletionListProvider
         // Their values are not related in any way.
         var shouldIncludeDelegationSnippets = DelegatedCompletionHelper.ShouldIncludeSnippets(codeDocument, absoluteIndex);
 
-        var delegatedParams = new DelegatedCompletionParams(
+        return new(GetDelegatedCompletionListAsync(
+            codeDocument,
+            absoluteIndex,
+            completionContext,
             documentContext.GetTextDocumentIdentifierAndVersion(),
+            clientCapabilities,
+            razorCompletionOptions,
+            correlationId,
+            positionInfo,
+            provisionalTextEdit,
+            shouldIncludeDelegationSnippets,
+            cancellationToken));
+    }
+
+    private async Task<VSInternalCompletionList?> GetDelegatedCompletionListAsync(
+        RazorCodeDocument codeDocument,
+        int absoluteIndex,
+        VSInternalCompletionContext completionContext,
+        TextDocumentIdentifierAndVersion identifier,
+        VSInternalClientCapabilities clientCapabilities,
+        RazorCompletionOptions razorCompletionOptions,
+        Guid correlationId,
+        DocumentPositionInfo positionInfo,
+        TextEdit? provisionalTextEdit,
+        bool shouldIncludeDelegationSnippets,
+        CancellationToken cancellationToken)
+    {
+        var delegatedParams = new DelegatedCompletionParams(
+            identifier,
             positionInfo.Position,
             positionInfo.LanguageKind,
             completionContext,
@@ -89,13 +115,15 @@ internal class DelegatedCompletionListProvider
             shouldIncludeDelegationSnippets,
             correlationId);
 
-        var delegatedResponse = await _clientConnection.SendRequestAsync<DelegatedCompletionParams, VSInternalCompletionList?>(
-            LanguageServerConstants.RazorCompletionEndpointName,
-            delegatedParams,
-            cancellationToken).ConfigureAwait(false);
+        var delegatedResponse = await _clientConnection
+            .SendRequestAsync<DelegatedCompletionParams, VSInternalCompletionList?>(
+                LanguageServerConstants.RazorCompletionEndpointName,
+                delegatedParams,
+                cancellationToken)
+            .ConfigureAwait(false);
 
-        var rewrittenResponse = delegatedParams.ProjectedKind == RazorLanguageKind.CSharp
-             ? DelegatedCompletionHelper.RewriteCSharpResponse(delegatedResponse, absoluteIndex, codeDocument, delegatedParams.ProjectedPosition, razorCompletionOptions)
+        var rewrittenResponse = positionInfo.LanguageKind == RazorLanguageKind.CSharp
+            ? DelegatedCompletionHelper.RewriteCSharpResponse(delegatedResponse, absoluteIndex, codeDocument, positionInfo.Position, razorCompletionOptions)
             : DelegatedCompletionHelper.RewriteHtmlResponse(delegatedResponse, razorCompletionOptions);
 
         var completionCapability = clientCapabilities?.TextDocument?.Completion as VSInternalCompletionSetting;
