@@ -96,13 +96,12 @@ internal static class DelegatedCompletionHelper
     /// <returns>
     /// Possibly modified completion response.
     /// </returns>
-    public static async ValueTask<VSInternalCompletionList> RewriteCSharpResponseAsync(
+    public static VSInternalCompletionList RewriteCSharpResponse(
         VSInternalCompletionList? delegatedResponse,
         int absoluteIndex,
-        DocumentContext documentContext,
+        RazorCodeDocument codeDocument,
         Position projectedPosition,
-        RazorCompletionOptions completionOptions,
-        CancellationToken cancellationToken)
+        RazorCompletionOptions completionOptions)
     {
         if (delegatedResponse?.Items is null)
         {
@@ -112,8 +111,6 @@ internal static class DelegatedCompletionHelper
             // so we'd only ever return Razor completion items.
             return new VSInternalCompletionList() { IsIncomplete = true, Items = [] };
         }
-
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         var rewrittenResponse = delegatedResponse;
 

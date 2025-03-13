@@ -212,16 +212,16 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             };
         }
 
+        var codeDocument = await remoteDocumentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+
         var vsPlatformCompletionList = JsonHelpers.ToVsLSP<VSInternalCompletionList, RoslynCompletionList>(roslynCompletionList);
 
-        var rewrittenResponse = await DelegatedCompletionHelper.RewriteCSharpResponseAsync(
+        var rewrittenResponse = DelegatedCompletionHelper.RewriteCSharpResponse(
             vsPlatformCompletionList,
             documentIndex,
-            remoteDocumentContext,
+            codeDocument,
             mappedPosition,
-            razorCompletionOptions,
-            cancellationToken)
-            .ConfigureAwait(false);
+            razorCompletionOptions);
 
         return rewrittenResponse;
     }

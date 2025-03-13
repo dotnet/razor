@@ -81,12 +81,13 @@ internal class DelegatedCompletionListProvider
 
         completionContext = rewrittenContext;
 
-        var razorCodeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+
         // It's a bit confusing, but we have two different "add snippets" options - one is a part of
         // RazorCompletionOptions and becomes a part of RazorCompletionContext and is used by
         // RazorCompletionFactsService, and the second one below that's used for delegated completion
         // Their values are not related in any way.
-        var shouldIncludeDelegationSnippets = DelegatedCompletionHelper.ShouldIncludeSnippets(razorCodeDocument, absoluteIndex);
+        var shouldIncludeDelegationSnippets = DelegatedCompletionHelper.ShouldIncludeSnippets(codeDocument, absoluteIndex);
 
         var delegatedParams = new DelegatedCompletionParams(
             documentContext.GetTextDocumentIdentifierAndVersion(),
@@ -103,14 +104,7 @@ internal class DelegatedCompletionListProvider
             cancellationToken).ConfigureAwait(false);
 
         var rewrittenResponse = delegatedParams.ProjectedKind == RazorLanguageKind.CSharp
-             ? await DelegatedCompletionHelper.RewriteCSharpResponseAsync(
-                delegatedResponse,
-                absoluteIndex,
-                documentContext,
-                delegatedParams.ProjectedPosition,
-                razorCompletionOptions,
-                cancellationToken)
-                .ConfigureAwait(false)
+             ? DelegatedCompletionHelper.RewriteCSharpResponse(delegatedResponse, absoluteIndex, codeDocument, delegatedParams.ProjectedPosition, razorCompletionOptions)
             : DelegatedCompletionHelper.RewriteHtmlResponse(delegatedResponse, razorCompletionOptions);
 
         var completionCapability = clientCapabilities?.TextDocument?.Completion as VSInternalCompletionSetting;
