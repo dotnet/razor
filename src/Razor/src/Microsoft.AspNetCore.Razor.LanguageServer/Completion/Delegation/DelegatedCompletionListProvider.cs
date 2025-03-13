@@ -61,17 +61,13 @@ internal class DelegatedCompletionListProvider
             return null;
         }
 
-        var provisionalCompletion = await DelegatedCompletionHelper.TryGetProvisionalCompletionInfoAsync(
-            documentContext,
-            completionContext,
-            positionInfo,
-            _documentMappingService,
-            cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+
         TextEdit? provisionalTextEdit = null;
-        if (provisionalCompletion is { } provisionalCompletionValue)
+        if (DelegatedCompletionHelper.TryGetProvisionalCompletionInfo(codeDocument, completionContext, positionInfo, _documentMappingService, out var provisionalCompletion))
         {
-            provisionalTextEdit = provisionalCompletionValue.ProvisionalTextEdit;
-            positionInfo = provisionalCompletionValue.DocumentPositionInfo;
+            provisionalTextEdit = provisionalCompletion.ProvisionalTextEdit;
+            positionInfo = provisionalCompletion.DocumentPositionInfo;
         }
 
         if (DelegatedCompletionHelper.RewriteContext(completionContext, positionInfo.LanguageKind, _triggerAndCommitCharacters) is not { } rewrittenContext)
@@ -80,8 +76,6 @@ internal class DelegatedCompletionListProvider
         }
 
         completionContext = rewrittenContext;
-
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         // It's a bit confusing, but we have two different "add snippets" options - one is a part of
         // RazorCompletionOptions and becomes a part of RazorCompletionContext and is used by
