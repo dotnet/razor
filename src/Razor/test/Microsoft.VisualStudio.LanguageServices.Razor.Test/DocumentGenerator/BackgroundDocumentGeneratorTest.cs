@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -254,7 +253,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
         // Wait for the work to complete.
         await generator.WaitUntilCurrentBatchCompletesAsync();
 
-        Assert.Collection(generator.CompletedWork.OrderBy(key => key.DocumentFilePath),
+        Assert.Collection(generator.CompletedWork.OrderBy(key => key.FilePath),
             key => Assert.Equal(documentKey1, key),
             key => Assert.Equal(documentKey2, key));
     }
@@ -295,7 +294,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         Assert.True(generator.HasPendingWork);
 
-        Assert.Collection(generator.PendingWork.OrderBy(key => key.DocumentFilePath),
+        Assert.Collection(generator.PendingWork.OrderBy(key => key.FilePath),
             key => Assert.Equal(new(s_hostProject1.Key, documents[0].FilePath), key),
             key => Assert.Equal(new(s_hostProject1.Key, documents[1].FilePath), key));
 
@@ -306,7 +305,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
 
         Assert.False(generator.HasPendingWork);
 
-        Assert.Collection(generator.CompletedWork.OrderBy(key => key.DocumentFilePath),
+        Assert.Collection(generator.CompletedWork.OrderBy(key => key.FilePath),
             key => Assert.Equal(new(s_hostProject1.Key, documents[0].FilePath), key),
             key => Assert.Equal(new(s_hostProject1.Key, documents[1].FilePath), key));
     }
