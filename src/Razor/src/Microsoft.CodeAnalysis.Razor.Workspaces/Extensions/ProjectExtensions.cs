@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.CodeAnalysis;
@@ -19,23 +20,14 @@ internal static class ProjectExtensions
             ?? ThrowHelper.ThrowInvalidOperationException<Document>($"The document {documentId} did not exist in {project.Name}");
     }
 
-    public static bool TryGetCSharpDocument(this Project project, Uri csharpDocumentUri, [NotNullWhen(true)] out Document? document)
+    public static Task<SourceGeneratedDocument?> TryGetCSharpDocumentFromGeneratedDocumentUriAsync(this Project project, Uri generatedDocumentUri, CancellationToken cancellationToken)
     {
-        document = null;
-
-        var generatedDocumentIds = project.Solution.GetDocumentIdsWithUri(csharpDocumentUri);
-        var generatedDocumentId = generatedDocumentIds.FirstOrDefault(d => d.ProjectId == project.Id);
-        if (generatedDocumentId is null)
+        if (!TryGetHintNameFromGeneratedDocumentUri(project, generatedDocumentUri, out var hintName))
         {
-            return false;
+            return SpecializedTasks.Null<SourceGeneratedDocument>();
         }
 
-        if (project.GetDocument(generatedDocumentId) is { } generatedDocument)
-        {
-            document = generatedDocument;
-        }
-
-        return document is not null;
+        return TryGetSourceGeneratedDocumentFromHintNameAsync(project, hintName, cancellationToken);
     }
 
     /// <summary>
