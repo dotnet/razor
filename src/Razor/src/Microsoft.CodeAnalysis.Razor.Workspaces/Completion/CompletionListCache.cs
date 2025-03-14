@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
