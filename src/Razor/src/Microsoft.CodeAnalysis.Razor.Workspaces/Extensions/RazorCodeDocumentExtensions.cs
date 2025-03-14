@@ -49,6 +49,15 @@ internal static class RazorCodeDocumentExtensions
         document.Items[s_unsupportedKey] = true;
     }
 
+    public static RazorSyntaxTree GetRequiredSyntaxTree(this RazorCodeDocument codeDocument)
+        => codeDocument.GetSyntaxTree().AssumeNotNull();
+
+    public static Syntax.SyntaxNode GetRequiredSyntaxRoot(this RazorCodeDocument codeDocument)
+        => codeDocument.GetRequiredSyntaxTree().Root;
+
+    public static TagHelperDocumentContext GetRequiredTagHelperContext(this RazorCodeDocument codeDocument)
+        => codeDocument.GetTagHelperContext().AssumeNotNull();
+
     public static SourceText GetCSharpSourceText(this RazorCodeDocument document)
         => document.GetCSharpDocument().Text;
 
