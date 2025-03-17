@@ -2,12 +2,14 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -29,7 +31,8 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
     private readonly ILogger _logger;
 
     private readonly CancellationTokenSource _disposeTokenSource;
-    private readonly AsyncBatchingWorkQueue<(ProjectSnapshot, DocumentSnapshot)> _workQueue;
+    private readonly AsyncBatchingWorkQueue<DocumentKey> _workQueue;
+    private readonly HashSet<DocumentKey> _workerSet;
     private ImmutableHashSet<string> _suppressedDocuments;
     private bool _solutionIsClosing;
 
@@ -57,8 +60,9 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
         _loggerFactory = loggerFactory;
         _logger = loggerFactory.GetOrCreateLogger<BackgroundDocumentGenerator>();
 
+        _workerSet = [];
         _disposeTokenSource = new();
-        _workQueue = new AsyncBatchingWorkQueue<(ProjectSnapshot, DocumentSnapshot)>(
+        _workQueue = new AsyncBatchingWorkQueue<DocumentKey>(
             delay,
             processBatchAsync: ProcessBatchAsync,
             equalityComparer: null,
@@ -82,52 +86,59 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
     protected Task WaitUntilCurrentBatchCompletesAsync()
         => _workQueue.WaitUntilCurrentBatchCompletesAsync();
 
-    protected virtual async Task ProcessDocumentAsync(ProjectSnapshot project, DocumentSnapshot document, CancellationToken cancellationToken)
+    protected virtual async Task ProcessDocumentAsync(DocumentSnapshot document, CancellationToken cancellationToken)
     {
         await document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
-        UpdateFileInfo(project, document);
+        UpdateFileInfo(document);
     }
 
-    public virtual void Enqueue(ProjectSnapshot project, DocumentSnapshot document)
+    public virtual void Enqueue(DocumentKey documentKey)
     {
         if (_disposeTokenSource.IsCancellationRequested)
         {
             return;
         }
 
-        if (_fallbackProjectManager.IsFallbackProject(project.Key))
+        if (_fallbackProjectManager.IsFallbackProject(documentKey.ProjectKey))
         {
             // We don't support closed file code generation for fallback projects
             return;
         }
 
-        if (Suppressed(project, document))
+        if (Suppressed(documentKey))
         {
             return;
         }
 
-        _workQueue.AddWork((project, document));
+        _workQueue.AddWork(documentKey);
     }
 
-    protected virtual async ValueTask ProcessBatchAsync(ImmutableArray<(ProjectSnapshot, DocumentSnapshot)> items, CancellationToken token)
+    protected virtual async ValueTask ProcessBatchAsync(ImmutableArray<DocumentKey> items, CancellationToken token)
     {
-        foreach (var (project, document) in items.GetMostRecentUniqueItems(Comparer.Instance))
+        _workerSet.Clear();
+
+        foreach (var key in items.GetMostRecentUniqueItems(_workerSet))
         {
             if (token.IsCancellationRequested)
             {
                 return;
             }
 
-            // If the solution is closing, suspect any in-progress work
+            // If the solution is closing, escape any in-progress work
             if (_solutionIsClosing)
             {
                 break;
             }
 
+            if (!_projectManager.TryGetDocument(key, out var document))
+            {
+                continue;
+            }
+
             try
             {
-                await ProcessDocumentAsync(project, document, token).ConfigureAwait(false);
+                await ProcessDocumentAsync(document, token).ConfigureAwait(false);
             }
             catch (UnauthorizedAccessException)
             {
@@ -140,19 +151,19 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error encountered from project '{project.FilePath}':{Environment.NewLine}{ex}");
+                _logger.LogError(ex, $"Error encountered from project '{document.Project.FilePath}':{Environment.NewLine}{ex}");
             }
         }
     }
 
-    private bool Suppressed(ProjectSnapshot project, DocumentSnapshot document)
+    private bool Suppressed(DocumentKey documentKey)
     {
-        var filePath = document.FilePath;
+        var filePath = documentKey.FilePath;
 
         if (_projectManager.IsDocumentOpen(filePath))
         {
             ImmutableInterlocked.Update(ref _suppressedDocuments, static (set, filePath) => set.Add(filePath), filePath);
-            _infoProvider.SuppressDocument(project.Key, filePath);
+            _infoProvider.SuppressDocument(documentKey);
             return true;
         }
 
@@ -160,14 +171,14 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
         return false;
     }
 
-    private void UpdateFileInfo(ProjectSnapshot project, DocumentSnapshot document)
+    private void UpdateFileInfo(DocumentSnapshot document)
     {
         var filePath = document.FilePath;
 
         if (!_suppressedDocuments.Contains(filePath))
         {
             var container = new DefaultDynamicDocumentContainer(document, _loggerFactory);
-            _infoProvider.UpdateFileInfo(project.Key, container);
+            _infoProvider.UpdateFileInfo(document.Project.Key, container);
         }
     }
 
@@ -190,9 +201,9 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 
                     foreach (var documentFilePath in newProject.DocumentFilePaths)
                     {
-                        if (newProject.TryGetDocument(documentFilePath, out var document))
+                        if (newProject.ContainsDocument(documentFilePath))
                         {
-                            Enqueue(newProject, document);
+                            Enqueue(new(newProject.Key, documentFilePath));
                         }
                     }
 
@@ -205,9 +216,9 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 
                     foreach (var documentFilePath in newProject.DocumentFilePaths)
                     {
-                        if (newProject.TryGetDocument(documentFilePath, out var document))
+                        if (newProject.ContainsDocument(documentFilePath))
                         {
-                            Enqueue(newProject, document);
+                            Enqueue(new(newProject.Key, documentFilePath));
                         }
                     }
 
@@ -222,11 +233,11 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 
                     if (newProject.TryGetDocument(documentFilePath, out var document))
                     {
-                        Enqueue(newProject, document);
+                        Enqueue(document.Key);
 
                         foreach (var relatedDocument in newProject.GetRelatedDocuments(document))
                         {
-                            Enqueue(newProject, relatedDocument);
+                            Enqueue(relatedDocument.Key);
                         }
                     }
 
@@ -245,7 +256,7 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
                     {
                         foreach (var relatedDocument in newProject.GetRelatedDocuments(document))
                         {
-                            Enqueue(newProject, relatedDocument);
+                            Enqueue(relatedDocument.Key);
                         }
                     }
 
