@@ -34,7 +34,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
     private static readonly HostProject s_hostProject2 = TestProjectData.AnotherProject with { Configuration = FallbackRazorConfiguration.MVC_1_0 };
 
     private static IFallbackProjectManager s_fallbackProjectManager = StrictMock.Of<IFallbackProjectManager>(x =>
-        x.IsFallbackProject(It.IsAny<ProjectSnapshot>()) == false);
+        x.IsFallbackProject(It.IsAny<ProjectKey>()) == false);
 
     private readonly TestDynamicFileInfoProvider _dynamicFileInfoProvider = new();
 

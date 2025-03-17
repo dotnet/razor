@@ -96,7 +96,7 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
             return;
         }
 
-        if (_fallbackProjectManager.IsFallbackProject(project))
+        if (_fallbackProjectManager.IsFallbackProject(project.Key))
         {
             // We don't support closed file code generation for fallback projects
             return;
