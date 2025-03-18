@@ -4,7 +4,6 @@
 #nullable disable
 
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis.CSharp;
@@ -14,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 internal class GenericTypeNameRewriter : TypeNameRewriter
 {
-    private readonly Dictionary<string, IntermediateToken> _bindings;
+    private readonly Dictionary<string, ComponentTypeArgumentIntermediateNode> _bindings;
 
-    public GenericTypeNameRewriter(Dictionary<string, IntermediateToken> bindings)
+    public GenericTypeNameRewriter(Dictionary<string, ComponentTypeArgumentIntermediateNode> bindings)
     {
         _bindings = bindings;
     }
@@ -28,11 +27,16 @@ internal class GenericTypeNameRewriter : TypeNameRewriter
         return rewritten.ToFullString();
     }
 
+    public override void RewriteComponentTypeName(ComponentIntermediateNode node)
+    {
+        node.TypeName = Rewrite(node.TypeName);
+    }
+
     private class Visitor : CSharpSyntaxRewriter
     {
-        private readonly Dictionary<string, IntermediateToken> _bindings;
+        private readonly Dictionary<string, ComponentTypeArgumentIntermediateNode> _bindings;
 
-        public Visitor(Dictionary<string, IntermediateToken> bindings)
+        public Visitor(Dictionary<string, ComponentTypeArgumentIntermediateNode> bindings)
         {
             _bindings = bindings;
         }
@@ -49,7 +53,7 @@ internal class GenericTypeNameRewriter : TypeNameRewriter
                     // compared to leaving the type parameter in place.
                     //
                     // We add our own diagnostics for missing/invalid type parameters anyway.
-                    var replacement = binding?.Content ?? "object";
+                    var replacement = binding?.Value?.Content ?? "object";
                     return identifier.Update(SyntaxFactory.Identifier(replacement).WithTriviaFrom(identifier.Identifier));
                 }
             }

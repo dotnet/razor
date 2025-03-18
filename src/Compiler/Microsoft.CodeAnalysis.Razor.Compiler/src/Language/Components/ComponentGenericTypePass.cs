@@ -96,7 +96,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
                 // Either they specified everything and its OK to rewrite, or its an error.
                 if (ValidateTypeArguments(node, bindings))
                 {
-                    var mappings = bindings.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Content);
+                    var mappings = bindings.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Node);
                     RewriteTypeNames(new GenericTypeNameRewriter(mappings), node, hasTypeArgumentSpecified);
                 }
 
@@ -238,7 +238,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
                 // However we still want to generate 'type inference' code because we want the errors to be as
                 // helpful as possible. So let's substitute 'object' for all of those type parameters, and add
                 // an error.
-                var mappings = bindings.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Content);
+                var mappings = bindings.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Node);
                 RewriteTypeNames(new GenericTypeNameRewriter(mappings), node, bindings: bindings);
 
                 node.Diagnostics.Add(ComponentDiagnosticFactory.Create_GenericComponentTypeInferenceUnderspecified(node.Source, node, node.Component.GetTypeParameters()));

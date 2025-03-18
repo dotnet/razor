@@ -69,11 +69,11 @@ public class GenericTypeNameRewriterTest
     public void GenericTypeNameRewriter_CanReplaceTypeParametersWithTypeArguments(string original, string expected)
     {
         // Arrange
-        var visitor = new GenericTypeNameRewriter(new Dictionary<string, IntermediateToken>()
+        var visitor = new GenericTypeNameRewriter(new Dictionary<string, ComponentTypeArgumentIntermediateNode>()
             {
-                { "TItem1", IntermediateToken.CreateCSharpToken("Type1") },
-                { "TItem2", IntermediateToken.CreateCSharpToken("Type2") },
-                { "TItem3", IntermediateToken.CreateCSharpToken(null) },
+                { "TItem1", new ComponentTypeArgumentIntermediateNode(null){ Value = IntermediateToken.CreateCSharpToken("Type1") } },
+                { "TItem2", new ComponentTypeArgumentIntermediateNode(null){ Value = IntermediateToken.CreateCSharpToken("Type2") } },
+                { "TItem3", new ComponentTypeArgumentIntermediateNode(null){ Value = IntermediateToken.CreateCSharpToken(null) } },
             });
 
         // Act
