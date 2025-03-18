@@ -78,6 +78,8 @@ extends:
         name: NetCore1ESPool-Svc-Internal
         image: 1es-windows-2022
         os: windows
+      binskim:
+        enabled: true
       policheck:
         enabled: true
       tsa:
