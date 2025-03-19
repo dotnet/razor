@@ -63,7 +63,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
     }
 
     [UIFact]
-    public async Task Initialize_DoneInCorrectOrderBasedOnInitializePriorityPriority()
+    public async Task Initialize_DoneInCorrectOrderBasedOnInitializePriority()
     {
         // Arrange
         var initializedOrder = new List<string>();
