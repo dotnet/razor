@@ -37,6 +37,12 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
     private readonly CancellationTokenSource _disposeTokenSource;
     private readonly HashSet<DocumentKey> _workerSet;
 
+    // Note: This is likely to always be false. Only the Visual Studio ProjectSnapshotManager
+    // is notified of the solution opening and closing, so the language server shouldn't
+    // update this value. However, this may change at some point and keeping the check here means
+    // that the logic between this class and the Visual Studio BackgroundDocumentGenerator are in sync.
+    private bool _solutionIsClosing;
+
     public OpenDocumentGenerator(
         IEnumerable<IDocumentProcessedListener> listeners,
         ProjectSnapshotManager projectManager,
@@ -80,6 +86,12 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
                 return;
             }
 
+            // If the solution is closing, avoid any in-progress work.
+            if (_solutionIsClosing)
+            {
+                return;
+            }
+
             if (!_projectManager.TryGetDocument(key, out var document))
             {
                 continue;
@@ -103,16 +115,20 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
 
     private void ProjectManager_Changed(object? sender, ProjectChangeEventArgs args)
     {
-        // Don't do any work if the solution is closing
+        // We don't want to do any work on solution close.
         if (args.IsSolutionClosing)
         {
+            _solutionIsClosing = true;
             return;
         }
+
+        _solutionIsClosing = false;
 
         _logger.LogDebug($"Got a project change of type {args.Kind} for {args.ProjectKey.Id}");
 
         switch (args.Kind)
         {
+            case ProjectChangeKind.ProjectAdded:
             case ProjectChangeKind.ProjectChanged:
                 {
                     var newProject = args.Newer.AssumeNotNull();
@@ -136,12 +152,9 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
 
                     EnqueueIfNecessary(new(newProject.Key, documentFilePath));
 
-                    if (newProject.TryGetDocument(documentFilePath, out var document))
+                    foreach (var relatedDocumentFilePath in newProject.GetRelatedDocumentFilePaths(documentFilePath))
                     {
-                        foreach (var relatedDocument in newProject.GetRelatedDocuments(document))
-                        {
-                            EnqueueIfNecessary(relatedDocument.Key);
-                        }
+                        EnqueueIfNecessary(new(newProject.Key, relatedDocumentFilePath));
                     }
 
                     break;
@@ -153,16 +166,14 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
                     var oldProject = args.Older.AssumeNotNull();
                     var documentFilePath = args.DocumentFilePath.AssumeNotNull();
 
-                    if (oldProject.TryGetDocument(documentFilePath, out var document))
-                    {
-                        foreach (var relatedDocument in oldProject.GetRelatedDocuments(document))
-                        {
-                            var relatedDocumentFilePath = relatedDocument.FilePath;
+                    // For removals use the old snapshot to find related documents to update if they exist
+                    // in the new snapshot.
 
-                            if (newProject.TryGetDocument(relatedDocumentFilePath, out var newRelatedDocument))
-                            {
-                                EnqueueIfNecessary(newRelatedDocument.Key);
-                            }
+                    foreach (var relatedDocumentFilePath in oldProject.GetRelatedDocumentFilePaths(documentFilePath))
+                    {
+                        if (newProject.ContainsDocument(relatedDocumentFilePath))
+                        {
+                            EnqueueIfNecessary(new(newProject.Key, relatedDocumentFilePath));
                         }
                     }
 
@@ -171,9 +182,13 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
 
             case ProjectChangeKind.ProjectRemoved:
                 {
-                    // No-op. We don't need to enqueue recompilations if the project is being removed
+                    // No-op. We don't need to compile anything if the project is being removed
                     break;
                 }
+
+            default:
+                Assumed.Unreachable($"Unknown {nameof(ProjectChangeKind)}: {args.Kind}");
+                break;
         }
 
         void EnqueueIfNecessary(DocumentKey documentKey)

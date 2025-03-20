@@ -93,7 +93,7 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
         UpdateFileInfo(document);
     }
 
-    public virtual void Enqueue(DocumentKey documentKey)
+    public virtual void EnqueueIfNecessary(DocumentKey documentKey)
     {
         if (_disposeTokenSource.IsCancellationRequested)
         {
@@ -125,10 +125,10 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
                 return;
             }
 
-            // If the solution is closing, escape any in-progress work
+            // If the solution is closing, avoid any in-progress work.
             if (_solutionIsClosing)
             {
-                break;
+                return;
             }
 
             if (!_projectManager.TryGetDocument(key, out var document))
@@ -184,7 +184,7 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 
     private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
     {
-        // We don't want to do any work on solution close
+        // We don't want to do any work on solution close.
         if (args.IsSolutionClosing)
         {
             _solutionIsClosing = true;
@@ -196,24 +196,13 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
         switch (args.Kind)
         {
             case ProjectChangeKind.ProjectAdded:
-                {
-                    var newProject = args.Newer.AssumeNotNull();
-
-                    foreach (var documentFilePath in newProject.DocumentFilePaths)
-                    {
-                        Enqueue(new(newProject.Key, documentFilePath));
-                    }
-
-                    break;
-                }
-
             case ProjectChangeKind.ProjectChanged:
                 {
                     var newProject = args.Newer.AssumeNotNull();
 
                     foreach (var documentFilePath in newProject.DocumentFilePaths)
                     {
-                        Enqueue(new(newProject.Key, documentFilePath));
+                        EnqueueIfNecessary(new(newProject.Key, documentFilePath));
                     }
 
                     break;
@@ -225,14 +214,11 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
                     var newProject = args.Newer.AssumeNotNull();
                     var documentFilePath = args.DocumentFilePath.AssumeNotNull();
 
-                    if (newProject.TryGetDocument(documentFilePath, out var document))
-                    {
-                        Enqueue(document.Key);
+                    EnqueueIfNecessary(new(newProject.Key, documentFilePath));
 
-                        foreach (var relatedDocument in newProject.GetRelatedDocuments(document))
-                        {
-                            Enqueue(relatedDocument.Key);
-                        }
+                    foreach (var relatedDocumentFilePath in newProject.GetRelatedDocumentFilePaths(documentFilePath))
+                    {
+                        EnqueueIfNecessary(new(newProject.Key, relatedDocumentFilePath));
                     }
 
                     break;
@@ -240,17 +226,18 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 
             case ProjectChangeKind.DocumentRemoved:
                 {
-                    // For removals use the old snapshot to find the removed document, so we can figure out
-                    // what the imports were in the new snapshot.
                     var newProject = args.Newer.AssumeNotNull();
                     var oldProject = args.Older.AssumeNotNull();
                     var documentFilePath = args.DocumentFilePath.AssumeNotNull();
 
-                    if (oldProject.TryGetDocument(documentFilePath, out var document))
+                    // For removals use the old snapshot to find related documents to update if they exist
+                    // in the new snapshot.
+
+                    foreach (var relatedDocumentFilePath in oldProject.GetRelatedDocumentFilePaths(documentFilePath))
                     {
-                        foreach (var relatedDocument in newProject.GetRelatedDocuments(document))
+                        if (newProject.ContainsDocument(relatedDocumentFilePath))
                         {
-                            Enqueue(relatedDocument.Key);
+                            EnqueueIfNecessary(new(newProject.Key, relatedDocumentFilePath));
                         }
                     }
 
@@ -264,7 +251,8 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
                 }
 
             default:
-                throw new InvalidOperationException($"Unknown ProjectChangeKind {args.Kind}");
+                Assumed.Unreachable($"Unknown {nameof(ProjectChangeKind)}: {args.Kind}");
+                break;
         }
     }
 }

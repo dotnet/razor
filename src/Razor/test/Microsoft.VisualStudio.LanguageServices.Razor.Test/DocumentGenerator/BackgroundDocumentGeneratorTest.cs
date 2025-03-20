@@ -131,7 +131,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
         using var generator = new TestBackgroundDocumentGenerator(projectManager, s_fallbackProjectManager, _dynamicFileInfoProvider, loggerFactoryMock.Object);
 
         // Act & Assert
-        generator.Enqueue(documentKey1);
+        generator.EnqueueIfNecessary(documentKey1);
 
         await generator.WaitUntilCurrentBatchCompletesAsync();
     }
@@ -172,7 +172,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
         using var generator = new TestBackgroundDocumentGenerator(projectManager, s_fallbackProjectManager, _dynamicFileInfoProvider, loggerFactoryMock.Object);
 
         // Act & Assert
-        generator.Enqueue(documentKey1);
+        generator.EnqueueIfNecessary(documentKey1);
 
         await generator.WaitUntilCurrentBatchCompletesAsync();
     }
@@ -198,7 +198,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
         // Act & Assert
 
         // Enqueue some work.
-        generator.Enqueue(documentKey1);
+        generator.EnqueueIfNecessary(documentKey1);
 
         // Wait for the work to complete.
         await generator.WaitUntilCurrentBatchCompletesAsync();
@@ -237,7 +237,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
         // Act & Assert
 
         // First, enqueue some work.
-        generator.Enqueue(documentKey1);
+        generator.EnqueueIfNecessary(documentKey1);
 
         // Wait for the work to complete.
         await generator.WaitUntilCurrentBatchCompletesAsync();
@@ -246,7 +246,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
         Assert.Single(generator.CompletedWork, documentKey1);
 
         // Enqueue more work.
-        generator.Enqueue(documentKey2);
+        generator.EnqueueIfNecessary(documentKey2);
 
         // Wait for the work to complete.
         await generator.WaitUntilCurrentBatchCompletesAsync();
@@ -397,11 +397,11 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
             await base.ProcessBatchAsync(items, token);
         }
 
-        public override void Enqueue(DocumentKey documentKey)
+        public override void EnqueueIfNecessary(DocumentKey documentKey)
         {
             PendingWork.Add(documentKey);
 
-            base.Enqueue(documentKey);
+            base.EnqueueIfNecessary(documentKey);
         }
 
         protected override Task ProcessDocumentAsync(DocumentSnapshot document, CancellationToken cancellationToken)
