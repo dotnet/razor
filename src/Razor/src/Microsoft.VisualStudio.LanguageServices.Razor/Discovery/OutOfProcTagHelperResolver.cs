@@ -170,6 +170,9 @@ internal class OutOfProcTagHelperResolver(
 
             if (checksumsToFetch.Length != fetchedTagHelpers.Length)
             {
+                _logger.LogWarning($"Expected to receive {checksumsToFetch.Length} tag helpers from Roslyn OOP, " +
+                    $"but received {fetchedTagHelpers.Length} instead. Returning a partial set of tag helpers.");
+
                 // We didn't receive all the tag helpers we requested. This is bad. However, instead of failing,
                 // we'll just return the tag helpers we were able to retrieve.
                 using var resultBuilder = new PooledArrayBuilder<TagHelperDescriptor>(capacity: result.Length);
