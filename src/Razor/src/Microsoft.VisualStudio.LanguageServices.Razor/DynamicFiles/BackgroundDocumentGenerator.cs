@@ -201,10 +201,7 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 
                     foreach (var documentFilePath in newProject.DocumentFilePaths)
                     {
-                        if (newProject.ContainsDocument(documentFilePath))
-                        {
-                            Enqueue(new(newProject.Key, documentFilePath));
-                        }
+                        Enqueue(new(newProject.Key, documentFilePath));
                     }
 
                     break;
@@ -216,10 +213,7 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 
                     foreach (var documentFilePath in newProject.DocumentFilePaths)
                     {
-                        if (newProject.ContainsDocument(documentFilePath))
-                        {
-                            Enqueue(new(newProject.Key, documentFilePath));
-                        }
+                        Enqueue(new(newProject.Key, documentFilePath));
                     }
 
                     break;
