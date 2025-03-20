@@ -85,6 +85,8 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
                 continue;
             }
 
+            _logger.LogDebug($"Generating {key} at version {document.Version}");
+
             var codeDocument = await document.GetGeneratedOutputAsync(token).ConfigureAwait(false);
 
             foreach (var listener in _listeners)
@@ -117,10 +119,7 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
 
                     foreach (var documentFilePath in newProject.DocumentFilePaths)
                     {
-                        if (newProject.TryGetDocument(documentFilePath, out var document))
-                        {
-                            EnqueueIfNecessary(document.Key, document.Version);
-                        }
+                        EnqueueIfNecessary(new(newProject.Key, documentFilePath));
                     }
 
                     break;
@@ -135,13 +134,13 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
                     var newProject = args.Newer.AssumeNotNull();
                     var documentFilePath = args.DocumentFilePath.AssumeNotNull();
 
+                    EnqueueIfNecessary(new(newProject.Key, documentFilePath));
+
                     if (newProject.TryGetDocument(documentFilePath, out var document))
                     {
-                        EnqueueIfNecessary(document.Key, document.Version);
-
                         foreach (var relatedDocument in newProject.GetRelatedDocuments(document))
                         {
-                            EnqueueIfNecessary(relatedDocument.Key, relatedDocument.Version);
+                            EnqueueIfNecessary(relatedDocument.Key);
                         }
                     }
 
@@ -162,7 +161,7 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
 
                             if (newProject.TryGetDocument(relatedDocumentFilePath, out var newRelatedDocument))
                             {
-                                EnqueueIfNecessary(newRelatedDocument.Key, newRelatedDocument.Version);
+                                EnqueueIfNecessary(newRelatedDocument.Key);
                             }
                         }
                     }
@@ -177,15 +176,13 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
                 }
         }
 
-        void EnqueueIfNecessary(DocumentKey documentKey, int documentVersion)
+        void EnqueueIfNecessary(DocumentKey documentKey)
         {
             if (!_options.UpdateBuffersForClosedDocuments &&
                 !_projectManager.IsDocumentOpen(documentKey.FilePath))
             {
                 return;
             }
-
-            _logger.LogDebug($"Enqueuing generation of {documentKey.FilePath} in {documentKey.ProjectKey.Id} at version {documentVersion}");
 
             _workQueue.AddWork(documentKey);
         }
