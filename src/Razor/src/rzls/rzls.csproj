@@ -87,8 +87,6 @@
   <ItemGroup>
     <ProjectReference
       Include="..\Microsoft.AspNetCore.Razor.LanguageServer\Microsoft.AspNetCore.Razor.LanguageServer.csproj" />
-    <ProjectReference
-      Include="..\Microsoft.VisualStudioCode.RazorExtension\Microsoft.VisualStudioCode.RazorExtension.csproj" />
   </ItemGroup>
 
   <ItemGroup>

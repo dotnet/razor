@@ -7,16 +7,17 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 namespace Microsoft.VisualStudioCode.RazorExtension.Endpoints;
 
 [Shared]
-[RazorVSCodeEndpoint("razor/dynamicFileInfoChanged")]
+[ExportRazorStatelessLspService(typeof(RazorDynamicFileChangedEndpoint))]
+[RazorEndpoint("razor/dynamicFileInfoChanged")]
 internal class RazorDynamicFileChangedEndpoint : AbstractRazorNotificationHandler<RazorDynamicFileChangedParams>
 {
     public override bool MutatesSolutionState => false;
 
-    public override bool RequiresLSPSolution => throw new NotImplementedException();
+    public override bool RequiresLSPSolution => false;
 
     protected override Task HandleNotificationAsync(RazorDynamicFileChangedParams request, RazorRequestContext context, CancellationToken cancellationToken)
     {
-        var dynamicFileInfoProvider = context.GetRequiredService<IRazorLspDynamicFileInfoProvider>();
+        var dynamicFileInfoProvider = context.GetRequiredService<RazorLspDynamicFileInfoProvider>();
         dynamicFileInfoProvider.Update(request.RazorDocument.Uri);
 
         return Task.CompletedTask;

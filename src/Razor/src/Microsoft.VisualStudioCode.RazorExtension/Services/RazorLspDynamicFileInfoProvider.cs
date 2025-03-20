@@ -5,21 +5,27 @@ using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 
-[Export(typeof(IRazorLspDynamicFileInfoProvider)), Shared]
-internal sealed class RazorLspDynamicFileInfoProvider(IRazorClientLanguageServerManager clientLanguageServerManager, IWorkspaceProvider workspaceProvider) : IRazorLspDynamicFileInfoProvider
+[ExportRazorLspServiceFactory(typeof(RazorLspDynamicFileInfoProvider)), Shared]
+internal sealed class DynamicFileProviderFactory : AbstractRazorLspServiceFactory
+{
+    protected override AbstractRazorLspService CreateService(IRazorLspServices lspServices)
+    {
+        var clientLanguageServerManager = lspServices.GetRequiredService<IRazorClientLanguageServerManager>();
+        return new LspDynamicFileProvider(clientLanguageServerManager);
+    }
+}
+
+file sealed class LspDynamicFileProvider(IRazorClientLanguageServerManager clientLanguageServerManager) : RazorLspDynamicFileInfoProvider
 {
     private const string ProvideRazorDynamicFileInfoMethodName = "razor/provideDynamicFileInfo";
+    private const string RemoveRazorDynamicFileInfoMethodName = "razor/removeDynamicFileInfo";
 
     private readonly IRazorClientLanguageServerManager _clientLanguageServerManager = clientLanguageServerManager;
-    private readonly IWorkspaceProvider _workspaceProvider = workspaceProvider;
 
-    public event EventHandler<string>? Updated;
-
-    public async Task<RazorDynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
+    public override async Task<RazorDynamicFileInfo?> GetDynamicFileInfoAsync(Workspace workspace, ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
         var razorUri = new Uri(filePath);
 
@@ -41,7 +47,6 @@ internal sealed class RazorLspDynamicFileInfoProvider(IRazorClientLanguageServer
             return null;
         }
 
-        var workspace = _workspaceProvider.GetWorkspace();
         var textDocument = await WorkspaceExtensions.GetTextDocumentAsync(workspace, response.CSharpDocument.Uri, cancellationToken).ConfigureAwait(false);
         var checksum = Convert.FromBase64String(response.Checksum);
         var textLoader = new LspTextChangesTextLoader(
@@ -60,14 +65,17 @@ internal sealed class RazorLspDynamicFileInfoProvider(IRazorClientLanguageServer
             documentServiceProvider: EmptyServiceProvider.Instance);
     }
 
-    public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
+    public override Task RemoveDynamicFileInfoAsync(Workspace workspace, ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
-    }
-
-    public void Update(Uri razorUri)
-    {
-        Updated?.Invoke(this, razorUri.ToString());
+        var notificationParams = new RazorRemoveDynamicFileParams
+        {
+            CSharpDocument = new()
+            {
+                Uri = new Uri(filePath)
+            }
+        };
+        return _clientLanguageServerManager.SendNotificationAsync(
+            RemoveRazorDynamicFileInfoMethodName, notificationParams, cancellationToken).AsTask();
     }
 }
 

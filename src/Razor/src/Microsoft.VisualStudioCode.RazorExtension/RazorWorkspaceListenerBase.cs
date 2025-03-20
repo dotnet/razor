@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.VisualStudioCode.RazorExtension;
 
-public abstract class RazorWorkspaceListenerBase : IDisposable
+internal abstract class RazorWorkspaceListenerBase : IDisposable
 {
     private static readonly TimeSpan s_debounceTime = TimeSpan.FromMilliseconds(500);
     private readonly CancellationTokenSource _disposeTokenSource = new();
@@ -30,7 +30,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
     internal record UpdateWork(ProjectId ProjectId) : Work(ProjectId);
     internal record RemovalWork(ProjectId ProjectId, string IntermediateOutputPath) : Work(ProjectId);
 
-    private protected RazorWorkspaceListenerBase(ILogger logger)
+    protected RazorWorkspaceListenerBase(ILogger logger)
     {
         _logger = logger;
         _workQueue = new(s_debounceTime, ProcessWorkAsync, EqualityComparer<Work>.Default, _disposeTokenSource.Token);
@@ -38,7 +38,7 @@ public abstract class RazorWorkspaceListenerBase : IDisposable
 
     private protected abstract Task CheckConnectionAsync(Stream stream, CancellationToken cancellationToken);
 
-    void IDisposable.Dispose()
+    public void Dispose()
     {
         if (_workspace is not null)
         {

@@ -7,9 +7,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.VisualStudioCode.RazorExtension;
 
-public sealed class RazorWorkspaceListener : RazorWorkspaceListenerBase
+internal sealed class RazorWorkspaceListener : RazorWorkspaceListenerBase
 {
-    public RazorWorkspaceListener(ILoggerFactory loggerFactory) : base(loggerFactory.CreateLogger(nameof(RazorWorkspaceListener)))
+    public RazorWorkspaceListener(ILoggerFactory loggerFactory) : base(loggerFactory.CreateLogger<RazorWorkspaceListener>())
     {
     }
 
