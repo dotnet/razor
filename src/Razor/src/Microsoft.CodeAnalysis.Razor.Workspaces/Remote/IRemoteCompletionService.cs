@@ -6,9 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalCompletionList?>;
+using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.VSInternalCompletionList?>;
+using RoslynVSInternalCompletionItem = Roslyn.LanguageServer.Protocol.VSInternalCompletionItem;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
@@ -28,5 +30,12 @@ internal interface IRemoteCompletionService : IRemoteJsonService
         VSInternalCompletionContext completionContext,
         RazorCompletionOptions razorCompletionOptions,
         HashSet<string> existingHtmlCompletions,
+        CancellationToken cancellationToken);
+
+    ValueTask<RoslynVSInternalCompletionItem> ResolveCompletionItemAsync(
+        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableDocumentId id,
+        RoslynVSInternalCompletionItem request,
+        RazorFormattingOptions formattingOptions,
         CancellationToken cancellationToken);
 }

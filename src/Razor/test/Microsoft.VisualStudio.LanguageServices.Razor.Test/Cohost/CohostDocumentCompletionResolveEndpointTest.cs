@@ -1,0 +1,82 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT license. See License.txt in the project root for license information.
+
+using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Razor.Settings;
+using Xunit;
+using Xunit.Abstractions;
+using RoslynVSInternalCompletionItem = Roslyn.LanguageServer.Protocol.VSInternalCompletionItem;
+
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
+
+public class CohostDocumentCompletionResolveEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
+{
+    [Fact]
+    public async Task HtmlResolve()
+    {
+        await VerifyCompletionItemResolveAsync(
+            input: """
+                This is a Razor document.
+
+                <div st$$></div>
+
+                The end.
+                """);
+    }
+
+    private async Task VerifyCompletionItemResolveAsync(TestCode input)
+    {
+        var document = CreateProjectAndRazorDocument(input.Text);
+
+        var response = new VSInternalCompletionItem()
+        {
+            Label = "ResolvedItem"
+        };
+        var requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentCompletionResolveName, response)]);
+
+        var completionListCache = new CompletionListCache();
+        var clientSettingsManager = new ClientSettingsManager(changeTriggers: []);
+        var endpoint = new CohostDocumentCompletionResolveEndpoint(
+            completionListCache,
+            RemoteServiceInvoker,
+            clientSettingsManager,
+            TestHtmlDocumentSynchronizer.Instance,
+            requestInvoker,
+            LoggerFactory);
+
+        var textDocumentIdentifier = new TextDocumentIdentifierAndVersion(new TextDocumentIdentifier { Uri = document.CreateUri() }, Version: 0);
+
+        var context = new DelegatedCompletionResolutionContext(
+            textDocumentIdentifier,
+            OriginalCompletionListData: null,
+            ProjectedKind: RazorLanguageKind.Html);
+
+        var request = new VSInternalCompletionItem()
+        {
+            Data = JsonSerializer.SerializeToElement(context),
+            Label = "TestItem"
+        };
+        var list = new VSInternalCompletionList
+        {
+            Items = [request]
+        };
+
+        var resultId = completionListCache.Add(list, context);
+        list.SetResultId(resultId, null);
+        RazorCompletionResolveData.Wrap(list, textDocumentIdentifier.TextDocumentIdentifier, supportsCompletionListData: false);
+
+        var roslynItem = JsonHelpers.ToRoslynLSP<RoslynVSInternalCompletionItem, VSInternalCompletionItem>(request).AssumeNotNull();
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(roslynItem, document, DisposalToken);
+
+        Assert.NotNull(result);
+        Assert.NotSame(result, roslynItem);
+        Assert.Equal(response.Label, result.Label);
+    }
+}
