@@ -6,20 +6,26 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
+using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalCompletionList?>;
+using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.VSInternalCompletionList?>;
 using RoslynCompletionContext = Roslyn.LanguageServer.Protocol.CompletionContext;
+using RoslynCompletionItem = Roslyn.LanguageServer.Protocol.CompletionItem;
 using RoslynCompletionList = Roslyn.LanguageServer.Protocol.CompletionList;
 using RoslynCompletionSetting = Roslyn.LanguageServer.Protocol.CompletionSetting;
+using RoslynVSInternalCompletionItem = Roslyn.LanguageServer.Protocol.VSInternalCompletionItem;
+using RoslynVSInternalCompletionList = Roslyn.LanguageServer.Protocol.VSInternalCompletionList;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -35,6 +41,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     private readonly CompletionListCache _completionListCache = args.ExportProvider.GetExportedValue<CompletionListCache>();
     private readonly IClientCapabilitiesService _clientCapabilitiesService = args.ExportProvider.GetExportedValue<IClientCapabilitiesService>();
     private readonly CompletionTriggerAndCommitCharacters _triggerAndCommitCharacters = args.ExportProvider.GetExportedValue<CompletionTriggerAndCommitCharacters>();
+    private readonly IRazorFormattingService _formattingService = args.ExportProvider.GetExportedValue<IRazorFormattingService>();
 
     public ValueTask<CompletionPositionInfo?> GetPositionInfoAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
@@ -168,7 +175,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             return Response.CallHtml;
         }
 
-        return Response.Results(mergedCompletionList);
+        return Response.Results(JsonHelpers.ToRoslynLSP<RoslynVSInternalCompletionList, VSInternalCompletionList>(mergedCompletionList));
     }
 
     private async ValueTask<VSInternalCompletionList?> GetCSharpCompletionAsync(
