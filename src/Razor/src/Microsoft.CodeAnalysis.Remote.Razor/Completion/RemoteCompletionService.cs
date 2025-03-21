@@ -32,6 +32,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     }
 
     private readonly RazorCompletionListProvider _razorCompletionListProvider = args.ExportProvider.GetExportedValue<RazorCompletionListProvider>();
+    private readonly CompletionListCache _completionListCache = args.ExportProvider.GetExportedValue<CompletionListCache>();
     private readonly IClientCapabilitiesService _clientCapabilitiesService = args.ExportProvider.GetExportedValue<IClientCapabilitiesService>();
     private readonly CompletionTriggerAndCommitCharacters _triggerAndCommitCharacters = args.ExportProvider.GetExportedValue<CompletionTriggerAndCommitCharacters>();
 
@@ -130,6 +131,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 documentSnapshot, positionInfo.ProvisionalTextEdit, cancellationToken).ConfigureAwait(false);
 
             csharpCompletionList = await GetCSharpCompletionAsync(
+                remoteDocumentContext.GetTextDocumentIdentifierAndVersion(),
                 csharpGeneratedDocument,
                 codeDocument,
                 documentPositionInfo.HostDocumentIndex,
@@ -170,6 +172,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     }
 
     private async ValueTask<VSInternalCompletionList?> GetCSharpCompletionAsync(
+        TextDocumentIdentifierAndVersion identifier,
         SourceGeneratedDocument generatedDocument,
         RazorCodeDocument codeDocument,
         int documentIndex,
@@ -223,6 +226,12 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             codeDocument,
             mappedPosition,
             razorCompletionOptions);
+
+        var completionCapability = clientCapabilities?.TextDocument?.Completion as VSInternalCompletionSetting;
+
+        var resolutionContext = new DelegatedCompletionResolutionContext(identifier, RazorLanguageKind.CSharp, rewrittenResponse.Data);
+        var resultId = _completionListCache.Add(rewrittenResponse, resolutionContext);
+        rewrittenResponse.SetResultId(resultId, completionCapability);
 
         return rewrittenResponse;
     }
