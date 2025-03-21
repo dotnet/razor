@@ -1,0 +1,56 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT license. See License.txt in the project root for license information.
+
+using System;
+using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+
+namespace Microsoft.CodeAnalysis.Razor.Completion;
+
+internal record RazorCompletionResolveData(
+    [property: JsonPropertyName("TextDocument")] TextDocumentIdentifier TextDocument,
+    [property: JsonPropertyName("data")] object? OriginalData)
+{
+    public static RazorCompletionResolveData Unwrap(CompletionItem completionItem)
+    {
+        if (completionItem.Data is not JsonElement paramsObj)
+        {
+            throw new InvalidOperationException($"Invalid completion item received'{completionItem.Label}'.");
+        }
+
+        var context = paramsObj.Deserialize<RazorCompletionResolveData>();
+        if (context is null)
+        {
+            throw new InvalidOperationException($"completionItem.Data should be convertible to {nameof(RazorCompletionResolveData)}");
+        }
+
+        return context;
+    }
+
+    public static void Wrap(VSInternalCompletionList completionList, TextDocumentIdentifier textDocument, bool supportsCompletionListData)
+    {
+        var data = new RazorCompletionResolveData(textDocument, OriginalData: null);
+
+        if (supportsCompletionListData)
+        {
+            // Can set data at the completion list level
+            completionList.Data = data with { OriginalData = completionList.Data };
+
+            // Set data for items that won't inherit the default
+            foreach (var completionItem in completionList.Items.Where(static c => c.Data is not null))
+            {
+                completionItem.Data = data with { OriginalData = completionItem.Data };
+            }
+        }
+        else
+        {
+            // No CompletionList.Data support, so set data for all items
+            foreach (var completionItem in completionList.Items)
+            {
+                completionItem.Data = data with { OriginalData = completionItem.Data };
+            }
+        }
+    }
+}
