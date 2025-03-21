@@ -584,6 +584,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         var snippetInfos = snippetLabels.Select(label => new SnippetInfo(label, label, label, string.Empty, SnippetLanguage.Html)).ToImmutableArray();
         snippetCompletionItemProvider.SnippetCache.Update(SnippetLanguage.Html, snippetInfos);
 
+        var completionListCache = new CompletionListCache();
         var endpoint = new CohostDocumentCompletionEndpoint(
             RemoteServiceInvoker,
             clientSettingsManager,
@@ -591,6 +592,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             snippetCompletionItemProvider,
             TestLanguageServerFeatureOptions.Instance,
             requestInvoker,
+            completionListCache,
             LoggerFactory);
 
         var request = new RoslynCompletionParams()
