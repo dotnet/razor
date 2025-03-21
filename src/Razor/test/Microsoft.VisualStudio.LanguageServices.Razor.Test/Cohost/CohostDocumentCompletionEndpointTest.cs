@@ -588,6 +588,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         var endpoint = new CohostDocumentCompletionEndpoint(
             RemoteServiceInvoker,
             clientSettingsManager,
+            ClientCapabilitiesService,
             TestHtmlDocumentSynchronizer.Instance,
             snippetCompletionItemProvider,
             TestLanguageServerFeatureOptions.Instance,

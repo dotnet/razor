@@ -15,7 +15,7 @@ internal class RazorCompletionResolveEndpoint(
     AggregateCompletionItemResolver completionItemResolver,
     CompletionListCache completionListCache,
     IComponentAvailabilityService componentAvailabilityService)
-    : IRazorDocumentlessRequestHandler<VSInternalCompletionItem, VSInternalCompletionItem>, ICapabilitiesProvider
+    : IRazorRequestHandler<VSInternalCompletionItem, VSInternalCompletionItem>, ICapabilitiesProvider
 {
     private readonly AggregateCompletionItemResolver _completionItemResolver = completionItemResolver;
     private readonly CompletionListCache _completionListCache = completionListCache;
@@ -30,9 +30,18 @@ internal class RazorCompletionResolveEndpoint(
         _clientCapabilities = clientCapabilities;
     }
 
+    public TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalCompletionItem request)
+    {
+        var context = RazorCompletionResolveData.Unwrap(request);
+        return context.TextDocument;
+    }
+
     public async Task<VSInternalCompletionItem> HandleRequestAsync(VSInternalCompletionItem completionItem, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        if (!TryGetOriginalRequestData(completionItem, out var containingCompletionList, out var originalRequestContext))
+        var data = RazorCompletionResolveData.Unwrap(completionItem);
+        completionItem.Data = data.OriginalData;
+
+        if (!_completionListCache.TryGetOriginalRequestData(completionItem, out var containingCompletionList, out var originalRequestContext))
         {
             return completionItem;
         }

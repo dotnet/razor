@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -14,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal static class CompletionListMerger
 {
-    private static readonly string s_data1Key = nameof(MergedCompletionListData.Data1);
-    private static readonly string s_data2Key = nameof(MergedCompletionListData.Data2);
+    private const string Data1Key = nameof(MergedCompletionListData.Data1);
+    private const string Data2Key = nameof(MergedCompletionListData.Data2);
     private static readonly object s_emptyData = new();
 
     [return: NotNullIfNotNull(nameof(razorCompletionList))]
@@ -87,6 +88,14 @@ internal static class CompletionListMerger
             return false;
         }
 
+        // Needed for tests. We shouldn't ever have RazorCompletionResolveData leak out, but in our tests we avoid some
+        // serialization boundaries, like between devenv and OOP. In production not only should it never happen, but
+        // if it did, the type of Data would be JsonElement, so we wouldn't fall into this branch anyway.
+        if (data is RazorCompletionResolveData { OriginalData: var originalData })
+        {
+            return TrySplit(originalData, out splitData);
+        }
+
         using var collector = new PooledArrayBuilder<JsonElement>();
         Split(data, ref collector.AsRef());
 
@@ -121,8 +130,8 @@ internal static class CompletionListMerger
             return;
         }
 
-        if ((jsonElement.TryGetProperty(s_data1Key, out _) || jsonElement.TryGetProperty(s_data1Key.ToLowerInvariant(), out _)) &&
-            (jsonElement.TryGetProperty(s_data2Key, out _) || jsonElement.TryGetProperty(s_data2Key.ToLowerInvariant(), out _)))
+        if ((jsonElement.TryGetProperty(Data1Key, out _) || jsonElement.TryGetProperty(Data1Key.ToLowerInvariant(), out _)) &&
+            (jsonElement.TryGetProperty(Data2Key, out _) || jsonElement.TryGetProperty(Data2Key.ToLowerInvariant(), out _)))
         {
             // Merged data
             var mergedCompletionListData = jsonElement.Deserialize<MergedCompletionListData>();
@@ -226,5 +235,7 @@ internal static class CompletionListMerger
         return inheritableCompletions.ToImmutable();
     }
 
-    private record MergedCompletionListData(object Data1, object Data2);
+    private record MergedCompletionListData(
+        [property: JsonPropertyName(Data1Key)] object Data1,
+        [property: JsonPropertyName(Data2Key)] object Data2);
 }

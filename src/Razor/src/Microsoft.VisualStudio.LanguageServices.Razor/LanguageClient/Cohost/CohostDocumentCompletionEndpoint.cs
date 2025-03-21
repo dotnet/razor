@@ -39,6 +39,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 internal sealed class CohostDocumentCompletionEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
     IClientSettingsManager clientSettingsManager,
+    IClientCapabilitiesService clientCapabilitiesService,
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     SnippetCompletionItemProvider snippetCompletionItemProvider,
     LanguageServerFeatureOptions languageServerFeatureOptions,
@@ -49,6 +50,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
+    private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
     private readonly SnippetCompletionItemProvider _snippetCompletionItemProvider = snippetCompletionItemProvider;
     private readonly CompletionTriggerAndCommitCharacters _triggerAndCommitCharacters = new(languageServerFeatureOptions);
@@ -92,6 +94,9 @@ internal sealed class CohostDocumentCompletionEndpoint(
             _logger.LogError("Completion request context is null");
             return null;
         }
+
+        // Save as it may be modified if we forward request to HTML language server
+        var originalTextDocumentIdentifier = request.TextDocument;
 
         // Return immediately if this is auto-shown completion but auto-shown completion is disallowed in settings
         var clientSettings = _clientSettingsManager.GetClientSettings();
@@ -198,7 +203,18 @@ internal sealed class CohostDocumentCompletionEndpoint(
                 completionContext.TriggerCharacter);
         }
 
-        return combinedCompletionList;
+        if (combinedCompletionList is null)
+        {
+            return null;
+        }
+
+        var completionCapability = _clientCapabilitiesService.ClientCapabilities.TextDocument?.Completion as VSInternalCompletionSetting;
+        var supportsCompletionListData = completionCapability?.CompletionList?.Data ?? false;
+
+        var textDocument = JsonHelpers.ToVsLSP<TextDocumentIdentifier, RoslynTextDocumentIdentifier>(originalTextDocumentIdentifier).AssumeNotNull();
+        RazorCompletionResolveData.Wrap(combinedCompletionList, textDocument, supportsCompletionListData: supportsCompletionListData);
+
+        return JsonHelpers.ToRoslynLSP<RoslynVSInternalCompletionList, VSInternalCompletionList>(combinedCompletionList);
     }
 
     private async Task<VSInternalCompletionList?> GetHtmlCompletionListAsync(
