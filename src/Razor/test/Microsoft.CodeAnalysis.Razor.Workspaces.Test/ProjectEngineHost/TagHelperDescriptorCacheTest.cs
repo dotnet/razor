@@ -10,7 +10,7 @@ using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
-namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test;
+namespace Microsoft.CodeAnalysis.Razor.ProjectEngineHost.Test;
 
 public class TagHelperDescriptorCacheTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {

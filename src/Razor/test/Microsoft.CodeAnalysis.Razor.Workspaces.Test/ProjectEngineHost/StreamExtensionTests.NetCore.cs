@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Razor.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test;
+namespace Microsoft.CodeAnalysis.Razor.ProjectEngineHost.Test;
 
 public class StreamExtensionTests(ITestOutputHelper testOutputHelper) : ToolingTestBase(testOutputHelper)
 {

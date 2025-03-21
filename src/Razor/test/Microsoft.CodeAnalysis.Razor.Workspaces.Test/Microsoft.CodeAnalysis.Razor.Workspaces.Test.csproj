@@ -14,4 +14,8 @@
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.Common.Tooling\Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ProjectEngineHost\" />
+  </ItemGroup>
+
 </Project>
