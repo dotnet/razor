@@ -60,12 +60,11 @@ internal class DelegatedCompletionItemResolver(
             item.Data = associatedDelegatedCompletion.Data ?? resolutionContext.OriginalCompletionListData;
         }
 
-        var delegatedParams = resolutionContext.OriginalRequestParams;
         var delegatedResolveParams = new DelegatedCompletionItemResolveParams(
-            delegatedParams.Identifier,
+            resolutionContext.Identifier,
             item,
-            delegatedParams.ProjectedKind);
-        var resolvedCompletionItem = await _clientConnection.SendRequestAsync<DelegatedCompletionItemResolveParams, VSInternalCompletionItem?>(CodeAnalysis.Razor.Protocol.LanguageServerConstants.RazorCompletionResolveEndpointName, delegatedResolveParams, cancellationToken).ConfigureAwait(false);
+            resolutionContext.ProjectedKind);
+        var resolvedCompletionItem = await _clientConnection.SendRequestAsync<DelegatedCompletionItemResolveParams, VSInternalCompletionItem?>(LanguageServerConstants.RazorCompletionResolveEndpointName, delegatedResolveParams, cancellationToken).ConfigureAwait(false);
 
         if (resolvedCompletionItem is not null)
         {
@@ -80,7 +79,7 @@ internal class DelegatedCompletionItemResolver(
         VSInternalCompletionItem resolvedCompletionItem,
         CancellationToken cancellationToken)
     {
-        if (context.OriginalRequestParams.ProjectedKind != RazorLanguageKind.CSharp)
+        if (context.ProjectedKind != RazorLanguageKind.CSharp)
         {
             // We currently don't do any post-processing for non-C# items.
             return resolvedCompletionItem;
@@ -98,7 +97,7 @@ internal class DelegatedCompletionItemResolver(
             return resolvedCompletionItem;
         }
 
-        var identifier = context.OriginalRequestParams.Identifier.TextDocumentIdentifier;
+        var identifier = context.Identifier.TextDocumentIdentifier;
         if (!_documentContextFactory.TryCreate(identifier, out var documentContext))
         {
             return resolvedCompletionItem;

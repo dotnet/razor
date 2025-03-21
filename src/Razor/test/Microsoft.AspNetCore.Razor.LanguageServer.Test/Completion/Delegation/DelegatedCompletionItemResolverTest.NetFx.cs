@@ -135,7 +135,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
             Data = expectedData,
         };
         var containingCompletionList = new VSInternalCompletionList() { Items = [item], Data = new object() };
-        var originalRequestContext = new DelegatedCompletionResolutionContext(_csharpCompletionParams, new object());
+        var originalRequestContext = new DelegatedCompletionResolutionContext(_csharpCompletionParams.Identifier, _csharpCompletionParams.ProjectedKind, new object());
 
         // Act
         await resolver.ResolveAsync(
@@ -155,7 +155,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
         var item = new VSInternalCompletionItem();
         var containingCompletionList = new VSInternalCompletionList() { Items = [item], Data = new object() };
         var expectedData = new object();
-        var originalRequestContext = new DelegatedCompletionResolutionContext(_csharpCompletionParams, expectedData);
+        var originalRequestContext = new DelegatedCompletionResolutionContext(_csharpCompletionParams.Identifier, _csharpCompletionParams.ProjectedKind, expectedData);
 
         // Act
         await resolver.ResolveAsync(item, containingCompletionList, originalRequestContext, _clientCapabilities, _componentAvailabilityService, DisposalToken);
@@ -218,7 +218,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
         var resolver = new DelegatedCompletionItemResolver(_documentContextFactory, _formattingService.GetValue(), optionsMonitor, server);
         var item = new VSInternalCompletionItem();
         var containingCompletionList = new VSInternalCompletionList() { Items = [item] };
-        var originalRequestContext = new DelegatedCompletionResolutionContext(_htmlCompletionParams, new object());
+        var originalRequestContext = new DelegatedCompletionResolutionContext(_htmlCompletionParams.Identifier, _htmlCompletionParams.ProjectedKind, new object());
 
         // Act
         var resolvedItem = await resolver.ResolveAsync(
@@ -243,7 +243,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
         var (containingCompletionList, csharpCompletionParams) = await GetCompletionListAndOriginalParamsAsync(
             cursorPosition, codeDocument, csharpServer);
 
-        var originalRequestContext = new DelegatedCompletionResolutionContext(csharpCompletionParams, containingCompletionList.Data);
+        var originalRequestContext = new DelegatedCompletionResolutionContext(_csharpCompletionParams.Identifier, _csharpCompletionParams.ProjectedKind, containingCompletionList.Data);
         var item = (VSInternalCompletionItem)containingCompletionList.Items.FirstOrDefault(item => item.Label == itemToResolve);
 
         if (item is null)
