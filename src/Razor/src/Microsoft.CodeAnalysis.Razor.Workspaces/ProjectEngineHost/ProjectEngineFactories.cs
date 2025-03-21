@@ -3,7 +3,7 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.AspNetCore.Razor.ProjectEngineHost;
+namespace Microsoft.CodeAnalysis.Razor.Workspaces.ProjectEngineHost;
 
 internal static partial class ProjectEngineFactories
 {

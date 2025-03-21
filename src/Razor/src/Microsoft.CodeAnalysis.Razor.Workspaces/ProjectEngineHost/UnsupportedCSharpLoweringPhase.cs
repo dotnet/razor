@@ -6,7 +6,7 @@ using System.Threading;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.AspNetCore.Razor.ProjectEngineHost;
+namespace Microsoft.CodeAnalysis.Razor.Workspaces.ProjectEngineHost;
 
 internal class UnsupportedCSharpLoweringPhase : RazorEnginePhaseBase, IRazorCSharpLoweringPhase
 {
