@@ -1,4 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+﻿
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
@@ -130,8 +131,7 @@ internal static class CompletionListMerger
             return;
         }
 
-        if ((jsonElement.TryGetProperty(Data1Key, out _) || jsonElement.TryGetProperty(Data1Key.ToLowerInvariant(), out _)) &&
-            (jsonElement.TryGetProperty(Data2Key, out _) || jsonElement.TryGetProperty(Data2Key.ToLowerInvariant(), out _)))
+        if (jsonElement.TryGetProperty(Data1Key, out _) && jsonElement.TryGetProperty(Data2Key, out _))
         {
             // Merged data
             var mergedCompletionListData = jsonElement.Deserialize<MergedCompletionListData>();

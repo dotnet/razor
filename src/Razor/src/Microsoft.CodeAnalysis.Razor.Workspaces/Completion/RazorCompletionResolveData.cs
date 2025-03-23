@@ -10,6 +10,9 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal record RazorCompletionResolveData(
+    // NOTE: Uppercase T here is required to match Roslyn's DocumentResolveData structure, so that the Roslyn
+    //       language server can correctly route requests to us in cohosting. In future when we normalize
+    //       on to Roslyn types, we should inherit from that class so we don't have to remember to do this.
     [property: JsonPropertyName("TextDocument")] TextDocumentIdentifier TextDocument,
     [property: JsonPropertyName("data")] object? OriginalData)
 {
