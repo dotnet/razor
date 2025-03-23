@@ -232,7 +232,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
             return null;
         }
 
-        var originalTdi = request.TextDocument;
+        var originalTextDocumentIdentifier = request.TextDocument;
         request.TextDocument = RoslynLspExtensions.WithUri(request.TextDocument, htmlDocument.Uri);
 
         _logger.LogDebug($"Getting completion list for {htmlDocument.Uri} at {request.Position}");
@@ -248,7 +248,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
 
         var completionCapability = _clientCapabilitiesService.ClientCapabilities.TextDocument?.Completion as VSInternalCompletionSetting;
 
-        var textDocument = JsonHelpers.ToVsLSP<TextDocumentIdentifier, RoslynTextDocumentIdentifier>(originalTdi).AssumeNotNull();
+        var textDocument = JsonHelpers.ToVsLSP<TextDocumentIdentifier, RoslynTextDocumentIdentifier>(originalTextDocumentIdentifier).AssumeNotNull();
         var razorDocumentIdentifier = new TextDocumentIdentifierAndVersion(textDocument, Version: 0);
         var resolutionContext = new DelegatedCompletionResolutionContext(razorDocumentIdentifier, RazorLanguageKind.Html, rewrittenResponse.Data);
         var resultId = _completionListCache.Add(rewrittenResponse, resolutionContext);
