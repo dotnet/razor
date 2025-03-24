@@ -4,6 +4,7 @@
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 
@@ -12,8 +13,8 @@ internal sealed class RazorProvideDynamicFileResponse
     [JsonPropertyName("csharpDocument")]
     public required TextDocumentIdentifier CSharpDocument { get; set; }
 
-    [JsonPropertyName("updates")]
-    public RazorDynamicFileUpdate[]? Updates { get; set; }
+    [JsonPropertyName("edits")]
+    public RazorTextChange[]? Edits { get; set; }
 
     [JsonPropertyName("checksum")]
     public required string Checksum { get; set; }

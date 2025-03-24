@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 internal sealed class WorkspaceService(ILoggerFactory loggerFactory) : RazorWorkspaceService
 {
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
-    private readonly ILogger _logger = loggerFactory.CreateLogger<RazorWorkspaceService>();
+    private readonly ILogger _logger = loggerFactory.CreateLogger<WorkspaceService>();
     private Lock _initializeLock = new();
     private RazorWorkspaceListener? _razorWorkspaceListener;
     private HashSet<ProjectId> _projectIdWithDynamicFiles = [];
