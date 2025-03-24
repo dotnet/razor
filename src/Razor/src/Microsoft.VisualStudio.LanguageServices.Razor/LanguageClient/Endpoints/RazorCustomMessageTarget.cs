@@ -133,31 +133,40 @@ internal partial class RazorCustomMessageTarget
     private record struct DelegationRequestDetails(string LanguageServerName, Uri ProjectedUri, ITextBuffer TextBuffer);
 
     private async Task<SynchronizedResult<TVirtualDocumentSnapshot>> TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(
-       int requiredHostDocumentVersion,
-       TextDocumentIdentifier hostDocument,
-       CancellationToken cancellationToken,
-       bool rejectOnNewerParallelRequest = true,
-       [CallerMemberName] string? caller = null)
-       where TVirtualDocumentSnapshot : VirtualDocumentSnapshot
+        int requiredHostDocumentVersion,
+        TextDocumentIdentifier hostDocument,
+        CancellationToken cancellationToken,
+        bool rejectOnNewerParallelRequest = true,
+        [CallerMemberName] string? caller = null)
+        where TVirtualDocumentSnapshot : VirtualDocumentSnapshot
     {
         if (_languageServerFeatureOptions.UseRazorCohostServer &&
-            typeof(TVirtualDocumentSnapshot) == typeof(HtmlVirtualDocumentSnapshot))
+    typeof(TVirtualDocumentSnapshot) == typeof(HtmlVirtualDocumentSnapshot))
         {
             return await TempForCohost_TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(hostDocument, cancellationToken);
         }
 
         _logger.LogDebug($"Trying to synchronize for {caller} to version {requiredHostDocumentVersion} of {hostDocument.Uri} for {hostDocument.GetProjectContext()?.Id ?? "(no project context)"}");
 
-        // For Html documents we don't do anything fancy, just call the standard service
-        // If we're not generating unique document file names, then we can treat C# documents the same way
-        if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath ||
+        // If we generate multiple C# documents, and this is a request for a Html document, we have to be more lenient to the version number
+        // because an update for Project A could come in for the document, which updates us to version 40, and then we get a request for Project B
+        // which would have updated us to 39, but wasn't sent because the content was the same. Thus, when a completion request comes in for Project B
+        // for version 39, it would fail if we didn't allow future versions.
+        if (_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath &&
             typeof(TVirtualDocumentSnapshot) == typeof(HtmlVirtualDocumentSnapshot))
+        {
+            return TryReturnPossiblyFutureSnapshot<TVirtualDocumentSnapshot>(requiredHostDocumentVersion, hostDocument)
+                ?? new SynchronizedResult<TVirtualDocumentSnapshot>(Synchronized: false, VirtualSnapshot: null);
+        }
+        // Otherwise we don't do anything fancy, just call the standard service
+        else if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
         {
             var htmlResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(requiredHostDocumentVersion, hostDocument.Uri, cancellationToken).ConfigureAwait(false);
             _logger.LogDebug($"{(htmlResult.Synchronized ? "Did" : "Did NOT")} synchronize for {caller}: Version {requiredHostDocumentVersion} for {htmlResult.VirtualSnapshot?.Uri}");
             return htmlResult;
         }
 
+        // For C# documents where we support multi-targeting, we need to find the right virtual document to synchronize to
         var virtualDocument = FindVirtualDocument<TVirtualDocumentSnapshot>(hostDocument.Uri, hostDocument.GetProjectContext());
 
         if (virtualDocument is { ProjectKey.IsUnknown: true })
@@ -258,7 +267,8 @@ internal partial class RazorCustomMessageTarget
 
         // If we're not generating unique document file names, then we don't need to ensure we find the right virtual document
         // as there can only be one anyway
-        if (_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath &&
+        if (typeof(TVirtualDocumentSnapshot) == typeof(CSharpVirtualDocumentSnapshot) &&
+            _languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath &&
             hostDocument.GetProjectContext() is { } projectContext &&
             FindVirtualDocument<TVirtualDocumentSnapshot>(hostDocument.Uri, projectContext) is { } virtualDocument)
         {
