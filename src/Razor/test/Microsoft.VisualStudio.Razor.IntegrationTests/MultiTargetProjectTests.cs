@@ -3,6 +3,7 @@
 
 using System.IO;
 using System.Threading.Tasks;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -82,5 +83,24 @@ public class MultiTargetProjectTests(ITestOutputHelper testOutputHelper) : Abstr
         Assert.Equal(expectedProjectFileName, actualProjectFileName);
 
         await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ErrorCshtmlFile, saveFile: false, ControlledHangMitigatingCancellationToken);
+    }
+
+    [IdeFact]
+    public async Task HtmlHover()
+    {
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.PlaceCaretAsync("h1", charsOffset: -1, ControlledHangMitigatingCancellationToken);
+
+        var position = await TestServices.Editor.GetCaretPositionAsync(ControlledHangMitigatingCancellationToken);
+
+        var hoverString = await TestServices.Editor.WaitForHoverStringAsync(position, ControlledHangMitigatingCancellationToken);
+
+        const string ExpectedResult = "These elements represent headings for their sections.";
+        AssertEx.EqualOrDiff(ExpectedResult, hoverString);
     }
 }

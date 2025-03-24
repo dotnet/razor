@@ -6,8 +6,10 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 
@@ -15,7 +17,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing;
 
 internal partial class EditorInProcess
 {
-    public async Task<IEnumerable<object>> HoverAsync(int position, CancellationToken cancellationToken)
+    public async Task<IEnumerable<object>?> HoverAsync(int position, CancellationToken cancellationToken)
     {
         var hoverService = await GetComponentModelServiceAsync<IAsyncQuickInfoBroker>(cancellationToken);
 
@@ -29,7 +31,7 @@ internal partial class EditorInProcess
 
         if (quickInfoSession is null)
         {
-            throw new InvalidOperationException("Quick Info Session failed to launch.");
+            return null;
         }
 
         quickInfoSession.StateChanged += QuickInfoSession_StateChanged;
@@ -65,10 +67,30 @@ internal partial class EditorInProcess
         }
     }
 
+    public async Task<string> WaitForHoverStringAsync(int position, CancellationToken cancellationToken)
+    {
+        var hoverContent = await Helper.RetryAsync(async ct =>
+        {
+            return await TestServices.Editor.HoverAsync(position, ct);
+        }, TimeSpan.FromMilliseconds(500), cancellationToken);
+
+        return GetHoverString(hoverContent.AssumeNotNull());
+    }
+
     public async Task<string> GetHoverStringAsync(int position, CancellationToken cancellationToken)
     {
         var hoverContent = await HoverAsync(position, cancellationToken);
 
+        if (hoverContent is null)
+        {
+            throw new InvalidOperationException("Quick Info Session failed to launch.");
+        }
+
+        return GetHoverString(hoverContent);
+    }
+
+    public string GetHoverString(IEnumerable<object> hoverContent)
+    {
         using var _ = StringBuilderPool.GetPooledObject(out var sb);
 
         TraverseContent(hoverContent, sb);
@@ -92,8 +114,11 @@ internal partial class EditorInProcess
                     case ContainerElement containerElement:
                         TraverseContent(containerElement.Elements, stringBuilder);
                         break;
+                    case string s:
+                        stringBuilder.Append(s);
+                        break;
                     default:
-                        throw new NotImplementedException("Unknown QuickInfo element encountered");
+                        throw new NotImplementedException($"Unknown QuickInfo element encountered: {obj.GetType().Name}");
                 }
             }
         }
