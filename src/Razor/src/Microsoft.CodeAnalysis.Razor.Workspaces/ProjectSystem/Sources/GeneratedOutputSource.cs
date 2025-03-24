@@ -10,8 +10,9 @@ using Microsoft.AspNetCore.Razor.Threading;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem.Sources;
 
-internal sealed class GeneratedOutputSource
+internal sealed class GeneratedOutputSource(DocumentSnapshot document)
 {
+    private readonly DocumentSnapshot _document = document;
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
     // Hold the output in a WeakReference to avoid memory leaks in the case of a long-lived
@@ -31,7 +32,7 @@ internal sealed class GeneratedOutputSource
         return output.TryGetTarget(out result);
     }
 
-    public async ValueTask<RazorCodeDocument> GetValueAsync(DocumentSnapshot document, CancellationToken cancellationToken)
+    public async ValueTask<RazorCodeDocument> GetValueAsync(CancellationToken cancellationToken)
     {
         if (TryGetValue(out var result))
         {
@@ -45,12 +46,12 @@ internal sealed class GeneratedOutputSource
                 return result;
             }
 
-            var project = document.Project;
+            var project = _document.Project;
             var projectEngine = project.ProjectEngine;
             var compilerOptions = project.CompilerOptions;
 
             result = await CompilationHelpers
-                .GenerateCodeDocumentAsync(document, projectEngine, compilerOptions, cancellationToken)
+                .GenerateCodeDocumentAsync(_document, projectEngine, compilerOptions, cancellationToken)
                 .ConfigureAwait(false);
 
             if (_output is null)
