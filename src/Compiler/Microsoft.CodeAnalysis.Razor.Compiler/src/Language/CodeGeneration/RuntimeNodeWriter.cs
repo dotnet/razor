@@ -73,7 +73,15 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
 
         context.CodeWriter.WriteStartMethodInvocation(WriteCSharpExpressionMethod);
         context.CodeWriter.WriteLine();
-        WriteCSharpChildren(node.Children, context);
+        if(node.Children.Count > 0)
+        {
+            WriteCSharpChildren(node.Children, context);
+        }
+        else
+        {
+            // this expression doesn't have any children, but we still want to map the empty expression back to the razor document
+            context.CodeWriter.BuildEnhancedLinePragma(node.Source, context).Dispose();
+        }
         context.CodeWriter.WriteEndMethodInvocation();
     }
 
