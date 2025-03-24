@@ -141,7 +141,7 @@ internal partial class RazorCustomMessageTarget
         where TVirtualDocumentSnapshot : VirtualDocumentSnapshot
     {
         if (_languageServerFeatureOptions.UseRazorCohostServer &&
-    typeof(TVirtualDocumentSnapshot) == typeof(HtmlVirtualDocumentSnapshot))
+            typeof(TVirtualDocumentSnapshot) == typeof(HtmlVirtualDocumentSnapshot))
         {
             return await TempForCohost_TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(hostDocument, cancellationToken);
         }
