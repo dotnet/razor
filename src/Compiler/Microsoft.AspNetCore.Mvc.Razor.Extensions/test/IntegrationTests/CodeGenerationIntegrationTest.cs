@@ -921,6 +921,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         var csharp = generated.CodeDocument.GetCSharpDocument();
         AssertDocumentNodeMatchesBaseline(intermediate);
         AssertCSharpDocumentMatchesBaseline(csharp);
+        AssertSourceMappingsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated, throwOnFailure: false, ignoreRazorDiagnostics: true);
     }
 
