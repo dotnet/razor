@@ -4,7 +4,7 @@
 using System;
 using Microsoft.Extensions.Internal;
 
-namespace Microsoft.AspNetCore.Razor.ProjectEngineHost;
+namespace Microsoft.CodeAnalysis.Razor.Workspaces.ProjectEngineHost;
 
 internal sealed partial class ProjectEngineFactory
 {

@@ -7,15 +7,15 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectEngineHost;
 using Xunit;
 using Xunit.Abstractions;
 using Mvc1_X = Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X;
 using Mvc2_X = Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X;
 using MvcLatest = Microsoft.AspNetCore.Mvc.Razor.Extensions;
 
-namespace Microsoft.AspNetCore.Razor.ProjectEngineHost;
+namespace Microsoft.CodeAnalysis.Razor.ProjectEngineHost.Test;
 
 // Testing this here because we need references to the MVC factories.
 public class ProjectEngineFactoryProviderTest : ToolingTestBase

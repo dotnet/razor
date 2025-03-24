@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 
 [ExportRazorStatelessLspService(typeof(RazorWorkspaceService)), Shared]
 [method: ImportingConstructor]
-file class WorkspaceService(ILoggerFactory loggerFactory) : RazorWorkspaceService
+internal sealed class WorkspaceService(ILoggerFactory loggerFactory) : RazorWorkspaceService
 {
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
     private readonly ILogger _logger = loggerFactory.CreateLogger<RazorWorkspaceService>();

@@ -4,11 +4,12 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectEngineHost;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test;
+namespace Microsoft.CodeAnalysis.Razor.ProjectEngineHost.Test;
 
 public class ProjectEngineFactory_UnsupportedTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
