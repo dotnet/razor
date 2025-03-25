@@ -76,6 +76,27 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
         }
 
         [Fact]
+        public async Task NotComponentStillReports()
+        {
+            var testCode = """
+                #nullable enable
+                using System;
+                using Microsoft.AspNetCore.Components;
+
+                public class MyComponent
+                {
+                    [Parameter, EditorRequired]
+                    public string MyParameter { get; set; }
+                }
+                """;
+
+            await VerifyAnalyzerAsync(testCode,
+                // /0/Test0.cs(9,19): warning CS8618: Non-nullable property 'MyParameter' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                DiagnosticResult.CompilerWarning("CS8618").WithSpan(8, 19, 8, 30).WithSpan(8, 19, 8, 30).WithArguments("property", "MyParameter")
+                );
+        }
+
+        [Fact]
         public async Task AliasedAttributes()
         {
             var testCode = """
@@ -106,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 using System;
                 using Microsoft.AspNetCore.Components;
                 
-                public class MyComponent
+                public class MyComponent : IComponent
                 {
                     [Parameter, EditorRequired]
                     public string MyParameter { get; set; }
@@ -116,6 +137,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 {
                     public class ParameterAttribute : Attribute { }
                     public class EditorRequiredAttribute : Attribute { }
+                    public interface IComponent { }
                 }
 
                 """;
@@ -134,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 using System;
                 using MyNamespace;
                 
-                public class MyComponent
+                public class MyComponent : IComponent
                 {
                     [Parameter, EditorRequired]
                     public string MyParameter { get; set; }
@@ -144,6 +166,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 {
                     public class ParameterAttribute : Attribute { }
                     public class EditorRequiredAttribute : Attribute { }
+                    public interface IComponent { }
                 }
 
                 """;
@@ -162,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 using System;
                 using Microsoft.AspNetCore.Components;
                 
-                public class MyComponent
+                public class MyComponent : IComponent
                 {
                     [Parameter, EditorRequired]
                     public string MyParameter { get; set; }
@@ -172,17 +195,20 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 {
                     public class ParameterAttribute : Attribute { }
                     public class EditorRequiredAttribute : Attribute { }
+                    public interface IComponent { }
                 }
 
                 """;
 
             await VerifyAnalyzerAsync(testCode,
-                    // /0/Test0.cs(8,19): warning CS8618: Non-nullable property 'MyParameter' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
-                    DiagnosticResult.CompilerWarning("CS8618").WithSpan(8, 19, 8, 30).WithSpan(8, 19, 8, 30).WithArguments("property", "MyParameter").WithIsSuppressed(true),
-                    // /0/Test0.cs(7,6): warning CS0436: The type 'ParameterAttribute' in '/0/Test0.cs' conflicts with the imported type 'ParameterAttribute' in 'Microsoft.AspNetCore.Components, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60'. Using the type defined in '/0/Test0.cs'.
-                    DiagnosticResult.CompilerWarning("CS0436").WithSpan(7, 6, 7, 15).WithArguments("/0/Test0.cs", "Microsoft.AspNetCore.Components.ParameterAttribute", "Microsoft.AspNetCore.Components, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60", "Microsoft.AspNetCore.Components.ParameterAttribute"),
-                    // /0/Test0.cs(7,17): warning CS0436: The type 'EditorRequiredAttribute' in '/0/Test0.cs' conflicts with the imported type 'EditorRequiredAttribute' in 'Microsoft.AspNetCore.Components, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60'. Using the type defined in '/0/Test0.cs'.
-                    DiagnosticResult.CompilerWarning("CS0436").WithSpan(7, 17, 7, 31).WithArguments("/0/Test0.cs", "Microsoft.AspNetCore.Components.EditorRequiredAttribute", "Microsoft.AspNetCore.Components, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60", "Microsoft.AspNetCore.Components.EditorRequiredAttribute")
+                // /0/Test0.cs(8,19): warning CS8618: Non-nullable property 'MyParameter' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                DiagnosticResult.CompilerWarning("CS8618").WithSpan(8, 19, 8, 30).WithSpan(8, 19, 8, 30).WithArguments("property", "MyParameter").WithIsSuppressed(true),
+                // /0/Test0.cs(7,6): warning CS0436: The type 'ParameterAttribute' in '/0/Test0.cs' conflicts with the imported type 'ParameterAttribute' in 'Microsoft.AspNetCore.Components, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60'. Using the type defined in '/0/Test0.cs'.
+                DiagnosticResult.CompilerWarning("CS0436").WithSpan(7, 6, 7, 15).WithArguments("/0/Test0.cs", "Microsoft.AspNetCore.Components.ParameterAttribute", "Microsoft.AspNetCore.Components, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60", "Microsoft.AspNetCore.Components.ParameterAttribute"),
+                // /0/Test0.cs(7,17): warning CS0436: The type 'EditorRequiredAttribute' in '/0/Test0.cs' conflicts with the imported type 'EditorRequiredAttribute' in 'Microsoft.AspNetCore.Components, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60'. Using the type defined in '/0/Test0.cs'.
+                DiagnosticResult.CompilerWarning("CS0436").WithSpan(7, 17, 7, 31).WithArguments("/0/Test0.cs", "Microsoft.AspNetCore.Components.EditorRequiredAttribute", "Microsoft.AspNetCore.Components, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60", "Microsoft.AspNetCore.Components.EditorRequiredAttribute"),
+                // /0/Test0.cs(5,28): warning CS0436: The type 'IComponent' in '/0/Test0.cs' conflicts with the imported type 'IComponent' in 'Microsoft.AspNetCore.Components, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60'. Using the type defined in '/0/Test0.cs'.
+                DiagnosticResult.CompilerWarning("CS0436").WithSpan(5, 28, 5, 38).WithArguments("/0/Test0.cs", "Microsoft.AspNetCore.Components.IComponent", "Microsoft.AspNetCore.Components, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60", "Microsoft.AspNetCore.Components.IComponent")
                 );
         }
 
@@ -255,6 +281,84 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
 
             await VerifyAnalyzerAsync(testCode);
         }
+
+        [Fact]
+        public async Task DerivedBaseType()
+        {
+            var testCode = """
+                #nullable enable
+                using System;
+                using Microsoft.AspNetCore.Components;
+
+                public abstract class BaseComponent : ComponentBase
+                {
+                }
+
+                public class MyComponent : BaseComponent
+                {
+                    [Parameter, EditorRequired]
+                    public string MyParameter { get; set; }
+                }
+                """;
+
+            await VerifyAnalyzerAsync(testCode,
+                // /0/Test0.cs(12,19): warning CS8618: Non-nullable property 'MyParameter' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                DiagnosticResult.CompilerWarning("CS8618").WithSpan(12, 19, 12, 30).WithSpan(12, 19, 12, 30).WithArguments("property", "MyParameter").WithIsSuppressed(true)
+                );
+        }
+
+        [Fact]
+        public async Task DerivedBaseTypeWithBaseParameter()
+        {
+            var testCode = """
+                #nullable enable
+                using System;
+                using Microsoft.AspNetCore.Components;
+
+                public abstract class BaseComponent : ComponentBase
+                {
+                    [Parameter, EditorRequired]
+                    public string MyParameter { get; set; }
+                }
+
+                public class MyComponent : BaseComponent
+                {
+                }
+                """;
+
+            await VerifyAnalyzerAsync(testCode,
+                // /0/Test0.cs(8,19): warning CS8618: Non-nullable property 'MyParameter' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                DiagnosticResult.CompilerWarning("CS8618").WithSpan(8, 19, 8, 30).WithSpan(8, 19, 8, 30).WithArguments("property", "MyParameter").WithIsSuppressed(true)
+                );
+        }
+
+        [Fact]
+        public async Task DerivedBaseTypeNotComponentWithBaseParameter()
+        {
+            var testCode = """
+                #nullable enable
+                using System;
+                using Microsoft.AspNetCore.Components;
+
+                public abstract class BaseComponent
+                {
+                    [Parameter, EditorRequired]
+                    public string MyParameter { get; set; }
+                }
+
+                public class MyComponent : BaseComponent, IComponent
+                {
+                    public void Attach(RenderHandle renderHandle) => throw null!;
+                    public System.Threading.Tasks.Task SetParametersAsync(ParameterView parameters) => throw null!;
+                }
+                """;
+
+            await VerifyAnalyzerAsync(testCode,
+                // /0/Test0.cs(8,19): warning CS8618: Non-nullable property 'MyParameter' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                DiagnosticResult.CompilerWarning("CS8618").WithSpan(8, 19, 8, 30).WithSpan(8, 19, 8, 30).WithArguments("property", "MyParameter")
+                );
+        }
+
 
         private static Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
             => VerifyAnalyzerAsync(source,

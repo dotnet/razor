@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -23,7 +24,9 @@ public sealed class ComponentParameterNullableWarningSuppressor : DiagnosticSupp
     {
         var editorRequiredSymbol = context.Compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Components.EditorRequiredAttribute");
         var parameterSymbol = context.Compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Components.ParameterAttribute");
-        if (parameterSymbol is null || editorRequiredSymbol is null)
+        var componentSymbol = context.Compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Components.IComponent");
+
+        if (parameterSymbol is null || editorRequiredSymbol is null || componentSymbol is null)
         {
             return;
         }
@@ -45,6 +48,12 @@ public sealed class ComponentParameterNullableWarningSuppressor : DiagnosticSupp
         {
             // public instance property, with a public setter
             if (symbol is not IPropertySymbol { DeclaredAccessibility: Accessibility.Public, IsStatic: false, SetMethod: not null and { DeclaredAccessibility: Accessibility.Public } })
+            {
+                return false;
+            }
+
+            // containing type implements IComponent
+            if (!symbol.ContainingType.AllInterfaces.Any(@interface => @interface.Equals(componentSymbol, SymbolEqualityComparer.Default)))
             {
                 return false;
             }
