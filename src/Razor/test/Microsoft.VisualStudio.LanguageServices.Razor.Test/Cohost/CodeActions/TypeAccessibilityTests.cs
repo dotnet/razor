@@ -1,7 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -78,5 +80,20 @@ public class TypeAccessibilityTests(ITestOutputHelper testOutputHelper) : Cohost
                 <SectionOutlet></SectionOutlet>
                 """,
             codeActionName: LanguageServerConstants.CodeActions.AddUsing);
+    }
+
+    [Fact]
+    public async Task AddUsingShouldBeFirst()
+    {
+        var input = """
+            <div></div>
+
+            <Section[||]Outlet></SectionOutlet>
+            """;
+
+        var document = CreateRazorDocument(input);
+        var codeActions = await GetCodeActionsAsync(document, input);
+
+        Assert.Equal(LanguageServerConstants.CodeActions.AddUsing, codeActions.Select(a => ((RazorVSInternalCodeAction)a.Value!).Name).First());
     }
 }
