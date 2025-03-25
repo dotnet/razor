@@ -2,9 +2,9 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Xunit;
 using Xunit.Abstractions;
-using WorkspacesSR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 
@@ -27,7 +27,7 @@ public class ExtractToCodeBehindTests(ITestOutputHelper testOutputHelper) : Coho
 
 
                 """,
-            codeActionName: WorkspacesSR.ExtractTo_CodeBehind_Title,
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToCodeBehindAction,
             additionalExpectedFiles: [
                 (FileUri("File1.razor.cs"), $$"""
                     namespace SomeProject

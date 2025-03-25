@@ -48,7 +48,8 @@ internal static class RazorCodeActionFactory
             Title = newTagName is null ? title : $"{newTagName} - {title}",
             Data = data,
             TelemetryId = s_addComponentUsingTelemetryId,
-            Priority = VSInternalPriorityLevel.High
+            Priority = VSInternalPriorityLevel.High,
+            Name = LanguageServerConstants.CodeActions.AddUsing,
         };
         return codeAction;
     }
@@ -60,46 +61,47 @@ internal static class RazorCodeActionFactory
             Title = fullyQualifiedName,
             Edit = workspaceEdit,
             TelemetryId = s_fullyQualifyComponentTelemetryId,
-            Priority = VSInternalPriorityLevel.High
+            Priority = VSInternalPriorityLevel.High,
+            Name = LanguageServerConstants.CodeActions.FullyQualify,
         };
         return codeAction;
     }
 
     public static RazorVSInternalCodeAction CreateComponentFromTag(RazorCodeActionResolutionParams resolutionParams)
     {
-        var title = SR.Create_Component_FromTag_Title;
         var data = JsonSerializer.SerializeToElement(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {
-            Title = title,
+            Title = SR.Create_Component_FromTag_Title,
             Data = data,
             TelemetryId = s_createComponentFromTagTelemetryId,
+            Name = LanguageServerConstants.CodeActions.CreateComponentFromTag,
         };
         return codeAction;
     }
 
     public static RazorVSInternalCodeAction CreateExtractToCodeBehind(RazorCodeActionResolutionParams resolutionParams)
     {
-        var title = SR.ExtractTo_CodeBehind_Title;
         var data = JsonSerializer.SerializeToElement(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {
-            Title = title,
+            Title = SR.ExtractTo_CodeBehind_Title,
             Data = data,
             TelemetryId = s_createExtractToCodeBehindTelemetryId,
+            Name = LanguageServerConstants.CodeActions.ExtractToCodeBehindAction,
         };
         return codeAction;
     }
 
     public static RazorVSInternalCodeAction CreateExtractToComponent(RazorCodeActionResolutionParams resolutionParams)
     {
-        var title = SR.ExtractTo_Component_Title;
         var data = JsonSerializer.SerializeToElement(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {
-            Title = title,
+            Title = SR.ExtractTo_Component_Title,
             Data = data,
             TelemetryId = s_createExtractToComponentTelemetryId,
+            Name = LanguageServerConstants.CodeActions.ExtractToNewComponentAction,
         };
         return codeAction;
     }
@@ -127,7 +129,8 @@ internal static class RazorCodeActionFactory
         {
             Title = title,
             Data = data,
-            TelemetryId = s_generateMethodTelemetryId
+            TelemetryId = s_generateMethodTelemetryId,
+            Name = LanguageServerConstants.CodeActions.GenerateEventHandler,
         };
         return codeAction;
     }
@@ -155,7 +158,8 @@ internal static class RazorCodeActionFactory
         {
             Title = title,
             Data = data,
-            TelemetryId = s_generateAsyncMethodTelemetryId
+            TelemetryId = s_generateAsyncMethodTelemetryId,
+            Name = LanguageServerConstants.CodeActions.GenerateAsyncEventHandler,
         };
         return codeAction;
     }

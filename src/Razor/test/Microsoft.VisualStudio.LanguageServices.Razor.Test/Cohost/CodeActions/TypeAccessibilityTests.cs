@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -23,7 +24,7 @@ public class TypeAccessibilityTests(ITestOutputHelper testOutputHelper) : Cohost
 
                 <EditForm></EditForm>
                 """,
-            codeActionName: "EditForm");
+            codeActionName: LanguageServerConstants.CodeActions.FullyQualify);
     }
 
     [Fact]
@@ -40,7 +41,7 @@ public class TypeAccessibilityTests(ITestOutputHelper testOutputHelper) : Cohost
 
                 <Microsoft.AspNetCore.Components.Sections.SectionOutlet></Microsoft.AspNetCore.Components.Sections.SectionOutlet>
                 """,
-            codeActionName: "Microsoft.AspNetCore.Components.Sections.SectionOutlet");
+            codeActionName: LanguageServerConstants.CodeActions.FullyQualify);
     }
 
     [Fact]
@@ -58,7 +59,7 @@ public class TypeAccessibilityTests(ITestOutputHelper testOutputHelper) : Cohost
 
                 <SectionOutlet></SectionOutlet>
                 """,
-            codeActionName: "@using Microsoft.AspNetCore.Components.Sections");
+            codeActionName: LanguageServerConstants.CodeActions.AddUsing);
     }
 
     [Fact]
@@ -76,6 +77,6 @@ public class TypeAccessibilityTests(ITestOutputHelper testOutputHelper) : Cohost
 
                 <SectionOutlet></SectionOutlet>
                 """,
-            codeActionName: "SectionOutlet - @using Microsoft.AspNetCore.Components.Sections");
+            codeActionName: LanguageServerConstants.CodeActions.AddUsing);
     }
 }

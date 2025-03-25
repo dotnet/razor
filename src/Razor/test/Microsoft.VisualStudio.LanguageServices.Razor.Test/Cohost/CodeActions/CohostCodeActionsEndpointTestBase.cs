@@ -116,7 +116,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         Assert.NotNull(result);
         Assert.NotEmpty(result);
 
-        var codeActionToRun = (VSInternalCodeAction?)result.SingleOrDefault(e => ((RazorVSInternalCodeAction)e.Value!).Name == codeActionName || ((RazorVSInternalCodeAction)e.Value!).Title == codeActionName).Value;
+        var codeActionToRun = (VSInternalCodeAction?)result.SingleOrDefault(e => ((RazorVSInternalCodeAction)e.Value!).Name == codeActionName).Value;
 
         if (!expectOffer)
         {
@@ -125,10 +125,10 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         }
 
         AssertEx.NotNull(codeActionToRun, $"""
-            Could not find code action with name or title '{codeActionName}'.
+            Could not find code action with name '{codeActionName}'.
 
             Available:
-                {string.Join(Environment.NewLine + "    ", result.Select(e => $"{((RazorVSInternalCodeAction)e.Value!).Name} or {((RazorVSInternalCodeAction)e.Value!).Title}"))}
+                {string.Join(Environment.NewLine + "    ", result.Select(e => ((RazorVSInternalCodeAction)e.Value!).Name))}
             """);
 
         if (codeActionToRun.Children?.Length > 0)
