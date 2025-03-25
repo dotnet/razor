@@ -46,7 +46,7 @@ file sealed class LspDynamicFileProvider(IRazorClientLanguageServerManager clien
         var checksum = Convert.FromBase64String(response.Checksum);
         var textLoader = new LspTextChangesTextLoader(
             textDocument,
-            response.Edit,
+            response.Edits,
             checksum,
             response.ChecksumAlgorithm,
             response.SourceEncodingCodePage,

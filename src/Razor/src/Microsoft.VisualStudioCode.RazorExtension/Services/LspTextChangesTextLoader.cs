@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -11,7 +12,7 @@ namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 
 internal class LspTextChangesTextLoader(
         TextDocument? document,
-        RazorTextChange change,
+        RazorTextChange[] changes,
         byte[] checksum,
         SourceHashAlgorithm checksumAlgorithm,
         int? codePage,
@@ -21,13 +22,13 @@ internal class LspTextChangesTextLoader(
     private const string ProvideRazorDynamicFileInfoMethodName = "razor/provideDynamicFileInfo";
 
     private readonly TextDocument? _document = document;
-    private readonly RazorTextChange _change = change;
+    private readonly ImmutableArray<TextChange> _changes = changes.SelectAsArray(c => c.ToTextChange());
     private readonly byte[] _checksum = checksum;
     private readonly SourceHashAlgorithm _checksumAlgorithm = checksumAlgorithm;
     private readonly int? _codePage = codePage;
     private readonly Uri _razorUri = razorUri;
     private readonly IRazorClientLanguageServerManager _razorClientLanguageServerManager = razorClientLanguageServerManager;
-    private readonly Lazy<SourceText> _emptySourceText = new Lazy<SourceText>(() =>
+    private readonly Lazy<SourceText> _emptySourceText = new(() =>
     {
         var encoding = codePage is null ? null : Encoding.GetEncoding(codePage.Value);
         return SourceText.From("", checksumAlgorithm: checksumAlgorithm, encoding: encoding);
@@ -37,7 +38,7 @@ internal class LspTextChangesTextLoader(
     {
         if (_document is null)
         {
-            var text = _emptySourceText.Value.WithChanges(_change.ToTextChange());
+            var text = ApplyChanges(_emptySourceText.Value, _changes);
             return TextAndVersion.Create(text, VersionStamp.Default.GetNewerVersion());
         }
 
@@ -47,7 +48,7 @@ internal class LspTextChangesTextLoader(
         if (IsSourceTextMatching(sourceText))
         {
             var version = await _document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
-            var newText = sourceText.WithChanges(_change.ToTextChange());
+            var newText = ApplyChanges(sourceText, _changes);
             return TextAndVersion.Create(newText, version.GetNewerVersion());
         }
 
@@ -88,7 +89,17 @@ internal class LspTextChangesTextLoader(
             },
             cancellationToken).ConfigureAwait(false);
 
-        var text = _emptySourceText.Value.WithChanges(response.Edit.ToTextChange());
+        var text = ApplyChanges(_emptySourceText.Value, response.Edits.SelectAsArray(e => e.ToTextChange()));
         return TextAndVersion.Create(text, VersionStamp.Default.GetNewerVersion());
+    }
+
+    private static SourceText ApplyChanges(SourceText sourceText, ImmutableArray<TextChange> changes)
+    {
+        foreach (var change in changes)
+        {
+            sourceText = sourceText.WithChanges(change);
+        }
+
+        return sourceText;
     }
 }
