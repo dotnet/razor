@@ -2,15 +2,15 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Test.Common;
+using Xunit;
 using Xunit.Abstractions;
 using WorkspacesSR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 
-public class ExtractToComponentTests(FuseTestContext context, ITestOutputHelper testOutputHelper) : CohostCodeActionsEndpointTestBase(context, testOutputHelper)
+public class ExtractToComponentTests(ITestOutputHelper testOutputHelper) : CohostCodeActionsEndpointTestBase(testOutputHelper)
 {
-    [FuseFact]
+    [Fact]
     public async Task ExtractToComponent()
     {
         await VerifyCodeActionAsync(
@@ -37,5 +37,24 @@ public class ExtractToComponentTests(FuseTestContext context, ITestOutputHelper 
                         Hello World
                     </div>
                     """)]);
+    }
+
+    [Fact]
+    public async Task DontOfferOnNonExistentComponent()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                <div>
+                    Hello World
+                </div>
+
+                <{|RZ10012:Not$$AComponent|} />
+
+                <div></div>
+                """,
+            expected: null,
+            codeActionName: WorkspacesSR.ExtractTo_Component_Title);
     }
 }

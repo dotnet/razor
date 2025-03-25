@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Razor.Extensions;
+using Microsoft.VisualStudio.Razor.Settings;
 using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -31,12 +32,14 @@ internal class CohostDocumentPullDiagnosticsEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     LSPRequestInvoker requestInvoker,
+    IClientSettingsManager clientSettingsManager,
     ILoggerFactory loggerFactory)
     : AbstractRazorCohostDocumentRequestHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>, IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
+    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostDocumentPullDiagnosticsEndpoint>();
 
     protected override bool MutatesSolutionState => false;
@@ -52,7 +55,7 @@ internal class CohostDocumentPullDiagnosticsEndpoint(
                 Method = VSInternalMethods.DocumentPullDiagnosticName,
                 RegisterOptions = new VSInternalDiagnosticRegistrationOptions()
                 {
-                    DiagnosticKinds = [VSInternalDiagnosticKind.Syntax]
+                    DiagnosticKinds = [VSInternalDiagnosticKind.Syntax, VSInternalDiagnosticKind.Task]
                 }
             }];
         }
@@ -64,7 +67,39 @@ internal class CohostDocumentPullDiagnosticsEndpoint(
         => request.TextDocument?.ToRazorTextDocumentIdentifier();
 
     protected override Task<VSInternalDiagnosticReport[]?> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
-        => HandleRequestAsync(context.TextDocument.AssumeNotNull(), cancellationToken);
+    {
+        if (request.QueryingDiagnosticKind?.Value == VSInternalDiagnosticKind.Task.Value)
+        {
+            return HandleTaskListItemRequestAsync(
+                context.TextDocument.AssumeNotNull(),
+                _clientSettingsManager.GetClientSettings().AdvancedSettings.TaskListDescriptors,
+                cancellationToken);
+        }
+
+        return HandleRequestAsync(context.TextDocument.AssumeNotNull(), cancellationToken);
+    }
+
+    private async Task<VSInternalDiagnosticReport[]?> HandleTaskListItemRequestAsync(TextDocument razorDocument, ImmutableArray<string> taskListDescriptors, CancellationToken cancellationToken)
+    {
+        var diagnostics = await _remoteServiceInvoker.TryInvokeAsync<IRemoteDiagnosticsService, ImmutableArray<LspDiagnostic>>(
+            razorDocument.Project.Solution,
+            (service, solutionInfo, cancellationToken) => service.GetTaskListDiagnosticsAsync(solutionInfo, razorDocument.Id, taskListDescriptors, cancellationToken),
+            cancellationToken).ConfigureAwait(false);
+
+        if (diagnostics.IsDefaultOrEmpty)
+        {
+            return null;
+        }
+
+        return
+        [
+            new()
+            {
+                Diagnostics = [.. diagnostics],
+                ResultId = Guid.NewGuid().ToString()
+            }
+        ];
+    }
 
     private async Task<VSInternalDiagnosticReport[]?> HandleRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
     {
@@ -173,6 +208,9 @@ internal class CohostDocumentPullDiagnosticsEndpoint(
     {
         public Task<VSInternalDiagnosticReport[]?> HandleRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
             => instance.HandleRequestAsync(razorDocument, cancellationToken);
+
+        public Task<VSInternalDiagnosticReport[]?> HandleTaskListItemRequestAsync(TextDocument razorDocument, ImmutableArray<string> taskListDescriptors, CancellationToken cancellationToken)
+            => instance.HandleTaskListItemRequestAsync(razorDocument, taskListDescriptors, cancellationToken);
     }
 }
 

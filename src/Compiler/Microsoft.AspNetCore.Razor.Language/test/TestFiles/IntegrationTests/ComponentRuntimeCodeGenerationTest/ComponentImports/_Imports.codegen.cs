@@ -22,7 +22,15 @@ using System.Reflection
     ;
     #line default
     #line hidden
-    [global::Microsoft.AspNetCore.Components.LayoutAttribute(typeof(MainLayout))]
+    [global::Microsoft.AspNetCore.Components.LayoutAttribute(typeof(
+#nullable restore
+#line (4,9)-(4,19) "x:\dir\subdir\Test\_Imports.razor"
+MainLayout
+
+#line default
+#line hidden
+#nullable disable
+    ))]
     #nullable restore
     public partial class _Imports : object
     #nullable disable

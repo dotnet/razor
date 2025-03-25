@@ -163,6 +163,7 @@ internal partial class RazorCustomMessageTarget
             }
 
             completionList.Items = builder.ToArray();
+
             return completionList;
         }
         finally
@@ -223,7 +224,7 @@ internal partial class RazorCustomMessageTarget
             trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
                 documentSnapshotUri,
                 virtualDocumentUri,
-                new[] { textChange },
+                [textChange],
                 hostDocumentVersion,
                 state: null);
         }
@@ -232,7 +233,7 @@ internal partial class RazorCustomMessageTarget
             trackingDocumentManager.UpdateVirtualDocument<HtmlVirtualDocument>(
                 documentSnapshotUri,
                 virtualDocumentUri,
-                new[] { textChange },
+                [textChange],
                 hostDocumentVersion,
                 state: null);
         }
@@ -292,13 +293,12 @@ internal partial class RazorCustomMessageTarget
             return null;
         }
 
-        var completionResolveParams = request.CompletionItem;
         var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
         var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalCompletionItem, CompletionItem?>(
             textBuffer,
             Methods.TextDocumentCompletionResolve.Name,
             languageServerName,
-            completionResolveParams,
+            request.CompletionItem,
             cancellationToken).ConfigureAwait(false);
 
         return response?.Response;

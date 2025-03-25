@@ -5,11 +5,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 
@@ -32,13 +29,6 @@ internal static class IDocumentMappingServiceExtensions
 
     public static bool TryMapToHostDocumentRange(this IDocumentMappingService service, IRazorGeneratedDocument generatedDocument, LspRange projectedRange, [NotNullWhen(true)] out LspRange? originalRange)
         => service.TryMapToHostDocumentRange(generatedDocument, projectedRange, MappingBehavior.Strict, out originalRange);
-
-    public static async Task<DocumentPositionInfo> GetPositionInfoAsync(this IDocumentMappingService service, DocumentContext documentContext, int hostDocumentIndex, CancellationToken cancellationToken)
-    {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-
-        return service.GetPositionInfo(codeDocument, hostDocumentIndex);
-    }
 
     public static DocumentPositionInfo GetPositionInfo(
         this IDocumentMappingService service,

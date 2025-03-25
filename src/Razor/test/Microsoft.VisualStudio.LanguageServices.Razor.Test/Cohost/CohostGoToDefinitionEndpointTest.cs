@@ -16,9 +16,9 @@ using TextDocument = Microsoft.CodeAnalysis.TextDocument;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class CohostGoToDefinitionEndpointTest(FuseTestContext context, ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper), IClassFixture<FuseTestContext>
+public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [FuseFact(Skip = "IFilePathService does not yet map generated documents")]
+    [Fact]
     public async Task CSharp_Method()
     {
         var input = """
@@ -37,7 +37,7 @@ public class CohostGoToDefinitionEndpointTest(FuseTestContext context, ITestOutp
         await VerifyGoToDefinitionAsync(input);
     }
 
-    [FuseFact(Skip = "IFilePathService does not yet map generated documents")]
+    [Fact]
     public async Task CSharp_Local()
     {
         var input = """
@@ -58,7 +58,7 @@ public class CohostGoToDefinitionEndpointTest(FuseTestContext context, ITestOutp
         await VerifyGoToDefinitionAsync(input);
     }
 
-    [FuseFact]
+    [Fact]
     public async Task CSharp_MetadataReference()
     {
         var input = """
@@ -84,7 +84,7 @@ public class CohostGoToDefinitionEndpointTest(FuseTestContext context, ITestOutp
         Assert.Contains("public sealed class String", line);
     }
 
-    [FuseTheory(Skip = "IFilePathService does not yet map generated documents")]
+    [Theory]
     [InlineData("$$IncrementCount")]
     [InlineData("In$$crementCount")]
     [InlineData("IncrementCount$$")]
@@ -104,7 +104,7 @@ public class CohostGoToDefinitionEndpointTest(FuseTestContext context, ITestOutp
         await VerifyGoToDefinitionAsync(input, FileKinds.Component);
     }
 
-    [FuseFact(Skip = "IFilePathService does not yet map generated documents")]
+    [Fact]
     public async Task AttributeValue_BindAfter()
     {
         var input = """
@@ -123,7 +123,7 @@ public class CohostGoToDefinitionEndpointTest(FuseTestContext context, ITestOutp
         await VerifyGoToDefinitionAsync(input, FileKinds.Component);
     }
 
-    [FuseFact]
+    [Fact]
     public async Task Component()
     {
         TestCode input = """
@@ -154,7 +154,7 @@ public class CohostGoToDefinitionEndpointTest(FuseTestContext context, ITestOutp
         Assert.Equal(range, location.Range);
     }
 
-    [FuseTheory(Skip = "IFilePathService does not yet map generated documents")]
+    [Theory]
     [InlineData("Ti$$tle")]
     [InlineData("$$@bind-Title")]
     [InlineData("@$$bind-Title")]
@@ -200,7 +200,7 @@ public class CohostGoToDefinitionEndpointTest(FuseTestContext context, ITestOutp
         Assert.Equal(range, location.Range);
     }
 
-    [FuseFact]
+    [Fact]
     public async Task Html()
     {
         // This really just validates Uri remapping, the actual response is largely arbitrary
@@ -235,8 +235,6 @@ public class CohostGoToDefinitionEndpointTest(FuseTestContext context, ITestOutp
 
     private async Task VerifyGoToDefinitionAsync(TestCode input, string? fileKind = null, SumType<Location, Location[], DocumentLink[]>? htmlResponse = null)
     {
-        UpdateClientInitializationOptions(c => c with { ForceRuntimeCodeGeneration = context.ForceRuntimeCodeGeneration });
-
         var document = CreateProjectAndRazorDocument(input.Text, fileKind);
         var result = await GetGoToDefinitionResultCoreAsync(document, input, htmlResponse);
 
@@ -256,8 +254,6 @@ public class CohostGoToDefinitionEndpointTest(FuseTestContext context, ITestOutp
     private async Task<SumType<Location, Location[], DocumentLink[]>?> GetGoToDefinitionResultAsync(
         TestCode input, string? fileKind = null, params (string fileName, string contents)[]? additionalFiles)
     {
-        UpdateClientInitializationOptions(c => c with { ForceRuntimeCodeGeneration = context.ForceRuntimeCodeGeneration });
-
         var document = CreateProjectAndRazorDocument(input.Text, fileKind, additionalFiles);
         return await GetGoToDefinitionResultCoreAsync(document, input, htmlResponse: null);
     }

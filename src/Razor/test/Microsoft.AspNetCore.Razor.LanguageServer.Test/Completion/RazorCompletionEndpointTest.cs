@@ -6,6 +6,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Xunit;
 using Xunit.Abstractions;
@@ -20,7 +21,7 @@ public class RazorCompletionEndpointTest(ITestOutputHelper testOutput) : Languag
         // Arrange
         var documentPath = "C:/path/to/document.cshtml";
         var optionsMonitor = GetOptionsMonitor();
-        var completionEndpoint = new RazorCompletionEndpoint(completionListProvider: null, completionTriggerAndCommitCharacters: null, telemetryReporter: null, optionsMonitor);
+        var completionEndpoint = new RazorCompletionEndpoint(completionListProvider: null, triggerAndCommitCharacters: null, NoOpTelemetryReporter.Instance, optionsMonitor);
         var request = new CompletionParams()
         {
             TextDocument = new TextDocumentIdentifier()
@@ -48,7 +49,7 @@ public class RazorCompletionEndpointTest(ITestOutputHelper testOutput) : Languag
         var uri = new Uri(documentPath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var optionsMonitor = GetOptionsMonitor(autoShowCompletion: false);
-        var completionEndpoint = new RazorCompletionEndpoint(completionListProvider: null, completionTriggerAndCommitCharacters: null, telemetryReporter: null, optionsMonitor);
+        var completionEndpoint = new RazorCompletionEndpoint(completionListProvider: null, triggerAndCommitCharacters: null, NoOpTelemetryReporter.Instance, optionsMonitor);
         var request = new CompletionParams()
         {
             TextDocument = new TextDocumentIdentifier()

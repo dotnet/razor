@@ -14,9 +14,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class CohostGoToImplementationEndpointTest(FuseTestContext context, ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper), IClassFixture<FuseTestContext>
+public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [FuseFact(Skip = "IFilePathService does not yet map generated documents")]
+    [Fact]
     public async Task CSharp_Method()
     {
         var input = """
@@ -37,7 +37,7 @@ public class CohostGoToImplementationEndpointTest(FuseTestContext context, ITest
         await VerifyCSharpGoToImplementationAsync(input);
     }
 
-    [FuseFact(Skip = "IFilePathService does not yet map generated documents")]
+    [Fact]
     public async Task CSharp_Field()
     {
         var input = """
@@ -61,7 +61,7 @@ public class CohostGoToImplementationEndpointTest(FuseTestContext context, ITest
         await VerifyCSharpGoToImplementationAsync(input);
     }
 
-    [FuseFact(Skip = "IFilePathService does not yet map generated documents")]
+    [Fact]
     public async Task CSharp_Multiple()
     {
         var input = """
@@ -82,7 +82,7 @@ public class CohostGoToImplementationEndpointTest(FuseTestContext context, ITest
         await VerifyCSharpGoToImplementationAsync(input);
     }
 
-    [FuseFact]
+    [Fact]
     public async Task Html()
     {
         // This really just validates Uri remapping, the actual response is largely arbitrary
@@ -116,8 +116,6 @@ public class CohostGoToImplementationEndpointTest(FuseTestContext context, ITest
 
     private async Task VerifyCSharpGoToImplementationAsync(TestCode input)
     {
-        UpdateClientInitializationOptions(c => c with { ForceRuntimeCodeGeneration = context.ForceRuntimeCodeGeneration });
-
         var document = CreateProjectAndRazorDocument(input.Text);
 
         var requestInvoker = new TestLSPRequestInvoker();
@@ -127,8 +125,6 @@ public class CohostGoToImplementationEndpointTest(FuseTestContext context, ITest
 
     private async Task VerifyGoToImplementationResultAsync(TestCode input, TextDocument document, TestLSPRequestInvoker requestInvoker)
     {
-        UpdateClientInitializationOptions(c => c with { ForceRuntimeCodeGeneration = context.ForceRuntimeCodeGeneration });
-
         await VerifyGoToImplementationResultCoreAsync(input, document, requestInvoker);
     }
 

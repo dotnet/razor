@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Razor.Settings;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -15,9 +16,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class CohostDocumentPullDiagnosticsTest(FuseTestContext context, ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper), IClassFixture<FuseTestContext>
+public class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [FuseFact]
+    [Fact]
     public Task CSharp()
         => VerifyDiagnosticsAsync("""
             <div></div>
@@ -31,7 +32,7 @@ public class CohostDocumentPullDiagnosticsTest(FuseTestContext context, ITestOut
             }
             """);
 
-    [FuseFact]
+    [Fact]
     public Task Razor()
         => VerifyDiagnosticsAsync("""
             <div>
@@ -41,7 +42,7 @@ public class CohostDocumentPullDiagnosticsTest(FuseTestContext context, ITestOut
             </div>
             """);
 
-    [FuseFact]
+    [Fact]
     public Task Html()
     {
         TestCode input = """
@@ -66,7 +67,7 @@ public class CohostDocumentPullDiagnosticsTest(FuseTestContext context, ITestOut
             }]);
     }
 
-    [FuseFact]
+    [Fact]
     public Task FilterEscapedAtFromCss()
     {
         TestCode input = """
@@ -107,7 +108,7 @@ public class CohostDocumentPullDiagnosticsTest(FuseTestContext context, ITestOut
             }]);
     }
 
-    [FuseFact]
+    [Fact]
     public Task CombinedAndNestedDiagnostics()
         => VerifyDiagnosticsAsync("""
             @using System.Threading.Tasks;
@@ -135,18 +136,34 @@ public class CohostDocumentPullDiagnosticsTest(FuseTestContext context, ITestOut
             </div>
             """);
 
-    private async Task VerifyDiagnosticsAsync(TestCode input, VSInternalDiagnosticReport[]? htmlResponse = null)
-    {
-        UpdateClientInitializationOptions(c => c with { ForceRuntimeCodeGeneration = context.ForceRuntimeCodeGeneration });
+    [Fact]
+    public Task TODOComments()
+        => VerifyDiagnosticsAsync("""
+            @using System.Threading.Tasks;
 
+            <div>
+
+                @*{|TODO: TODO: This does |}*@
+
+                @* TODONT: This doesn't *@
+
+            </div>
+            """,
+            taskListRequest: true);
+
+    private async Task VerifyDiagnosticsAsync(TestCode input, VSInternalDiagnosticReport[]? htmlResponse = null, bool taskListRequest = false)
+    {
         var document = CreateProjectAndRazorDocument(input.Text, createSeparateRemoteAndLocalWorkspaces: true);
         var inputText = await document.GetTextAsync(DisposalToken);
 
         var requestInvoker = new TestLSPRequestInvoker([(VSInternalMethods.DocumentPullDiagnosticName, htmlResponse)]);
 
-        var endpoint = new CohostDocumentPullDiagnosticsEndpoint(RemoteServiceInvoker, TestHtmlDocumentSynchronizer.Instance, requestInvoker, LoggerFactory);
+        var clientSettingsManager = new ClientSettingsManager([]);
+        var endpoint = new CohostDocumentPullDiagnosticsEndpoint(RemoteServiceInvoker, TestHtmlDocumentSynchronizer.Instance, requestInvoker, clientSettingsManager, LoggerFactory);
 
-        var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, DisposalToken);
+        var result = taskListRequest
+            ? await endpoint.GetTestAccessor().HandleTaskListItemRequestAsync(document, ["TODO"], DisposalToken)
+            : await endpoint.GetTestAccessor().HandleRequestAsync(document, DisposalToken);
 
         var markers = result!.SelectMany(d => d.Diagnostics.AssumeNotNull()).SelectMany(d =>
             new[] {

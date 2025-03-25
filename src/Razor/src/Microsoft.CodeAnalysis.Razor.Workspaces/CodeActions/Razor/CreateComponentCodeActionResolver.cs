@@ -39,7 +39,7 @@ internal class CreateComponentCodeActionResolver(LanguageServerFeatureOptions la
             return null;
         }
 
-        if (!FileKinds.IsComponent(codeDocument.GetFileKind()))
+        if (!FileKinds.IsComponent(codeDocument.FileKind))
         {
             return null;
         }

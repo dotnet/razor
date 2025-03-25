@@ -20,20 +20,9 @@ internal class RemoteLanguageServerFeatureOptions : LanguageServerFeatureOptions
     {
         _options = options;
 
-        if (options.UseRazorCohostServer)
-        {
-            // ensure the source generator is in the correct mode
-            SetGeneratorToCohostMode();
-        }
+        // ensure the source generator is in the correct mode
+        RazorCohostingOptions.UseRazorCohostServer = options.UseRazorCohostServer;
     }
-
-    /// <summary>
-    /// Sets the generator into cohosting mode.
-    /// </summary>
-    /// <remarks>
-    /// This is explicitly a separate method so that if not used we don't unnecessarily JIT any of the generator code.
-    /// </remarks>
-    private static void SetGeneratorToCohostMode() => RazorSourceGenerator.UseRazorCohostServer = true;
 
     public override bool SupportsFileManipulation => _options.SupportsFileManipulation;
 
@@ -53,15 +42,17 @@ internal class RemoteLanguageServerFeatureOptions : LanguageServerFeatureOptions
 
     public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => _options.ReturnCodeActionAndRenamePathsWithPrefixedSlash;
 
-    public override bool IncludeProjectKeyInGeneratedFilePath => _options.IncludeProjectKeyInGeneratedFilePath;
+    public override bool IncludeProjectKeyInGeneratedFilePath => throw new InvalidOperationException("This option does not apply in cohosting.");
 
     public override bool UseRazorCohostServer => _options.UseRazorCohostServer;
 
-    public override bool ForceRuntimeCodeGeneration => _options.ForceRuntimeCodeGeneration;
+    public override bool ForceRuntimeCodeGeneration => true;
 
-    public override bool UseNewFormattingEngine => _options.UseNewFormattingEngine;
+    public override bool UseNewFormattingEngine => true;
 
     public override bool SupportsSoftSelectionInCompletion => _options.SupportsSoftSelectionInCompletion;
 
     public override bool UseVsCodeCompletionTriggerCharacters => _options.UseVsCodeCompletionTriggerCharacters;
+
+    public override bool DoNotInitializeMiscFilesProjectFromWorkspace => throw new NotImplementedException("This option has not been synced to OOP.");
 }

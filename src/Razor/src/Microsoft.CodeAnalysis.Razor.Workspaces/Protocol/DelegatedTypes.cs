@@ -10,6 +10,7 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.Razor.Protocol;
 
+using Microsoft.CodeAnalysis.Razor.Completion;
 
 internal record DelegatedSpellCheckParams(
     [property: JsonPropertyName("identifier")] TextDocumentIdentifierAndVersion Identifier);
@@ -69,7 +70,7 @@ internal record DelegatedMapCodeParams(
 
 internal record DelegatedCompletionResolutionContext(
     [property: JsonPropertyName("originalRequestParams")] DelegatedCompletionParams OriginalRequestParams,
-    [property: JsonPropertyName("originalCompletionListData")] object? OriginalCompletionListData);
+    [property: JsonPropertyName("originalCompletionListData")] object? OriginalCompletionListData) : ICompletionResolveContext;
 
 internal record DelegatedCompletionItemResolveParams(
     [property: JsonPropertyName("identifier")] TextDocumentIdentifierAndVersion Identifier,

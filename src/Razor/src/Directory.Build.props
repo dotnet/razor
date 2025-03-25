@@ -7,7 +7,6 @@
     <IsShipping>true</IsShipping>
     <IncludeSymbols>true</IncludeSymbols>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-
   </PropertyGroup>
 
 </Project>

@@ -3,10 +3,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -18,8 +19,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
     public partial class RazorSourceGenerator : IIncrementalGenerator
     {
         private static RazorSourceGeneratorEventSource Log => RazorSourceGeneratorEventSource.Log;
-
-        internal static bool UseRazorCohostServer { get; set; } = false;
 
         // Testing usage only.
         private readonly string? _testSuppressUniqueIds;
@@ -40,7 +39,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var compilation = context.CompilationProvider;
 
             // determine if we should suppress this run and filter out all the additional files and references if so
-            var isGeneratorSuppressed = analyzerConfigOptions.CheckGlobalFlagSet("SuppressRazorSourceGenerator").Select((suppress, _) => !UseRazorCohostServer && suppress);
+            var isGeneratorSuppressed = analyzerConfigOptions.CheckGlobalFlagSet("SuppressRazorSourceGenerator").Select((suppress, _) => !RazorCohostingOptions.UseRazorCohostServer && suppress);
             var additionalTexts = context.AdditionalTextsProvider.EmptyOrCachedWhen(isGeneratorSuppressed, true);
             var metadataRefs = context.MetadataReferencesProvider.EmptyOrCachedWhen(isGeneratorSuppressed, true);
 
@@ -348,8 +347,16 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                 if (!isGeneratorSuppressed)
                 {
-                    var documentDictionary = documents.Select(p => KeyValuePair.Create(p.codeDocument.Source.FilePath!, (p.hintName, p.codeDocument))).ToImmutableDictionary();
-                    context.AddOutput(nameof(RazorGeneratorResult), new RazorGeneratorResult(tagHelpers, documentDictionary));
+                    using var filePathToDocument = new PooledDictionaryBuilder<string, (string, RazorCodeDocument)>();
+                    using var hintNameToFilePath = new PooledDictionaryBuilder<string, string>();
+
+                    foreach (var (hintName, codeDocument, _) in documents)
+                    {
+                        filePathToDocument.Add(codeDocument.Source.FilePath!, (hintName, codeDocument));
+                        hintNameToFilePath.Add(hintName, codeDocument.Source.FilePath!);
+                    }
+
+                    context.AddOutput(nameof(RazorGeneratorResult), new RazorGeneratorResult(tagHelpers, filePathToDocument.ToImmutable(), hintNameToFilePath.ToImmutable()));
                 }
             });
         }

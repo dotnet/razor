@@ -2,18 +2,16 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
@@ -32,17 +30,13 @@ internal class RazorCompletionListProvider(
     };
 
     // virtual for tests
-    public virtual FrozenSet<string> TriggerCharacters => CompletionTriggerAndCommitCharacters.RazorTriggerCharacters;
-
-    // virtual for tests
-    public virtual async Task<VSInternalCompletionList?> GetCompletionListAsync(
+    public virtual VSInternalCompletionList? GetCompletionList(
+        RazorCodeDocument codeDocument,
         int absoluteIndex,
         VSInternalCompletionContext completionContext,
-        DocumentContext documentContext,
         VSInternalClientCapabilities clientCapabilities,
         HashSet<string>? existingCompletions,
-        RazorCompletionOptions completionOptions,
-        CancellationToken cancellationToken)
+        RazorCompletionOptions completionOptions)
     {
         if (!IsApplicableTriggerContext(completionContext))
         {
@@ -57,8 +51,9 @@ internal class RazorCompletionListProvider(
             _ => CompletionReason.Typing,
         };
 
-        var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var tagHelperContext = await documentContext.GetTagHelperContextAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxTree = codeDocument.GetRequiredSyntaxTree();
+        var tagHelperContext = codeDocument.GetRequiredTagHelperContext();
+
         var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex, includeWhitespace: true, walkMarkersBack: true);
         owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, absoluteIndex);
 
@@ -80,7 +75,8 @@ internal class RazorCompletionListProvider(
         var completionCapability = clientCapabilities?.TextDocument?.Completion as VSInternalCompletionSetting;
 
         // The completion list is cached and can be retrieved via this result id to enable the resolve completion functionality.
-        var razorResolveContext = new RazorCompletionResolveContext(documentContext.FilePath, razorCompletionItems);
+        var filePath = codeDocument.Source.FilePath.AssumeNotNull();
+        var razorResolveContext = new RazorCompletionResolveContext(filePath, razorCompletionItems);
         var resultId = _completionListCache.Add(completionList, razorResolveContext);
         completionList.SetResultId(resultId, completionCapability);
 

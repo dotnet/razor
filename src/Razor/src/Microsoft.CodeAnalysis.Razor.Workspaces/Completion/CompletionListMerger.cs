@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -12,10 +13,12 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal static class CompletionListMerger
 {
-    private static readonly string Data1Key = nameof(MergedCompletionListData.Data1);
-    private static readonly string Data2Key = nameof(MergedCompletionListData.Data2);
-    private static readonly object EmptyData = new object();
+    private static readonly string s_data1Key = nameof(MergedCompletionListData.Data1);
+    private static readonly string s_data2Key = nameof(MergedCompletionListData.Data2);
+    private static readonly object s_emptyData = new();
 
+    [return: NotNullIfNotNull(nameof(razorCompletionList))]
+    [return: NotNullIfNotNull(nameof(delegatedCompletionList))]
     public static VSInternalCompletionList? Merge(VSInternalCompletionList? razorCompletionList, VSInternalCompletionList? delegatedCompletionList)
     {
         if (razorCompletionList is null)
@@ -117,8 +120,8 @@ internal static class CompletionListMerger
             return;
         }
 
-        if (jsonElement.TryGetProperty(Data1Key, out _) || jsonElement.TryGetProperty(Data1Key.ToLowerInvariant(), out _) &&
-            jsonElement.TryGetProperty(Data2Key, out _) || jsonElement.TryGetProperty(Data2Key.ToLowerInvariant(), out _))
+        if ((jsonElement.TryGetProperty(s_data1Key, out _) || jsonElement.TryGetProperty(s_data1Key.ToLowerInvariant(), out _)) &&
+            (jsonElement.TryGetProperty(s_data2Key, out _) || jsonElement.TryGetProperty(s_data2Key.ToLowerInvariant(), out _)))
         {
             // Merged data
             var mergedCompletionListData = jsonElement.Deserialize<MergedCompletionListData>();
@@ -141,7 +144,7 @@ internal static class CompletionListMerger
     private static void EnsureMergeableData(VSInternalCompletionList completionListA, VSInternalCompletionList completionListB)
     {
         if (completionListA.Data != completionListB.Data &&
-            completionListA.Data is null || completionListB.Data is null)
+            (completionListA.Data is null || completionListB.Data is null))
         {
             // One of the completion lists have data while the other does not, we need to ensure that any non-data centric items don't get incorrect data associated
 
@@ -151,10 +154,7 @@ internal static class CompletionListMerger
             for (var i = 0; i < candidateCompletionList.Items.Length; i++)
             {
                 var item = candidateCompletionList.Items[i];
-                if (item.Data is null)
-                {
-                    item.Data = EmptyData;
-                }
+                item.Data ??= s_emptyData;
             }
         }
     }

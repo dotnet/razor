@@ -79,8 +79,7 @@ internal sealed class CohostCodeActionsEndpoint(
             (service, solutionInfo, cancellationToken) => service.GetCodeActionRequestInfoAsync(solutionInfo, razorDocument.Id, request, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
-        if (requestInfo is null ||
-            requestInfo.LanguageKind == RazorLanguageKind.CSharp && requestInfo.CSharpRequest is null)
+        if (requestInfo is null or { LanguageKind: RazorLanguageKind.CSharp, CSharpRequest: null })
         {
             return null;
         }
