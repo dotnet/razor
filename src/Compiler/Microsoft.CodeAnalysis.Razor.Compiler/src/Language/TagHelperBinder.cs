@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// </summary>
 internal sealed class TagHelperBinder
 {
-    private readonly Dictionary<string, HashSet<TagHelperDescriptor>> _registrations;
+    private readonly Dictionary<string, List<TagHelperDescriptor>> _registrations;
 
     public string? TagHelperPrefix { get; }
     public ImmutableArray<TagHelperDescriptor> TagHelpers { get; }
@@ -31,12 +31,34 @@ internal sealed class TagHelperBinder
         TagHelpers = tagHelpers;
 
         // To reduce the frequency of dictionary resizes we use the incoming number of descriptors as a heuristic
-        _registrations = new Dictionary<string, HashSet<TagHelperDescriptor>>(tagHelpers.Length, StringComparer.OrdinalIgnoreCase);
+        _registrations = new Dictionary<string, List<TagHelperDescriptor>>(tagHelpers.Length, StringComparer.OrdinalIgnoreCase);
+
+        using var pooledSet = HashSetPool<TagHelperDescriptor>.GetPooledObject(out var processedDescriptors);
 
         // Populate our registrations
         foreach (var descriptor in tagHelpers)
         {
-            Register(descriptor);
+            if (!processedDescriptors.Add(descriptor))
+            {
+                // We're already seen this descriptor, skip it.
+                continue;
+            }
+
+            foreach (var rule in descriptor.TagMatchingRules)
+            {
+                var registrationKey = rule.TagName == TagHelperMatchingConventions.ElementCatchAllName
+                    ? TagHelperMatchingConventions.ElementCatchAllName
+                    : TagHelperPrefix + rule.TagName;
+
+                // Ensure there's a HashSet to add the descriptor to.
+                if (!_registrations.TryGetValue(registrationKey, out var descriptorList))
+                {
+                    descriptorList = [];
+                    _registrations[registrationKey] = descriptorList;
+                }
+
+                descriptorList.Add(descriptor);
+            }
         }
     }
 
@@ -104,7 +126,7 @@ internal sealed class TagHelperBinder
             TagHelperPrefix);
 
         static void FindApplicableDescriptors(
-            HashSet<TagHelperDescriptor> descriptors,
+            List<TagHelperDescriptor> descriptors,
             ReadOnlySpan<char> tagNameWithoutPrefix,
             ReadOnlySpan<char> parentTagNameWithoutPrefix,
             ImmutableArray<KeyValuePair<string, string>> attributes,
@@ -129,25 +151,6 @@ internal sealed class TagHelperBinder
 
                 applicableRules.Clear();
             }
-        }
-    }
-
-    private void Register(TagHelperDescriptor descriptor)
-    {
-        foreach (var rule in descriptor.TagMatchingRules)
-        {
-            var registrationKey = rule.TagName == TagHelperMatchingConventions.ElementCatchAllName
-                ? TagHelperMatchingConventions.ElementCatchAllName
-                : TagHelperPrefix + rule.TagName;
-
-            // Ensure there's a HashSet to add the descriptor to.
-            if (!_registrations.TryGetValue(registrationKey, out var descriptorSet))
-            {
-                descriptorSet = [];
-                _registrations[registrationKey] = descriptorSet;
-            }
-
-            descriptorSet.Add(descriptor);
         }
     }
 }
