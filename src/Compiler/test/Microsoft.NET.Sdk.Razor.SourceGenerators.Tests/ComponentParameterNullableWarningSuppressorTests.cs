@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
 
             await VerifyAnalyzerAsync(testCode,
                 // /0/Test0.cs(9,19): warning CS8618: Non-nullable property 'MyParameter' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
-                DiagnosticResult.CompilerWarning("CS8618").WithSpan(8, 19, 8, 30).WithSpan(8, 19, 8, 30).WithArguments("property", "MyParameter")
+                DiagnosticResult.CompilerWarning("CS8618").WithSpan(8, 19, 8, 30).WithSpan(8, 19, 8, 30).WithArguments("property", "MyParameter").WithIsSuppressed(false)
                 );
         }
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
 
             await VerifyAnalyzerAsync(testCode,
                 // /0/Test0.cs(9,19): warning CS8618: Non-nullable property 'MyParameter' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
-                DiagnosticResult.CompilerWarning("CS8618").WithSpan(8, 19, 8, 30).WithSpan(8, 19, 8, 30).WithArguments("property", "MyParameter")
+                DiagnosticResult.CompilerWarning("CS8618").WithSpan(8, 19, 8, 30).WithSpan(8, 19, 8, 30).WithArguments("property", "MyParameter").WithIsSuppressed(false)
                 );
         }
 
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
 
             await VerifyAnalyzerAsync(testCode,
                 // /0/Test0.cs(9,19): warning CS8618: Non-nullable property 'MyParameter' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
-                DiagnosticResult.CompilerWarning("CS8618").WithSpan(8, 19, 8, 30).WithSpan(8, 19, 8, 30).WithArguments("property", "MyParameter")
+                DiagnosticResult.CompilerWarning("CS8618").WithSpan(8, 19, 8, 30).WithSpan(8, 19, 8, 30).WithArguments("property", "MyParameter").WithIsSuppressed(false)
                 );
         }
 
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
 
             await VerifyAnalyzerAsync(testCode, extraReferences: [],
                 // /0/Test0.cs(9,19): warning CS8618: Non-nullable property 'MyParameter' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
-                DiagnosticResult.CompilerWarning("CS8618").WithSpan(8, 19, 8, 30).WithSpan(8, 19, 8, 30).WithArguments("property", "MyParameter")
+                DiagnosticResult.CompilerWarning("CS8618").WithSpan(8, 19, 8, 30).WithSpan(8, 19, 8, 30).WithArguments("property", "MyParameter").WithIsSuppressed(false)
                 );
         }
 
@@ -235,13 +235,12 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
 
             await VerifyAnalyzerAsync(testCode,
                 // /0/Test0.cs(9,19): warning CS8618: Non-nullable property 'MyParameter' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
-                DiagnosticResult.CompilerWarning("CS8618").WithSpan(9, 12, 9, 23).WithSpan(9, 12, 9, 23).WithArguments("property", "MyParameter")
+                DiagnosticResult.CompilerWarning("CS8618").WithSpan(9, 12, 9, 23).WithSpan(9, 12, 9, 23).WithArguments("property", "MyParameter").WithIsSuppressed(false)
                 );
         }
 
         [Theory]
         [InlineData("")]
-        [InlineData("init;")]
         [InlineData("private set;")]
         [InlineData("private init;")]
         public async Task IncorrectSetterStillReport(string setter)
@@ -260,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
 
             await VerifyAnalyzerAsync(testCode,
                 // /0/Test0.cs(9,19): warning CS8618: Non-nullable property 'MyParameter' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
-                DiagnosticResult.CompilerWarning("CS8618").WithSpan(8, 19, 8, 30).WithSpan(8, 19, 8, 30).WithArguments("property", "MyParameter")
+                DiagnosticResult.CompilerWarning("CS8618").WithSpan(8, 19, 8, 30).WithSpan(8, 19, 8, 30).WithArguments("property", "MyParameter").WithIsSuppressed(false)
                 );
         }
 
@@ -355,10 +354,48 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
 
             await VerifyAnalyzerAsync(testCode,
                 // /0/Test0.cs(8,19): warning CS8618: Non-nullable property 'MyParameter' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
-                DiagnosticResult.CompilerWarning("CS8618").WithSpan(8, 19, 8, 30).WithSpan(8, 19, 8, 30).WithArguments("property", "MyParameter")
+                DiagnosticResult.CompilerWarning("CS8618").WithSpan(8, 19, 8, 30).WithSpan(8, 19, 8, 30).WithArguments("property", "MyParameter").WithIsSuppressed(false)
                 );
         }
 
+        [Fact]
+        public async Task NullableReturnType()
+        {
+            var testCode = """
+                #nullable enable
+                using System;
+                using Microsoft.AspNetCore.Components;
+
+                public class MyComponent : ComponentBase
+                {
+                    [Parameter, EditorRequired]
+                    public string? MyParameter { get; set; }
+                }
+                """;
+
+            await VerifyAnalyzerAsync(testCode);
+        }
+
+        [Fact]
+        public async Task ParameterWithInit()
+        {
+            var testCode = """
+                #nullable enable
+                using System;
+                using Microsoft.AspNetCore.Components;
+
+                public class MyComponent : ComponentBase
+                {
+                    [Parameter, EditorRequired]
+                    public string MyParameter { get; init; }
+                }
+                """;
+
+            await VerifyAnalyzerAsync(testCode,
+                // /0/Test0.cs(9,19): warning CS8618: Non-nullable property 'MyParameter' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                DiagnosticResult.CompilerWarning("CS8618").WithSpan(8, 19, 8, 30).WithSpan(8, 19, 8, 30).WithArguments("property", "MyParameter").WithIsSuppressed(true)
+                );
+        }
 
         private static Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
             => VerifyAnalyzerAsync(source,
