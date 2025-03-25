@@ -25,6 +25,7 @@
                             LazyIntermediateToken - (18:1,10 [2] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - \n
                             LazyIntermediateToken - (20:2,0 [8] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html -         
                         CSharpExpression - (29:2,9 [0] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml)
+                            LazyIntermediateToken - (29:2,9 [0] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - CSharp - 
                         HtmlContent - (29:2,9 [6] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml)
                             LazyIntermediateToken - (29:2,9 [6] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - \n    
                     DefaultTagHelperCreate -  - Microsoft.AspNetCore.Mvc.Razor.TagHelpers.HeadTagHelper

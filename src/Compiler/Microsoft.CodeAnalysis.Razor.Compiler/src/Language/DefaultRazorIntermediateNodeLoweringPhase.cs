@@ -858,11 +858,6 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                         sourceRangeStart.Value.EndCharacterIndex);
                 }
             }
-            else
-            {
-                // this expression doesn't have any children, but we still want to track the empty span it represents
-                expressionNode.Source = node.GetSourceSpan(SourceDocument).GetZeroWidthEndSpan();
-            }
         }
 
         public override void VisitCSharpExpressionLiteral(CSharpExpressionLiteralSyntax node)
