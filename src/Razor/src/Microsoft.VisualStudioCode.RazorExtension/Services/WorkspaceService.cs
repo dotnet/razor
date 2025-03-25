@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Composition;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.Extensions.Logging;
@@ -14,9 +15,9 @@ internal sealed class WorkspaceService(ILoggerFactory loggerFactory) : RazorWork
 {
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
     private readonly ILogger _logger = loggerFactory.CreateLogger<WorkspaceService>();
-    private Lock _initializeLock = new();
+    private readonly Lock _initializeLock = new();
     private RazorWorkspaceListener? _razorWorkspaceListener;
-    private HashSet<ProjectId> _projectIdWithDynamicFiles = [];
+    private HashSet<ProjectId>? _projectIdWithDynamicFiles = [];
 
     public override void Initialize(Workspace workspace, string pipeName)
     {
@@ -33,9 +34,9 @@ internal sealed class WorkspaceService(ILoggerFactory loggerFactory) : RazorWork
             _razorWorkspaceListener = new RazorWorkspaceListener(_loggerFactory);
             _razorWorkspaceListener.EnsureInitialized(workspace, pipeName);
 
-            projectsToInitialize = _projectIdWithDynamicFiles;
-            // May as well clear out the collection, it will never get used again anyway.
-            _projectIdWithDynamicFiles = [];
+            // _projectIdWithDynamicFiles won't be used again after initialization is done
+            projectsToInitialize = _projectIdWithDynamicFiles.AssumeNotNull();
+            _projectIdWithDynamicFiles = null;
         }
 
         foreach (var projectId in projectsToInitialize)
@@ -47,6 +48,24 @@ internal sealed class WorkspaceService(ILoggerFactory loggerFactory) : RazorWork
 
     public override void NotifyDynamicFile(ProjectId projectId)
     {
-        _razorWorkspaceListener?.NotifyDynamicFile(projectId);
+        if (_razorWorkspaceListener is null)
+        {
+            lock (_initializeLock)
+            {
+                if (_razorWorkspaceListener is not null)
+                {
+                    _razorWorkspaceListener.NotifyDynamicFile(projectId);
+                    return;
+                }
+
+                _projectIdWithDynamicFiles
+                    .AssumeNotNull()
+                    .Add(projectId);
+            }
+        }
+        else
+        {
+            _razorWorkspaceListener?.NotifyDynamicFile(projectId);
+        }
     }
 }
