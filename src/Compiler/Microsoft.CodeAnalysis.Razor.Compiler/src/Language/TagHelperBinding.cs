@@ -10,13 +10,14 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 internal sealed class TagHelperBinding
 {
+    private readonly FrozenDictionary<TagHelperDescriptor, ImmutableArray<TagMatchingRuleDescriptor>> _mappings;
+
     public string TagName { get; }
     public string? ParentTagName { get; }
     public ImmutableArray<KeyValuePair<string, string>> Attributes { get; }
-    public FrozenDictionary<TagHelperDescriptor, ImmutableArray<TagMatchingRuleDescriptor>> Mappings { get; }
     public string? TagHelperPrefix { get; }
 
-    public ImmutableArray<TagHelperDescriptor> Descriptors => Mappings.Keys;
+    public ImmutableArray<TagHelperDescriptor> Descriptors => _mappings.Keys;
 
     internal TagHelperBinding(
         string tagName,
@@ -28,8 +29,13 @@ internal sealed class TagHelperBinding
         TagName = tagName;
         Attributes = attributes;
         ParentTagName = parentTagName;
-        Mappings = mappings;
+        _mappings = mappings;
         TagHelperPrefix = tagHelperPrefix;
+    }
+
+    public ImmutableArray<TagMatchingRuleDescriptor> GetBoundRules(TagHelperDescriptor descriptor)
+    {
+        return _mappings[descriptor];
     }
 
     /// <summary>
@@ -44,7 +50,7 @@ internal sealed class TagHelperBinding
     {
         get
         {
-            foreach (var descriptor in Mappings.Keys)
+            foreach (var descriptor in _mappings.Keys)
             {
                 if (!descriptor.Metadata.TryGetValue(TagHelperMetadata.Common.ClassifyAttributesOnly, out var value) ||
                     !string.Equals(value, bool.TrueString, StringComparison.OrdinalIgnoreCase))

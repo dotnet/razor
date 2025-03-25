@@ -29,7 +29,7 @@ internal static class TagHelperBlockRewriter
         var hasDirectiveAttribute = false;
         foreach (var descriptor in bindingResult.Descriptors)
         {
-            var boundRules = bindingResult.Mappings[descriptor];
+            var boundRules = bindingResult.GetBoundRules(descriptor);
             var nonDefaultRule = boundRules.FirstOrDefault(static rule => rule.TagStructure != TagStructure.Unspecified);
 
             if (nonDefaultRule?.TagStructure == TagStructure.WithoutEndTag)

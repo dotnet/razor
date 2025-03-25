@@ -349,7 +349,7 @@ internal static class TagHelperParseTreeRewriter
 
                 foreach (var descriptor in tagHelperBinding.Descriptors)
                 {
-                    var boundRules = tagHelperBinding.Mappings[descriptor];
+                    var boundRules = tagHelperBinding.GetBoundRules(descriptor);
                     var invalidRule = boundRules.FirstOrDefault(static rule => rule.TagStructure == TagStructure.WithoutEndTag);
 
                     if (invalidRule != null)
@@ -464,7 +464,7 @@ internal static class TagHelperParseTreeRewriter
 
             foreach (var descriptor in bindingResult.Descriptors)
             {
-                var boundRules = bindingResult.Mappings[descriptor];
+                var boundRules = bindingResult.GetBoundRules(descriptor);
                 foreach (var rule in boundRules)
                 {
                     if (rule.TagStructure != TagStructure.Unspecified)
