@@ -42,16 +42,11 @@ file sealed class LspDynamicFileProvider(IRazorClientLanguageServerManager clien
             requestParams,
             cancellationToken).ConfigureAwait(false);
 
-        if (response.Updates is null)
-        {
-            return null;
-        }
-
         var textDocument = await WorkspaceExtensions.GetTextDocumentAsync(workspace, response.CSharpDocument.Uri, cancellationToken).ConfigureAwait(false);
         var checksum = Convert.FromBase64String(response.Checksum);
         var textLoader = new LspTextChangesTextLoader(
             textDocument,
-            response.Updates,
+            response.Edit,
             checksum,
             response.ChecksumAlgorithm,
             response.SourceEncodingCodePage,

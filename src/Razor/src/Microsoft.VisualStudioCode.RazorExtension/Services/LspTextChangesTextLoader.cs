@@ -1,17 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 
 internal class LspTextChangesTextLoader(
         TextDocument? document,
-        IEnumerable<RazorDynamicFileUpdate> updates,
+        RazorTextChange change,
         byte[] checksum,
         SourceHashAlgorithm checksumAlgorithm,
         int? codePage,
@@ -21,7 +21,7 @@ internal class LspTextChangesTextLoader(
     private const string ProvideRazorDynamicFileInfoMethodName = "razor/provideDynamicFileInfo";
 
     private readonly TextDocument? _document = document;
-    private readonly IEnumerable<RazorDynamicFileUpdate> _updates = updates;
+    private readonly RazorTextChange _change = change;
     private readonly byte[] _checksum = checksum;
     private readonly SourceHashAlgorithm _checksumAlgorithm = checksumAlgorithm;
     private readonly int? _codePage = codePage;
@@ -37,7 +37,7 @@ internal class LspTextChangesTextLoader(
     {
         if (_document is null)
         {
-            var text = UpdateSourceTextWithEdits(_emptySourceText.Value, _updates);
+            var text = _emptySourceText.Value.WithChanges(_change.ToTextChange());
             return TextAndVersion.Create(text, VersionStamp.Default.GetNewerVersion());
         }
 
@@ -47,7 +47,7 @@ internal class LspTextChangesTextLoader(
         if (IsSourceTextMatching(sourceText))
         {
             var version = await _document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
-            var newText = UpdateSourceTextWithEdits(sourceText, _updates);
+            var newText = sourceText.WithChanges(_change.ToTextChange());
             return TextAndVersion.Create(newText, version.GetNewerVersion());
         }
 
@@ -88,20 +88,7 @@ internal class LspTextChangesTextLoader(
             },
             cancellationToken).ConfigureAwait(false);
 
-        Debug.Assert(response.Updates?.SingleOrDefault() is not null);
-
-        var text = UpdateSourceTextWithEdits(_emptySourceText.Value, response.Updates);
+        var text = _emptySourceText.Value.WithChanges(response.Edit.ToTextChange());
         return TextAndVersion.Create(text, VersionStamp.Default.GetNewerVersion());
-    }
-
-    private static SourceText UpdateSourceTextWithEdits(SourceText sourceText, IEnumerable<RazorDynamicFileUpdate> updates)
-    {
-        foreach (var update in updates)
-        {
-            var changes = update.Edits.Select(e => new TextChange(e.Span.ToTextSpan(), e.NewText));
-            sourceText = sourceText.WithChanges(changes);
-        }
-
-        return sourceText;
     }
 }
