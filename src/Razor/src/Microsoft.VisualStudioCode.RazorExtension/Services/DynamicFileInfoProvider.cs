@@ -26,10 +26,15 @@ internal sealed partial class LspDynamicFileProvider(IRazorClientLanguageServerM
             }
         };
 
-        var response = await _clientLanguageServerManager.SendRequestAsync<RazorProvideDynamicFileParams, RazorProvideDynamicFileResponse>(
+        var response = await _clientLanguageServerManager.SendRequestAsync<RazorProvideDynamicFileParams, RazorProvideDynamicFileResponse?>(
             ProvideRazorDynamicFileInfoMethodName,
             requestParams,
             cancellationToken).ConfigureAwait(false);
+
+        if (response is null)
+        {
+            return null;
+        }
 
         var textDocument = await WorkspaceExtensions.GetTextDocumentAsync(workspace, response.CSharpDocument.Uri, cancellationToken).ConfigureAwait(false);
         var checksum = Convert.FromBase64String(response.Checksum);
