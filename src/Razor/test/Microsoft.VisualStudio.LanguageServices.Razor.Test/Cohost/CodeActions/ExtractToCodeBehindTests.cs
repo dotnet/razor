@@ -39,4 +39,40 @@ public class ExtractToCodeBehindTests(ITestOutputHelper testOutputHelper) : Coho
                     }
                     """)]);
     }
+
+    [Theory]
+    [InlineData("[||]@code {")]
+    [InlineData("@[||]code {")]
+    [InlineData("@c[||]ode {")]
+    [InlineData("@co[||]de {")]
+    [InlineData("@cod[||]e {")]
+    [InlineData("@code[||] {")]
+    [InlineData("@code[||]{")]
+    public async Task WorkAtAnyCursorPosition(string codeBlockStart)
+    {
+        await VerifyCodeActionAsync(
+            input: $$"""
+                <div></div>
+
+                {{codeBlockStart}}
+                    private int x = 1;
+                }
+                """,
+            expected: """
+                <div></div>
+
+
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToCodeBehindAction,
+            additionalExpectedFiles: [
+                (FileUri("File1.razor.cs"), $$"""
+                    namespace SomeProject
+                    {
+                        public partial class File1
+                        {
+                            private int x = 1;
+                        }
+                    }
+                    """)]);
+    }
 }
