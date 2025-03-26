@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// </summary>
 internal sealed class TagHelperBinder
 {
-    private readonly Dictionary<string, List<TagHelperDescriptor>> _registrations;
+    private readonly Dictionary<string, ImmutableArray<TagHelperDescriptor>> _tagNameToDescriptorsMap;
 
     public string? TagHelperPrefix { get; }
     public ImmutableArray<TagHelperDescriptor> TagHelpers { get; }
@@ -30,12 +30,10 @@ internal sealed class TagHelperBinder
         TagHelperPrefix = tagHelperPrefix;
         TagHelpers = tagHelpers;
 
-        // To reduce the frequency of dictionary resizes we use the incoming number of descriptors as a heuristic
-        _registrations = new Dictionary<string, List<TagHelperDescriptor>>(tagHelpers.Length, StringComparer.OrdinalIgnoreCase);
-
+        using var pooledMap = StringDictionaryPool<ImmutableArray<TagHelperDescriptor>.Builder>.OrdinalIgnoreCase.GetPooledObject(out var mapBuilder);
         using var pooledSet = HashSetPool<TagHelperDescriptor>.GetPooledObject(out var processedDescriptors);
 
-        // Populate our registrations
+        // Build a map of tag name -> tag helpers.
         foreach (var descriptor in tagHelpers)
         {
             if (!processedDescriptors.Add(descriptor))
@@ -46,19 +44,22 @@ internal sealed class TagHelperBinder
 
             foreach (var rule in descriptor.TagMatchingRules)
             {
-                var registrationKey = rule.TagName == TagHelperMatchingConventions.ElementCatchAllName
+                var tagName = rule.TagName == TagHelperMatchingConventions.ElementCatchAllName
                     ? TagHelperMatchingConventions.ElementCatchAllName
                     : TagHelperPrefix + rule.TagName;
 
-                // Ensure there's a HashSet to add the descriptor to.
-                if (!_registrations.TryGetValue(registrationKey, out var descriptorList))
-                {
-                    descriptorList = [];
-                    _registrations[registrationKey] = descriptorList;
-                }
+                var builder = mapBuilder.GetOrAdd(tagName, _ => ImmutableArray.CreateBuilder<TagHelperDescriptor>());
 
-                descriptorList.Add(descriptor);
+                builder.Add(descriptor);
             }
+        }
+
+        // Build the final dictionary with immutable arrays.
+        _tagNameToDescriptorsMap = new(capacity: mapBuilder.Count, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var (key, value) in mapBuilder)
+        {
+            _tagNameToDescriptorsMap.Add(key, value.DrainToImmutable());
         }
     }
 
@@ -102,13 +103,13 @@ internal sealed class TagHelperBinder
         using var _ = DictionaryPool<TagHelperDescriptor, ImmutableArray<TagMatchingRuleDescriptor>>.GetPooledObject(out var applicableDescriptors);
 
         // First, try any tag helpers with this tag name.
-        if (_registrations.TryGetValue(tagName, out var matchingDescriptors))
+        if (_tagNameToDescriptorsMap.TryGetValue(tagName, out var matchingDescriptors))
         {
             FindApplicableDescriptors(matchingDescriptors, tagNameWithoutPrefix, parentTagNameWithoutPrefix, attributes, applicableDescriptors);
         }
 
         // Next, try any "catch all" descriptors.
-        if (_registrations.TryGetValue(TagHelperMatchingConventions.ElementCatchAllName, out var catchAllDescriptors))
+        if (_tagNameToDescriptorsMap.TryGetValue(TagHelperMatchingConventions.ElementCatchAllName, out var catchAllDescriptors))
         {
             FindApplicableDescriptors(catchAllDescriptors, tagNameWithoutPrefix, parentTagNameWithoutPrefix, attributes, applicableDescriptors);
         }
@@ -126,7 +127,7 @@ internal sealed class TagHelperBinder
             TagHelperPrefix);
 
         static void FindApplicableDescriptors(
-            List<TagHelperDescriptor> descriptors,
+            ImmutableArray<TagHelperDescriptor> descriptors,
             ReadOnlySpan<char> tagNameWithoutPrefix,
             ReadOnlySpan<char> parentTagNameWithoutPrefix,
             ImmutableArray<KeyValuePair<string, string>> attributes,
