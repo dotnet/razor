@@ -50,6 +50,8 @@ internal static class RazorCodeActionFactory
             TelemetryId = s_addComponentUsingTelemetryId,
             Priority = VSInternalPriorityLevel.High,
             Name = LanguageServerConstants.CodeActions.AddUsing,
+            // Adding a using for an existing component should be first
+            Order = -1000,
         };
         return codeAction;
     }
@@ -63,6 +65,8 @@ internal static class RazorCodeActionFactory
             TelemetryId = s_fullyQualifyComponentTelemetryId,
             Priority = VSInternalPriorityLevel.High,
             Name = LanguageServerConstants.CodeActions.FullyQualify,
+            // Fully qualifying an existing component should be very high, but not quite as high as Add Using
+            Order = -900,
         };
         return codeAction;
     }
@@ -102,6 +106,8 @@ internal static class RazorCodeActionFactory
             Data = data,
             TelemetryId = s_createExtractToComponentTelemetryId,
             Name = LanguageServerConstants.CodeActions.ExtractToNewComponentAction,
+            // Since Extract to Component is offered basically everywhere, always offer it last
+            Order = 9999
         };
         return codeAction;
     }
