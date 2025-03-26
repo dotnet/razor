@@ -14,6 +14,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// </summary>
 internal sealed class TagHelperBinder
 {
+    private readonly ImmutableArray<TagHelperDescriptor> _catchAllDescriptors;
     private readonly Dictionary<string, ImmutableArray<TagHelperDescriptor>> _tagNameToDescriptorsMap;
 
     public string? TagHelperPrefix { get; }
@@ -30,6 +31,7 @@ internal sealed class TagHelperBinder
         TagHelperPrefix = tagHelperPrefix;
         TagHelpers = tagHelpers;
 
+        using var catchAllDescriptors = new PooledArrayBuilder<TagHelperDescriptor>();
         using var pooledMap = StringDictionaryPool<ImmutableArray<TagHelperDescriptor>.Builder>.OrdinalIgnoreCase.GetPooledObject(out var mapBuilder);
         using var pooledSet = HashSetPool<TagHelperDescriptor>.GetPooledObject(out var processedDescriptors);
 
@@ -44,9 +46,16 @@ internal sealed class TagHelperBinder
 
             foreach (var rule in descriptor.TagMatchingRules)
             {
-                var tagName = rule.TagName == TagHelperMatchingConventions.ElementCatchAllName
-                    ? TagHelperMatchingConventions.ElementCatchAllName
-                    : TagHelperPrefix + rule.TagName;
+                if (rule.TagName == TagHelperMatchingConventions.ElementCatchAllName)
+                {
+                    // This is a catch-all descriptor, we can keep track of it separately.
+                    catchAllDescriptors.Add(descriptor);
+                    continue;
+                }
+
+                var tagName = tagHelperPrefix is not null
+                    ? tagHelperPrefix + rule.TagName
+                    : rule.TagName;
 
                 var builder = mapBuilder.GetOrAdd(tagName, _ => ImmutableArray.CreateBuilder<TagHelperDescriptor>());
 
@@ -61,6 +70,9 @@ internal sealed class TagHelperBinder
         {
             _tagNameToDescriptorsMap.Add(key, value.DrainToImmutable());
         }
+
+        // Build the catch all descriptors array.
+        _catchAllDescriptors = catchAllDescriptors.DrainToImmutable();
     }
 
     /// <summary>
@@ -109,10 +121,7 @@ internal sealed class TagHelperBinder
         }
 
         // Next, try any "catch all" descriptors.
-        if (_tagNameToDescriptorsMap.TryGetValue(TagHelperMatchingConventions.ElementCatchAllName, out var catchAllDescriptors))
-        {
-            FindApplicableDescriptors(catchAllDescriptors, tagNameWithoutPrefix, parentTagNameWithoutPrefix, attributes, applicableDescriptors);
-        }
+        FindApplicableDescriptors(_catchAllDescriptors, tagNameWithoutPrefix, parentTagNameWithoutPrefix, attributes, applicableDescriptors);
 
         if (applicableDescriptors.Count == 0)
         {
