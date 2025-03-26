@@ -262,7 +262,7 @@ public class FilePathNormalizerTest(ITestOutputHelper testOutput) : ToolingTestB
         Assert.Equal("/", normalized);
     }
 
-    [ConditionalFact(Is.Not.Windows)]
+    [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/razor/issues/11660")]
     public void Normalize_NonWindows_AddsLeadingForwardSlash()
     {
         // Arrange
