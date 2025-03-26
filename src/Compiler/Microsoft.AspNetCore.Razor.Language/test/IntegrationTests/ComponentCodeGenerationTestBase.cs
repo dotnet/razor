@@ -2325,7 +2325,7 @@ namespace Test
             ] : [
             // (24,36): error CS1525: Invalid expression term ')'
             //             __builder.AddContent(3, 
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments(")").WithLocation(24, 36)
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments(")").WithLocation(3, 2)
             ]);
     }
 
@@ -10607,7 +10607,7 @@ namespace Test
                Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(5, 2),
                // (33,13): error CS0103: The name '__builder' does not exist in the current context
                //             __builder.AddContent(0,
-               Diagnostic(ErrorCode.ERR_NameNotInContext, "__builder").WithArguments("__builder").WithLocation(41, 13)]);
+               Diagnostic(ErrorCode.ERR_NameNotInContext, "__builder").WithArguments("__builder").WithLocation(5, 2)]);
     }
 
     [IntegrationTestFact]
