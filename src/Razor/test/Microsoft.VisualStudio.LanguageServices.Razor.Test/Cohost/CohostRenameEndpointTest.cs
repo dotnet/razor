@@ -223,7 +223,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
             {
                 foreach (var edit in textDocumentEdit.Edits)
                 {
-                    inputText = inputText.WithChanges(inputText.GetTextChange(((TextEdit)edit)));
+                    inputText = inputText.WithChanges(inputText.GetTextChange((TextEdit)edit));
                 }
             }
         }

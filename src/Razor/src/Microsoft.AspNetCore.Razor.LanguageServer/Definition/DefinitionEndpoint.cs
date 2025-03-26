@@ -107,11 +107,11 @@ internal sealed class DefinitionEndpoint(
         var result = response.GetValueOrDefault().Value;
 
         // Not using .TryGetXXX because this does the null check for us too
-        if (result is Location location)
+        if (result is LspLocation location)
         {
             (location.Uri, location.Range) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(location.Uri, location.Range, cancellationToken).ConfigureAwait(false);
         }
-        else if (result is Location[] locations)
+        else if (result is LspLocation[] locations)
         {
             foreach (var loc in locations)
             {

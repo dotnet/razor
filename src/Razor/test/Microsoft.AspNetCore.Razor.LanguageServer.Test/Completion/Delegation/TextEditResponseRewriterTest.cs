@@ -71,9 +71,8 @@ public class TextEditResponseRewriterTest(ITestOutputHelper testOutput)
         Assert.Equal(expectedRange, rewrittenCompletionList.ItemDefaults.EditRange);
     }
 
-    private static VSInternalCompletionList GenerateCompletionList(LspRange textEditRange)
-    {
-        return new VSInternalCompletionList()
+    private static RazorVSInternalCompletionList GenerateCompletionList(LspRange textEditRange)
+        => new()
         {
             Items = [
                 new VSInternalCompletionItem()
@@ -83,5 +82,4 @@ public class TextEditResponseRewriterTest(ITestOutputHelper testOutput)
                 }
             ]
         };
-    }
 }

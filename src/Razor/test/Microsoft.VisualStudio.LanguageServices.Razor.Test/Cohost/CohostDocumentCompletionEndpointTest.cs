@@ -556,16 +556,16 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
 
         // If delegatedItemLabels wasn't supplied, supply our own to ensure delegation isn't happening and causing a false positive result
         delegatedItemLabels ??= [InvalidLabel];
-        var response = new VSInternalCompletionList()
+        var response = new RazorVSInternalCompletionList()
         {
-            Items = delegatedItemLabels.Select((label) => new VSInternalCompletionItem()
+            Items = [.. delegatedItemLabels.Select((label) => new VSInternalCompletionItem()
             {
                 Label = label,
                 CommitCharacters = delegatedItemCommitCharacters,
                 // If test specifies not to commit with space, set kind to element since we remove space
                 // commit from elements only. Otherwise test doesn't care, so set to None
                 Kind = !commitElementsWithSpace ? CompletionItemKind.Element : CompletionItemKind.None,
-            }).ToArray(),
+            })],
             IsIncomplete = true
         };
 

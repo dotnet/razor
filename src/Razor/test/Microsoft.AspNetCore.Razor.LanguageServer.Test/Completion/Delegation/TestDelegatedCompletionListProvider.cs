@@ -50,12 +50,12 @@ internal class TestDelegatedCompletionListProvider : DelegatedCompletionListProv
     }
 
     public static TestDelegatedCompletionListProvider Create(
-        VSInternalCompletionList delegatedCompletionList,
+        RazorVSInternalCompletionList delegatedCompletionList,
         ILoggerFactory loggerFactory)
     {
-        delegatedCompletionList ??= new VSInternalCompletionList()
+        delegatedCompletionList ??= new RazorVSInternalCompletionList()
         {
-            Items = Array.Empty<CompletionItem>(),
+            Items = [],
         };
         var requestResponseFactory = new StaticCompletionRequestResponseFactory(delegatedCompletionList);
         var provider = new TestDelegatedCompletionListProvider(requestResponseFactory, loggerFactory);
@@ -74,10 +74,10 @@ internal class TestDelegatedCompletionListProvider : DelegatedCompletionListProv
 
     private class StaticCompletionRequestResponseFactory : CompletionRequestResponseFactory
     {
-        private readonly VSInternalCompletionList _completionResponse;
+        private readonly RazorVSInternalCompletionList _completionResponse;
         private DelegatedCompletionParams _delegatedParams;
 
-        public StaticCompletionRequestResponseFactory(VSInternalCompletionList completionResponse)
+        public StaticCompletionRequestResponseFactory(RazorVSInternalCompletionList completionResponse)
         {
             _completionResponse = completionResponse;
         }
@@ -125,7 +125,7 @@ internal class TestDelegatedCompletionListProvider : DelegatedCompletionListProv
                 }
             };
 
-            var delegatedCompletionList = await _csharpServer.ExecuteRequestAsync<CompletionParams, VSInternalCompletionList>(
+            var delegatedCompletionList = await _csharpServer.ExecuteRequestAsync<CompletionParams, RazorVSInternalCompletionList>(
                 Methods.TextDocumentCompletionName,
                 csharpCompletionParams,
                 _cancellationToken);

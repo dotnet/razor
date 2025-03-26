@@ -64,7 +64,7 @@ internal sealed class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<T
         var result = delegatedResponse.Value;
 
         // Not using .TryGetXXX because this does the null check for us too
-        if (result is Location[] locations)
+        if (result is LspLocation[] locations)
         {
             foreach (var loc in locations)
             {

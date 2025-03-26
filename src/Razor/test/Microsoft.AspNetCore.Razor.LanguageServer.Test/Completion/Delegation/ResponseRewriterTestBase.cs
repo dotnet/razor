@@ -22,7 +22,7 @@ public abstract class ResponseRewriterTestBase : LanguageServerTestBase
     private protected Task<VSInternalCompletionList> GetRewrittenCompletionListAsync(
         int absoluteIndex,
         string documentContent,
-        VSInternalCompletionList initialCompletionList)
+        RazorVSInternalCompletionList initialCompletionList)
     {
         var razorCompletionOptions = new RazorCompletionOptions(
                 SnippetsSupported: true,
@@ -35,7 +35,7 @@ public abstract class ResponseRewriterTestBase : LanguageServerTestBase
     private protected async Task<VSInternalCompletionList> GetRewrittenCompletionListAsync(
         int absoluteIndex,
         string documentContent,
-        VSInternalCompletionList initialCompletionList,
+        RazorVSInternalCompletionList initialCompletionList,
         RazorCompletionOptions razorCompletionOptions)
     {
         const string FilePath = "C:/path/to/file.cshtml";

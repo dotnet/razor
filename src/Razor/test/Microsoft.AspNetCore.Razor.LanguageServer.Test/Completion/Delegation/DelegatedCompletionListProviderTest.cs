@@ -355,7 +355,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         Assert.True(requestSent);
     }
 
-    private async Task<VSInternalCompletionList> GetCompletionListAsync(string content, CompletionTriggerKind triggerKind)
+    private async Task<RazorVSInternalCompletionList> GetCompletionListAsync(string content, CompletionTriggerKind triggerKind)
     {
         TestFileMarkupParser.GetPosition(content, out var output, out var cursorPosition);
         var codeDocument = CreateCodeDocument(output);
@@ -366,7 +366,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
             CompletionProvider = new CompletionOptions
             {
                 ResolveProvider = true,
-                TriggerCharacters = new[] { " ", "(", "=", "#", ".", "<", "[", "{", "\"", "/", ":", "~" }
+                TriggerCharacters = [" ", "(", "=", "#", ".", "<", "[", "{", "\"", "/", ":", "~"]
             }
         };
         await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(

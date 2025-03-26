@@ -79,12 +79,9 @@ public class DesignTimeHelperResponseRewriterTest(ITestOutputHelper testOutput)
         Assert.Equal("__helper", item.Label);
     }
 
-    private static VSInternalCompletionList GenerateCompletionList(params string[] itemLabels)
-    {
-        var items = itemLabels.Select(label => new VSInternalCompletionItem() { Label = label }).ToArray();
-        return new VSInternalCompletionList()
+    private static RazorVSInternalCompletionList GenerateCompletionList(params string[] itemLabels)
+        => new()
         {
-            Items = items
+            Items = [.. itemLabels.Select(label => new VSInternalCompletionItem() { Label = label })]
         };
-    }
 }

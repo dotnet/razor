@@ -142,17 +142,15 @@ public class HtmlCommitCharacterResponseRewriterTest(ITestOutputHelper testOutpu
             });
     }
 
-    private static VSInternalCompletionList GenerateCompletionList(bool useDefaultCommitCharacters, bool useVSTypes, params string[] itemLabels)
-    {
-        var items = itemLabels.Select(label => new VSInternalCompletionItem()
+    private static RazorVSInternalCompletionList GenerateCompletionList(bool useDefaultCommitCharacters, bool useVSTypes, params string[] itemLabels)
+        => new()
         {
-            Kind = CompletionItemKind.Element,
-            Label = label,
-            CommitCharacters = useDefaultCommitCharacters ? null : new string[] { " ", ">" }
-        }).ToArray();
-        return new VSInternalCompletionList()
-        {
-            Items = items,
+            Items = [.. itemLabels.Select(label => new VSInternalCompletionItem()
+            {
+                Kind = CompletionItemKind.Element,
+                Label = label,
+                CommitCharacters = useDefaultCommitCharacters ? null : [" ", ">"]
+            })],
             CommitCharacters = (useDefaultCommitCharacters, useVSTypes) switch
             {
                 (true, true) => new VSInternalCommitCharacter[] { new() { Character = " " }, new() { Character = ">" } },
@@ -160,5 +158,4 @@ public class HtmlCommitCharacterResponseRewriterTest(ITestOutputHelper testOutpu
                 _ => null
             }
         };
-    }
 }

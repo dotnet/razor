@@ -160,16 +160,16 @@ internal static class LspFactory
     public static LspRange CreateSingleLineRange((int line, int character) start, int length)
         => CreateRange(CreatePosition(start), CreatePosition(start.line, start.character + length));
 
-    public static Location CreateLocation(string filePath, LinePositionSpan span)
+    public static LspLocation CreateLocation(string filePath, LinePositionSpan span)
         => CreateLocation(CreateFilePathUri(filePath), CreateRange(span));
 
-    public static Location CreateLocation(Uri uri, LinePositionSpan span)
+    public static LspLocation CreateLocation(Uri uri, LinePositionSpan span)
         => CreateLocation(uri, CreateRange(span));
 
-    public static Location CreateLocation(string filePath, LspRange range)
+    public static LspLocation CreateLocation(string filePath, LspRange range)
         => CreateLocation(CreateFilePathUri(filePath), range);
 
-    public static Location CreateLocation(Uri uri, LspRange range)
+    public static LspLocation CreateLocation(Uri uri, LspRange range)
         => new() { Uri = uri, Range = range };
 
     public static DocumentLink CreateDocumentLink(Uri target, LspRange range)
