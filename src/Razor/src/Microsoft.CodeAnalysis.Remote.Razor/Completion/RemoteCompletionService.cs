@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-extern alias RLSP;
-
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -17,7 +15,7 @@ using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<RLSP::Roslyn.LanguageServer.Protocol.VSInternalCompletionList?>;
+using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.RazorVSInternalCompletionList?>;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -119,7 +117,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
-        VSInternalCompletionList? csharpCompletionList = null;
+        RazorVSInternalCompletionList? csharpCompletionList = null;
         if (isCSharpTrigger)
         {
             var mappedPosition = documentPositionInfo.Position;
@@ -144,7 +142,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             }
         }
 
-        VSInternalCompletionList? razorCompletionList = null;
+        RazorVSInternalCompletionList? razorCompletionList = null;
 
         if (isRazorTrigger)
         {
@@ -167,7 +165,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         return Response.Results(mergedCompletionList);
     }
 
-    private async ValueTask<VSInternalCompletionList?> GetCSharpCompletionAsync(
+    private async ValueTask<RazorVSInternalCompletionList?> GetCSharpCompletionAsync(
         SourceGeneratedDocument generatedDocument,
         RazorCodeDocument codeDocument,
         int documentIndex,
@@ -199,7 +197,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             // list. When a user is typing quickly, the delegated request from the first keystroke will fail to synchronize,
             // so if we return a "complete" list then the query won't re-query us for completion once the typing stops/slows
             // so we'd only ever return Razor completion items.
-            return new VSInternalCompletionList()
+            return new RazorVSInternalCompletionList()
             {
                 Items = [],
                 IsIncomplete = true
@@ -207,7 +205,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         }
 
         var rewrittenResponse = DelegatedCompletionHelper.RewriteCSharpResponse(
-            completionList,
+            new(completionList),
             documentIndex,
             codeDocument,
             mappedPosition,

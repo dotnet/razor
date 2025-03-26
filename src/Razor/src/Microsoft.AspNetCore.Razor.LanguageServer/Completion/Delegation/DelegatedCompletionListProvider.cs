@@ -40,7 +40,7 @@ internal class DelegatedCompletionListProvider
     }
 
     // virtual for tests
-    public virtual ValueTask<VSInternalCompletionList?> GetCompletionListAsync(
+    public virtual ValueTask<RazorVSInternalCompletionList?> GetCompletionListAsync(
         RazorCodeDocument codeDocument,
         int absoluteIndex,
         VSInternalCompletionContext completionContext,
@@ -91,7 +91,7 @@ internal class DelegatedCompletionListProvider
             cancellationToken));
     }
 
-    private async Task<VSInternalCompletionList?> GetDelegatedCompletionListAsync(
+    private async Task<RazorVSInternalCompletionList?> GetDelegatedCompletionListAsync(
         RazorCodeDocument codeDocument,
         int absoluteIndex,
         VSInternalCompletionContext completionContext,
@@ -114,7 +114,7 @@ internal class DelegatedCompletionListProvider
             correlationId);
 
         var delegatedResponse = await _clientConnection
-            .SendRequestAsync<DelegatedCompletionParams, VSInternalCompletionList?>(
+            .SendRequestAsync<DelegatedCompletionParams, RazorVSInternalCompletionList?>(
                 LanguageServerConstants.RazorCompletionEndpointName,
                 delegatedParams,
                 cancellationToken)

@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 /// </remarks>
 internal class SnippetResponseRewriter : IDelegatedCSharpCompletionResponseRewriter
 {
-    public VSInternalCompletionList Rewrite(
-        VSInternalCompletionList completionList,
+    public RazorVSInternalCompletionList Rewrite(
+        RazorVSInternalCompletionList completionList,
         RazorCodeDocument codeDocument,
         int hostDocumentIndex,
         Position projectedPosition,
         RazorCompletionOptions completionOptionsn)
     {
-        using var items = new PooledArrayBuilder<CompletionItem>(completionList.Items.Length);
+        using var items = new PooledArrayBuilder<VSInternalCompletionItem>(completionList.Items.Length);
 
         foreach (var item in completionList.Items)
         {

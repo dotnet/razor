@@ -22,7 +22,7 @@ internal class CompletionListProvider(
     private readonly DelegatedCompletionListProvider _delegatedCompletionListProvider = delegatedCompletionListProvider;
     private readonly CompletionTriggerAndCommitCharacters _triggerAndCommitCharacters = triggerAndCommitCharacters;
 
-    public ValueTask<VSInternalCompletionList?> GetCompletionListAsync(
+    public ValueTask<RazorVSInternalCompletionList?> GetCompletionListAsync(
         int absoluteIndex,
         VSInternalCompletionContext completionContext,
         DocumentContext documentContext,
@@ -49,7 +49,7 @@ internal class CompletionListProvider(
             : default;
     }
 
-    private async Task<VSInternalCompletionList?> GetCompletionListCoreAsync(
+    private async Task<RazorVSInternalCompletionList?> GetCompletionListCoreAsync(
         int absoluteIndex,
         VSInternalCompletionContext completionContext,
         DocumentContext documentContext,
@@ -65,7 +65,7 @@ internal class CompletionListProvider(
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         // First we delegate to get completion items from the individual language server
-        VSInternalCompletionList? delegatedCompletionList = null;
+        RazorVSInternalCompletionList? delegatedCompletionList = null;
         HashSet<string>? existingItems = null;
 
         if (isDelegationTrigger)
@@ -90,7 +90,7 @@ internal class CompletionListProvider(
         }
 
         // Now we get the Razor completion list, using information from the actual language server if necessary
-        VSInternalCompletionList? razorCompletionList = null;
+        RazorVSInternalCompletionList? razorCompletionList = null;
 
         if (isRazorTrigger)
         {

@@ -9,19 +9,17 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal static class CompletionListOptimizer
 {
-    public static VSInternalCompletionList Optimize(VSInternalCompletionList completionList, VSInternalCompletionSetting? completionCapability)
+    public static RazorVSInternalCompletionList Optimize(RazorVSInternalCompletionList completionList, VSInternalCompletionSetting? completionCapability)
     {
         if (completionCapability is not null)
         {
             completionList = OptimizeCommitCharacters(completionList, completionCapability);
         }
 
-        // We wrap the pre-existing completion list with an optimized completion list to better control serialization/deserialization
-        var optimizedCompletionList = new OptimizedVSCompletionList(completionList);
-        return optimizedCompletionList;
+        return completionList;
     }
 
-    private static VSInternalCompletionList OptimizeCommitCharacters(VSInternalCompletionList completionList, VSInternalCompletionSetting completionCapability)
+    private static RazorVSInternalCompletionList OptimizeCommitCharacters(RazorVSInternalCompletionList completionList, VSInternalCompletionSetting completionCapability)
     {
         var completionListCapability = completionCapability.CompletionList;
         if (completionListCapability?.CommitCharacters != true)
@@ -34,7 +32,7 @@ internal static class CompletionListOptimizer
         return completionList;
     }
 
-    private static VSInternalCompletionList PromoteVSCommonCommitCharactersOntoList(VSInternalCompletionList completionList)
+    private static RazorVSInternalCompletionList PromoteVSCommonCommitCharactersOntoList(RazorVSInternalCompletionList completionList)
     {
         (AliasedVSCommitCharacters VsCommitCharacters, List<VSInternalCompletionItem> AssociatedCompletionItems)? mostUsedCommitCharacterToItems = null;
         var commitCharacterMap = new Dictionary<AliasedVSCommitCharacters, List<VSInternalCompletionItem>>(AliasedVSCommitCharactersComparer.Instance);

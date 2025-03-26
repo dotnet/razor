@@ -14,7 +14,7 @@ public class CompletionListOptimizerTest(ITestOutputHelper testOutput) : Tooling
     {
         // Arrange
         var commitCharacters = new[] { "<" };
-        var completionList = new VSInternalCompletionList()
+        var completionList = new RazorVSInternalCompletionList()
         {
             Items = new[]
             {
@@ -50,7 +50,7 @@ public class CompletionListOptimizerTest(ITestOutputHelper testOutput) : Tooling
     {
         // Arrange
         var commitCharacters = new[] { "<" };
-        var completionList = new VSInternalCompletionList()
+        var completionList = new RazorVSInternalCompletionList()
         {
             Items = [
                 new VSInternalCompletionItem()

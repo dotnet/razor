@@ -7,8 +7,8 @@ namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 
 internal interface IDelegatedCSharpCompletionResponseRewriter
 {
-    VSInternalCompletionList Rewrite(
-        VSInternalCompletionList completionList,
+    RazorVSInternalCompletionList Rewrite(
+        RazorVSInternalCompletionList completionList,
         RazorCodeDocument codeDocument,
         int hostDocumentIndex,
         Position projectedPosition,

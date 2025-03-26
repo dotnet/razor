@@ -13,7 +13,7 @@ internal static class VSInternalCompletionListExtensions
     private const string ResultIdKey = "_resultId";
 
     public static void SetResultId(
-        this VSInternalCompletionList completionList,
+        this RazorVSInternalCompletionList completionList,
         int resultId,
         VSInternalCompletionSetting? completionSetting)
     {

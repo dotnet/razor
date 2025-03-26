@@ -7,8 +7,8 @@ namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 
 internal class TextEditResponseRewriter : IDelegatedCSharpCompletionResponseRewriter
 {
-    public VSInternalCompletionList Rewrite(
-        VSInternalCompletionList completionList,
+    public RazorVSInternalCompletionList Rewrite(
+        RazorVSInternalCompletionList completionList,
         RazorCodeDocument codeDocument,
         int hostDocumentIndex,
         Position projectedPosition,
@@ -35,10 +35,10 @@ internal class TextEditResponseRewriter : IDelegatedCSharpCompletionResponseRewr
         return completionList;
     }
 
-    private static VSInternalCompletionList TranslateTextEdits(
+    private static RazorVSInternalCompletionList TranslateTextEdits(
         Position hostDocumentPosition,
         Position projectedPosition,
-        VSInternalCompletionList completionList)
+        RazorVSInternalCompletionList completionList)
     {
         // The TextEdit positions returned to us from the C#/HTML language servers are positions correlating to the virtual document.
         // We need to translate these positions to apply to the Razor document instead. Performance is a big concern here, so we want to

@@ -24,7 +24,7 @@ internal sealed class SnippetCompletionItemProvider
         RazorLanguageKind projectedKind,
         VSInternalCompletionInvokeKind invokeKind,
         string? triggerCharacter,
-        ref PooledArrayBuilder<CompletionItem> builder)
+        ref PooledArrayBuilder<VSInternalCompletionItem> builder)
     {
         // Temporary fix: snippets are broken in CSharp. We're investigating
         // but this is very disruptive. This quick fix unblocks things.
@@ -53,7 +53,7 @@ internal sealed class SnippetCompletionItemProvider
         }
 
         builder.AddRange(snippets
-            .Select(s => new CompletionItem()
+            .Select(s => new VSInternalCompletionItem()
             {
                 Label = s.Shortcut,
                 Detail = s.Description,

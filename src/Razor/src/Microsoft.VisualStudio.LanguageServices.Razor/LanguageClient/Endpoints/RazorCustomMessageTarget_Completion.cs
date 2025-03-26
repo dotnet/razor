@@ -60,7 +60,7 @@ internal partial class RazorCustomMessageTarget
     }
 
     [JsonRpcMethod(LanguageServerConstants.RazorCompletionEndpointName, UseSingleObjectParameterDeserialization = true)]
-    public async Task<VSInternalCompletionList?> ProvideCompletionsAsync(
+    public async Task<RazorVSInternalCompletionList?> ProvideCompletionsAsync(
         DelegatedCompletionParams request,
         CancellationToken cancellationToken)
     {
@@ -127,10 +127,10 @@ internal partial class RazorCustomMessageTarget
         {
             var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
             var lspMethodName = Methods.TextDocumentCompletion.Name;
-            ReinvocationResponse<VSInternalCompletionList?>? response;
+            ReinvocationResponse<RazorVSInternalCompletionList?>? response;
             using (_telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, TelemetryThresholds.CompletionSubLSPTelemetryThreshold, request.CorrelationId))
             {
-                response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, VSInternalCompletionList?>(
+                response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, RazorVSInternalCompletionList?>(
                     textBuffer,
                     lspMethodName,
                     languageServerName,
@@ -139,7 +139,7 @@ internal partial class RazorCustomMessageTarget
             }
 
             var completionList = response?.Response;
-            using var builder = new PooledArrayBuilder<CompletionItem>();
+            using var builder = new PooledArrayBuilder<VSInternalCompletionItem>();
 
             if (completionList is not null)
             {
@@ -147,8 +147,9 @@ internal partial class RazorCustomMessageTarget
             }
             else
             {
-                completionList = new VSInternalCompletionList()
+                completionList = new RazorVSInternalCompletionList()
                 {
+                    Items = [],
                     // If we don't get a response from the delegated server, we have to make sure to return an incomplete completion
                     // list. When a user is typing quickly, the delegated request from the first keystroke will fail to synchronize,
                     // so if we return a "complete" list then the query won't re-query us for completion once the typing stops/slows
@@ -240,7 +241,7 @@ internal partial class RazorCustomMessageTarget
     }
 
     [JsonRpcMethod(LanguageServerConstants.RazorCompletionResolveEndpointName, UseSingleObjectParameterDeserialization = true)]
-    public async Task<CompletionItem?> ProvideResolvedCompletionItemAsync(DelegatedCompletionItemResolveParams request, CancellationToken cancellationToken)
+    public async Task<VSInternalCompletionItem?> ProvideResolvedCompletionItemAsync(DelegatedCompletionItemResolveParams request, CancellationToken cancellationToken)
     {
         // Check if we're completing a snippet item that we provided
         if (SnippetCompletionData.TryParse(request.CompletionItem.Data, out var snippetCompletionData) &&
@@ -294,7 +295,7 @@ internal partial class RazorCustomMessageTarget
         }
 
         var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
-        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalCompletionItem, CompletionItem?>(
+        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalCompletionItem, VSInternalCompletionItem?>(
             textBuffer,
             Methods.TextDocumentCompletionResolve.Name,
             languageServerName,
@@ -319,7 +320,7 @@ internal partial class RazorCustomMessageTarget
             TabSize = formattingOptions.TabSize,
             InsertSpaces = formattingOptions.InsertSpaces,
             // Options come from the VS protocol DLL, which uses Dict<string, object> for options, but Roslyn is more strongly typed.
-            OtherOptions = formattingOptions.OtherOptions.ToDictionary(k => k.Key, v => v.Value switch
+            OtherOptions = formattingOptions.OtherOptions?.ToDictionary(k => k.Key, v => v.Value switch
             {
                 bool b => b,
                 int i => i,
