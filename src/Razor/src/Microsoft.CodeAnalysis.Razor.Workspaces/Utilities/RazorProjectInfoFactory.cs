@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
-using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectEngineHost;
 
 namespace Microsoft.AspNetCore.Razor.Utilities;
 

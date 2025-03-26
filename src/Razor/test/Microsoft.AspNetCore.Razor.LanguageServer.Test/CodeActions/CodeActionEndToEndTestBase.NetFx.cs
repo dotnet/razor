@@ -347,7 +347,6 @@ public abstract class CodeActionEndToEndTestBase(ITestOutputHelper testOutput) :
                 new(TagHelperMetadata.Common.TypeNameIdentifier, "TestGenericComponent"));
             yield return builder.Build();
 
-
             // Sets up a component to make the following available
             // <TestComponent OnDragStart="OnDragStart" />
             //

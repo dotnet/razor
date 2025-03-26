@@ -6,10 +6,10 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem.Legacy;
-using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectEngineHost;
 
 namespace Microsoft.VisualStudio.LegacyEditor.Razor;
 

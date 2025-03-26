@@ -4,7 +4,7 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.ProjectEngineHost;
+namespace Microsoft.AspNetCore.Razor.ProjectSystem;
 
 internal sealed class EmptyProjectEngineFactory : IProjectEngineFactory
 {

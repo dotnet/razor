@@ -3,8 +3,9 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.ProjectEngineHost;
+namespace Microsoft.AspNetCore.Razor.ProjectSystem;
 
 internal class DefaultProjectEngineFactory : IProjectEngineFactory
 {
