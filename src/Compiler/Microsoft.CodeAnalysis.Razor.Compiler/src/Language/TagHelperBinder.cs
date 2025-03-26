@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -99,31 +99,39 @@ internal sealed class TagHelperBinder
             return null;
         }
 
-        var tagNameWithoutPrefix = tagName.AsSpanOrDefault();
-        var parentTagNameWithoutPrefix = parentTagName.AsSpanOrDefault();
+        var tagNameSpan = tagName.AsSpanOrDefault();
+        var parentTagNameSpan = parentTagName.AsSpanOrDefault();
 
         if (TagHelperPrefix is { Length: var length and > 0 })
         {
-            tagNameWithoutPrefix = tagNameWithoutPrefix[length..];
+            tagNameSpan = tagNameSpan[length..];
 
             if (parentIsTagHelper)
             {
-                parentTagNameWithoutPrefix = parentTagNameWithoutPrefix[length..];
+                parentTagNameSpan = parentTagNameSpan[length..];
             }
         }
 
-        using var _ = DictionaryPool<TagHelperDescriptor, ImmutableArray<TagMatchingRuleDescriptor>>.GetPooledObject(out var applicableDescriptors);
+        using var pooledSet = HashSetPool<TagHelperDescriptor>.GetPooledObject(out var distinctSet);
+        using var resultsBuilder = new PooledArrayBuilder<TagHelperBoundRulesInfo>();
+        using var tempRulesBuilder = new PooledArrayBuilder<TagMatchingRuleDescriptor>();
 
         // First, try any tag helpers with this tag name.
         if (_tagNameToDescriptorsMap.TryGetValue(tagName, out var matchingDescriptors))
         {
-            FindApplicableDescriptors(matchingDescriptors, tagNameWithoutPrefix, parentTagNameWithoutPrefix, attributes, applicableDescriptors);
+            CollectBoundRulesInfo(
+                matchingDescriptors,
+                tagNameSpan, parentTagNameSpan, attributes,
+                distinctSet, ref resultsBuilder.AsRef(), ref tempRulesBuilder.AsRef());
         }
 
         // Next, try any "catch all" descriptors.
-        FindApplicableDescriptors(_catchAllDescriptors, tagNameWithoutPrefix, parentTagNameWithoutPrefix, attributes, applicableDescriptors);
+        CollectBoundRulesInfo(
+            _catchAllDescriptors,
+            tagNameSpan, parentTagNameSpan, attributes,
+            distinctSet, ref resultsBuilder.AsRef(), ref tempRulesBuilder.AsRef());
 
-        if (applicableDescriptors.Count == 0)
+        if (resultsBuilder.Count == 0)
         {
             return null;
         }
@@ -132,34 +140,41 @@ internal sealed class TagHelperBinder
             tagName,
             attributes,
             parentTagName,
-            applicableDescriptors.ToFrozenDictionary(),
+            resultsBuilder.DrainToImmutable(),
             TagHelperPrefix);
 
-        static void FindApplicableDescriptors(
+        static void CollectBoundRulesInfo(
             ImmutableArray<TagHelperDescriptor> descriptors,
-            ReadOnlySpan<char> tagNameWithoutPrefix,
-            ReadOnlySpan<char> parentTagNameWithoutPrefix,
+            ReadOnlySpan<char> tagName,
+            ReadOnlySpan<char> parentTagName,
             ImmutableArray<KeyValuePair<string, string>> attributes,
-            Dictionary<TagHelperDescriptor, ImmutableArray<TagMatchingRuleDescriptor>> applicableDescriptors)
+            HashSet<TagHelperDescriptor> distinctSet,
+            ref PooledArrayBuilder<TagHelperBoundRulesInfo> resultsBuilder,
+            ref PooledArrayBuilder<TagMatchingRuleDescriptor> tempRulesBuilder)
         {
-            using var applicableRules = new PooledArrayBuilder<TagMatchingRuleDescriptor>();
-
             foreach (var descriptor in descriptors)
             {
+                if (!distinctSet.Add(descriptor))
+                {
+                    continue; // We've already seen this descriptor.
+                }
+
+                Debug.Assert(tempRulesBuilder.Count == 0);
+
                 foreach (var rule in descriptor.TagMatchingRules)
                 {
-                    if (TagHelperMatchingConventions.SatisfiesRule(rule, tagNameWithoutPrefix, parentTagNameWithoutPrefix, attributes))
+                    if (TagHelperMatchingConventions.SatisfiesRule(rule, tagName, parentTagName, attributes))
                     {
-                        applicableRules.Add(rule);
+                        tempRulesBuilder.Add(rule);
                     }
                 }
 
-                if (applicableRules.Count > 0)
+                if (tempRulesBuilder.Count > 0)
                 {
-                    applicableDescriptors[descriptor] = applicableRules.DrainToImmutable();
+                    resultsBuilder.Add(new(descriptor, tempRulesBuilder.ToImmutable()));
                 }
 
-                applicableRules.Clear();
+                tempRulesBuilder.Clear();
             }
         }
     }
