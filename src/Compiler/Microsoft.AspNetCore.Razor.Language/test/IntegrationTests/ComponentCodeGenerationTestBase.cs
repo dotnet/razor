@@ -2374,6 +2374,24 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact]
+    public void Component_AddContent_Multiline()
+    {
+        // Act
+        var generated = CompileToCSharp(""""
+            @(@"This
+            is
+            a
+            multiline
+            string")
+            """");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     #endregion
 
     #region Bind
