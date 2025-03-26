@@ -21,11 +21,13 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.Settings;
 using Microsoft.VisualStudio.Razor.Snippets;
-using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalCompletionList?>;
+using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.VSInternalCompletionList?>;
 using RoslynCompletionContext = Roslyn.LanguageServer.Protocol.CompletionContext;
 using RoslynCompletionParams = Roslyn.LanguageServer.Protocol.CompletionParams;
 using RoslynLspExtensions = Roslyn.LanguageServer.Protocol.RoslynLspExtensions;
 using RoslynPosition = Roslyn.LanguageServer.Protocol.Position;
+using RoslynTextDocumentIdentifier = Roslyn.LanguageServer.Protocol.TextDocumentIdentifier;
+using RoslynVSInternalCompletionList = Roslyn.LanguageServer.Protocol.VSInternalCompletionList;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -39,19 +41,23 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 internal sealed class CohostDocumentCompletionEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
     IClientSettingsManager clientSettingsManager,
+    IClientCapabilitiesService clientCapabilitiesService,
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     SnippetCompletionItemProvider snippetCompletionItemProvider,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     LSPRequestInvoker requestInvoker,
+    CompletionListCache completionListCache,
     ILoggerFactory loggerFactory)
-    : AbstractRazorCohostDocumentRequestHandler<RoslynCompletionParams, VSInternalCompletionList?>, IDynamicRegistrationProvider
+    : AbstractRazorCohostDocumentRequestHandler<RoslynCompletionParams, RoslynVSInternalCompletionList?>, IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
+    private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
     private readonly SnippetCompletionItemProvider _snippetCompletionItemProvider = snippetCompletionItemProvider;
     private readonly CompletionTriggerAndCommitCharacters _triggerAndCommitCharacters = new(languageServerFeatureOptions);
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
+    private readonly CompletionListCache _completionListCache = completionListCache;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostDocumentCompletionEndpoint>();
 
     protected override bool MutatesSolutionState => false;
@@ -78,18 +84,21 @@ internal sealed class CohostDocumentCompletionEndpoint(
     }
 
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(RoslynCompletionParams request)
-        => request.TextDocument is null ? null : RoslynLspExtensions.ToRazorTextDocumentIdentifier(request.TextDocument);
+        => RoslynLspExtensions.ToRazorTextDocumentIdentifier(request.TextDocument);
 
-    protected override Task<VSInternalCompletionList?> HandleRequestAsync(RoslynCompletionParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+    protected override Task<RoslynVSInternalCompletionList?> HandleRequestAsync(RoslynCompletionParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
         => HandleRequestAsync(request, context.TextDocument.AssumeNotNull(), cancellationToken);
 
-    private async Task<VSInternalCompletionList?> HandleRequestAsync(RoslynCompletionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    private async Task<RoslynVSInternalCompletionList?> HandleRequestAsync(RoslynCompletionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         if (request.Context is null || JsonHelpers.ToVsLSP<VSInternalCompletionContext, RoslynCompletionContext>(request.Context) is not VSInternalCompletionContext completionContext)
         {
             _logger.LogError("Completion request context is null");
             return null;
         }
+
+        // Save as it may be modified if we forward request to HTML language server
+        var originalTextDocumentIdentifier = request.TextDocument;
 
         // Return immediately if this is auto-shown completion but auto-shown completion is disallowed in settings
         var clientSettings = _clientSettingsManager.GetClientSettings();
@@ -176,10 +185,11 @@ internal sealed class CohostDocumentCompletionEndpoint(
         VSInternalCompletionList? combinedCompletionList = null;
         if (data.Result is { } oopCompletionList)
         {
+            var vsCompletionList = JsonHelpers.ToVsLSP<VSInternalCompletionList, RoslynVSInternalCompletionList>(oopCompletionList);
             combinedCompletionList = htmlCompletionList is { Items: [_, ..] }
                 // If we have HTML completions, that means OOP completion list is really just Razor completion list
-                ? CompletionListMerger.Merge(oopCompletionList, htmlCompletionList)
-                : oopCompletionList;
+                ? CompletionListMerger.Merge(vsCompletionList, htmlCompletionList)
+                : vsCompletionList;
         }
         else
         {
@@ -196,7 +206,18 @@ internal sealed class CohostDocumentCompletionEndpoint(
                 completionContext.TriggerCharacter);
         }
 
-        return combinedCompletionList;
+        if (combinedCompletionList is null)
+        {
+            return null;
+        }
+
+        var completionCapability = _clientCapabilitiesService.ClientCapabilities.TextDocument?.Completion as VSInternalCompletionSetting;
+        var supportsCompletionListData = completionCapability?.CompletionList?.Data ?? false;
+
+        var textDocument = JsonHelpers.ToVsLSP<TextDocumentIdentifier, RoslynTextDocumentIdentifier>(originalTextDocumentIdentifier).AssumeNotNull();
+        RazorCompletionResolveData.Wrap(combinedCompletionList, textDocument, supportsCompletionListData: supportsCompletionListData);
+
+        return JsonHelpers.ToRoslynLSP<RoslynVSInternalCompletionList, VSInternalCompletionList>(combinedCompletionList);
     }
 
     private async Task<VSInternalCompletionList?> GetHtmlCompletionListAsync(
@@ -211,9 +232,10 @@ internal sealed class CohostDocumentCompletionEndpoint(
             return null;
         }
 
+        var originalTextDocumentIdentifier = request.TextDocument;
         request.TextDocument = RoslynLspExtensions.WithUri(request.TextDocument, htmlDocument.Uri);
 
-        _logger.LogDebug($"Resolving auto-insertion edit for {htmlDocument.Uri}");
+        _logger.LogDebug($"Getting completion list for {htmlDocument.Uri} at {request.Position}");
 
         var result = await _requestInvoker.ReinvokeRequestOnServerAsync<RoslynCompletionParams, VSInternalCompletionList?>(
             htmlDocument.Buffer,
@@ -223,6 +245,14 @@ internal sealed class CohostDocumentCompletionEndpoint(
             cancellationToken).ConfigureAwait(false);
 
         var rewrittenResponse = DelegatedCompletionHelper.RewriteHtmlResponse(result?.Response, razorCompletionOptions);
+
+        var completionCapability = _clientCapabilitiesService.ClientCapabilities.TextDocument?.Completion as VSInternalCompletionSetting;
+
+        var textDocument = JsonHelpers.ToVsLSP<TextDocumentIdentifier, RoslynTextDocumentIdentifier>(originalTextDocumentIdentifier).AssumeNotNull();
+        var razorDocumentIdentifier = new TextDocumentIdentifierAndVersion(textDocument, Version: 0);
+        var resolutionContext = new DelegatedCompletionResolutionContext(razorDocumentIdentifier, RazorLanguageKind.Html, rewrittenResponse.Data);
+        var resultId = _completionListCache.Add(rewrittenResponse, resolutionContext);
+        rewrittenResponse.SetResultId(resultId, completionCapability);
 
         return rewrittenResponse;
     }
@@ -269,7 +299,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
 
     internal readonly struct TestAccessor(CohostDocumentCompletionEndpoint instance)
     {
-        public Task<VSInternalCompletionList?> HandleRequestAsync(
+        public Task<RoslynVSInternalCompletionList?> HandleRequestAsync(
             RoslynCompletionParams request,
             TextDocument razorDocument,
             CancellationToken cancellationToken)
