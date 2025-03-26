@@ -24,7 +24,6 @@ using Microsoft.VisualStudio.Razor.Snippets;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Moq;
-using Roslyn.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 

@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.Razor.Settings;
 using Microsoft.VisualStudio.Razor.Snippets;
-using Roslyn.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 

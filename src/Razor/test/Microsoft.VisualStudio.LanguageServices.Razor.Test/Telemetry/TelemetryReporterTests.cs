@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.Editor.Razor.Test.Shared;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Telemetry.Metrics;
-using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
