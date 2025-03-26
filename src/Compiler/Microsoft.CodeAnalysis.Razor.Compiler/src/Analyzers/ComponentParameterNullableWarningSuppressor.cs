@@ -47,7 +47,7 @@ public sealed class ComponentParameterNullableWarningSuppressor : DiagnosticSupp
         bool IsValidEditorRequiredParameter(ISymbol? symbol)
         {
             // public instance property, with a public setter
-            if (symbol is not IPropertySymbol { DeclaredAccessibility: Accessibility.Public, IsStatic: false, SetMethod: not null and { DeclaredAccessibility: Accessibility.Public } })
+            if (symbol is not IPropertySymbol { DeclaredAccessibility: Accessibility.Public, IsStatic: false, SetMethod.DeclaredAccessibility: Accessibility.Public })
             {
                 return false;
             }
