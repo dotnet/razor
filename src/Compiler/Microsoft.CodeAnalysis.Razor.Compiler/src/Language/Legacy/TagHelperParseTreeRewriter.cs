@@ -34,9 +34,9 @@ internal static class TagHelperParseTreeRewriter
         builder.AddRange(treeDiagnostics);
         builder.AddRange(sinkDiagnostics);
 
-        foreach (var tagHelper in binder.TagHelpers)
+        foreach (var descriptor in binder.Descriptors)
         {
-            foreach (var diagnostic in tagHelper.GetAllDiagnostics())
+            foreach (var diagnostic in descriptor.GetAllDiagnostics())
             {
                 builder.Add(diagnostic);
             }
@@ -137,7 +137,7 @@ internal static class TagHelperParseTreeRewriter
                     else
                     {
                         // Tag helper start tag. Keep track.
-                        var tracker = new TagHelperTracker(_binder.TagHelperPrefix, tagHelperInfo);
+                        var tracker = new TagHelperTracker(_binder.TagNamePrefix, tagHelperInfo);
                         _trackerStack.Push(tracker);
                     }
                 }
@@ -726,7 +726,7 @@ internal static class TagHelperParseTreeRewriter
         {
             public uint OpenMatchingTags;
 
-            private readonly string? _tagHelperPrefix;
+            private readonly string? _tagNamePrefix;
             private readonly TagHelperBinding _binding;
 
             private readonly Lazy<(ImmutableArray<string> Names, HashSet<string> NameSet)> _lazyAllowedChildren;
@@ -734,10 +734,10 @@ internal static class TagHelperParseTreeRewriter
 
             public ImmutableArray<string> AllowedChildren => _lazyAllowedChildren.Value.Names;
 
-            public TagHelperTracker(string? tagHelperPrefix, TagHelperInfo info)
+            public TagHelperTracker(string? tagNamePrefix, TagHelperInfo info)
                 : base(info.TagName, IsTagHelper: true)
             {
-                _tagHelperPrefix = tagHelperPrefix;
+                _tagNamePrefix = tagNamePrefix;
                 _binding = info.BindingResult;
 
                 _lazyAllowedChildren = new(CreateAllowedChildren);
@@ -773,7 +773,7 @@ internal static class TagHelperParseTreeRewriter
 
             private HashSet<string> CreatePrefixedAllowedChildren()
             {
-                if (_tagHelperPrefix is not string tagHelperPrefix)
+                if (_tagNamePrefix is not string tagNamePrefix)
                 {
                     return _lazyAllowedChildren.Value.NameSet;
                 }
@@ -782,7 +782,7 @@ internal static class TagHelperParseTreeRewriter
 
                 foreach (var childName in AllowedChildren)
                 {
-                    distinctSet.Add(tagHelperPrefix + childName);
+                    distinctSet.Add(tagNamePrefix + childName);
                 }
 
                 return distinctSet;

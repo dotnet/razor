@@ -9,26 +9,26 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 internal sealed class TagHelperBinding
 {
+    public ImmutableArray<TagHelperBoundRulesInfo> AllBoundRules { get; }
+    public string? TagNamePrefix { get; }
     public string TagName { get; }
     public string? ParentTagName { get; }
     public ImmutableArray<KeyValuePair<string, string>> Attributes { get; }
-    public ImmutableArray<TagHelperBoundRulesInfo> AllBoundRules { get; }
-    public string? TagHelperPrefix { get; }
 
     private ImmutableArray<TagHelperDescriptor> _descriptors;
 
     internal TagHelperBinding(
-        string tagName,
-        ImmutableArray<KeyValuePair<string, string>> attributes,
-        string? parentTagName,
         ImmutableArray<TagHelperBoundRulesInfo> allBoundRules,
-        string? tagHelperPrefix)
+        string tagName,
+        string? parentTagName,
+        ImmutableArray<KeyValuePair<string, string>> attributes,
+        string? tagNamePrefix)
     {
-        TagName = tagName;
-        Attributes = attributes;
-        ParentTagName = parentTagName;
         AllBoundRules = allBoundRules;
-        TagHelperPrefix = tagHelperPrefix;
+        TagName = tagName;
+        ParentTagName = parentTagName;
+        Attributes = attributes;
+        TagNamePrefix = tagNamePrefix;
     }
 
     public ImmutableArray<TagHelperDescriptor> Descriptors

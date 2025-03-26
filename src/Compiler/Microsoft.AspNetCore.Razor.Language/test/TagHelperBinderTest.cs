@@ -38,7 +38,7 @@ public class TagHelperBinderTest
         Assert.Equal("th:div", bindingResult.TagName);
         Assert.Equal("body", bindingResult.ParentTagName);
         Assert.Equal<KeyValuePair<string, string>>(expectedAttributes, bindingResult.Attributes);
-        Assert.Equal("th:", bindingResult.TagHelperPrefix);
+        Assert.Equal("th:", bindingResult.TagNamePrefix);
         Assert.Equal<TagMatchingRuleDescriptor>(divTagHelper.TagMatchingRules, bindingResult.GetBoundRules(divTagHelper));
     }
 
