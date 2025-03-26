@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostInlineCompletionEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [Fact(Skip = "Cannot edit source generated documents")]
+    [Fact]
     public Task Constructor()
         => VerifyInlineCompletionAsync(
             input: """
@@ -49,7 +49,7 @@ public class CohostInlineCompletionEndpointTest(ITestOutputHelper testOutputHelp
                 }
                 """);
 
-    [Fact(Skip = "Cannot edit source generated documents")]
+    [Fact]
     public Task Constructor_SmallIndent()
         => VerifyInlineCompletionAsync(
             input: """
