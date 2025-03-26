@@ -91,11 +91,11 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         _sourceSequence++;
 
         // Sequence points can only be emitted when the eval stack is empty. That means we can't arbitrarily map everything that could be in
-        // the node. Instead we map just the first c# child node by putting the pragma before we start the method invocation and offset it.
+        // the node. Instead we map just the first C# child node by putting the pragma before we start the method invocation and offset it.
         // This is not a perfect mapping, but generally this works for most cases:
-        // - Common case: there is only a single node and it is c#, so it maps correctly
+        // - Common case: there is only a single node and it is C#, so it maps correctly
         // - There is some C# followed by a render template: the C# gets mapped, and the render template issues a lambda call which conceptually
-        //   is another method so a sequence point can be emitted. Unfortunately any trailing C# is not mapped, although in many cases its uninteresting
+        //   is another method so a sequence point can be emitted. Unfortunately any trailing C# is not mapped, although in many cases it's uninteresting
         //   such as closing parenthesis.
         // - Error cases: there are no nodes, so we do nothing
         var firstCSharpChild = node.Children.FirstOrDefault(IsCSharpToken) as IntermediateToken;
