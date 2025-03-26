@@ -53,7 +53,7 @@ public sealed class ComponentParameterNullableWarningSuppressor : DiagnosticSupp
             }
 
             // containing type implements IComponent
-            if (!symbol.ContainingType.AllInterfaces.Any(@interface => @interface.Equals(componentSymbol, SymbolEqualityComparer.Default)))
+            if (!symbol.ContainingType.AllInterfaces.Any(componentSymbol, static (@interface, componentSymbol) => @interface.Equals(componentSymbol, SymbolEqualityComparer.Default)))
             {
                 return false;
             }
