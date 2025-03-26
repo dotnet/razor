@@ -132,7 +132,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
         context.CodeWriter.WriteEndMethodInvocation();
 
-        bool IsCSharpToken(IntermediateNode n) => n is IntermediateToken token && token.IsCSharp;
+        static bool IsCSharpToken(IntermediateNode n) => n is IntermediateToken token && token.IsCSharp;
     }
 
     public override void WriteCSharpExpressionAttributeValue(CodeRenderingContext context, CSharpExpressionAttributeValueIntermediateNode node)
