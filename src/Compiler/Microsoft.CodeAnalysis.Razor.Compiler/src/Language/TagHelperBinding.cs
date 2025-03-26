@@ -16,6 +16,7 @@ internal sealed class TagHelperBinding
     public ImmutableArray<KeyValuePair<string, string>> Attributes { get; }
 
     private ImmutableArray<TagHelperDescriptor> _descriptors;
+    private bool? _isAttributeMatch;
 
     internal TagHelperBinding(
         ImmutableArray<TagHelperBoundRulesInfo> allBoundRules,
@@ -48,32 +49,39 @@ internal sealed class TagHelperBinding
         => AllBoundRules.First(descriptor, static (info, d) => info.Descriptor.Equals(d)).Rules;
 
     /// <summary>
-    /// Gets a value that indicates whether the the binding matched on attributes only.
+    ///  Gets a value that indicates whether the the binding matched on attributes only.
     /// </summary>
-    /// <returns><c>false</c> if the entire element should be classified as a tag helper.</returns>
+    /// <returns>
+    ///  Returns <see langword="false"/> if the entire element should be classified as a tag helper.
+    /// </returns>
     /// <remarks>
-    /// If this returns <c>true</c>, use <c>TagHelperFactsService.GetBoundTagHelperAttributes</c> to find the
-    /// set of attributes that should be considered part of the match.
+    ///  If this returns <see langword="true"/>, use <c>TagHelperFactsService.GetBoundTagHelperAttributes</c> to find the
+    ///  set of attributes that should be considered part of the match.
     /// </remarks>
     public bool IsAttributeMatch
     {
         get
         {
-            foreach (var descriptor in Descriptors)
-            {
-                if (!descriptor.Metadata.TryGetValue(TagHelperMetadata.Common.ClassifyAttributesOnly, out var value) ||
-                    !string.Equals(value, bool.TrueString, StringComparison.OrdinalIgnoreCase))
-                {
-                    return false;
-                }
-            }
+            return _isAttributeMatch ??= ComputeIsAttributeMatch(Descriptors);
 
-            // All the matching tag helpers want to be classified with **attributes only**.
-            //
-            // Ex: (components)
-            //
-            //      <button onclick="..." />
-            return true;
+            static bool ComputeIsAttributeMatch(ImmutableArray<TagHelperDescriptor> descriptors)
+            {
+                foreach (var descriptor in descriptors)
+                {
+                    if (!descriptor.Metadata.TryGetValue(TagHelperMetadata.Common.ClassifyAttributesOnly, out var value) ||
+                        !string.Equals(value, bool.TrueString, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return false;
+                    }
+                }
+
+                // All the matching tag helpers want to be classified with **attributes only**.
+                //
+                // Ex: (components)
+                //
+                //      <button onclick="..." />
+                return true;
+            }
         }
     }
 }
