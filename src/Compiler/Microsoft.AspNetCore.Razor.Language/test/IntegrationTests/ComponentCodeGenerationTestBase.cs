@@ -2323,9 +2323,9 @@ namespace Test
             // __o = ;
             Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(3, 7)
             ] : [
-            // (24,36): error CS1525: Invalid expression term ')'
-            //             __builder.AddContent(3, 
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments(")").WithLocation(3, 2)
+            // x:\dir\subdir\Test\TestComponent.cshtml(3,2): error CS1525: Invalid expression term ')'
+            // __builder.AddContent(3, 
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments(")").WithLocation(4, 2)
             ]);
     }
 
@@ -10605,8 +10605,8 @@ namespace Test
                // x:\dir\subdir\Test\_Imports.razor(5,2): error CS0103: The name 'Foo' does not exist in the current context
                // Foo
                Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(5, 2),
-               // (33,13): error CS0103: The name '__builder' does not exist in the current context
-               //             __builder.AddContent(0,
+               // x:\dir\subdir\Test\_Imports.razor(5,2): error CS0103: The name '__builder' does not exist in the current context
+               // __builder.AddContent(0, Foo
                Diagnostic(ErrorCode.ERR_NameNotInContext, "__builder").WithArguments("__builder").WithLocation(5, 2)]);
     }
 
