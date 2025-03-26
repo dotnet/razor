@@ -347,10 +347,9 @@ internal static class TagHelperParseTreeRewriter
                     return false;
                 }
 
-                foreach (var descriptor in tagHelperBinding.Descriptors)
+                foreach (var boundRulesInfo in tagHelperBinding.AllBoundRules)
                 {
-                    var boundRules = tagHelperBinding.GetBoundRules(descriptor);
-                    var invalidRule = boundRules.FirstOrDefault(static rule => rule.TagStructure == TagStructure.WithoutEndTag);
+                    var invalidRule = boundRulesInfo.Rules.FirstOrDefault(static rule => rule.TagStructure == TagStructure.WithoutEndTag);
 
                     if (invalidRule != null)
                     {
@@ -359,7 +358,7 @@ internal static class TagHelperParseTreeRewriter
                             RazorDiagnosticFactory.CreateParsing_TagHelperMustNotHaveAnEndTag(
                                 new SourceSpan(SourceLocationTracker.Advance(endTag.GetSourceLocation(_source), "</"), tagName.Length),
                                 tagName,
-                                descriptor.DisplayName,
+                                boundRulesInfo.Descriptor.DisplayName,
                                 invalidRule.TagStructure));
 
                         return false;
@@ -462,10 +461,11 @@ internal static class TagHelperParseTreeRewriter
             TagHelperDescriptor? baseDescriptor = null;
             TagStructure? baseStructure = null;
 
-            foreach (var descriptor in bindingResult.Descriptors)
+            foreach (var boundRulesInfo in bindingResult.AllBoundRules)
             {
-                var boundRules = bindingResult.GetBoundRules(descriptor);
-                foreach (var rule in boundRules)
+                var descriptor = boundRulesInfo.Descriptor;
+
+                foreach (var rule in boundRulesInfo.Rules)
                 {
                     if (rule.TagStructure != TagStructure.Unspecified)
                     {
