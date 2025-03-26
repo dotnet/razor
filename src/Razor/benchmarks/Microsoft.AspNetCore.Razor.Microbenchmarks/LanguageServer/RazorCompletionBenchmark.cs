@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 
@@ -152,7 +151,7 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
         {
         }
 
-        public override ValueTask<VSInternalCompletionList?> GetCompletionListAsync(
+        public override ValueTask<RazorVSInternalCompletionList?> GetCompletionListAsync(
             RazorCodeDocument codeDocument,
             int absoluteIndex,
             VSInternalCompletionContext completionContext,
@@ -161,6 +160,6 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
             RazorCompletionOptions completionOptions,
             Guid correlationId,
             CancellationToken cancellationToken)
-            => new(new VSInternalCompletionList());
+            => new(new RazorVSInternalCompletionList() { Items = [] });
     }
 }

@@ -40,7 +40,7 @@ public abstract class LanguageServerTestBase : ToolingTestBase
     {
         SpanMappingService = new ThrowingRazorSpanMappingService();
 
-        SerializerOptions = JsonHelpers.VsLspJsonSerializerOptions;
+        SerializerOptions = JsonHelpers.JsonSerializerOptions;
         FilePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
     }
 
