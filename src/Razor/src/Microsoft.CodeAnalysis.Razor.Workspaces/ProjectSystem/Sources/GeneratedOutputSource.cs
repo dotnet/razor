@@ -56,7 +56,7 @@ internal sealed class GeneratedOutputSource(DocumentSnapshot document)
 
             if (_output is null)
             {
-                _output = new WeakReference<RazorCodeDocument>(result);
+                _output = new(result);
             }
             else
             {
