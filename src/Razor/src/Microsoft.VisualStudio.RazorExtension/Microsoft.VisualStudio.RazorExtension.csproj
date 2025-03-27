@@ -223,12 +223,8 @@
 
   <!-- Include our Razor package dependency dlls in our extension -->
   <ItemGroup>
-    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.Razor.Compiler.dll" />
-
-    <VSIXSourceItem Include="@(RazorNgendVSIXSourceItem)">
-      <Ngen>$(Ngen)</Ngen>
-      <NgenApplication>$(NgenApplication)</NgenApplication>
-      <NgenArchitecture>$(NgenArchitecture)</NgenArchitecture>
+    <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.Razor.Compiler.dll">
+      <Ngen>true</Ngen>
       <NgenPriority>1</NgenPriority>
     </VSIXSourceItem>
   </ItemGroup>
