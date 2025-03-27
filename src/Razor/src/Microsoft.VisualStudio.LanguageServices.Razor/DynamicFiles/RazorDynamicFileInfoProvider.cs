@@ -157,10 +157,9 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
             // server to recognize the document.
             var documentServiceProvider = entry.Current.DocumentServiceProvider;
             var excerptService = documentServiceProvider.GetService<IRazorDocumentExcerptServiceImplementation>();
-            var spanMappingService = documentServiceProvider.GetService<IRazorSpanMappingService>();
             var mappingService = documentServiceProvider.GetService<IRazorMappingService>();
             var emptyContainer = new PromotedDynamicDocumentContainer(
-                documentUri, propertiesService, excerptService, spanMappingService, mappingService, entry.Current.TextLoader);
+                documentUri, propertiesService, excerptService, mappingService, entry.Current.TextLoader);
 
             lock (entry.Lock)
             {
@@ -431,14 +430,12 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         Uri documentUri,
         IRazorDocumentPropertiesService documentPropertiesService,
         IRazorDocumentExcerptServiceImplementation? documentExcerptService,
-        IRazorSpanMappingService? spanMappingService,
         IRazorMappingService? mappingService,
         TextLoader textLoader) : IDynamicDocumentContainer
     {
         private readonly Uri _documentUri = documentUri;
         private readonly IRazorDocumentPropertiesService _documentPropertiesService = documentPropertiesService;
         private readonly IRazorDocumentExcerptServiceImplementation? _documentExcerptService = documentExcerptService;
-        private readonly IRazorSpanMappingService? _spanMappingService = spanMappingService;
         private readonly IRazorMappingService? _mappingService = mappingService;
         private readonly TextLoader _textLoader = textLoader;
 
@@ -454,8 +451,6 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         public IRazorDocumentPropertiesService GetDocumentPropertiesService() => _documentPropertiesService;
 
         public IRazorDocumentExcerptServiceImplementation? GetExcerptService() => _documentExcerptService;
-
-        public IRazorSpanMappingService? GetSpanMappingService() => _spanMappingService;
 
         public TextLoader GetTextLoader(string filePath) => _textLoader;
 
