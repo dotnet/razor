@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -2389,7 +2388,8 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated);
+        var result = CompileToAssembly(generated);
+        AssertSequencePointsMatchBaseline(result, generated.CodeDocument);
     }
 
     #endregion
@@ -5087,7 +5087,8 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated);
+        var result = CompileToAssembly(generated);
+        AssertSequencePointsMatchBaseline(result, generated.CodeDocument);
     }
 
     [IntegrationTestFact]
@@ -5117,9 +5118,9 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated);
+        var result = CompileToAssembly(generated);
+        AssertSequencePointsMatchBaseline(result, generated.CodeDocument);
     }
-
 
     [IntegrationTestFact]
     public void ChildComponent_WithGenericChildContent_SetsParameterName()
@@ -5336,7 +5337,8 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated);
+        var result = CompileToAssembly(generated);
+        AssertSequencePointsMatchBaseline(result, generated.CodeDocument);
     }
 
     [IntegrationTestFact]
@@ -5373,7 +5375,8 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated);
+        var result = CompileToAssembly(generated);
+        AssertSequencePointsMatchBaseline(result, generated.CodeDocument);
     }
 
     [IntegrationTestFact]
