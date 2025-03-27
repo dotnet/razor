@@ -2318,14 +2318,14 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, DesignTime?[
+        CompileToAssembly(generated, DesignTime ? [
             // x:\dir\subdir\Test\TestComponent.cshtml(3,7): error CS1525: Invalid expression term ';'
             // __o = ;
             Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(3, 7)
             ] : [
             // x:\dir\subdir\Test\TestComponent.cshtml(3,2): error CS1525: Invalid expression term ')'
             // __builder.AddContent(3, 
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments(")").WithLocation(4, 2)
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments(")").WithLocation(3, 2)
             ]);
     }
 
