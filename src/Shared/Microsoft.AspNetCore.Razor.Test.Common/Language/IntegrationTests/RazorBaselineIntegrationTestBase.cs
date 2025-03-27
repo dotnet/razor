@@ -247,7 +247,7 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
                 }
             }
         }
-        var actualSequencePoints = builder.ToString();
+        var actualSequencePoints = builder.ToString().ReplaceLineEndings();
 
         var baselineFilePath = GetBaselineFilePath(codeDocument, ".sp.txt", testName);
         if (GenerateBaselines.ShouldGenerate)
@@ -262,7 +262,7 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
             var spFile = TestFile.Create(baselineFilePath, GetType().Assembly);
             if (spFile.Exists())
             {
-                baselineSequencePoints = spFile.ReadAllText();
+                baselineSequencePoints = spFile.ReadAllText().ReplaceLineEndings();
             }
 
             Assert.Equal(baselineSequencePoints, actualSequencePoints);
