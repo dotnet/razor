@@ -135,7 +135,42 @@ internal partial class EditorInProcess
         var selectionSpan = new SnapshotSpan(textView.TextSnapshot, new Span(0, textView.TextSnapshot.Length));
 
         var classifiedSpans = classifier.GetClassificationSpans(selectionSpan);
+
+        ValidateNoDiscoColors(classifiedSpans);
+
         return classifiedSpans;
+    }
+
+    /// <summary>
+    /// Validates that we aren't seeing disco colors in the editor
+    /// </summary>
+    /// <remarks>
+    /// This actually just calls <see cref="GetClassificationsAsync(CancellationToken)"/> because we always check for disco colors
+    /// when getting classifications, but this makes for a more discoverable API.
+    /// </remarks>
+    public Task<IEnumerable<ClassificationSpan>> ValidateNoDiscoColorsAsync(CancellationToken cancellationToken)
+        => GetClassificationsAsync(cancellationToken);
+
+    private static void ValidateNoDiscoColors(IList<ClassificationSpan> classifiedSpans)
+    {
+        // We never expect a word to have a classification change in the middle of it, so we can check for disco colors
+        // by making sure that each span either doesn't start with a letter or digit, or comes after something that isn't
+        // a letter or digit.
+        SnapshotSpan? previousSpan = null;
+        foreach (var span in classifiedSpans)
+        {
+            if (span.Span.IsEmpty)
+            {
+                continue;
+            }
+
+            if (previousSpan is { } previous)
+            {
+                Assert.False(previous.End.Position == span.Span.Start.Position - 1 && char.IsLetterOrDigit(span.Span.Start.GetChar()) && char.IsLetterOrDigit(previous.End.GetChar()), $"Disco colors detected: {previous.GetText()}{span.Span.GetText()} has classification {span.ClassificationType.Classification} starting at character {previous.Length}");
+            }
+
+            previousSpan = span.Span;
+        }
     }
 
     private async Task<IClassifier> GetClassifierAsync(IWpfTextView textView, CancellationToken cancellationToken)
