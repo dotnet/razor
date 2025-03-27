@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 // Uncomment to easily generate baselines for tests
-//#define GENERATE_BASELINES
+#define GENERATE_BASELINES
 
 using Xunit;
 

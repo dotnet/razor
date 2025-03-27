@@ -3,8 +3,13 @@
 Generated Location: (850:23,0 [23] )
 |Array.Empty<DateTime>()|
 
+Source Location: (62:0,62 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|long|
+Generated Location: (1278:33,0 [4] )
+|long|
+
 Source Location: (6:0,6 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 |Items|
-Generated Location: (2071:51,0 [5] )
+Generated Location: (2213:59,0 [5] )
 |Items|
 

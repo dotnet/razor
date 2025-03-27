@@ -417,15 +417,14 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             context.CodeWriter.Write("<");
 
             TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, TypeNameHelper.GetNonGenericTypeName(node.TypeName));
-            if (node.TypeArguments.Any())
+            if (node.OrderedTypeArguments.Length != 0)
             {
                 context.CodeWriter.Write("<");
-                var arguments = node.TypeArguments.ToImmutableArray();
-                for (var i = 0; i < arguments.Length; i++)
+                for (var i = 0; i < node.OrderedTypeArguments.Length; i++)
                 {
-                    var typeArg = arguments[i];
+                    var typeArg = node.OrderedTypeArguments[i];
                     WriteComponentTypeArgument(context, typeArg);
-                    if (i != arguments.Length - 1)
+                    if (i != node.OrderedTypeArguments.Length - 1)
                     {
                         context.CodeWriter.Write(", ");
                     }
