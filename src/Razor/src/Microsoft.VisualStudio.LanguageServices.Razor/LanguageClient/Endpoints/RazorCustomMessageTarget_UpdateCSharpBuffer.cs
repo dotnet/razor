@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Endpoints;
@@ -37,7 +38,8 @@ internal partial class RazorCustomMessageTarget
             return;
         }
 
-        var hostDocumentUri = new Uri(request.HostDocumentFilePath);
+        var identifier = CreateTextDocumentIdentifier(request);
+        var hostDocumentUri = identifier.Uri;
 
         _logger.LogDebug($"UpdateCSharpBuffer for {request.HostDocumentVersion} of {hostDocumentUri} in {request.ProjectKeyId}");
 
@@ -72,6 +74,18 @@ internal partial class RazorCustomMessageTarget
                     _logger.LogError($"Server wants to update {hostDocumentUri} in {request.ProjectKeyId} by we only know about that document in misc files. Server and client are now out of sync.");
                     return;
                 }
+            }
+
+            // First we need to make sure we're synced to the previous version, or the changes won't apply properly. This should no-op in most cases, as this
+            // is (almost) the only thing that actually moves documents forward, we're really just validating we're in a good state.
+            // The other thing that updates documents is provisional completion, so this sync point also neatly waits for the provisional
+            // edit to be reverted, so things don't get confused.
+            if (request.PreviousHostDocumentVersion is { } previousVersion &&
+                await TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(previousVersion, identifier, cancellationToken, rejectOnNewerParallelRequest: false) is { } synchronizedResult &&
+                !synchronizedResult.Synchronized)
+            {
+                Debug.Fail($"Roslyn and Razor are probably going to be out of sync now");
+                _logger.LogError($"Request to update C# buffer from {previousVersion} to {request.HostDocumentVersion} failed because the server is out of sync. Server version is {synchronizedResult.VirtualSnapshot?.HostDocumentSyncVersion}");
             }
 
             foreach (var virtualDocument in virtualDocuments)
@@ -118,6 +132,24 @@ internal partial class RazorCustomMessageTarget
             request.Changes.Select(change => change.ToVisualStudioTextChange()).ToArray(),
             request.HostDocumentVersion.Value,
             state: request.PreviousWasEmpty);
+    }
+
+    private static TextDocumentIdentifier CreateTextDocumentIdentifier(UpdateBufferRequest request)
+    {
+        var hostDocumentUri = new Uri(request.HostDocumentFilePath);
+        if (request.ProjectKeyId is { } id)
+        {
+            return new VSTextDocumentIdentifier
+            {
+                Uri = hostDocumentUri,
+                ProjectContext = new VSProjectContext
+                {
+                    Id = id,
+                }
+            };
+        }
+
+        return new TextDocumentIdentifier { Uri = hostDocumentUri };
     }
 
     private int GetLineCountOfVirtualDocument(Uri hostDocumentUri, CSharpVirtualDocumentSnapshot virtualDocument)
