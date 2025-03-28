@@ -6,6 +6,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.VisualStudioCode.RazorExtension;

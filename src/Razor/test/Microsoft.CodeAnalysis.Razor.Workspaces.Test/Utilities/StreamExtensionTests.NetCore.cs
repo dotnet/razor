@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Razor.Serialization;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectEngineHost.Test;
+namespace Microsoft.CodeAnalysis.Razor.Utilities;
 
 public class StreamExtensionTests(ITestOutputHelper testOutputHelper) : ToolingTestBase(testOutputHelper)
 {
