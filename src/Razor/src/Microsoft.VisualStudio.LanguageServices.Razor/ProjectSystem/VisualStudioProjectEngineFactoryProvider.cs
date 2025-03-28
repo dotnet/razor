@@ -4,6 +4,7 @@
 using System.ComponentModel.Composition;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.ProjectEngineHost;
 
 namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 
