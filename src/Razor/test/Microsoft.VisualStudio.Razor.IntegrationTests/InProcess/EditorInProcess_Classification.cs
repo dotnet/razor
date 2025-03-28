@@ -166,7 +166,7 @@ internal partial class EditorInProcess
 
             if (previousSpan is { } previous)
             {
-                Assert.False(previous.End.Position == span.Span.Start.Position - 1 && char.IsLetterOrDigit(span.Span.Start.GetChar()) && char.IsLetterOrDigit(previous.End.GetChar()), $"Disco colors detected: {previous.GetText()}{span.Span.GetText()} has classification {span.ClassificationType.Classification} starting at character {previous.Length}");
+                Assert.False(previous.End.Position == span.Span.Start.Position && char.IsLetterOrDigit(span.Span.Start.GetChar()) && char.IsLetterOrDigit((previous.End - 1).GetChar()), $"Disco colors detected: {previous.GetText()}{span.Span.GetText()} has classification {span.ClassificationType.Classification} starting at character {previous.Length}");
             }
 
             previousSpan = span.Span;
