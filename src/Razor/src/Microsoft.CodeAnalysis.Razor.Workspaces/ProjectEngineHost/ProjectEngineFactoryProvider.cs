@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor.ProjectEngineHost;
 
 namespace Microsoft.AspNetCore.Razor.ProjectSystem;
 
