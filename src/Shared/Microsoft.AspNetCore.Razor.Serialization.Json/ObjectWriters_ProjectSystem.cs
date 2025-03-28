@@ -3,6 +3,7 @@
 
 #if JSONSERIALIZATION_PROJECTSYSTEM
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Serialization;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.Json;
 
