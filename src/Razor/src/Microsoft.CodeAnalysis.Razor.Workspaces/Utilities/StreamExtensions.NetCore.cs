@@ -1,9 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.Utilities;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using System;
 using System.Buffers;
 using System.Diagnostics;
@@ -11,6 +8,8 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.Utilities;
 
@@ -43,30 +42,30 @@ internal static class StreamExtensions
         return encoding.GetString(encodedBytes, 0, length);
     }
 
-    public static ProjectInfoAction ReadProjectInfoAction(this Stream stream)
+    public static RazorProjectInfoAction ReadProjectInfoAction(this Stream stream)
     {
         var action = stream.ReadByte();
         return action switch
         {
-            0 => ProjectInfoAction.Update,
-            1 => ProjectInfoAction.Remove,
+            0 => RazorProjectInfoAction.Update,
+            1 => RazorProjectInfoAction.Remove,
             _ => throw Assumes.NotReachable()
         };
     }
 
-    public static void WriteProjectInfoAction(this Stream stream, ProjectInfoAction projectInfoAction)
+    public static void WriteProjectInfoAction(this Stream stream, RazorProjectInfoAction projectInfoAction)
     {
         stream.WriteByte(projectInfoAction switch
         {
-            ProjectInfoAction.Update => 0,
-            ProjectInfoAction.Remove => 1,
+            RazorProjectInfoAction.Update => 0,
+            RazorProjectInfoAction.Remove => 1,
             _ => throw Assumes.NotReachable()
         });
     }
 
     public static Task WriteProjectInfoRemovalAsync(this Stream stream, string intermediateOutputPath, CancellationToken cancellationToken)
     {
-        stream.WriteProjectInfoAction(ProjectInfoAction.Remove);
+        stream.WriteProjectInfoAction(RazorProjectInfoAction.Remove);
         return stream.WriteStringAsync(intermediateOutputPath, encoding: null, cancellationToken);
     }
 
