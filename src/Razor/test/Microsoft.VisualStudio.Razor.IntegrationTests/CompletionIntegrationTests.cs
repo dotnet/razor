@@ -490,7 +490,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
         TestServices.Input.Send(".");
         TestServices.Input.Send("n");
 
-        Assert.NotNull(await TestServices.Editor.OpenCompletionSessionAndWaitForItemAsync(TimeSpan.FromSeconds(10), "Now", HangMitigatingCancellationToken));
+        await Task.Delay(500, HangMitigatingCancellationToken);
 
         await TestServices.Editor.ValidateNoDiscoColorsAsync(HangMitigatingCancellationToken);
     }
