@@ -3,10 +3,8 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectEngineHost;
 
-namespace Microsoft.AspNetCore.Razor.ProjectSystem;
+namespace Microsoft.CodeAnalysis.Razor.ProjectEngineHost;
 
 internal sealed partial class ProjectEngineFactory(string configurationName) : IProjectEngineFactory
 {
