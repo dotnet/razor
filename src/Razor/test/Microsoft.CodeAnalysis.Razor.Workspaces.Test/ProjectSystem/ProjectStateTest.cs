@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
-
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
