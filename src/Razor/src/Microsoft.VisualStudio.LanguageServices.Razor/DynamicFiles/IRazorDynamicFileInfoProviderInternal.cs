@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
