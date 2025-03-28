@@ -60,8 +60,7 @@ internal sealed class InlineCompletionEndpoint(
         }
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = codeDocument.Source.Text;
         var hostDocumentIndex = sourceText.GetPosition(request.Position);
 
         var languageKind = codeDocument.GetLanguageKind(hostDocumentIndex, rightAssociative: false);

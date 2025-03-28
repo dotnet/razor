@@ -41,8 +41,8 @@ internal class WrapWithTagEndpoint(IClientConnection clientConnection, ILoggerFa
         cancellationToken.ThrowIfCancellationRequested();
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = codeDocument.Source.Text;
 
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
         if (request.Range?.Start is not { } start ||
             !sourceText.TryGetAbsoluteIndex(start, out var hostDocumentIndex))
         {
