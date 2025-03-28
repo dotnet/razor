@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Razor.ProjectEngineHost;
 
 namespace Microsoft.AspNetCore.Razor.ProjectSystem;
 
