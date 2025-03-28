@@ -146,10 +146,10 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
         {
             HostDocumentFilePath = filePath,
             ProjectKeyId = projectKey.Id,
-            Changes = textChanges.Select(static t => t.ToRazorTextChange()).ToArray(),
+            Changes = [.. textChanges.Select(static t => t.ToRazorTextChange())],
             HostDocumentVersion = hostDocumentVersion,
             PreviousWasEmpty = previouslyPublishedData.SourceText.Length == 0,
-            Checksum = Convert.ToBase64String(sourceText.GetChecksum().ToArray()),
+            Checksum = Convert.ToBase64String([.. sourceText.GetChecksum()]),
             ChecksumAlgorithm = sourceText.ChecksumAlgorithm,
             SourceEncodingCodePage = sourceText.Encoding?.CodePage
         };

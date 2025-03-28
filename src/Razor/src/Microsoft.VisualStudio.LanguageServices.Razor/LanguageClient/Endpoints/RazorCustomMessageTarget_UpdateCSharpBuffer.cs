@@ -41,15 +41,14 @@ internal partial class RazorCustomMessageTarget
         }
     }
 
-    // Internal for testing
-    internal async Task<bool> UpdateCSharpBufferCoreAsync(UpdateBufferRequest request, CancellationToken cancellationToken)
+    private async Task<bool> UpdateCSharpBufferCoreAsync(UpdateBufferRequest request, CancellationToken cancellationToken)
     {
-        await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        if (request is null || request.HostDocumentFilePath is null || request.HostDocumentVersion is null)
+        if (request.HostDocumentFilePath is null || request.HostDocumentVersion is null)
         {
             return false;
         }
+
+        await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var identifier = CreateTextDocumentIdentifier(request);
         var hostDocumentUri = identifier.Uri;
