@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.Logging;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 using Microsoft.VisualStudio.Threading;
