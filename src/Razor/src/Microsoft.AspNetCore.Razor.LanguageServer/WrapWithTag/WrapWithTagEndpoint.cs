@@ -41,11 +41,6 @@ internal class WrapWithTagEndpoint(IClientConnection clientConnection, ILoggerFa
         cancellationToken.ThrowIfCancellationRequested();
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        if (codeDocument.IsUnsupported())
-        {
-            _logger.LogWarning($"Failed to retrieve generated output for document {request.TextDocument.Uri}.");
-            return null;
-        }
 
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
         if (request.Range?.Start is not { } start ||

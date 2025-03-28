@@ -48,11 +48,6 @@ internal class RazorBreakpointSpanEndpoint(
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
         var hostDocumentIndex = sourceText.GetPosition(request.Position);
 
-        if (codeDocument.IsUnsupported())
-        {
-            return null;
-        }
-
         var projectedIndex = hostDocumentIndex;
         var languageKind = codeDocument.GetLanguageKind(hostDocumentIndex, rightAssociative: false);
         // If we're in C#, then map to the right position in the generated document
