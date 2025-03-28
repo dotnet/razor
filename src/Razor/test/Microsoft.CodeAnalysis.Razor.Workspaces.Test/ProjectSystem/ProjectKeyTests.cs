@@ -3,7 +3,6 @@
 
 using System.IO;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Xunit;
 using Xunit.Abstractions;
