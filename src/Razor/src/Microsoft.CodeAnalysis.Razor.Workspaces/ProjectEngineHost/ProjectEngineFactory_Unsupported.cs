@@ -4,9 +4,9 @@
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.ProjectEngineHost;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.ProjectSystem;
+namespace Microsoft.CodeAnalysis.Razor.ProjectEngineHost;
 
 internal class ProjectEngineFactory_Unsupported : IProjectEngineFactory
 {
