@@ -6,10 +6,10 @@ using System;
 #endif
 
 using System.Diagnostics;
-using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Serialization;
+using Microsoft.CodeAnalysis.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.ProjectSystem;
 
