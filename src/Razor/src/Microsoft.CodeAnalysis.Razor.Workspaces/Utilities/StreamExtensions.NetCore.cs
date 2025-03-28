@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using System;
 using System.Buffers;
@@ -10,7 +12,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.AspNetCore.Razor.Utilities;
+namespace Microsoft.CodeAnalysis.Razor.Utilities;
 
 internal static class StreamExtensions
 {
@@ -24,7 +26,7 @@ internal static class StreamExtensions
 
         var usedBytes = encoding.GetBytes(text, byteArray);
 
-        WriteSize(stream, usedBytes);
+        stream.WriteSize(usedBytes);
         return stream.WriteAsync(byteArray, 0, usedBytes, cancellationToken);
     }
 
@@ -33,7 +35,7 @@ internal static class StreamExtensions
         Debug.Assert(stream.CanRead);
         encoding ??= Encoding.UTF8;
 
-        var length = ReadSize(stream);
+        var length = stream.ReadSize();
 
         using var _ = ArrayPool<byte>.Shared.GetPooledArray(length, out var encodedBytes);
 
@@ -64,7 +66,7 @@ internal static class StreamExtensions
 
     public static Task WriteProjectInfoRemovalAsync(this Stream stream, string intermediateOutputPath, CancellationToken cancellationToken)
     {
-        WriteProjectInfoAction(stream, ProjectInfoAction.Remove);
+        stream.WriteProjectInfoAction(ProjectInfoAction.Remove);
         return stream.WriteStringAsync(intermediateOutputPath, encoding: null, cancellationToken);
     }
 
@@ -76,13 +78,13 @@ internal static class StreamExtensions
     public static async Task WriteProjectInfoAsync(this Stream stream, RazorProjectInfo projectInfo, CancellationToken cancellationToken)
     {
         var bytes = projectInfo.Serialize();
-        WriteSize(stream, bytes.Length);
+        stream.WriteSize(bytes.Length);
         await stream.WriteAsync(bytes, cancellationToken).ConfigureAwait(false);
     }
 
     public static async Task<RazorProjectInfo?> ReadProjectInfoAsync(this Stream stream, CancellationToken cancellationToken)
     {
-        var sizeToRead = ReadSize(stream);
+        var sizeToRead = stream.ReadSize();
 
         using var _ = ArrayPool<byte>.Shared.GetPooledArray(sizeToRead, out var projectInfoBytes);
         await stream.ReadExactlyAsync(projectInfoBytes, 0, sizeToRead, cancellationToken).ConfigureAwait(false);
