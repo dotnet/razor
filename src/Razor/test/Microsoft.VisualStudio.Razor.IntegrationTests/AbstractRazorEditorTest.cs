@@ -141,6 +141,8 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutput) : Ab
 
     public override async Task DisposeAsync()
     {
+        await TestServices.Editor.ValidateNoDiscoColorsAsync(HangMitigatingCancellationToken);
+
         _testLogger!.LogInformation($"#### Razor integration test dispose.");
 
         TestServices.Output.ClearIntegrationTestLogger();

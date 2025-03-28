@@ -123,22 +123,18 @@ internal partial class EditorInProcess
         Assert.Equal(expectedArray.Length, actualArray.Length);
     }
 
-    public async Task<IEnumerable<ClassificationSpan>> GetClassificationsAsync(CancellationToken cancellationToken)
+    public async Task<IList<ClassificationSpan>> GetClassificationsAsync(CancellationToken cancellationToken)
     {
         var textView = await GetActiveTextViewAsync(cancellationToken);
         var classifier = await GetClassifierAsync(textView, cancellationToken);
         return GetClassifications(classifier, textView);
     }
 
-    private static IEnumerable<ClassificationSpan> GetClassifications(IClassifier classifier, ITextView textView)
+    private static IList<ClassificationSpan> GetClassifications(IClassifier classifier, ITextView textView)
     {
         var selectionSpan = new SnapshotSpan(textView.TextSnapshot, new Span(0, textView.TextSnapshot.Length));
 
-        var classifiedSpans = classifier.GetClassificationSpans(selectionSpan);
-
-        ValidateNoDiscoColors(classifiedSpans);
-
-        return classifiedSpans;
+        return classifier.GetClassificationSpans(selectionSpan);
     }
 
     /// <summary>
@@ -148,8 +144,12 @@ internal partial class EditorInProcess
     /// This actually just calls <see cref="GetClassificationsAsync(CancellationToken)"/> because we always check for disco colors
     /// when getting classifications, but this makes for a more discoverable API.
     /// </remarks>
-    public Task<IEnumerable<ClassificationSpan>> ValidateNoDiscoColorsAsync(CancellationToken cancellationToken)
-        => GetClassificationsAsync(cancellationToken);
+    public async Task ValidateNoDiscoColorsAsync(CancellationToken cancellationToken)
+    {
+        var classifiedSpans = await GetClassificationsAsync(cancellationToken);
+
+        ValidateNoDiscoColors(classifiedSpans);
+    }
 
     private static void ValidateNoDiscoColors(IList<ClassificationSpan> classifiedSpans)
     {
