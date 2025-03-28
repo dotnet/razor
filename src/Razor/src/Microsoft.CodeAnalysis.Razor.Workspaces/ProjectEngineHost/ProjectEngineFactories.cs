@@ -11,11 +11,11 @@ internal static partial class ProjectEngineFactories
 
     public static IProjectEngineFactory Default { get; } = new DefaultProjectEngineFactory();
 
-    public static IProjectEngineFactory MVC_1_0 { get; } = new ProjectEngineFactory("MVC-1.0");
-    public static IProjectEngineFactory MVC_1_1 { get; } = new ProjectEngineFactory("MVC-1.1");
-    public static IProjectEngineFactory MVC_2_0 { get; } = new ProjectEngineFactory("MVC-2.0");
-    public static IProjectEngineFactory MVC_2_1 { get; } = new ProjectEngineFactory("MVC-2.1");
-    public static IProjectEngineFactory MVC_3_0 { get; } = new ProjectEngineFactory("MVC-3.0");
+    public static IProjectEngineFactory MVC_1_0 { get; } = new SimpleFactory("MVC-1.0");
+    public static IProjectEngineFactory MVC_1_1 { get; } = new SimpleFactory("MVC-1.1");
+    public static IProjectEngineFactory MVC_2_0 { get; } = new SimpleFactory("MVC-2.0");
+    public static IProjectEngineFactory MVC_2_1 { get; } = new SimpleFactory("MVC-2.1");
+    public static IProjectEngineFactory MVC_3_0 { get; } = new SimpleFactory("MVC-3.0");
 
     public static IProjectEngineFactory Unsupported { get; } = new ProjectEngineFactory_Unsupported();
 
