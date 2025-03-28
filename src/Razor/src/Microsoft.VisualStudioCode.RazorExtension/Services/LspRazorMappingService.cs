@@ -18,6 +18,7 @@ internal class LspRazorMappingService(IRazorClientLanguageServerManager razorCli
 
     private const string RazorMapSpansEndpoint = "razor/mapSpans";
     private const string RazorMapChangesEndpoint = "razor/mapTextChanges";
+
     public async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(document.FilePath))
