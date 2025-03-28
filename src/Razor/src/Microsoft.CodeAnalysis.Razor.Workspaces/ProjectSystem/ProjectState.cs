@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
-
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.ObjectPool;
 
