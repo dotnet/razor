@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting.Logging;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting.NamedPipes;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
