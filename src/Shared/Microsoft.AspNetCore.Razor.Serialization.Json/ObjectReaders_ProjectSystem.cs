@@ -5,7 +5,6 @@
 using System;
 using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using SR = Microsoft.AspNetCore.Razor.Serialization.Json.Internal.Strings;
