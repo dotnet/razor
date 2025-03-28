@@ -77,8 +77,8 @@ internal class DocumentOnTypeFormattingEndpoint(
         cancellationToken.ThrowIfCancellationRequested();
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = codeDocument.Source.Text;
 
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
         if (!sourceText.TryGetAbsoluteIndex(request.Position, out var hostDocumentIndex))
         {
             return null;
