@@ -288,7 +288,7 @@ internal abstract class RazorWorkspaceListenerBase : IDisposable
             return;
         }
 
-        stream.WriteProjectInfoAction(ProjectInfoAction.Update);
+        stream.WriteProjectInfoAction(RazorProjectInfoAction.Update);
         await stream.WriteProjectInfoAsync(result.ProjectInfo, cancellationToken).ConfigureAwait(false);
     }
 
