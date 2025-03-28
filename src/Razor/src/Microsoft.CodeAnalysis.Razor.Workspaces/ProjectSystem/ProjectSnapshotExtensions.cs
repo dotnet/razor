@@ -3,7 +3,6 @@
 
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Serialization;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
