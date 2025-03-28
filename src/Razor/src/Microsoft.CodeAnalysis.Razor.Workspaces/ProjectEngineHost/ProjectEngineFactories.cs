@@ -17,8 +17,6 @@ internal static partial class ProjectEngineFactories
     public static IProjectEngineFactory MVC_2_1 { get; } = new SimpleFactory("MVC-2.1");
     public static IProjectEngineFactory MVC_3_0 { get; } = new SimpleFactory("MVC-3.0");
 
-    public static IProjectEngineFactory Unsupported { get; } = new ProjectEngineFactory_Unsupported();
-
     public static ImmutableArray<IProjectEngineFactory> All { get; } =
     [
         // Razor based configurations
@@ -27,10 +25,7 @@ internal static partial class ProjectEngineFactories
         MVC_1_1,
         MVC_2_0,
         MVC_2_1,
-        MVC_3_0,
-
-        // Unsupported (Legacy/System.Web.Razor)
-        Unsupported
+        MVC_3_0
     ];
 
     public static IProjectEngineFactoryProvider DefaultProvider { get; } = new ProjectEngineFactoryProvider(All);
