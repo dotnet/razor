@@ -55,9 +55,6 @@ internal static class RazorCodeDocumentExtensions
     public static Syntax.SyntaxNode GetRequiredSyntaxRoot(this RazorCodeDocument codeDocument)
         => codeDocument.GetRequiredSyntaxTree().Root;
 
-    public static TagHelperDocumentContext GetRequiredTagHelperContext(this RazorCodeDocument codeDocument)
-        => codeDocument.GetTagHelperContext().AssumeNotNull();
-
     public static SourceText GetCSharpSourceText(this RazorCodeDocument document)
         => document.GetCSharpDocument().Text;
 
