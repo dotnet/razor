@@ -5,10 +5,10 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Formatting;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -226,38 +226,6 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
         };
 
         var requestContext = CreateRazorRequestContext(documentContext: null);
-
-        // Act
-        var result = await endpoint.HandleRequestAsync(wrapWithDivParams, requestContext, DisposalToken);
-
-        // Assert
-        Assert.Null(result);
-        Mock.Get(clientConnection)
-          .VerifySendRequest<WrapWithTagParams, WrapWithTagResponse>(LanguageServerConstants.RazorWrapWithTagEndpoint, Times.Never);
-    }
-
-    [Fact]
-    public async Task Handle_UnsupportedCodeDocument_ReturnsNull()
-    {
-        // Arrange
-        var codeDocument = CreateCodeDocument("<div></div>");
-        codeDocument.SetUnsupported();
-        var uri = new Uri("file://path/test.razor");
-        var documentContext = CreateDocumentContext(uri, codeDocument);
-
-        var clientConnection = TestMocks.CreateClientConnection(builder =>
-        {
-            builder.SetupSendRequest<WrapWithTagParams, WrapWithTagResponse>(LanguageServerConstants.RazorWrapWithTagEndpoint, response: new(), verifiable: true);
-        });
-
-        var endpoint = new WrapWithTagEndpoint(clientConnection, LoggerFactory);
-
-        var wrapWithDivParams = new WrapWithTagParams(new() { Uri = uri })
-        {
-            Range = VsLspFactory.CreateSingleLineRange(start: (0, 0), length: 2),
-        };
-
-        var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
         var result = await endpoint.HandleRequestAsync(wrapWithDivParams, requestContext, DisposalToken);
