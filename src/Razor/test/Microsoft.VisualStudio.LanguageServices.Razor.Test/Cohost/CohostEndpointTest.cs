@@ -115,7 +115,7 @@ public class CohostEndpointTest(ITestOutputHelper testOutputHelper) : ToolingTes
                 Assert.Fail($"Did not get any registrations from {endpoint.GetType().Name}. Client capabilities might be wrong?");
             }
 
-            Assert.All(registrations, registration => Assert.IsAssignableFrom<ITextDocumentRegistrationOptions>(registration));
+            Assert.All(registrations, registration => Assert.IsAssignableFrom<ITextDocumentRegistrationOptions>(registration.RegisterOptions));
         }
     }
 
