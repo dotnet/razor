@@ -82,7 +82,7 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
         _jsonRpc.Dispose();
     }
 
-    private static ILspLogger CreateILspLogger(ILoggerFactory loggerFactory, ITelemetryReporter telemetryReporter)
+    private static ClaspLoggingBridge CreateILspLogger(ILoggerFactory loggerFactory, ITelemetryReporter telemetryReporter)
     {
         return new ClaspLoggingBridge(loggerFactory, telemetryReporter);
     }
