@@ -52,7 +52,6 @@ internal partial class RazorCustomMessageTarget
         LanguageServerFeatureOptions languageServerFeatureOptions,
         ProjectSnapshotManager projectManager,
         SnippetCompletionItemProvider snippetCompletionItemProvider,
-        IWorkspaceProvider workspaceProvider,
         ILoggerFactory loggerFactory)
     {
         if (documentManager is not TrackingLSPDocumentManager trackingDocumentManager)
