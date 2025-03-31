@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -15,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 internal sealed class TagHelperBinder
 {
     private readonly ImmutableArray<TagHelperDescriptor> _catchAllDescriptors;
-    private readonly Dictionary<string, ImmutableArray<TagHelperDescriptor>> _tagNameToDescriptorsMap;
+    private readonly ReadOnlyDictionary<string, ImmutableArray<TagHelperDescriptor>> _tagNameToDescriptorsMap;
 
     public string? TagNamePrefix { get; }
     public ImmutableArray<TagHelperDescriptor> Descriptors { get; }
@@ -37,7 +38,7 @@ internal sealed class TagHelperBinder
     private static void ProcessDescriptors(
         ImmutableArray<TagHelperDescriptor> descriptors,
         string? tagNamePrefix,
-        out Dictionary<string, ImmutableArray<TagHelperDescriptor>> tagNameToDescriptorsMap,
+        out ReadOnlyDictionary<string, ImmutableArray<TagHelperDescriptor>> tagNameToDescriptorsMap,
         out ImmutableArray<TagHelperDescriptor> catchAllDescriptors)
     {
         using var catchAllBuilder = new PooledArrayBuilder<TagHelperDescriptor>();
@@ -75,12 +76,14 @@ internal sealed class TagHelperBinder
         }
 
         // Build the final dictionary with immutable arrays.
-        tagNameToDescriptorsMap = new(capacity: mapBuilder.Count, StringComparer.OrdinalIgnoreCase);
+        var map = new Dictionary<string, ImmutableArray<TagHelperDescriptor>>(capacity: mapBuilder.Count, StringComparer.OrdinalIgnoreCase);
 
         foreach (var (key, value) in mapBuilder)
         {
-            tagNameToDescriptorsMap.Add(key, value.DrainToImmutable());
+            map.Add(key, value.DrainToImmutable());
         }
+
+        tagNameToDescriptorsMap = new ReadOnlyDictionary<string, ImmutableArray<TagHelperDescriptor>>(map);
 
         // Build the catch all descriptors array.
         catchAllDescriptors = catchAllBuilder.DrainToImmutable();
