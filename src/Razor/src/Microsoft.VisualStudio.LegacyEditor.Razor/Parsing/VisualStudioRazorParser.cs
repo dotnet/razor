@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Logging;
-
 using Microsoft.Extensions.Internal;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Razor.Extensions;
@@ -343,7 +342,7 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
 
             if (currentCodeDocument.TryGetTagHelperContext(out var tagHelperContext))
             {
-                currentCodeDocument.SetTagHelperContext(tagHelperContext);
+                codeDocument.SetTagHelperContext(tagHelperContext);
             }
 
             codeDocument.SetSyntaxTree(partialParseSyntaxTree);
