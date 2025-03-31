@@ -59,7 +59,7 @@ internal class OutOfProcTagHelperResolver(
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _logger.LogError(ex, $"Error encountered from project '{projectSnapshot.FilePath}':{Environment.NewLine}{ex}");
-            return default;
+            // if not cancellation, try getting tag helpers in-proc
         }
 
         try
