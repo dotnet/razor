@@ -20,8 +20,6 @@ internal sealed class TagHelperBinder
     public string? TagNamePrefix { get; }
     public ImmutableArray<TagHelperDescriptor> Descriptors { get; }
 
-    private readonly ReadOnlyMemory<char> _tagNamePrefix;
-
     /// <summary>
     /// Instantiates a new instance of the <see cref="TagHelperBinder"/>.
     /// </summary>
@@ -32,8 +30,6 @@ internal sealed class TagHelperBinder
     {
         TagNamePrefix = tagNamePrefix;
         Descriptors = descriptors.NullToEmpty();
-
-        _tagNamePrefix = TagNamePrefix.AsMemory();
 
         ProcessDescriptors(descriptors, tagNamePrefix, out _tagNameToDescriptorsMap, out _catchAllDescriptors);
     }
@@ -108,7 +104,7 @@ internal sealed class TagHelperBinder
     {
         var tagNameSpan = tagName.AsSpan();
         var parentTagNameSpan = parentTagName.AsSpan();
-        var tagNamePrefixSpan = _tagNamePrefix.Span;
+        var tagNamePrefixSpan = TagNamePrefix.AsSpan();
 
         if (!tagNamePrefixSpan.IsEmpty)
         {
