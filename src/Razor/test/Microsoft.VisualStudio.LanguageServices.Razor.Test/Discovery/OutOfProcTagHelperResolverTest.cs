@@ -105,6 +105,86 @@ public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
     }
 
     [Fact]
+    public async Task GetTagHelpersAsync_WithSuccessOutOfProc_SkipsInProc()
+    {
+        // Arrange
+        await _projectManager.UpdateAsync(updater =>
+        {
+            updater.AddProject(s_hostProject_For_2_0);
+        });
+
+        var projectSnapshot = _projectManager.GetRequiredProject(s_hostProject_For_2_0.Key);
+
+        var calledOutOfProcess = false;
+        var calledInProcess = false;
+
+        var resolver = new TestResolver(_remoteServiceInvoker, LoggerFactory, NoOpTelemetryReporter.Instance)
+        {
+            OnResolveOutOfProcess = (p) =>
+            {
+                calledOutOfProcess = true;
+
+                Assert.Same(projectSnapshot, p);
+                return new([]);
+            },
+            OnResolveInProcess = (p) =>
+            {
+                calledInProcess = true;
+
+                Assert.Same(projectSnapshot, p);
+                return new([]);
+            },
+        };
+
+        var result = await resolver.GetTagHelpersAsync(_workspaceProject, projectSnapshot, DisposalToken);
+
+        // Assert
+        Assert.True(calledOutOfProcess);
+        Assert.False(calledInProcess);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task GetTagHelpersAsync_WithFailOutOfProc_RunsInProc()
+    {
+        // Arrange
+        await _projectManager.UpdateAsync(updater =>
+        {
+            updater.AddProject(s_hostProject_For_2_0);
+        });
+
+        var projectSnapshot = _projectManager.GetRequiredProject(s_hostProject_For_2_0.Key);
+
+        var calledOutOfProcess = false;
+        var calledInProcess = false;
+
+        var resolver = new TestResolver(_remoteServiceInvoker, LoggerFactory, NoOpTelemetryReporter.Instance)
+        {
+            OnResolveOutOfProcess = (p) =>
+            {
+                calledOutOfProcess = true;
+
+                Assert.Same(projectSnapshot, p);
+                throw new ApplicationException("Test exception");
+            },
+            OnResolveInProcess = (p) =>
+            {
+                calledInProcess = true;
+
+                Assert.Same(projectSnapshot, p);
+                return new([]);
+            },
+        };
+
+        var result = await resolver.GetTagHelpersAsync(_workspaceProject, projectSnapshot, DisposalToken);
+
+        // Assert
+        Assert.True(calledOutOfProcess);
+        Assert.True(calledInProcess);
+        Assert.Empty(result);
+    }
+
+    [Fact]
     public async Task GetTagHelpersAsync_WithNonSerializableCustomFactory_StaysInProcess()
     {
         // Arrange
