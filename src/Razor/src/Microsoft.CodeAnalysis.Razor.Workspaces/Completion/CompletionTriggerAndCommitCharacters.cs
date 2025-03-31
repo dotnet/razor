@@ -69,7 +69,13 @@ internal class CompletionTriggerAndCommitCharacters
         allTriggerCharacters.UnionWith(delegationTriggerCharacters);
 
         var commitCharacters = new HashSet<char>();
-        commitCharacters.UnionWith(s_commitCharacters);
+        // We shouldn't specify commit characters for VSCode.
+        // It doesn't appear to need them and they interfere with normal item commit.
+        // E.g. see https://github.com/dotnet/vscode-csharp/issues/7678
+        if (!languageServerFeatureOptions.UseVsCodeCompletionTriggerCharacters)
+        {
+            commitCharacters.UnionWith(s_commitCharacters);
+        }
 
         _csharpTriggerCharacters = csharpTriggerCharacters;
         _htmlTriggerCharacters = htmlTriggerCharacters;
