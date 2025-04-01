@@ -64,10 +64,7 @@ internal sealed class TagHelperBinder
                 else
                 {
                     // This is a specific tag name, we need to add it to the map.
-                    var tagName = tagNamePrefix is not null
-                        ? tagNamePrefix + rule.TagName
-                        : rule.TagName;
-
+                    var tagName = tagNamePrefix + rule.TagName;
                     var builder = mapBuilder.GetOrAdd(tagName, _ => ImmutableArray.CreateBuilder<TagHelperDescriptor>());
 
                     builder.Add(descriptor);
