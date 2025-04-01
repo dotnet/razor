@@ -265,7 +265,7 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
                 baselineSequencePoints = spFile.ReadAllText().ReplaceLineEndings();
             }
 
-            Assert.Equal(baselineSequencePoints, actualSequencePoints);
+            AssertEx.Equal(baselineSequencePoints, actualSequencePoints);
         }
     }
 
