@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
@@ -18,12 +19,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEndToEndTestBase(testOutput)
 {
-    private const string GenerateEventHandlerTitle = "Generate Event Handler 'DoesNotExist'";
-    private const string GenerateAsyncEventHandlerTitle = "Generate Async Event Handler 'DoesNotExist'";
-    private const string GenerateEventHandlerReturnType = "void";
-    private const string GenerateAsyncEventHandlerReturnType = "global::System.Threading.Tasks.Task";
-
     #region CSharp CodeAction Tests
+
+    [Fact]
+    public async Task Handle_GenerateConstructor_SelectionOutsideRange()
+    {
+        var input = """
+
+            <div></div>
+
+            @functions
+            {
+                public Goo [|M()|]
+                {
+                    return new Goo();
+                }
+
+                public class {|selection:Goo|}
+                {
+                }
+            }
+
+            """;
+
+        await ValidateCodeActionAsync(input, expected: null, RazorPredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers);
+    }
 
     [Fact]
     public async Task Handle_GenerateConstructor()
@@ -419,7 +439,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
         var expected = $$"""
             <button @onclick="DoesNotExist"></button>
             @code {
-                private {{GenerateEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
+                private void DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
                 {
                     throw new global::System.NotImplementedException();
                 }
@@ -428,7 +448,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
 
         await ValidateCodeActionAsync(input,
             expected,
-            GenerateEventHandlerTitle,
+            LanguageServerConstants.CodeActions.GenerateEventHandler,
             razorCodeActionProviders: [new GenerateMethodCodeActionProvider()],
             codeActionResolversCreator: CreateRazorCodeActionResolvers,
             diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
@@ -449,7 +469,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
             @addTagHelper TestComponent, Microsoft.AspNetCore.Components
             <TestComponent OnDragStart="DoesNotExist" />
             @code {
-                private {{GenerateEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.DragEventArgs args)
+                private void DoesNotExist(global::Microsoft.AspNetCore.Components.Web.DragEventArgs args)
                 {
                     throw new global::System.NotImplementedException();
                 }
@@ -458,7 +478,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
 
         await ValidateCodeActionAsync(input,
             expected,
-            GenerateEventHandlerTitle,
+            LanguageServerConstants.CodeActions.GenerateEventHandler,
             razorCodeActionProviders: [new GenerateMethodCodeActionProvider()],
             codeActionResolversCreator: CreateRazorCodeActionResolvers,
             diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
@@ -479,7 +499,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
             @addTagHelper TestGenericComponent, Microsoft.AspNetCore.Components
             <TestGenericComponent TItem="string" OnDragStart="DoesNotExist" />
             @code {
-                private {{GenerateEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.DragEventArgs<string> args)
+                private void DoesNotExist(global::Microsoft.AspNetCore.Components.Web.DragEventArgs<string> args)
                 {
                     throw new global::System.NotImplementedException();
                 }
@@ -488,7 +508,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
 
         await ValidateCodeActionAsync(input,
             expected,
-            GenerateEventHandlerTitle,
+            LanguageServerConstants.CodeActions.GenerateEventHandler,
             razorCodeActionProviders: [new GenerateMethodCodeActionProvider()],
             codeActionResolversCreator: CreateRazorCodeActionResolvers,
             diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
@@ -508,7 +528,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
         var expected = $$"""
             <button @onclick="DoesNotExist"></button>
             @code {
-                private {{GenerateEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
+                private void DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
                 {
                     throw new global::System.NotImplementedException();
                 }
@@ -517,7 +537,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
 
         await ValidateCodeActionAsync(input,
             expected,
-            GenerateEventHandlerTitle,
+            LanguageServerConstants.CodeActions.GenerateEventHandler,
             razorCodeActionProviders: [new GenerateMethodCodeActionProvider()],
             codeActionResolversCreator: CreateRazorCodeActionResolvers,
             diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
@@ -538,7 +558,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
             <button @onclick="DoesNotExist"></button>
                 
             @code {
-                private {{GenerateEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
+                private void DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
                 {
                     throw new global::System.NotImplementedException();
                 }
@@ -547,7 +567,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
 
         await ValidateCodeActionAsync(input,
             expected,
-            GenerateEventHandlerTitle,
+            LanguageServerConstants.CodeActions.GenerateEventHandler,
             razorCodeActionProviders: [new GenerateMethodCodeActionProvider()],
             codeActionResolversCreator: CreateRazorCodeActionResolvers,
             diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
@@ -566,7 +586,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
         var expected = $$"""
             <button @onclick="DoesNotExist"></button>
             @code {
-                private {{GenerateAsyncEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
+                private global::System.Threading.Tasks.Task DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
                 {
                     throw new global::System.NotImplementedException();
                 }
@@ -575,7 +595,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
 
         await ValidateCodeActionAsync(input,
             expected,
-            GenerateAsyncEventHandlerTitle,
+            LanguageServerConstants.CodeActions.GenerateAsyncEventHandler,
             razorCodeActionProviders: [new GenerateMethodCodeActionProvider()],
             codeActionResolversCreator: CreateRazorCodeActionResolvers,
             diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
@@ -595,7 +615,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
         var expected = $$"""
             <button @onclick="DoesNotExist"></button>
             @code {
-                private {{GenerateEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
+                private void DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
                 {
                     throw new global::System.NotImplementedException();
                 }
@@ -604,7 +624,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
 
         await ValidateCodeActionAsync(input,
             expected,
-            GenerateEventHandlerTitle,
+            LanguageServerConstants.CodeActions.GenerateEventHandler,
             razorCodeActionProviders: [new GenerateMethodCodeActionProvider()],
             codeActionResolversCreator: CreateRazorCodeActionResolvers,
             diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
@@ -624,7 +644,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
         var expected = $$"""
             <button @onclick="DoesNotExist"></button>
             @code {
-                private {{GenerateAsyncEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
+                private global::System.Threading.Tasks.Task DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
                 {
                     throw new global::System.NotImplementedException();
                 }
@@ -633,17 +653,17 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
 
         await ValidateCodeActionAsync(input,
             expected,
-            GenerateAsyncEventHandlerTitle,
+            LanguageServerConstants.CodeActions.GenerateAsyncEventHandler,
             razorCodeActionProviders: [new GenerateMethodCodeActionProvider()],
             codeActionResolversCreator: CreateRazorCodeActionResolvers,
             diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
     }
 
     [Theory]
-    [InlineData("", GenerateEventHandlerReturnType, GenerateEventHandlerTitle)]
-    [InlineData("\r\n", GenerateEventHandlerReturnType, GenerateEventHandlerTitle)]
-    [InlineData("", GenerateAsyncEventHandlerReturnType, GenerateAsyncEventHandlerTitle)]
-    [InlineData("\r\n", GenerateAsyncEventHandlerReturnType, GenerateAsyncEventHandlerTitle)]
+    [InlineData("", "void", LanguageServerConstants.CodeActions.GenerateEventHandler)]
+    [InlineData("\r\n", "void", LanguageServerConstants.CodeActions.GenerateEventHandler)]
+    [InlineData("", "global::System.Threading.Tasks.Task", LanguageServerConstants.CodeActions.GenerateAsyncEventHandler)]
+    [InlineData("\r\n", "global::System.Threading.Tasks.Task", LanguageServerConstants.CodeActions.GenerateAsyncEventHandler)]
     public async Task Handle_GenerateMethod_Nonempty_CodeBlock(string spacing, string returnType, string codeActionTitle)
     {
         var input = $$"""
@@ -698,7 +718,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
                 {
                 }
 
-                private {{GenerateAsyncEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
+                private global::System.Threading.Tasks.Task DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
                 {
                     throw new global::System.NotImplementedException();
                 }
@@ -707,7 +727,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
 
         await ValidateCodeActionAsync(input,
             expected,
-            GenerateAsyncEventHandlerTitle,
+            LanguageServerConstants.CodeActions.GenerateAsyncEventHandler,
             razorCodeActionProviders: [new GenerateMethodCodeActionProvider()],
             codeActionResolversCreator: CreateRazorCodeActionResolvers,
             diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
@@ -742,8 +762,8 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
         Assert.DoesNotContain(
             result,
             e =>
-                ((RazorVSInternalCodeAction)e.Value!).Title == GenerateEventHandlerTitle
-                || ((RazorVSInternalCodeAction)e.Value!).Title == GenerateAsyncEventHandlerTitle);
+                ((RazorVSInternalCodeAction)e.Value!).Name == LanguageServerConstants.CodeActions.GenerateEventHandler
+                || ((RazorVSInternalCodeAction)e.Value!).Name == LanguageServerConstants.CodeActions.GenerateAsyncEventHandler);
     }
 
     [Theory]
@@ -780,8 +800,8 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
         Assert.DoesNotContain(
             result,
             e =>
-                ((RazorVSInternalCodeAction)e.Value!).Title == GenerateEventHandlerTitle
-                || ((RazorVSInternalCodeAction)e.Value!).Title == GenerateAsyncEventHandlerTitle);
+                ((RazorVSInternalCodeAction)e.Value!).Name == LanguageServerConstants.CodeActions.GenerateEventHandler
+                || ((RazorVSInternalCodeAction)e.Value!).Name == LanguageServerConstants.CodeActions.GenerateAsyncEventHandler);
     }
 
     [Theory]
@@ -824,13 +844,14 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
             AutoInsertAttributeQuotes: true,
             ColorBackground: false,
             CodeBlockBraceOnNextLine: false,
-            CommitElementsWithSpace: true);
+            CommitElementsWithSpace: true,
+            TaskListDescriptors: []);
         var optionsMonitor = TestRazorLSPOptionsMonitor.Create();
         await optionsMonitor.UpdateAsync(razorLSPOptions, DisposalToken);
 
         await ValidateCodeActionAsync(input,
             expected,
-            "Generate Event Handler 'DoesNotExist'",
+            LanguageServerConstants.CodeActions.GenerateEventHandler,
             razorCodeActionProviders: [new GenerateMethodCodeActionProvider()],
             codeActionResolversCreator: CreateRazorCodeActionResolvers,
             optionsMonitor: optionsMonitor,
@@ -865,7 +886,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
             {
                 public partial class test
                 {{{spacingOrMethod}}
-                    private {{GenerateEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
+                    private void DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
                     {
                         throw new global::System.NotImplementedException();
                     }
@@ -878,7 +899,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
             initialCodeBehindContent,
             expectedRazorContent,
             expectedCodeBehindContent,
-            GenerateEventHandlerTitle);
+            LanguageServerConstants.CodeActions.GenerateEventHandler);
     }
 
     [Theory]
@@ -909,7 +930,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
             {
                 public partial class test
                 {{{spacingOrMethod}}
-                    private {{GenerateAsyncEventHandlerReturnType}} DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
+                    private global::System.Threading.Tasks.Task DoesNotExist(global::Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
                     {
                         throw new global::System.NotImplementedException();
                     }
@@ -922,7 +943,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
             initialCodeBehindContent,
             expectedRazorContent,
             expectedCodeBehindContent,
-            GenerateAsyncEventHandlerTitle);
+            LanguageServerConstants.CodeActions.GenerateAsyncEventHandler);
     }
 
     [Theory]
@@ -949,7 +970,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
             initialCodeBehindContent,
             expectedRazorContent,
             initialCodeBehindContent,
-            GenerateEventHandlerTitle);
+            LanguageServerConstants.CodeActions.GenerateEventHandler);
     }
 
     [Fact]
@@ -986,7 +1007,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
             initialCodeBehindContent,
             expectedRazorContent,
             expectedCodeBehindContent,
-            GenerateEventHandlerTitle);
+            LanguageServerConstants.CodeActions.GenerateEventHandler);
     }
 
     [Fact]
@@ -1008,7 +1029,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
 
         await ValidateCodeActionAsync(input,
             expected,
-            GenerateEventHandlerTitle,
+            LanguageServerConstants.CodeActions.GenerateEventHandler,
             razorCodeActionProviders: [new GenerateMethodCodeActionProvider()],
             codeActionResolversCreator: CreateRazorCodeActionResolvers,
             diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);
@@ -1022,7 +1043,7 @@ public class CodeActionEndToEndTest(ITestOutputHelper testOutput) : CodeActionEn
             """;
 
         await ValidateCodeActionAsync(input,
-            GenerateEventHandlerTitle,
+            LanguageServerConstants.CodeActions.GenerateEventHandler,
             razorCodeActionProviders: [new GenerateMethodCodeActionProvider()],
             codeActionResolversCreator: CreateRazorCodeActionResolvers,
             diagnostics: [new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" }]);

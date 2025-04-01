@@ -6,9 +6,10 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Telemetry;
+using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.Snippets;
@@ -109,7 +110,11 @@ internal partial class RazorCustomMessageTarget
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var provisionalChange = new VisualStudioTextChange(provisionalTextEdit, virtualDocumentSnapshot.Snapshot);
-            UpdateVirtualDocument(provisionalChange, request.ProjectedKind, request.Identifier.Version, hostDocumentUri, virtualDocumentSnapshot.Uri);
+            // We update to a negative version number so that if a request comes in for v6, it won't see our modified document. We revert the version back
+            // later, don't worry.
+            UpdateVirtualDocument(provisionalChange, request.ProjectedKind, -1 * request.Identifier.Version, hostDocumentUri, virtualDocumentSnapshot.Uri);
+
+            _logger.LogDebug($"Updated for provisional completion to version -{request.Identifier.Version} of {virtualDocumentSnapshot!.Uri}.");
 
             // We want the delegation to continue on the captured context because we're currently on the `main` thread and we need to get back to the
             // main thread in order to update the virtual buffer with the reverted text edit.
@@ -157,27 +162,18 @@ internal partial class RazorCustomMessageTarget
 
             completionList.Items = builder.ToArray();
 
-            completionList.Data = JsonHelpers.TryConvertFromJObject(completionList.Data);
-            ConvertJsonElementToJObject(completionList);
-
             return completionList;
         }
         finally
         {
             if (provisionalTextEdit is not null)
             {
+                _logger.LogDebug($"Reverting the update for provisional completion back to {request.Identifier.Version} of {virtualDocumentSnapshot!.Uri}.");
+
                 var revertedProvisionalTextEdit = BuildRevertedEdit(provisionalTextEdit);
                 var revertedProvisionalChange = new VisualStudioTextChange(revertedProvisionalTextEdit, virtualDocumentSnapshot.Snapshot);
                 UpdateVirtualDocument(revertedProvisionalChange, request.ProjectedKind, request.Identifier.Version, hostDocumentUri, virtualDocumentSnapshot.Uri);
             }
-        }
-    }
-
-    private void ConvertJsonElementToJObject(VSInternalCompletionList completionList)
-    {
-        foreach (var item in completionList.Items)
-        {
-            item.Data = JsonHelpers.TryConvertFromJObject(item.Data);
         }
     }
 
@@ -222,7 +218,7 @@ internal partial class RazorCustomMessageTarget
             trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
                 documentSnapshotUri,
                 virtualDocumentUri,
-                new[] { textChange },
+                [textChange],
                 hostDocumentVersion,
                 state: null);
         }
@@ -231,7 +227,7 @@ internal partial class RazorCustomMessageTarget
             trackingDocumentManager.UpdateVirtualDocument<HtmlVirtualDocument>(
                 documentSnapshotUri,
                 virtualDocumentUri,
-                new[] { textChange },
+                [textChange],
                 hostDocumentVersion,
                 state: null);
         }
@@ -291,25 +287,15 @@ internal partial class RazorCustomMessageTarget
             return null;
         }
 
-        var completionResolveParams = request.CompletionItem;
-
-        completionResolveParams.Data = JsonHelpers.TryConvertBackToJObject(completionResolveParams.Data);
-
         var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
         var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalCompletionItem, CompletionItem?>(
             textBuffer,
             Methods.TextDocumentCompletionResolve.Name,
             languageServerName,
-            completionResolveParams,
+            request.CompletionItem,
             cancellationToken).ConfigureAwait(false);
 
-        var item = response?.Response;
-        if (item is not null)
-        {
-            item.Data = JsonHelpers.TryConvertFromJObject(item.Data);
-        }
-
-        return item;
+        return response?.Response;
     }
 
     [JsonRpcMethod(LanguageServerConstants.RazorGetFormattingOptionsEndpointName, UseSingleObjectParameterDeserialization = true)]

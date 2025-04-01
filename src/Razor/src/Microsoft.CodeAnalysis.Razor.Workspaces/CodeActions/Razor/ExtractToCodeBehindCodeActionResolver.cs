@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -45,7 +46,7 @@ internal class ExtractToCodeBehindCodeActionResolver(
             return null;
         }
 
-        if (!FileKinds.IsComponent(codeDocument.GetFileKind()))
+        if (!FileKinds.IsComponent(codeDocument.FileKind))
         {
             return null;
         }

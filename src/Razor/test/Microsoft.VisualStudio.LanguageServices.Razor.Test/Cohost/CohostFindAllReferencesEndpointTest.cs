@@ -5,8 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Text.Adornments;
@@ -15,9 +15,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class CohostFindAllReferencesEndpointTest(FuseTestContext context, ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper), IClassFixture<FuseTestContext>
+public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [FuseTheory(Skip = "IFilePathService does not yet map generated documents")]
+    [Theory]
     [CombinatorialData]
     public Task FindCSharpMember(bool supportsVSExtensions)
         => VerifyFindAllReferencesAsync("""
@@ -36,7 +36,7 @@ public class CohostFindAllReferencesEndpointTest(FuseTestContext context, ITestO
             """,
             supportsVSExtensions);
 
-    [FuseTheory(Skip = "IFilePathService does not yet map generated documents")]
+    [Theory]
     [CombinatorialData]
     public async Task ComponentAttribute(bool supportsVSExtensions)
     {
@@ -60,7 +60,7 @@ public class CohostFindAllReferencesEndpointTest(FuseTestContext context, ITestO
             (FilePath("SurveyPrompt.razor"), surveyPrompt));
     }
 
-    [FuseTheory(Skip = "IFilePathService does not yet map generated documents")]
+    [Theory]
     [CombinatorialData]
     public async Task OtherCSharpFile(bool supportsVSExtensions)
     {
@@ -92,8 +92,6 @@ public class CohostFindAllReferencesEndpointTest(FuseTestContext context, ITestO
 
     private async Task VerifyFindAllReferencesAsync(TestCode input, bool supportsVSExtensions, params (string fileName, TestCode testCode)[]? additionalFiles)
     {
-        UpdateClientInitializationOptions(c => c with { ForceRuntimeCodeGeneration = context.ForceRuntimeCodeGeneration });
-
         UpdateClientLSPInitializationOptions(c =>
         {
             c.ClientCapabilities.SupportsVisualStudioExtensions = supportsVSExtensions;

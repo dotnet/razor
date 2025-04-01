@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.ProjectSystem;
@@ -26,9 +25,9 @@ using RoslynVSInternalCompletionInvokeKind = Roslyn.LanguageServer.Protocol.VSIn
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper), IClassFixture<FuseTestContext>
+public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [FuseFact]
+    [Fact]
     public async Task CSharpInEmptyExplicitStatement()
     {
         await VerifyCompletionListAsync(
@@ -49,7 +48,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             expectedItemLabels: ["var", "char", "DateTime", "Exception"]);
     }
 
-    [FuseFact]
+    [Fact]
     public async Task CSharpClassesAtTransition()
     {
         await VerifyCompletionListAsync(
@@ -69,7 +68,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             expectedItemLabels: ["char", "DateTime", "Exception"]);
     }
 
-    [FuseFact(Skip = "Can't modify a generated document to apply '.' character")]
+    [Fact(Skip = "Can't modify a generated document to apply '.' character")]
     public async Task CSharpClassMembersAtProvisionalCompletion()
     {
         await VerifyCompletionListAsync(
@@ -89,7 +88,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"]);
     }
 
-    [FuseFact(Skip = "Can't modify a generated document to apply '.' character")]
+    [Fact(Skip = "Can't modify a generated document to apply '.' character")]
     public async Task CSharpClassesInCodeBlock()
     {
         await VerifyCompletionListAsync(
@@ -111,7 +110,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             expectedItemLabels: ["char", "DateTime", "Exception"]);
     }
 
-    [FuseFact]
+    [Fact]
     public async Task CSharpClassMembersInCodeBlock()
     {
         await VerifyCompletionListAsync(
@@ -138,7 +137,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"]);
     }
 
-    [FuseFact]
+    [Fact]
     public async Task CSharpOverrideMethods()
     {
         await VerifyCompletionListAsync(
@@ -161,7 +160,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
     }
 
     // Tests MarkupTransitionCompletionItemProvider
-    [FuseFact]
+    [Fact]
     public async Task CSharpMarkupTransitionAndTagHelpersInCodeBlock()
     {
         await VerifyCompletionListAsync(
@@ -189,7 +188,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             delegatedItemLabels: ["div"]);
     }
 
-    [FuseFact]
+    [Fact]
     public async Task RazorDirectives()
     {
         var expectedDirectiveLabels = new string[]
@@ -229,7 +228,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             expectedItemLabels: expectedLabels);
     }
 
-    [FuseFact]
+    [Fact]
     public async Task ElementNameTagHelpersCompletion()
     {
         await VerifyCompletionListAsync(
@@ -250,7 +249,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             delegatedItemLabels: ["div"]);
     }
 
-    [FuseFact]
+    [Fact]
     public async Task HtmlElementNamesAndTagHelpersCompletion()
     {
         await VerifyCompletionListAsync(
@@ -271,7 +270,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             delegatedItemLabels: ["div", "h1"]);
     }
 
-    [FuseFact]
+    [Fact]
     public async Task HtmlElementNamesAndTagHelpersCompletion_EndOfDocument()
     {
         await VerifyCompletionListAsync(
@@ -291,7 +290,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             unexpectedItemLabels: ["snippet1", "snippet2"]);
     }
 
-    [FuseFact]
+    [Fact]
     public async Task HtmlElementDoNotCommitWithSpace()
     {
         await VerifyCompletionListAsync(
@@ -314,7 +313,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             commitElementsWithSpace: false);
     }
 
-    [FuseFact]
+    [Fact]
     public async Task HtmlSnippetsCompletion()
     {
         await VerifyCompletionListAsync(
@@ -336,7 +335,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             snippetLabels: ["snippet1", "snippet2"]);
     }
 
-    [FuseFact]
+    [Fact]
     public async Task HtmlSnippetsCompletion_EmptyDocument()
     {
         await VerifyCompletionListAsync(
@@ -354,7 +353,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             snippetLabels: ["snippet1", "snippet2"]);
     }
 
-    [FuseFact]
+    [Fact]
     public async Task HtmlSnippetsCompletion_WhitespaceOnlyDocument1()
     {
         await VerifyCompletionListAsync(
@@ -373,7 +372,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             snippetLabels: ["snippet1", "snippet2"]);
     }
 
-    [FuseFact]
+    [Fact]
     public async Task HtmlSnippetsCompletion_WhitespaceOnlyDocument2()
     {
         await VerifyCompletionListAsync(
@@ -392,7 +391,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             snippetLabels: ["snippet1", "snippet2"]);
     }
 
-    [FuseFact]
+    [Fact]
     public async Task HtmlSnippetsCompletion_NotInStartTag()
     {
         await VerifyCompletionListAsync(
@@ -416,7 +415,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
     }
 
     // Tests HTML attributes and DirectiveAttributeTransitionCompletionItemProvider
-    [FuseFact]
+    [Fact]
     public async Task HtmlAndDirectiveAttributeTransitionNamesCompletion()
     {
         await VerifyCompletionListAsync(
@@ -438,7 +437,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
     }
 
     // Tests HTML attributes and DirectiveAttributeCompletionItemProvider
-    [FuseFact]
+    [Fact]
     public async Task HtmlAndDirectiveAttributeNamesCompletion()
     {
         await VerifyCompletionListAsync(
@@ -460,7 +459,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
     }
 
     // Tests HTML attributes and DirectiveAttributeParameterCompletionItemProvider
-    [FuseFact]
+    [Fact]
     public async Task HtmlAndDirectiveAttributeParameterNamesCompletion()
     {
         await VerifyCompletionListAsync(
@@ -481,7 +480,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             delegatedItemLabels: ["style", "dir"]);
     }
 
-    [FuseFact]
+    [Fact]
     public async Task HtmlAttributeNamesAndTagHelpersCompletion()
     {
         await VerifyCompletionListAsync(
@@ -502,7 +501,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             delegatedItemLabels: ["style", "dir"]);
     }
 
-    [FuseFact]
+    [Fact]
     public async Task HtmlAttributeNamesAndTagHelpersCompletion_EndOfDocument()
     {
         await VerifyCompletionListAsync(
@@ -521,7 +520,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             delegatedItemLabels: ["style", "dir"]);
     }
 
-    [FuseFact]
+    [Fact]
     public async Task TagHelperAttributes_NoAutoInsertQuotes_Completion()
     {
         await VerifyCompletionListAsync(
@@ -554,8 +553,6 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
         bool autoInsertAttributeQuotes = true,
         bool commitElementsWithSpace = true)
     {
-        UpdateClientInitializationOptions(c => c with { ForceRuntimeCodeGeneration = context.ForceRuntimeCodeGeneration });
-
         var document = CreateProjectAndRazorDocument(input.Text);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
@@ -592,7 +589,7 @@ public class CohostDocumentCompletionEndpointTest(FuseTestContext context, ITest
             clientSettingsManager,
             TestHtmlDocumentSynchronizer.Instance,
             snippetCompletionItemProvider,
-            new CompletionTriggerAndCommitCharacters(TestLanguageServerFeatureOptions.Instance),
+            TestLanguageServerFeatureOptions.Instance,
             requestInvoker,
             LoggerFactory);
 

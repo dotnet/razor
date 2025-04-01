@@ -9,8 +9,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
 
 public class DocumentContextFactoryTest : LanguageServerTestBase
 {
-    private static readonly string s_baseDirectory = PathUtilities.CreateRootedPath("path", "to");
+    private static readonly string s_baseDirectory = TestPathUtilities.CreateRootedPath("path", "to");
 
     private readonly TestProjectSnapshotManager _projectManager;
 

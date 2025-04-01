@@ -9,13 +9,13 @@ using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting.Logging;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting.NamedPipes;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -135,6 +135,7 @@ public class RazorLanguageServerTest(ITestOutputHelper testOutput) : ToolingTest
 
                 // VS Code only handlers are added by rzls, but add here for testing purposes
                 s.AddHandler<RazorNamedPipeConnectEndpoint>();
+                s.AddHandlerWithCapabilities<DocumentDiagnosticsEndpoint>();
                 s.AddSingleton(new LogLevelProvider(CodeAnalysis.Razor.Logging.LogLevel.None));
                 s.AddHandler<UpdateLogLevelEndpoint>();
             });

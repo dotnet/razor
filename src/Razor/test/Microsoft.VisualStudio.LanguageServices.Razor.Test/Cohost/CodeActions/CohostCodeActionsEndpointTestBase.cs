@@ -8,14 +8,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
+using Microsoft.CodeAnalysis.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Text;
@@ -28,14 +28,29 @@ using LspDiagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 
-public abstract class CohostCodeActionsEndpointTestBase(FuseTestContext context, ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper), IClassFixture<FuseTestContext>
+public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    protected bool ForceRuntimeCodeGeneration => context.ForceRuntimeCodeGeneration;
-
     private protected async Task VerifyCodeActionAsync(TestCode input, string? expected, string codeActionName, int childActionIndex = 0, string? fileKind = null, (string filePath, string contents)[]? additionalFiles = null, (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
     {
-        UpdateClientInitializationOptions(c => c with { ForceRuntimeCodeGeneration = context.ForceRuntimeCodeGeneration });
+        var document = CreateRazorDocument(input, fileKind, additionalFiles);
 
+        var codeAction = await VerifyCodeActionRequestAsync(document, input, codeActionName, childActionIndex, expectOffer: expected is not null);
+
+        if (codeAction is null)
+        {
+            Assert.Null(expected);
+            return;
+        }
+
+        var workspaceEdit = codeAction.Data is null
+            ? codeAction.Edit.AssumeNotNull()
+            : await ResolveCodeActionAsync(document, codeAction);
+
+        await VerifyCodeActionResultAsync(document, workspaceEdit, expected, additionalExpectedFiles);
+    }
+
+    private protected TextDocument CreateRazorDocument(TestCode input, string? fileKind = null, (string filePath, string contents)[]? additionalFiles = null)
+    {
         var fileSystem = (RemoteFileSystem)OOPExportProvider.GetExportedValue<IFileSystem>();
         fileSystem.GetTestAccessor().SetFileSystem(new TestFileSystem(additionalFiles));
 
@@ -53,23 +68,42 @@ public abstract class CohostCodeActionsEndpointTestBase(FuseTestContext context,
         });
 
         var document = CreateProjectAndRazorDocument(input.Text, fileKind, createSeparateRemoteAndLocalWorkspaces: true, additionalFiles: additionalFiles);
-
-        var codeAction = await VerifyCodeActionRequestAsync(document, input, codeActionName, childActionIndex, expectOffer: expected is not null);
-
-        if (codeAction is null)
-        {
-            Assert.Null(expected);
-            return;
-        }
-
-        var workspaceEdit = codeAction.Data is null
-            ? codeAction.Edit.AssumeNotNull()
-            : await ResolveCodeActionAsync(document, codeAction);
-
-        await VerifyCodeActionResultAsync(document, workspaceEdit, expected, additionalExpectedFiles);
+        return document;
     }
 
     private async Task<CodeAction?> VerifyCodeActionRequestAsync(TextDocument document, TestCode input, string codeActionName, int childActionIndex, bool expectOffer)
+    {
+        var result = await GetCodeActionsAsync(document, input);
+        if (result is null)
+        {
+            return null;
+        }
+
+        var codeActionToRun = (VSInternalCodeAction?)result.SingleOrDefault(e => ((RazorVSInternalCodeAction)e.Value!).Name == codeActionName).Value;
+
+        if (!expectOffer)
+        {
+            Assert.Null(codeActionToRun);
+            return null;
+        }
+
+        AssertEx.NotNull(codeActionToRun, $"""
+            Could not find code action with name '{codeActionName}'.
+
+            Available:
+                {string.Join(Environment.NewLine + "    ", result.Select(e => ((RazorVSInternalCodeAction)e.Value!).Name))}
+            """);
+
+        if (codeActionToRun.Children?.Length > 0)
+        {
+            codeActionToRun = codeActionToRun.Children[childActionIndex];
+        }
+
+        Assert.NotNull(codeActionToRun);
+        return codeActionToRun;
+    }
+
+    private protected async Task<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(TextDocument document, TestCode input)
     {
         var requestInvoker = new TestLSPRequestInvoker();
         var endpoint = new CohostCodeActionsEndpoint(RemoteServiceInvoker, ClientCapabilitiesService, TestHtmlDocumentSynchronizer.Instance, requestInvoker, NoOpTelemetryReporter.Instance);
@@ -93,10 +127,14 @@ public abstract class CohostCodeActionsEndpointTestBase(FuseTestContext context,
             }
         }
 
+        var range = input.HasSpans
+            ? inputText.GetRange(input.Span)
+            : inputText.GetRange(input.Position, input.Position);
+
         var request = new VSCodeActionParams
         {
             TextDocument = new VSTextDocumentIdentifier { Uri = document.CreateUri() },
-            Range = inputText.GetRange(input.Span),
+            Range = range,
             Context = new VSInternalCodeActionContext() { Diagnostics = diagnostics.ToArray() }
         };
 
@@ -107,37 +145,13 @@ public abstract class CohostCodeActionsEndpointTestBase(FuseTestContext context,
         }
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, request, DisposalToken);
-
         if (result is null)
         {
             return null;
         }
 
-        Assert.NotNull(result);
         Assert.NotEmpty(result);
-
-        var codeActionToRun = (VSInternalCodeAction?)result.SingleOrDefault(e => ((RazorVSInternalCodeAction)e.Value!).Name == codeActionName || ((RazorVSInternalCodeAction)e.Value!).Title == codeActionName).Value;
-
-        if (!expectOffer)
-        {
-            Assert.Null(codeActionToRun);
-            return null;
-        }
-
-        AssertEx.NotNull(codeActionToRun, $"""
-            Could not find code action with name or title '{codeActionName}'.
-
-            Available:
-                {string.Join(Environment.NewLine + "    ", result.Select(e => $"{((RazorVSInternalCodeAction)e.Value!).Name} or {((RazorVSInternalCodeAction)e.Value!).Title}"))}
-            """);
-
-        if (codeActionToRun.Children?.Length > 0)
-        {
-            codeActionToRun = codeActionToRun.Children[childActionIndex];
-        }
-
-        Assert.NotNull(codeActionToRun);
-        return codeActionToRun;
+        return result;
     }
 
     private async Task VerifyCodeActionResultAsync(TextDocument document, WorkspaceEdit workspaceEdit, string? expected, (Uri fileUri, string contents)[]? additionalExpectedFiles = null)

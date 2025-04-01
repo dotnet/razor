@@ -6,13 +6,11 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -88,7 +86,8 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
         var context = FormattingContext.Create(
             documentSnapshot,
             codeDocument,
-            options);
+            options,
+            useNewFormattingEngine: false);
         return context;
     }
 
@@ -100,7 +99,11 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
         var projectEngine = RazorProjectEngine.Create(builder =>
         {
             builder.SetRootNamespace("Test");
-            builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
+
+            builder.ConfigureParserOptions(builder =>
+            {
+                builder.UseRoslynTokenizer = true;
+            });
         });
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importSources: default, tagHelpers);
 

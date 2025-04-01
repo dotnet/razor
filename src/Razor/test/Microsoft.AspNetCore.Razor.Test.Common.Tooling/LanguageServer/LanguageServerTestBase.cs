@@ -13,38 +13,27 @@ using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 
-public abstract class LanguageServerTestBase : ToolingTestBase
+public abstract class LanguageServerTestBase(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    private protected IRazorSpanMappingService SpanMappingService { get; }
-    private protected IFilePathService FilePathService { get; }
-    private protected JsonSerializerOptions SerializerOptions { get; }
-
-    protected LanguageServerTestBase(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-        SpanMappingService = new ThrowingRazorSpanMappingService();
-
-        SerializerOptions = JsonHelpers.VsLspJsonSerializerOptions;
-        FilePathService = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
-    }
+    private protected IRazorMappingService SpanMappingService { get; } = new ThrowingRazorMappingService();
+    private protected IFilePathService FilePathService { get; } = new LSPFilePathService(TestLanguageServerFeatureOptions.Instance);
+    private protected JsonSerializerOptions SerializerOptions { get; } = JsonHelpers.VsLspJsonSerializerOptions;
 
     private protected override TestProjectSnapshotManager CreateProjectSnapshotManager(
         IProjectEngineFactoryProvider projectEngineFactoryProvider, LanguageServerFeatureOptions languageServerFeatureOptions)
@@ -81,7 +70,12 @@ public abstract class LanguageServerTestBase : ToolingTestBase
             }
 
             RazorExtensions.Register(b);
-            b.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
+
+            b.ConfigureParserOptions(builder =>
+            {
+                builder.UseRoslynTokenizer = true;
+            });
+
             b.Features.Add(new DefaultTypeNameFeature());
         });
         var importDocumentName = fileKind == FileKinds.Legacy ? "_ViewImports.cshtml" : "_Imports.razor";
@@ -153,7 +147,8 @@ public abstract class LanguageServerTestBase : ToolingTestBase
             autoInsertAttributeQuotes,
             colorBackground,
             codeBlockBraceOnNextLine,
-            commitElementsWithSpace);
+            commitElementsWithSpace,
+            TaskListDescriptors: []);
         var optionsMonitor = new RazorLSPOptionsMonitor(configService, options);
         return optionsMonitor;
     }
@@ -180,9 +175,14 @@ public abstract class LanguageServerTestBase : ToolingTestBase
         return flags;
     }
 
-    private class ThrowingRazorSpanMappingService : IRazorSpanMappingService
+    private class ThrowingRazorMappingService : IRazorMappingService
     {
         public Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ImmutableArray<RazorMappedEditResult>> MapTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

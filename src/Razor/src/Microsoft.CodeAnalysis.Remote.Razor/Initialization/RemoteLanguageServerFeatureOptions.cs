@@ -26,7 +26,7 @@ internal class RemoteLanguageServerFeatureOptions : LanguageServerFeatureOptions
 
     public override bool SupportsFileManipulation => _options.SupportsFileManipulation;
 
-    public override string CSharpVirtualDocumentSuffix => _options.CSharpVirtualDocumentSuffix;
+    public override string CSharpVirtualDocumentSuffix => throw new InvalidOperationException("This property is not valid in OOP");
 
     public override string HtmlVirtualDocumentSuffix => _options.HtmlVirtualDocumentSuffix;
 
@@ -42,15 +42,17 @@ internal class RemoteLanguageServerFeatureOptions : LanguageServerFeatureOptions
 
     public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => _options.ReturnCodeActionAndRenamePathsWithPrefixedSlash;
 
-    public override bool IncludeProjectKeyInGeneratedFilePath => _options.IncludeProjectKeyInGeneratedFilePath;
+    public override bool IncludeProjectKeyInGeneratedFilePath => throw new InvalidOperationException("This option does not apply in cohosting.");
 
     public override bool UseRazorCohostServer => _options.UseRazorCohostServer;
 
-    public override bool ForceRuntimeCodeGeneration => _options.ForceRuntimeCodeGeneration;
+    public override bool ForceRuntimeCodeGeneration => true;
 
-    public override bool UseNewFormattingEngine => _options.UseNewFormattingEngine;
+    public override bool UseNewFormattingEngine => true;
 
     public override bool SupportsSoftSelectionInCompletion => _options.SupportsSoftSelectionInCompletion;
 
     public override bool UseVsCodeCompletionTriggerCharacters => _options.UseVsCodeCompletionTriggerCharacters;
+
+    public override bool DoNotInitializeMiscFilesProjectFromWorkspace => throw new NotImplementedException("This option has not been synced to OOP.");
 }

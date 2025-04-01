@@ -8,12 +8,11 @@ using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -98,10 +97,11 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
         {
             HostDocumentFilePath = filePath,
             ProjectKeyId = projectKey.Id,
-            Changes = textChanges.Select(static t => t.ToRazorTextChange()).ToArray(),
+            Changes = [.. textChanges.Select(static t => t.ToRazorTextChange())],
             HostDocumentVersion = hostDocumentVersion,
+            PreviousHostDocumentVersion = previouslyPublishedData.HostDocumentVersion,
             PreviousWasEmpty = previouslyPublishedData.SourceText.Length == 0,
-            Checksum = Convert.ToBase64String(sourceText.GetChecksum().ToArray()),
+            Checksum = Convert.ToBase64String([.. sourceText.GetChecksum()]),
             ChecksumAlgorithm = sourceText.ChecksumAlgorithm,
             SourceEncodingCodePage = sourceText.Encoding?.CodePage
         };
@@ -145,10 +145,10 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
         {
             HostDocumentFilePath = filePath,
             ProjectKeyId = projectKey.Id,
-            Changes = textChanges.Select(static t => t.ToRazorTextChange()).ToArray(),
+            Changes = [.. textChanges.Select(static t => t.ToRazorTextChange())],
             HostDocumentVersion = hostDocumentVersion,
             PreviousWasEmpty = previouslyPublishedData.SourceText.Length == 0,
-            Checksum = Convert.ToBase64String(sourceText.GetChecksum().ToArray()),
+            Checksum = Convert.ToBase64String([.. sourceText.GetChecksum()]),
             ChecksumAlgorithm = sourceText.ChecksumAlgorithm,
             SourceEncodingCodePage = sourceText.Encoding?.CodePage
         };
@@ -180,7 +180,7 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
                     {
                         if (_publishedCSharpData.Remove(key))
                         {
-                            _logger.LogDebug($"Removing previous C# publish data for {key.ProjectKey}/{key.DocumentFilePath}");
+                            _logger.LogDebug($"Removing previous C# publish data for {key.ProjectKey}/{key.FilePath}");
                         }
                     }
 
@@ -208,7 +208,7 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
                     {
                         if (_publishedCSharpData.Remove(documentKey))
                         {
-                            _logger.LogDebug($"Removing previous C# publish data for {documentKey.ProjectKey}/{documentKey.DocumentFilePath}");
+                            _logger.LogDebug($"Removing previous C# publish data for {documentKey.ProjectKey}/{documentKey.FilePath}");
                         }
                     }
 
@@ -216,7 +216,7 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
                     {
                         if (_publishedHtmlData.Remove(documentFilePath))
                         {
-                            _logger.LogDebug($"Removing previous Html publish data for {documentKey.ProjectKey}/{documentKey.DocumentFilePath}");
+                            _logger.LogDebug($"Removing previous Html publish data for {documentKey.ProjectKey}/{documentKey.FilePath}");
                         }
                     }
                 }
@@ -249,7 +249,7 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
                         {
                             if (_publishedCSharpData.Remove(key))
                             {
-                                _logger.LogDebug($"Removing previous C# publish data for {key.ProjectKey}/{key.DocumentFilePath}");
+                                _logger.LogDebug($"Removing previous C# publish data for {key.ProjectKey}/{key.FilePath}");
                             }
                         }
                     }

@@ -7,17 +7,15 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -43,7 +41,6 @@ public class HtmlCodeActionProviderTest(ITestOutputHelper testOutput) : Language
         };
 
         var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents);
-        context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var documentMappingService = StrictMock.Of<IEditMappingService>();
         var provider = new HtmlCodeActionProvider(documentMappingService);
@@ -75,7 +72,6 @@ public class HtmlCodeActionProviderTest(ITestOutputHelper testOutput) : Language
         };
 
         var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents);
-        context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var remappedEdit = new WorkspaceEdit
         {
@@ -152,9 +148,13 @@ public class HtmlCodeActionProviderTest(ITestOutputHelper testOutput) : Language
         var projectEngine = RazorProjectEngine.Create(builder =>
         {
             builder.AddTagHelpers(tagHelpers);
-            builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
+
+            builder.ConfigureParserOptions(builder =>
+            {
+                builder.UseRoslynTokenizer = true;
+            });
         });
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, importSources: default, tagHelpers);
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Legacy, importSources: default, tagHelpers);
 
         var documentSnapshotMock = new StrictMock<IDocumentSnapshot>();
         documentSnapshotMock
