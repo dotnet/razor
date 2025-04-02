@@ -13,33 +13,48 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 internal static class CompilationHelpers
 {
     internal static async Task<RazorCodeDocument> GenerateCodeDocumentAsync(
-        IDocumentSnapshot document,
+        DocumentSnapshot document,
         RazorProjectEngine projectEngine,
         RazorCompilerOptions compilerOptions,
         CancellationToken cancellationToken)
     {
         var importSources = await GetImportSourcesAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);
         var tagHelpers = await document.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
-        var source = await document.GetSourceAsync(projectEngine, cancellationToken).ConfigureAwait(false);
+        var source = await GetSourceAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);
 
         var generator = new CodeDocumentGenerator(projectEngine, compilerOptions);
         return generator.Generate(source, document.FileKind, importSources, tagHelpers, cancellationToken);
     }
 
     internal static async Task<RazorCodeDocument> GenerateDesignTimeCodeDocumentAsync(
-        IDocumentSnapshot document,
+        DocumentSnapshot document,
         RazorProjectEngine projectEngine,
         CancellationToken cancellationToken)
     {
         var importSources = await GetImportSourcesAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);
         var tagHelpers = await document.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
-        var source = await document.GetSourceAsync(projectEngine, cancellationToken).ConfigureAwait(false);
+        var source = await GetSourceAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);
 
         var generator = new CodeDocumentGenerator(projectEngine, RazorCompilerOptions.None);
         return generator.GenerateDesignTime(source, document.FileKind, importSources, tagHelpers, cancellationToken);
     }
 
-    private static async Task<ImmutableArray<RazorSourceDocument>> GetImportSourcesAsync(IDocumentSnapshot document, RazorProjectEngine projectEngine, CancellationToken cancellationToken)
+    private static async Task<RazorSourceDocument> GetSourceAsync(
+        DocumentSnapshot document,
+        RazorProjectEngine projectEngine,
+        CancellationToken cancellationToken)
+    {
+        var projectItem = document is { FilePath: string filePath, FileKind: var fileKind }
+            ? projectEngine.FileSystem.GetItem(filePath, fileKind)
+            : null;
+
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var properties = RazorSourceDocumentProperties.Create(document.FilePath, projectItem?.RelativePhysicalPath);
+        return RazorSourceDocument.Create(text, properties);
+    }
+
+    private static async Task<ImmutableArray<RazorSourceDocument>> GetImportSourcesAsync(
+        DocumentSnapshot document, RazorProjectEngine projectEngine, CancellationToken cancellationToken)
     {
         var projectItem = projectEngine.FileSystem.GetItem(document.FilePath, document.FileKind);
 
