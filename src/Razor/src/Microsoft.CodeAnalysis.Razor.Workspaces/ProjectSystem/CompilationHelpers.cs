@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal static class CompilationHelpers
 {
-    internal static async Task<RazorCodeDocument> GenerateCodeDocumentAsync(
-        DocumentSnapshot document,
-        RazorProjectEngine projectEngine,
-        RazorCompilerOptions compilerOptions,
-        CancellationToken cancellationToken)
+    internal static async Task<RazorCodeDocument> GenerateCodeDocumentAsync(DocumentSnapshot document, CancellationToken cancellationToken)
     {
+        var project = document.Project;
+        var projectEngine = project.ProjectEngine;
+        var compilerOptions = project.CompilerOptions;
+
         var importSources = await GetImportSourcesAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);
         var tagHelpers = await document.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
         var source = await GetSourceAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);
@@ -26,11 +26,10 @@ internal static class CompilationHelpers
         return generator.Generate(source, document.FileKind, importSources, tagHelpers, cancellationToken);
     }
 
-    internal static async Task<RazorCodeDocument> GenerateDesignTimeCodeDocumentAsync(
-        DocumentSnapshot document,
-        RazorProjectEngine projectEngine,
-        CancellationToken cancellationToken)
+    internal static async Task<RazorCodeDocument> GenerateDesignTimeCodeDocumentAsync(DocumentSnapshot document, CancellationToken cancellationToken)
     {
+        var projectEngine = document.Project.ProjectEngine;
+
         var importSources = await GetImportSourcesAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);
         var tagHelpers = await document.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
         var source = await GetSourceAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);

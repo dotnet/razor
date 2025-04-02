@@ -63,7 +63,7 @@ internal sealed class DocumentSnapshot(ProjectSnapshot project, DocumentState st
     }
 
     public Task<RazorCodeDocument> GenerateDesignTimeOutputAsync(CancellationToken cancellationToken)
-        => CompilationHelpers.GenerateDesignTimeCodeDocumentAsync(this, Project.ProjectEngine, cancellationToken);
+        => CompilationHelpers.GenerateDesignTimeCodeDocumentAsync(this, cancellationToken);
 
     #region ILegacyDocumentSnapshot support
 

@@ -54,12 +54,8 @@ internal sealed class GeneratedOutputSource
                     return result;
                 }
 
-                var project = document.Project;
-                var projectEngine = project.ProjectEngine;
-                var compilerOptions = project.CompilerOptions;
-
                 result = await CompilationHelpers
-                    .GenerateCodeDocumentAsync(document, projectEngine, compilerOptions, cancellationToken)
+                    .GenerateCodeDocumentAsync(document, cancellationToken)
                     .ConfigureAwait(false);
 
                 if (_weakOutput is null)
