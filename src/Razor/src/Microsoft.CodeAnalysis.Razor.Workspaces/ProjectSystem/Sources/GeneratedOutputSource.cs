@@ -10,60 +10,69 @@ using Microsoft.CodeAnalysis.Razor.Threading;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem.Sources;
 
-internal sealed class GeneratedOutputSource(DocumentSnapshot document)
+internal sealed class GeneratedOutputSource
 {
-    private readonly DocumentSnapshot _document = document;
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
     // Hold the output in a WeakReference to avoid memory leaks in the case of a long-lived
     // document snapshots. In particular, the DynamicFileInfo system results in the Roslyn
     // workspace holding onto document snapshots.
-    private WeakReference<RazorCodeDocument>? _output;
+    private WeakReference<RazorCodeDocument>? _weakOutput;
+
+    public GeneratedOutputSource ForkIfOutputAvailable()
+        => TryGetValue(out var result)
+            ? new() { _weakOutput = new(result) }
+            : new();
 
     public bool TryGetValue([NotNullWhen(true)] out RazorCodeDocument? result)
     {
-        var output = _output;
-        if (output is null)
+        var weakOutput = _weakOutput;
+        if (weakOutput is null)
         {
             result = null;
             return false;
         }
 
-        return output.TryGetTarget(out result);
+        return weakOutput.TryGetTarget(out result);
     }
 
-    public async ValueTask<RazorCodeDocument> GetValueAsync(CancellationToken cancellationToken)
+    public ValueTask<RazorCodeDocument> GetValueAsync(DocumentSnapshot document, CancellationToken cancellationToken)
     {
         if (TryGetValue(out var result))
         {
-            return result;
+            return new(result);
         }
 
-        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        return new(GetValueCoreAsync(document, cancellationToken));
+
+        async Task<RazorCodeDocument> GetValueCoreAsync(DocumentSnapshot document, CancellationToken cancellationToken)
         {
-            if (TryGetValue(out result))
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
+                if (TryGetValue(out result))
+                {
+                    return result;
+                }
+
+                var project = document.Project;
+                var projectEngine = project.ProjectEngine;
+                var compilerOptions = project.CompilerOptions;
+
+                result = await CompilationHelpers
+                    .GenerateCodeDocumentAsync(document, projectEngine, compilerOptions, cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (_weakOutput is null)
+                {
+                    _weakOutput = new(result);
+                }
+                else
+                {
+                    _weakOutput.SetTarget(result);
+                }
+
                 return result;
             }
-
-            var project = _document.Project;
-            var projectEngine = project.ProjectEngine;
-            var compilerOptions = project.CompilerOptions;
-
-            result = await CompilationHelpers
-                .GenerateCodeDocumentAsync(_document, projectEngine, compilerOptions, cancellationToken)
-                .ConfigureAwait(false);
-
-            if (_output is null)
-            {
-                _output = new(result);
-            }
-            else
-            {
-                _output.SetTarget(result);
-            }
-
-            return result;
         }
     }
 }
