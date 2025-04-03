@@ -33,7 +33,7 @@ if($success -eq $false){
 
 $vsDir = Split-Path -Parent $devenvExePath
 
-$vsRegEdit = Join-Path (Join-Path (Join-Path $vsDir 'Common7') 'IDE') 'VsRegEdit.exe'
+$vsRegEdit = Join-Path $vsDir 'VsRegEdit.exe'
 
 &$vsRegEdit set "$vsDir" RoslynDev HKLM "Profile" DisableFirstLaunchDialog dword 1
 
