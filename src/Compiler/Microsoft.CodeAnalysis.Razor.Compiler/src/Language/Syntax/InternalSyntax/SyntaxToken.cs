@@ -10,23 +10,14 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
 
 internal class SyntaxToken : RazorSyntaxNode
 {
-    private readonly GreenNode _leadingTrivia;
-    private readonly GreenNode _trailingTrivia;
-
-    internal SyntaxToken(SyntaxKind kind, string content, RazorDiagnostic[] diagnostics)
-        : base(kind, content.Length, diagnostics, annotations: null)
-    {
-        Content = content;
-    }
-
-    internal SyntaxToken(SyntaxKind kind, string content, GreenNode leadingTrivia, GreenNode trailingTrivia, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
+    internal SyntaxToken(
+        SyntaxKind kind,
+        string content,
+        RazorDiagnostic[] diagnostics,
+        SyntaxAnnotation[] annotations = null)
         : base(kind, content.Length, diagnostics, annotations)
     {
         Content = content;
-        _leadingTrivia = leadingTrivia;
-        AdjustFlagsAndWidth(leadingTrivia);
-        _trailingTrivia = trailingTrivia;
-        AdjustFlagsAndWidth(trailingTrivia);
     }
 
     public string Content { get; }
@@ -47,12 +38,12 @@ internal class SyntaxToken : RazorSyntaxNode
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-        return new SyntaxToken(Kind, Content, _leadingTrivia, _trailingTrivia, diagnostics, GetAnnotations());
+        return new SyntaxToken(Kind, Content, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-        return new SyntaxToken(Kind, Content, _leadingTrivia, _trailingTrivia, GetDiagnostics(), annotations);
+        return new SyntaxToken(Kind, Content, GetDiagnostics(), annotations);
     }
 
     protected sealed override int GetSlotCount()
