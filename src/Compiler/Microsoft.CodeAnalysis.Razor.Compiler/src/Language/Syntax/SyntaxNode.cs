@@ -62,10 +62,6 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
 
     public bool IsTrivia => Green.IsTrivia;
 
-    public bool HasLeadingTrivia => GetLeadingTrivia().Count > 0;
-
-    public bool HasTrailingTrivia => GetTrailingTrivia().Count > 0;
-
     public bool ContainsDiagnostics => Green.ContainsDiagnostics;
 
     public bool ContainsAnnotations => Green.ContainsAnnotations;
