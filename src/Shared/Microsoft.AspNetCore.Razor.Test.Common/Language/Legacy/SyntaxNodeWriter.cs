@@ -39,7 +39,7 @@ internal class SyntaxNodeWriter(TextWriter writer, bool validateSpanEditHandlers
         WriteIndent();
         Write(node.Kind);
         WriteSeparator();
-        Write($"[{node.Position}..{node.EndPosition})::{node.FullWidth}");
+        Write($"[{node.Position}..{node.EndPosition})::{node.Width}");
 
         if (node is RazorDirectiveSyntax razorDirective)
         {

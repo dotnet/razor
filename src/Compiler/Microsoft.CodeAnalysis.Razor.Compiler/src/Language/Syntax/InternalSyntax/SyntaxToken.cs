@@ -24,8 +24,6 @@ internal class SyntaxToken : RazorSyntaxNode
 
     internal override bool IsToken => true;
 
-    public override int Width => Content.Length;
-
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
         return new Syntax.SyntaxToken(this, parent, position);

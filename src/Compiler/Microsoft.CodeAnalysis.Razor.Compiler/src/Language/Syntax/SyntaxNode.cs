@@ -19,13 +19,11 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
     public SyntaxNode Parent { get; } = parent;
     public int Position { get; } = position;
 
-    public int EndPosition => Position + FullWidth;
+    public int EndPosition => Position + Width;
 
     public SyntaxKind Kind => Green.Kind;
 
     public int Width => Green.Width;
-
-    public int FullWidth => Green.Width;
 
     public int SpanStart => Position;
 
@@ -453,7 +451,7 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
     {
         var builder = new StringBuilder();
         builder.Append(Green.ToString());
-        builder.AppendFormat(CultureInfo.InvariantCulture, " at {0}::{1}", Position, FullWidth);
+        builder.AppendFormat(CultureInfo.InvariantCulture, " at {0}::{1}", Position, Width);
 
         return builder.ToString();
     }

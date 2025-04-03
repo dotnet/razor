@@ -129,7 +129,7 @@ internal class SyntaxSerializer
             WriteSeparator();
             Write($"[{node.Position}..{node.EndPosition})");
             WriteSeparator();
-            Write($"FullWidth: {node.FullWidth}");
+            Write($"Width: {node.Width}");
 
             if (node is RazorDirectiveSyntax razorDirective)
             {

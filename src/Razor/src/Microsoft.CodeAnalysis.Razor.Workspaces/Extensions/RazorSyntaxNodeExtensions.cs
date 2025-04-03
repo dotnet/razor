@@ -199,7 +199,7 @@ internal static class RazorSyntaxNodeExtensions
 
         Debug.Assert(start <= sourceText.Length && end <= sourceText.Length, "Node position exceeds source length.");
 
-        if (start == sourceText.Length && node.FullWidth == 0)
+        if (start == sourceText.Length && node.Width == 0)
         {
             // Marker symbol at the end of the document.
             var location = node.GetSourceLocation(sourceDocument);
@@ -283,7 +283,7 @@ internal static class RazorSyntaxNodeExtensions
             {
                 var parent = node.Parent;
                 // NOTE: We care about FullSpan equality, but FullWidth is cheaper and equivalent.
-                if (parent == null || parent.FullWidth != node.FullWidth)
+                if (parent == null || parent.Width != node.Width)
                 {
                     break;
                 }
@@ -473,7 +473,7 @@ internal static class RazorSyntaxNodeExtensions
             var start = node.Position + parentStart;
             var end = node.EndPosition + parentStart;
 
-            if (start == sourceText.Length && node.FullWidth == 0)
+            if (start == sourceText.Length && node.Width == 0)
             {
                 // Marker symbol at the end of the document.
                 var location = node.GetSourceLocation(source);
