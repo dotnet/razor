@@ -187,18 +187,6 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
         return Position + offset;
     }
 
-    public virtual SyntaxTriviaList GetLeadingTrivia()
-    {
-        var firstToken = GetFirstToken();
-        return firstToken != null ? firstToken.GetLeadingTrivia() : default;
-    }
-
-    public virtual SyntaxTriviaList GetTrailingTrivia()
-    {
-        var lastToken = GetLastToken();
-        return lastToken != null ? lastToken.GetTrailingTrivia() : default;
-    }
-
     internal SyntaxList<SyntaxToken> GetTokens()
     {
         using var _ = SyntaxListBuilderPool.GetPooledBuilder<SyntaxToken>(out var tokens);

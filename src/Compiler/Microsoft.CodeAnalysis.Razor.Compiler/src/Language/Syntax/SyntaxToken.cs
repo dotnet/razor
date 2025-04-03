@@ -41,37 +41,6 @@ internal class SyntaxToken : RazorSyntaxNode
         visitor.VisitToken(this);
     }
 
-    public override SyntaxTriviaList GetLeadingTrivia()
-    {
-        var leading = Green.GetLeadingTrivia();
-        if (leading == null)
-        {
-            return default(SyntaxTriviaList);
-        }
-
-        return new SyntaxTriviaList(leading.CreateRed(this, Position), Position);
-    }
-
-    public override SyntaxTriviaList GetTrailingTrivia()
-    {
-        var trailing = Green.GetTrailingTrivia();
-        if (trailing == null)
-        {
-            return default(SyntaxTriviaList);
-        }
-
-        var leading = Green.GetLeadingTrivia();
-        var index = 0;
-        if (leading != null)
-        {
-            index = leading.IsList ? leading.SlotCount : 1;
-        }
-        int trailingPosition = Position + FullWidth;
-        trailingPosition -= trailing.FullWidth;
-
-        return new SyntaxTriviaList(trailing.CreateRed(this, trailingPosition), trailingPosition, index);
-    }
-
     /// <summary>
     /// Gets the token that follows this token in the syntax tree.
     /// </summary>

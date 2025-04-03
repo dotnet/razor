@@ -38,16 +38,6 @@ internal class SyntaxTrivia : SyntaxNode
         visitor.VisitTrivia(this);
     }
 
-    public sealed override SyntaxTriviaList GetTrailingTrivia()
-    {
-        return default(SyntaxTriviaList);
-    }
-
-    public sealed override SyntaxTriviaList GetLeadingTrivia()
-    {
-        return default(SyntaxTriviaList);
-    }
-
     public override string ToString()
     {
         return Text;
