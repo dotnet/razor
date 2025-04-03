@@ -87,26 +87,6 @@ internal class SyntaxToken : RazorSyntaxNode
         return _trailingTrivia == null ? 0 : _trailingTrivia.FullWidth;
     }
 
-    public sealed override GreenNode WithLeadingTrivia(GreenNode trivia)
-    {
-        return TokenWithLeadingTrivia(trivia);
-    }
-
-    public virtual SyntaxToken TokenWithLeadingTrivia(GreenNode trivia)
-    {
-        return new SyntaxToken(Kind, Content, trivia, _trailingTrivia, GetDiagnostics(), GetAnnotations());
-    }
-
-    public sealed override GreenNode WithTrailingTrivia(GreenNode trivia)
-    {
-        return TokenWithTrailingTrivia(trivia);
-    }
-
-    public virtual SyntaxToken TokenWithTrailingTrivia(GreenNode trivia)
-    {
-        return new SyntaxToken(Kind, Content, _leadingTrivia, trivia, GetDiagnostics(), GetAnnotations());
-    }
-
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
         return new SyntaxToken(Kind, Content, _leadingTrivia, _trailingTrivia, diagnostics, GetAnnotations());
