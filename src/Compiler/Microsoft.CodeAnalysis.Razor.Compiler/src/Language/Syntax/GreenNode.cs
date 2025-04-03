@@ -349,16 +349,6 @@ internal abstract class GreenNode
         return string.Empty;
     }
 
-    public virtual GreenNode GetLeadingTrivia()
-    {
-        return null;
-    }
-
-    public virtual GreenNode GetTrailingTrivia()
-    {
-        return null;
-    }
-
     public InternalSyntax.SyntaxToken GetFirstToken()
     {
         return (InternalSyntax.SyntaxToken)GetFirstTerminal();

@@ -45,16 +45,6 @@ internal class SyntaxToken : RazorSyntaxNode
         writer.Write(Content);
     }
 
-    public sealed override GreenNode GetLeadingTrivia()
-    {
-        return _leadingTrivia;
-    }
-
-    public sealed override GreenNode GetTrailingTrivia()
-    {
-        return _trailingTrivia;
-    }
-
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
         return new SyntaxToken(Kind, Content, _leadingTrivia, _trailingTrivia, diagnostics, GetAnnotations());
