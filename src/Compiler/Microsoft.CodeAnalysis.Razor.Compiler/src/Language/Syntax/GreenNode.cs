@@ -22,6 +22,8 @@ internal abstract class GreenNode
         new ConditionalWeakTable<GreenNode, RazorDiagnostic[]>();
     private static readonly ConditionalWeakTable<GreenNode, SyntaxAnnotation[]> AnnotationsTable =
         new ConditionalWeakTable<GreenNode, SyntaxAnnotation[]>();
+
+    private int _width;
     private byte _slotCount;
 
     protected GreenNode(SyntaxKind kind)
@@ -29,10 +31,10 @@ internal abstract class GreenNode
         Kind = kind;
     }
 
-    protected GreenNode(SyntaxKind kind, int fullWidth)
+    protected GreenNode(SyntaxKind kind, int width)
         : this(kind)
     {
-        FullWidth = fullWidth;
+        _width = width;
     }
 
     protected GreenNode(SyntaxKind kind, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
@@ -40,8 +42,8 @@ internal abstract class GreenNode
     {
     }
 
-    protected GreenNode(SyntaxKind kind, int fullWidth, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
-        : this(kind, fullWidth)
+    protected GreenNode(SyntaxKind kind, int width, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
+        : this(kind, width)
     {
         if (diagnostics?.Length > 0)
         {
@@ -72,7 +74,7 @@ internal abstract class GreenNode
         }
 
         Flags |= (node.Flags & NodeFlags.InheritMask);
-        FullWidth += node.FullWidth;
+        _width += node.Width;
     }
 
     #region Kind
@@ -82,6 +84,8 @@ internal abstract class GreenNode
 
     internal virtual bool IsToken => false;
     #endregion
+
+    public int Width => _width;
 
     #region Slots
     public int SlotCount
@@ -119,7 +123,7 @@ internal abstract class GreenNode
             var child = GetSlot(i);
             if (child != null)
             {
-                offset += child.FullWidth;
+                offset += child.Width;
             }
         }
 
@@ -128,7 +132,7 @@ internal abstract class GreenNode
 
     public virtual int FindSlotIndexContainingOffset(int offset)
     {
-        Debug.Assert(0 <= offset && offset < FullWidth);
+        Debug.Assert(0 <= offset && offset < Width);
 
         int i;
         var accumulatedWidth = 0;
@@ -138,7 +142,7 @@ internal abstract class GreenNode
             var child = GetSlot(i);
             if (child != null)
             {
-                accumulatedWidth += child.FullWidth;
+                accumulatedWidth += child.Width;
                 if (offset < accumulatedWidth)
                 {
                     break;
@@ -178,18 +182,6 @@ internal abstract class GreenNode
         get
         {
             return (Flags & NodeFlags.ContainsAnnotations) != 0;
-        }
-    }
-    #endregion
-
-    #region Spans
-    internal int FullWidth { get; private set; }
-
-    public virtual int Width
-    {
-        get
-        {
-            return FullWidth;
         }
     }
     #endregion
@@ -356,7 +348,7 @@ internal abstract class GreenNode
             for (int i = 0, n = node.SlotCount; i < n; i++)
             {
                 var child = node.GetSlot(i);
-                if (child != null && child.FullWidth > 0)
+                if (child != null && child.Width > 0)
                 {
                     firstChild = child;
                     break;
@@ -378,7 +370,7 @@ internal abstract class GreenNode
             for (var i = node.SlotCount - 1; i >= 0; i--)
             {
                 var child = node.GetSlot(i);
-                if (child != null && child.FullWidth > 0)
+                if (child != null && child.Width > 0)
                 {
                     lastChild = child;
                     break;
@@ -430,7 +422,7 @@ internal abstract class GreenNode
             }
         }
 
-        if (node1.FullWidth != node2.FullWidth)
+        if (node1.Width != node2.Width)
         {
             return false;
         }

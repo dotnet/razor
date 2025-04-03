@@ -115,7 +115,7 @@ internal readonly struct ChildSyntaxList : IEquatable<ChildSyntaxList>, IReadOnl
                 }
 
                 idx -= currentOccupancy;
-                position += greenChild.FullWidth;
+                position += greenChild.Width;
             }
 
             slotIndex++;
@@ -174,7 +174,7 @@ internal readonly struct ChildSyntaxList : IEquatable<ChildSyntaxList>, IReadOnl
             var greenChild = green.GetSlot(slot);
             if (greenChild != null)
             {
-                var endPosition = position + greenChild.FullWidth;
+                var endPosition = position + greenChild.Width;
                 if (targetPosition < endPosition)
                 {
                     // Descend into the child element

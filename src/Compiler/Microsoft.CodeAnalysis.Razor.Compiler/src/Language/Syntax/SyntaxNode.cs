@@ -25,11 +25,11 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
 
     public int Width => Green.Width;
 
-    public int FullWidth => Green.FullWidth;
+    public int FullWidth => Green.Width;
 
     public int SpanStart => Position;
 
-    public TextSpan FullSpan => new(Position, Green.FullWidth);
+    public TextSpan FullSpan => new(Position, Green.Width);
 
     public TextSpan Span
     {
@@ -37,7 +37,7 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
         {
             // Start with the full span.
             var start = Position;
-            var width = Green.FullWidth;
+            var width = Green.Width;
 
             Debug.Assert(width >= 0);
             return new TextSpan(start, width);
@@ -170,7 +170,7 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
             var greenChild = green.GetSlot(index);
             if (greenChild != null)
             {
-                offset += greenChild.FullWidth;
+                offset += greenChild.Width;
             }
         }
 
