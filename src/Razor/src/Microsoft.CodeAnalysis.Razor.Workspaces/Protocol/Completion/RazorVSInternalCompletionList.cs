@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// This is the same as the LSP protocol <see cref="VSInternalCompletionList"/> except that it strongly types the <see cref="Items"/> property,
 /// because our custom message target gets handled by a JsonRpc connection set up by the editor, that has no Roslyn converters.
 /// </remarks>
-internal class RazorVSInternalCompletionList : VSInternalCompletionList
+internal sealed class RazorVSInternalCompletionList : VSInternalCompletionList
 {
     public RazorVSInternalCompletionList()
     {

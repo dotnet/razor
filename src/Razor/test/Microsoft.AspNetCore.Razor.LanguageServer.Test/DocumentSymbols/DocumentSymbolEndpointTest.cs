@@ -141,6 +141,7 @@ public class DocumentSymbolEndpointTest(ITestOutputHelper testOutput) : SingleSe
             Assert.Equal(spansDict.Values.Count(), symbolsInformations.Length);
 
 #pragma warning disable CS0618 // Type or member is obsolete
+            // SymbolInformation is obsolete, but things still return it so we have to handle it
             var sourceText = SourceText.From(input);
             foreach (var symbolInformation in symbolsInformations)
             {
