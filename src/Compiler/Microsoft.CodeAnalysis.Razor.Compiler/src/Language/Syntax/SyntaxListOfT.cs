@@ -111,7 +111,7 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     /// </summary>
     public TextSpan FullSpan
         => Count > 0
-            ? TextSpan.FromBounds(this[0].FullSpan.Start, this[Count - 1].FullSpan.End)
+            ? TextSpan.FromBounds(this[0].Span.Start, this[Count - 1].Span.End)
             : default;
 
     /// <summary>

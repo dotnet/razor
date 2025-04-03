@@ -257,14 +257,14 @@ internal static class RazorSyntaxNodeExtensions
 
     public static SyntaxNode? FindNode(this SyntaxNode @this, TextSpan span, bool includeWhitespace = false, bool getInnermostNodeForTie = false)
     {
-        if (!@this.FullSpan.Contains(span))
+        if (!@this.Span.Contains(span))
         {
             return ThrowHelper.ThrowArgumentOutOfRangeException<SyntaxNode?>(nameof(span));
         }
 
         var node = @this.FindToken(span.Start, includeWhitespace)
             .Parent!
-            .FirstAncestorOrSelf<SyntaxNode>(a => a.FullSpan.Contains(span));
+            .FirstAncestorOrSelf<SyntaxNode>(a => a.Span.Contains(span));
 
         node.AssumeNotNull();
 

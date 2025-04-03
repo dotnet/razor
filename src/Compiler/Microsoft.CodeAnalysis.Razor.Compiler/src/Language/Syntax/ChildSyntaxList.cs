@@ -158,7 +158,7 @@ internal readonly struct ChildSyntaxList : IEquatable<ChildSyntaxList>, IReadOnl
     internal static SyntaxNode ChildThatContainsPosition(SyntaxNode node, int targetPosition, out int index)
     {
         // The targetPosition must already be within this node
-        Debug.Assert(node.FullSpan.Contains(targetPosition));
+        Debug.Assert(node.Span.Contains(targetPosition));
 
         var green = node.Green;
         var position = node.Position;

@@ -27,20 +27,7 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
 
     public int SpanStart => Position;
 
-    public TextSpan FullSpan => new(Position, Green.Width);
-
-    public TextSpan Span
-    {
-        get
-        {
-            // Start with the full span.
-            var start = Position;
-            var width = Green.Width;
-
-            Debug.Assert(width >= 0);
-            return new TextSpan(start, width);
-        }
-    }
+    public TextSpan Span => new(Position, Green.Width);
 
     internal int SlotCount => Green.SlotCount;
 
@@ -272,7 +259,7 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
     /// <param name="descendIntoChildren">An optional function that determines if the search descends into the argument node's children.</param>
     public IEnumerable<SyntaxNode> DescendantNodes(Func<SyntaxNode, bool>? descendIntoChildren = null)
     {
-        return DescendantNodesImpl(FullSpan, descendIntoChildren, includeSelf: false);
+        return DescendantNodesImpl(Span, descendIntoChildren, includeSelf: false);
     }
 
     /// <summary>
@@ -281,7 +268,7 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
     /// <param name="descendIntoChildren">An optional function that determines if the search descends into the argument node's children.</param>
     public IEnumerable<SyntaxNode> DescendantNodesAndSelf(Func<SyntaxNode, bool>? descendIntoChildren = null)
     {
-        return DescendantNodesImpl(FullSpan, descendIntoChildren, includeSelf: true);
+        return DescendantNodesImpl(Span, descendIntoChildren, includeSelf: true);
     }
 
     protected internal SyntaxNode ReplaceCore<TNode>(
@@ -356,7 +343,7 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
             return document.EndOfFile;
         }
 
-        if (!FullSpan.Contains(position))
+        if (!Span.Contains(position))
         {
             throw new ArgumentOutOfRangeException(nameof(position));
         }
@@ -366,7 +353,7 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
         while (true)
         {
             Debug.Assert(curNode.Kind is < SyntaxKind.FirstAvailableTokenKind and >= 0);
-            Debug.Assert(curNode.FullSpan.Contains(position));
+            Debug.Assert(curNode.Span.Contains(position));
 
             if (!curNode.IsToken)
             {
