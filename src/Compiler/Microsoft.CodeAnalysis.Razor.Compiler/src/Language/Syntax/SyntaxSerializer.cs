@@ -53,7 +53,7 @@ internal class SyntaxSerializer
             _visitor.Visit(node);
             _writer.WriteLine();
 
-            if (!node.IsToken && !node.IsTrivia)
+            if (!node.IsToken)
             {
                 _visitor.Depth++;
                 node = base.DefaultVisit(node);
@@ -120,12 +120,6 @@ internal class SyntaxSerializer
         {
             WriteToken(token);
             return base.VisitToken(token);
-        }
-
-        public override SyntaxNode VisitTrivia(SyntaxTrivia trivia)
-        {
-            WriteTrivia(trivia);
-            return base.VisitTrivia(trivia);
         }
 
         private void WriteNode(SyntaxNode node)
@@ -255,11 +249,6 @@ internal class SyntaxSerializer
             var diagnostics = token.GetDiagnostics();
             var tokenString = $"{token.Kind};[{content}];{string.Join(", ", diagnostics.Select(diagnostic => diagnostic.Id + diagnostic.Span))}";
             Write(tokenString);
-        }
-
-        private void WriteTrivia(SyntaxTrivia trivia)
-        {
-            throw new NotImplementedException();
         }
 
         private void WriteChunkGenerator(SyntaxNode node)

@@ -52,8 +52,6 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
 
     public bool IsToken => Green.IsToken;
 
-    public bool IsTrivia => Green.IsTrivia;
-
     public bool ContainsDiagnostics => Green.ContainsDiagnostics;
 
     public bool ContainsAnnotations => Green.ContainsAnnotations;

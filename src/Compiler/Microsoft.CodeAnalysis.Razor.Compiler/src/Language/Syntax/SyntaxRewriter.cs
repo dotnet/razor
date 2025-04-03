@@ -59,11 +59,6 @@ internal abstract partial class SyntaxRewriter : SyntaxVisitor<SyntaxNode>
         return token;
     }
 
-    public override SyntaxNode VisitTrivia(SyntaxTrivia trivia)
-    {
-        return trivia;
-    }
-
     public virtual TNode VisitListElement<TNode>(TNode node) where TNode : SyntaxNode
     {
         return (TNode)(SyntaxNode)Visit(node);

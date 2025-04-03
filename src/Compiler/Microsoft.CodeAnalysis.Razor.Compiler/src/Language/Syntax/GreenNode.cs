@@ -81,8 +81,6 @@ internal abstract class GreenNode
     internal virtual bool IsList => false;
 
     internal virtual bool IsToken => false;
-
-    internal virtual bool IsTrivia => false;
     #endregion
 
     #region Slots
@@ -274,12 +272,6 @@ internal abstract class GreenNode
                     continue;
                 }
 
-                if (node.IsTrivia)
-                {
-                    node.WriteTriviaTo(writer);
-                    continue;
-                }
-
                 var firstIndex = GetFirstNonNullChildIndex(node);
                 var lastIndex = GetLastNonNullChildIndex(node);
 
@@ -327,11 +319,6 @@ internal abstract class GreenNode
     }
 
     protected virtual void WriteTokenTo(TextWriter writer)
-    {
-        throw new NotImplementedException();
-    }
-
-    protected virtual void WriteTriviaTo(TextWriter writer)
     {
         throw new NotImplementedException();
     }

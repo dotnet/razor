@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -33,12 +32,6 @@ internal class SyntaxNodeWriter(TextWriter writer, bool validateSpanEditHandlers
     {
         WriteToken(token);
         return base.VisitToken(token);
-    }
-
-    public override SyntaxNode VisitTrivia(SyntaxTrivia trivia)
-    {
-        WriteTrivia(trivia);
-        return base.VisitTrivia(trivia);
     }
 
     private void WriteNode(SyntaxNode node)
@@ -171,11 +164,6 @@ internal class SyntaxNodeWriter(TextWriter writer, bool validateSpanEditHandlers
         var diagnostics = token.GetDiagnostics();
         var tokenString = $"{token.Kind};[{content}];{string.Join(", ", diagnostics.Select(diagnostic => diagnostic.Id + diagnostic.Span))}";
         Write(tokenString);
-    }
-
-    private void WriteTrivia(SyntaxTrivia trivia)
-    {
-        throw new NotImplementedException();
     }
 
     private void WriteChunkGenerator(SyntaxNode node)
