@@ -72,10 +72,6 @@ internal class OnAutoInsertEndpoint(
         }
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        if (codeDocument.IsUnsupported())
-        {
-            return null;
-        }
 
         cancellationToken.ThrowIfCancellationRequested();
 
