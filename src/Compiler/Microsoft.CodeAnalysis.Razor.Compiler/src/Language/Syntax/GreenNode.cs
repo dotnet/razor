@@ -191,18 +191,8 @@ internal abstract class GreenNode
     {
         get
         {
-            return FullWidth - GetLeadingTriviaWidth() - GetTrailingTriviaWidth();
+            return FullWidth;
         }
-    }
-
-    public virtual int GetLeadingTriviaWidth()
-    {
-        return FullWidth != 0 ? GetFirstTerminal().GetLeadingTriviaWidth() : 0;
-    }
-
-    public virtual int GetTrailingTriviaWidth()
-    {
-        return FullWidth != 0 ? GetLastTerminal().GetTrailingTriviaWidth() : 0;
     }
     #endregion
 

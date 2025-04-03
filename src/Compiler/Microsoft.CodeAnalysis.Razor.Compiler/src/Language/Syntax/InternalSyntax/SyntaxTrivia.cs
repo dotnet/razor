@@ -38,16 +38,6 @@ internal class SyntaxTrivia : GreenNode
         return Text;
     }
 
-    public sealed override int GetLeadingTriviaWidth()
-    {
-        return 0;
-    }
-
-    public sealed override int GetTrailingTriviaWidth()
-    {
-        return 0;
-    }
-
     protected sealed override int GetSlotCount()
     {
         return 0;

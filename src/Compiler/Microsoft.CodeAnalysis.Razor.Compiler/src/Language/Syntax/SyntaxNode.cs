@@ -27,7 +27,7 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
 
     public int FullWidth => Green.FullWidth;
 
-    public int SpanStart => Position + Green.GetLeadingTriviaWidth();
+    public int SpanStart => Position;
 
     public TextSpan FullSpan => new(Position, Green.FullWidth);
 
@@ -38,14 +38,6 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
             // Start with the full span.
             var start = Position;
             var width = Green.FullWidth;
-
-            // adjust for preceding trivia (avoid calling this twice, do not call Green.Width)
-            var precedingWidth = Green.GetLeadingTriviaWidth();
-            start += precedingWidth;
-            width -= precedingWidth;
-
-            // adjust for following trivia width
-            width -= Green.GetTrailingTriviaWidth();
 
             Debug.Assert(width >= 0);
             return new TextSpan(start, width);

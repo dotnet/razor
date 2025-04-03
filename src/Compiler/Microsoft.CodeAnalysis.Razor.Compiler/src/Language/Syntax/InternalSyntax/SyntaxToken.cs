@@ -62,19 +62,9 @@ internal class SyntaxToken : RazorSyntaxNode
         return _leadingTrivia;
     }
 
-    public override int GetLeadingTriviaWidth()
-    {
-        return _leadingTrivia == null ? 0 : _leadingTrivia.FullWidth;
-    }
-
     public sealed override GreenNode GetTrailingTrivia()
     {
         return _trailingTrivia;
-    }
-
-    public override int GetTrailingTriviaWidth()
-    {
-        return _trailingTrivia == null ? 0 : _trailingTrivia.FullWidth;
     }
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
