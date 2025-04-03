@@ -204,22 +204,6 @@ internal abstract class GreenNode
     {
         return FullWidth != 0 ? GetLastTerminal().GetTrailingTriviaWidth() : 0;
     }
-
-    public bool HasLeadingTrivia
-    {
-        get
-        {
-            return GetLeadingTriviaWidth() != 0;
-        }
-    }
-
-    public bool HasTrailingTrivia
-    {
-        get
-        {
-            return GetTrailingTriviaWidth() != 0;
-        }
-    }
     #endregion
 
     #region Diagnostics
