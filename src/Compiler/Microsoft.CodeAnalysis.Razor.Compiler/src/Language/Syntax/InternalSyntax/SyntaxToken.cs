@@ -19,16 +19,6 @@ internal class SyntaxToken : RazorSyntaxNode
         Content = content;
     }
 
-    internal SyntaxToken(SyntaxKind kind, string content, GreenNode leadingTrivia, GreenNode trailingTrivia)
-        : base(kind, content.Length)
-    {
-        Content = content;
-        _leadingTrivia = leadingTrivia;
-        AdjustFlagsAndWidth(leadingTrivia);
-        _trailingTrivia = trailingTrivia;
-        AdjustFlagsAndWidth(trailingTrivia);
-    }
-
     internal SyntaxToken(SyntaxKind kind, string content, GreenNode leadingTrivia, GreenNode trailingTrivia, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, content.Length, diagnostics, annotations)
     {
@@ -208,12 +198,6 @@ internal class SyntaxToken : RazorSyntaxNode
     {
         internal MissingToken(SyntaxKind kind, RazorDiagnostic[] diagnostics)
             : base(kind, string.Empty, diagnostics)
-        {
-            Flags |= NodeFlags.IsMissing;
-        }
-
-        internal MissingToken(SyntaxKind kind, GreenNode leading, GreenNode trailing, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
-            : base(kind, string.Empty, leading, trailing, diagnostics, annotations)
         {
             Flags |= NodeFlags.IsMissing;
         }
