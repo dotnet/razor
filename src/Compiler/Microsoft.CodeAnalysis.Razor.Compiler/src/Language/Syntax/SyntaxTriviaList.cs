@@ -691,36 +691,6 @@ internal readonly struct SyntaxTriviaList : IEquatable<SyntaxTriviaList>, IReadO
             _position = position;
         }
 
-        // PERF: Used to initialize an enumerator for leading trivia directly from a token.
-        // This saves constructing an intermediate SyntaxTriviaList. Also, passing token
-        // by ref since it's a non-trivial struct
-        internal void InitializeFromLeadingTrivia(in SyntaxToken token)
-        {
-            InitializeFrom(token.GetLeadingTrivia().Node, 0, token.Position);
-        }
-
-        // PERF: Used to initialize an enumerator for trailing trivia directly from a token.
-        // This saves constructing an intermediate SyntaxTriviaList. Also, passing token
-        // by ref since it's a non-trivial struct
-        internal void InitializeFromTrailingTrivia(in SyntaxToken token)
-        {
-            var leading = token.GetLeadingTrivia().Node;
-            var index = 0;
-            if (leading != null)
-            {
-                index = leading.IsList ? leading.SlotCount : 1;
-            }
-
-            var trailing = token.GetTrailingTrivia().Node;
-            var trailingPosition = token.Position + token.FullWidth;
-            if (trailing != null)
-            {
-                trailingPosition -= trailing.FullWidth;
-            }
-
-            InitializeFrom(trailing, index, trailingPosition);
-        }
-
         public bool MoveNext()
         {
             var newIndex = _index + 1;
