@@ -251,31 +251,26 @@ internal abstract class GreenNode
         return builder.ToString();
     }
 
-    public virtual void WriteTo(TextWriter writer)
-    {
-        WriteTo(writer, includeLeadingTrivia: true, includeTrailingTrivia: true);
-    }
-
-    protected internal void WriteTo(TextWriter writer, bool includeLeadingTrivia, bool includeTrailingTrivia)
+    public void WriteTo(TextWriter writer)
     {
         // Use an actual Stack so we can write out deeply recursive structures without overflowing.
-        using var stack = new PooledArrayBuilder<StackEntry>();
+        using var stack = new PooledArrayBuilder<GreenNode>();
 
-        stack.Push(new(Node: this, includeLeadingTrivia, includeTrailingTrivia));
+        stack.Push(this);
 
         // Separated out stack processing logic so that it does not unintentionally refer to
         // "this", "leading" or "trailing.
         ProcessStack(writer, ref stack.AsRef());
 
-        static void ProcessStack(TextWriter writer, ref PooledArrayBuilder<StackEntry> stack)
+        static void ProcessStack(TextWriter writer, ref PooledArrayBuilder<GreenNode> stack)
         {
             while (stack.Count > 0)
             {
-                var (node, includeLeadingTrivia, includeTrailingTrivia) = stack.Pop();
+                var node = stack.Pop();
 
                 if (node.IsToken)
                 {
-                    node.WriteTokenTo(writer, includeLeadingTrivia, includeTrailingTrivia);
+                    node.WriteTokenTo(writer);
                     continue;
                 }
 
@@ -292,13 +287,7 @@ internal abstract class GreenNode
                 {
                     if (node.GetSlot(i) is GreenNode child)
                     {
-                        var isFirst = i == firstIndex;
-                        var isLast = i == lastIndex;
-
-                        stack.Push(new(
-                            child,
-                            IncludeLeadingTrivia: includeLeadingTrivia | !isFirst,
-                            IncludeTrailingTrivia: includeTrailingTrivia | !isLast));
+                        stack.Push(child);
                     }
                 }
             }
@@ -337,17 +326,12 @@ internal abstract class GreenNode
         }
     }
 
-    private readonly record struct StackEntry(
-        GreenNode Node,
-        bool IncludeLeadingTrivia,
-        bool IncludeTrailingTrivia);
-
-    protected virtual void WriteTriviaTo(TextWriter writer)
+    protected virtual void WriteTokenTo(TextWriter writer)
     {
         throw new NotImplementedException();
     }
 
-    protected virtual void WriteTokenTo(TextWriter writer, bool includeLeadingTrivia, bool includeTrailingTrivia)
+    protected virtual void WriteTriviaTo(TextWriter writer)
     {
         throw new NotImplementedException();
     }

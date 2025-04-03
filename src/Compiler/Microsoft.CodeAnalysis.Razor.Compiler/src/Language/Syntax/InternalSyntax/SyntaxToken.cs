@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -40,21 +40,9 @@ internal class SyntaxToken : RazorSyntaxNode
         return new Syntax.SyntaxToken(this, parent, position);
     }
 
-    protected override void WriteTokenTo(TextWriter writer, bool includeLeadingTrivia, bool includeTrailingTrivia)
+    protected override void WriteTokenTo(TextWriter writer)
     {
-        if (includeLeadingTrivia)
-        {
-            var trivia = GetLeadingTrivia();
-            trivia?.WriteTo(writer, includeLeadingTrivia: true, includeTrailingTrivia: true);
-        }
-
         writer.Write(Content);
-
-        if (includeTrailingTrivia)
-        {
-            var trivia = GetTrailingTrivia();
-            trivia?.WriteTo(writer, includeLeadingTrivia: true, includeTrailingTrivia: true);
-        }
     }
 
     public sealed override GreenNode GetLeadingTrivia()
