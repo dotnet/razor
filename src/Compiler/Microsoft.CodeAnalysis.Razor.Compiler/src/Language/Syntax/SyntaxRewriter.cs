@@ -64,41 +64,6 @@ internal abstract partial class SyntaxRewriter : SyntaxVisitor<SyntaxNode>
         return trivia;
     }
 
-    public virtual SyntaxTriviaList VisitList(SyntaxTriviaList list)
-    {
-        var count = list.Count;
-        if (count != 0)
-        {
-            SyntaxTriviaListBuilder alternate = null;
-            var index = -1;
-
-            foreach (var item in list)
-            {
-                index++;
-                var visited = VisitListElement(item);
-
-                //skip the null check since SyntaxTrivia is a value type
-                if (visited != item && alternate == null)
-                {
-                    alternate = new SyntaxTriviaListBuilder(count);
-                    alternate.Add(list, 0, index);
-                }
-
-                if (alternate != null && visited != null)
-                {
-                    alternate.Add(visited);
-                }
-            }
-
-            if (alternate != null)
-            {
-                return alternate.ToList();
-            }
-        }
-
-        return list;
-    }
-
     public virtual TNode VisitListElement<TNode>(TNode node) where TNode : SyntaxNode
     {
         return (TNode)(SyntaxNode)Visit(node);
