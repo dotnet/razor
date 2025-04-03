@@ -31,16 +31,6 @@ internal class SyntaxToken : RazorSyntaxNode
 
     public string Content { get; }
 
-    public SyntaxList<GreenNode> LeadingTrivia
-    {
-        get { return new SyntaxList<GreenNode>(GetLeadingTrivia()); }
-    }
-
-    public SyntaxList<GreenNode> TrailingTrivia
-    {
-        get { return new SyntaxList<GreenNode>(GetTrailingTrivia()); }
-    }
-
     internal override bool IsToken => true;
 
     public override int Width => Content.Length;
