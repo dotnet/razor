@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -97,36 +97,6 @@ internal class SyntaxToken : RazorSyntaxNode
         if (Content != otherToken.Content)
         {
             return false;
-        }
-
-        var thisLeading = GetLeadingTrivia();
-        var otherLeading = otherToken.GetLeadingTrivia();
-        if (thisLeading != otherLeading)
-        {
-            if (thisLeading == null || otherLeading == null)
-            {
-                return false;
-            }
-
-            if (!thisLeading.IsEquivalentTo(otherLeading))
-            {
-                return false;
-            }
-        }
-
-        var thisTrailing = GetTrailingTrivia();
-        var otherTrailing = otherToken.GetTrailingTrivia();
-        if (thisTrailing != otherTrailing)
-        {
-            if (thisTrailing == null || otherTrailing == null)
-            {
-                return false;
-            }
-
-            if (!thisTrailing.IsEquivalentTo(otherTrailing))
-            {
-                return false;
-            }
         }
 
         return true;
