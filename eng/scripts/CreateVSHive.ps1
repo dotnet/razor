@@ -31,8 +31,13 @@ if($success -eq $false){
   throw "Failed to create hive"
 }
 
-Write-Host "-- VS Info --"
 $vsDir = Split-Path -Parent $devenvExePath
+
+$vsRegEdit = Join-Path (Join-Path (Join-Path $vsDir 'Common7') 'IDE') 'VsRegEdit.exe'
+
+&$vsRegEdit set "$vsDir" $hive HKLM "Profile" DisableFirstLaunchDialog dword 1
+
+Write-Host "-- VS Info --"
 $isolationIni = Join-Path $vsDir 'devenv.isolation.ini'
 Get-Content $isolationIni | Write-Host
 Write-Host "-- /VS Info --"
