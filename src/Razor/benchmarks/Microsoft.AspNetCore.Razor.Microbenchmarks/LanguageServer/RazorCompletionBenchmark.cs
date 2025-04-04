@@ -37,12 +37,11 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
     public async Task SetupAsync()
     {
         var razorCompletionListProvider = RazorLanguageServerHost.GetRequiredService<RazorCompletionListProvider>();
-        var lspServices = RazorLanguageServerHost.GetRequiredService<ILspServices>();
-        var documentMappingService = lspServices.GetRequiredService<IDocumentMappingService>();
-        var clientConnection = lspServices.GetRequiredService<IClientConnection>();
-        var completionListCache = lspServices.GetRequiredService<CompletionListCache>();
-        var triggerAndCommitCharacters = lspServices.GetRequiredService<CompletionTriggerAndCommitCharacters>();
-        var loggerFactory = lspServices.GetRequiredService<ILoggerFactory>();
+        var documentMappingService = RazorLanguageServerHost.GetRequiredService<IDocumentMappingService>();
+        var clientConnection = RazorLanguageServerHost.GetRequiredService<IClientConnection>();
+        var completionListCache = RazorLanguageServerHost.GetRequiredService<CompletionListCache>();
+        var triggerAndCommitCharacters = RazorLanguageServerHost.GetRequiredService<CompletionTriggerAndCommitCharacters>();
+        var loggerFactory = RazorLanguageServerHost.GetRequiredService<ILoggerFactory>();
 
         var delegatedCompletionListProvider = new TestDelegatedCompletionListProvider(documentMappingService, clientConnection, completionListCache, triggerAndCommitCharacters);
         var completionListProvider = new CompletionListProvider(razorCompletionListProvider, delegatedCompletionListProvider, triggerAndCommitCharacters);
