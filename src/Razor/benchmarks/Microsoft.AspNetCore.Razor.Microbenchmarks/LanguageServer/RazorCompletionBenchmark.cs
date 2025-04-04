@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 
@@ -79,7 +78,11 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
         RazorPosition = DocumentText.GetPosition(razorCodeActionIndex);
 
         var documentContext = new DocumentContext(DocumentUri, DocumentSnapshot, projectContext: null);
-        RazorRequestContext = new RazorRequestContext(documentContext, RazorLanguageServerHost.GetRequiredService<ILspServices>(), "lsp/method", uri: null);
+        RazorRequestContext = new RazorRequestContext(
+            documentContext,
+            RazorLanguageServerHost.GetRequiredService<LspServices>(),
+            "lsp/method",
+            uri: null);
     }
 
     private static string GetFileContents()

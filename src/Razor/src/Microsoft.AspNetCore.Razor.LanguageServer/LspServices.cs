@@ -30,6 +30,8 @@ internal sealed class LspServices : ILspServices
     public LspServices(IServiceCollection serviceCollection)
     {
         serviceCollection.AddSingleton<ILspServices>(this);
+        serviceCollection.AddSingleton<LspServices>(this);
+
         _serviceProvider = serviceCollection.BuildServiceProvider();
 
         // By requesting the startup services, we ensure that they are created.
