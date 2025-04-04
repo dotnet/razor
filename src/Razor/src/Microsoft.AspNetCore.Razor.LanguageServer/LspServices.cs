@@ -14,14 +14,37 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 internal class LspServices : ILspServices
 {
     private readonly IServiceProvider _serviceProvider;
-    public bool IsDisposed = false;
+
+    private readonly object _disposeLock = new();
+    private bool _isDisposed = false;
+
+    public bool IsDisposed => _isDisposed;
 
     public LspServices(IServiceCollection serviceCollection)
     {
         serviceCollection.AddSingleton<ILspServices>(this);
         _serviceProvider = serviceCollection.BuildServiceProvider();
+
         // Create all startup services
         _serviceProvider.GetServices<IRazorStartupService>();
+    }
+
+    public void Dispose()
+    {
+        lock (_disposeLock)
+        {
+            if (_isDisposed)
+            {
+                return;
+            }
+
+            _isDisposed = true;
+        }
+
+        if (_serviceProvider is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
     }
 
     public T GetRequiredService<T>() where T : notnull
@@ -38,15 +61,6 @@ internal class LspServices : ILspServices
         }
 
         return services;
-    }
-
-    public void Dispose()
-    {
-        if (_serviceProvider is IDisposable disposable)
-        {
-            disposable.Dispose();
-            IsDisposed = true;
-        }
     }
 
     public T? GetService<T>() where T : notnull
