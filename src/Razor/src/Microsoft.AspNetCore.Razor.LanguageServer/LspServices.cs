@@ -24,11 +24,6 @@ internal class LspServices : ILspServices
         _serviceProvider.GetServices<IRazorStartupService>();
     }
 
-    public ImmutableArray<Type> GetRegisteredServices()
-    {
-        throw new NotImplementedException();
-    }
-
     public T GetRequiredService<T>() where T : notnull
     {
         return _serviceProvider.GetRequiredService<T>();
@@ -43,11 +38,6 @@ internal class LspServices : ILspServices
         }
 
         return services;
-    }
-
-    public bool SupportsGetRegisteredServices()
-    {
-        return false;
     }
 
     public void Dispose()
