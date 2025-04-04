@@ -49,7 +49,7 @@ public class WorkspaceRootPathWatcherTest(ITestOutputHelper testOutput) : Toolin
             });
 
         // Act
-        await watcher.OnInitializedAsync(LspServices.Empty, DisposalToken);
+        await watcher.OnInitializedAsync(DisposalToken);
 
         // Assert
         Assert.True(started);
@@ -82,7 +82,7 @@ public class WorkspaceRootPathWatcherTest(ITestOutputHelper testOutput) : Toolin
             existingRazorFiles);
 
         // Act
-        await watcher.OnInitializedAsync(LspServices.Empty, DisposalToken);
+        await watcher.OnInitializedAsync(DisposalToken);
 
         // Assert
         Assert.Equal(existingRazorFiles, actual);
