@@ -13,9 +13,9 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class RazorRequestContextFactory(ILspServices lspServices) : AbstractRequestContextFactory<RazorRequestContext>
+internal class RazorRequestContextFactory(LspServices lspServices) : AbstractRequestContextFactory<RazorRequestContext>
 {
-    private readonly ILspServices _lspServices = lspServices;
+    private readonly LspServices _lspServices = lspServices;
 
     public override Task<RazorRequestContext> CreateRequestContextAsync<TRequestParams>(IQueueItem<RazorRequestContext> queueItem, IMethodHandler methodHandler, TRequestParams @params, CancellationToken cancellationToken)
     {
