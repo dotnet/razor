@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class LspServices : ILspServices
+internal sealed class LspServices : ILspServices
 {
     private sealed class EmptyServiceProvider : IServiceProvider
     {
