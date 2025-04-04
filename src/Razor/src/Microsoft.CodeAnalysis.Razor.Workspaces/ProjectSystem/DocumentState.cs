@@ -4,6 +4,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem.Sources;
 using Microsoft.CodeAnalysis.Text;
 
@@ -15,19 +16,25 @@ internal sealed partial class DocumentState
     public int Version { get; }
 
     private readonly ITextAndVersionSource _textAndVersionSource;
+    private readonly GeneratedOutputSource _generatedOutputSource;
 
     private DocumentState(HostDocument hostDocument, ITextAndVersionSource textAndVersionSource)
     {
         HostDocument = hostDocument;
         Version = 1;
         _textAndVersionSource = textAndVersionSource;
+        _generatedOutputSource = new();
     }
 
-    private DocumentState(DocumentState oldState, ITextAndVersionSource textAndVersionSource)
+    private DocumentState(
+        DocumentState oldState,
+        ITextAndVersionSource textAndVersionSource,
+        GeneratedOutputSource? generatedOutputSource)
     {
         HostDocument = oldState.HostDocument;
         Version = oldState.Version + 1;
         _textAndVersionSource = textAndVersionSource;
+        _generatedOutputSource = generatedOutputSource ?? new();
     }
 
     public static DocumentState Create(HostDocument hostDocument, SourceText text)
@@ -100,14 +107,28 @@ internal sealed partial class DocumentState
         }
     }
 
-    public DocumentState UpdateVersion()
-        => new(this, _textAndVersionSource);
+    public bool TryGetCodeDocument([NotNullWhen(true)] out RazorCodeDocument? result)
+        => _generatedOutputSource.TryGetValue(out result);
+
+    public ValueTask<RazorCodeDocument> GetCodeDocumentAsync(DocumentSnapshot document, CancellationToken cancellationToken)
+        => _generatedOutputSource.GetValueAsync(document, cancellationToken);
+
+    public DocumentState UpdateImport()
+        // Be a bit optimistic and try to reuse the output.
+        => new(this, _textAndVersionSource, _generatedOutputSource.ForkIfOutputAvailable());
+
+    public DocumentState UpdateHostProject()
+        => new(this, _textAndVersionSource, generatedOutputSource: null);
+
+    public DocumentState UpdateProjectWorkspaceState()
+        // Be a bit optimistic and try to reuse the output.
+        => new(this, _textAndVersionSource, _generatedOutputSource.ForkIfOutputAvailable());
 
     public DocumentState WithText(SourceText text, VersionStamp textVersion)
-        => new(this, CreateTextAndVersionSource(text, textVersion));
+        => new(this, CreateTextAndVersionSource(text, textVersion), generatedOutputSource: null);
 
     public DocumentState WithTextLoader(TextLoader textLoader)
         => ReferenceEquals(textLoader, _textAndVersionSource.TextLoader)
             ? this
-            : new(this, CreateTextAndVersionSource(textLoader));
+            : new(this, CreateTextAndVersionSource(textLoader), generatedOutputSource: null);
 }
