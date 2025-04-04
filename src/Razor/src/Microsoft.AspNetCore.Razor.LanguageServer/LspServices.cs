@@ -13,6 +13,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class LspServices : ILspServices
 {
+    private sealed class EmptyServiceProvider : IServiceProvider
+    {
+        public object? GetService(Type serviceType) => null;
+    }
+
+    public static LspServices Empty { get; } = new(new EmptyServiceProvider());
+
     private readonly IServiceProvider _serviceProvider;
 
     private readonly object _disposeLock = new();
@@ -25,8 +32,14 @@ internal class LspServices : ILspServices
         serviceCollection.AddSingleton<ILspServices>(this);
         _serviceProvider = serviceCollection.BuildServiceProvider();
 
-        // Create all startup services
+        // By requesting the startup services, we ensure that they are created.
+        // This gives them an opportunity to set up any necessary state or perform.
         _serviceProvider.GetServices<IRazorStartupService>();
+    }
+
+    private LspServices(IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
     }
 
     public void Dispose()
