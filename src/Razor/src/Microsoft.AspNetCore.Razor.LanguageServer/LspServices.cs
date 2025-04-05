@@ -36,7 +36,7 @@ internal sealed class LspServices : ILspServices
 
         // By requesting the startup services, we ensure that they are created.
         // This gives them an opportunity to set up any necessary state or perform.
-        _serviceProvider.GetServices<IRazorStartupService>();
+        _ = _serviceProvider.GetServices<IRazorStartupService>();
     }
 
     private LspServices(IServiceProvider serviceProvider)
