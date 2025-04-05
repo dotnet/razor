@@ -22,6 +22,8 @@ internal abstract class GreenNode
         new ConditionalWeakTable<GreenNode, RazorDiagnostic[]>();
     private static readonly ConditionalWeakTable<GreenNode, SyntaxAnnotation[]> AnnotationsTable =
         new ConditionalWeakTable<GreenNode, SyntaxAnnotation[]>();
+
+    private int _width;
     private byte _slotCount;
 
     protected GreenNode(SyntaxKind kind)
@@ -29,10 +31,10 @@ internal abstract class GreenNode
         Kind = kind;
     }
 
-    protected GreenNode(SyntaxKind kind, int fullWidth)
+    protected GreenNode(SyntaxKind kind, int width)
         : this(kind)
     {
-        FullWidth = fullWidth;
+        _width = width;
     }
 
     protected GreenNode(SyntaxKind kind, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
@@ -40,8 +42,8 @@ internal abstract class GreenNode
     {
     }
 
-    protected GreenNode(SyntaxKind kind, int fullWidth, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
-        : this(kind, fullWidth)
+    protected GreenNode(SyntaxKind kind, int width, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
+        : this(kind, width)
     {
         if (diagnostics?.Length > 0)
         {
@@ -72,7 +74,7 @@ internal abstract class GreenNode
         }
 
         Flags |= (node.Flags & NodeFlags.InheritMask);
-        FullWidth += node.FullWidth;
+        _width += node.Width;
     }
 
     #region Kind
@@ -81,9 +83,9 @@ internal abstract class GreenNode
     internal virtual bool IsList => false;
 
     internal virtual bool IsToken => false;
-
-    internal virtual bool IsTrivia => false;
     #endregion
+
+    public int Width => _width;
 
     #region Slots
     public int SlotCount
@@ -121,7 +123,7 @@ internal abstract class GreenNode
             var child = GetSlot(i);
             if (child != null)
             {
-                offset += child.FullWidth;
+                offset += child.Width;
             }
         }
 
@@ -130,7 +132,7 @@ internal abstract class GreenNode
 
     public virtual int FindSlotIndexContainingOffset(int offset)
     {
-        Debug.Assert(0 <= offset && offset < FullWidth);
+        Debug.Assert(0 <= offset && offset < Width);
 
         int i;
         var accumulatedWidth = 0;
@@ -140,7 +142,7 @@ internal abstract class GreenNode
             var child = GetSlot(i);
             if (child != null)
             {
-                accumulatedWidth += child.FullWidth;
+                accumulatedWidth += child.Width;
                 if (offset < accumulatedWidth)
                 {
                     break;
@@ -180,44 +182,6 @@ internal abstract class GreenNode
         get
         {
             return (Flags & NodeFlags.ContainsAnnotations) != 0;
-        }
-    }
-    #endregion
-
-    #region Spans
-    internal int FullWidth { get; private set; }
-
-    public virtual int Width
-    {
-        get
-        {
-            return FullWidth - GetLeadingTriviaWidth() - GetTrailingTriviaWidth();
-        }
-    }
-
-    public virtual int GetLeadingTriviaWidth()
-    {
-        return FullWidth != 0 ? GetFirstTerminal().GetLeadingTriviaWidth() : 0;
-    }
-
-    public virtual int GetTrailingTriviaWidth()
-    {
-        return FullWidth != 0 ? GetLastTerminal().GetTrailingTriviaWidth() : 0;
-    }
-
-    public bool HasLeadingTrivia
-    {
-        get
-        {
-            return GetLeadingTriviaWidth() != 0;
-        }
-    }
-
-    public bool HasTrailingTrivia
-    {
-        get
-        {
-            return GetTrailingTriviaWidth() != 0;
         }
     }
     #endregion
@@ -277,37 +241,26 @@ internal abstract class GreenNode
         return builder.ToString();
     }
 
-    public virtual void WriteTo(TextWriter writer)
-    {
-        WriteTo(writer, includeLeadingTrivia: true, includeTrailingTrivia: true);
-    }
-
-    protected internal void WriteTo(TextWriter writer, bool includeLeadingTrivia, bool includeTrailingTrivia)
+    public void WriteTo(TextWriter writer)
     {
         // Use an actual Stack so we can write out deeply recursive structures without overflowing.
-        using var stack = new PooledArrayBuilder<StackEntry>();
+        using var stack = new PooledArrayBuilder<GreenNode>();
 
-        stack.Push(new(Node: this, includeLeadingTrivia, includeTrailingTrivia));
+        stack.Push(this);
 
         // Separated out stack processing logic so that it does not unintentionally refer to
         // "this", "leading" or "trailing.
         ProcessStack(writer, ref stack.AsRef());
 
-        static void ProcessStack(TextWriter writer, ref PooledArrayBuilder<StackEntry> stack)
+        static void ProcessStack(TextWriter writer, ref PooledArrayBuilder<GreenNode> stack)
         {
             while (stack.Count > 0)
             {
-                var (node, includeLeadingTrivia, includeTrailingTrivia) = stack.Pop();
+                var node = stack.Pop();
 
                 if (node.IsToken)
                 {
-                    node.WriteTokenTo(writer, includeLeadingTrivia, includeTrailingTrivia);
-                    continue;
-                }
-
-                if (node.IsTrivia)
-                {
-                    node.WriteTriviaTo(writer);
+                    node.WriteTokenTo(writer);
                     continue;
                 }
 
@@ -318,13 +271,7 @@ internal abstract class GreenNode
                 {
                     if (node.GetSlot(i) is GreenNode child)
                     {
-                        var isFirst = i == firstIndex;
-                        var isLast = i == lastIndex;
-
-                        stack.Push(new(
-                            child,
-                            IncludeLeadingTrivia: includeLeadingTrivia | !isFirst,
-                            IncludeTrailingTrivia: includeTrailingTrivia | !isLast));
+                        stack.Push(child);
                     }
                 }
             }
@@ -363,17 +310,7 @@ internal abstract class GreenNode
         }
     }
 
-    private readonly record struct StackEntry(
-        GreenNode Node,
-        bool IncludeLeadingTrivia,
-        bool IncludeTrailingTrivia);
-
-    protected virtual void WriteTriviaTo(TextWriter writer)
-    {
-        throw new NotImplementedException();
-    }
-
-    protected virtual void WriteTokenTo(TextWriter writer, bool includeLeadingTrivia, bool includeTrailingTrivia)
+    protected virtual void WriteTokenTo(TextWriter writer)
     {
         throw new NotImplementedException();
     }
@@ -389,26 +326,6 @@ internal abstract class GreenNode
     public virtual string GetValueText()
     {
         return string.Empty;
-    }
-
-    public virtual GreenNode GetLeadingTrivia()
-    {
-        return null;
-    }
-
-    public virtual GreenNode GetTrailingTrivia()
-    {
-        return null;
-    }
-
-    public virtual GreenNode WithLeadingTrivia(GreenNode trivia)
-    {
-        return this;
-    }
-
-    public virtual GreenNode WithTrailingTrivia(GreenNode trivia)
-    {
-        return this;
     }
 
     public InternalSyntax.SyntaxToken GetFirstToken()
@@ -431,7 +348,7 @@ internal abstract class GreenNode
             for (int i = 0, n = node.SlotCount; i < n; i++)
             {
                 var child = node.GetSlot(i);
-                if (child != null && child.FullWidth > 0)
+                if (child != null && child.Width > 0)
                 {
                     firstChild = child;
                     break;
@@ -453,7 +370,7 @@ internal abstract class GreenNode
             for (var i = node.SlotCount - 1; i >= 0; i--)
             {
                 var child = node.GetSlot(i);
-                if (child != null && child.FullWidth > 0)
+                if (child != null && child.Width > 0)
                 {
                     lastChild = child;
                     break;
@@ -505,7 +422,7 @@ internal abstract class GreenNode
             }
         }
 
-        if (node1.FullWidth != node2.FullWidth)
+        if (node1.Width != node2.Width)
         {
             return false;
         }
