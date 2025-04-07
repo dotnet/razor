@@ -311,16 +311,6 @@ internal abstract class GreenNode
 
     #region Tokens
 
-    public virtual object GetValue()
-    {
-        return null;
-    }
-
-    public virtual string GetValueText()
-    {
-        return string.Empty;
-    }
-
     public InternalSyntax.SyntaxToken GetFirstToken()
     {
         return (InternalSyntax.SyntaxToken)GetFirstTerminal();
