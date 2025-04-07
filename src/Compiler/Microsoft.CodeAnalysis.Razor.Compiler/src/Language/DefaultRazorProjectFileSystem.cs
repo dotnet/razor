@@ -77,7 +77,7 @@ internal class DefaultRazorProjectFileSystem : RazorProjectFileSystem
 
         var filePath = "/" + relativePhysicalPath.Replace(Path.DirectorySeparatorChar, '/');
 
-        return new DefaultRazorProjectItem(basePath, filePath, physicalPath, relativePhysicalPath, fileKind, cssScope: null);
+        return new DefaultRazorProjectItem(basePath, filePath, physicalPath, relativePhysicalPath, FileKinds.ToNullableRazorFileKind(fileKind), cssScope: null);
     }
 
     protected override string NormalizeAndEnsureValidPath(string path)

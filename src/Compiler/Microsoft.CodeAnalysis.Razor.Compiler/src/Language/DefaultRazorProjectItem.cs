@@ -22,13 +22,13 @@ internal class DefaultRazorProjectItem : RazorProjectItem
     /// <param name="fileKind">The file kind. If null, the document kind will be inferred from the file extension.</param>
     /// <param name="file">The <see cref="FileInfo"/>.</param>
     /// <param name="cssScope">A scope identifier that will be used on elements in the generated class, or null.</param>
-    public DefaultRazorProjectItem(string basePath, string filePath, string relativePhysicalPath, string fileKind, FileInfo file, string cssScope)
+    public DefaultRazorProjectItem(string basePath, string filePath, string relativePhysicalPath, RazorFileKind? fileKind, FileInfo file, string cssScope)
     {
         BasePath = basePath;
         FilePath = filePath;
         _physicalFilePath = null;
         RelativePhysicalPath = relativePhysicalPath;
-        _fileKind = FileKinds.ToNullableRazorFileKind(fileKind);
+        _fileKind = fileKind;
         _fileInfo = file;
         CssScope = cssScope;
     }
@@ -42,13 +42,13 @@ internal class DefaultRazorProjectItem : RazorProjectItem
     /// <param name="relativePhysicalPath">The physical path of the base path.</param>
     /// <param name="fileKind">The file kind. If null, the document kind will be inferred from the file extension.</param>
     /// <param name="cssScope">A scope identifier that will be used on elements in the generated class, or null.</param>
-    public DefaultRazorProjectItem(string basePath, string filePath, string physicalPath, string relativePhysicalPath, string fileKind, string cssScope)
+    public DefaultRazorProjectItem(string basePath, string filePath, string physicalPath, string relativePhysicalPath, RazorFileKind? fileKind, string cssScope)
     {
         BasePath = basePath;
         FilePath = filePath;
         _physicalFilePath = physicalPath;
         RelativePhysicalPath = relativePhysicalPath;
-        _fileKind = FileKinds.ToNullableRazorFileKind(fileKind);
+        _fileKind = fileKind;
         CssScope = cssScope;
     }
 
