@@ -11,7 +11,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
     internal class SourceGeneratorProjectItem : RazorProjectItem, IEquatable<SourceGeneratorProjectItem>
     {
-        private readonly string _fileKind;
+        private readonly RazorFileKind? _fileKind;
         private readonly RazorSourceDocument? _source;
 
         public SourceGeneratorProjectItem(string basePath, string filePath, string relativePhysicalPath, string fileKind, AdditionalText additionalText, string? cssScope)
@@ -19,7 +19,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             BasePath = basePath;
             FilePath = filePath;
             RelativePhysicalPath = relativePhysicalPath;
-            _fileKind = fileKind;
+            _fileKind = FileKinds.ToNullableRazorFileKind(fileKind);
             AdditionalText = additionalText;
             CssScope = cssScope;
 
@@ -42,7 +42,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
         public override string RelativePhysicalPath { get; }
 
-        public override string FileKind => _fileKind ?? base.FileKind;
+        public override RazorFileKind FileKind => _fileKind ?? base.FileKind;
 
         public override string? CssScope { get; }
 

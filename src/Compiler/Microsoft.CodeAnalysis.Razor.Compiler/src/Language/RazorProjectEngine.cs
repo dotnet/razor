@@ -178,7 +178,7 @@ public sealed class RazorProjectEngine
         var importSources = GetImportSources(projectItem, designTime: false);
 
         return CreateCodeDocumentCore(
-            source, projectItem.FileKind, importSources, tagHelpers: null, cssScope: projectItem.CssScope, configureParser, configureCodeGeneration);
+            source, FileKinds.FromRazorFileKind(projectItem.FileKind), importSources, tagHelpers: null, cssScope: projectItem.CssScope, configureParser, configureCodeGeneration);
     }
 
     private RazorCodeDocument CreateCodeDocumentCore(
@@ -213,7 +213,7 @@ public sealed class RazorProjectEngine
         var source = projectItem.GetSource();
         var importSources = GetImportSources(projectItem, designTime: true);
 
-        return CreateCodeDocumentDesignTimeCore(source, projectItem.FileKind, importSources, tagHelpers: null, configureParser, configureCodeGeneration);
+        return CreateCodeDocumentDesignTimeCore(source, FileKinds.FromRazorFileKind(projectItem.FileKind), importSources, tagHelpers: null, configureParser, configureCodeGeneration);
     }
 
     private RazorCodeDocument CreateCodeDocumentDesignTimeCore(

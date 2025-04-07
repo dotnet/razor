@@ -11,7 +11,7 @@ internal class DefaultRazorProjectItem : RazorProjectItem
 {
     private FileInfo _fileInfo;
     private readonly string _physicalFilePath;
-    private readonly string _fileKind;
+    private readonly RazorFileKind? _fileKind;
 
     /// <summary>
     /// Initializes a new instance of <see cref="DefaultRazorProjectItem"/>.
@@ -28,7 +28,7 @@ internal class DefaultRazorProjectItem : RazorProjectItem
         FilePath = filePath;
         _physicalFilePath = null;
         RelativePhysicalPath = relativePhysicalPath;
-        _fileKind = fileKind;
+        _fileKind = FileKinds.ToNullableRazorFileKind(fileKind);
         _fileInfo = file;
         CssScope = cssScope;
     }
@@ -48,7 +48,7 @@ internal class DefaultRazorProjectItem : RazorProjectItem
         FilePath = filePath;
         _physicalFilePath = physicalPath;
         RelativePhysicalPath = relativePhysicalPath;
-        _fileKind = fileKind;
+        _fileKind = FileKinds.ToNullableRazorFileKind(fileKind);
         CssScope = cssScope;
     }
 
@@ -64,7 +64,7 @@ internal class DefaultRazorProjectItem : RazorProjectItem
 
     public override string RelativePhysicalPath { get; }
 
-    public override string FileKind => _fileKind ?? base.FileKind;
+    public override RazorFileKind FileKind => _fileKind ?? base.FileKind;
 
     public override string CssScope { get; }
 

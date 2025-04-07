@@ -100,7 +100,7 @@ public static class FileKinds
 
         if (IsComponent(fileKind))
         {
-            return RazorFileKind.ComponentImport;
+            return RazorFileKind.Component;
         }
 
         if (IsLegacy(fileKind))
@@ -110,5 +110,21 @@ public static class FileKinds
 
         return RazorFileKind.None;
     }
+
+    public static bool IsComponent(RazorFileKind fileKind)
+    {
+        return fileKind == RazorFileKind.Component || IsComponentImport(fileKind);
+    }
+
+    public static bool IsComponentImport(RazorFileKind fileKind)
+    {
+        return fileKind == RazorFileKind.ComponentImport;
+    }
+
+    internal static bool IsLegacy(RazorFileKind fileKind)
+    {
+        return fileKind == RazorFileKind.Legacy;
+    }
+
 #nullable disable
 }
