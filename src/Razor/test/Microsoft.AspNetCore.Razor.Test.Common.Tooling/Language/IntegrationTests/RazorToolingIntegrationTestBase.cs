@@ -85,7 +85,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
     /// Gets a hardcoded document kind to be added to each code document that's created. This can
     /// be used to generate components.
     /// </summary>
-    internal virtual string FileKind { get; }
+    internal virtual RazorFileKind? FileKind { get; }
 
     internal virtual VirtualRazorProjectFileSystem FileSystem { get; }
 
@@ -164,7 +164,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             physicalPath: fullPath,
             relativePhysicalPath: cshtmlRelativePath,
             basePath: WorkingDirectory,
-            fileKind: FileKinds.ToNullableRazorFileKind(fileKind) ?? FileKinds.ToNullableRazorFileKind(FileKind))
+            fileKind: FileKinds.ToNullableRazorFileKind(fileKind) ?? FileKind)
         {
             Content = cshtmlContent.TrimStart(),
         };
