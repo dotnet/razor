@@ -24,7 +24,7 @@ public sealed partial class RazorParserOptions
         AllowNullableForgivenessOperator = 1 << 11
     }
 
-    private static Flags GetDefaultFlags(RazorLanguageVersion languageVersion, string fileKind)
+    private static Flags GetDefaultFlags(RazorLanguageVersion languageVersion, RazorFileKind fileKind)
     {
         Flags result = 0;
 

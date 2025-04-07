@@ -291,9 +291,9 @@ public abstract class ParserTestBase : IParserTest
         CSharpParseOptions csharpParseOptions,
         Action<RazorParserOptions.Builder> configureParserOptions = null)
     {
-        fileKind ??= FileKinds.Legacy;
+        var fileKindValue = FileKinds.ToNullableRazorFileKind(fileKind) ?? RazorFileKind.Legacy;
 
-        var builder = new RazorParserOptions.Builder(version, fileKind)
+        var builder = new RazorParserOptions.Builder(version, fileKindValue)
         {
             DesignTime = designTime,
             Directives = [.. directives],

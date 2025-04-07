@@ -613,12 +613,12 @@ public class ExtractToComponentCodeActionProviderTest(ITestOutputHelper testOutp
         bool supportsFileCreation = true)
     {
         relativePath ??= filePath;
-        fileKind ??= FileKinds.Component;
+        var fileKindValue = FileKinds.ToNullableRazorFileKind(fileKind) ?? RazorFileKind.Component;
 
         var source = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(filePath, relativePath));
         var codeDocument = RazorCodeDocument.Create(
             source,
-            parserOptions: RazorParserOptions.Create(RazorLanguageVersion.Latest, fileKind, builder =>
+            parserOptions: RazorParserOptions.Create(RazorLanguageVersion.Latest, fileKindValue, builder =>
             {
                 builder.Directives = [ComponentCodeDirective.Directive, FunctionsDirective.Directive];
             }),

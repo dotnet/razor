@@ -251,7 +251,7 @@ public sealed class RazorProjectEngine
 
     private RazorParserOptions ComputeParserOptions(string fileKind, Action<RazorParserOptions.Builder>? configure)
     {
-        var builder = new RazorParserOptions.Builder(Configuration.LanguageVersion, fileKind);
+        var builder = new RazorParserOptions.Builder(Configuration.LanguageVersion, FileKinds.ToRazorFileKind(fileKind));
 
         configure?.Invoke(builder);
 
