@@ -248,65 +248,58 @@ internal abstract class GreenNode
 
         stack.Push(this);
 
-        // Separated out stack processing logic so that it does not unintentionally refer to
-        // "this", "leading" or "trailing.
-        ProcessStack(writer, ref stack.AsRef());
-
-        static void ProcessStack(TextWriter writer, ref PooledArrayBuilder<GreenNode> stack)
+        while (stack.Count > 0)
         {
-            while (stack.Count > 0)
+            var node = stack.Pop();
+
+            if (node.IsToken)
             {
-                var node = stack.Pop();
+                node.WriteTokenTo(writer);
+                continue;
+            }
 
-                if (node.IsToken)
+            var firstIndex = GetFirstNonNullChildIndex(node);
+            var lastIndex = GetLastNonNullChildIndex(node);
+
+            for (var i = lastIndex; i >= firstIndex; i--)
+            {
+                if (node.GetSlot(i) is GreenNode child)
                 {
-                    node.WriteTokenTo(writer);
-                    continue;
+                    stack.Push(child);
                 }
+            }
+        }
 
-                var firstIndex = GetFirstNonNullChildIndex(node);
-                var lastIndex = GetLastNonNullChildIndex(node);
+        static int GetFirstNonNullChildIndex(GreenNode node)
+        {
+            var slotCount = node.SlotCount;
+            var firstIndex = 0;
 
-                for (var i = lastIndex; i >= firstIndex; i--)
+            for (; firstIndex < slotCount; firstIndex++)
+            {
+                if (node.GetSlot(firstIndex) is not null)
                 {
-                    if (node.GetSlot(i) is GreenNode child)
-                    {
-                        stack.Push(child);
-                    }
+                    break;
                 }
             }
 
-            static int GetFirstNonNullChildIndex(GreenNode node)
+            return firstIndex;
+        }
+
+        static int GetLastNonNullChildIndex(GreenNode node)
+        {
+            var slotCount = node.SlotCount;
+            var lastIndex = slotCount - 1;
+
+            for (; lastIndex >= 0; lastIndex--)
             {
-                var slotCount = node.SlotCount;
-                var firstIndex = 0;
-
-                for (; firstIndex < slotCount; firstIndex++)
+                if (node.GetSlot(lastIndex) is not null)
                 {
-                    if (node.GetSlot(firstIndex) is not null)
-                    {
-                        break;
-                    }
+                    break;
                 }
-
-                return firstIndex;
             }
 
-            static int GetLastNonNullChildIndex(GreenNode node)
-            {
-                var slotCount = node.SlotCount;
-                var lastIndex = slotCount - 1;
-
-                for (; lastIndex >= 0; lastIndex--)
-                {
-                    if (node.GetSlot(lastIndex) is not null)
-                    {
-                        break;
-                    }
-                }
-
-                return lastIndex;
-            }
+            return lastIndex;
         }
     }
 
