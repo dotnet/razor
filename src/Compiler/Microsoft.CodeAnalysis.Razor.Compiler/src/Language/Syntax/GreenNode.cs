@@ -309,63 +309,6 @@ internal abstract class GreenNode
     }
     #endregion
 
-    #region Tokens
-
-    public InternalSyntax.SyntaxToken GetFirstToken()
-    {
-        return (InternalSyntax.SyntaxToken)GetFirstTerminal();
-    }
-
-    public InternalSyntax.SyntaxToken GetLastToken()
-    {
-        return (InternalSyntax.SyntaxToken)GetLastTerminal();
-    }
-
-    internal GreenNode GetFirstTerminal()
-    {
-        var node = this;
-
-        do
-        {
-            GreenNode firstChild = null;
-            for (int i = 0, n = node.SlotCount; i < n; i++)
-            {
-                var child = node.GetSlot(i);
-                if (child != null && child.Width > 0)
-                {
-                    firstChild = child;
-                    break;
-                }
-            }
-            node = firstChild;
-        } while (node?._slotCount > 0);
-
-        return node;
-    }
-
-    internal GreenNode GetLastTerminal()
-    {
-        var node = this;
-
-        do
-        {
-            GreenNode lastChild = null;
-            for (var i = node.SlotCount - 1; i >= 0; i--)
-            {
-                var child = node.GetSlot(i);
-                if (child != null && child.Width > 0)
-                {
-                    lastChild = child;
-                    break;
-                }
-            }
-            node = lastChild;
-        } while (node?._slotCount > 0);
-
-        return node;
-    }
-    #endregion
-
     #region Equivalence
     public virtual bool IsEquivalentTo(GreenNode other)
     {
