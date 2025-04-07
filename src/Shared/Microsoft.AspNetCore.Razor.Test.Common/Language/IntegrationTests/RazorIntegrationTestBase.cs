@@ -168,7 +168,7 @@ public class RazorIntegrationTestBase
             physicalPath: fullPath,
             relativePhysicalPath: cshtmlRelativePath,
             basePath: WorkingDirectory,
-            fileKind: fileKind ?? FileKinds.FromRazorFileKind(FileKind),
+            fileKind: FileKinds.ToNullableRazorFileKind(fileKind) ?? FileKind,
             cssScope: cssScope)
         {
             Content = cshtmlContent.TrimStart(),

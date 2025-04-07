@@ -164,7 +164,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             physicalPath: fullPath,
             relativePhysicalPath: cshtmlRelativePath,
             basePath: WorkingDirectory,
-            fileKind: fileKind ?? FileKind)
+            fileKind: FileKinds.ToNullableRazorFileKind(fileKind) ?? FileKinds.ToNullableRazorFileKind(FileKind))
         {
             Content = cshtmlContent.TrimStart(),
         };

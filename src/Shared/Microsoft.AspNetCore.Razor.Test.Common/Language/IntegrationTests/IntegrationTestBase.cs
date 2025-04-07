@@ -186,7 +186,7 @@ public abstract class IntegrationTestBase
             filePath: filePath,
             physicalPath: fullPath,
             relativePhysicalPath: sourceFileName,
-            fileKind: fileKind)
+            fileKind: FileKinds.ToNullableRazorFileKind(fileKind))
         {
             Content = fileContent,
         };

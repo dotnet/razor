@@ -249,8 +249,8 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
             .Returns(importPath);
 
         var projectFileSystem = new TestRazorProjectFileSystem([
-            new TestRazorProjectItem(path, fileKind: fileKind),
-            new TestRazorProjectItem(importPath, fileKind: FileKinds.ComponentImport)]);
+            new TestRazorProjectItem(path, fileKind: FileKinds.ToNullableRazorFileKind(fileKind)),
+            new TestRazorProjectItem(importPath, fileKind: RazorFileKind.ComponentImport)]);
 
         var projectEngine = RazorProjectEngine.Create(
             new RazorConfiguration(RazorLanguageVersion.Latest, "TestConfiguration", Extensions: []),

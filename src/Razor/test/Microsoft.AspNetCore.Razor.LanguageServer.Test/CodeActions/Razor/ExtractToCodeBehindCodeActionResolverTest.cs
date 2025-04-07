@@ -694,7 +694,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
             filePath: "c:/Test.razor",
             physicalPath: "c:/Test.razor",
             relativePhysicalPath: "Test.razor",
-            fileKind: fileKind)
+            fileKind: FileKinds.ToNullableRazorFileKind(fileKind))
         {
             Content = text
         };
