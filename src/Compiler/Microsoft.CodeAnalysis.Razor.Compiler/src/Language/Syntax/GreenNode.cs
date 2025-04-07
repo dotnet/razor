@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
+[DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
 internal abstract class GreenNode
 {
     private static readonly RazorDiagnostic[] EmptyDiagnostics = Array.Empty<RazorDiagnostic>();
@@ -222,14 +223,22 @@ internal abstract class GreenNode
     #endregion
 
     #region Text
-    public override string ToString()
+    private string GetDebuggerDisplay()
     {
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
         builder.Append(GetType().Name);
         builder.Append('<');
-        builder.Append(Kind.ToString()); // Use ToString() to avoid boxing the enum.
+        builder.Append(Kind.ToString());
         builder.Append('>');
 
+        return builder.ToString();
+    }
+
+    public override string ToString()
+    {
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+        using var writer = new StringWriter(builder, CultureInfo.InvariantCulture);
+        WriteTo(writer);
         return builder.ToString();
     }
 

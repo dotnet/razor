@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 
@@ -436,11 +435,7 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
 
     public override string ToString()
     {
-        var builder = new StringBuilder();
-        builder.Append(Green.ToString());
-        builder.AppendFormat(CultureInfo.InvariantCulture, " at {0}::{1}", Position, Width);
-
-        return builder.ToString();
+        return Green.ToString();
     }
 
     public virtual string ToFullString()
