@@ -305,10 +305,10 @@ internal static class RazorSyntaxNodeExtensions
     {
         // TODO: This looks like a potential allocation hotspot and performance bottleneck.
 
-        var nodeString = node.RemoveEmptyNewLines().ToFullString();
+        var nodeString = node.RemoveEmptyNewLines().ToString();
         var matchingNode = target.DescendantNodesAndSelf()
             // Empty new lines can affect our comparison so we remove them since they're insignificant.
-            .Where(n => n.RemoveEmptyNewLines().ToFullString() == nodeString)
+            .Where(n => n.RemoveEmptyNewLines().ToString() == nodeString)
             .FirstOrDefault();
 
         return matchingNode is not null;
@@ -353,7 +353,7 @@ internal static class RazorSyntaxNodeExtensions
                 // code {
                 //    var foo = "bar";
                 // }
-                var directive = body.Keyword.ToFullString();
+                var directive = body.Keyword.ToString();
                 if (directive != "code")
                 {
                     return false;

@@ -115,26 +115,13 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
             : default;
 
     /// <summary>
-    /// Returns the string representation of the nodes in this list, not including
-    /// the first node's leading trivia and the last node's trailing trivia.
+    /// Returns the string representation of the nodes in this list.
     /// </summary>
     /// <returns>
-    /// The string representation of the nodes in this list, not including
-    /// the first node's leading trivia and the last node's trailing trivia.
+    /// The string representation of the nodes in this list.
     /// </returns>
     public override string ToString()
         => Node?.ToString() ?? string.Empty;
-
-    /// <summary>
-    /// Returns the full string representation of the nodes in this list including
-    /// the first node's leading trivia and the last node's trailing trivia.
-    /// </summary>
-    /// <returns>
-    /// The full string representation of the nodes in this list including
-    /// the first node's leading trivia and the last node's trailing trivia.
-    /// </returns>
-    public string ToFullString()
-        => Node?.ToFullString() ?? string.Empty;
 
     /// <summary>
     /// Creates a new list with the specified node added at the end.

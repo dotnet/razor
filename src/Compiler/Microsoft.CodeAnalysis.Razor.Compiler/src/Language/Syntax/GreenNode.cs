@@ -242,14 +242,6 @@ internal abstract class GreenNode
         return builder.ToString();
     }
 
-    public virtual string ToFullString()
-    {
-        using var _ = StringBuilderPool.GetPooledObject(out var builder);
-        using var writer = new StringWriter(builder, CultureInfo.InvariantCulture);
-        WriteTo(writer);
-        return builder.ToString();
-    }
-
     public void WriteTo(TextWriter writer)
     {
         // Use an actual Stack so we can write out deeply recursive structures without overflowing.

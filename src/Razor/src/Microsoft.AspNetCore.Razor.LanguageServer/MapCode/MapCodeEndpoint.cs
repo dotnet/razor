@@ -237,7 +237,7 @@ internal sealed class MapCodeEndpoint(
                     if (insertionSpan is not null)
                     {
                         var textSpan = new TextSpan(insertionSpan.Value, 0);
-                        var edit = VsLspFactory.CreateTextEdit(sourceText.GetRange(textSpan), nodeToMap.ToFullString());
+                        var edit = VsLspFactory.CreateTextEdit(sourceText.GetRange(textSpan), nodeToMap.ToString());
 
                         var textDocumentEdit = new TextDocumentEdit
                         {
@@ -314,7 +314,7 @@ internal sealed class MapCodeEndpoint(
             textDocumentIdentifier,
             RazorLanguageKind.CSharp,
             mapCodeCorrelationId,
-            [nodeToMap.ToFullString()],
+            [nodeToMap.ToString()],
             FocusLocations: focusLocations);
 
         WorkspaceEdit? edits;

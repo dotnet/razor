@@ -438,16 +438,11 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
         return Green.ToString();
     }
 
-    public virtual string ToFullString()
-    {
-        return Green.ToFullString();
-    }
-
     protected virtual string GetDebuggerDisplay()
     {
         if (IsToken)
         {
-            return string.Format(CultureInfo.InvariantCulture, "{0};[{1}]", Kind, ToFullString());
+            return string.Format(CultureInfo.InvariantCulture, "{0};[{1}]", Kind, ToString());
         }
 
         return string.Format(CultureInfo.InvariantCulture, "{0} [{1}..{2})", Kind, Position, EndPosition);

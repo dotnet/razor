@@ -181,7 +181,7 @@ internal class SyntaxSerializer
             if (!_visitedRoot)
             {
                 WriteSeparator();
-                Write($"[{node.ToFullString()}]");
+                Write($"[{node}]");
                 _visitedRoot = true;
             }
         }

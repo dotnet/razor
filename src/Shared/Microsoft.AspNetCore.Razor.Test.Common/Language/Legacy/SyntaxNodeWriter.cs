@@ -98,7 +98,7 @@ internal class SyntaxNodeWriter(TextWriter writer, bool validateSpanEditHandlers
         if (!_visitedRoot)
         {
             WriteSeparator();
-            Write($"[{node.ToFullString()}]");
+            Write($"[{node}]");
             _visitedRoot = true;
         }
     }
