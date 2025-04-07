@@ -381,7 +381,7 @@ internal class BackgroundParser : IDisposable
         {
             EnsureOnThread();
 
-            var projectItem = new TextSnapshotProjectItem(snapshot, _projectDirectory, _relativeFilePath, _filePath, _fileKind);
+            var projectItem = new TextSnapshotProjectItem(snapshot, _projectDirectory, _relativeFilePath, _filePath, FileKinds.ToRazorFileKind(_fileKind));
             var codeDocument = _projectEngine.ProcessDesignTime(projectItem);
 
             return codeDocument;
