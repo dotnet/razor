@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// <param name="basePath">The base path.</param>
 /// <param name="path">The path.</param>
 /// <param name="fileKind">The file kind</param>
-internal class NotFoundProjectItem(string path, string? fileKind) : RazorProjectItem
+internal class NotFoundProjectItem(string path, RazorFileKind? fileKind) : RazorProjectItem
 {
     /// <inheritdoc />
     public override string BasePath => string.Empty;
@@ -22,7 +22,7 @@ internal class NotFoundProjectItem(string path, string? fileKind) : RazorProject
 
     /// <inheritdoc />
     public override RazorFileKind FileKind { get; }
-        = FileKinds.ToNullableRazorFileKind(fileKind) ?? FileKinds.ToRazorFileKind(FileKinds.GetFileKindFromFilePath(path));
+        = fileKind ?? FileKinds.FilePathToRazorFileKind(path);
 
     /// <inheritdoc />
     public override bool Exists => false;

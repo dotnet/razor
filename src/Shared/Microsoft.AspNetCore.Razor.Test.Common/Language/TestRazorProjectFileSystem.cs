@@ -19,5 +19,5 @@ internal sealed class TestRazorProjectFileSystem(params IEnumerable<RazorProject
     public override RazorProjectItem GetItem(string path, string? fileKind)
         => _lookup.TryGetValue(path, out var value)
             ? value
-            : new NotFoundProjectItem(path, fileKind);
+            : new NotFoundProjectItem(path, FileKinds.ToNullableRazorFileKind(fileKind));
 }
