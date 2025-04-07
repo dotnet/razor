@@ -16,11 +16,11 @@ using Xunit;
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
 public class ComponentCodeGenerationTestBase(bool designTime = false)
-        : RazorBaselineIntegrationTestBase(layer: TestProject.Layer.Compiler)
+    : RazorBaselineIntegrationTestBase(layer: TestProject.Layer.Compiler)
 {
     private RazorConfiguration _configuration;
 
-    internal override string FileKind => FileKinds.Component;
+    internal override RazorFileKind? FileKind => RazorFileKind.Component;
 
     internal override bool UseTwoPhaseCompilation => true;
 

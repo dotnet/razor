@@ -84,6 +84,16 @@ public static class FileKinds
             _ => Assumed.Unreachable<string>(),
         };
 
+    public static string? FromRazorFileKind(RazorFileKind? razorFileKind)
+        => razorFileKind switch
+        {
+            RazorFileKind.Component => Component,
+            RazorFileKind.ComponentImport => ComponentImport,
+            RazorFileKind.Legacy => Legacy,
+            null => null,
+            _ => Assumed.Unreachable<string>(),
+        };
+
     public static RazorFileKind? ToNullableRazorFileKind(string? fileKind)
         => fileKind is not null
             ? ToRazorFileKind(fileKind)
