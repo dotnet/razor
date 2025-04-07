@@ -73,4 +73,42 @@ public static class FileKinds
             return FileKinds.Legacy;
         }
     }
+
+#nullable enable
+    public static string FromRazorFileKind(RazorFileKind razorFileKind)
+        => razorFileKind switch
+        {
+            RazorFileKind.Component => Component,
+            RazorFileKind.ComponentImport => ComponentImport,
+            RazorFileKind.Legacy => Legacy,
+            _ => Assumed.Unreachable<string>(),
+        };
+
+    public static RazorFileKind? ToNullableRazorFileKind(string? fileKind)
+        => fileKind is not null
+            ? ToRazorFileKind(fileKind)
+            : null;
+
+    public static RazorFileKind ToRazorFileKind(string fileKind)
+    {
+        ArgHelper.ThrowIfNull(fileKind);
+
+        if (IsComponentImport(fileKind))
+        {
+            return RazorFileKind.ComponentImport;
+        }
+
+        if (IsComponent(fileKind))
+        {
+            return RazorFileKind.ComponentImport;
+        }
+
+        if (IsLegacy(fileKind))
+        {
+            return RazorFileKind.Legacy;
+        }
+
+        return RazorFileKind.None;
+    }
+#nullable disable
 }
