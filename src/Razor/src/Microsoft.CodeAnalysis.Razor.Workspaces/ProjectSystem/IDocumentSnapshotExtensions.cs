@@ -14,7 +14,7 @@ internal static class IDocumentSnapshotExtensions
     public static async Task<RazorSourceDocument> GetSourceAsync(this IDocumentSnapshot document, RazorProjectEngine projectEngine, CancellationToken cancellationToken)
     {
         var projectItem = document is { FilePath: string filePath, FileKind: var fileKind }
-            ? projectEngine.FileSystem.GetItem(filePath, fileKind)
+            ? projectEngine.FileSystem.GetItem(filePath, FileKinds.ToRazorFileKind(fileKind))
             : null;
 
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

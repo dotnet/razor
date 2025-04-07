@@ -418,7 +418,7 @@ internal sealed class ProjectState
     private static void CollectImportDocumentTargetPaths(HostDocument hostDocument, RazorProjectEngine projectEngine, ref PooledArrayBuilder<string> targetPaths)
     {
         var targetPath = hostDocument.TargetPath;
-        var projectItem = projectEngine.FileSystem.GetItem(targetPath, hostDocument.FileKind);
+        var projectItem = projectEngine.FileSystem.GetItem(targetPath, FileKinds.ToRazorFileKind(hostDocument.FileKind));
 
         using var importProjectItems = new PooledArrayBuilder<RazorProjectItem>();
         projectEngine.CollectImports(projectItem, ref importProjectItems.AsRef());

@@ -57,7 +57,7 @@ internal class DefaultRazorProjectFileSystem : RazorProjectFileSystem
         }
     }
 
-    public override RazorProjectItem GetItem(string path, string? fileKind)
+    public override RazorProjectItem GetItem(string path, RazorFileKind? fileKind)
     {
         var absoluteBasePath = Root;
         var absolutePath = NormalizeAndEnsureValidPath(path);
@@ -70,14 +70,14 @@ internal class DefaultRazorProjectFileSystem : RazorProjectFileSystem
         return CreateItem(absolutePath, fileKind, DefaultBasePath, absoluteBasePath);
     }
 
-    private static DefaultRazorProjectItem CreateItem(string path, string? fileKind, string basePath, string absoluteBasePath)
+    private static DefaultRazorProjectItem CreateItem(string path, RazorFileKind? fileKind, string basePath, string absoluteBasePath)
     {
         var physicalPath = Path.GetFullPath(path);
         var relativePhysicalPath = physicalPath[(absoluteBasePath.Length + 1)..]; // Don't include leading separator
 
         var filePath = "/" + relativePhysicalPath.Replace(Path.DirectorySeparatorChar, '/');
 
-        return new DefaultRazorProjectItem(basePath, filePath, physicalPath, relativePhysicalPath, FileKinds.ToNullableRazorFileKind(fileKind), cssScope: null);
+        return new DefaultRazorProjectItem(basePath, filePath, physicalPath, relativePhysicalPath, fileKind, cssScope: null);
     }
 
     protected override string NormalizeAndEnsureValidPath(string path)
