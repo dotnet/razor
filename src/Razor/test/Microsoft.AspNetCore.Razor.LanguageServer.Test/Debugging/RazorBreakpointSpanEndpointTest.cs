@@ -246,7 +246,9 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
                 builder.UseRoslynTokenizer = true;
             });
         });
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind ?? FileKinds.Legacy, importSources: default, tagHelpers: []);
-        return codeDocument;
+
+        var fileKindValue = FileKinds.ToNullableRazorFileKind(fileKind) ?? RazorFileKind.Legacy;
+
+        return projectEngine.ProcessDesignTime(sourceDocument, fileKindValue, importSources: default, tagHelpers: []);
     }
 }

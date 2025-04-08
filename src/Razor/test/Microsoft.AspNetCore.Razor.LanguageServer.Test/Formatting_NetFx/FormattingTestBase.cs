@@ -216,9 +216,16 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         return (input, expected);
     }
 
-    private (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, ImmutableArray<TagHelperDescriptor> tagHelpers, string? fileKind = null, bool allowDiagnostics = false, bool inGlobalNamespace = false)
+    private (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(
+        SourceText text,
+        string path,
+        ImmutableArray<TagHelperDescriptor> tagHelpers,
+        string? fileKind = null,
+        bool allowDiagnostics = false,
+        bool inGlobalNamespace = false)
     {
         fileKind ??= FileKinds.Component;
+        var fileKindValue = FileKinds.ToRazorFileKind(fileKind);
 
         var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(
             filePath: path,
@@ -249,7 +256,7 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
             .Returns(importPath);
 
         var projectFileSystem = new TestRazorProjectFileSystem([
-            new TestRazorProjectItem(path, fileKind: FileKinds.ToNullableRazorFileKind(fileKind)),
+            new TestRazorProjectItem(path, fileKind: fileKindValue),
             new TestRazorProjectItem(importPath, fileKind: RazorFileKind.ComponentImport)]);
 
         var projectEngine = RazorProjectEngine.Create(
@@ -268,9 +275,9 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
                 RazorExtensions.Register(builder);
             });
 
-        var designTimeCodeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, [importSource], tagHelpers);
+        var designTimeCodeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKindValue, [importSource], tagHelpers);
         var codeDocument = _context.ForceRuntimeCodeGeneration
-            ? projectEngine.Process(sourceDocument, fileKind, [importSource], tagHelpers)
+            ? projectEngine.Process(sourceDocument, fileKindValue, [importSource], tagHelpers)
             : designTimeCodeDocument;
 
         if (!allowDiagnostics)
@@ -331,9 +338,11 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
                     filePath: path,
                     relativePath: inGlobalNamespace ? Path.GetFileName(path) : path));
 
-                var designTimeCodeDocument = projectEngine.ProcessDesignTime(source, fileKind, importDocuments, tagHelpers);
+                var fileKindValue = FileKinds.ToRazorFileKind(fileKind);
+
+                var designTimeCodeDocument = projectEngine.ProcessDesignTime(source, fileKindValue, importDocuments, tagHelpers);
                 var codeDocument = forceRuntimeCodeGeneration
-                    ? projectEngine.Process(source, fileKind, importDocuments, tagHelpers)
+                    ? projectEngine.Process(source, fileKindValue, importDocuments, tagHelpers)
                     : designTimeCodeDocument;
 
                 return CreateDocumentSnapshot(

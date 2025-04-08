@@ -91,10 +91,15 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
         return context;
     }
 
-    private static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, ImmutableArray<TagHelperDescriptor> tagHelpers = default, string? fileKind = null)
+    private static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(
+        SourceText text,
+        string path,
+        ImmutableArray<TagHelperDescriptor> tagHelpers = default,
+        string? fileKind = null)
     {
         fileKind ??= FileKinds.Component;
         tagHelpers = tagHelpers.NullToEmpty();
+
         var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(path, path));
         var projectEngine = RazorProjectEngine.Create(builder =>
         {
@@ -105,7 +110,8 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
                 builder.UseRoslynTokenizer = true;
             });
         });
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importSources: default, tagHelpers);
+
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.ToRazorFileKind(fileKind), importSources: default, tagHelpers);
 
         var documentSnapshot = new StrictMock<IDocumentSnapshot>();
         documentSnapshot

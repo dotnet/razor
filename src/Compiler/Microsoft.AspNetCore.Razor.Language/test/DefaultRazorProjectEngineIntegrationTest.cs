@@ -133,7 +133,7 @@ public class DefaultRazorProjectEngineIntegrationTest
         var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, TestRazorProjectFileSystem.Empty);
 
         // Act
-        var codeDocument = projectEngine.Process(RazorSourceDocument.ReadFrom(projectItem), FileKinds.Legacy, expectedImports, expectedTagHelpers);
+        var codeDocument = projectEngine.Process(RazorSourceDocument.ReadFrom(projectItem), RazorFileKind.Legacy, expectedImports, expectedTagHelpers);
 
         // Assert
         var tagHelpers = codeDocument.GetTagHelpers();
@@ -150,7 +150,7 @@ public class DefaultRazorProjectEngineIntegrationTest
         var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, TestRazorProjectFileSystem.Empty);
 
         // Act
-        var codeDocument = projectEngine.Process(RazorSourceDocument.ReadFrom(projectItem), FileKinds.Legacy, importSources: default, tagHelpers: null);
+        var codeDocument = projectEngine.Process(RazorSourceDocument.ReadFrom(projectItem), RazorFileKind.Legacy, importSources: default, tagHelpers: null);
 
         // Assert
         var actual = codeDocument.FileKind;
@@ -166,7 +166,7 @@ public class DefaultRazorProjectEngineIntegrationTest
         var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, TestRazorProjectFileSystem.Empty);
 
         // Act
-        var codeDocument = projectEngine.Process(RazorSourceDocument.ReadFrom(projectItem), FileKinds.Legacy, importSources: default, tagHelpers: null);
+        var codeDocument = projectEngine.Process(RazorSourceDocument.ReadFrom(projectItem), RazorFileKind.Legacy, importSources: default, tagHelpers: null);
 
         // Assert
         var tagHelpers = codeDocument.GetTagHelpers();
@@ -230,7 +230,7 @@ public class DefaultRazorProjectEngineIntegrationTest
         var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, TestRazorProjectFileSystem.Empty);
 
         // Act
-        var codeDocument = projectEngine.Process(RazorSourceDocument.ReadFrom(projectItem), FileKinds.Legacy, importSources: default, tagHelpers: null);
+        var codeDocument = projectEngine.Process(RazorSourceDocument.ReadFrom(projectItem), RazorFileKind.Legacy, importSources: default, tagHelpers: null);
 
         // Assert
         Assert.Empty(codeDocument.Imports);
@@ -252,7 +252,7 @@ public class DefaultRazorProjectEngineIntegrationTest
         var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, TestRazorProjectFileSystem.Empty);
 
         // Act
-        var codeDocument = projectEngine.ProcessDesignTime(RazorSourceDocument.ReadFrom(projectItem), FileKinds.Legacy, expectedImports, expectedTagHelpers);
+        var codeDocument = projectEngine.ProcessDesignTime(RazorSourceDocument.ReadFrom(projectItem), RazorFileKind.Legacy, expectedImports, expectedTagHelpers);
 
         // Assert
         var tagHelpers = codeDocument.GetTagHelpers();
@@ -269,7 +269,7 @@ public class DefaultRazorProjectEngineIntegrationTest
         var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, TestRazorProjectFileSystem.Empty);
 
         // Act
-        var codeDocument = projectEngine.ProcessDesignTime(RazorSourceDocument.ReadFrom(projectItem), FileKinds.Legacy, default, tagHelpers: null);
+        var codeDocument = projectEngine.ProcessDesignTime(RazorSourceDocument.ReadFrom(projectItem), RazorFileKind.Legacy, default, tagHelpers: null);
 
         // Assert
         var tagHelpers = codeDocument.GetTagHelpers();
@@ -333,7 +333,7 @@ public class DefaultRazorProjectEngineIntegrationTest
         var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, TestRazorProjectFileSystem.Empty);
 
         // Act
-        var codeDocument = projectEngine.ProcessDesignTime(RazorSourceDocument.ReadFrom(projectItem), FileKinds.Legacy, importSources: default, tagHelpers: null);
+        var codeDocument = projectEngine.ProcessDesignTime(RazorSourceDocument.ReadFrom(projectItem), RazorFileKind.Legacy, importSources: default, tagHelpers: null);
 
         // Assert
         Assert.Empty(codeDocument.Imports);

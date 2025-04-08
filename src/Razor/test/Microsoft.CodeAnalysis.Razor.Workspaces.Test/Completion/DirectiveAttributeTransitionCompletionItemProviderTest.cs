@@ -330,6 +330,8 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest : ToolingTes
     private static RazorSyntaxTree GetSyntaxTree(string text, string? fileKind = null)
     {
         fileKind ??= FileKinds.Component;
+        var fileKindValue = FileKinds.ToRazorFileKind(fileKind);
+
         var sourceDocument = TestRazorSourceDocument.Create(text);
         var projectEngine = RazorProjectEngine.Create(builder =>
         {
@@ -339,7 +341,7 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest : ToolingTes
             });
         });
 
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importSources: default, tagHelpers: []);
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKindValue, importSources: default, tagHelpers: []);
 
         return codeDocument.GetSyntaxTree();
     }

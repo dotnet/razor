@@ -466,9 +466,9 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
             });
         });
 
-        fileKind ??= FileKinds.Component;
+        var fileKindValue = FileKinds.ToNullableRazorFileKind(fileKind) ?? RazorFileKind.Component;
 
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importSources: default, tagHelpers);
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKindValue, importSources: default, tagHelpers);
 
         var csharpDocument = codeDocument.GetCSharpDocument();
         var diagnosticDescriptor = new RazorDiagnosticDescriptor("RZ10012", "diagnostic", RazorDiagnosticSeverity.Error);
