@@ -24,7 +24,14 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
 
     internal abstract IOnAutoInsertProvider CreateProvider();
 
-    protected void RunAutoInsertTest(string input, string expected, int tabSize = 4, bool insertSpaces = true, bool enableAutoClosingTags = true, string fileKind = default, IReadOnlyList<TagHelperDescriptor> tagHelpers = default)
+    protected void RunAutoInsertTest(
+        string input,
+        string expected,
+        int tabSize = 4,
+        bool insertSpaces = true,
+        bool enableAutoClosingTags = true,
+        RazorFileKind? fileKind = null,
+        IReadOnlyList<TagHelperDescriptor> tagHelpers = default)
     {
         // Arrange
         TestFileMarkupParser.GetPosition(input, out input, out var location);
@@ -57,9 +64,9 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
         SourceText text,
         string path,
         IReadOnlyList<TagHelperDescriptor> tagHelpers = null,
-        string fileKind = null)
+        RazorFileKind? fileKind = null)
     {
-        var fileKindValue = FileKinds.ToNullableRazorFileKind(fileKind) ?? RazorFileKind.Component;
+        var fileKindValue = fileKind ?? RazorFileKind.Component;
         tagHelpers ??= [];
 
         var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(path, path));

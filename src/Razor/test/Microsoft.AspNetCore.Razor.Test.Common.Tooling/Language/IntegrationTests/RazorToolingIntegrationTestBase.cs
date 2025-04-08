@@ -143,7 +143,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
         });
     }
 
-    internal RazorProjectItem CreateProjectItem(string cshtmlRelativePath, string cshtmlContent, string fileKind = null)
+    internal RazorProjectItem CreateProjectItem(string cshtmlRelativePath, string cshtmlContent, RazorFileKind? fileKind = null)
     {
         var fullPath = WorkingDirectory + PathSeparator + cshtmlRelativePath;
 
@@ -164,7 +164,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             physicalPath: fullPath,
             relativePhysicalPath: cshtmlRelativePath,
             basePath: WorkingDirectory,
-            fileKind: FileKinds.ToNullableRazorFileKind(fileKind) ?? FileKind)
+            fileKind: fileKind ?? FileKind)
         {
             Content = cshtmlContent.TrimStart(),
         };
@@ -175,7 +175,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
         return CompileToCSharp(DefaultFileName, cshtmlContent, throwOnFailure);
     }
 
-    protected CompileToCSharpResult CompileToCSharp(string cshtmlRelativePath, string cshtmlContent, bool throwOnFailure = true, string fileKind = null)
+    protected CompileToCSharpResult CompileToCSharp(string cshtmlRelativePath, string cshtmlContent, bool throwOnFailure = true, RazorFileKind? fileKind = null)
     {
         if (DeclarationOnly && DesignTime)
         {

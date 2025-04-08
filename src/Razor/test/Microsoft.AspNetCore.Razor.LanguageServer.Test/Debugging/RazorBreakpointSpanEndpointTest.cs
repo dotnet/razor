@@ -83,7 +83,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         // Arrange
         var documentPath = new Uri("C:/path/to/document.razor");
         var codeDocument = CreateCodeDocument(@"
-<p>@{var abc = 123;}</p>", FileKinds.Component);
+<p>@{var abc = 123;}</p>", RazorFileKind.Component);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
         var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(_mappingService, LoggerFactory);
@@ -109,7 +109,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         // Arrange
         var documentPath = new Uri("C:/path/to/document.razor");
         var codeDocument = CreateCodeDocument(@"
-<p>@currentCount</p>", FileKinds.Component);
+<p>@currentCount</p>", RazorFileKind.Component);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
         var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(_mappingService, LoggerFactory);
@@ -236,7 +236,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         Assert.Null(response);
     }
 
-    private static RazorCodeDocument CreateCodeDocument(string text, string? fileKind = null)
+    private static RazorCodeDocument CreateCodeDocument(string text, RazorFileKind? fileKind = null)
     {
         var sourceDocument = TestRazorSourceDocument.Create(text);
         var projectEngine = RazorProjectEngine.Create(builder =>
@@ -247,8 +247,6 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
             });
         });
 
-        var fileKindValue = FileKinds.ToNullableRazorFileKind(fileKind) ?? RazorFileKind.Legacy;
-
-        return projectEngine.ProcessDesignTime(sourceDocument, fileKindValue, importSources: default, tagHelpers: []);
+        return projectEngine.ProcessDesignTime(sourceDocument, fileKind ?? RazorFileKind.Legacy, importSources: default, tagHelpers: []);
     }
 }

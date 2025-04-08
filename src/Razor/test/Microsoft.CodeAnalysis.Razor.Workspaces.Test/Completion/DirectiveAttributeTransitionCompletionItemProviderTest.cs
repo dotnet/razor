@@ -129,7 +129,7 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest : ToolingTes
     public void GetCompletionItems_AttributeAreaInNonComponentFile_ReturnsEmptyList()
     {
         // Arrange
-        var context = CreateContext(absoluteIndex: 7, "<input  />", FileKinds.Legacy);
+        var context = CreateContext(absoluteIndex: 7, "<input  />", RazorFileKind.Legacy);
 
         // Act
         var result = _provider.GetCompletionItems(context);
@@ -327,10 +327,9 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest : ToolingTes
         }
     }
 
-    private static RazorSyntaxTree GetSyntaxTree(string text, string? fileKind = null)
+    private static RazorSyntaxTree GetSyntaxTree(string text, RazorFileKind? fileKind = null)
     {
-        fileKind ??= FileKinds.Component;
-        var fileKindValue = FileKinds.ToRazorFileKind(fileKind);
+        var fileKindValue = fileKind ?? RazorFileKind.Component;
 
         var sourceDocument = TestRazorSourceDocument.Create(text);
         var projectEngine = RazorProjectEngine.Create(builder =>
@@ -346,7 +345,7 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest : ToolingTes
         return codeDocument.GetSyntaxTree();
     }
 
-    private RazorCompletionContext CreateContext(int absoluteIndex, string documentContent, string? fileKind = null)
+    private RazorCompletionContext CreateContext(int absoluteIndex, string documentContent, RazorFileKind? fileKind = null)
     {
         var syntaxTree = GetSyntaxTree(documentContent, fileKind);
         var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex, includeWhitespace: true, walkMarkersBack: true);
