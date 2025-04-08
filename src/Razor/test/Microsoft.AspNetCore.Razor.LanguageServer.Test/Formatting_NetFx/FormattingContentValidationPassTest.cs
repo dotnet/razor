@@ -98,6 +98,7 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
         string? fileKind = null)
     {
         fileKind ??= FileKinds.Component;
+        var fileKindValue = FileKinds.ToRazorFileKind(fileKind);
         tagHelpers = tagHelpers.NullToEmpty();
 
         var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(path, path));
@@ -111,7 +112,7 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
             });
         });
 
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.ToRazorFileKind(fileKind), importSources: default, tagHelpers);
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKindValue, importSources: default, tagHelpers);
 
         var documentSnapshot = new StrictMock<IDocumentSnapshot>();
         documentSnapshot
@@ -125,7 +126,7 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
             .ReturnsAsync(tagHelpers);
         documentSnapshot
             .Setup(d => d.FileKind)
-            .Returns(fileKind);
+            .Returns(fileKindValue);
 
         return (codeDocument, documentSnapshot.Object);
     }

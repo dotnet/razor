@@ -98,7 +98,7 @@ internal sealed class ImportDocumentManager(IFileChangeTrackerFactory fileChange
     {
         var projectEngine = projectSnapshot.GetProjectEngine();
         var documentSnapshot = projectSnapshot.GetDocument(filePath);
-        var projectItem = projectEngine.FileSystem.GetItem(filePath, FileKinds.ToNullableRazorFileKind(documentSnapshot?.FileKind));
+        var projectItem = projectEngine.FileSystem.GetItem(filePath, documentSnapshot?.FileKind);
 
         return projectEngine.GetImports(projectItem, static i => i.PhysicalPath is not null);
     }

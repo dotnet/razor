@@ -12,28 +12,25 @@ internal readonly struct CodeDocumentGenerator(RazorProjectEngine projectEngine,
 {
     public RazorCodeDocument Generate(
         RazorSourceDocument source,
-        string fileKind,
+        RazorFileKind fileKind,
         ImmutableArray<RazorSourceDocument> importSources,
         ImmutableArray<TagHelperDescriptor> tagHelpers,
         CancellationToken cancellationToken)
     {
         var forceRuntimeCodeGeneration = compilerOptions.IsFlagSet(RazorCompilerOptions.ForceRuntimeCodeGeneration);
-        var fileKindValue = FileKinds.ToRazorFileKind(fileKind);
 
         return forceRuntimeCodeGeneration
-            ? projectEngine.Process(source, fileKindValue, importSources, tagHelpers, cancellationToken)
-            : projectEngine.ProcessDesignTime(source, fileKindValue, importSources, tagHelpers, cancellationToken);
+            ? projectEngine.Process(source, fileKind, importSources, tagHelpers, cancellationToken)
+            : projectEngine.ProcessDesignTime(source, fileKind, importSources, tagHelpers, cancellationToken);
     }
 
     public RazorCodeDocument GenerateDesignTime(
         RazorSourceDocument source,
-        string fileKind,
+        RazorFileKind fileKind,
         ImmutableArray<RazorSourceDocument> importSources,
         ImmutableArray<TagHelperDescriptor> tagHelpers,
         CancellationToken cancellationToken)
     {
-        var fileKindValue = FileKinds.ToRazorFileKind(fileKind);
-
-        return projectEngine.ProcessDesignTime(source, fileKindValue, importSources, tagHelpers, cancellationToken);
+        return projectEngine.ProcessDesignTime(source, fileKind, importSources, tagHelpers, cancellationToken);
     }
 }

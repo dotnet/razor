@@ -14,7 +14,7 @@ internal static class IDocumentSnapshotExtensions
     public static async Task<RazorSourceDocument> GetSourceAsync(this IDocumentSnapshot document, RazorProjectEngine projectEngine, CancellationToken cancellationToken)
     {
         var projectItem = document is { FilePath: string filePath, FileKind: var fileKind }
-            ? projectEngine.FileSystem.GetItem(filePath, FileKinds.ToRazorFileKind(fileKind))
+            ? projectEngine.FileSystem.GetItem(filePath, fileKind)
             : null;
 
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -27,7 +27,7 @@ internal static class IDocumentSnapshotExtensions
         CancellationToken cancellationToken)
     {
         // No point doing anything if its not a component
-        if (documentSnapshot.FileKind != FileKinds.Component)
+        if (documentSnapshot.FileKind != RazorFileKind.Component)
         {
             return null;
         }
@@ -57,7 +57,7 @@ internal static class IDocumentSnapshotExtensions
 
     public static bool IsPathCandidateForComponent(this IDocumentSnapshot documentSnapshot, ReadOnlyMemory<char> path)
     {
-        if (documentSnapshot.FileKind != FileKinds.Component)
+        if (documentSnapshot.FileKind != RazorFileKind.Component)
         {
             return false;
         }

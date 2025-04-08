@@ -304,6 +304,8 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         bool forceRuntimeCodeGeneration)
     {
         var projectKey = new ProjectKey(Path.Combine(path, "obj"));
+        var fileKindValue = FileKinds.ToRazorFileKind(fileKind);
+
         var snapshotMock = new StrictMock<IDocumentSnapshot>();
 
         snapshotMock
@@ -326,7 +328,7 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
             .ReturnsAsync(tagHelpers);
         snapshotMock
             .Setup(d => d.FileKind)
-            .Returns(fileKind);
+            .Returns(fileKindValue);
         snapshotMock
             .Setup(d => d.Version)
             .Returns(1);
@@ -337,8 +339,6 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
                 var source = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(
                     filePath: path,
                     relativePath: inGlobalNamespace ? Path.GetFileName(path) : path));
-
-                var fileKindValue = FileKinds.ToRazorFileKind(fileKind);
 
                 var designTimeCodeDocument = projectEngine.ProcessDesignTime(source, fileKindValue, importDocuments, tagHelpers);
                 var codeDocument = forceRuntimeCodeGeneration

@@ -111,7 +111,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         // Assert
         var document = _projectManager.GetRequiredDocument(hostProject.Key, hostDocument.FilePath);
 
-        Assert.Equal(FileKinds.Component, document.FileKind);
+        Assert.Equal(RazorFileKind.Component, document.FileKind);
     }
 
     [Fact]
@@ -314,7 +314,7 @@ public class RazorProjectServiceTest(ITestOutputHelper testOutput) : LanguageSer
         // Assert
         var document = _projectManager.GetRequiredDocument(hostProject.Key, newDocument.FilePath);
 
-        Assert.Equal(FileKinds.Component, document.FileKind);
+        Assert.Equal(RazorFileKind.Component, document.FileKind);
     }
 
     [Fact]

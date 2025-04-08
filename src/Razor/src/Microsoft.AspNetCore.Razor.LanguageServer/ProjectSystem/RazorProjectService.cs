@@ -569,7 +569,7 @@ internal partial class RazorProjectService : IRazorProjectService, IRazorProject
             newTargetPath = newTargetPath[projectDirectory.Length..];
         }
 
-        var newHostDocument = new HostDocument(document.FilePath, newTargetPath, FileKinds.ToRazorFileKind(document.FileKind));
+        var newHostDocument = new HostDocument(document.FilePath, newTargetPath, document.FileKind);
 
         _logger.LogInformation($"Moving '{documentFilePath}' from the '{fromProject.Key}' project to '{toProject.Key}' project.");
 

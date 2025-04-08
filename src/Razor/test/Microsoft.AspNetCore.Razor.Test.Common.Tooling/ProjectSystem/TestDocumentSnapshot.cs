@@ -58,7 +58,7 @@ internal sealed class TestDocumentSnapshot : IDocumentSnapshot
 
     public HostDocument HostDocument => RealSnapshot.HostDocument;
 
-    public string FileKind => RealSnapshot.FileKind;
+    public RazorFileKind FileKind => RealSnapshot.FileKind;
     public string FilePath => RealSnapshot.FilePath;
     public string TargetPath => RealSnapshot.TargetPath;
     public IProjectSnapshot Project => RealSnapshot.Project;
