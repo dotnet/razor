@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
@@ -13,89 +12,64 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 
 public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput) : RazorOnAutoInsertProviderTestBase(testOutput)
 {
-    private static TagHelperDescriptor CatchAllTagHelper
-    {
-        get
-        {
-            var descriptor = TagHelperDescriptorBuilder.Create("CatchAllTagHelper", "TestAssembly");
-            descriptor.SetMetadata(TypeName("TestNamespace.CatchAllTagHelper"));
-            descriptor.TagMatchingRule(builder => builder.RequireTagName("*").RequireTagStructure(TagStructure.Unspecified));
+    private protected override IOnAutoInsertProvider CreateProvider()
+        => new AutoClosingTagOnAutoInsertProvider();
 
-            return descriptor.Build();
-        }
-    }
+    private static readonly TagHelperDescriptor s_catchAllTagHelper =
+        TagHelperDescriptorBuilder.Create("CatchAllTagHelper", "TestAssembly")
+            .Metadata(TypeName("TestNamespace.CatchAllTagHelper"))
+            .TagMatchingRuleDescriptor(builder => builder
+                .RequireTagName("*")
+                .RequireTagStructure(TagStructure.Unspecified))
+            .Build();
 
-    private static TagHelperDescriptor UnspecifiedInputMirroringTagHelper
-    {
-        get
-        {
-            var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
-            descriptor.SetMetadata(TypeName("TestNamespace.TestTagHelper"));
-            descriptor.TagMatchingRule(builder => builder.RequireTagName("Input").RequireTagStructure(TagStructure.Unspecified));
+    private static readonly TagHelperDescriptor s_unspecifiedInputMirroringTagHelper =
+        TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly")
+            .Metadata(TypeName("TestNamespace.TestTagHelper"))
+            .TagMatchingRuleDescriptor(builder => builder
+                .RequireTagName("Input")
+                .RequireTagStructure(TagStructure.Unspecified))
+            .Build();
 
-            return descriptor.Build();
-        }
-    }
+    private static readonly TagHelperDescriptor s_unspecifiedTagHelper =
+        TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly")
+            .Metadata(TypeName("TestNamespace.TestTagHelper"))
+            .TagMatchingRuleDescriptor(builder => builder
+                .RequireTagName("test")
+            .RequireTagStructure(TagStructure.Unspecified))
+            .Build();
 
-    private static TagHelperDescriptor UnspecifiedTagHelper
-    {
-        get
-        {
-            var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
-            descriptor.SetMetadata(TypeName("TestNamespace.TestTagHelper"));
-            descriptor.TagMatchingRule(builder => builder.RequireTagName("test").RequireTagStructure(TagStructure.Unspecified));
+    private static readonly TagHelperDescriptor s_unspecifiedInputTagHelper =
+        TagHelperDescriptorBuilder.Create("TestInputTagHelper", "TestAssembly")
+            .Metadata(TypeName("TestNamespace.TestInputTagHelper"))
+            .TagMatchingRuleDescriptor(builder => builder
+                .RequireTagName("input")
+                .RequireTagStructure(TagStructure.Unspecified))
+            .Build();
 
-            return descriptor.Build();
-        }
-    }
+    private static readonly TagHelperDescriptor s_normalOrSelfclosingInputTagHelper =
+        TagHelperDescriptorBuilder.Create("TestInputTagHelper", "TestAssembly")
+            .Metadata(TypeName("TestNamespace.TestInputTagHelper"))
+            .TagMatchingRuleDescriptor(builder => builder
+                .RequireTagName("input")
+                .RequireTagStructure(TagStructure.NormalOrSelfClosing))
+            .Build();
 
-    private static TagHelperDescriptor UnspecifiedInputTagHelper
-    {
-        get
-        {
-            var descriptor = TagHelperDescriptorBuilder.Create("TestInputTagHelper", "TestAssembly");
-            descriptor.SetMetadata(TypeName("TestNamespace.TestInputTagHelper"));
-            descriptor.TagMatchingRule(builder => builder.RequireTagName("input").RequireTagStructure(TagStructure.Unspecified));
+    private static readonly TagHelperDescriptor s_normalOrSelfClosingTagHelper =
+        TagHelperDescriptorBuilder.Create("TestTagHelper2", "TestAssembly")
+            .Metadata(TypeName("TestNamespace.TestTagHelper2"))
+            .TagMatchingRuleDescriptor(builder => builder
+                .RequireTagName("test")
+                .RequireTagStructure(TagStructure.NormalOrSelfClosing))
+            .Build();
 
-            return descriptor.Build();
-        }
-    }
-
-    private static TagHelperDescriptor NormalOrSelfclosingInputTagHelper
-    {
-        get
-        {
-            var descriptor = TagHelperDescriptorBuilder.Create("TestInputTagHelper", "TestAssembly");
-            descriptor.SetMetadata(TypeName("TestNamespace.TestInputTagHelper"));
-            descriptor.TagMatchingRule(builder => builder.RequireTagName("input").RequireTagStructure(TagStructure.NormalOrSelfClosing));
-
-            return descriptor.Build();
-        }
-    }
-
-    private static TagHelperDescriptor NormalOrSelfClosingTagHelper
-    {
-        get
-        {
-            var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper2", "TestAssembly");
-            descriptor.SetMetadata(TypeName("TestNamespace.TestTagHelper2"));
-            descriptor.TagMatchingRule(builder => builder.RequireTagName("test").RequireTagStructure(TagStructure.NormalOrSelfClosing));
-
-            return descriptor.Build();
-        }
-    }
-
-    private static TagHelperDescriptor WithoutEndTagTagHelper
-    {
-        get
-        {
-            var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper3", "TestAssembly");
-            descriptor.SetMetadata(TypeName("TestNamespace.TestTagHelper3"));
-            descriptor.TagMatchingRule(builder => builder.RequireTagName("test").RequireTagStructure(TagStructure.WithoutEndTag));
-
-            return descriptor.Build();
-        }
-    }
+    private static readonly TagHelperDescriptor s_withoutEndTagTagHelper =
+        TagHelperDescriptorBuilder.Create("TestTagHelper3", "TestAssembly")
+            .Metadata(TypeName("TestNamespace.TestTagHelper3"))
+            .TagMatchingRuleDescriptor(builder => builder
+                .RequireTagName("test")
+                .RequireTagStructure(TagStructure.WithoutEndTag))
+            .Build();
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6217")]
@@ -113,7 +87,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 <test />
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { WithoutEndTagTagHelper, CatchAllTagHelper });
+            tagHelpers: [s_withoutEndTagTagHelper, s_catchAllTagHelper]);
     }
 
     [Fact]
@@ -132,7 +106,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 <test><test></test></test>
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+            tagHelpers: [s_normalOrSelfClosingTagHelper]);
     }
 
     [Fact]
@@ -151,7 +125,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 <input /><input></input></input>
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { UnspecifiedInputTagHelper });
+            tagHelpers: [s_unspecifiedInputTagHelper]);
     }
 
     [Fact]
@@ -267,7 +241,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 <Input>$0</Input>
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { UnspecifiedInputMirroringTagHelper });
+            tagHelpers: [s_unspecifiedInputMirroringTagHelper]);
     }
 
     [Fact]
@@ -278,7 +252,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
             input: "<Input>$$",
             expected: "<Input />",
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: Array.Empty<TagHelperDescriptor>());
+            tagHelpers: []);
     }
 
     [Fact]
@@ -296,7 +270,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 <input>$0</input>
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { NormalOrSelfclosingInputTagHelper });
+            tagHelpers: [s_normalOrSelfclosingInputTagHelper]);
     }
 
     [Fact]
@@ -314,7 +288,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 <input />
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { UnspecifiedInputTagHelper });
+            tagHelpers: [s_unspecifiedInputTagHelper]);
     }
 
     [Fact]
@@ -332,7 +306,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 <test>$0</test>
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { UnspecifiedTagHelper });
+            tagHelpers: [s_unspecifiedTagHelper]);
     }
 
     [Fact]
@@ -350,7 +324,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 <test>$0</test>
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+            tagHelpers: [s_normalOrSelfClosingTagHelper]);
     }
 
     [Fact]
@@ -375,7 +349,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 }
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+            tagHelpers: [s_normalOrSelfClosingTagHelper]);
     }
 
     [Fact]
@@ -400,7 +374,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 }
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+            tagHelpers: [s_normalOrSelfClosingTagHelper]);
     }
 
     [Fact]
@@ -425,7 +399,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 }
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+            tagHelpers: [s_normalOrSelfClosingTagHelper]);
     }
 
     [Fact]
@@ -450,7 +424,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 }
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+            tagHelpers: [s_normalOrSelfClosingTagHelper]);
     }
 
     [Fact]
@@ -475,7 +449,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 }
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+            tagHelpers: [s_normalOrSelfClosingTagHelper]);
     }
 
     [Fact]
@@ -500,7 +474,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 }
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+            tagHelpers: [s_normalOrSelfClosingTagHelper]);
     }
 
     [Fact]
@@ -525,7 +499,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 }
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+            tagHelpers: [s_normalOrSelfClosingTagHelper]);
     }
 
     [Fact]
@@ -550,7 +524,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 }
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+            tagHelpers: [s_normalOrSelfClosingTagHelper]);
     }
 
     [Fact]
@@ -575,7 +549,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 }
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+            tagHelpers: [s_normalOrSelfClosingTagHelper]);
     }
 
     [Fact]
@@ -600,7 +574,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 }
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { NormalOrSelfClosingTagHelper, UnspecifiedInputTagHelper });
+            tagHelpers: [s_normalOrSelfClosingTagHelper, s_unspecifiedInputTagHelper]);
     }
 
     [Fact]
@@ -625,7 +599,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 }
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { NormalOrSelfClosingTagHelper, UnspecifiedInputTagHelper });
+            tagHelpers: [s_normalOrSelfClosingTagHelper, s_unspecifiedInputTagHelper]);
     }
 
     [Fact]
@@ -650,7 +624,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 }
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { NormalOrSelfClosingTagHelper, NormalOrSelfclosingInputTagHelper });
+            tagHelpers: [s_normalOrSelfClosingTagHelper, s_normalOrSelfclosingInputTagHelper]);
     }
 
     [Fact]
@@ -672,7 +646,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 }
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+            tagHelpers: [s_normalOrSelfClosingTagHelper]);
     }
 
     [Fact]
@@ -690,7 +664,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 <test />
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { WithoutEndTagTagHelper });
+            tagHelpers: [s_withoutEndTagTagHelper]);
     }
 
     [Fact]
@@ -715,7 +689,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 }
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { WithoutEndTagTagHelper });
+            tagHelpers: [s_withoutEndTagTagHelper]);
     }
 
     [Fact]
@@ -733,7 +707,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 <test />
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { WithoutEndTagTagHelper });
+            tagHelpers: [s_withoutEndTagTagHelper]);
     }
 
     [Fact]
@@ -751,7 +725,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 <test />
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { WithoutEndTagTagHelper });
+            tagHelpers: [s_withoutEndTagTagHelper]);
     }
 
     [Fact]
@@ -773,7 +747,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 }
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { WithoutEndTagTagHelper });
+            tagHelpers: [s_withoutEndTagTagHelper]);
     }
 
     [Fact]
@@ -791,7 +765,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 <test>$0</test>
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { UnspecifiedTagHelper, NormalOrSelfClosingTagHelper, WithoutEndTagTagHelper });
+            tagHelpers: [s_unspecifiedTagHelper, s_normalOrSelfClosingTagHelper, s_withoutEndTagTagHelper]);
     }
 
     [Fact]
@@ -809,7 +783,7 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 <!test>$0</!test>
                 """,
             fileKind: RazorFileKind.Legacy,
-            tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+            tagHelpers: [s_normalOrSelfClosingTagHelper]);
     }
 
     [Fact]
@@ -992,7 +966,4 @@ public class AutoClosingTagOnAutoInsertProviderTest(ITestOutputHelper testOutput
                 """,
             enableAutoClosingTags: false);
     }
-
-    internal override IOnAutoInsertProvider CreateProvider()
-        => new AutoClosingTagOnAutoInsertProvider();
 }

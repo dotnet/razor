@@ -1,10 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
@@ -15,23 +13,16 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 
-public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
+public abstract class RazorOnAutoInsertProviderTestBase(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    protected RazorOnAutoInsertProviderTestBase(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
-    internal abstract IOnAutoInsertProvider CreateProvider();
+    private protected abstract IOnAutoInsertProvider CreateProvider();
 
     protected void RunAutoInsertTest(
         string input,
         string expected,
-        int tabSize = 4,
-        bool insertSpaces = true,
         bool enableAutoClosingTags = true,
         RazorFileKind? fileKind = null,
-        IReadOnlyList<TagHelperDescriptor> tagHelpers = default)
+        ImmutableArray<TagHelperDescriptor> tagHelpers = default)
     {
         // Arrange
         TestFileMarkupParser.GetPosition(input, out input, out var location);
@@ -41,7 +32,7 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
 
         var path = "file:///path/to/document.razor";
         var uri = new Uri(path);
-        var codeDocument = CreateCodeDocument(source, uri.AbsolutePath, tagHelpers, fileKind: fileKind);
+        var codeDocument = CreateCodeDocument(source, uri.AbsolutePath, tagHelpers, fileKind);
 
         var provider = CreateProvider();
 
@@ -63,11 +54,11 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
     private static RazorCodeDocument CreateCodeDocument(
         SourceText text,
         string path,
-        IReadOnlyList<TagHelperDescriptor> tagHelpers = null,
+        ImmutableArray<TagHelperDescriptor> tagHelpers,
         RazorFileKind? fileKind = null)
     {
         var fileKindValue = fileKind ?? RazorFileKind.Component;
-        tagHelpers ??= [];
+        tagHelpers = tagHelpers.NullToEmpty();
 
         var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(path, path));
         var projectEngine = RazorProjectEngine.Create(builder =>
