@@ -16,7 +16,7 @@ public sealed class RazorCodeDocument
     public RazorParserOptions ParserOptions { get; }
     public RazorCodeGenerationOptions CodeGenerationOptions { get; }
 
-    public string FileKind => FileKinds.FromRazorFileKind(ParserOptions.FileKind);
+    public RazorFileKind FileKind => ParserOptions.FileKind;
 
     private TagHelperDocumentContext? _tagHelperContext;
 

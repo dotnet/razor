@@ -154,7 +154,7 @@ public class DefaultRazorProjectEngineIntegrationTest
 
         // Assert
         var actual = codeDocument.FileKind;
-        Assert.Equal(FileKinds.Legacy, actual);
+        Assert.Equal(RazorFileKind.Legacy, actual);
     }
 
     [Fact]
@@ -202,7 +202,7 @@ public class DefaultRazorProjectEngineIntegrationTest
 
         // Assert
         var actual = codeDocument.FileKind;
-        Assert.Same(FileKinds.Legacy, actual);
+        Assert.Equal(RazorFileKind.Legacy, actual);
     }
 
     [Fact]
@@ -218,7 +218,7 @@ public class DefaultRazorProjectEngineIntegrationTest
 
         // Assert
         var actual = codeDocument.FileKind;
-        Assert.Same(FileKinds.Component, actual);
+        Assert.Equal(RazorFileKind.Component, actual);
     }
 
     [Fact]
@@ -289,7 +289,7 @@ public class DefaultRazorProjectEngineIntegrationTest
 
         // Assert
         var actual = codeDocument.FileKind;
-        Assert.Same(FileKinds.Legacy, actual);
+        Assert.Equal(RazorFileKind.Legacy, actual);
     }
 
     [Fact]
@@ -305,7 +305,7 @@ public class DefaultRazorProjectEngineIntegrationTest
 
         // Assert
         var actual = codeDocument.FileKind;
-        Assert.Same(FileKinds.Component, actual);
+        Assert.Equal(RazorFileKind.Component, actual);
     }
 
     [Fact]
