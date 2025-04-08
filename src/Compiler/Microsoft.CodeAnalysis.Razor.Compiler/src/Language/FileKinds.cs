@@ -9,13 +9,22 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public static class FileKinds
 {
-    public static bool IsComponent(RazorFileKind fileKind)
+    /// <summary>
+    ///  Returns <see langword="true"/> if the specified value represents a component or component import.
+    /// </summary>
+    public static bool IsComponent(this RazorFileKind fileKind)
         => fileKind is RazorFileKind.Component or RazorFileKind.ComponentImport;
 
-    public static bool IsComponentImport(RazorFileKind fileKind)
+    /// <summary>
+    ///  Returns <see langword="true"/> if the specified value represents a component import.
+    /// </summary>
+    public static bool IsComponentImport(this RazorFileKind fileKind)
         => fileKind == RazorFileKind.ComponentImport;
 
-    internal static bool IsLegacy(RazorFileKind fileKind)
+    /// <summary>
+    ///  Returns <see langword="true"/> if the specified value represents a legacy file kind.
+    /// </summary>
+    internal static bool IsLegacy(this RazorFileKind fileKind)
         => fileKind == RazorFileKind.Legacy;
 
     public static RazorFileKind ComponentFilePathToRazorFileKind(string filePath)

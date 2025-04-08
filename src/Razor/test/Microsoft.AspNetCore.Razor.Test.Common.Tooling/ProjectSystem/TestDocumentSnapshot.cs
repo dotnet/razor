@@ -49,6 +49,8 @@ internal sealed class TestDocumentSnapshot : IDocumentSnapshot
         var project = TestProjectSnapshot.Create(filePath + ".csproj", projectWorkspaceState);
         var hostDocument = TestHostDocument.Create(project.HostProject, filePath);
 
+        hostDocument = hostDocument with { FileKind = codeDocument.FileKind };
+
         var sourceText = codeDocument.Source.Text;
 
         var documentState = DocumentState.Create(hostDocument, sourceText);
