@@ -48,7 +48,7 @@ public abstract class RazorProjectItem
     public virtual RazorFileKind FileKind
         => FilePath == null
             ? RazorFileKind.None
-            : FileKinds.ToRazorFileKind(FileKinds.GetFileKindFromFilePath(FilePath));
+            : FileKinds.FilePathToRazorFileKind(FilePath);
 
     /// <summary>
     /// Gets the file contents as readonly <see cref="Stream"/>.
