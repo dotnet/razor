@@ -15,6 +15,6 @@ internal sealed record class HostDocument
     {
         FilePath = filePath;
         TargetPath = targetPath;
-        FileKind = fileKind ?? FileKinds.FilePathToRazorFileKind(filePath);
+        FileKind = fileKind ?? FileKinds.GetFileKindFromPath(filePath);
     }
 }

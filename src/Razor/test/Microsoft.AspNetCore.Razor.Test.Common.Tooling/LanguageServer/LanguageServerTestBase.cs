@@ -51,7 +51,7 @@ public abstract class LanguageServerTestBase(ITestOutputHelper testOutput) : Too
     {
         filePath ??= "test.cshtml";
 
-        var fileKind = FileKinds.FilePathToRazorFileKind(filePath);
+        var fileKind = FileKinds.GetFileKindFromPath(filePath);
         tagHelpers = tagHelpers.NullToEmpty();
 
         if (fileKind == RazorFileKind.Component)

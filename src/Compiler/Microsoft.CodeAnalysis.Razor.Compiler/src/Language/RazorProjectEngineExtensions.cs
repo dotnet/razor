@@ -65,7 +65,7 @@ public static class RazorProjectEngineExtensions
         IReadOnlyList<TagHelperDescriptor>? tagHelpers = null)
     {
         var fileKindValue = fileKind ?? (source.FilePath is string filePath
-            ? FileKinds.FilePathToRazorFileKind(filePath)
+            ? FileKinds.GetFileKindFromPath(filePath)
             : DefaultFileKind);
 
         return projectEngine.CreateCodeDocument(source, fileKindValue, importSources, tagHelpers, cssScope: null);
@@ -126,7 +126,7 @@ public static class RazorProjectEngineExtensions
         IReadOnlyList<TagHelperDescriptor>? tagHelpers = null)
     {
         var fileKindValue = fileKind ?? (source.FilePath is string filePath
-            ? FileKinds.FilePathToRazorFileKind(filePath)
+            ? FileKinds.GetFileKindFromPath(filePath)
             : DefaultFileKind);
 
         return projectEngine.CreateDesignTimeCodeDocument(source, fileKindValue, importSources, tagHelpers);

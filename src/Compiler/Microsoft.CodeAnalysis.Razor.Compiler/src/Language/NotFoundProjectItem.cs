@@ -22,7 +22,7 @@ internal class NotFoundProjectItem(string path, RazorFileKind? fileKind) : Razor
 
     /// <inheritdoc />
     public override RazorFileKind FileKind { get; }
-        = fileKind ?? FileKinds.FilePathToRazorFileKind(path);
+        = fileKind ?? FileKinds.GetFileKindFromPath(path);
 
     /// <inheritdoc />
     public override bool Exists => false;

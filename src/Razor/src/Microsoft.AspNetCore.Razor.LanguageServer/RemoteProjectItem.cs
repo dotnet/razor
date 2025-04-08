@@ -13,7 +13,7 @@ internal sealed class RemoteProjectItem : RazorProjectItem
     {
         FilePath = filePath;
         PhysicalPath = physicalPath;
-        FileKind = fileKind ?? FileKinds.FilePathToRazorFileKind(FilePath);
+        FileKind = fileKind ?? FileKinds.GetFileKindFromPath(FilePath);
         RelativePhysicalPath = FilePath.StartsWith('/')
             ? FilePath[1..]
             : FilePath;
