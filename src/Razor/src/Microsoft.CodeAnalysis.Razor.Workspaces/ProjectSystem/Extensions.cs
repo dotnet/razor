@@ -6,6 +6,7 @@ using System;
 #endif
 
 using System.Diagnostics;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.CodeAnalysis.Razor.Utilities;
 
@@ -30,7 +31,7 @@ internal static class Extensions
     }
 
     public static DocumentSnapshotHandle ToHandle(this IDocumentSnapshot snapshot)
-        => new(snapshot.FilePath, snapshot.TargetPath, snapshot.FileKind);
+        => new(snapshot.FilePath, snapshot.TargetPath, FileKinds.ToRazorFileKind(snapshot.FileKind));
 
     public static ProjectKey ToProjectKey(this Project project)
     {

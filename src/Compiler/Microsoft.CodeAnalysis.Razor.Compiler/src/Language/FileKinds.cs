@@ -136,6 +136,20 @@ public static class FileKinds
         return fileKind == RazorFileKind.Legacy;
     }
 
+    public static RazorFileKind ComponentFilePathToRazorFileKind(string filePath)
+    {
+        ArgHelper.ThrowIfNull(filePath);
+
+        if (string.Equals(ComponentMetadata.ImportsFileName, Path.GetFileName(filePath), StringComparison.Ordinal))
+        {
+            return RazorFileKind.ComponentImport;
+        }
+        else
+        {
+            return RazorFileKind.Component;
+        }
+    }
+
     public static RazorFileKind FilePathToRazorFileKind(string filePath)
     {
         ArgHelper.ThrowIfNull(filePath);
