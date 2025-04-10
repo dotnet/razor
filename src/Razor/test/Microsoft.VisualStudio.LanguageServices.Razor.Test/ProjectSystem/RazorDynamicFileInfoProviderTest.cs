@@ -64,7 +64,7 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
         var serviceProvider = VsMocks.CreateServiceProvider(static b =>
             b.AddComponentModel(static b =>
             {
-                var startupInitializer = new RazorStartupInitializer([]);
+                var startupInitializer = new RazorStartupInitializer(TestLanguageServerFeatureOptions.Instance, []);
                 b.AddExport(startupInitializer);
             }));
 
