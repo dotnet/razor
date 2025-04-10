@@ -46,16 +46,16 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.EditorFeatures.Common" Version="$(MicrosoftCodeAnalysisEditorFeaturesCommonPackageVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.EditorFeatures.Text" Version="$(MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.EditorFeatures.Wpf" Version="$(MicrosoftCodeAnalysisEditorFeaturesWpfPackageVersion)" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" Version="$(MicrosoftCodeAnalysisExternalAccessRazorPackageVersion)" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures" Version="$(MicrosoftCodeAnalysisExternalAccessRazorPackageVersion)" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.Features" Version="$(MicrosoftCodeAnalysisExternalAccessRazorPackageVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" Version="$(MicrosoftCodeAnalysisExternalAccessFSharpVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures" Version="$(MicrosoftCodeAnalysisExternalAccessRazorEditorFeaturesPackageVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.Features" Version="$(MicrosoftCodeAnalysisExternalAccessRazorFeaturesPackageVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Remote.ServiceHub" Version="$(MicrosoftCodeAnalysisRemoteServiceHubPackageVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Test.Utilities" Version="$(MicrosoftCodeAnalysisTestUtilitiesPackageVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces" Version="$(MicrosoftCodeAnalysisWorkspacesPackageVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(MicrosoftCodeAnalysisWorkspacesCommonPackageVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="$(MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion)" />
     <PackageVersion Include="Microsoft.CommonLanguageServerProtocol.Framework" Version="$(MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion)" PrivateAssets="all" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.LanguageServer.Protocol" Version="$(MicrosoftCodeAnalysisExternalAccessRazorPackageVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.LanguageServer.Protocol" Version="$(MicrosoftCodeAnalysisLanguageServerProtocolVersion)" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageVersion Include="Microsoft.Css.Parser" Version="1.0.0-20230414.1" />
     <PackageVersion Include="Microsoft.DiaSymReader" Version="2.0.0" />
