@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
@@ -64,6 +65,8 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
 
     protected sealed override Task InitializeCoreAsync(CancellationToken cancellationToken)
     {
+        Debug.Assert(!_languageServerFeatureOptions.UseRazorCohostServer, "When cohosting is on this should never be initialized.");
+
         CommonServices.UnconfiguredProject.ProjectRenaming += UnconfiguredProject_ProjectRenamingAsync;
 
         // CPS represents the various target frameworks that a project has in configuration groups, which are called "slices". Each
