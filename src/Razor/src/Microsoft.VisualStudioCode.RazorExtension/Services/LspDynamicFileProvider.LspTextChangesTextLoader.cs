@@ -36,17 +36,18 @@ internal sealed partial class LspDynamicFileProvider
 
         public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
-            if (_document is null)
-            {
-                var text = ApplyChanges(_emptySourceText.Value, _changes);
-                return TextAndVersion.Create(text, VersionStamp.Default.GetNewerVersion());
-            }
-
-            var sourceText = await _document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            // Validate the checksum information so the edits are known to be correct
             try
             {
+                if (_document is null)
+                {
+                    var text = ApplyChanges(_emptySourceText.Value, _changes);
+                    return TextAndVersion.Create(text, VersionStamp.Default.GetNewerVersion());
+                }
+
+                var sourceText = await _document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                // Validate the checksum information so the edits are known to be correct
+
                 if (IsSourceTextMatching(sourceText))
                 {
                     var version = await _document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
