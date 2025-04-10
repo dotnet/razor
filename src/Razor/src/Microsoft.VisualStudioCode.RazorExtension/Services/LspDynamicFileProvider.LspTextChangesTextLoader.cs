@@ -54,7 +54,7 @@ internal sealed partial class LspDynamicFileProvider
                     return TextAndVersion.Create(newText, version.GetNewerVersion());
                 }
             }
-            catch (ArgumentException ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 // This happens if ApplyChanges tries to apply an invalid TextChange.
                 // This is recoverable but incurs a perf hit for getting the full text below.
