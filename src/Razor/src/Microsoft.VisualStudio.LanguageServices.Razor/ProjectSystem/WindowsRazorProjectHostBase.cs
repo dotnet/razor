@@ -64,11 +64,6 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
 
     protected sealed override Task InitializeCoreAsync(CancellationToken cancellationToken)
     {
-        if (_languageServerFeatureOptions.UseRazorCohostServer)
-        {
-            return Task.CompletedTask;
-        }
-
         CommonServices.UnconfiguredProject.ProjectRenaming += UnconfiguredProject_ProjectRenamingAsync;
 
         // CPS represents the various target frameworks that a project has in configuration groups, which are called "slices". Each
@@ -168,6 +163,11 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
 
     protected override async Task DisposeCoreAsync(bool initialized)
     {
+        if (_languageServerFeatureOptions.UseRazorCohostServer)
+        {
+            return;
+        }
+
         if (initialized)
         {
             CommonServices.UnconfiguredProject.ProjectRenaming -= UnconfiguredProject_ProjectRenamingAsync;
@@ -291,6 +291,11 @@ internal abstract partial class WindowsRazorProjectHostBase : OnceInitializedOnc
 
     Task IProjectDynamicLoadComponent.LoadAsync()
     {
+        if (_languageServerFeatureOptions.UseRazorCohostServer)
+        {
+            return Task.CompletedTask;
+        }
+
         return InitializeAsync();
     }
 
