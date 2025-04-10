@@ -47,14 +47,15 @@
 
   -->
   <PropertyGroup Label="Automated">
-    <MicrosoftCodeAnalysisAnalyzersVersion>3.12.0-beta1.25209.6</MicrosoftCodeAnalysisAnalyzersVersion>
+    <MicrosoftCodeAnalysisAnalyzersPackageVersion>3.12.0-beta1.25209.6</MicrosoftCodeAnalysisAnalyzersPackageVersion>
     <MicrosoftNETCoreBrowserDebugHostTransportPackageVersion>6.0.2-servicing.22064.6</MicrosoftNETCoreBrowserDebugHostTransportPackageVersion>
     <MicrosoftNETCorePlatformsPackageVersion>6.0.1</MicrosoftNETCorePlatformsPackageVersion>
     <MicrosoftSourceBuildIntermediatesourcebuildreferencepackagesPackageVersion>10.0.620402</MicrosoftSourceBuildIntermediatesourcebuildreferencepackagesPackageVersion>
     <MicrosoftSourceBuildIntermediatearcadePackageVersion>9.0.0-beta.25204.5</MicrosoftSourceBuildIntermediatearcadePackageVersion>
     <MicrosoftNetCompilersToolsetPackageVersion>5.0.0-1.25209.6</MicrosoftNetCompilersToolsetPackageVersion>
-    <MicrosoftCodeAnalysisExternalAccessFSharpVersion>5.0.0-1.25209.6</MicrosoftCodeAnalysisExternalAccessFSharpVersion>
+    <MicrosoftCodeAnalysisExternalAccessFSharpPackageVersion>5.0.0-1.25209.6</MicrosoftCodeAnalysisExternalAccessFSharpPackageVersion>
     <MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>5.0.0-1.25209.6</MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>
+    <MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>5.0.0-1.25207.1</MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>
     <MicrosoftCodeAnalysisExternalAccessRazorEditorFeaturesPackageVersion>5.0.0-1.25209.6</MicrosoftCodeAnalysisExternalAccessRazorEditorFeaturesPackageVersion>
     <MicrosoftCodeAnalysisExternalAccessRazorFeaturesPackageVersion>5.0.0-1.25209.6</MicrosoftCodeAnalysisExternalAccessRazorFeaturesPackageVersion>
     <MicrosoftCodeAnalysisCommonPackageVersion>5.0.0-1.25209.6</MicrosoftCodeAnalysisCommonPackageVersion>
@@ -66,7 +67,7 @@
     <MicrosoftCodeAnalysisEditorFeaturesCommonPackageVersion>5.0.0-1.25209.6</MicrosoftCodeAnalysisEditorFeaturesCommonPackageVersion>
     <MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>5.0.0-1.25209.6</MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>
     <MicrosoftCodeAnalysisEditorFeaturesWpfPackageVersion>5.0.0-1.25209.6</MicrosoftCodeAnalysisEditorFeaturesWpfPackageVersion>
-    <MicrosoftCodeAnalysisLanguageServerProtocolVersion>5.0.0-1.25209.6</MicrosoftCodeAnalysisLanguageServerProtocolVersion>
+    <MicrosoftCodeAnalysisLanguageServerProtocolPackageVersion>5.0.0-1.25209.6</MicrosoftCodeAnalysisLanguageServerProtocolPackageVersion>
     <MicrosoftCodeAnalysisRemoteServiceHubPackageVersion>5.0.0-1.25209.6</MicrosoftCodeAnalysisRemoteServiceHubPackageVersion>
     <MicrosoftCodeAnalysisTestUtilitiesPackageVersion>5.0.0-1.25209.6</MicrosoftCodeAnalysisTestUtilitiesPackageVersion>
     <MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>5.0.0-1.25209.6</MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>
