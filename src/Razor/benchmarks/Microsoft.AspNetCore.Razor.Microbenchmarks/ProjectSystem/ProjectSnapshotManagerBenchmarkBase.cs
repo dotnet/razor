@@ -4,6 +4,7 @@
 using System.Collections.Immutable;
 using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -53,5 +54,6 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
         => new(
             projectEngineFactoryProvider: StaticProjectEngineFactoryProvider.Instance,
             compilerOptions: RazorCompilerOptions.None,
+            featureOptions: new DefaultLanguageServerFeatureOptions(),
             loggerFactory: EmptyLoggerFactory.Instance);
 }

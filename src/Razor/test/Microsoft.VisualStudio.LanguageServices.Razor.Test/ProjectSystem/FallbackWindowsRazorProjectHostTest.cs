@@ -35,7 +35,7 @@ public class FallbackWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         _serviceProvider = VsMocks.CreateServiceProvider(static b =>
         b.AddComponentModel(static b =>
         {
-            var startupInitializer = new RazorStartupInitializer([]);
+            var startupInitializer = new RazorStartupInitializer(TestLanguageServerFeatureOptions.Instance, []);
             b.AddExport(startupInitializer);
         }));
 
