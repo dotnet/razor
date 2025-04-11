@@ -26,15 +26,15 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
                 <div>
                   Hello World
                 </div>
-              }|]
-            </div>
+              }
+            |]</div>
 
             @if (true) {[|
               <div>
                 Hello World
               </div>
-            }|]
-
+            }
+            |]
             @if (true) {[|
             }|]
             """);
@@ -66,8 +66,8 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
                     Goodbye World
                 </div>
                 }|]
-              }|]
-            </div>
+              }
+            |]</div>
             """);
 
     [Fact]
@@ -217,7 +217,7 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
     private async Task VerifyFoldingRangesAsync(string input, string? fileKind = null)
     {
         TestFileMarkupParser.GetSpans(input, out var source, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
-        var document = await CreateProjectAndRazorDocumentAsync(source, fileKind);
+        var document = CreateProjectAndRazorDocument(source, fileKind);
         var inputText = await document.GetTextAsync(DisposalToken);
 
         var htmlSpans = spans.GetValueOrDefault("html").NullToEmpty();

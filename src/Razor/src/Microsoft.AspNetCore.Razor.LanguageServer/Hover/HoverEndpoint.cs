@@ -14,26 +14,28 @@ using Microsoft.CodeAnalysis.Razor.Hover;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using LspHover = Microsoft.VisualStudio.LanguageServer.Protocol.Hover;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 
 [RazorLanguageServerEndpoint(Methods.TextDocumentHoverName)]
 internal sealed class HoverEndpoint(
-    IProjectSnapshotManager projectManager,
+    IComponentAvailabilityService componentAvailabilityService,
     IClientCapabilitiesService clientCapabilitiesService,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IDocumentMappingService documentMappingService,
     IClientConnection clientConnection,
     ILoggerFactory loggerFactory)
-    : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, VSInternalHover?>(
+    : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, LspHover?>(
         languageServerFeatureOptions,
         documentMappingService,
         clientConnection,
         loggerFactory.GetOrCreateLogger<HoverEndpoint>()), ICapabilitiesProvider
 {
-    private readonly IProjectSnapshotManager _projectManager = projectManager;
+    private readonly IComponentAvailabilityService _componentAvailabilityService = componentAvailabilityService;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
@@ -61,7 +63,7 @@ internal sealed class HoverEndpoint(
             positionInfo.LanguageKind));
     }
 
-    protected override async Task<VSInternalHover?> TryHandleAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
+    protected override async Task<LspHover?> TryHandleAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.DocumentContext;
         if (documentContext is null)
@@ -89,15 +91,14 @@ internal sealed class HoverEndpoint(
 
         return await HoverFactory.GetHoverAsync(
             codeDocument,
-            documentContext.FilePath,
             positionInfo.HostDocumentIndex,
             options,
-            _projectManager.GetQueryOperations(),
+            _componentAvailabilityService,
             cancellationToken)
             .ConfigureAwait(false);
     }
 
-    protected override async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, TextDocumentPositionParams originalRequest, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
+    protected override async Task<LspHover?> HandleDelegatedResponseAsync(LspHover? response, TextDocumentPositionParams originalRequest, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.DocumentContext;
         if (documentContext is null)

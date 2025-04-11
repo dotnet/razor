@@ -7,15 +7,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.CSharp;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+namespace Microsoft.AspNetCore.Razor.ProjectSystem;
 
 internal interface IProjectSnapshot
 {
     ProjectKey Key { get; }
 
-    RazorConfiguration Configuration { get; }
     IEnumerable<string> DocumentFilePaths { get; }
 
     /// <summary>
@@ -30,13 +29,10 @@ internal interface IProjectSnapshot
 
     string? RootNamespace { get; }
     string DisplayName { get; }
-    VersionStamp Version { get; }
-    ProjectWorkspaceState ProjectWorkspaceState { get; }
+    LanguageVersion CSharpLanguageVersion { get; }
 
-    RazorProjectEngine GetProjectEngine();
     ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken);
 
     bool ContainsDocument(string filePath);
-    IDocumentSnapshot? GetDocument(string filePath);
     bool TryGetDocument(string filePath, [NotNullWhen(true)] out IDocumentSnapshot? document);
 }

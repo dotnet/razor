@@ -33,8 +33,8 @@ internal partial class RazorCustomMessageTarget
     private readonly LSPRequestInvoker _requestInvoker;
     private readonly ITelemetryReporter _telemetryReporter;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly IProjectSnapshotManager _projectManager;
-    private readonly SnippetCache _snippetCache;
+    private readonly ProjectSnapshotManager _projectManager;
+    private readonly SnippetCompletionItemProvider _snippetCompletionItemProvider;
     private readonly IWorkspaceProvider _workspaceProvider;
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer;
     private readonly FormattingOptionsProvider _formattingOptionsProvider;
@@ -54,8 +54,8 @@ internal partial class RazorCustomMessageTarget
         CSharpVirtualDocumentAddListener csharpVirtualDocumentAddListener,
         ITelemetryReporter telemetryReporter,
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        IProjectSnapshotManager projectManager,
-        SnippetCache snippetCache,
+        ProjectSnapshotManager projectManager,
+        SnippetCompletionItemProvider snippetCompletionItemProvider,
         IWorkspaceProvider workspaceProvider,
         IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
         ILoggerFactory loggerFactory)
@@ -86,7 +86,7 @@ internal partial class RazorCustomMessageTarget
         _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
         _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
         _projectManager = projectManager ?? throw new ArgumentNullException(nameof(projectManager));
-        _snippetCache = snippetCache ?? throw new ArgumentNullException(nameof(snippetCache));
+        _snippetCompletionItemProvider = snippetCompletionItemProvider ?? throw new ArgumentNullException(nameof(snippetCompletionItemProvider));
         _workspaceProvider = workspaceProvider;
         _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
         _logger = loggerFactory.GetOrCreateLogger<RazorCustomMessageTarget>();

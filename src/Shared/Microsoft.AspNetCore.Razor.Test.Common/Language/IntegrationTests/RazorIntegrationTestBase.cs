@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.NET.Sdk.Razor.SourceGenerators;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Sdk;
 
@@ -45,7 +45,7 @@ public class RazorIntegrationTestBase
     {
         AdditionalSyntaxTrees = new List<SyntaxTree>();
         AdditionalRazorItems = new List<RazorProjectItem>();
-        ImportItems = new List<RazorProjectItem>();
+        ImportItems = ImmutableArray.CreateBuilder<RazorProjectItem>();
 
         BaseCompilation = DefaultBaseCompilation;
         Configuration = RazorConfiguration.Default;
@@ -59,7 +59,7 @@ public class RazorIntegrationTestBase
 
     internal List<RazorProjectItem> AdditionalRazorItems { get; }
 
-    internal List<RazorProjectItem> ImportItems { get; }
+    internal ImmutableArray<RazorProjectItem>.Builder ImportItems { get; }
 
     internal List<SyntaxTree> AdditionalSyntaxTrees { get; }
 
@@ -106,22 +106,25 @@ public class RazorIntegrationTestBase
         {
             b.SetRootNamespace(DefaultRootNamespace);
 
-            // Turn off checksums, we're testing code generation.
-            b.Features.Add(new SuppressChecksum());
-
-            if (supportLocalizedComponentNames)
+            b.ConfigureCodeGenerationOptions(builder =>
             {
-                b.Features.Add(new SupportLocalizedComponentNames());
-            }
+                // Turn off checksums, we're testing code generation.
+                builder.SuppressChecksum = true;
 
-            b.Features.Add(new TestImportProjectFeature(ImportItems));
+                if (supportLocalizedComponentNames)
+                {
+                    builder.SupportLocalizedComponentNames = true;
+                }
 
-            if (LineEnding != null)
-            {
-                b.Features.Add(new SetNewLineOptionFeature(LineEnding));
-            }
+                if (LineEnding != null)
+                {
+                    builder.NewLine = LineEnding;
+                }
 
-            b.Features.Add(new SuppressUniqueIdsPhase());
+                builder.SuppressUniqueIds = "__UniqueIdSuppressedForTesting__";
+            });
+
+            b.Features.Add(new TestImportProjectFeature(ImportItems.ToImmutable()));
 
             b.Features.Add(new CompilationTagHelperFeature());
             b.Features.Add(new DefaultMetadataReferenceFeature()
@@ -132,7 +135,12 @@ public class RazorIntegrationTestBase
             csharpParseOptions ??= CSharpParseOptions;
 
             b.SetCSharpLanguageVersion(csharpParseOptions.LanguageVersion);
-            b.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, csharpParseOptions));
+
+            b.ConfigureParserOptions(builder =>
+            {
+                builder.UseRoslynTokenizer = true;
+                builder.CSharpParseOptions = csharpParseOptions;
+            });
 
             CompilerFeatures.Register(b);
         });
@@ -241,7 +249,7 @@ public class RazorIntegrationTestBase
                 codeDocument = projectEngine.ProcessDeclarationOnly(item);
                 Assert.Empty(codeDocument.GetCSharpDocument().Diagnostics);
 
-                var syntaxTree = Parse(codeDocument.GetCSharpDocument().GeneratedCode, csharpParseOptions, path: item.FilePath);
+                var syntaxTree = Parse(codeDocument.GetCSharpDocument().Text, csharpParseOptions, path: item.FilePath);
                 AdditionalSyntaxTrees.Add(syntaxTree);
             }
 
@@ -252,7 +260,7 @@ public class RazorIntegrationTestBase
             {
                 BaseCompilation = baseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetCSharpDocument().GeneratedCode,
+                Code = codeDocument.GetCSharpDocument().Text.ToString(),
                 RazorDiagnostics = codeDocument.GetCSharpDocument().Diagnostics,
                 ParseOptions = csharpParseOptions,
             };
@@ -272,7 +280,7 @@ public class RazorIntegrationTestBase
                 Assert.Empty(codeDocument.GetCSharpDocument().Diagnostics);
 
                 // Replace the 'declaration' syntax tree
-                var syntaxTree = Parse(codeDocument.GetCSharpDocument().GeneratedCode, csharpParseOptions, path: item.FilePath);
+                var syntaxTree = Parse(codeDocument.GetCSharpDocument().Text, csharpParseOptions, path: item.FilePath);
                 AdditionalSyntaxTrees.RemoveAll(st => st.FilePath == item.FilePath);
                 AdditionalSyntaxTrees.Add(syntaxTree);
             }
@@ -283,7 +291,7 @@ public class RazorIntegrationTestBase
             {
                 BaseCompilation = baseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetCSharpDocument().GeneratedCode,
+                Code = codeDocument.GetCSharpDocument().Text.ToString(),
                 RazorDiagnostics = codeDocument.GetCSharpDocument().Diagnostics,
                 ParseOptions = csharpParseOptions,
             };
@@ -314,7 +322,7 @@ public class RazorIntegrationTestBase
             {
                 BaseCompilation = baseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetCSharpDocument().GeneratedCode,
+                Code = codeDocument.GetCSharpDocument().Text.ToString(),
                 RazorDiagnostics = codeDocument.GetCSharpDocument().Diagnostics,
                 ParseOptions = csharpParseOptions,
             };
@@ -396,9 +404,14 @@ public class RazorIntegrationTestBase
         return componentType;
     }
 
-    protected static CSharpSyntaxTree Parse(string text, CSharpParseOptions? parseOptions = null, string path = "")
+    protected static CSharpSyntaxTree Parse(SourceText text, CSharpParseOptions? parseOptions = null, string path = "")
     {
         return (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(text, parseOptions ?? CSharpParseOptions, path: path);
+    }
+
+    protected static CSharpSyntaxTree Parse(string text, CSharpParseOptions? parseOptions = null, string path = "")
+    {
+        return Parse(SourceText.From(text, Encoding.UTF8), parseOptions, path);
     }
 
     protected static void AssertSourceEquals(string expected, CompileToCSharpResult generated)
@@ -476,67 +489,6 @@ public class RazorIntegrationTestBase
 
                 return builder.ToString();
             }
-        }
-    }
-
-    private class SuppressChecksum : IConfigureRazorCodeGenerationOptionsFeature
-    {
-        public int Order => 0;
-
-        public RazorEngine? Engine { get; set; }
-
-        public void Configure(RazorCodeGenerationOptionsBuilder options)
-        {
-            options.SuppressChecksum = true;
-        }
-    }
-
-    private class SupportLocalizedComponentNames : IConfigureRazorCodeGenerationOptionsFeature
-    {
-        public int Order => 0;
-
-        public RazorEngine? Engine { get; set; }
-
-        public void Configure(RazorCodeGenerationOptionsBuilder options)
-        {
-            options.SupportLocalizedComponentNames = true;
-        }
-    }
-
-    private sealed class SetNewLineOptionFeature(string newLine) : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
-    {
-        public int Order { get; }
-
-        public void Configure(RazorCodeGenerationOptionsBuilder options)
-        {
-            options.NewLine = newLine;
-        }
-    }
-
-    private sealed class SuppressUniqueIdsPhase : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
-    {
-        public int Order { get; }
-
-        public void Configure(RazorCodeGenerationOptionsBuilder options)
-        {
-            options.SuppressUniqueIds = "__UniqueIdSuppressedForTesting__";
-        }
-    }
-
-    private class TestImportProjectFeature : IImportProjectFeature
-    {
-        private readonly List<RazorProjectItem> _imports;
-
-        public TestImportProjectFeature(List<RazorProjectItem> imports)
-        {
-            _imports = imports;
-        }
-
-        public RazorProjectEngine? ProjectEngine { get; set; }
-
-        public IReadOnlyList<RazorProjectItem> GetImports(RazorProjectItem projectItem)
-        {
-            return _imports;
         }
     }
 }

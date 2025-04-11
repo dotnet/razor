@@ -2,12 +2,14 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -22,37 +24,50 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 {
     private static readonly TimeSpan s_delay = TimeSpan.FromSeconds(2);
 
-    private readonly IProjectSnapshotManager _projectManager;
+    private readonly ProjectSnapshotManager _projectManager;
+    private readonly IFallbackProjectManager _fallbackProjectManager;
     private readonly IRazorDynamicFileInfoProviderInternal _infoProvider;
+    private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger _logger;
 
     private readonly CancellationTokenSource _disposeTokenSource;
-    private readonly AsyncBatchingWorkQueue<(IProjectSnapshot, IDocumentSnapshot)> _workQueue;
+    private readonly AsyncBatchingWorkQueue<DocumentKey> _workQueue;
+    private readonly HashSet<DocumentKey> _workerSet;
     private ImmutableHashSet<string> _suppressedDocuments;
     private bool _solutionIsClosing;
 
     [ImportingConstructor]
     public BackgroundDocumentGenerator(
-        IProjectSnapshotManager projectManager,
+        ProjectSnapshotManager projectManager,
+        IFallbackProjectManager fallbackProjectManager,
         IRazorDynamicFileInfoProviderInternal infoProvider,
         ILoggerFactory loggerFactory)
-        : this(projectManager, infoProvider, loggerFactory, s_delay)
+        : this(projectManager, fallbackProjectManager, infoProvider, loggerFactory, s_delay)
     {
     }
 
     // Provided for tests to be able to modify the timer delay
     protected BackgroundDocumentGenerator(
-        IProjectSnapshotManager projectManager,
+        ProjectSnapshotManager projectManager,
+        IFallbackProjectManager fallbackProjectManager,
         IRazorDynamicFileInfoProviderInternal infoProvider,
         ILoggerFactory loggerFactory,
         TimeSpan delay)
     {
         _projectManager = projectManager;
+        _fallbackProjectManager = fallbackProjectManager;
         _infoProvider = infoProvider;
+        _loggerFactory = loggerFactory;
         _logger = loggerFactory.GetOrCreateLogger<BackgroundDocumentGenerator>();
 
+        _workerSet = [];
         _disposeTokenSource = new();
-        _workQueue = new AsyncBatchingWorkQueue<(IProjectSnapshot, IDocumentSnapshot)>(delay, ProcessBatchAsync, _disposeTokenSource.Token);
+        _workQueue = new AsyncBatchingWorkQueue<DocumentKey>(
+            delay,
+            processBatchAsync: ProcessBatchAsync,
+            equalityComparer: null,
+            idleAction: RazorEventSource.Instance.BackgroundDocumentGeneratorIdle,
+            _disposeTokenSource.Token);
         _suppressedDocuments = ImmutableHashSet<string>.Empty.WithComparer(FilePathComparer.Instance);
         _projectManager.Changed += ProjectManager_Changed;
     }
@@ -71,52 +86,59 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
     protected Task WaitUntilCurrentBatchCompletesAsync()
         => _workQueue.WaitUntilCurrentBatchCompletesAsync();
 
-    protected virtual async Task ProcessDocumentAsync(IProjectSnapshot project, IDocumentSnapshot document, CancellationToken cancellationToken)
+    protected virtual async Task ProcessDocumentAsync(DocumentSnapshot document, CancellationToken cancellationToken)
     {
         await document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
-        UpdateFileInfo(project, document);
+        UpdateFileInfo(document);
     }
 
-    public virtual void Enqueue(IProjectSnapshot project, IDocumentSnapshot document)
+    public virtual void EnqueueIfNecessary(DocumentKey documentKey)
     {
         if (_disposeTokenSource.IsCancellationRequested)
         {
             return;
         }
 
-        if (project is ProjectSnapshot { HostProject: FallbackHostProject })
+        if (_fallbackProjectManager.IsFallbackProject(documentKey.ProjectKey))
         {
             // We don't support closed file code generation for fallback projects
             return;
         }
 
-        if (Suppressed(project, document))
+        if (Suppressed(documentKey))
         {
             return;
         }
 
-        _workQueue.AddWork((project, document));
+        _workQueue.AddWork(documentKey);
     }
 
-    protected virtual async ValueTask ProcessBatchAsync(ImmutableArray<(IProjectSnapshot, IDocumentSnapshot)> items, CancellationToken token)
+    protected virtual async ValueTask ProcessBatchAsync(ImmutableArray<DocumentKey> items, CancellationToken token)
     {
-        foreach (var (project, document) in items.GetMostRecentUniqueItems(Comparer.Instance))
+        _workerSet.Clear();
+
+        foreach (var key in items.GetMostRecentUniqueItems(_workerSet))
         {
             if (token.IsCancellationRequested)
             {
                 return;
             }
 
-            // If the solution is closing, suspect any in-progress work
+            // If the solution is closing, avoid any in-progress work.
             if (_solutionIsClosing)
             {
-                break;
+                return;
+            }
+
+            if (!_projectManager.TryGetDocument(key, out var document))
+            {
+                continue;
             }
 
             try
             {
-                await ProcessDocumentAsync(project, document, token).ConfigureAwait(false);
+                await ProcessDocumentAsync(document, token).ConfigureAwait(false);
             }
             catch (UnauthorizedAccessException)
             {
@@ -129,19 +151,19 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error encountered from project '{project.FilePath}':{Environment.NewLine}{ex}");
+                _logger.LogError(ex, $"Error encountered from project '{document.Project.FilePath}':{Environment.NewLine}{ex}");
             }
         }
     }
 
-    private bool Suppressed(IProjectSnapshot project, IDocumentSnapshot document)
+    private bool Suppressed(DocumentKey documentKey)
     {
-        var filePath = document.FilePath.AssumeNotNull();
+        var filePath = documentKey.FilePath;
 
         if (_projectManager.IsDocumentOpen(filePath))
         {
             ImmutableInterlocked.Update(ref _suppressedDocuments, static (set, filePath) => set.Add(filePath), filePath);
-            _infoProvider.SuppressDocument(project.Key, filePath);
+            _infoProvider.SuppressDocument(documentKey);
             return true;
         }
 
@@ -149,21 +171,21 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
         return false;
     }
 
-    private void UpdateFileInfo(IProjectSnapshot project, IDocumentSnapshot document)
+    private void UpdateFileInfo(DocumentSnapshot document)
     {
-        var filePath = document.FilePath.AssumeNotNull();
+        var filePath = document.FilePath;
 
         if (!_suppressedDocuments.Contains(filePath))
         {
-            var container = new DefaultDynamicDocumentContainer(document);
-            _infoProvider.UpdateFileInfo(project.Key, container);
+            var container = new DefaultDynamicDocumentContainer(document, _loggerFactory);
+            _infoProvider.UpdateFileInfo(document.Project.Key, container);
         }
     }
 
     private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
     {
-        // We don't want to do any work on solution close
-        if (args.SolutionIsClosing)
+        // We don't want to do any work on solution close.
+        if (args.IsSolutionClosing)
         {
             _solutionIsClosing = true;
             return;
@@ -174,30 +196,13 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
         switch (args.Kind)
         {
             case ProjectChangeKind.ProjectAdded:
-                {
-                    var newProject = args.Newer.AssumeNotNull();
-
-                    foreach (var documentFilePath in newProject.DocumentFilePaths)
-                    {
-                        if (newProject.TryGetDocument(documentFilePath, out var document))
-                        {
-                            Enqueue(newProject, document);
-                        }
-                    }
-
-                    break;
-                }
-
             case ProjectChangeKind.ProjectChanged:
                 {
                     var newProject = args.Newer.AssumeNotNull();
 
                     foreach (var documentFilePath in newProject.DocumentFilePaths)
                     {
-                        if (newProject.TryGetDocument(documentFilePath, out var document))
-                        {
-                            Enqueue(newProject, document);
-                        }
+                        EnqueueIfNecessary(new(newProject.Key, documentFilePath));
                     }
 
                     break;
@@ -209,14 +214,11 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
                     var newProject = args.Newer.AssumeNotNull();
                     var documentFilePath = args.DocumentFilePath.AssumeNotNull();
 
-                    if (newProject.TryGetDocument(documentFilePath, out var document))
-                    {
-                        Enqueue(newProject, document);
+                    EnqueueIfNecessary(new(newProject.Key, documentFilePath));
 
-                        foreach (var relatedDocument in newProject.GetRelatedDocuments(document))
-                        {
-                            Enqueue(newProject, relatedDocument);
-                        }
+                    foreach (var relatedDocumentFilePath in newProject.GetRelatedDocumentFilePaths(documentFilePath))
+                    {
+                        EnqueueIfNecessary(new(newProject.Key, relatedDocumentFilePath));
                     }
 
                     break;
@@ -224,17 +226,18 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
 
             case ProjectChangeKind.DocumentRemoved:
                 {
-                    // For removals use the old snapshot to find the removed document, so we can figure out
-                    // what the imports were in the new snapshot.
                     var newProject = args.Newer.AssumeNotNull();
                     var oldProject = args.Older.AssumeNotNull();
                     var documentFilePath = args.DocumentFilePath.AssumeNotNull();
 
-                    if (oldProject.TryGetDocument(documentFilePath, out var document))
+                    // For removals use the old snapshot to find related documents to update if they exist
+                    // in the new snapshot.
+
+                    foreach (var relatedDocumentFilePath in oldProject.GetRelatedDocumentFilePaths(documentFilePath))
                     {
-                        foreach (var relatedDocument in newProject.GetRelatedDocuments(document))
+                        if (newProject.ContainsDocument(relatedDocumentFilePath))
                         {
-                            Enqueue(newProject, relatedDocument);
+                            EnqueueIfNecessary(new(newProject.Key, relatedDocumentFilePath));
                         }
                     }
 
@@ -248,7 +251,8 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
                 }
 
             default:
-                throw new InvalidOperationException($"Unknown ProjectChangeKind {args.Kind}");
+                Assumed.Unreachable($"Unknown {nameof(ProjectChangeKind)}: {args.Kind}");
+                break;
         }
     }
 }

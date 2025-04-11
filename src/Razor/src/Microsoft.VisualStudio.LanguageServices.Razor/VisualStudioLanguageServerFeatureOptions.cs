@@ -17,8 +17,8 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
     private readonly Lazy<bool> _includeProjectKeyInGeneratedFilePath;
     private readonly Lazy<bool> _usePreciseSemanticTokenRanges;
     private readonly Lazy<bool> _useRazorCohostServer;
-    private readonly Lazy<bool> _disableRazorLanguageServer;
     private readonly Lazy<bool> _forceRuntimeCodeGeneration;
+    private readonly Lazy<bool> _useNewFormattingEngine;
 
     [ImportingConstructor]
     public VisualStudioLanguageServerFeatureOptions(ILspEditorFeatureDetector lspEditorFeatureDetector)
@@ -58,24 +58,23 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
             return useRazorCohostServer;
         });
 
-        _disableRazorLanguageServer = new Lazy<bool>(() =>
-        {
-            var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var disableRazorLanguageServer = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.DisableRazorLanguageServer, defaultValue: false);
-            return disableRazorLanguageServer;
-        });
-
         _forceRuntimeCodeGeneration = new Lazy<bool>(() =>
         {
             var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var forceRuntimeCodeGeneration = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.ForceRuntimeCodeGeneration, defaultValue: false);
+            var forceRuntimeCodeGeneration = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.ForceRuntimeCodeGeneration, defaultValue: true);
             return forceRuntimeCodeGeneration;
+        });
+
+        _useNewFormattingEngine = new Lazy<bool>(() =>
+        {
+            var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
+            var useNewFormattingEngine = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.UseNewFormattingEngine, defaultValue: true);
+            return useNewFormattingEngine;
         });
     }
 
     // We don't currently support file creation operations on VS Codespaces or VS Liveshare
     public override bool SupportsFileManipulation => !IsCodespacesOrLiveshare;
-
 
     public override string CSharpVirtualDocumentSuffix => ".ide.g.cs";
 
@@ -99,8 +98,17 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
 
     public override bool UseRazorCohostServer => _useRazorCohostServer.Value;
 
-    public override bool DisableRazorLanguageServer => _disableRazorLanguageServer.Value;
-
     /// <inheritdoc />
     public override bool ForceRuntimeCodeGeneration => _forceRuntimeCodeGeneration.Value;
+
+    public override bool UseNewFormattingEngine => _useNewFormattingEngine.Value;
+
+    // VS actually needs explicit commit characters so don't avoid them.
+    public override bool SupportsSoftSelectionInCompletion => true;
+
+    public override bool UseVsCodeCompletionTriggerCharacters => false;
+
+    // In VS, we do not want the language server to add all documents in the workspace root path
+    // to the misc-files project when initialized.
+    public override bool DoNotInitializeMiscFilesProjectFromWorkspace => true;
 }

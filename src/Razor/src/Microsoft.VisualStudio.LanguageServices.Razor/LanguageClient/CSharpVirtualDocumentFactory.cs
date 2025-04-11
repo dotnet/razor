@@ -34,7 +34,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
     private static IContentType? s_csharpContentType;
     private readonly FileUriProvider _fileUriProvider;
     private readonly IFilePathService _filePathService;
-    private readonly IProjectSnapshotManager _projectManager;
+    private readonly ProjectSnapshotManager _projectManager;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly ILogger _logger;
     private readonly ITelemetryReporter _telemetryReporter;
@@ -46,7 +46,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         ITextDocumentFactoryService textDocumentFactory,
         FileUriProvider fileUriProvider,
         IFilePathService filePathService,
-        IProjectSnapshotManager projectManager,
+        ProjectSnapshotManager projectManager,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         ILoggerFactory loggerFactory,
         ITelemetryReporter telemetryReporter)
@@ -86,11 +86,23 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
 
     public override bool TryCreateFor(ITextBuffer hostDocumentBuffer, [NotNullWhen(true)] out VirtualDocument? virtualDocument)
     {
+        if (_languageServerFeatureOptions.UseRazorCohostServer)
+        {
+            virtualDocument = null;
+            return false;
+        }
+
         throw new NotImplementedException("Multiple C# documents per Razor documents are supported, and should be accounted for.");
     }
 
     public override bool TryCreateMultipleFor(ITextBuffer hostDocumentBuffer, [NotNullWhen(true)] out VirtualDocument[]? virtualDocuments)
     {
+        if (_languageServerFeatureOptions.UseRazorCohostServer)
+        {
+            virtualDocuments = null;
+            return false;
+        }
+
         if (hostDocumentBuffer is null)
         {
             throw new ArgumentNullException(nameof(hostDocumentBuffer));
@@ -197,12 +209,13 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
 
         var inAny = false;
         var normalizedDocumentPath = RazorDynamicFileInfoProvider.GetProjectSystemFilePath(hostDocumentUri);
-        foreach (var projectSnapshot in projects)
+
+        foreach (var project in projects)
         {
-            if (projectSnapshot.ContainsDocument(normalizedDocumentPath))
+            if (project.ContainsDocument(normalizedDocumentPath))
             {
                 inAny = true;
-                yield return projectSnapshot.Key;
+                yield return project.Key;
             }
         }
 

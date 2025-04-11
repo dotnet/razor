@@ -5,10 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Logging;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+
 using Microsoft.VisualStudio.Threading;
 using Xunit;
 using Xunit.Abstractions;
@@ -221,8 +224,18 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
         => CreateProjectSnapshotManager(ProjectEngineFactories.DefaultProvider);
 
     private protected virtual TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectEngineFactoryProvider projectEngineFactoryProvider)
-        => new(
+        => CreateProjectSnapshotManager(projectEngineFactoryProvider, TestLanguageServerFeatureOptions.Instance);
+
+    private protected virtual TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectEngineFactoryProvider projectEngineFactoryProvider, LanguageServerFeatureOptions languageServerFeatureOptions)
+    {
+        var projectManager = new TestProjectSnapshotManager(
             projectEngineFactoryProvider,
+            languageServerFeatureOptions,
             LoggerFactory,
             DisposalToken);
+
+        AddDisposable(projectManager);
+
+        return projectManager;
+    }
 }

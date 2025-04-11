@@ -5,16 +5,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.NET.Sdk.Razor.SourceGenerators;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -48,7 +50,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
     {
         AdditionalSyntaxTrees = new List<SyntaxTree>();
         AdditionalRazorItems = new List<RazorProjectItem>();
-        ImportItems = new List<RazorProjectItem>();
+        ImportItems = ImmutableArray.CreateBuilder<RazorProjectItem>();
 
         BaseCompilation = DefaultBaseCompilation;
         Configuration = RazorConfiguration.Default;
@@ -62,7 +64,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
 
     internal List<RazorProjectItem> AdditionalRazorItems { get; }
 
-    internal List<RazorProjectItem> ImportItems { get; }
+    internal ImmutableArray<RazorProjectItem>.Builder ImportItems { get; }
 
     internal List<SyntaxTree> AdditionalSyntaxTrees { get; }
 
@@ -107,15 +109,18 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
         {
             b.SetRootNamespace(DefaultRootNamespace);
 
-            // Turn off checksums, we're testing code generation.
-            b.Features.Add(new SuppressChecksum());
-
-            b.Features.Add(new TestImportProjectFeature(ImportItems));
-
-            if (LineEnding != null)
+            b.ConfigureCodeGenerationOptions(builder =>
             {
-                b.Features.Add(new SetNewLineOptionFeature(LineEnding));
-            }
+                // Turn off checksums, we're testing code generation.
+                builder.SuppressChecksum = true;
+
+                if (LineEnding != null)
+                {
+                    builder.NewLine = LineEnding;
+                }
+            });
+
+            b.Features.Add(new TestImportProjectFeature(ImportItems.ToImmutable()));
 
             b.Features.Add(new DefaultTypeNameFeature());
 
@@ -126,7 +131,12 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             });
 
             b.SetCSharpLanguageVersion(CSharpParseOptions.LanguageVersion);
-            b.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions));
+
+            b.ConfigureParserOptions(builder =>
+            {
+                builder.UseRoslynTokenizer = true;
+                builder.CSharpParseOptions = CSharpParseOptions;
+            });
 
             CompilerFeatures.Register(b);
         });
@@ -159,7 +169,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
         };
     }
 
-    protected CompileToCSharpResult CompileToCSharp(string cshtmlContent, bool throwOnFailure=true)
+    protected CompileToCSharpResult CompileToCSharp(string cshtmlContent, bool throwOnFailure = true)
     {
         return CompileToCSharp(DefaultFileName, cshtmlContent, throwOnFailure);
     }
@@ -189,7 +199,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
                 codeDocument = projectEngine.ProcessDeclarationOnly(item);
                 Assert.Empty(codeDocument.GetCSharpDocument().Diagnostics);
 
-                var syntaxTree = Parse(codeDocument.GetCSharpDocument().GeneratedCode, path: item.FilePath);
+                var syntaxTree = Parse(codeDocument.GetCSharpDocument().Text, path: item.FilePath);
                 AdditionalSyntaxTrees.Add(syntaxTree);
             }
 
@@ -200,7 +210,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             {
                 BaseCompilation = BaseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetCSharpDocument().GeneratedCode,
+                Code = codeDocument.GetCSharpDocument().Text.ToString(),
                 Diagnostics = codeDocument.GetCSharpDocument().Diagnostics,
             };
 
@@ -219,7 +229,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
                 Assert.Empty(codeDocument.GetCSharpDocument().Diagnostics);
 
                 // Replace the 'declaration' syntax tree
-                var syntaxTree = Parse(codeDocument.GetCSharpDocument().GeneratedCode, path: item.FilePath);
+                var syntaxTree = Parse(codeDocument.GetCSharpDocument().Text, path: item.FilePath);
                 AdditionalSyntaxTrees.RemoveAll(st => st.FilePath == item.FilePath);
                 AdditionalSyntaxTrees.Add(syntaxTree);
             }
@@ -230,7 +240,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             {
                 BaseCompilation = BaseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetCSharpDocument().GeneratedCode,
+                Code = codeDocument.GetCSharpDocument().Text.ToString(),
                 Diagnostics = codeDocument.GetCSharpDocument().Diagnostics,
             };
         }
@@ -249,7 +259,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             {
                 BaseCompilation = BaseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetCSharpDocument().GeneratedCode,
+                Code = codeDocument.GetCSharpDocument().Text.ToString(),
                 Diagnostics = codeDocument.GetCSharpDocument().Diagnostics,
             };
         }
@@ -306,9 +316,14 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
         }
     }
 
-    protected static CSharpSyntaxTree Parse(string text, string path = null)
+    protected static CSharpSyntaxTree Parse(SourceText text, string path = null)
     {
         return (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(text, CSharpParseOptions, path: path);
+    }
+
+    protected static CSharpSyntaxTree Parse(string text, string path = null)
+    {
+        return Parse(SourceText.From(text, Encoding.UTF8), path);
     }
 
     protected static string FullTypeName<T>() => typeof(T).FullName.Replace('+', '.');
@@ -346,7 +361,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
     private class CompilationFailedException : XunitException
     {
         public CompilationFailedException(Compilation compilation)
-            :base("Compilation failed")
+            : base("Compilation failed")
         {
             Compilation = compilation;
         }
@@ -387,45 +402,6 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
 
                 return builder.ToString();
             }
-        }
-    }
-
-    private class SuppressChecksum : IConfigureRazorCodeGenerationOptionsFeature
-    {
-        public int Order => 0;
-
-        public RazorEngine Engine { get; set; }
-
-        public void Configure(RazorCodeGenerationOptionsBuilder options)
-        {
-            options.SuppressChecksum = true;
-        }
-    }
-
-    private sealed class SetNewLineOptionFeature(string newLine) : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
-    {
-        public int Order { get; }
-
-        public void Configure(RazorCodeGenerationOptionsBuilder options)
-        {
-            options.NewLine = newLine;
-        }
-    }
-
-    private class TestImportProjectFeature : IImportProjectFeature
-    {
-        private readonly List<RazorProjectItem> _imports;
-
-        public TestImportProjectFeature(List<RazorProjectItem> imports)
-        {
-            _imports = imports;
-        }
-
-        public RazorProjectEngine ProjectEngine { get; set; }
-
-        public IReadOnlyList<RazorProjectItem> GetImports(RazorProjectItem projectItem)
-        {
-            return _imports;
         }
     }
 }

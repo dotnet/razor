@@ -9,7 +9,9 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -23,14 +25,14 @@ internal class RazorCohostDynamicRegistrationService(
     Lazy<RazorCohostClientCapabilitiesService> lazyRazorCohostClientCapabilitiesService)
     : IRazorCohostDynamicRegistrationService
 {
-    private readonly DocumentFilter[] _filter = [new DocumentFilter()
+    private static readonly DocumentFilter[] s_filter = [new DocumentFilter()
     {
-        Language = Constants.RazorLanguageName,
+        Language = CodeAnalysis.ExternalAccess.Razor.Cohost.Constants.RazorLanguageName,
         Pattern = "**/*.{razor,cshtml}"
     }];
 
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
-    private readonly ImmutableArray<Lazy<IDynamicRegistrationProvider>> _lazyRegistrationProviders = lazyRegistrationProviders.ToImmutableArray();
+    private readonly ImmutableArray<Lazy<IDynamicRegistrationProvider>> _lazyRegistrationProviders = [.. lazyRegistrationProviders];
     private readonly Lazy<RazorCohostClientCapabilitiesService> _lazyRazorCohostClientCapabilitiesService = lazyRazorCohostClientCapabilitiesService;
 
     public async Task RegisterAsync(string clientCapabilitiesString, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
@@ -40,7 +42,7 @@ internal class RazorCohostDynamicRegistrationService(
             return;
         }
 
-        var clientCapabilities = JsonSerializer.Deserialize<VSInternalClientCapabilities>(clientCapabilitiesString) ?? new();
+        var clientCapabilities = JsonSerializer.Deserialize<VSInternalClientCapabilities>(clientCapabilitiesString, JsonHelpers.VsLspJsonSerializerOptions) ?? new();
 
         _lazyRazorCohostClientCapabilitiesService.Value.SetCapabilities(clientCapabilities);
 
@@ -50,15 +52,20 @@ internal class RazorCohostDynamicRegistrationService(
 
         foreach (var provider in _lazyRegistrationProviders)
         {
-            foreach (var registration in provider.Value.GetRegistrations(clientCapabilities, _filter, requestContext))
+            foreach (var registration in provider.Value.GetRegistrations(clientCapabilities, requestContext))
             {
                 // We don't unregister anything, so we don't need to do anything interesting with Ids
                 registration.Id = Guid.NewGuid().ToString();
+                if (registration.RegisterOptions is ITextDocumentRegistrationOptions options)
+                {
+                    options.DocumentSelector = s_filter;
+                }
+
                 registrations.Add(registration);
             }
         }
 
-        var razorCohostClientLanguageServerManager = requestContext.GetRequiredService<IRazorCohostClientLanguageServerManager>();
+        var razorCohostClientLanguageServerManager = requestContext.GetRequiredService<IRazorClientLanguageServerManager>();
 
         await razorCohostClientLanguageServerManager.SendRequestAsync(
             Methods.ClientRegisterCapabilityName,

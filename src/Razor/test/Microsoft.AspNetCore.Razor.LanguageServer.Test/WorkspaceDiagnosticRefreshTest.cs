@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -51,7 +52,7 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
             static updater =>
             {
                 var hostProject = TestHostProject.Create("C:/path/to/project.csproj");
-                updater.ProjectAdded(hostProject);
+                updater.AddProject(hostProject);
             });
 
         await testAccessor.WaitForRefreshAsync();
@@ -95,7 +96,7 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
         await projectSnapshotManager.UpdateAsync(
             updater =>
             {
-                updater.ProjectAdded(hostProject);
+                updater.AddProject(hostProject);
             });
 
         await testAccessor.WaitForRefreshAsync();
@@ -103,7 +104,7 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
         await projectSnapshotManager.UpdateAsync(
             updater =>
             {
-                updater.DocumentAdded(hostProject.Key, hostDocument, hostDocument.CreateEmptyTextLoader());
+                updater.AddDocument(hostProject.Key, hostDocument, EmptyTextLoader.Instance);
             });
 
         await testAccessor.WaitForRefreshAsync();
@@ -140,7 +141,7 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
             updater =>
             {
                 var hostProject = TestHostProject.Create("C:/path/to/project.csproj");
-                updater.ProjectAdded(hostProject);
+                updater.AddProject(hostProject);
             });
 
         await testAccessor.WaitForRefreshAsync();
@@ -179,7 +180,7 @@ public class WorkspaceDiagnosticRefreshTest(ITestOutputHelper testOutputHelper) 
             static updater =>
             {
                 var hostProject = TestHostProject.Create("C:/path/to/project.csproj");
-                updater.ProjectAdded(hostProject);
+                updater.AddProject(hostProject);
             });
 
         await testAccessor.WaitForRefreshAsync();

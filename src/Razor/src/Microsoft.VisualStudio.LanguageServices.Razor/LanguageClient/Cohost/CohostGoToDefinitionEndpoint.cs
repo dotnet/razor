@@ -45,14 +45,14 @@ internal sealed class CohostGoToDefinitionEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Definition?.DynamicRegistration == true)
         {
             return [new Registration
             {
                 Method = Methods.TextDocumentDefinitionName,
-                RegisterOptions = new DefinitionOptions()
+                RegisterOptions = new DefinitionRegistrationOptions()
             }];
         }
 

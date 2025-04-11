@@ -2,13 +2,12 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -18,10 +17,8 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
     public TextDocument TextDocument { get; }
     public RemoteProjectSnapshot ProjectSnapshot { get; }
 
-    // TODO: Delete this field when the source generator is hooked up
-    private Document? _generatedDocument;
-
     private RazorCodeDocument? _codeDocument;
+    private SourceGeneratedDocument? _generatedDocument;
 
     public RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSnapshot projectSnapshot)
     {
@@ -62,50 +59,21 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
     public bool TryGetTextVersion(out VersionStamp result)
         => TextDocument.TryGetTextVersion(out result);
 
-    public ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(
-        bool forceDesignTimeGeneratedOutput,
-        CancellationToken cancellationToken)
+    public bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
+        => (result = _codeDocument) is not null;
+
+    public async ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(CancellationToken cancellationToken)
     {
-        // We don't cache if we're forcing, as that would break everything else
-        if (forceDesignTimeGeneratedOutput)
+        if (_codeDocument is not null)
         {
-            return new ValueTask<RazorCodeDocument>(GetRazorCodeDocumentAsync(forceRuntimeCodeGeneration: false, cancellationToken));
+            return _codeDocument;
         }
 
-        var forceRuntimeCodeGeneration = ProjectSnapshot.SolutionSnapshot.SnapshotManager.LanguageServerFeatureOptions.ForceRuntimeCodeGeneration;
+        // TODO: What happens if we can't get the document? (https://github.com/dotnet/razor/issues/11522)
+        var document = await ProjectSnapshot.GetCodeDocumentAsync(this, cancellationToken).ConfigureAwait(false)
+            ?? throw new InvalidOperationException("Could not get the code document");
 
-        // TODO: We don't need to worry about locking if we get called from the didOpen/didChange LSP requests, as CLaSP
-        //       takes care of that for us, and blocks requests until those are complete. If that doesn't end up happening,
-        //       then a locking mechanism here would prevent concurrent compilations.
-        return TryGetGeneratedOutput(out var codeDocument)
-            ? new(codeDocument)
-            : new(GetGeneratedOutputCoreAsync(forceRuntimeCodeGeneration, cancellationToken));
-
-        async Task<RazorCodeDocument> GetGeneratedOutputCoreAsync(bool forceRuntimeCodeGeneration, CancellationToken cancellationToken)
-        {
-            codeDocument = await GetRazorCodeDocumentAsync(forceRuntimeCodeGeneration, cancellationToken).ConfigureAwait(false);
-
-            return _codeDocument ??= InterlockedOperations.Initialize(ref _codeDocument, codeDocument);
-        }
-
-        async Task<RazorCodeDocument> GetRazorCodeDocumentAsync(bool forceRuntimeCodeGeneration, CancellationToken cancellationToken)
-        {
-            // The non-cohosted DocumentSnapshot implementation uses DocumentState to get the generated output, and we could do that too
-            // but most of that code is optimized around caching pre-computed results when things change that don't affect the compilation.
-            // We can't do that here because we are using Roslyn's project snapshots, which don't contain the info that Razor needs. We could
-            // in future provide a side-car mechanism so we can cache things, but still take advantage of snapshots etc. but the working
-            // assumption for this code is that the source generator will be used, and it will do all of that, so this implementation is naive
-            // and simply compiles when asked, and if a new document snapshot comes in, we compile again. This is presumably worse for perf
-            // but since we don't expect users to ever use cohosting without source generators, it's fine for now.
-
-            var projectEngine = await ProjectSnapshot.GetProjectEngine_CohostOnlyAsync(cancellationToken).ConfigureAwait(false);
-            var tagHelpers = await ProjectSnapshot.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
-            var imports = await DocumentState.GetImportsAsync(this, projectEngine, cancellationToken).ConfigureAwait(false);
-
-            return await DocumentState
-                .GenerateCodeDocumentAsync(this, projectEngine, imports, tagHelpers, forceRuntimeCodeGeneration: forceRuntimeCodeGeneration, cancellationToken)
-                .ConfigureAwait(false);
-        }
+        return InterlockedOperations.Initialize(ref _codeDocument, document);
     }
 
     public IDocumentSnapshot WithText(SourceText text)
@@ -120,52 +88,23 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
         return snapshotManager.GetSnapshot(newDocument);
     }
 
-    public bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
+    public async ValueTask<SourceGeneratedDocument> GetGeneratedDocumentAsync(CancellationToken cancellationToken)
     {
-        result = _codeDocument;
-        return result is not null;
-    }
-
-    public ValueTask<Document> GetGeneratedDocumentAsync(CancellationToken cancellationToken)
-    {
-        return TryGetGeneratedDocument(out var generatedDocument)
-            ? new(generatedDocument)
-            : GetGeneratedDocumentCoreAsync(cancellationToken);
-
-        async ValueTask<Document> GetGeneratedDocumentCoreAsync(CancellationToken cancellationToken)
+        if (_generatedDocument is not null)
         {
-            var generatedDocument = await HACK_GenerateDocumentAsync(cancellationToken).ConfigureAwait(false);
-            return _generatedDocument ??= InterlockedOperations.Initialize(ref _generatedDocument, generatedDocument);
+            return _generatedDocument;
         }
-    }
 
-    public bool TryGetGeneratedDocument([NotNullWhen(true)] out Document? generatedDocument)
-    {
-        generatedDocument = _generatedDocument;
-        return generatedDocument is not null;
-    }
+        var generatedDocument = await ProjectSnapshot.GetGeneratedDocumentAsync(this, cancellationToken).ConfigureAwait(false)
+            ?? throw new InvalidOperationException("Could not get the generated document"); // TODO: what happens if we can't get the generated document?
 
-    private async Task<Document> HACK_GenerateDocumentAsync(CancellationToken cancellationToken)
-    {
-        // TODO: A real implementation needs to get the SourceGeneratedDocument from the solution
-
-        var solution = TextDocument.Project.Solution;
-        var filePathService = ProjectSnapshot.SolutionSnapshot.SnapshotManager.FilePathService;
-        var generatedFilePath = filePathService.GetRazorCSharpFilePath(Project.Key, FilePath.AssumeNotNull());
-        var projectId = TextDocument.Project.Id;
-        var generatedDocumentId = solution.GetDocumentIdsWithFilePath(generatedFilePath).First(d => d.ProjectId == projectId);
-        var generatedDocument = solution.GetRequiredDocument(generatedDocumentId);
-
-        var codeDocument = await this.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        var csharpSourceText = codeDocument.GetCSharpSourceText();
-
-        // HACK: We're not in the same solution fork as the LSP server that provides content for this document
-        return generatedDocument.WithText(csharpSourceText);
+        return InterlockedOperations.Initialize(ref _generatedDocument, generatedDocument);
     }
 
     public ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
     {
-        if (TryGetGeneratedDocument(out var document) &&
+        var document = _generatedDocument;
+        if (document is not null &&
             document.TryGetSyntaxTree(out var tree))
         {
             return new(tree.AssumeNotNull());

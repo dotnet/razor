@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
-internal sealed class ExtractToCodeBehindCodeActionProvider(ILoggerFactory loggerFactory) : IRazorCodeActionProvider
+internal class ExtractToCodeBehindCodeActionProvider(ILoggerFactory loggerFactory) : IRazorCodeActionProvider
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<ExtractToCodeBehindCodeActionProvider>();
 
@@ -31,7 +31,7 @@ internal sealed class ExtractToCodeBehindCodeActionProvider(ILoggerFactory logge
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        if (!FileKinds.IsComponent(context.CodeDocument.GetFileKind()))
+        if (!FileKinds.IsComponent(context.CodeDocument.FileKind))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
@@ -57,6 +57,9 @@ internal sealed class ExtractToCodeBehindCodeActionProvider(ILoggerFactory logge
             // When the caret is '@$$code' or '@c$$ode' or '@co$$de' or '@cod$$e' then tree is:
             // RazorDirective -> RazorDirectiveBody -> MetaCode
             RazorDirectiveBodySyntax { Parent: RazorDirectiveSyntax d } => d,
+            // When the caret is '$$@code' then tree is:
+            // RazorDirective
+            RazorDirectiveSyntax d => d,
             _ => null
         };
         if (directiveNode is null)
@@ -113,6 +116,7 @@ internal sealed class ExtractToCodeBehindCodeActionProvider(ILoggerFactory logge
             TextDocument = context.Request.TextDocument,
             Action = LanguageServerConstants.CodeActions.ExtractToCodeBehindAction,
             Language = RazorLanguageKind.Razor,
+            DelegatedDocumentUri = context.DelegatedDocumentUri,
             Data = actionParams,
         };
 

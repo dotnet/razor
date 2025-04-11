@@ -35,7 +35,7 @@ internal class CohostRenameEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Rename?.DynamicRegistration == true)
         {
@@ -44,7 +44,6 @@ internal class CohostRenameEndpoint(
                 Method = Methods.TextDocumentRenameName,
                 RegisterOptions = new RenameRegistrationOptions()
                 {
-                    DocumentSelector = filter,
                     PrepareProvider = false
                 }
             }];

@@ -2,12 +2,11 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Serialization.Json;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization;
+namespace Microsoft.AspNetCore.Razor.Serialization.Json;
 
 public class RazorConfigurationSerializationTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
@@ -18,13 +17,18 @@ public class RazorConfigurationSerializationTest(ITestOutputHelper testOutput) :
         var configuration = new RazorConfiguration(
             RazorLanguageVersion.Version_1_1,
             "Test",
-            [new("Test-Extension1"), new("Test-Extension2")]);
+            [new("Test-Extension1"), new("Test-Extension2")],
+            CodeAnalysis.CSharp.LanguageVersion.CSharp7,
+            UseConsolidatedMvcViews: false,
+            SuppressAddComponentParameter: true,
+            UseRoslynTokenizer: true,
+            PreprocessorSymbols: ["DEBUG", "TRACE", "DAVID"]);
 
         // Act
-        var json = JsonDataConvert.SerializeObject(configuration, ObjectWriters.WriteProperties);
+        var json = JsonDataConvert.Serialize(configuration);
         Assert.NotNull(json);
 
-        var obj = JsonDataConvert.DeserializeObject(json, ObjectReaders.ReadConfigurationFromProperties);
+        var obj = JsonDataConvert.DeserializeConfiguration(json);
         Assert.NotNull(obj);
 
         // Assert
@@ -34,6 +38,14 @@ public class RazorConfigurationSerializationTest(ITestOutputHelper testOutput) :
             e => Assert.Equal("Test-Extension1", e.ExtensionName),
             e => Assert.Equal("Test-Extension2", e.ExtensionName));
         Assert.Equal(configuration.LanguageVersion, obj.LanguageVersion);
+        Assert.Equal(configuration.CSharpLanguageVersion, obj.CSharpLanguageVersion);
+        Assert.Equal(configuration.UseConsolidatedMvcViews, obj.UseConsolidatedMvcViews);
+        Assert.Equal(configuration.SuppressAddComponentParameter, obj.SuppressAddComponentParameter);
+        Assert.Equal(configuration.UseRoslynTokenizer, obj.UseRoslynTokenizer);
+        Assert.Collection(obj.PreprocessorSymbols,
+            s => Assert.Equal("DEBUG", s),
+            s => Assert.Equal("TRACE", s),
+            s => Assert.Equal("DAVID", s));
     }
 
     [Fact]
@@ -49,7 +61,7 @@ public class RazorConfigurationSerializationTest(ITestOutputHelper testOutput) :
             """;
 
         // Act
-        var obj = JsonDataConvert.DeserializeObject(configurationJson, ObjectReaders.ReadConfigurationFromProperties);
+        var obj = JsonDataConvert.DeserializeConfiguration(configurationJson);
         Assert.NotNull(obj);
 
         // Assert
@@ -72,7 +84,7 @@ public class RazorConfigurationSerializationTest(ITestOutputHelper testOutput) :
             """;
 
         // Act
-        var obj = JsonDataConvert.DeserializeObject(configurationJson, ObjectReaders.ReadConfigurationFromProperties);
+        var obj = JsonDataConvert.DeserializeConfiguration(configurationJson);
         Assert.NotNull(obj);
 
         // Assert
@@ -95,7 +107,7 @@ public class RazorConfigurationSerializationTest(ITestOutputHelper testOutput) :
             """;
 
         // Act
-        var obj = JsonDataConvert.DeserializeObject(configurationJson, ObjectReaders.ReadConfigurationFromProperties);
+        var obj = JsonDataConvert.DeserializeConfiguration(configurationJson);
         Assert.NotNull(obj);
 
         // Assert

@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -66,7 +67,7 @@ internal class RenameService(
             return null;
         }
 
-        var originComponentDocumentFilePath = originComponentDocumentSnapshot.FilePath.AssumeNotNull();
+        var originComponentDocumentFilePath = originComponentDocumentSnapshot.FilePath;
         var newPath = MakeNewPath(originComponentDocumentFilePath, newName);
         if (File.Exists(newPath))
         {
@@ -137,7 +138,7 @@ internal class RenameService(
     private RenameFile GetFileRenameForComponent(IDocumentSnapshot documentSnapshot, string newPath)
         => new RenameFile
         {
-            OldUri = BuildUri(documentSnapshot.FilePath.AssumeNotNull()),
+            OldUri = BuildUri(documentSnapshot.FilePath),
             NewUri = BuildUri(newPath),
         };
 
@@ -147,13 +148,7 @@ internal class RenameService(
         var updatedPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !filePath.StartsWith("/")
                     ? '/' + filePath
                     : filePath;
-        var oldUri = new UriBuilder
-        {
-            Path = updatedPath,
-            Host = string.Empty,
-            Scheme = Uri.UriSchemeFile,
-        }.Uri;
-        return oldUri;
+        return VsLspFactory.CreateFilePathUri(updatedPath);
     }
 
     private static string MakeNewPath(string originalPath, string newName)
@@ -182,7 +177,7 @@ internal class RenameService(
         }
 
         // VS Code in Windows expects path to start with '/'
-        var uri = BuildUri(documentSnapshot.FilePath.AssumeNotNull());
+        var uri = BuildUri(documentSnapshot.FilePath);
 
         AddEditsForCodeDocument(documentChanges, originTagHelpers, newName, uri, codeDocument);
     }

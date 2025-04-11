@@ -72,7 +72,7 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
 
             @code
             {
-                class [|Base|] { }
+                class Base { }
                 class [|Derived1|] : Base { }
                 class [|Derived2|] : Base { }
 
@@ -100,7 +100,7 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
             </script>
             """;
 
-        var document = await CreateProjectAndRazorDocumentAsync(input.Text);
+        var document = CreateProjectAndRazorDocument(input.Text);
         var inputText = await document.GetTextAsync(DisposalToken);
 
         var htmlResponse = new SumType<LspLocation[], VSInternalReferenceItem[]>?(new LspLocation[]
@@ -119,14 +119,19 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
 
     private async Task VerifyCSharpGoToImplementationAsync(TestCode input)
     {
-        var document = await CreateProjectAndRazorDocumentAsync(input.Text);
+        var document = CreateProjectAndRazorDocument(input.Text);
 
         var requestInvoker = new TestLSPRequestInvoker();
 
-        await VerifyGoToImplementationResultAsync(input, document, requestInvoker);
+        await VerifyGoToImplementationResultCoreAsync(input, document, requestInvoker);
     }
 
     private async Task VerifyGoToImplementationResultAsync(TestCode input, TextDocument document, TestLSPRequestInvoker requestInvoker)
+    {
+        await VerifyGoToImplementationResultCoreAsync(input, document, requestInvoker);
+    }
+
+    private async Task VerifyGoToImplementationResultCoreAsync(TestCode input, TextDocument document, TestLSPRequestInvoker requestInvoker)
     {
         var inputText = await document.GetTextAsync(DisposalToken);
 

@@ -12,26 +12,37 @@ public sealed record class RazorConfiguration(
     RazorLanguageVersion LanguageVersion,
     string ConfigurationName,
     ImmutableArray<RazorExtension> Extensions,
+    LanguageVersion CSharpLanguageVersion = LanguageVersion.Default,
     bool UseConsolidatedMvcViews = true,
     bool SuppressAddComponentParameter = false,
-    LanguageServerFlags? LanguageServerFlags = null,
     bool UseRoslynTokenizer = false,
-    LanguageVersion CSharpLanguageVersion = LanguageVersion.Default)
+    ImmutableArray<string> PreprocessorSymbols = default)
 {
+    public ImmutableArray<string> PreprocessorSymbols
+    {
+        get;
+        init => field = value.NullToEmpty();
+    } = PreprocessorSymbols.NullToEmpty();
+
     public static readonly RazorConfiguration Default = new(
         RazorLanguageVersion.Latest,
         ConfigurationName: "unnamed",
-        Extensions: []);
+        Extensions: [],
+        CSharpLanguageVersion: CodeAnalysis.CSharp.LanguageVersion.Default,
+        UseConsolidatedMvcViews: true,
+        SuppressAddComponentParameter: false,
+        UseRoslynTokenizer: false,
+        PreprocessorSymbols: []);
 
     public bool Equals(RazorConfiguration? other)
         => other is not null &&
            LanguageVersion == other.LanguageVersion &&
            ConfigurationName == other.ConfigurationName &&
+           CSharpLanguageVersion == other.CSharpLanguageVersion &&
            SuppressAddComponentParameter == other.SuppressAddComponentParameter &&
-           LanguageServerFlags == other.LanguageServerFlags &&
            UseConsolidatedMvcViews == other.UseConsolidatedMvcViews &&
            UseRoslynTokenizer == other.UseRoslynTokenizer &&
-           CSharpLanguageVersion == other.CSharpLanguageVersion &&
+           PreprocessorSymbols.SequenceEqual(other.PreprocessorSymbols) &&
            Extensions.SequenceEqual(other.Extensions);
 
     public override int GetHashCode()
@@ -39,12 +50,12 @@ public sealed record class RazorConfiguration(
         var hash = HashCodeCombiner.Start();
         hash.Add(LanguageVersion);
         hash.Add(ConfigurationName);
+        hash.Add(CSharpLanguageVersion);
         hash.Add(Extensions);
         hash.Add(SuppressAddComponentParameter);
         hash.Add(UseConsolidatedMvcViews);
-        hash.Add(LanguageServerFlags);
         hash.Add(UseRoslynTokenizer);
-        hash.Add(CSharpLanguageVersion);
+        hash.Add(PreprocessorSymbols);
         return hash;
     }
 }

@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostEndpointRegistration : IDynamicRegistrationProvider
 {
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
         return [
             // Project Context, for the nav bar
@@ -26,25 +26,18 @@ internal sealed class CohostEndpointRegistration : IDynamicRegistrationProvider
             {
                 Method = VSMethods.GetProjectContextsName,
                 RegisterOptions = new TextDocumentRegistrationOptions()
-                {
-                    DocumentSelector = filter
-                }
             },
             // DidOpen, DidChange, DidClose, for document synchronization
             new Registration
             {
                 Method = Methods.TextDocumentDidOpenName,
                 RegisterOptions = new TextDocumentRegistrationOptions()
-                {
-                    DocumentSelector = filter
-                }
             },
             new Registration
             {
                 Method = Methods.TextDocumentDidChangeName,
                 RegisterOptions = new TextDocumentChangeRegistrationOptions()
                 {
-                    DocumentSelector = filter,
                     SyncKind = TextDocumentSyncKind.Incremental
                 }
             },
@@ -52,9 +45,6 @@ internal sealed class CohostEndpointRegistration : IDynamicRegistrationProvider
             {
                 Method = Methods.TextDocumentDidCloseName,
                 RegisterOptions = new TextDocumentRegistrationOptions()
-                {
-                    DocumentSelector = filter
-                }
             },
         ];
     }

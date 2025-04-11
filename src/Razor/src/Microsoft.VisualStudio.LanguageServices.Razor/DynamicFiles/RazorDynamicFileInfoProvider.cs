@@ -36,6 +36,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
     private readonly IFilePathService _filePathService;
     private readonly IWorkspaceProvider _workspaceProvider;
     private readonly FallbackProjectManager _fallbackProjectManager;
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
     [ImportingConstructor]
     public RazorDynamicFileInfoProvider(
@@ -43,14 +44,17 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         ILspEditorFeatureDetector lspEditorFeatureDetector,
         IFilePathService filePathService,
         IWorkspaceProvider workspaceProvider,
-        IProjectSnapshotManager projectManager,
-        FallbackProjectManager fallbackProjectManager)
+        ProjectSnapshotManager projectManager,
+        FallbackProjectManager fallbackProjectManager,
+        LanguageServerFeatureOptions languageServerFeatureOptions)
     {
         _factory = factory;
         _lspEditorFeatureDetector = lspEditorFeatureDetector;
         _filePathService = filePathService;
         _workspaceProvider = workspaceProvider;
         _fallbackProjectManager = fallbackProjectManager;
+        _languageServerFeatureOptions = languageServerFeatureOptions;
+
         _entries = new ConcurrentDictionary<Key, Entry>();
         _createEmptyEntry = (key) => new Entry(CreateEmptyInfo(key));
 
@@ -62,6 +66,8 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
     // Called by us to update LSP document entries
     public void UpdateLSPFileInfo(Uri documentUri, IDynamicDocumentContainer documentContainer)
     {
+        Debug.Assert(!_languageServerFeatureOptions.UseRazorCohostServer, "Should never be called in cohosting");
+
         if (documentUri is null)
         {
             throw new ArgumentNullException(nameof(documentUri));
@@ -101,6 +107,8 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
     // Called by us to update entries
     public void UpdateFileInfo(ProjectKey projectKey, IDynamicDocumentContainer documentContainer)
     {
+        Debug.Assert(!_languageServerFeatureOptions.UseRazorCohostServer, "Should never be called in cohosting");
+
         if (documentContainer is null)
         {
             throw new ArgumentNullException(nameof(documentContainer));
@@ -137,6 +145,8 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
     // document will allow it to be recognized by the C# server.
     public void PromoteBackgroundDocument(Uri documentUri, IRazorDocumentPropertiesService propertiesService)
     {
+        Debug.Assert(!_languageServerFeatureOptions.UseRazorCohostServer, "Should never be called in cohosting");
+
         if (documentUri is null)
         {
             throw new ArgumentNullException(nameof(documentUri));
@@ -168,7 +178,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
             // server to recognize the document.
             var documentServiceProvider = associatedEntry.Current.DocumentServiceProvider;
             var excerptService = documentServiceProvider.GetService<IRazorDocumentExcerptServiceImplementation>();
-            var mappingService = documentServiceProvider.GetService<IRazorSpanMappingService>();
+            var mappingService = documentServiceProvider.GetService<IRazorMappingService>();
             var emptyContainer = new PromotedDynamicDocumentContainer(
                 documentUri, propertiesService, excerptService, mappingService, associatedEntry.Current.TextLoader);
 
@@ -194,12 +204,9 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
     }
 
     // Called by us when a document opens in the editor
-    public void SuppressDocument(ProjectKey projectKey, string documentFilePath)
+    public void SuppressDocument(DocumentKey documentKey)
     {
-        if (documentFilePath is null)
-        {
-            throw new ArgumentNullException(nameof(documentFilePath));
-        }
+        Debug.Assert(!_languageServerFeatureOptions.UseRazorCohostServer, "Should never be called in cohosting");
 
         if (_lspEditorFeatureDetector.IsLspEditorEnabled())
         {
@@ -209,13 +216,13 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         // There's a possible race condition here where we're processing an update
         // and the project is getting unloaded. So if we don't find an entry we can
         // just ignore it.
-        var projectId = TryFindProjectIdForProjectKey(projectKey);
+        var projectId = TryFindProjectIdForProjectKey(documentKey.ProjectKey);
         if (projectId is null)
         {
             return;
         }
 
-        var key = new Key(projectId, documentFilePath);
+        var key = new Key(projectId, documentKey.FilePath);
         if (_entries.TryGetValue(key, out var entry))
         {
             var updated = false;
@@ -230,13 +237,18 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
 
             if (updated)
             {
-                Updated?.Invoke(this, documentFilePath);
+                Updated?.Invoke(this, documentKey.FilePath);
             }
         }
     }
 
     public Task<RazorDynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
+        if (_languageServerFeatureOptions.UseRazorCohostServer)
+        {
+            return SpecializedTasks.Null<RazorDynamicFileInfo>();
+        }
+
         if (projectFilePath is null)
         {
             throw new ArgumentNullException(nameof(projectFilePath));
@@ -265,6 +277,8 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
 
     public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
+        Debug.Assert(!_languageServerFeatureOptions.UseRazorCohostServer, "Should never be called in cohosting");
+
         if (projectFilePath is null)
         {
             throw new ArgumentNullException(nameof(projectFilePath));
@@ -319,7 +333,9 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
 
     private void ProjectManager_Changed(object? sender, ProjectChangeEventArgs args)
     {
-        if (args.SolutionIsClosing)
+        Debug.Assert(!_languageServerFeatureOptions.UseRazorCohostServer, "Should never be called in cohosting");
+
+        if (args.IsSolutionClosing)
         {
             if (_entries.Count > 0)
             {
@@ -353,12 +369,9 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
     {
         var workspace = _workspaceProvider.GetWorkspace();
 
-        foreach (var project in workspace.CurrentSolution.Projects)
+        if (workspace.CurrentSolution.TryGetProject(key, out var project))
         {
-            if (key.Matches(project))
-            {
-                return project.Id;
-            }
+            return project.Id;
         }
 
         return null;
@@ -391,17 +404,11 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
 
     // Using a separate handle to the 'current' file info so that can allow Roslyn to send
     // us the add/remove operations, while we process the update operations.
-    private class Entry
+    private class Entry(RazorDynamicFileInfo current)
     {
-        public Entry(RazorDynamicFileInfo current)
-        {
-            Current = current;
-            Lock = new object();
-        }
+        public RazorDynamicFileInfo Current { get; set; } = current;
 
-        public RazorDynamicFileInfo Current { get; set; }
-
-        public object Lock { get; }
+        public object Lock { get; } = new object();
 
         public override string ToString()
         {
@@ -412,16 +419,10 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         }
     }
 
-    private readonly struct Key : IEquatable<Key>
+    private readonly struct Key(ProjectId projectId, string filePath) : IEquatable<Key>
     {
-        public readonly ProjectId ProjectId;
-        public readonly string FilePath;
-
-        public Key(ProjectId projectId, string filePath)
-        {
-            ProjectId = projectId;
-            FilePath = filePath;
-        }
+        public readonly ProjectId ProjectId = projectId;
+        public readonly string FilePath = filePath;
 
         public bool Equals(Key other)
         {
@@ -444,16 +445,10 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         }
     }
 
-    private class EmptyTextLoader : TextLoader
+    private class EmptyTextLoader(string filePath) : TextLoader
     {
-        private readonly string _filePath;
-        private readonly VersionStamp _version;
-
-        public EmptyTextLoader(string filePath)
-        {
-            _filePath = filePath;
-            _version = VersionStamp.Default; // Version will never change so this can be reused.
-        }
+        private readonly string _filePath = filePath;
+        private readonly VersionStamp _version = VersionStamp.Default;
 
         public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
@@ -467,13 +462,13 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         Uri documentUri,
         IRazorDocumentPropertiesService documentPropertiesService,
         IRazorDocumentExcerptServiceImplementation? documentExcerptService,
-        IRazorSpanMappingService? spanMappingService,
+        IRazorMappingService? mappingService,
         TextLoader textLoader) : IDynamicDocumentContainer
     {
         private readonly Uri _documentUri = documentUri;
         private readonly IRazorDocumentPropertiesService _documentPropertiesService = documentPropertiesService;
         private readonly IRazorDocumentExcerptServiceImplementation? _documentExcerptService = documentExcerptService;
-        private readonly IRazorSpanMappingService? _spanMappingService = spanMappingService;
+        private readonly IRazorMappingService? _mappingService = mappingService;
         private readonly TextLoader _textLoader = textLoader;
 
         public string FilePath => _documentUri.LocalPath;
@@ -489,19 +484,14 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
 
         public IRazorDocumentExcerptServiceImplementation? GetExcerptService() => _documentExcerptService;
 
-        public IRazorSpanMappingService? GetMappingService() => _spanMappingService;
-
         public TextLoader GetTextLoader(string filePath) => _textLoader;
+
+        public IRazorMappingService? GetMappingService() => _mappingService;
     }
 
-    public class TestAccessor
+    public class TestAccessor(RazorDynamicFileInfoProvider provider)
     {
-        private readonly RazorDynamicFileInfoProvider _provider;
-
-        public TestAccessor(RazorDynamicFileInfoProvider provider)
-        {
-            _provider = provider;
-        }
+        private readonly RazorDynamicFileInfoProvider _provider = provider;
 
         public async Task<TestDynamicFileInfoResult?> GetDynamicFileInfoAsync(ProjectId projectId, string filePath, CancellationToken cancellationToken)
         {

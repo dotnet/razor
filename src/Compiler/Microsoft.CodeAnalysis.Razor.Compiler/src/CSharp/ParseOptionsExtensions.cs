@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 internal static class ParseOptionsExtensions
 {
     public static bool UseRoslynTokenizer(this ParseOptions parseOptions)
-        => parseOptions.Features.TryGetValue("use-roslyn-tokenizer", out var useRoslynTokenizerValue)
-           && string.Equals(useRoslynTokenizerValue, "true", StringComparison.OrdinalIgnoreCase);
+        => parseOptions.Features.TryGetValue("use-roslyn-tokenizer", out var useRoslynTokenizerValue) &&
+           string.Equals(useRoslynTokenizerValue, "true", StringComparison.OrdinalIgnoreCase);
 }

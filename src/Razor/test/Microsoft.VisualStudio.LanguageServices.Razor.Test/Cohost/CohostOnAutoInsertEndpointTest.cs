@@ -3,14 +3,13 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodBeAnalysis.Remote.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.Settings;
+using Microsoft.CodeAnalysis.Remote.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
-using Microsoft.VisualStudio.LicenseManagement.Interop;
 using Microsoft.VisualStudio.Razor.Settings;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -85,9 +84,8 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             delegatedResponseText: "\"$0\"");
     }
 
-    [Theory]
-    [CombinatorialData]
-    public async Task CSharp_OnForwardSlash(bool fuse)
+    [Fact]
+    public async Task CSharp_OnForwardSlash()
     {
         await VerifyOnAutoInsertAsync(
             input: """
@@ -104,8 +102,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                     void TestMethod() {}
                 }
                 """,
-            triggerCharacter: "/",
-            fuse: fuse);
+            triggerCharacter: "/");
     }
 
     [Fact]
@@ -123,9 +120,8 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             formatOnType: false);
     }
 
-    [Theory]
-    [CombinatorialData]
-    public async Task CSharp_OnEnter(bool fuse)
+    [Fact]
+    public async Task CSharp_OnEnter()
     {
         await VerifyOnAutoInsertAsync(
             input: """
@@ -160,13 +156,11 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                     }
                 }
                 """,
-            triggerCharacter: "\n",
-            fuse: fuse);
+            triggerCharacter: "\n");
     }
 
-    [Theory]
-    [CombinatorialData]
-    public async Task CSharp_OnEnter_TwoSpaceIndent(bool fuse)
+    [Fact]
+    public async Task CSharp_OnEnter_TwoSpaceIndent()
     {
         await VerifyOnAutoInsertAsync(
             input: """
@@ -184,13 +178,11 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                 }
                 """,
             triggerCharacter: "\n",
-            tabSize: 2,
-            fuse: fuse);
+            tabSize: 2);
     }
 
-    [Theory]
-    [CombinatorialData]
-    public async Task CSharp_OnEnter_UseTabs(bool fuse)
+    [Fact]
+    public async Task CSharp_OnEnter_UseTabs()
     {
         const char tab = '\t';
         await VerifyOnAutoInsertAsync(
@@ -209,8 +201,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                 }
                 """,
             triggerCharacter: "\n",
-            insertSpaces: false,
-            fuse: fuse);
+            insertSpaces: false);
     }
 
     private async Task VerifyOnAutoInsertAsync(
@@ -221,12 +212,9 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
         bool insertSpaces = true,
         int tabSize = 4,
         bool formatOnType = true,
-        bool autoClosingTags = true,
-        bool fuse = false)
+        bool autoClosingTags = true)
     {
-        UpdateClientInitializationOptions(opt => opt with { ForceRuntimeCodeGeneration = fuse });
-
-        var document = await CreateProjectAndRazorDocumentAsync(input.Text);
+        var document = CreateProjectAndRazorDocument(input.Text);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         var clientSettingsManager = new ClientSettingsManager([], null, null);

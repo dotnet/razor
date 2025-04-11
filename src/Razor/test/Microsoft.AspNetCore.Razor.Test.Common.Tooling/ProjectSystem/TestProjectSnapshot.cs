@@ -7,12 +7,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 
@@ -28,9 +25,12 @@ internal sealed class TestProjectSnapshot : IProjectSnapshot
     public static TestProjectSnapshot Create(string filePath, ProjectWorkspaceState? projectWorkspaceState = null)
     {
         var hostProject = TestHostProject.Create(filePath);
-        projectWorkspaceState ??= ProjectWorkspaceState.Default;
+        var state = ProjectState.Create(hostProject, RazorCompilerOptions.None, ProjectEngineFactories.DefaultProvider);
 
-        var state = ProjectState.Create(ProjectEngineFactories.DefaultProvider, hostProject, projectWorkspaceState);
+        if (projectWorkspaceState is not null)
+        {
+            state = state.WithProjectWorkspaceState(projectWorkspaceState);
+        }
 
         return new TestProjectSnapshot(state);
     }
@@ -38,20 +38,12 @@ internal sealed class TestProjectSnapshot : IProjectSnapshot
     public HostProject HostProject => RealSnapshot.HostProject;
 
     public ProjectKey Key => RealSnapshot.Key;
-    public RazorConfiguration Configuration => RealSnapshot.Configuration;
     public IEnumerable<string> DocumentFilePaths => RealSnapshot.DocumentFilePaths;
     public string FilePath => RealSnapshot.FilePath;
     public string IntermediateOutputPath => RealSnapshot.IntermediateOutputPath;
     public string? RootNamespace => RealSnapshot.RootNamespace;
     public string DisplayName => RealSnapshot.DisplayName;
-    public ProjectWorkspaceState ProjectWorkspaceState => RealSnapshot.ProjectWorkspaceState;
-    public VersionStamp Version => RealSnapshot.Version;
-
-    public RazorProjectEngine GetProjectEngine()
-        => RazorProjectEngine.Create(
-            Configuration,
-            RazorProjectFileSystem.Create("C:/"),
-            b => b.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default)));
+    public LanguageVersion CSharpLanguageVersion => RealSnapshot.CSharpLanguageVersion;
 
     public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken)
         => RealSnapshot.GetTagHelpersAsync(cancellationToken);
@@ -59,9 +51,15 @@ internal sealed class TestProjectSnapshot : IProjectSnapshot
     public bool ContainsDocument(string filePath)
         => RealSnapshot.ContainsDocument(filePath);
 
-    public IDocumentSnapshot? GetDocument(string filePath)
-        => RealSnapshot.GetDocument(filePath);
-
     public bool TryGetDocument(string filePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
-        => RealSnapshot.TryGetDocument(filePath, out document);
+    {
+        if (RealSnapshot.TryGetDocument(filePath, out var result))
+        {
+            document = result;
+            return true;
+        }
+
+        document = null;
+        return false;
+    }
 }

@@ -29,8 +29,8 @@ public class WorkspaceSemanticTokensRefreshTriggerTest : LanguageServerTestBase
     {
         return _projectManager.UpdateAsync(updater =>
         {
-            updater.ProjectAdded(s_hostProject);
-            updater.DocumentAdded(s_hostProject.Key, s_hostDocument, new EmptyTextLoader(s_hostDocument.FilePath));
+            updater.AddProject(s_hostProject);
+            updater.AddDocument(s_hostProject.Key, s_hostDocument, EmptyTextLoader.Instance);
         });
     }
 
@@ -49,7 +49,9 @@ public class WorkspaceSemanticTokensRefreshTriggerTest : LanguageServerTestBase
         var newDocument = new HostDocument("/path/to/newFile.razor", "newFile.razor");
 
         await _projectManager.UpdateAsync(updater =>
-            updater.DocumentAdded(s_hostProject.Key, newDocument, new EmptyTextLoader(newDocument.FilePath)));
+        {
+            updater.AddDocument(s_hostProject.Key, newDocument, EmptyTextLoader.Instance);
+        });
 
         // Assert
         publisher.VerifyAll();
@@ -57,6 +59,6 @@ public class WorkspaceSemanticTokensRefreshTriggerTest : LanguageServerTestBase
 
     private class TestWorkspaceSemanticTokensRefreshTrigger(
         IWorkspaceSemanticTokensRefreshNotifier publisher,
-        IProjectSnapshotManager projectManager)
+        ProjectSnapshotManager projectManager)
         : WorkspaceSemanticTokensRefreshTrigger(publisher, projectManager);
 }

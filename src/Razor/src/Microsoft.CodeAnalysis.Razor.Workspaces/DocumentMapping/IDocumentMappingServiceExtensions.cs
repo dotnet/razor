@@ -2,13 +2,11 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -34,19 +32,23 @@ internal static class IDocumentMappingServiceExtensions
     public static bool TryMapToHostDocumentRange(this IDocumentMappingService service, IRazorGeneratedDocument generatedDocument, Range projectedRange, [NotNullWhen(true)] out Range? originalRange)
         => service.TryMapToHostDocumentRange(generatedDocument, projectedRange, MappingBehavior.Strict, out originalRange);
 
-    public static async Task<DocumentPositionInfo> GetPositionInfoAsync(this IDocumentMappingService service, DocumentContext documentContext, int hostDocumentIndex, CancellationToken cancellationToken)
-    {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-
-        return service.GetPositionInfo(codeDocument, hostDocumentIndex);
-    }
-
     public static DocumentPositionInfo GetPositionInfo(
         this IDocumentMappingService service,
         RazorCodeDocument codeDocument,
         int hostDocumentIndex)
     {
         var sourceText = codeDocument.Source.Text;
+
+        if (sourceText.Length == 0)
+        {
+            Debug.Assert(hostDocumentIndex == 0);
+
+            // Special case for empty documents, to just force Html. When there is no content, then there are no source mappings,
+            // so the map call below fails, and we would default to Razor. This is fine for most cases, but empty documents are a
+            // special case where Html provides much better results when users first start typing.
+            return new DocumentPositionInfo(RazorLanguageKind.Html, new Position(0, 0), hostDocumentIndex);
+        }
+
         var position = sourceText.GetPosition(hostDocumentIndex);
 
         var languageKind = codeDocument.GetLanguageKind(hostDocumentIndex, rightAssociative: false);

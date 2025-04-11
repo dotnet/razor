@@ -3,8 +3,8 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -62,7 +62,7 @@ internal abstract class AbstractRazorComponentDefinitionService(
             return null;
         }
 
-        var componentFilePath = componentDocument.FilePath.AssumeNotNull();
+        var componentFilePath = componentDocument.FilePath;
 
         _logger.LogInformation($"Definition found at file path: {componentFilePath}");
 

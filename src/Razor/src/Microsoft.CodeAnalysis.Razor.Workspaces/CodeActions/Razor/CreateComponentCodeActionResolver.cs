@@ -20,7 +20,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
-internal sealed class CreateComponentCodeActionResolver(LanguageServerFeatureOptions languageServerFeatureOptions) : IRazorCodeActionResolver
+internal class CreateComponentCodeActionResolver(LanguageServerFeatureOptions languageServerFeatureOptions) : IRazorCodeActionResolver
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
@@ -40,7 +40,7 @@ internal sealed class CreateComponentCodeActionResolver(LanguageServerFeatureOpt
             return null;
         }
 
-        if (!FileKinds.IsComponent(codeDocument.GetFileKind()))
+        if (!FileKinds.IsComponent(codeDocument.FileKind))
         {
             return null;
         }
@@ -49,12 +49,7 @@ internal sealed class CreateComponentCodeActionResolver(LanguageServerFeatureOpt
         var updatedPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !actionParams.Path.StartsWith("/")
             ? '/' + actionParams.Path
             : actionParams.Path;
-        var newComponentUri = new UriBuilder()
-        {
-            Scheme = Uri.UriSchemeFile,
-            Path = updatedPath,
-            Host = string.Empty,
-        }.Uri;
+        var newComponentUri = VsLspFactory.CreateFilePathUri(updatedPath);
 
         using var documentChanges = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
         documentChanges.Add(new CreateFile() { Uri = newComponentUri });

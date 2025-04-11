@@ -5,14 +5,14 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
-internal class RazorDocumentServiceProvider(IDynamicDocumentContainer? documentContainer) : IRazorDocumentServiceProvider, IRazorDocumentOperationService
+internal class RazorDocumentServiceProvider(IDynamicDocumentContainer? documentContainer) : IRazorDocumentServiceProvider
 {
     private readonly IDynamicDocumentContainer? _documentContainer = documentContainer;
-    private readonly object _lock = new object();
+    private readonly object _lock = new();
 
-    private IRazorSpanMappingService? _spanMappingService;
     private IRazorDocumentExcerptServiceImplementation? _documentExcerptService;
     private IRazorDocumentPropertiesService? _documentPropertiesService;
+    private IRazorMappingService? _mappingService;
 
     public RazorDocumentServiceProvider()
         : this(null)
@@ -31,19 +31,6 @@ internal class RazorDocumentServiceProvider(IDynamicDocumentContainer? documentC
         }
 
         var serviceType = typeof(TService);
-
-        if (serviceType == typeof(IRazorSpanMappingService))
-        {
-            if (_spanMappingService is null)
-            {
-                lock (_lock)
-                {
-                    _spanMappingService ??= _documentContainer.GetMappingService();
-                }
-            }
-
-            return (TService?)_spanMappingService;
-        }
 
         if (serviceType == typeof(IRazorDocumentExcerptServiceImplementation))
         {
@@ -69,6 +56,19 @@ internal class RazorDocumentServiceProvider(IDynamicDocumentContainer? documentC
             }
 
             return (TService?)_documentPropertiesService;
+        }
+
+        if (serviceType == typeof(IRazorMappingService))
+        {
+            if (_mappingService is null)
+            {
+                lock (_lock)
+                {
+                    _mappingService ??= _documentContainer.GetMappingService();
+                }
+            }
+
+            return (TService?)_mappingService;
         }
 
         return this as TService;

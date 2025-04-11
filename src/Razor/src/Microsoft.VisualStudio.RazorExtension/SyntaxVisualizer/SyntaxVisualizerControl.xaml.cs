@@ -9,7 +9,8 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.Serialization;
+using Microsoft.AspNetCore.Razor.Serialization.Json;
+using Microsoft.CodeAnalysis.Razor.Formatting.New;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
 using Microsoft.VisualStudio.Razor;
@@ -22,7 +23,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
-using Newtonsoft.Json;
 
 namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer;
 
@@ -109,6 +109,30 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
         }
     }
 
+    public void ShowFormattingDocument()
+    {
+        if (_activeWpfTextView is null)
+        {
+            return;
+        }
+
+        EnsureInitialized();
+
+        if (_fileUriProvider.TryGet(_activeWpfTextView.TextBuffer, out var hostDocumentUri))
+        {
+            var codeDocument = GetCodeDocument();
+            if (codeDocument is null)
+            {
+                return;
+            }
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            var formattingDocument = CSharpFormattingPass.GetFormattingDocumentContentsForSyntaxVisualizer(codeDocument);
+#pragma warning restore CS0618 // Type or member is obsolete
+            OpenGeneratedCode(hostDocumentUri.AbsoluteUri + ".formatting.cs", formattingDocument);
+        }
+    }
+
     public void ShowGeneratedCode()
     {
         if (_activeWpfTextView is null)
@@ -172,16 +196,9 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
             _ => []
         };
 
-        var serializer = new JsonSerializer();
-        serializer.Converters.Add(new TagHelperDescriptorJsonConverter());
-
         var tempFileName = GetTempFileName(displayKind.ToString() + "TagHelpers.json");
 
-        using (var writer = new JsonTextWriter(new StreamWriter(tempFileName)))
-        {
-            writer.Formatting = Formatting.Indented;
-            serializer.Serialize(writer, tagHelpers);
-        }
+        JsonDataConvert.SerializeToFile(tagHelpers, tempFileName, indented: true);
 
         VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, tempFileName);
     }

@@ -52,12 +52,12 @@ public class CohostDocumentSpellCheckEndpointTest(ITestOutputHelper testOutputHe
             }
             """;
 
-        await VerifySemanticTokensAsync(input);
+        await VerifySpellCheckableRangesAsync(input);
     }
 
-    private async Task VerifySemanticTokensAsync(TestCode input)
+    private async Task VerifySpellCheckableRangesAsync(TestCode input)
     {
-        var document = await CreateProjectAndRazorDocumentAsync(input.Text);
+        var document = CreateProjectAndRazorDocument(input.Text);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         var endpoint = new CohostDocumentSpellCheckEndpoint(RemoteServiceInvoker);

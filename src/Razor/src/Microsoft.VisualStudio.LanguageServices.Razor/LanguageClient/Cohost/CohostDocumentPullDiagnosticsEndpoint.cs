@@ -6,22 +6,22 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Razor.Extensions;
+using Microsoft.VisualStudio.Razor.Settings;
 using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 using LspDiagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
+using RoslynDiagnostic = Roslyn.LanguageServer.Protocol.Diagnostic;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -36,43 +36,74 @@ internal class CohostDocumentPullDiagnosticsEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     LSPRequestInvoker requestInvoker,
-    IFilePathService filePathService,
+    IClientSettingsManager clientSettingsManager,
     ILoggerFactory loggerFactory)
     : AbstractRazorCohostDocumentRequestHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>, IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
-    private readonly IFilePathService _filePathService = filePathService;
+    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostDocumentPullDiagnosticsEndpoint>();
 
     protected override bool MutatesSolutionState => false;
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
-        // TODO: if (clientCapabilities.TextDocument?.Diagnostic?.DynamicRegistration is true)
+        if (clientCapabilities.TextDocument?.Diagnostic?.DynamicRegistration is true)
         {
             return [new Registration()
             {
                 Method = VSInternalMethods.DocumentPullDiagnosticName,
                 RegisterOptions = new VSInternalDiagnosticRegistrationOptions()
                 {
-                    DocumentSelector = filter,
-                    DiagnosticKinds = [VSInternalDiagnosticKind.Syntax]
+                    DiagnosticKinds = [VSInternalDiagnosticKind.Syntax, VSInternalDiagnosticKind.Task]
                 }
             }];
         }
 
-        // return [];
+        return [];
     }
 
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams request)
         => request.TextDocument?.ToRazorTextDocumentIdentifier();
 
     protected override Task<VSInternalDiagnosticReport[]?> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
-        => HandleRequestAsync(context.TextDocument.AssumeNotNull(), cancellationToken);
+    {
+        if (request.QueryingDiagnosticKind?.Value == VSInternalDiagnosticKind.Task.Value)
+        {
+            return HandleTaskListItemRequestAsync(
+                context.TextDocument.AssumeNotNull(),
+                _clientSettingsManager.GetClientSettings().AdvancedSettings.TaskListDescriptors,
+                cancellationToken);
+        }
+
+        return HandleRequestAsync(context.TextDocument.AssumeNotNull(), cancellationToken);
+    }
+
+    private async Task<VSInternalDiagnosticReport[]?> HandleTaskListItemRequestAsync(TextDocument razorDocument, ImmutableArray<string> taskListDescriptors, CancellationToken cancellationToken)
+    {
+        var diagnostics = await _remoteServiceInvoker.TryInvokeAsync<IRemoteDiagnosticsService, ImmutableArray<LspDiagnostic>>(
+            razorDocument.Project.Solution,
+            (service, solutionInfo, cancellationToken) => service.GetTaskListDiagnosticsAsync(solutionInfo, razorDocument.Id, taskListDescriptors, cancellationToken),
+            cancellationToken).ConfigureAwait(false);
+
+        if (diagnostics.IsDefaultOrEmpty)
+        {
+            return null;
+        }
+
+        return
+        [
+            new()
+            {
+                Diagnostics = [.. diagnostics],
+                ResultId = Guid.NewGuid().ToString()
+            }
+        ];
+    }
 
     private async Task<VSInternalDiagnosticReport[]?> HandleRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
     {
@@ -125,13 +156,8 @@ internal class CohostDocumentPullDiagnosticsEndpoint(
 
     private async Task<LspDiagnostic[]> GetCSharpDiagnosticsAsync(TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        // TODO: This code will not work when the source generator is hooked up.
-        //       How do we get the source generated C# document without OOP? Can we reverse engineer a file path?
-        var projectKey = razorDocument.Project.ToProjectKey();
-        var csharpFilePath = _filePathService.GetRazorCSharpFilePath(projectKey, razorDocument.FilePath.AssumeNotNull());
-        // We put the project Id in the generated document path, so there can only be one document
-        if (razorDocument.Project.Solution.GetDocumentIdsWithFilePath(csharpFilePath) is not [{ } generatedDocumentId] ||
-            razorDocument.Project.GetDocument(generatedDocumentId) is not { } generatedDocument)
+        if (!razorDocument.TryComputeHintNameFromRazorDocument(out var hintName) ||
+            await razorDocument.Project.TryGetSourceGeneratedDocumentFromHintNameAsync(hintName, cancellationToken).ConfigureAwait(false) is not { } generatedDocument)
         {
             return [];
         }
@@ -140,13 +166,7 @@ internal class CohostDocumentPullDiagnosticsEndpoint(
         var csharpDiagnostics = await ExternalHandlers.Diagnostics.GetDocumentDiagnosticsAsync(generatedDocument, supportsVisualStudioExtensions: true, cancellationToken).ConfigureAwait(false);
 
         // This is, to say the least, not ideal. In future we're going to normalize on to Roslyn LSP types, and this can go.
-        var options = new JsonSerializerOptions();
-        foreach (var converter in RazorServiceDescriptorsWrapper.GetLspConverters())
-        {
-            options.Converters.Add(converter);
-        }
-
-        if (JsonSerializer.Deserialize<LspDiagnostic[]>(JsonSerializer.SerializeToDocument(csharpDiagnostics), options) is not { } convertedDiagnostics)
+        if (JsonHelpers.ToVsLSP<LspDiagnostic[], ImmutableArray<RoslynDiagnostic>>(csharpDiagnostics) is not { } convertedDiagnostics)
         {
             return [];
         }
@@ -199,6 +219,9 @@ internal class CohostDocumentPullDiagnosticsEndpoint(
     {
         public Task<VSInternalDiagnosticReport[]?> HandleRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
             => instance.HandleRequestAsync(razorDocument, cancellationToken);
+
+        public Task<VSInternalDiagnosticReport[]?> HandleTaskListItemRequestAsync(TextDocument razorDocument, ImmutableArray<string> taskListDescriptors, CancellationToken cancellationToken)
+            => instance.HandleTaskListItemRequestAsync(razorDocument, taskListDescriptors, cancellationToken);
     }
 }
 
