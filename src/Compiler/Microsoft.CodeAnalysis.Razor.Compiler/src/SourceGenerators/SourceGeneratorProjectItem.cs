@@ -60,7 +60,13 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
         public bool Equals(SourceGeneratorProjectItem? other)
         {
-            if (ReferenceEquals(AdditionalText, other?.AdditionalText))
+            if (other is null ||
+                CssScope != other.CssScope)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(AdditionalText, other.AdditionalText))
             {
                 return true;
             }
@@ -70,7 +76,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             // It's technically possible for these hashes to collide, but other things would
             // also break in those cases, so for now we're okay with this.
             var thisHash = AdditionalText.GetText()?.GetContentHash() ?? [];
-            var otherHash = other?.AdditionalText.GetText()?.GetContentHash() ?? [];
+            var otherHash = other.AdditionalText.GetText()?.GetContentHash() ?? [];
             return thisHash.SequenceEqual(otherHash);
         }
 
