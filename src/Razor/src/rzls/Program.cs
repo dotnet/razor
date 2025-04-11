@@ -6,8 +6,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting.Diagnostics;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting.Logging;
+using Microsoft.AspNetCore.Razor.LanguageServer.Hosting.NamedPipes;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -83,6 +85,7 @@ public class Program
         // Have to create a logger factory to give to the server, but can't create any logger providers until we have
         // a server.
         var loggerFactory = new LoggerFactory([]);
+        var logLevelProvider = new LogLevelProvider(logLevel);
 
         using var host = RazorLanguageServerHost.Create(
             Console.OpenStandardInput(),
@@ -90,15 +93,19 @@ public class Program
             loggerFactory,
             telemetryContext?.TelemetryReporter ?? NoOpTelemetryReporter.Instance,
             featureOptions: languageServerFeatureOptions,
-            configureServices: static services =>
+            configureServices: services =>
             {
                 services.AddSingleton<IRazorProjectInfoDriver, NamedPipeBasedRazorProjectInfoDriver>();
                 services.AddHandler<RazorNamedPipeConnectEndpoint>();
+                services.AddHandlerWithCapabilities<DocumentDiagnosticsEndpoint>();
+
+                services.AddSingleton(logLevelProvider);
+                services.AddHandler<UpdateLogLevelEndpoint>();
             });
 
         // Now we have a server, and hence a connection, we have somewhere to log
         var clientConnection = host.GetRequiredService<IClientConnection>();
-        var loggerProvider = new LoggerProvider(logLevel, clientConnection);
+        var loggerProvider = new LoggerProvider(logLevelProvider, clientConnection);
         loggerFactory.AddLoggerProvider(loggerProvider);
 
         loggerFactory.GetOrCreateLogger("RZLS").LogInformation($"Razor Language Server started successfully.");

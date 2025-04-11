@@ -3,8 +3,11 @@
 
 using System;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.Razor.DynamicFiles;
@@ -13,13 +16,13 @@ namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 // Given a DocumentSnapshot this class allows the retrieval of a TextLoader for the generated C#
 // and services to help map spans and excerpts to and from the top-level Razor document to behind
 // the scenes C#.
-internal sealed class DefaultDynamicDocumentContainer(IDocumentSnapshot documentSnapshot) : IDynamicDocumentContainer
+internal sealed class DefaultDynamicDocumentContainer(IDocumentSnapshot documentSnapshot, ILoggerFactory loggerFactory) : IDynamicDocumentContainer
 {
     private readonly IDocumentSnapshot _documentSnapshot = documentSnapshot ?? throw new ArgumentNullException(nameof(documentSnapshot));
     private RazorDocumentExcerptService? _excerptService;
-    private RazorSpanMappingService? _mappingService;
+    private RazorMappingService? _mappingService;
 
-    public string FilePath => _documentSnapshot.FilePath.AssumeNotNull();
+    public string FilePath => _documentSnapshot.FilePath;
 
     public bool SupportsDiagnostics => false;
 
@@ -35,10 +38,6 @@ internal sealed class DefaultDynamicDocumentContainer(IDocumentSnapshot document
         => _excerptService ?? InterlockedOperations.Initialize(ref _excerptService,
             new RazorDocumentExcerptService(_documentSnapshot, GetMappingService()));
 
-    public IRazorSpanMappingService GetMappingService()
-        => _mappingService ?? InterlockedOperations.Initialize(ref _mappingService,
-            new RazorSpanMappingService(_documentSnapshot));
-
     public IRazorDocumentPropertiesService GetDocumentPropertiesService()
     {
         // DocumentPropertiesServices are used to tell Roslyn to provide C# diagnostics for LSP provided documents to be shown
@@ -47,4 +46,8 @@ internal sealed class DefaultDynamicDocumentContainer(IDocumentSnapshot document
         // opt out of those features.
         return null!;
     }
+
+    public IRazorMappingService GetMappingService()
+        => _mappingService ?? InterlockedOperations.Initialize(ref _mappingService,
+            new RazorMappingService(_documentSnapshot, NoOpTelemetryReporter.Instance, loggerFactory));
 }

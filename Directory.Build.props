@@ -28,7 +28,14 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
 
+    <!-- When building in the VMR, we still want the package project url to point to this repo -->
+    <PackageProjectUrl>https://github.com/dotnet/razor</PackageProjectUrl>
+
+    <!-- VS does not require Windows PDBs to be published anymore. -->
+    <PublishWindowsPdb>false</PublishWindowsPdb>
+
     <SharedSourceRoot>$(MSBuildThisFileDirectory)src\Shared\</SharedSourceRoot>
+    <SharedFilesRoot>$(SharedSourceRoot)files\</SharedFilesRoot>
 
     <!-- Embed source files that are not tracked by the source control manager in the PDB. -->
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -42,7 +49,10 @@
     <!-- By default, nothing builds from source build. Individual projects can opt in instead -->
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
 
-    <DefaultNetFxTargetFramework>net472</DefaultNetFxTargetFramework>
+    <NetFxVS>net472</NetFxVS>
+    <NetVS>net8.0</NetVS>
+    <NetVSCode>net9.0</NetVSCode>
+    <NetVSAndVSCode>$(NetVS);$(NetVSCode)</NetVSAndVSCode>
   </PropertyGroup>
 
   <!--
@@ -57,8 +67,9 @@
     -->
     <When Condition="'$(DotNetBuildSourceOnly)' == 'true' AND '$(DotNetBuildOrchestrator)' != 'true'">
       <PropertyGroup>
-        <DefaultNetCoreTargetFramework>$(NetCurrent)</DefaultNetCoreTargetFramework>
-        <DefaultNetCoreTargetFrameworks>$(DefaultNetCoreTargetFramework);$(NetPrevious)</DefaultNetCoreTargetFrameworks>
+        <NetVS>$(NetCurrent)</NetVS>
+        <NetVSCode>$(NetCurrent)</NetVSCode>
+        <NetVSAndVSCode>$(NetVS);$(NetVSCode);$(NetPrevious)</NetVSAndVSCode>
       </PropertyGroup>
     </When>
 
@@ -67,20 +78,11 @@
     -->
     <When Condition="'$(DotNetBuildSourceOnly)' == 'true' AND '$(DotNetBuildOrchestrator)' == 'true'">
       <PropertyGroup>
-        <DefaultNetCoreTargetFramework>$(NetCurrent)</DefaultNetCoreTargetFramework>
-        <DefaultNetCoreTargetFrameworks>$(DefaultNetCoreTargetFramework)</DefaultNetCoreTargetFrameworks>
+        <NetVS>$(NetCurrent)</NetVS>
+        <NetVSCode>$(NetCurrent)</NetVSCode>
+        <NetVSAndVSCode>$(NetVS);$(NetVSCode)</NetVSAndVSCode>
       </PropertyGroup>
     </When>
-
-    <!--
-      3. Everything else including normal CI, developer machines and official builds.
-    -->
-    <Otherwise>
-      <PropertyGroup>
-        <DefaultNetCoreTargetFramework>net8.0</DefaultNetCoreTargetFramework>
-        <DefaultNetCoreTargetFrameworks>$(DefaultNetCoreTargetFramework)</DefaultNetCoreTargetFrameworks>
-      </PropertyGroup>
-    </Otherwise>
   </Choose>
 
   <ItemGroup>
@@ -91,7 +93,7 @@
       the same type that is included in Microsoft.CodeAnalysis.ExternalAccess.Razor, which allows InternalsVisibleTo access
       to Razor tooling.
     -->
-    <Compile Condition="'$(SkipLanguageSupport)' != 'true'" Include="$(MSBuildThisFileDirectory)\src\Shared\LanguageSupport\IsExternalInit.cs" Link="LanguageSupport\IsExternalInit.cs" />
+    <Compile Condition="'$(SkipLanguageSupport)' != 'true'" Include="$(SharedFilesRoot)LanguageSupport\IsExternalInit.cs" Link="LanguageSupport\IsExternalInit.cs" />
   </ItemGroup>
 
   <PropertyGroup Label="Package and Assembly Metadata">

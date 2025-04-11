@@ -24,7 +24,7 @@ internal class CSharpVirtualDocumentManager : IRazorStartupService, IDisposable
     [ImportingConstructor]
     public CSharpVirtualDocumentManager(
         LSPDocumentManager lspDocumentManager,
-        IProjectSnapshotManager projectManager)
+        ProjectSnapshotManager projectManager)
     {
         _lspDocumentManager = lspDocumentManager;
 
@@ -57,7 +57,7 @@ internal class CSharpVirtualDocumentManager : IRazorStartupService, IDisposable
 
     private void ProjectManager_Changed(object sender, ProjectChangeEventArgs e)
     {
-        if (e.SolutionIsClosing)
+        if (e.IsSolutionClosing)
         {
             return;
         }

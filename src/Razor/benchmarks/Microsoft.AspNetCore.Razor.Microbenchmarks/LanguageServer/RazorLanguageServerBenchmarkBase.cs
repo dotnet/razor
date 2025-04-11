@@ -59,13 +59,12 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
 
     private protected ILogger Logger { get; }
 
-    internal async Task<IDocumentSnapshot> GetDocumentSnapshotAsync(string projectFilePath, string filePath, string targetPath)
+    internal async Task<IDocumentSnapshot> GetDocumentSnapshotAsync(string projectFilePath, string filePath, string targetPath, string rootNamespace = null)
     {
         var intermediateOutputPath = Path.Combine(Path.GetDirectoryName(projectFilePath), "obj");
-        var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
+        var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace);
         using var fileStream = new FileStream(filePath, FileMode.Open);
         var text = SourceText.From(fileStream);
-        var textLoader = TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create()));
         var hostDocument = new HostDocument(filePath, targetPath, FileKinds.Component);
 
         var projectManager = CreateProjectSnapshotManager();
@@ -73,17 +72,14 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         await projectManager.UpdateAsync(
             updater =>
             {
-                updater.ProjectAdded(hostProject);
-                var tagHelpers = CommonResources.LegacyTagHelpers;
-                var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers);
-                updater.ProjectWorkspaceStateChanged(hostProject.Key, projectWorkspaceState);
-                updater.DocumentAdded(hostProject.Key, hostDocument, textLoader);
+                updater.AddProject(hostProject);
+                var projectWorkspaceState = ProjectWorkspaceState.Create(CommonResources.LegacyTagHelpers);
+                updater.UpdateProjectWorkspaceState(hostProject.Key, projectWorkspaceState);
+                updater.AddDocument(hostProject.Key, hostDocument, text);
             },
             CancellationToken.None);
 
-        var projectSnapshot = projectManager.GetLoadedProject(hostProject.Key);
-
-        return projectSnapshot.GetDocument(filePath);
+        return projectManager.GetRequiredDocument(hostProject.Key, filePath);
     }
 
     private sealed class NoOpClientNotifierService : IClientConnection, IOnInitialized

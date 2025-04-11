@@ -12,6 +12,11 @@
         <target state="translated">Créer un composant à partir de la balise</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blazor_directive_attributes">
+        <source>Blazor directive attributes</source>
+        <target state="translated">Attributs de directive Blazor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Diagnostics_after">
         <source>Diagnostics after:</source>
         <target state="translated">Diagnostics après :</target>
@@ -99,6 +104,11 @@
         <target state="translated">La ligne «{0}» en dehors de la plage{1} de «{2}» a été interrogée. Le document n’est peut-être pas à jour.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Promote_using_directive_to">
+        <source>Promote using directive to {0}</source>
+        <target state="translated">Promouvoir en utilisant la directive vers {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
         <source>Razor TagHelper Attribute Glyph</source>
         <target state="translated">Glyphe d’attribut Razor TagHelper</target>
@@ -109,6 +119,11 @@
         <target state="translated">Glyphe de l’élément Razor TagHelper</target>
         <note />
       </trans-unit>
+      <trans-unit id="ReTrigger_Completions_Title">
+        <source>"Re-trigger completions..."</source>
+        <target state="translated">« Déclencher à nouveau les complétions... »</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unknown_RazorMetaCode">
         <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
         <target state="translated">Tentative de visite d’un RazorMetaCode autre que '{' or '}'.</target>
@@ -117,6 +132,31 @@
       <trans-unit id="Unknown_mapping_behavior">
         <source>Unknown mapping behavior</source>
         <target state="translated">Comportement de mappage inconnu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unsupported_Razor_extension_0">
+        <source>Unsupported Razor extension: '{0}'.</source>
+        <target state="new">Unsupported Razor extension: '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unsupported_argument_kind">
+        <source>Unsupported argument kind: '{0}'.</source>
+        <target state="new">Unsupported argument kind: '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unsupported_argument_type">
+        <source>Unsupported argument type: '{0}'.</source>
+        <target state="new">Unsupported argument type: '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unsupported_razor_project_info_version_encountered">
+        <source>Unsupported razor project info version encounted.</source>
+        <target state="new">Unsupported razor project info version encounted.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_attributes">
+        <source>Wrap attributes</source>
+        <target state="translated">Retour à la ligne des attributs</target>
         <note />
       </trans-unit>
     </body>

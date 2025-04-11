@@ -13,23 +13,23 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Threading;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
+using LspHover = Microsoft.VisualStudio.LanguageServer.Protocol.Hover;
 
 namespace Microsoft.CodeAnalysis.Razor.Hover;
 
 internal static class HoverFactory
 {
-    public static Task<VSInternalHover?> GetHoverAsync(
+    public static Task<LspHover?> GetHoverAsync(
         RazorCodeDocument codeDocument,
-        string documentFilePath,
         int absoluteIndex,
         HoverDisplayOptions options,
-        ISolutionQueryOperations solutionQueryOperations,
+        IComponentAvailabilityService componentAvailabilityService,
         CancellationToken cancellationToken)
     {
         var syntaxTree = codeDocument.GetSyntaxTree();
@@ -38,7 +38,7 @@ internal static class HoverFactory
         if (owner is null)
         {
             Debug.Fail("Owner should never be null.");
-            return SpecializedTasks.Null<VSInternalHover>();
+            return SpecializedTasks.Null<LspHover>();
         }
 
         // For cases where the point in the middle of an attribute,
@@ -59,7 +59,7 @@ internal static class HoverFactory
             {
                 // It's possible for there to be a <Text> component that is in scope, and would be found by the GetTagHelperBinding
                 // call below, but a text tag, regardless of casing, inside C# code, is always just a text tag, not a component.
-                return SpecializedTasks.Null<VSInternalHover>();
+                return SpecializedTasks.Null<LspHover>();
             }
 
             // We want to find the parent tag, but looking up ancestors in the tree can find other things,
@@ -82,12 +82,12 @@ internal static class HoverFactory
             if (binding is null)
             {
                 // No matching tagHelpers, it's just HTML
-                return SpecializedTasks.Null<VSInternalHover>();
+                return SpecializedTasks.Null<LspHover>();
             }
             else if (binding.IsAttributeMatch)
             {
                 // Hovered over a HTML tag name but the binding matches an attribute
-                return SpecializedTasks.Null<VSInternalHover>();
+                return SpecializedTasks.Null<LspHover>();
             }
 
             Debug.Assert(binding.Descriptors.Any());
@@ -95,7 +95,7 @@ internal static class HoverFactory
             var span = containingTagNameToken.GetLinePositionSpan(codeDocument.Source);
 
             return ElementInfoToHoverAsync(
-                documentFilePath, binding.Descriptors, span, options, solutionQueryOperations, cancellationToken);
+                codeDocument.Source.FilePath, binding.Descriptors, span, options, componentAvailabilityService, cancellationToken);
         }
 
         if (HtmlFacts.TryGetAttributeInfo(owner, out containingTagNameToken, out _, out var selectedAttributeName, out var selectedAttributeNameLocation, out attributes) &&
@@ -120,7 +120,7 @@ internal static class HoverFactory
             if (binding is null)
             {
                 // No matching TagHelpers, it's just HTML
-                return SpecializedTasks.Null<VSInternalHover>();
+                return SpecializedTasks.Null<LspHover>();
             }
 
             Debug.Assert(binding.Descriptors.Any());
@@ -172,10 +172,10 @@ internal static class HoverFactory
             return Task.FromResult(AttributeInfoToHover(tagHelperAttributes, attributeName, span, options));
         }
 
-        return SpecializedTasks.Null<VSInternalHover>();
+        return SpecializedTasks.Null<LspHover>();
     }
 
-    private static VSInternalHover? AttributeInfoToHover(
+    private static LspHover? AttributeInfoToHover(
         ImmutableArray<BoundAttributeDescriptor> boundAttributes,
         string attributeName,
         LinePositionSpan span,
@@ -205,7 +205,7 @@ internal static class HoverFactory
             return null;
         }
 
-        return new VSInternalHover
+        return new LspHover
         {
             Contents = new MarkupContent()
             {
@@ -216,21 +216,25 @@ internal static class HoverFactory
         };
     }
 
-    private static async Task<VSInternalHover?> ElementInfoToHoverAsync(
-        string documentFilePath,
+    private static async Task<LspHover?> ElementInfoToHoverAsync(
+        string? documentFilePath,
         ImmutableArray<TagHelperDescriptor> descriptors,
         LinePositionSpan span,
         HoverDisplayOptions options,
-        ISolutionQueryOperations solutionQueryOperations,
+        IComponentAvailabilityService componentAvailabilityService,
         CancellationToken cancellationToken)
     {
-        var descriptionInfos = descriptors.SelectAsArray(BoundElementDescriptionInfo.From);
+        // Filter out attribute descriptors since we're creating an element hover
+        var keepAttributeInfo = FileKinds.GetFileKindFromFilePath(documentFilePath) == FileKinds.Legacy;
+        var descriptionInfos = descriptors
+            .Where(d => keepAttributeInfo || !d.IsAttributeDescriptor())
+            .SelectAsArray(BoundElementDescriptionInfo.From);
         var elementDescriptionInfo = new AggregateBoundElementDescription(descriptionInfos);
 
         if (options.SupportsVisualStudioExtensions)
         {
             var classifiedTextElement = await ClassifiedTagHelperTooltipFactory
-                .TryCreateTooltipContainerAsync(documentFilePath, elementDescriptionInfo, solutionQueryOperations, cancellationToken)
+                .TryCreateTooltipContainerAsync(documentFilePath, elementDescriptionInfo, componentAvailabilityService, cancellationToken)
                 .ConfigureAwait(false);
 
             if (classifiedTextElement is not null)
@@ -245,7 +249,7 @@ internal static class HoverFactory
         }
 
         var tooltipContent = await MarkupTagHelperTooltipFactory
-            .TryCreateTooltipAsync(documentFilePath, elementDescriptionInfo, solutionQueryOperations, options.MarkupKind, cancellationToken)
+            .TryCreateTooltipAsync(documentFilePath, elementDescriptionInfo, componentAvailabilityService, options.MarkupKind, cancellationToken)
             .ConfigureAwait(false);
 
         if (tooltipContent is null)
@@ -253,7 +257,7 @@ internal static class HoverFactory
             return null;
         }
 
-        return new VSInternalHover
+        return new LspHover
         {
             Contents = new MarkupContent()
             {

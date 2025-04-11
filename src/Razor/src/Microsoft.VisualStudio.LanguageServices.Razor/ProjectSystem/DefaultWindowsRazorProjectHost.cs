@@ -28,7 +28,13 @@ namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 // MSBuild provides configuration support (>= 2.1).
 [AppliesTo("DotNetCoreRazor & DotNetCoreRazorConfiguration")]
 [Export(ExportContractNames.Scopes.UnconfiguredProject, typeof(IProjectDynamicLoadComponent))]
-internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
+[method: ImportingConstructor]
+internal class DefaultWindowsRazorProjectHost(
+    IUnconfiguredProjectCommonServices commonServices,
+    [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+    ProjectSnapshotManager projectManager,
+    LanguageServerFeatureOptions languageServerFeatureOptions)
+    : WindowsRazorProjectHostBase(commonServices, serviceProvider, projectManager, languageServerFeatureOptions)
 {
     private const string RootNamespaceProperty = "RootNamespace";
     private static readonly ImmutableHashSet<string> s_ruleNames = ImmutableHashSet.CreateRange(new string[]
@@ -40,24 +46,12 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
             Rules.RazorGenerateWithTargetPath.SchemaName,
             ConfigurationGeneralSchemaName,
         });
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-
-    [ImportingConstructor]
-    public DefaultWindowsRazorProjectHost(
-        IUnconfiguredProjectCommonServices commonServices,
-        [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-        IProjectSnapshotManager projectManager,
-        LanguageServerFeatureOptions languageServerFeatureOptions)
-        : base(commonServices, serviceProvider, projectManager)
-    {
-        _languageServerFeatureOptions = languageServerFeatureOptions;
-    }
 
     protected override ImmutableHashSet<string> GetRuleNames() => s_ruleNames;
 
     protected override async Task HandleProjectChangeAsync(string sliceDimensions, IProjectVersionedValue<IProjectSubscriptionUpdate> update)
     {
-        if (TryGetConfiguration(update.Value.CurrentState, _languageServerFeatureOptions.ToLanguageServerFlags(), out var configuration) &&
+        if (TryGetConfiguration(update.Value.CurrentState, out var configuration) &&
             TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
         {
             TryGetRootNamespace(update.Value.CurrentState, out var rootNamespace);
@@ -71,7 +65,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
                     updater =>
                     {
                         var beforeProjectKey = new ProjectKey(beforeIntermediateOutputPath);
-                        updater.ProjectRemoved(beforeProjectKey);
+                        updater.RemoveProject(beforeProjectKey);
                     },
                     CancellationToken.None)
                     .ConfigureAwait(false);
@@ -101,13 +95,13 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
 
                     for (var i = 0; i < changedDocuments.Length; i++)
                     {
-                        updater.DocumentRemoved(hostProject.Key, changedDocuments[i]);
+                        updater.RemoveDocument(hostProject.Key, changedDocuments[i].FilePath);
                     }
 
                     for (var i = 0; i < documents.Length; i++)
                     {
                         var document = documents[i];
-                        updater.DocumentAdded(hostProject.Key, document, new FileTextLoader(document.FilePath, null));
+                        updater.AddDocument(hostProject.Key, document, new FileTextLoader(document.FilePath, null));
                     }
                 },
                 CancellationToken.None)
@@ -119,7 +113,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
             await UpdateAsync(
                 updater =>
                 {
-                    var projectKeys = GetAllProjectKeys(CommonServices.UnconfiguredProject.FullPath);
+                    var projectKeys = GetProjectKeysWithFilePath(CommonServices.UnconfiguredProject.FullPath);
                     foreach (var projectKey in projectKeys)
                     {
                         RemoveProject(updater, projectKey);
@@ -134,7 +128,6 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
     // Internal for testing
     internal static bool TryGetConfiguration(
         IImmutableDictionary<string, IProjectRuleSnapshot> state,
-        LanguageServerFlags? languageServerFlags,
         [NotNullWhen(returnValue: true)] out RazorConfiguration? configuration)
     {
         if (!TryGetDefaultConfiguration(state, out var defaultConfiguration))
@@ -165,8 +158,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
         configuration = new(
             languageVersion,
             configurationItem.Key,
-            extensions,
-            LanguageServerFlags: languageServerFlags);
+            extensions);
 
         return true;
     }

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(DefaultNetCoreTargetFrameworks);$(DefaultNetFxTargetFramework)</TargetFrameworks>
+    <TargetFrameworks>$(NetVSAndVSCode);$(NetFxVS)</TargetFrameworks>
     <Description>Razor is a markup syntax for adding server-side logic to web pages. This package contains the language server library assets.</Description>
     <EnableApiCheck>false</EnableApiCheck>
     <IsShippingPackage>false</IsShippingPackage>
@@ -25,7 +25,7 @@
     <PackageReference Include="Microsoft.CommonLanguageServerProtocol.Framework" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
-    <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFramework)' == '$(DefaultNetFxTargetFramework)'" />
+    <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFramework)' == '$(NetFxVS)'" />
 
     <!--
       Pinning packages to avoid misaligned reference CI failures.
@@ -33,6 +33,14 @@
       Now we aren't sure why this exposes a "flaky" issue; however, to workaround the break we pin the following packages to workaround the issue.
     -->
     <PackageReference Include="Microsoft.VisualStudio.RpcContracts" />
+
+    <!--
+      Razor and Roslyn both use CLaSP as the basis for their language servers, but CLaSP is a source package
+      which means when we reference Roslyn's server to get the LSP protocol types (which we have a restricted
+      IVT to) we get ambiguous type errors for everything in CLaSP. To fix this we reference Roslyn with an
+      alias, and then have a global using for the LSP protocol types only.
+    -->
+    <PackageReference Include="Microsoft.CodeAnalysis.LanguageServer.Protocol" Aliases="RLSP" />
   </ItemGroup>
 
   <ItemGroup>
@@ -74,7 +82,6 @@
     <InternalsVisibleTo Include="rzls" Key="$(RazorKey)" />
 
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Namespace="Microsoft.AspNetCore.Razor.LanguageServer.Hosting" Key="$(RazorKey)" />
-    <RestrictedInternalsVisibleTo Include="rzls" Namespace="Microsoft.AspNetCore.Razor.LanguageServer.Extensions" Key="$(RazorKey)" />
     <RestrictedInternalsVisibleTo Include="rzls" Namespace="Microsoft.AspNetCore.Razor.LanguageServer.Hosting" Key="$(RazorKey)" />
   </ItemGroup>
 

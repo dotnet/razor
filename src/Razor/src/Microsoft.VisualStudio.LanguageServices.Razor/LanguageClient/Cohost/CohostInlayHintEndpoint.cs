@@ -30,7 +30,7 @@ internal class CohostInlayHintEndpoint(IRemoteServiceInvoker remoteServiceInvoke
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<VSLSP.Registration> GetRegistrations(VSLSP.VSInternalClientCapabilities clientCapabilities, VSLSP.DocumentFilter[] filter, RazorCohostRequestContext requestContext)
+    public ImmutableArray<VSLSP.Registration> GetRegistrations(VSLSP.VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.InlayHint?.DynamicRegistration == true)
         {
@@ -38,9 +38,6 @@ internal class CohostInlayHintEndpoint(IRemoteServiceInvoker remoteServiceInvoke
             {
                 Method = Methods.TextDocumentInlayHintName,
                 RegisterOptions = new VSLSP.InlayHintRegistrationOptions()
-                {
-                    DocumentSelector = filter
-                }
             }];
         }
 

@@ -9,15 +9,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
-using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -45,7 +43,6 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         };
 
         var context = CreateRazorCodeActionContext(request, absoluteIndex: 0, documentPath, contents, new SourceSpan(0, 0));
-        context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var provider = new TypeAccessibilityCodeActionProvider();
         ImmutableArray<RazorVSInternalCodeAction> csharpCodeActions =
@@ -99,7 +96,6 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         };
 
         var context = CreateRazorCodeActionContext(request, absoluteIndex: 0, documentPath, contents, new SourceSpan(0, 0), supportsCodeActionResolve: false);
-        context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var provider = new TypeAccessibilityCodeActionProvider();
         ImmutableArray<RazorVSInternalCodeAction> csharpCodeActions =
@@ -140,7 +136,6 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         };
 
         var context = CreateRazorCodeActionContext(request, absoluteIndex: 0, documentPath, contents, new SourceSpan(0, 0));
-        context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var provider = new TypeAccessibilityCodeActionProvider();
         var csharpCodeActions = ImmutableArray<RazorVSInternalCodeAction>.Empty;
@@ -190,7 +185,6 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         };
 
         var context = CreateRazorCodeActionContext(request, absoluteIndex: 0, documentPath, contents, new SourceSpan(8, 4), supportsCodeActionResolve: false);
-        context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var provider = new TypeAccessibilityCodeActionProvider();
         ImmutableArray<RazorVSInternalCodeAction> csharpCodeActions =
@@ -248,7 +242,6 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         };
 
         var context = CreateRazorCodeActionContext(request, absoluteIndex: 8, documentPath, contents, new SourceSpan(8, 4), supportsCodeActionResolve: true);
-        context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var provider = new TypeAccessibilityCodeActionProvider();
         ImmutableArray<RazorVSInternalCodeAction> csharpCodeActions =
@@ -299,7 +292,6 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         };
 
         var context = CreateRazorCodeActionContext(request, absoluteIndex: 0, documentPath, contents, new SourceSpan(8, 4), supportsCodeActionResolve: true);
-        context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var provider = new TypeAccessibilityCodeActionProvider();
         ImmutableArray<RazorVSInternalCodeAction> csharpCodeActions =
@@ -373,7 +365,6 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         };
 
         var context = CreateRazorCodeActionContext(request, absoluteIndex: 0, documentPath, contents, new SourceSpan(8, 4), supportsCodeActionResolve: false);
-        context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
         var provider = new TypeAccessibilityCodeActionProvider();
         ImmutableArray<RazorVSInternalCodeAction> csharpCodeActions =
@@ -449,19 +440,24 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         {
             builder.AddTagHelpers(tagHelpers);
             builder.AddDirective(InjectDirective.Directive);
-            builder.Features.Add(new ConfigureRazorParserOptions(useRoslynTokenizer: true, CSharpParseOptions.Default));
+
+            builder.ConfigureParserOptions(builder =>
+            {
+                builder.UseRoslynTokenizer = true;
+            });
         });
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, importSources: default, tagHelpers);
+
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Legacy, importSources: default, tagHelpers);
 
         var csharpDocument = codeDocument.GetCSharpDocument();
         var diagnosticDescriptor = new RazorDiagnosticDescriptor("RZ10012", "diagnostic", RazorDiagnosticSeverity.Error);
         var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, componentSourceSpan);
-        var csharpDocumentWithDiagnostic = new RazorCSharpDocument(codeDocument, csharpDocument.GeneratedCode, csharpDocument.Options, [diagnostic]);
+        var csharpDocumentWithDiagnostic = new RazorCSharpDocument(codeDocument, csharpDocument.Text, csharpDocument.Options, [diagnostic]);
         codeDocument.SetCSharpDocument(csharpDocumentWithDiagnostic);
 
         var documentSnapshotMock = new StrictMock<IDocumentSnapshot>();
         documentSnapshotMock
-            .Setup(x => x.GetGeneratedOutputAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetGeneratedOutputAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(codeDocument);
         documentSnapshotMock
             .Setup(x => x.GetTextAsync(It.IsAny<CancellationToken>()))
@@ -474,8 +470,10 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
             request,
             documentSnapshotMock.Object,
             codeDocument,
+            DelegatedDocumentUri: null,
             StartAbsoluteIndex: absoluteIndex,
             EndAbsoluteIndex: absoluteIndex,
+            RazorLanguageKind.Razor,
             codeDocument.Source.Text,
             supportsFileCreation,
             supportsCodeActionResolve);

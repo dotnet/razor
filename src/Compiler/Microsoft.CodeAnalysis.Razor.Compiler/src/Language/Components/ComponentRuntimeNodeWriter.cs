@@ -51,11 +51,10 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             }
         }
 
-        if (isWhitespaceStatement)
+        if (node.Source is null && isWhitespaceStatement)
         {
-            // The runtime and design time code differ in their handling of whitespace-only
-            // statements. At runtime we can discard them completely. At design time we need
-            // to keep them for the editor.
+            // If source is null, we won't create source mappings, and if we're not creating source mappings,
+            // there is no point emitting whitespace
             return;
         }
 
@@ -331,13 +330,18 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
         if (node.Source is { FilePath: not null } sourceSpan)
         {
-            using (context.CodeWriter.BuildEnhancedLinePragma(sourceSpan, context, suppressLineDefaultAndHidden: !node.AppendLineDefaultAndHidden))
+            using (context.CodeWriter.BuildEnhancedLinePragma(sourceSpan, context, suppressLineDefaultAndHidden: true))
             {
                 context.CodeWriter.WriteUsing(node.Content, endLine: node.HasExplicitSemicolon);
             }
             if (!node.HasExplicitSemicolon)
             {
                 context.CodeWriter.WriteLine(";");
+            }
+            if (node.AppendLineDefaultAndHidden)
+            {
+                context.CodeWriter.WriteLine("#line default");
+                context.CodeWriter.WriteLine("#line hidden");
             }
         }
         else
@@ -593,6 +597,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
         if (node.IsDesignTimePropertyAccessHelper())
         {
+            WriteDesignTimePropertyAccessor(context, node);
             return;
         }
 
@@ -623,6 +628,17 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
         context.CodeWriter.Write(");");
         context.CodeWriter.WriteLine();
+    }
+
+    private static void WriteDesignTimePropertyAccessor(CodeRenderingContext context, ComponentAttributeIntermediateNode attribute)
+    {
+        // These attributes don't really exist in the emitted code, but have a representation in the razor document.
+        // We emit a small piece of empty code that is elided by the compiler, so that the IDE has something to reference
+        // for Find All References etc.
+        Debug.Assert(attribute.BoundAttribute?.ContainingType is not null);
+        context.CodeWriter.Write(" _ = ");
+        WriteComponentAttributeName(context, attribute);
+        context.CodeWriter.WriteLine(";");
     }
 
     private void WriteComponentAttributeInnards(CodeRenderingContext context, ComponentAttributeIntermediateNode node, bool canTypeCheck)

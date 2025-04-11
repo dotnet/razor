@@ -292,7 +292,7 @@ public class CSharpCodeWriterTest
 
         // Act
         writer.WriteLineNumberDirective(mappingLocation);
-        var code = writer.GenerateCode();
+        var code = writer.GetText().ToString();
 
         // Assert
         Assert.Equal(expected, code);
@@ -308,7 +308,7 @@ public class CSharpCodeWriterTest
         writer.WriteField(Array.Empty<string>(), new[] { "private" }, "global::System.String", "_myString");
 
         // Assert
-        var output = writer.GenerateCode();
+        var output = writer.GetText().ToString();
         Assert.Equal("""
             private global::System.String _myString;
 
@@ -325,7 +325,7 @@ public class CSharpCodeWriterTest
         writer.WriteField(Array.Empty<string>(), new[] { "private", "readonly", "static" }, "global::System.String", "_myString");
 
         // Assert
-        var output = writer.GenerateCode();
+        var output = writer.GetText().ToString();
         Assert.Equal("""
             private readonly static global::System.String _myString;
 
@@ -346,7 +346,7 @@ public class CSharpCodeWriterTest
             "_myString");
 
         // Assert
-        var output = writer.GenerateCode();
+        var output = writer.GetText().ToString();
         Assert.Equal("""
             #pragma warning disable 0001
             #pragma warning disable 0002
@@ -368,7 +368,7 @@ public class CSharpCodeWriterTest
         writer.WriteAutoPropertyDeclaration(new[] { "public" }, "global::System.String", "MyString");
 
         // Assert
-        var output = writer.GenerateCode();
+        var output = writer.GetText().ToString();
         Assert.Equal("""
             public global::System.String MyString { get; set; }
 
@@ -385,7 +385,7 @@ public class CSharpCodeWriterTest
         writer.WriteAutoPropertyDeclaration(new[] { "public", "static" }, "global::System.String", "MyString");
 
         // Assert
-        var output = writer.GenerateCode();
+        var output = writer.GetText().ToString();
         Assert.Equal("""
             public static global::System.String MyString { get; set; }
 
@@ -396,11 +396,9 @@ public class CSharpCodeWriterTest
     public void CSharpCodeWriter_RespectTabSetting()
     {
         // Arrange
-        var options = RazorCodeGenerationOptions.Create(o =>
-        {
-            o.IndentWithTabs = true;
-            o.IndentSize = 4;
-        });
+        var options = RazorCodeGenerationOptions.Default
+            .WithIndentSize(4)
+            .WithFlags(indentWithTabs: true);
 
         using var writer = new CodeWriter(options);
 
@@ -409,7 +407,7 @@ public class CSharpCodeWriterTest
         writer.WriteField(Array.Empty<string>(), Array.Empty<string>(), "int", "f");
 
         // Assert
-        var output = writer.GenerateCode();
+        var output = writer.GetText().ToString();
         Assert.Equal("""
             class C
             {
@@ -422,11 +420,9 @@ public class CSharpCodeWriterTest
     public void CSharpCodeWriter_RespectSpaceSetting()
     {
         // Arrange
-        var options = RazorCodeGenerationOptions.Create(o =>
-        {
-            o.IndentWithTabs = false;
-            o.IndentSize = 4;
-        });
+        var options = RazorCodeGenerationOptions.Default
+            .WithIndentSize(4)
+            .WithFlags(indentWithTabs: false);
 
         using var writer = new CodeWriter(options);
 
@@ -435,7 +431,7 @@ public class CSharpCodeWriterTest
         writer.WriteField(Array.Empty<string>(), Array.Empty<string>(), "int", "f");
 
         // Assert
-        var output = writer.GenerateCode();
+        var output = writer.GetText().ToString();
         Assert.Equal("""
             class C
             {

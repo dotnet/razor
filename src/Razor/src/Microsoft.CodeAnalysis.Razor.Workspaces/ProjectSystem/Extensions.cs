@@ -6,24 +6,14 @@ using System;
 #endif
 
 using System.Diagnostics;
-using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+namespace Microsoft.AspNetCore.Razor.ProjectSystem;
 
 internal static class Extensions
 {
-    public static DocumentSnapshotHandle ToHandle(this IDocumentSnapshot snapshot)
-        => new(snapshot.FilePath.AssumeNotNull(), snapshot.TargetPath.AssumeNotNull(), snapshot.FileKind.AssumeNotNull());
-
-    public static ProjectKey ToProjectKey(this Project project)
-    {
-        var intermediateOutputPath = FilePathNormalizer.GetNormalizedDirectoryName(project.CompilationOutputInfo.AssemblyPath);
-        return new(intermediateOutputPath);
-    }
-
     /// <summary>
     /// Returns <see langword="true"/> if this <see cref="ProjectKey"/> matches the given <see cref="Project"/>.
     /// </summary>
@@ -38,5 +28,14 @@ internal static class Extensions
         Debug.Assert(projectKey.Id.EndsWith('/'), $"This method can't be called if {nameof(projectKey.Id)} is not a normalized directory path.");
 
         return FilePathNormalizer.AreDirectoryPathsEquivalent(projectKey.Id, project.CompilationOutputInfo.AssemblyPath);
+    }
+
+    public static DocumentSnapshotHandle ToHandle(this IDocumentSnapshot snapshot)
+        => new(snapshot.FilePath, snapshot.TargetPath, snapshot.FileKind);
+
+    public static ProjectKey ToProjectKey(this Project project)
+    {
+        var intermediateOutputPath = FilePathNormalizer.GetNormalizedDirectoryName(project.CompilationOutputInfo.AssemblyPath);
+        return new(intermediateOutputPath);
     }
 }

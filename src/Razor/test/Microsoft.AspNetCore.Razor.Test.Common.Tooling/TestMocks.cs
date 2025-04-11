@@ -14,25 +14,14 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 
 internal static class TestMocks
 {
-    public static TextLoader CreateTextLoader(string filePath, string text)
-    {
-        return CreateTextLoader(filePath, SourceText.From(text));
-    }
-
-    public static TextLoader CreateTextLoader(string filePath, SourceText text)
-    {
-        var mock = new StrictMock<TextLoader>();
-
-        var textAndVersion = TextAndVersion.Create(text, VersionStamp.Create(), filePath);
-
-        mock.Setup(x => x.LoadTextAndVersionAsync(It.IsAny<LoadTextOptions>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(textAndVersion);
-
-        return mock.Object;
-    }
+    public static TextLoader CreateTextLoader(string text)
+        => CreateTextLoader(text, VersionStamp.Create());
 
     public static TextLoader CreateTextLoader(string text, VersionStamp version)
         => CreateTextLoader(SourceText.From(text), version);
+
+    public static TextLoader CreateTextLoader(SourceText text)
+        => CreateTextLoader(text, VersionStamp.Create());
 
     public static TextLoader CreateTextLoader(SourceText text, VersionStamp version)
     {
@@ -110,8 +99,6 @@ internal static class TestMocks
             .Returns(hostProject.FilePath);
         mock.SetupGet(x => x.IntermediateOutputPath)
             .Returns(hostProject.IntermediateOutputPath);
-        mock.SetupGet(x => x.Configuration)
-            .Returns(hostProject.Configuration);
         mock.SetupGet(x => x.RootNamespace)
             .Returns(hostProject.RootNamespace);
         mock.SetupGet(x => x.DisplayName)
@@ -119,8 +106,6 @@ internal static class TestMocks
 
         if (projectWorkspaceState is not null)
         {
-            mock.SetupGet(x => x.ProjectWorkspaceState)
-                .Returns(projectWorkspaceState);
             mock.Setup(x => x.GetTagHelpersAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(projectWorkspaceState.TagHelpers);
         }

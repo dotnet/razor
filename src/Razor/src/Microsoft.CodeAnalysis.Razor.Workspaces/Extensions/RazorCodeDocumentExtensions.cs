@@ -6,8 +6,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -17,35 +20,66 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 internal static class RazorCodeDocumentExtensions
 {
-    private static readonly object s_csharpSourceTextKey = new();
-    private static readonly object s_htmlSourceTextKey = new();
+    private static readonly object s_csharpSyntaxTreeKey = new();
+    private static readonly object s_unsupportedKey = new();
 
-    public static SourceText GetCSharpSourceText(this RazorCodeDocument document)
+    public static bool IsUnsupported(this RazorCodeDocument document)
     {
-        if (!document.Items.TryGetValue(s_csharpSourceTextKey, out SourceText? sourceText))
+        if (document is null)
         {
-            var csharpDocument = document.GetCSharpDocument();
-            sourceText = SourceText.From(csharpDocument.GeneratedCode);
-            document.Items[s_csharpSourceTextKey] = sourceText;
-
-            return sourceText;
+            throw new ArgumentNullException(nameof(document));
         }
 
-        return sourceText.AssumeNotNull();
+        var unsupportedObj = document.Items[s_unsupportedKey];
+        if (unsupportedObj is null)
+        {
+            return false;
+        }
+
+        return (bool)unsupportedObj;
     }
 
-    public static SourceText GetHtmlSourceText(this RazorCodeDocument document)
+    public static void SetUnsupported(this RazorCodeDocument document)
     {
-        if (!document.Items.TryGetValue(s_htmlSourceTextKey, out SourceText? sourceText))
+        if (document is null)
         {
-            var htmlDocument = document.GetHtmlDocument();
-            sourceText = SourceText.From(htmlDocument.GeneratedCode);
-            document.Items[s_htmlSourceTextKey] = sourceText;
-
-            return sourceText;
+            throw new ArgumentNullException(nameof(document));
         }
 
-        return sourceText.AssumeNotNull();
+        document.Items[s_unsupportedKey] = true;
+    }
+
+    public static RazorSyntaxTree GetRequiredSyntaxTree(this RazorCodeDocument codeDocument)
+        => codeDocument.GetSyntaxTree().AssumeNotNull();
+
+    public static Syntax.SyntaxNode GetRequiredSyntaxRoot(this RazorCodeDocument codeDocument)
+        => codeDocument.GetRequiredSyntaxTree().Root;
+
+    public static TagHelperDocumentContext GetRequiredTagHelperContext(this RazorCodeDocument codeDocument)
+        => codeDocument.GetTagHelperContext().AssumeNotNull();
+
+    public static SourceText GetCSharpSourceText(this RazorCodeDocument document)
+        => document.GetCSharpDocument().Text;
+
+    public static SourceText GetHtmlSourceText(this RazorCodeDocument document)
+        => document.GetHtmlDocument().Text;
+
+    /// <summary>
+    ///  Retrieves a cached Roslyn <see cref="SyntaxTree"/> from the generated C# document.
+    ///  If a tree has not yet been cached, a new one will be parsed and added to the cache.
+    /// </summary>
+    public static SyntaxTree GetOrParseCSharpSyntaxTree(this RazorCodeDocument document, CancellationToken cancellationToken)
+    {
+        if (!document.Items.TryGetValue(s_csharpSyntaxTreeKey, out SyntaxTree? syntaxTree))
+        {
+            var csharpText = document.GetCSharpSourceText();
+            syntaxTree = CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
+            document.Items[s_csharpSyntaxTreeKey] = syntaxTree;
+
+            return syntaxTree;
+        }
+
+        return syntaxTree.AssumeNotNull();
     }
 
     public static bool TryGetGeneratedDocument(

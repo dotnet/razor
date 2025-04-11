@@ -2,10 +2,11 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Razor.DynamicFiles;
 using Xunit;
 using Xunit.Abstractions;
@@ -642,6 +643,6 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 
     private RazorDocumentExcerptService CreateExcerptService(IDocumentSnapshot document)
     {
-        return new RazorDocumentExcerptService(document, new RazorSpanMappingService(document));
+        return new RazorDocumentExcerptService(document, new RazorMappingService(document, NoOpTelemetryReporter.Instance, LoggerFactory));
     }
 }

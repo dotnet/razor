@@ -3,21 +3,22 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
-internal static partial class IProjectSnapshotManagerExtensions
+internal static partial class ProjectSnapshotManagerExtensions
 {
-    private sealed class SolutionQueryOperations(IProjectSnapshotManager projectManager) : ISolutionQueryOperations
+    private sealed class SolutionQueryOperations(ProjectSnapshotManager projectManager) : ISolutionQueryOperations
     {
-        private readonly IProjectSnapshotManager _projectManager = projectManager;
+        private readonly ProjectSnapshotManager _projectManager = projectManager;
 
         public IEnumerable<IProjectSnapshot> GetProjects()
         {
-            return _projectManager.GetProjects();
+            return _projectManager.GetProjects().Cast<IProjectSnapshot>();
         }
 
         public ImmutableArray<IProjectSnapshot> GetProjectsContainingDocument(string documentFilePath)
@@ -27,7 +28,7 @@ internal static partial class IProjectSnapshotManagerExtensions
             foreach (var project in _projectManager.GetProjects())
             {
                 // Always exclude the miscellaneous project.
-                if (project.Key == MiscFilesHostProject.Instance.Key)
+                if (project.Key == MiscFilesProject.Key)
                 {
                     continue;
                 }

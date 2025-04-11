@@ -10,11 +10,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -45,8 +46,7 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
             Context = new VSInternalCodeActionContext()
         };
 
-        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents);
-        context.CodeDocument.SetFileKind(FileKinds.Legacy);
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, fileKind: FileKinds.Legacy);
 
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
@@ -367,30 +367,44 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
         Assert.Empty(commandOrCodeActionContainer);
     }
 
-    private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, int absoluteIndex, string filePath, string text, bool supportsFileCreation = true)
-        => CreateRazorCodeActionContext(request, absoluteIndex, filePath, text, relativePath: filePath, supportsFileCreation: supportsFileCreation);
+    private static RazorCodeActionContext CreateRazorCodeActionContext(
+        VSCodeActionParams request,
+        int absoluteIndex,
+        string filePath,
+        string text,
+        string? fileKind = null,
+        bool supportsFileCreation = true)
+        => CreateRazorCodeActionContext(
+            request, absoluteIndex, filePath, text, relativePath: filePath, fileKind, supportsFileCreation: supportsFileCreation);
 
-    private static RazorCodeActionContext CreateRazorCodeActionContext(VSCodeActionParams request, int absoluteIndex, string filePath, string text, string? relativePath, bool supportsFileCreation = true)
+    private static RazorCodeActionContext CreateRazorCodeActionContext(
+        VSCodeActionParams request,
+        int absoluteIndex,
+        string filePath,
+        string text,
+        string? relativePath,
+        string? fileKind = null,
+        bool supportsFileCreation = true)
     {
-        var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(filePath, relativePath));
-        var options = RazorParserOptions.Create(o =>
-        {
-            o.Directives.Add(ComponentCodeDirective.Directive);
-            o.Directives.Add(FunctionsDirective.Directive);
-        });
-        var syntaxTree = RazorSyntaxTree.Parse(sourceDocument, options);
+        var source = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(filePath, relativePath));
 
-        var codeDocument = TestRazorCodeDocument.Create(sourceDocument, imports: default);
-        codeDocument.SetFileKind(FileKinds.Component);
-        codeDocument.SetCodeGenerationOptions(RazorCodeGenerationOptions.Create(o =>
-        {
-            o.RootNamespace = "ExtractToCodeBehindTest";
-        }));
+        fileKind ??= FileKinds.Component;
+
+        var codeDocument = RazorCodeDocument.Create(
+            source,
+            parserOptions: RazorParserOptions.Create(RazorLanguageVersion.Latest, fileKind, builder =>
+            {
+                builder.Directives = [ComponentCodeDirective.Directive, FunctionsDirective.Directive];
+            }),
+            codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("ExtractToCodeBehindTest"));
+
+        var syntaxTree = RazorSyntaxTree.Parse(source, codeDocument.ParserOptions);
+
         codeDocument.SetSyntaxTree(syntaxTree);
 
         var documentSnapshotMock = new StrictMock<IDocumentSnapshot>();
         documentSnapshotMock
-            .Setup(x => x.GetGeneratedOutputAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetGeneratedOutputAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(codeDocument);
         documentSnapshotMock
             .Setup(x => x.GetTextAsync(It.IsAny<CancellationToken>()))
@@ -400,8 +414,10 @@ public class ExtractToCodeBehindCodeActionProviderTest(ITestOutputHelper testOut
             request,
             documentSnapshotMock.Object,
             codeDocument,
+            DelegatedDocumentUri: null,
             StartAbsoluteIndex: absoluteIndex,
             EndAbsoluteIndex: absoluteIndex,
+            RazorLanguageKind.Razor,
             codeDocument.Source.Text,
             supportsFileCreation,
             SupportsCodeActionResolve: true);

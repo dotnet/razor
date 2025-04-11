@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.GoToDefinition;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -57,26 +56,13 @@ public class RazorComponentDefinitionServiceTest(ITestOutputHelper testOutputHel
             }
             """;
 
-        TestCode surveyPromptGeneratedCode = """
-            using Microsoft.AspNetCore.Components;
-
-            namespace SomeProject
-            {
-                public partial class SurveyPrompt : ComponentBase
-                {
-                    [Parameter]
-                    public string Title { get; set; }
-                }
-            }
-            """;
-
-        await VerifyDefinitionAsync(input, surveyPrompt, (FileName("SurveyPrompt.razor"), surveyPrompt.Text),
-            (FileName("SurveyPrompt.razor.g.cs"), surveyPromptGeneratedCode.Text));
+        await VerifyDefinitionAsync(input, surveyPrompt,
+            (FileName("SurveyPrompt.razor"), surveyPrompt.Text));
     }
 
     private async Task VerifyDefinitionAsync(TestCode input, TestCode expectedDocument, params (string fileName, string contents)[]? additionalFiles)
     {
-        var document = await CreateProjectAndRazorDocumentAsync(input.Text, FileKinds.Component, additionalFiles);
+        var document = CreateProjectAndRazorDocument(input.Text, FileKinds.Component, additionalFiles);
 
         var service = OOPExportProvider.GetExportedValue<IRazorComponentDefinitionService>();
         var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();

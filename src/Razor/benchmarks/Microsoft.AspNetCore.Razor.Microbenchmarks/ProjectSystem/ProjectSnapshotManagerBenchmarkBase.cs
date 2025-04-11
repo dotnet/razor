@@ -49,10 +49,9 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
         Documents = documents.ToImmutable();
     }
 
-    internal ProjectSnapshotManager CreateProjectSnapshotManager()
-    {
-        return new ProjectSnapshotManager(
+    internal static ProjectSnapshotManager CreateProjectSnapshotManager()
+        => new(
             projectEngineFactoryProvider: StaticProjectEngineFactoryProvider.Instance,
+            compilerOptions: RazorCompilerOptions.None,
             loggerFactory: EmptyLoggerFactory.Instance);
-    }
 }

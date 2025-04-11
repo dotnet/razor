@@ -2,9 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
@@ -20,14 +17,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 internal sealed class WorkspaceDiagnosticsRefresher : IRazorStartupService, IDisposable
 {
     private readonly AsyncBatchingWorkQueue _queue;
-    private readonly IProjectSnapshotManager _projectSnapshotManager;
+    private readonly ProjectSnapshotManager _projectSnapshotManager;
     private readonly IClientCapabilitiesService _clientCapabilitiesService;
     private readonly IClientConnection _clientConnection;
     private bool? _supported;
     private CancellationTokenSource _disposeTokenSource = new();
 
     public WorkspaceDiagnosticsRefresher(
-        IProjectSnapshotManager projectSnapshotManager,
+        ProjectSnapshotManager projectSnapshotManager,
         IClientCapabilitiesService clientCapabilitiesService,
         IClientConnection clientConnection,
         TimeSpan? delay = null)
@@ -65,7 +62,7 @@ internal sealed class WorkspaceDiagnosticsRefresher : IRazorStartupService, IDis
 
     private void ProjectSnapshotManager_Changed(object? sender, ProjectChangeEventArgs e)
     {
-        if (e.SolutionIsClosing)
+        if (e.IsSolutionClosing)
         {
             return;
         }

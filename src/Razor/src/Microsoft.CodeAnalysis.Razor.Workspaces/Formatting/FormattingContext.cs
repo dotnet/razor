@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -22,6 +23,7 @@ internal sealed class FormattingContext
 {
     private IReadOnlyList<FormattingSpan>? _formattingSpans;
     private IReadOnlyDictionary<int, IndentationContext>? _indentations;
+    private readonly bool _useNewFormattingEngine;
 
     private FormattingContext(
         IDocumentSnapshot originalSnapshot,
@@ -29,7 +31,8 @@ internal sealed class FormattingContext
         RazorFormattingOptions options,
         bool automaticallyAddUsings,
         int hostDocumentIndex,
-        char triggerCharacter)
+        char triggerCharacter,
+        bool useNewFormattingEngine)
     {
         OriginalSnapshot = originalSnapshot;
         CodeDocument = codeDocument;
@@ -37,6 +40,7 @@ internal sealed class FormattingContext
         AutomaticallyAddUsings = automaticallyAddUsings;
         HostDocumentIndex = hostDocumentIndex;
         TriggerCharacter = triggerCharacter;
+        _useNewFormattingEngine = useNewFormattingEngine;
     }
 
     public static bool SkipValidateComponents { get; set; }
@@ -225,8 +229,9 @@ internal sealed class FormattingContext
     {
         var changedSnapshot = OriginalSnapshot.WithText(changedText);
 
-        // Formatting always uses design time document
-        var codeDocument = await changedSnapshot.GetGeneratedOutputAsync(forceDesignTimeGeneratedOutput: true, cancellationToken).ConfigureAwait(false);
+        var codeDocument = !_useNewFormattingEngine && changedSnapshot is IDesignTimeCodeGenerator generator
+            ? await generator.GenerateDesignTimeOutputAsync(cancellationToken).ConfigureAwait(false)
+            : await changedSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         DEBUG_ValidateComponents(CodeDocument, codeDocument);
 
@@ -236,7 +241,8 @@ internal sealed class FormattingContext
             Options,
             AutomaticallyAddUsings,
             HostDocumentIndex,
-            TriggerCharacter);
+            TriggerCharacter,
+            _useNewFormattingEngine);
 
         return newContext;
     }
@@ -273,13 +279,15 @@ internal sealed class FormattingContext
             options,
             automaticallyAddUsings,
             hostDocumentIndex,
-            triggerCharacter);
+            triggerCharacter,
+            useNewFormattingEngine: false);
     }
 
     public static FormattingContext Create(
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
-        RazorFormattingOptions options)
+        RazorFormattingOptions options,
+        bool useNewFormattingEngine)
     {
         return new FormattingContext(
             originalSnapshot,
@@ -287,6 +295,7 @@ internal sealed class FormattingContext
             options,
             automaticallyAddUsings: false,
             hostDocumentIndex: 0,
-            triggerCharacter: '\0');
+            triggerCharacter: '\0',
+            useNewFormattingEngine: useNewFormattingEngine);
     }
 }

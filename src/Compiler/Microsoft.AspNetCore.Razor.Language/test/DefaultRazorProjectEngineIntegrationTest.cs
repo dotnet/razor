@@ -1,11 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System.Collections.Immutable;
-using System.IO;
-using Moq;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -24,10 +20,11 @@ public class DefaultRazorProjectEngineIntegrationTest
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
-        var parserOptions = codeDocument.GetParserOptions();
+        var parserOptions = codeDocument.ParserOptions;
         Assert.False(parserOptions.DesignTime);
 
-        var codeGenerationOptions = codeDocument.GetCodeGenerationOptions();
+        var codeGenerationOptions = codeDocument.CodeGenerationOptions;
+        Assert.NotNull(codeGenerationOptions);
         Assert.False(codeGenerationOptions.DesignTime);
         Assert.False(codeGenerationOptions.SuppressChecksum);
         Assert.False(codeGenerationOptions.SuppressMetadataAttributes);
@@ -45,10 +42,11 @@ public class DefaultRazorProjectEngineIntegrationTest
         var codeDocument = projectEngine.ProcessDesignTime(projectItem);
 
         // Assert
-        var parserOptions = codeDocument.GetParserOptions();
+        var parserOptions = codeDocument.ParserOptions;
         Assert.True(parserOptions.DesignTime);
 
-        var codeGenerationOptions = codeDocument.GetCodeGenerationOptions();
+        var codeGenerationOptions = codeDocument.CodeGenerationOptions;
+        Assert.NotNull(codeGenerationOptions);
         Assert.True(codeGenerationOptions.DesignTime);
         Assert.True(codeGenerationOptions.SuppressChecksum);
         Assert.True(codeGenerationOptions.SuppressMetadataAttributes);
@@ -60,15 +58,12 @@ public class DefaultRazorProjectEngineIntegrationTest
         // Arrange
         var projectItem = new TestRazorProjectItem("Index.cshtml");
 
-        var testImport = Mock.Of<RazorProjectItem>(i => i.Read() == new MemoryStream() && i.FilePath == "testvalue" && i.Exists == true);
-        var importFeature = new Mock<IImportProjectFeature>();
-        importFeature
-            .Setup(feature => feature.GetImports(It.IsAny<RazorProjectItem>()))
-            .Returns(new[] { testImport });
+        var testImport = new TestRazorProjectItem("testvalue");
+        var importFeature = new TestImportProjectFeature(testImport);
 
         var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, TestRazorProjectFileSystem.Empty, builder =>
         {
-            builder.SetImportFeature(importFeature.Object);
+            builder.SetImportFeature(importFeature);
         });
 
         // Act
@@ -85,22 +80,16 @@ public class DefaultRazorProjectEngineIntegrationTest
         // Arrange
         var projectItem = new TestRazorProjectItem("Index.cshtml");
 
-        var testImport1 = Mock.Of<RazorProjectItem>(i => i.Read() == new MemoryStream() && i.FilePath == "testvalue1" && i.Exists == true);
-        var importFeature1 = new Mock<IImportProjectFeature>();
-        importFeature1
-            .Setup(feature => feature.GetImports(It.IsAny<RazorProjectItem>()))
-            .Returns(new[] { testImport1 });
+        var testImport1 = new TestRazorProjectItem("testvalue1");
+        var importFeature1 = new TestImportProjectFeature(testImport1);
 
-        var testImport2 = Mock.Of<RazorProjectItem>(i => i.Read() == new MemoryStream() && i.FilePath == "testvalue2" && i.Exists == true);
-        var importFeature2 = new Mock<IImportProjectFeature>();
-        importFeature2
-            .Setup(feature => feature.GetImports(It.IsAny<RazorProjectItem>()))
-            .Returns(new[] { testImport2 });
+        var testImport2 = new TestRazorProjectItem("testvalue2");
+        var importFeature2 = new TestImportProjectFeature(testImport2);
 
         var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, TestRazorProjectFileSystem.Empty, builder =>
         {
-            builder.Features.Add(importFeature1.Object);
-            builder.Features.Add(importFeature2.Object);
+            builder.Features.Add(importFeature1);
+            builder.Features.Add(importFeature2);
         });
 
         // Act
@@ -164,7 +153,7 @@ public class DefaultRazorProjectEngineIntegrationTest
         var codeDocument = projectEngine.Process(RazorSourceDocument.ReadFrom(projectItem), "test", importSources: default, tagHelpers: null);
 
         // Assert
-        var actual = codeDocument.GetFileKind();
+        var actual = codeDocument.FileKind;
         Assert.Equal("test", actual);
     }
 
@@ -212,7 +201,7 @@ public class DefaultRazorProjectEngineIntegrationTest
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
-        var actual = codeDocument.GetFileKind();
+        var actual = codeDocument.FileKind;
         Assert.Same(FileKinds.Legacy, actual);
     }
 
@@ -228,7 +217,7 @@ public class DefaultRazorProjectEngineIntegrationTest
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
-        var actual = codeDocument.GetFileKind();
+        var actual = codeDocument.FileKind;
         Assert.Same(FileKinds.Component, actual);
     }
 
@@ -299,7 +288,7 @@ public class DefaultRazorProjectEngineIntegrationTest
         var codeDocument = projectEngine.ProcessDesignTime(projectItem);
 
         // Assert
-        var actual = codeDocument.GetFileKind();
+        var actual = codeDocument.FileKind;
         Assert.Same(FileKinds.Legacy, actual);
     }
 
@@ -315,7 +304,7 @@ public class DefaultRazorProjectEngineIntegrationTest
         var codeDocument = projectEngine.ProcessDesignTime(projectItem);
 
         // Assert
-        var actual = codeDocument.GetFileKind();
+        var actual = codeDocument.FileKind;
         Assert.Same(FileKinds.Component, actual);
     }
 

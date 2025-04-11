@@ -8,7 +8,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem.Legacy;
 using Microsoft.VisualStudio.Razor.Documents;
 
 namespace Microsoft.VisualStudio.LegacyEditor.Razor;
@@ -94,29 +94,13 @@ internal sealed class ImportDocumentManager(IFileChangeTrackerFactory fileChange
         }
     }
 
-    private static IEnumerable<RazorProjectItem> GetPhysicalImportItems(string filePath, IProjectSnapshot projectSnapshot)
+    private static ImmutableArray<RazorProjectItem> GetPhysicalImportItems(string filePath, ILegacyProjectSnapshot projectSnapshot)
     {
         var projectEngine = projectSnapshot.GetProjectEngine();
         var documentSnapshot = projectSnapshot.GetDocument(filePath);
         var projectItem = projectEngine.FileSystem.GetItem(filePath, documentSnapshot?.FileKind);
 
-        foreach (var projectFeature in projectEngine.ProjectFeatures)
-        {
-            if (projectFeature is not IImportProjectFeature importFeature)
-            {
-                continue;
-            }
-
-            foreach (var importItem in importFeature.GetImports(projectItem))
-            {
-                if (importItem.PhysicalPath is null)
-                {
-                    continue;
-                }
-
-                yield return importItem;
-            }
-        }
+        return projectEngine.GetImports(projectItem, static i => i.PhysicalPath is not null);
     }
 
     private void FileChangeTracker_Changed(object sender, FileChangeEventArgs args)

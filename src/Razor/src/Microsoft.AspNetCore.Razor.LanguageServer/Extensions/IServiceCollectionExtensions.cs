@@ -18,7 +18,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.SpellCheck;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
@@ -29,6 +29,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.SpellCheck;
+using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
@@ -82,15 +83,12 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<CompletionListProvider>();
         services.AddSingleton<DelegatedCompletionListProvider>();
         services.AddSingleton<RazorCompletionListProvider>();
-        services.AddSingleton<DelegatedCompletionResponseRewriter, TextEditResponseRewriter>();
-        services.AddSingleton<DelegatedCompletionResponseRewriter, DesignTimeHelperResponseRewriter>();
-        services.AddSingleton<DelegatedCompletionResponseRewriter, HtmlCommitCharacterResponseRewriter>();
-        services.AddSingleton<DelegatedCompletionResponseRewriter, SnippetResponseRewriter>();
+        services.AddSingleton<CompletionTriggerAndCommitCharacters>();
 
         services.AddSingleton<AggregateCompletionItemResolver>();
         services.AddSingleton<CompletionItemResolver, RazorCompletionItemResolver>();
         services.AddSingleton<CompletionItemResolver, DelegatedCompletionItemResolver>();
-        services.AddSingleton<ITagHelperCompletionService, LspTagHelperCompletionService>();
+        services.AddSingleton<ITagHelperCompletionService, TagHelperCompletionService>();
         services.AddSingleton<IRazorCompletionFactsService, LspRazorCompletionFactsService>();
         services.AddSingleton<IRazorCompletionItemProvider, DirectiveCompletionItemProvider>();
         services.AddSingleton<IRazorCompletionItemProvider, DirectiveAttributeCompletionItemProvider>();
@@ -102,7 +100,8 @@ internal static class IServiceCollectionExtensions
 
     public static void AddDiagnosticServices(this IServiceCollection services)
     {
-        services.AddHandlerWithCapabilities<DocumentPullDiagnosticsEndpoint>();
+        services.AddHandlerWithCapabilities<VSDocumentDiagnosticsEndpoint>();
+
         services.AddSingleton<RazorTranslateDiagnosticsService>();
         services.AddSingleton(sp => new Lazy<RazorTranslateDiagnosticsService>(sp.GetRequiredService<RazorTranslateDiagnosticsService>));
         services.AddSingleton<IRazorStartupService, WorkspaceDiagnosticsRefresher>();
@@ -110,6 +109,7 @@ internal static class IServiceCollectionExtensions
 
     public static void AddHoverServices(this IServiceCollection services)
     {
+        services.AddSingleton<IComponentAvailabilityService, ComponentAvailabilityService>();
         services.AddHandlerWithCapabilities<HoverEndpoint>();
     }
 
@@ -158,6 +158,10 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IRazorCodeActionResolver, AddUsingsCodeActionResolver>();
         services.AddSingleton<IRazorCodeActionProvider, GenerateMethodCodeActionProvider>();
         services.AddSingleton<IRazorCodeActionResolver, GenerateMethodCodeActionResolver>();
+        services.AddSingleton<IRazorCodeActionProvider, PromoteUsingCodeActionProvider>();
+        services.AddSingleton<IRazorCodeActionResolver, PromoteUsingCodeActionResolver>();
+        services.AddSingleton<IRazorCodeActionProvider, WrapAttributesCodeActionProvider>();
+        services.AddSingleton<IRazorCodeActionResolver, WrapAttributesCodeActionResolver>();
 
         // Html Code actions
         services.AddSingleton<IHtmlCodeActionProvider, HtmlCodeActionProvider>();
@@ -183,6 +187,7 @@ internal static class IServiceCollectionExtensions
         services.AddHandler<DocumentDidSaveEndpoint>();
 
         services.AddHandler<RazorMapToDocumentRangesEndpoint>();
+        services.AddHandler<RazorMapToDocumentEditsEndpoint>();
         services.AddHandler<RazorLanguageQueryEndpoint>();
     }
 
@@ -197,7 +202,7 @@ internal static class IServiceCollectionExtensions
         });
     }
 
-    public static void AddDocumentManagementServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)
+    public static void AddDocumentManagementServices(this IServiceCollection services)
     {
         services.AddSingleton<IGeneratedDocumentPublisher, GeneratedDocumentPublisher>();
         services.AddSingleton<IRazorStartupService>((services) => (GeneratedDocumentPublisher)services.GetRequiredService<IGeneratedDocumentPublisher>());
@@ -210,45 +215,13 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IRazorStartupService, OpenDocumentGenerator>();
         services.AddSingleton<IDocumentMappingService, LspDocumentMappingService>();
         services.AddSingleton<IEditMappingService, LspEditMappingService>();
-        services.AddSingleton<RazorFileChangeDetectorManager>();
-        services.AddSingleton<IOnInitialized>(sp => sp.GetRequiredService<RazorFileChangeDetectorManager>());
-
-        services.AddSingleton<IRazorFileChangeListener, RazorFileSynchronizer>();
-        services.AddSingleton<IFileChangeDetector, RazorFileChangeDetector>();
-
-        // Document processed listeners
-        if (!featureOptions.SingleServerSupport)
-        {
-            // If single server is on, then we don't want to publish diagnostics, so best to just not hook up to any
-            // events etc.
-            services.AddSingleton<IDocumentProcessedListener, RazorDiagnosticsPublisher>();
-        }
+        services.AddSingleton<WorkspaceRootPathWatcher>();
+        services.AddSingleton<IOnInitialized>(sp => sp.GetRequiredService<WorkspaceRootPathWatcher>());
 
         services.AddSingleton<IDocumentProcessedListener, GeneratedDocumentSynchronizer>();
-        services.AddSingleton<IDocumentProcessedListener, CodeDocumentReferenceHolder>();
 
         // Add project snapshot manager
         services.AddSingleton<IProjectEngineFactoryProvider, LspProjectEngineFactoryProvider>();
-        services.AddSingleton<IProjectSnapshotManager, LspProjectSnapshotManager>();
-    }
-
-    public static void AddHandlerWithCapabilities<T>(this IServiceCollection services)
-        where T : class, IMethodHandler, ICapabilitiesProvider
-    {
-        services.AddSingleton<T>();
-        services.AddSingleton<IMethodHandler, T>(s => s.GetRequiredService<T>());
-        // Transient because it should only be used once and I'm hoping it doesn't stick around.
-        services.AddTransient<ICapabilitiesProvider, T>(s => s.GetRequiredService<T>());
-    }
-
-    public static void AddHandler<T>(this IServiceCollection services)
-        where T : class, IMethodHandler
-    {
-        if (typeof(ICapabilitiesProvider).IsAssignableFrom(typeof(T)))
-        {
-            throw new NotImplementedException($"{nameof(T)} is not using {nameof(AddHandlerWithCapabilities)} when it implements {nameof(ICapabilitiesProvider)}");
-        }
-
-        services.AddSingleton<IMethodHandler, T>();
+        services.AddSingleton<ProjectSnapshotManager, LspProjectSnapshotManager>();
     }
 }

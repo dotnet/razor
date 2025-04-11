@@ -123,7 +123,7 @@
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelDescription">
-        <source>Sets the level of logging to show in the Razor Logger Output catregory of the Output Window.</source>
+        <source>Sets the level of logging to show in the Razor Logger Output category of the Output Window.</source>
         <target state="translated">Задает уровень ведения журнала для отображения в категории "Выходные данные средства ведения журнала Razor" в окне вывода.</target>
         <note />
       </trans-unit>

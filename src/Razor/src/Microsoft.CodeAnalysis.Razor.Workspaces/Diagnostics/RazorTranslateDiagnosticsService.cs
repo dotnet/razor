@@ -11,10 +11,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -125,7 +125,7 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
         IDocumentSnapshot documentSnapshot,
         RazorCodeDocument codeDocument)
     {
-        var projects = RazorDiagnosticConverter.GetProjectInformation(documentSnapshot);
+        var projects = RazorDiagnosticHelper.GetProjectInformation(documentSnapshot);
         using var mappedDiagnostics = new PooledArrayBuilder<LspDiagnostic>();
 
         foreach (var diagnostic in diagnostics)
@@ -234,6 +234,7 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
 
         return str switch
         {
+            CSSErrorCodes.UnrecognizedBlockType => IsEscapedAtSign(diagnostic, sourceText),
             CSSErrorCodes.MissingOpeningBrace => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree),
             CSSErrorCodes.MissingSelectorAfterCombinator => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree),
             CSSErrorCodes.MissingSelectorBeforeCombinatorCode => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree),
@@ -243,6 +244,34 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
             HtmlErrorCodes.TooFewElementsErrorCode => IsAnyFilteredTooFewElementsError(diagnostic, sourceText, syntaxTree),
             _ => false,
         };
+
+        static bool IsEscapedAtSign(LspDiagnostic diagnostic, SourceText sourceText)
+        {
+            // Filters out "Unrecognized block type" errors in CSS, which occur with something like this:
+            //
+            // <style>
+            //     @@font - face
+            //     {
+            //         // contents
+            //     }
+            // </style>
+            //
+            // The "@@" tells Razor that the user wants an "@" in the final Html, but the design time document
+            // for the Html has to line up with the source Razor file, so that doesn't happen in the IDE. When
+            // CSS gets the two "@"s, it raises the "Unrecognized block type" error.
+
+            if (!sourceText.TryGetAbsoluteIndex(diagnostic.Range.Start, out var absoluteIndex))
+            {
+                return false;
+            }
+
+            // It's much easier to just check the source text directly, rather than try to understand all of the
+            // possible shapes of the syntax tree here. We assume that since the diagnostics we're filtering out
+            // came from the CSS server, it's a CSS block.
+            return absoluteIndex > 0 &&
+                sourceText[absoluteIndex] == '@' &&
+                sourceText[absoluteIndex - 1] == '@';
+        }
 
         static bool IsCSharpInStyleBlock(LspDiagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree)
         {
@@ -468,16 +497,14 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
             out originalRange))
         {
             // Couldn't remap the range correctly.
-            // If this isn't an `Error` Severity Diagnostic we can discard it.
-            if (diagnostic.Severity != LspDiagnosticSeverity.Error)
+            // If this is error it's worth at least logging so we know if there's an issue
+            // for mapping when a user reports not seeing an error they thought they should
+            if (diagnostic.Severity == LspDiagnosticSeverity.Error)
             {
-                return false;
+                this._logger.LogWarning($"Dropping diagnostic {diagnostic.Code}:{diagnostic.Message} at csharp range {diagnostic.Range}");
             }
 
-            // For `Error` Severity diagnostics we still show the diagnostics to
-            // the user, however we set the range to an undefined range to ensure
-            // clicking on the diagnostic doesn't cause errors.
-            originalRange = VsLspFactory.UndefinedRange;
+            return false;
         }
 
         return true;

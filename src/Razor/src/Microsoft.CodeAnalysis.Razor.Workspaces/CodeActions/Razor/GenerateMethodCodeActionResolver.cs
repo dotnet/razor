@@ -6,42 +6,38 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using CSharpSyntaxFactory = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 
-internal sealed class GenerateMethodCodeActionResolver(
+internal class GenerateMethodCodeActionResolver(
     IRoslynCodeActionHelpers roslynCodeActionHelpers,
     IDocumentMappingService documentMappingService,
-    IRazorFormattingService razorFormattingService) : IRazorCodeActionResolver
+    IRazorFormattingService razorFormattingService,
+    IFileSystem fileSystem) : IRazorCodeActionResolver
 {
     private readonly IRoslynCodeActionHelpers _roslynCodeActionHelpers = roslynCodeActionHelpers;
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
+    private readonly IFileSystem _fileSystem = fileSystem;
 
-    private const string ReturnType = "$$ReturnType$$";
-    private const string MethodName = "$$MethodName$$";
-    private const string EventArgs = "$$EventArgs$$";
     private const string BeginningIndents = $"{FormattingUtilities.InitialIndent}{FormattingUtilities.Indent}";
-    private static readonly string s_generateMethodTemplate =
-        $"{BeginningIndents}private {ReturnType} {MethodName}({EventArgs}){Environment.NewLine}" +
-        BeginningIndents + "{" + Environment.NewLine +
-        $"{BeginningIndents}{FormattingUtilities.Indent}throw new global::System.NotImplementedException();{Environment.NewLine}" +
-        BeginningIndents + "}";
 
     public string Action => LanguageServerConstants.CodeActions.GenerateEventHandler;
 
@@ -58,7 +54,7 @@ internal sealed class GenerateMethodCodeActionResolver(
         var razorClassName = Path.GetFileNameWithoutExtension(uriPath);
         var codeBehindPath = $"{uriPath}.cs";
 
-        if (!File.Exists(codeBehindPath) ||
+        if (!_fileSystem.FileExists(codeBehindPath) ||
             razorClassName is null ||
             !code.TryComputeNamespace(fallbackToRootNamespace: true, out var razorNamespace))
         {
@@ -72,8 +68,10 @@ internal sealed class GenerateMethodCodeActionResolver(
                 cancellationToken).ConfigureAwait(false);
         }
 
-        var content = File.ReadAllText(codeBehindPath);
-        if (GetCSharpClassDeclarationSyntax(content, razorNamespace, razorClassName) is not { } @class)
+        // TODO: Update IFileSystem.ReadFile(...) to return a SourceText without reading a huge string.
+        var content = _fileSystem.ReadFile(codeBehindPath);
+        var text = SourceText.From(content, Encoding.UTF8);
+        if (GetCSharpClassDeclarationSyntax(text, razorNamespace, razorClassName) is not { } @class)
         {
             // The code behind file is malformed, generate the code in the razor file instead.
             return await GenerateMethodInCodeBlockAsync(
@@ -86,16 +84,11 @@ internal sealed class GenerateMethodCodeActionResolver(
                 cancellationToken).ConfigureAwait(false);
         }
 
-        var codeBehindUri = new UriBuilder
-        {
-            Scheme = Uri.UriSchemeFile,
-            Path = codeBehindPath,
-            Host = string.Empty,
-        }.Uri;
+        var codeBehindUri = VsLspFactory.CreateFilePathUri(codeBehindPath);
 
         var codeBehindTextDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = codeBehindUri };
 
-        var templateWithMethodSignature = await PopulateMethodSignatureAsync(documentContext, actionParams, cancellationToken).ConfigureAwait(false);
+        var templateWithMethodSignature = PopulateMethodSignature(actionParams);
         var classLocationLineSpan = @class.GetLocation().GetLineSpan();
         var formattedMethod = FormattingUtilities.AddIndentationToMethod(
             templateWithMethodSignature,
@@ -103,14 +96,14 @@ internal sealed class GenerateMethodCodeActionResolver(
             options.InsertSpaces,
             @class.SpanStart,
             classLocationLineSpan.StartLinePosition.Character,
-            content);
+            text);
 
         var edit = VsLspFactory.CreateTextEdit(
             line: classLocationLineSpan.EndLinePosition.Line,
             character: 0,
             $"{formattedMethod}{Environment.NewLine}");
 
-        var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(codeBehindUri, edit, requiresVirtualDocument: false, cancellationToken).ConfigureAwait(false);
+        var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentContext, codeBehindUri, edit, cancellationToken).ConfigureAwait(false);
 
         var codeBehindTextDocEdit = new TextDocumentEdit()
         {
@@ -130,7 +123,7 @@ internal sealed class GenerateMethodCodeActionResolver(
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
-        var templateWithMethodSignature = await PopulateMethodSignatureAsync(documentContext, actionParams, cancellationToken).ConfigureAwait(false);
+        var templateWithMethodSignature = PopulateMethodSignature(actionParams);
         var edits = CodeBlockService.CreateFormattedTextEdit(code, templateWithMethodSignature, options);
 
         // If there are 3 edits, this means that there is no existing @code block, so we have an edit for '@code {', the method stub, and '}'.
@@ -139,7 +132,7 @@ internal sealed class GenerateMethodCodeActionResolver(
         if (edits.Length == 3
             && razorClassName is not null
             && (razorNamespace is not null || code.TryComputeNamespace(fallbackToRootNamespace: true, out razorNamespace))
-            && GetCSharpClassDeclarationSyntax(code.GetCSharpDocument().GeneratedCode, razorNamespace, razorClassName) is { } @class)
+            && GetCSharpClassDeclarationSyntax(code.GetOrParseCSharpSyntaxTree(cancellationToken), razorNamespace, razorClassName) is { } @class)
         {
             // There is no existing @code block. This means that there is no code block source mapping in the generated C# document
             // to place the code, so we cannot utilize the document mapping service and the formatting service.
@@ -152,7 +145,7 @@ internal sealed class GenerateMethodCodeActionResolver(
                 character: 0,
                 editToSendToRoslyn.NewText);
 
-            var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentContext.Uri, tempTextEdit, requiresVirtualDocument: true, cancellationToken).ConfigureAwait(false);
+            var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentContext, codeBehindUri: null, tempTextEdit, cancellationToken).ConfigureAwait(false);
 
             // Roslyn should have passed back 2 edits. One that contains the simplified method stub and the other that contains the new
             // location for the class end brace since we had asked to insert the method stub at the original class end brace location.
@@ -175,7 +168,7 @@ internal sealed class GenerateMethodCodeActionResolver(
                 .Replace(FormattingUtilities.Indent, string.Empty);
 
             var remappedEdit = VsLspFactory.CreateTextEdit(remappedRange, unformattedMethodSignature);
-            var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentContext.Uri, remappedEdit, requiresVirtualDocument: true, cancellationToken).ConfigureAwait(false);
+            var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentContext, codeBehindUri: null, remappedEdit, cancellationToken).ConfigureAwait(false);
 
             if (result is not null)
             {
@@ -205,27 +198,34 @@ internal sealed class GenerateMethodCodeActionResolver(
         return new WorkspaceEdit() { DocumentChanges = new[] { razorTextDocEdit } };
     }
 
-    private static async Task<string> PopulateMethodSignatureAsync(DocumentContext documentContext, GenerateMethodCodeActionParams actionParams, CancellationToken cancellationToken)
+    private static string PopulateMethodSignature(GenerateMethodCodeActionParams actionParams)
     {
-        var templateWithMethodSignature = s_generateMethodTemplate.Replace(MethodName, actionParams.MethodName);
+        var returnType = actionParams.IsAsync
+            ? "global::System.Threading.Tasks.Task"
+            : "void";
 
-        var returnType = actionParams.IsAsync ? "global::System.Threading.Tasks.Task" : "void";
-        templateWithMethodSignature = templateWithMethodSignature.Replace(ReturnType, returnType);
-
-        var tagHelpers = await documentContext.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
-        var eventTagHelper = tagHelpers
-            .FirstOrDefault(th => th.Name == actionParams.EventName && th.IsEventHandlerTagHelper() && th.GetEventArgsType() is not null);
-        var eventArgsType = eventTagHelper is null
+        var parameters = actionParams.EventParameterType is null
             ? string.Empty // Couldn't find the params, generate no params instead.
-            : $"global::{eventTagHelper.GetEventArgsType()} e";
+            : $"global::{actionParams.EventParameterType} args";
 
-        return templateWithMethodSignature.Replace(EventArgs, eventArgsType);
+        return $$"""
+            {{BeginningIndents}}private {{returnType}} {{actionParams.MethodName}}({{parameters}})
+            {{BeginningIndents}}{
+            {{BeginningIndents}}{{FormattingUtilities.Indent}}throw new global::System.NotImplementedException();
+            {{BeginningIndents}}}
+            """;
     }
 
-    private static ClassDeclarationSyntax? GetCSharpClassDeclarationSyntax(string csharpContent, string razorNamespace, string razorClassName)
+    private static ClassDeclarationSyntax? GetCSharpClassDeclarationSyntax(SourceText csharpContent, string razorNamespace, string razorClassName)
     {
-        var mock = CSharpSyntaxFactory.ParseCompilationUnit(csharpContent);
-        var @namespace = mock.Members
+        var syntaxTree = CSharpSyntaxTree.ParseText(csharpContent);
+        return GetCSharpClassDeclarationSyntax(syntaxTree, razorNamespace, razorClassName);
+    }
+
+    private static ClassDeclarationSyntax? GetCSharpClassDeclarationSyntax(SyntaxTree csharpSyntaxTree, string razorNamespace, string razorClassName)
+    {
+        var compilationUnit = csharpSyntaxTree.GetCompilationUnitRoot();
+        var @namespace = compilationUnit.Members
             .FirstOrDefault(m => m is BaseNamespaceDeclarationSyntax { } @namespace && @namespace.Name.ToString() == razorNamespace);
         if (@namespace is null)
         {

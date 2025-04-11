@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Xunit;
@@ -304,7 +305,7 @@ public class FallbackWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         var host = new TestFallbackRazorProjectHost(services, _serviceProvider, _projectManager);
 
         // Act & Assert
-        await host.LoadAsync();
+        await host.GetTestAccessor().InitializeAsync();
         Assert.Empty(_projectManager.GetProjects());
 
         await host.DisposeAsync();
@@ -320,7 +321,7 @@ public class FallbackWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         var host = new TestFallbackRazorProjectHost(services, _serviceProvider, _projectManager);
 
         // Act & Assert
-        await Task.Run(async () => await host.LoadAsync());
+        await Task.Run(async () => await host.GetTestAccessor().InitializeAsync());
         Assert.Empty(_projectManager.GetProjects());
 
         await Task.Run(async () => await host.DisposeAsync());
@@ -342,11 +343,13 @@ public class FallbackWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
             AssemblyVersion = new Version(2, 0),
         };
 
+        var testAccessor = host.GetTestAccessor();
+
         // Act & Assert
-        await Task.Run(async () => await host.LoadAsync());
+        await Task.Run(async () => await testAccessor.InitializeAsync());
         Assert.Empty(_projectManager.GetProjects());
 
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
         Assert.Empty(_projectManager.GetProjects());
     }
 
@@ -378,11 +381,13 @@ public class FallbackWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
             AssemblyVersion = new Version(2, 0), // Mock for reading the assembly's version
         };
 
-        await Task.Run(async () => await host.LoadAsync());
+        var testAccessor = host.GetTestAccessor();
+
+        await Task.Run(async () => await testAccessor.InitializeAsync());
         Assert.Empty(_projectManager.GetProjects());
 
         // Act
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert
         var snapshot = Assert.Single(_projectManager.GetProjects());
@@ -410,11 +415,13 @@ public class FallbackWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
 
         var host = new TestFallbackRazorProjectHost(services, _serviceProvider, _projectManager);
 
-        await Task.Run(async () => await host.LoadAsync());
+        var testAccessor = host.GetTestAccessor();
+
+        await Task.Run(async () => await testAccessor.InitializeAsync());
         Assert.Empty(_projectManager.GetProjects());
 
         // Act
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert
         Assert.Empty(_projectManager.GetProjects());
@@ -438,11 +445,13 @@ public class FallbackWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
 
         var host = new TestFallbackRazorProjectHost(services, _serviceProvider, _projectManager);
 
-        await Task.Run(async () => await host.LoadAsync());
+        var testAccessor = host.GetTestAccessor();
+
+        await Task.Run(async () => await testAccessor.InitializeAsync());
         Assert.Empty(_projectManager.GetProjects());
 
         // Act
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert
         Assert.Empty(_projectManager.GetProjects());
@@ -480,11 +489,13 @@ public class FallbackWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
             AssemblyVersion = new Version(2, 0),
         };
 
-        await Task.Run(async () => await host.LoadAsync());
+        var testAccessor = host.GetTestAccessor();
+
+        await Task.Run(async () => await testAccessor.InitializeAsync());
         Assert.Empty(_projectManager.GetProjects());
 
         // Act - 1
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(initialChanges)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(initialChanges)));
 
         // Assert - 1
         var snapshot = Assert.Single(_projectManager.GetProjects());
@@ -495,7 +506,7 @@ public class FallbackWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
 
         // Act - 2
         host.AssemblyVersion = new Version(1, 0);
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert - 2
         snapshot = Assert.Single(_projectManager.GetProjects());
@@ -525,11 +536,13 @@ public class FallbackWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
             AssemblyVersion = new Version(2, 0),
         };
 
-        await Task.Run(async () => await host.LoadAsync());
+        var testAccessor = host.GetTestAccessor();
+
+        await Task.Run(async () => await testAccessor.InitializeAsync());
         Assert.Empty(_projectManager.GetProjects());
 
         // Act - 1
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert - 1
         var snapshot = Assert.Single(_projectManager.GetProjects());
@@ -538,7 +551,7 @@ public class FallbackWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
 
         // Act - 2
         host.AssemblyVersion = null;
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert - 2
         Assert.Empty(_projectManager.GetProjects());
@@ -570,11 +583,13 @@ public class FallbackWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
             AssemblyVersion = new Version(2, 0),
         };
 
-        await Task.Run(async () => await host.LoadAsync());
+        var testAccessor = host.GetTestAccessor();
+
+        await Task.Run(async () => await testAccessor.InitializeAsync());
         Assert.Empty(_projectManager.GetProjects());
 
         // Act - 1
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert - 1
         var snapshot = Assert.Single(_projectManager.GetProjects());
@@ -591,7 +606,7 @@ public class FallbackWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
 
         // Act - 3
         host.AssemblyVersion = new Version(1, 1);
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert - 3
         Assert.Empty(_projectManager.GetProjects());
@@ -615,11 +630,13 @@ public class FallbackWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
             AssemblyVersion = new Version(2, 0), // Mock for reading the assembly's version
         };
 
-        await Task.Run(async () => await host.LoadAsync());
+        var testAccessor = host.GetTestAccessor();
+
+        await Task.Run(async () => await testAccessor.InitializeAsync());
         Assert.Empty(_projectManager.GetProjects());
 
         // Act - 1
-        await Task.Run(async () => await host.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
+        await Task.Run(async () => await testAccessor.OnProjectChangedAsync(string.Empty, services.CreateUpdate(changes)));
 
         // Assert - 1
         var snapshot = Assert.Single(_projectManager.GetProjects());
@@ -628,7 +645,7 @@ public class FallbackWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
 
         // Act - 2
         services.UnconfiguredProject.FullPath = "Test2.csproj";
-        await Task.Run(async () => await host.OnProjectRenamingAsync("Test.csproj", "Test2.csproj"));
+        await Task.Run(async () => await testAccessor.OnProjectRenamingAsync("Test.csproj", "Test2.csproj"));
 
         // Assert - 1
         snapshot = Assert.Single(_projectManager.GetProjects());
@@ -644,10 +661,9 @@ public class FallbackWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         internal TestFallbackRazorProjectHost(
             IUnconfiguredProjectCommonServices commonServices,
             IServiceProvider serviceProvider,
-            IProjectSnapshotManager projectManager)
-            : base(commonServices, serviceProvider, projectManager)
+            ProjectSnapshotManager projectManager)
+            : base(commonServices, serviceProvider, projectManager, TestLanguageServerFeatureOptions.Instance)
         {
-            SkipIntermediateOutputPathExistCheck_TestOnly = true;
         }
 
         public Version AssemblyVersion { get; set; }

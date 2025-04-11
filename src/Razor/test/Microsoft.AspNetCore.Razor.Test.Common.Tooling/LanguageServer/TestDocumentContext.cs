@@ -19,13 +19,6 @@ internal static class TestDocumentContext
         return new DocumentContext(uri, snapshot, projectContext: null);
     }
 
-    public static DocumentContext Create(string filePath, RazorCodeDocument codeDocument, int hostDocumentVersion)
-    {
-        var documentSnapshot = TestDocumentSnapshot.Create(filePath, codeDocument, hostDocumentVersion);
-        var uri = new Uri(filePath);
-        return new DocumentContext(uri, documentSnapshot, projectContext: null);
-    }
-
     public static DocumentContext Create(string filePath, RazorCodeDocument codeDocument)
     {
         var documentSnapshot = TestDocumentSnapshot.Create(filePath, codeDocument);
@@ -36,18 +29,9 @@ internal static class TestDocumentContext
     public static DocumentContext Create(string filePath)
     {
         var properties = RazorSourceDocumentProperties.Create(filePath, filePath);
-        var sourceDocument = RazorSourceDocument.Create(content: string.Empty, properties);
-        var codeDocument = RazorCodeDocument.Create(sourceDocument);
+        var source = RazorSourceDocument.Create(content: string.Empty, properties);
+        var codeDocument = RazorCodeDocument.Create(source);
 
         return Create(filePath, codeDocument);
-    }
-
-    public static DocumentContext From(string filePath, int hostDocumentVersion)
-    {
-        var properties = RazorSourceDocumentProperties.Create(filePath, filePath);
-        var sourceDocument = RazorSourceDocument.Create(content: string.Empty, properties);
-        var codeDocument = RazorCodeDocument.Create(sourceDocument);
-
-        return Create(filePath, codeDocument, hostDocumentVersion);
     }
 }

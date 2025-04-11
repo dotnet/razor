@@ -41,14 +41,14 @@ internal sealed class CohostGoToImplementationEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Implementation?.DynamicRegistration == true)
         {
             return [new Registration
             {
                 Method = Methods.TextDocumentImplementationName,
-                RegisterOptions = new ImplementationOptions()
+                RegisterOptions = new ImplementationRegistrationOptions()
             }];
         }
 

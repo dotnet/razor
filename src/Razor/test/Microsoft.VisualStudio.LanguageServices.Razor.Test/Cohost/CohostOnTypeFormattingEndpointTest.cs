@@ -56,9 +56,8 @@ public class CohostOnTypeFormattingEndpointTest(HtmlFormattingFixture htmlFormat
             triggerCharacter: '\n');
     }
 
-    [Theory]
-    [CombinatorialData]
-    public async Task CSharp(bool fuse)
+    [Fact]
+    public async Task CSharp()
     {
         await VerifyOnTypeFormattingAsync(
             input: """
@@ -71,13 +70,11 @@ public class CohostOnTypeFormattingEndpointTest(HtmlFormattingFixture htmlFormat
                         if (true) { }
                     }
                     """,
-            triggerCharacter: '}',
-            fuse: fuse);
+            triggerCharacter: '}');
     }
 
-    [Theory]
-    [CombinatorialData]
-    public async Task FormatsSimpleHtmlTag_OnType(bool fuse)
+    [Fact]
+    public async Task FormatsSimpleHtmlTag_OnType()
     {
         await VerifyOnTypeFormattingAsync(
             input: """
@@ -101,15 +98,12 @@ public class CohostOnTypeFormattingEndpointTest(HtmlFormattingFixture htmlFormat
                     </html>
                     """,
             triggerCharacter: ';',
-            html: true,
-            fuse: fuse);
+            html: true);
     }
 
-    private async Task VerifyOnTypeFormattingAsync(TestCode input, string expected, char triggerCharacter, bool html = false, bool fuse = false)
+    private async Task VerifyOnTypeFormattingAsync(TestCode input, string expected, char triggerCharacter, bool html = false)
     {
-        UpdateClientInitializationOptions(opt => opt with { ForceRuntimeCodeGeneration = fuse });
-
-        var document = await CreateProjectAndRazorDocumentAsync(input.Text);
+        var document = CreateProjectAndRazorDocument(input.Text);
         var inputText = await document.GetTextAsync(DisposalToken);
         var position = inputText.GetPosition(input.Position);
 

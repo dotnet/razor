@@ -41,7 +41,7 @@ internal class CohostFoldingRangeEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, DocumentFilter[] filter, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.FoldingRange?.DynamicRegistration is true)
         {
@@ -49,9 +49,6 @@ internal class CohostFoldingRangeEndpoint(
             {
                 Method = Methods.TextDocumentFoldingRangeName,
                 RegisterOptions = new FoldingRangeRegistrationOptions()
-                {
-                    DocumentSelector = filter
-                }
             }];
         }
 

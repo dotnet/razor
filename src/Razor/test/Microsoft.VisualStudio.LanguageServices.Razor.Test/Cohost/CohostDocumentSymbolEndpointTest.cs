@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -69,7 +70,7 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
     private async Task VerifyDocumentSymbolsAsync(string input, bool hierarchical = false)
     {
         TestFileMarkupParser.GetSpans(input, out input, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spansDict);
-        var document = await CreateProjectAndRazorDocumentAsync(input);
+        var document = CreateProjectAndRazorDocument(input);
 
         var endpoint = new CohostDocumentSymbolEndpoint(RemoteServiceInvoker);
 

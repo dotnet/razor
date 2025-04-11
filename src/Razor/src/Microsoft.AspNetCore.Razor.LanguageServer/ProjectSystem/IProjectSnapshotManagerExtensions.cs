@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -12,26 +13,21 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
-internal static partial class IProjectSnapshotManagerExtensions
+internal static partial class ProjectSnapshotManagerExtensions
 {
-    public static IProjectSnapshot GetMiscellaneousProject(this IProjectSnapshotManager projectManager)
-    {
-        return projectManager.GetLoadedProject(MiscFilesHostProject.Instance.Key);
-    }
-
     /// <summary>
     /// Finds all the projects where the document path starts with the path of the folder that contains the project file.
     /// </summary>
-    public static ImmutableArray<IProjectSnapshot> FindPotentialProjects(this IProjectSnapshotManager projectManager, string documentFilePath)
+    public static ImmutableArray<ProjectSnapshot> FindPotentialProjects(this ProjectSnapshotManager projectManager, string documentFilePath)
     {
         var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
 
-        using var projects = new PooledArrayBuilder<IProjectSnapshot>();
+        using var projects = new PooledArrayBuilder<ProjectSnapshot>();
 
         foreach (var project in projectManager.GetProjects())
         {
             // Always exclude the miscellaneous project.
-            if (project.FilePath == MiscFilesHostProject.Instance.FilePath)
+            if (project.IsMiscellaneousProject())
             {
                 continue;
             }
@@ -47,13 +43,13 @@ internal static partial class IProjectSnapshotManagerExtensions
     }
 
     public static bool TryResolveAllProjects(
-        this IProjectSnapshotManager projectManager,
+        this ProjectSnapshotManager projectManager,
         string documentFilePath,
-        out ImmutableArray<IProjectSnapshot> projects)
+        out ImmutableArray<ProjectSnapshot> projects)
     {
         var potentialProjects = projectManager.FindPotentialProjects(documentFilePath);
 
-        using var builder = new PooledArrayBuilder<IProjectSnapshot>(capacity: potentialProjects.Length);
+        using var builder = new PooledArrayBuilder<ProjectSnapshot>(capacity: potentialProjects.Length);
 
         foreach (var project in potentialProjects)
         {
@@ -74,11 +70,26 @@ internal static partial class IProjectSnapshotManagerExtensions
         return projects.Length > 0;
     }
 
+    public static bool TryFindContainingProject(this ProjectSnapshotManager projectManager, string documentFilePath, out ProjectKey projectKey)
+    {
+        foreach (var project in projectManager.GetProjects())
+        {
+            if (project.ContainsDocument(documentFilePath))
+            {
+                projectKey = project.Key;
+                return true;
+            }
+        }
+
+        projectKey = default;
+        return false;
+    }
+
     public static bool TryResolveDocumentInAnyProject(
-        this IProjectSnapshotManager projectManager,
+        this ProjectSnapshotManager projectManager,
         string documentFilePath,
         ILogger logger,
-        [NotNullWhen(true)] out IDocumentSnapshot? document)
+        [NotNullWhen(true)] out DocumentSnapshot? document)
     {
         logger.LogTrace($"Looking for {documentFilePath}.");
 
@@ -109,6 +120,6 @@ internal static partial class IProjectSnapshotManagerExtensions
         return false;
     }
 
-    public static ISolutionQueryOperations GetQueryOperations(this IProjectSnapshotManager projectManager)
+    public static ISolutionQueryOperations GetQueryOperations(this ProjectSnapshotManager projectManager)
         => new SolutionQueryOperations(projectManager);
 }

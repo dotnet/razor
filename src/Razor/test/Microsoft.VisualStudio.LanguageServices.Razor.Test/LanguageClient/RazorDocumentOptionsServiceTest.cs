@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.AspNetCore.Razor.Utilities;
@@ -97,11 +96,10 @@ public class RazorDocumentOptionsServiceTest(ITestOutputHelper testOutput) : Wor
             Path.Combine(baseDirectory, "SomeProject", "File1.cshtml"), "File1.cshtml", FileKinds.Legacy);
 
         var project = new ProjectSnapshot(ProjectState
-            .Create(ProjectEngineFactoryProvider, hostProject, ProjectWorkspaceState.Default)
-            .WithAddedHostDocument(hostDocument, TestMocks.CreateTextLoader(sourceText, VersionStamp.Create())));
+            .Create(hostProject, CompilerOptions, ProjectEngineFactoryProvider)
+            .AddDocument(hostDocument, TestMocks.CreateTextLoader(sourceText)));
 
-        var documentSnapshot = project.GetDocument(hostDocument.FilePath);
-        Assert.NotNull(documentSnapshot);
+        var document = project.GetRequiredDocument(hostDocument.FilePath);
 
         var solution = Workspace.CurrentSolution.AddProject(ProjectInfo.Create(
             ProjectId.CreateNewId(Path.GetFileNameWithoutExtension(hostDocument.FilePath)),
@@ -114,9 +112,8 @@ public class RazorDocumentOptionsServiceTest(ITestOutputHelper testOutput) : Wor
         solution = solution.AddDocument(
             DocumentId.CreateNewId(solution.ProjectIds.Single(), hostDocument.FilePath),
             hostDocument.FilePath,
-            new GeneratedDocumentTextLoader(documentSnapshot, hostDocument.FilePath));
+            new GeneratedDocumentTextLoader(document, hostDocument.FilePath));
 
-        var document = solution.Projects.Single().Documents.Single();
-        return document;
+        return solution.Projects.Single().Documents.Single();
     }
 }

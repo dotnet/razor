@@ -123,22 +123,25 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
         services.AddSingleton(featureOptions);
 
         services.AddSingleton<IFilePathService, LSPFilePathService>();
+        services.AddSingleton<IFileSystem, FileSystem>();
 
         services.AddLifeCycleServices(this, _clientConnection, _lspServerActivationTracker);
 
         services.AddSemanticTokensServices(featureOptions);
-        services.AddDocumentManagementServices(featureOptions);
-        services.AddCompletionServices();
+        services.AddDocumentManagementServices();
         services.AddFormattingServices(featureOptions);
-        services.AddCodeActionsServices();
         services.AddOptionsServices(_lspOptions);
-        services.AddHoverServices();
         services.AddTextDocumentServices(featureOptions);
 
         if (!featureOptions.UseRazorCohostServer)
         {
             // Diagnostics
             services.AddDiagnosticServices();
+
+            services.AddCodeActionsServices();
+
+            // Completion
+            services.AddCompletionServices();
 
             // Auto insert
             services.AddSingleton<IOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
@@ -154,6 +157,9 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
             services.AddSingleton<IRazorFoldingRangeProvider, UsingsFoldingRangeProvider>();
 
             services.AddSingleton<IFoldingRangeService, FoldingRangeService>();
+
+            // Hover
+            services.AddHoverServices();
         }
 
         // Other
@@ -206,14 +212,16 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
                 services.AddHandler<ColorPresentationEndpoint>();
 
                 services.AddHandlerWithCapabilities<ProjectContextsEndpoint>();
+
+                services.AddHandlerWithCapabilities<FindAllReferencesEndpoint>();
+
+                services.AddHandlerWithCapabilities<ValidateBreakpointRangeEndpoint>();
+                services.AddHandler<RazorBreakpointSpanEndpoint>();
+                services.AddHandler<RazorProximityExpressionsEndpoint>();
             }
 
             services.AddHandler<WrapWithTagEndpoint>();
-            services.AddHandler<RazorBreakpointSpanEndpoint>();
-            services.AddHandler<RazorProximityExpressionsEndpoint>();
 
-            services.AddHandlerWithCapabilities<ValidateBreakpointRangeEndpoint>();
-            services.AddHandlerWithCapabilities<FindAllReferencesEndpoint>();
             services.AddHandlerWithCapabilities<MapCodeEndpoint>();
         }
     }

@@ -68,19 +68,9 @@ public abstract class RazorProjectItem
     /// The root relative path of the item.
     /// </summary>
     public string CombinedPath
-    {
-        get
-        {
-            if (BasePath == "/")
-            {
-                return FilePath;
-            }
-            else
-            {
-                return BasePath + FilePath;
-            }
-        }
-    }
+        => BasePath == RazorProjectFileSystem.DefaultBasePath
+            ? FilePath
+            : BasePath + FilePath;
 
     /// <summary>
     /// The extension of the file.
@@ -132,10 +122,9 @@ public abstract class RazorProjectItem
         }
     }
 
-    internal RazorSourceDocument RazorSourceDocument { get; set; }
+    internal virtual RazorSourceDocument GetSource()
+        => RazorSourceDocument.ReadFrom(this);
 
-    private string DebuggerToString()
-    {
-        return CombinedPath;
-    }
+    protected virtual string DebuggerToString()
+        => CombinedPath;
 }

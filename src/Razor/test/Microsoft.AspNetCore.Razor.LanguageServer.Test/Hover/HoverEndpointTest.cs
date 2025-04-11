@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
+using LspHover = Microsoft.VisualStudio.LanguageServer.Protocol.Hover;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover;
 
@@ -36,11 +37,11 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
             options.SingleServerSupport == true &&
             options.UseRazorCohostServer == false);
 
-        var delegatedHover = new VSInternalHover();
+        var delegatedHover = new LspHover();
 
         var clientConnection = TestMocks.CreateClientConnection(builder =>
         {
-            builder.SetupSendRequest<IDelegatedParams, VSInternalHover>(CustomMessageNames.RazorHoverEndpointName, response: delegatedHover);
+            builder.SetupSendRequest<IDelegatedParams, LspHover>(CustomMessageNames.RazorHoverEndpointName, response: delegatedHover);
         });
 
         var documentMappingServiceMock = new StrictMock<IDocumentMappingService>();
@@ -185,7 +186,7 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
         };
 
         await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
-            csharpSourceText, csharpDocumentUri, serverCapabilities, razorSpanMappingService: null, capabilitiesUpdater: null, DisposalToken);
+            csharpSourceText, csharpDocumentUri, serverCapabilities, razorMappingService: null, capabilitiesUpdater: null, DisposalToken);
         await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString());
 
         var razorFilePath = "C:/path/to/file.razor";
@@ -200,6 +201,7 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
         var documentMappingService = new LspDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
 
         var projectManager = CreateProjectSnapshotManager();
+        var componentAvailabilityService = new ComponentAvailabilityService(projectManager);
 
         var clientCapabilities = new VSInternalClientCapabilities()
         {
@@ -210,7 +212,7 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
         var clientCapabilitiesService = new TestClientCapabilitiesService(clientCapabilities);
 
         var endpoint = new HoverEndpoint(
-            projectManager,
+            componentAvailabilityService,
             clientCapabilitiesService,
             languageServerFeatureOptions,
             documentMappingService,
@@ -227,7 +229,11 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
         var documentContext = CreateDocumentContext(razorFileUri, codeDocument);
         var requestContext = CreateRazorRequestContext(documentContext: documentContext);
 
-        return await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
+        var hover = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
+
+        // Note: This should always be a VSInternalHover because
+        // VSInternalClientCapabilities.SupportsVisualStudioExtensions is set to true above.
+        return Assert.IsType<VSInternalHover>(hover);
     }
 
     private static (DocumentContext, Position) CreateDefaultDocumentContext()
@@ -250,7 +256,7 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
 
         var documentSnapshotMock = new StrictMock<IDocumentSnapshot>();
         documentSnapshotMock
-            .Setup(x => x.GetGeneratedOutputAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetGeneratedOutputAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(codeDocument);
         documentSnapshotMock
             .Setup(x => x.GetTextAsync(It.IsAny<CancellationToken>()))
@@ -288,6 +294,7 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
         clientConnection ??= StrictMock.Of<IClientConnection>();
 
         var projectManager = CreateProjectSnapshotManager();
+        var componentAvailabilityService = new ComponentAvailabilityService(projectManager);
 
         var clientCapabilities = new VSInternalClientCapabilities()
         {
@@ -298,7 +305,7 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
         var clientCapabilitiesService = new TestClientCapabilitiesService(clientCapabilities);
 
         var endpoint = new HoverEndpoint(
-            projectManager,
+            componentAvailabilityService,
             clientCapabilitiesService,
             languageServerFeatureOptions,
             documentMappingService,
