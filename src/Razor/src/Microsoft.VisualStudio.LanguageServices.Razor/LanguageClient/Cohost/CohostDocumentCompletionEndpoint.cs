@@ -179,11 +179,10 @@ internal sealed class CohostDocumentCompletionEndpoint(
         RazorVSInternalCompletionList? combinedCompletionList = null;
         if (data.Result is { } oopCompletionList)
         {
-            var vsCompletionList = JsonHelpers.ToVsLSP<VSInternalCompletionList, RoslynVSInternalCompletionList>(oopCompletionList);
             combinedCompletionList = htmlCompletionList is { Items: [_, ..] }
                 // If we have HTML completions, that means OOP completion list is really just Razor completion list
-                ? CompletionListMerger.Merge(vsCompletionList, htmlCompletionList)
-                : vsCompletionList;
+                ? CompletionListMerger.Merge(oopCompletionList, htmlCompletionList)
+                : oopCompletionList;
         }
         else
         {
@@ -208,10 +207,9 @@ internal sealed class CohostDocumentCompletionEndpoint(
         var completionCapability = _clientCapabilitiesService.ClientCapabilities.TextDocument?.Completion as VSInternalCompletionSetting;
         var supportsCompletionListData = completionCapability?.CompletionList?.Data ?? false;
 
-        var textDocument = JsonHelpers.ToVsLSP<TextDocumentIdentifier, RoslynTextDocumentIdentifier>(originalTextDocumentIdentifier).AssumeNotNull();
-        RazorCompletionResolveData.Wrap(combinedCompletionList, textDocument, supportsCompletionListData: supportsCompletionListData);
+        RazorCompletionResolveData.Wrap(combinedCompletionList, originalTextDocumentIdentifier, supportsCompletionListData: supportsCompletionListData);
 
-        return JsonHelpers.ToRoslynLSP<RoslynVSInternalCompletionList, VSInternalCompletionList>(combinedCompletionList);
+        return combinedCompletionList;
     }
 
     private async Task<RazorVSInternalCompletionList?> GetHtmlCompletionListAsync(
@@ -242,8 +240,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
 
         var completionCapability = _clientCapabilitiesService.ClientCapabilities.TextDocument?.Completion as VSInternalCompletionSetting;
 
-        var textDocument = JsonHelpers.ToVsLSP<TextDocumentIdentifier, RoslynTextDocumentIdentifier>(originalTextDocumentIdentifier).AssumeNotNull();
-        var razorDocumentIdentifier = new TextDocumentIdentifierAndVersion(textDocument, Version: 0);
+        var razorDocumentIdentifier = new TextDocumentIdentifierAndVersion(originalTextDocumentIdentifier, Version: 0);
         var resolutionContext = new DelegatedCompletionResolutionContext(razorDocumentIdentifier, RazorLanguageKind.Html, rewrittenResponse.Data);
         var resultId = _completionListCache.Add(rewrittenResponse, resolutionContext);
         rewrittenResponse.SetResultId(resultId, completionCapability);

@@ -16,7 +16,7 @@ public class CompletionListCacheTest(ITestOutputHelper testOutput) : ToolingTest
     public void TryGet_SetCompletionList_ReturnsTrue()
     {
         // Arrange
-        var completionList = new VSInternalCompletionList()
+        var completionList = new RazorVSInternalCompletionList()
         {
             Items = [new VSInternalCompletionItem()]
         };
@@ -43,7 +43,7 @@ public class CompletionListCacheTest(ITestOutputHelper testOutput) : ToolingTest
             _completionListCache.Add(new VSInternalCompletionList(), _context);
         }
 
-        var completionList = new VSInternalCompletionList()
+        var completionList = new RazorVSInternalCompletionList()
         {
             Items = [new VSInternalCompletionItem()]
         };
@@ -75,7 +75,7 @@ public class CompletionListCacheTest(ITestOutputHelper testOutput) : ToolingTest
     public void TryGet_LastCompletionList_ReturnsTrue()
     {
         // Arrange
-        var initialCompletionList = new VSInternalCompletionList()
+        var initialCompletionList = new RazorVSInternalCompletionList()
         {
             Items = [new VSInternalCompletionItem()]
         };
@@ -101,7 +101,7 @@ public class CompletionListCacheTest(ITestOutputHelper testOutput) : ToolingTest
     public void TryGet_EvictedCompletionList_ReturnsFalse()
     {
         // Arrange
-        var initialCompletionList = new VSInternalCompletionList()
+        var initialCompletionList = new RazorVSInternalCompletionList()
         {
             Items = [new VSInternalCompletionItem()]
         };

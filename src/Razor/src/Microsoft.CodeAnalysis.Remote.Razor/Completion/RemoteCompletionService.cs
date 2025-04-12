@@ -168,7 +168,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             return Response.CallHtml;
         }
 
-        return Response.Results(JsonHelpers.ToRoslynLSP<RoslynVSInternalCompletionList, VSInternalCompletionList>(mergedCompletionList));
+        return Response.Results(mergedCompletionList);
     }
 
     private async ValueTask<RazorVSInternalCompletionList?> GetCSharpCompletionAsync(
@@ -242,10 +242,10 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         return generatedDocument;
     }
 
-    public ValueTask<RoslynVSInternalCompletionItem> ResolveCompletionItemAsync(
+    public ValueTask<VSInternalCompletionItem> ResolveCompletionItemAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
-        RoslynVSInternalCompletionItem request,
+        VSInternalCompletionItem request,
         RazorFormattingOptions formattingOptions,
         CancellationToken cancellationToken)
         => RunServiceAsync(
@@ -254,15 +254,13 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             context => ResolveCompletionItemAsync(context, request, formattingOptions, cancellationToken),
             cancellationToken);
 
-    private ValueTask<RoslynVSInternalCompletionItem> ResolveCompletionItemAsync(
+    private ValueTask<VSInternalCompletionItem> ResolveCompletionItemAsync(
         RemoteDocumentContext context,
-        RoslynVSInternalCompletionItem request,
+        VSInternalCompletionItem request,
         RazorFormattingOptions formattingOptions,
         CancellationToken cancellationToken)
     {
-        var vsRequest = JsonHelpers.ToVsLSP<VSInternalCompletionItem, RoslynVSInternalCompletionItem>(request).AssumeNotNull();
-
-        if (!_completionListCache.TryGetOriginalRequestData(vsRequest, out var containingCompletionList, out var originalRequestContext))
+        if (!_completionListCache.TryGetOriginalRequestData(request, out var containingCompletionList, out var originalRequestContext))
         {
             // Couldn't find an associated completion list
             return new(request);
@@ -270,11 +268,11 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
         if (originalRequestContext is DelegatedCompletionResolutionContext resolutionContext)
         {
-            return ResolveCSharpCompletionItemAsync(context, vsRequest, containingCompletionList, resolutionContext, formattingOptions, cancellationToken);
+            return ResolveCSharpCompletionItemAsync(context, request, containingCompletionList, resolutionContext, formattingOptions, cancellationToken);
         }
         else if (originalRequestContext is RazorCompletionResolveContext razorResolutionContext)
         {
-            return ResolveRazorCompletionItemAsync(context, vsRequest, razorResolutionContext, cancellationToken);
+            return ResolveRazorCompletionItemAsync(context, request, razorResolutionContext, cancellationToken);
         }
 
         // We don't know how to resolve this completion item, so just return it as-is.
@@ -282,7 +280,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         return new(request);
     }
 
-    private async ValueTask<RoslynVSInternalCompletionItem> ResolveRazorCompletionItemAsync(RemoteDocumentContext context, VSInternalCompletionItem request, RazorCompletionResolveContext razorResolutionContext, CancellationToken cancellationToken)
+    private async ValueTask<VSInternalCompletionItem> ResolveRazorCompletionItemAsync(RemoteDocumentContext context, VSInternalCompletionItem request, RazorCompletionResolveContext razorResolutionContext, CancellationToken cancellationToken)
     {
         var componentAvailabilityService = new ComponentAvailabilityService(context.Snapshot.ProjectSnapshot.SolutionSnapshot);
 
@@ -294,13 +292,10 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             cancellationToken).ConfigureAwait(false);
 
         // If we couldn't resolve, fall back to what we were passed in
-        result ??= request;
-
-        var roslynResult = JsonHelpers.ToRoslynLSP<RoslynVSInternalCompletionItem, VSInternalCompletionItem>(result).AssumeNotNull();
-        return roslynResult;
+        return result ?? request;
     }
 
-    private async ValueTask<RoslynVSInternalCompletionItem> ResolveCSharpCompletionItemAsync(RemoteDocumentContext context, VSInternalCompletionItem request, VSInternalCompletionList containingCompletionList, DelegatedCompletionResolutionContext resolutionContext, RazorFormattingOptions formattingOptions, CancellationToken cancellationToken)
+    private async ValueTask<VSInternalCompletionItem> ResolveCSharpCompletionItemAsync(RemoteDocumentContext context, VSInternalCompletionItem request, VSInternalCompletionList containingCompletionList, DelegatedCompletionResolutionContext resolutionContext, RazorFormattingOptions formattingOptions, CancellationToken cancellationToken)
     {
         request.Data = DelegatedCompletionHelper.GetOriginalCompletionItemData(request, containingCompletionList, resolutionContext.OriginalCompletionListData);
 
@@ -308,18 +303,15 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         var generatedDocument = await documentSnapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         var clientCapabilities = _clientCapabilitiesService.ClientCapabilities;
-        var completionListSetting = JsonHelpers.ToRoslynLSP<RoslynCompletionSetting, CompletionSetting>(clientCapabilities.TextDocument?.Completion);
-        var roslynRequest = JsonHelpers.ToRoslynLSP<RoslynVSInternalCompletionItem, VSInternalCompletionItem>(request).AssumeNotNull();
+        var completionListSetting = clientCapabilities.TextDocument?.Completion;
         var result = await ExternalAccess.Razor.Cohost.Handlers.Completion.ResolveCompletionItemAsync(
-            roslynRequest,
+            request,
             generatedDocument,
             clientCapabilities.SupportsVisualStudioExtensions,
             completionListSetting ?? new(),
             cancellationToken).ConfigureAwait(false);
 
-        var item = result is RoslynVSInternalCompletionItem internalItem
-            ? internalItem
-            : JsonHelpers.ToRoslynLSP<RoslynVSInternalCompletionItem, RoslynCompletionItem>(result).AssumeNotNull();
+        var item = JsonHelpers.Convert<CompletionItem, VSInternalCompletionItem>(result).AssumeNotNull();
 
         if (!item.VsResolveTextEditOnCommit)
         {
@@ -333,16 +325,13 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             return item;
         }
 
-        var vsResult = JsonHelpers.ToVsLSP<VSInternalCompletionItem, RoslynVSInternalCompletionItem>(item).AssumeNotNull();
-
-        vsResult = await DelegatedCompletionHelper.FormatCSharpCompletionItemAsync(
-            vsResult,
+        item = await DelegatedCompletionHelper.FormatCSharpCompletionItemAsync(
+            item,
             context,
             formattingOptions,
             _formattingService,
             cancellationToken).ConfigureAwait(false);
 
-        var roslynResult = JsonHelpers.ToRoslynLSP<RoslynVSInternalCompletionItem, VSInternalCompletionItem>(vsResult).AssumeNotNull();
-        return roslynResult;
+        return item;
     }
 }

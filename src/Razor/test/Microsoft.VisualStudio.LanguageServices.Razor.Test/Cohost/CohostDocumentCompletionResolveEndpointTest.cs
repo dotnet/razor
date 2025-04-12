@@ -3,16 +3,13 @@
 
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.Settings;
 using Xunit;
 using Xunit.Abstractions;
-using RoslynVSInternalCompletionItem = Roslyn.LanguageServer.Protocol.VSInternalCompletionItem;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -63,7 +60,7 @@ public class CohostDocumentCompletionResolveEndpointTest(ITestOutputHelper testO
             Data = JsonSerializer.SerializeToElement(context),
             Label = "TestItem"
         };
-        var list = new VSInternalCompletionList
+        var list = new RazorVSInternalCompletionList
         {
             Items = [request]
         };
@@ -72,11 +69,10 @@ public class CohostDocumentCompletionResolveEndpointTest(ITestOutputHelper testO
         list.SetResultId(resultId, null);
         RazorCompletionResolveData.Wrap(list, textDocumentIdentifier.TextDocumentIdentifier, supportsCompletionListData: false);
 
-        var roslynItem = JsonHelpers.ToRoslynLSP<RoslynVSInternalCompletionItem, VSInternalCompletionItem>(request).AssumeNotNull();
-        var result = await endpoint.GetTestAccessor().HandleRequestAsync(roslynItem, document, DisposalToken);
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
 
         Assert.NotNull(result);
-        Assert.NotSame(result, roslynItem);
+        Assert.NotSame(result, request);
         Assert.Equal(response.Label, result.Label);
     }
 }

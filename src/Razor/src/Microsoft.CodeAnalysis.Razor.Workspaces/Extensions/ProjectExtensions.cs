@@ -8,7 +8,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Threading;
@@ -78,18 +77,6 @@ internal static class ProjectExtensions
 
     private static ImmutableArray<ITagHelperDescriptorProvider> GetTagHelperDescriptorProviders(RazorProjectEngine projectEngine)
         => projectEngine.Engine.GetFeatures<ITagHelperDescriptorProvider>().OrderByAsArray(static x => x.Order);
-
-    internal static Document GetRequiredDocument(this Project project, DocumentId documentId)
-    {
-        return project.GetDocument(documentId)
-            ?? ThrowHelper.ThrowInvalidOperationException<Document>($"The document {documentId} did not exist in {project.Name}");
-    }
-    public static Task<SourceGeneratedDocument?> TryGetCSharpDocumentFromGeneratedDocumentUriAsync(this Project project, Uri generatedDocumentUri, CancellationToken cancellationToken)
-    {
-        if (!TryGetHintNameFromGeneratedDocumentUri(project, generatedDocumentUri, out var hintName))
-        {
-            return SpecializedTasks.Null<SourceGeneratedDocument>();
-        }
 
     public static Task<SourceGeneratedDocument?> TryGetCSharpDocumentFromGeneratedDocumentUriAsync(this Project project, Uri generatedDocumentUri, CancellationToken cancellationToken)
     {

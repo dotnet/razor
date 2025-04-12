@@ -690,12 +690,12 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
 
         Assert.NotNull(expectedResolvedItemDescription);
 
-        var item = (RoslynVSInternalCompletionItem)Assert.Single(result.Items.Where(i => i.Label == itemToResolve));
+        var item = Assert.Single(result.Items.Where(i => i.Label == itemToResolve));
 
         await VerifyCompletionResolveAsync(document, completionListCache, item, expected, expectedResolvedItemDescription);
     }
 
-    private async Task VerifyCompletionResolveAsync(CodeAnalysis.TextDocument document, CompletionListCache completionListCache, RoslynVSInternalCompletionItem item, string? expected, string expectedResolvedItemDescription)
+    private async Task VerifyCompletionResolveAsync(CodeAnalysis.TextDocument document, CompletionListCache completionListCache, VSInternalCompletionItem item, string? expected, string expectedResolvedItemDescription)
     {
         var clientSettingsManager = new ClientSettingsManager(changeTriggers: []);
         var endpoint = new CohostDocumentCompletionResolveEndpoint(
@@ -728,12 +728,12 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             Assert.Fail("Unhandled description type: " + JsonSerializer.SerializeToElement(result).ToString());
         }
 
-        if (result.TextEdit is { Value: RoslynTextEdit edit })
+        if (result.TextEdit is { Value: TextEdit edit })
         {
             Assert.NotNull(expected);
 
             var text = await document.GetTextAsync(DisposalToken).ConfigureAwait(false);
-            var changedText = text.WithChanges(RoslynLspExtensions.GetTextChange(text, edit));
+            var changedText = text.WithChanges(text.GetTextChange(edit));
 
             AssertEx.EqualOrDiff(expected, changedText.ToString());
         }
