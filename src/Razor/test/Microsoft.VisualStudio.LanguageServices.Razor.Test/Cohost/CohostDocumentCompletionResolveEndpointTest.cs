@@ -69,6 +69,9 @@ public class CohostDocumentCompletionResolveEndpointTest(ITestOutputHelper testO
         list.SetResultId(resultId, null);
         RazorCompletionResolveData.Wrap(list, textDocumentIdentifier.TextDocumentIdentifier, supportsCompletionListData: false);
 
+        // We expect data to be a JsonElement, so for tests we have to _not_ strongly type
+        request.Data = JsonSerializer.SerializeToElement(request.Data, JsonHelpers.JsonSerializerOptions);
+
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
 
         Assert.NotNull(result);

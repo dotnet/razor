@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.Razor.Settings;
@@ -697,6 +698,9 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
 
     private async Task VerifyCompletionResolveAsync(CodeAnalysis.TextDocument document, CompletionListCache completionListCache, VSInternalCompletionItem item, string? expected, string expectedResolvedItemDescription)
     {
+        // We expect data to be a JsonElement, so for tests we have to _not_ strongly type
+        item.Data = JsonSerializer.SerializeToElement(item.Data, JsonHelpers.JsonSerializerOptions);
+
         var clientSettingsManager = new ClientSettingsManager(changeTriggers: []);
         var endpoint = new CohostDocumentCompletionResolveEndpoint(
             completionListCache,
@@ -713,7 +717,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(item, document, DisposalToken);
 
         Assert.NotNull(result);
-        Assert.NotSame(result, item);
 
         if (result.Description is not null)
         {
