@@ -7,8 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Text.Adornments;
+using Roslyn.Text.Adornments;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
@@ -17,7 +16,7 @@ internal class RazorCompletionItemResolver : CompletionItemResolver
     public override async Task<VSInternalCompletionItem?> ResolveAsync(
         VSInternalCompletionItem completionItem,
         VSInternalCompletionList containingCompletionList,
-        object? originalRequestContext,
+        ICompletionResolveContext originalRequestContext,
         VSInternalClientCapabilities? clientCapabilities,
         IComponentAvailabilityService componentAvailabilityService,
         CancellationToken cancellationToken)

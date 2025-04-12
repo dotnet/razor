@@ -9,12 +9,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
+using Microsoft.CodeAnalysis.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem.Legacy;
+
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -61,7 +62,7 @@ public class VisualStudioRazorParserIntegrationTest : VisualStudioTestBase
 
             var codeDocument = await manager.InnerParser.GetLatestCodeDocumentAsync(snapshot);
             Assert.NotNull(codeDocument);
-            Assert.Equal(FileKinds.Component, codeDocument.FileKind);
+            Assert.Equal(RazorFileKind.Component, codeDocument.FileKind);
 
             // @code is only applicable in component files so we're verifying that `@code` was treated as a directive.
             var directiveNodes = manager.CurrentSyntaxTree!.Root.DescendantNodes().Where(child => child.Kind == SyntaxKind.RazorDirective);
@@ -547,7 +548,7 @@ public class VisualStudioRazorParserIntegrationTest : VisualStudioTestBase
         if (expectedCode != null)
         {
             // Verify if the syntax tree represents the expected input.
-            var syntaxTreeContent = manager.PartialParsingSyntaxTreeRoot.ToFullString();
+            var syntaxTreeContent = manager.PartialParsingSyntaxTreeRoot.ToString();
             Assert.Contains(expectedCode, syntaxTreeContent, StringComparison.Ordinal);
         }
 

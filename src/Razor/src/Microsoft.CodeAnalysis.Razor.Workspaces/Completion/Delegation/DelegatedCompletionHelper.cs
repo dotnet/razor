@@ -3,14 +3,10 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 
@@ -96,41 +92,11 @@ internal static class DelegatedCompletionHelper
     /// <returns>
     /// Possibly modified completion response.
     /// </returns>
-    public static async ValueTask<VSInternalCompletionList> RewriteCSharpResponseAsync(
-        VSInternalCompletionList? delegatedResponse,
+    public static RazorVSInternalCompletionList RewriteCSharpResponse(
+        RazorVSInternalCompletionList? delegatedResponse,
         int absoluteIndex,
-        DocumentContext documentContext,
+        RazorCodeDocument codeDocument,
         Position projectedPosition,
-        RazorCompletionOptions completionOptions,
-        CancellationToken cancellationToken)
-    {
-        if (delegatedResponse?.Items is null)
-        {
-            // If we don't get a response from the delegated server, we have to make sure to return an incomplete completion
-            // list. When a user is typing quickly, the delegated request from the first keystroke will fail to synchronize,
-            // so if we return a "complete" list then the query won't re-query us for completion once the typing stops/slows
-            // so we'd only ever return Razor completion items.
-            return new VSInternalCompletionList() { IsIncomplete = true, Items = [] };
-        }
-
-        var rewrittenResponse = delegatedResponse;
-
-        foreach (var rewriter in s_delegatedCSharpCompletionResponseRewriters)
-        {
-            rewrittenResponse = await rewriter.RewriteAsync(
-                rewrittenResponse,
-                absoluteIndex,
-                documentContext,
-                projectedPosition,
-                completionOptions,
-                cancellationToken).ConfigureAwait(false);
-        }
-
-        return rewrittenResponse;
-    }
-
-    public static VSInternalCompletionList RewriteHtmlResponse(
-        VSInternalCompletionList? delegatedResponse,
         RazorCompletionOptions completionOptions)
     {
         if (delegatedResponse?.Items is null)
@@ -139,7 +105,35 @@ internal static class DelegatedCompletionHelper
             // list. When a user is typing quickly, the delegated request from the first keystroke will fail to synchronize,
             // so if we return a "complete" list then the query won't re-query us for completion once the typing stops/slows
             // so we'd only ever return Razor completion items.
-            return new VSInternalCompletionList() { IsIncomplete = true, Items = [] };
+            return new RazorVSInternalCompletionList() { IsIncomplete = true, Items = [] };
+        }
+
+        var rewrittenResponse = delegatedResponse;
+
+        foreach (var rewriter in s_delegatedCSharpCompletionResponseRewriters)
+        {
+            rewrittenResponse = rewriter.Rewrite(
+                rewrittenResponse,
+                codeDocument,
+                absoluteIndex,
+                projectedPosition,
+                completionOptions);
+        }
+
+        return rewrittenResponse;
+    }
+
+    public static RazorVSInternalCompletionList RewriteHtmlResponse(
+        RazorVSInternalCompletionList? delegatedResponse,
+        RazorCompletionOptions completionOptions)
+    {
+        if (delegatedResponse?.Items is null)
+        {
+            // If we don't get a response from the delegated server, we have to make sure to return an incomplete completion
+            // list. When a user is typing quickly, the delegated request from the first keystroke will fail to synchronize,
+            // so if we return a "complete" list then the query won't re-query us for completion once the typing stops/slows
+            // so we'd only ever return Razor completion items.
+            return new RazorVSInternalCompletionList() { IsIncomplete = true, Items = [] };
         }
 
         var rewrittenResponse = s_delegatedHtmlCompletionResponseRewriter.Rewrite(
@@ -161,50 +155,51 @@ internal static class DelegatedCompletionHelper
     /// to C# and will return a temporary edit that should be made to the generated document
     /// in order to add the '.' to the generated C# contents.
     /// </remarks>
-    public static async Task<CompletionPositionInfo?> TryGetProvisionalCompletionInfoAsync(
-        DocumentContext documentContext,
+    public static bool TryGetProvisionalCompletionInfo(
+        RazorCodeDocument codeDocument,
         VSInternalCompletionContext completionContext,
         DocumentPositionInfo originalPositionInfo,
         IDocumentMappingService documentMappingService,
-        CancellationToken cancellationToken)
+        out CompletionPositionInfo result)
     {
+        result = default;
+
         if (originalPositionInfo.LanguageKind != RazorLanguageKind.Html ||
             completionContext.TriggerKind != CompletionTriggerKind.TriggerCharacter ||
             completionContext.TriggerCharacter != ".")
         {
             // Invalid provisional completion context
-            return null;
+            return false;
         }
 
         if (originalPositionInfo.Position.Character == 0)
         {
             // We're at the start of line. Can't have provisional completions here.
-            return null;
+            return false;
         }
 
-        var previousCharacterPositionInfo = await documentMappingService
-            .GetPositionInfoAsync(documentContext, originalPositionInfo.HostDocumentIndex - 1, cancellationToken)
-            .ConfigureAwait(false);
+        var previousCharacterPositionInfo = documentMappingService.GetPositionInfo(codeDocument, originalPositionInfo.HostDocumentIndex - 1);
 
         if (previousCharacterPositionInfo.LanguageKind != RazorLanguageKind.CSharp)
         {
-            return null;
+            return false;
         }
 
         var previousPosition = previousCharacterPositionInfo.Position;
 
         // Edit the CSharp projected document to contain a '.'. This allows C# completion to provide valid
         // completion items for moments when a user has typed a '.' that's typically interpreted as Html.
-        var addProvisionalDot = VsLspFactory.CreateTextEdit(previousPosition, ".");
+        var addProvisionalDot = LspFactory.CreateTextEdit(previousPosition, ".");
 
         var provisionalPositionInfo = new DocumentPositionInfo(
             RazorLanguageKind.CSharp,
-            VsLspFactory.CreatePosition(
+            LspFactory.CreatePosition(
                 previousPosition.Line,
                 previousPosition.Character + 1),
             previousCharacterPositionInfo.HostDocumentIndex + 1);
 
-        return new CompletionPositionInfo(addProvisionalDot, provisionalPositionInfo, ShouldIncludeDelegationSnippets: false);
+        result = new CompletionPositionInfo(addProvisionalDot, provisionalPositionInfo, ShouldIncludeDelegationSnippets: false);
+        return true;
     }
 
     public static bool ShouldIncludeSnippets(RazorCodeDocument razorCodeDocument, int absoluteIndex)

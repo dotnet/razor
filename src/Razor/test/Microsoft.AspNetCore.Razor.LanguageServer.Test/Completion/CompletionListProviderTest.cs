@@ -7,13 +7,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,8 +21,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
 public class CompletionListProviderTest : LanguageServerTestBase
 {
-    private readonly VSInternalCompletionList _completionList1;
-    private readonly VSInternalCompletionList _completionList2;
+    private readonly RazorVSInternalCompletionList _completionList1;
+    private readonly RazorVSInternalCompletionList _completionList2;
     private readonly RazorCompletionListProvider _razorCompletionProvider;
     private readonly DelegatedCompletionListProvider _delegatedCompletionProvider;
     private readonly VSInternalCompletionContext _completionContext;
@@ -34,8 +34,8 @@ public class CompletionListProviderTest : LanguageServerTestBase
     public CompletionListProviderTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _completionList1 = new VSInternalCompletionList() { Items = [] };
-        _completionList2 = new VSInternalCompletionList() { Items = [] };
+        _completionList1 = new RazorVSInternalCompletionList() { Items = [] };
+        _completionList2 = new RazorVSInternalCompletionList() { Items = [] };
         _razorCompletionProvider = new TestRazorCompletionListProvider(_completionList1, LoggerFactory);
         _delegatedCompletionProvider = new TestDelegatedCompletionListProvider(_completionList2);
         _completionContext = new VSInternalCompletionContext();
@@ -80,15 +80,16 @@ public class CompletionListProviderTest : LanguageServerTestBase
 
     private class TestDelegatedCompletionListProvider : DelegatedCompletionListProvider
     {
-        private readonly VSInternalCompletionList _completionList;
+        private readonly RazorVSInternalCompletionList _completionList;
 
-        public TestDelegatedCompletionListProvider(VSInternalCompletionList completionList)
+        public TestDelegatedCompletionListProvider(RazorVSInternalCompletionList completionList)
             : base(null, null, null, null)
         {
             _completionList = completionList;
         }
 
-        public override Task<VSInternalCompletionList> GetCompletionListAsync(
+        public override ValueTask<RazorVSInternalCompletionList> GetCompletionListAsync(
+            RazorCodeDocument codeDocument,
             int absoluteIndex,
             VSInternalCompletionContext completionContext,
             DocumentContext documentContext,
@@ -97,32 +98,29 @@ public class CompletionListProviderTest : LanguageServerTestBase
             Guid correlationId,
             CancellationToken cancellationToken)
         {
-            return Task.FromResult(_completionList);
+            return new(_completionList);
         }
     }
 
     private class TestRazorCompletionListProvider : RazorCompletionListProvider
     {
-        private readonly VSInternalCompletionList _completionList;
+        private readonly RazorVSInternalCompletionList _completionList;
 
         public TestRazorCompletionListProvider(
-            VSInternalCompletionList completionList,
+            RazorVSInternalCompletionList completionList,
             ILoggerFactory loggerFactory)
             : base(completionFactsService: null, completionListCache: null, loggerFactory)
         {
             _completionList = completionList;
         }
 
-        public override Task<VSInternalCompletionList> GetCompletionListAsync(
+        public override RazorVSInternalCompletionList GetCompletionList(
+            RazorCodeDocument codeDocument,
             int absoluteIndex,
             VSInternalCompletionContext completionContext,
-            DocumentContext documentContext,
             VSInternalClientCapabilities clientCapabilities,
             HashSet<string> existingCompletions,
-            RazorCompletionOptions razorCompletionOptions,
-            CancellationToken cancellationToken)
-        {
-            return Task.FromResult(_completionList);
-        }
+            RazorCompletionOptions razorCompletionOptions)
+            => _completionList;
     }
 }

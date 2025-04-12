@@ -342,7 +342,10 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                             keywords: CurrentKeywords);
                     }
 
-                    AcceptMarkerTokenIfNecessary();
+                    // In this error case, we always want to accept a marker token. This allows intellisense to know
+                    // that we're still in a CSharp context and offer the correct set of completions to the user.
+                    Accept(Language.CreateMarkerToken());
+
                     var expressionLiteral = SyntaxFactory.CSharpCodeBlock(OutputTokensAsExpressionLiteral());
                     var expressionBody = SyntaxFactory.CSharpImplicitExpressionBody(expressionLiteral);
                     var expressionBlock = SyntaxFactory.CSharpImplicitExpression(transition, expressionBody);
@@ -1241,7 +1244,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
             // Accept the directive name
             var keywordToken = EatCurrentToken();
-            var keywordLength = keywordToken.FullWidth + 1 /* @ */;
+            var keywordLength = keywordToken.Width + 1 /* @ */;
 
             var foundWhitespace = At(SyntaxKind.Whitespace);
 
