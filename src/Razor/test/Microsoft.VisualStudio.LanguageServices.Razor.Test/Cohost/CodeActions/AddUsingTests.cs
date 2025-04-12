@@ -3,6 +3,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -27,7 +28,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, "System.Text.StringBuilder");
+        await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.FullyQualify);
     }
 
     [Fact]
@@ -54,7 +55,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
                     {
                     }
                     """)],
-            codeActionName: "Fully qualify 'StringBuilder'",
+            codeActionName: LanguageServerConstants.CodeActions.FullyQualify,
             childActionIndex: 0);
     }
 
