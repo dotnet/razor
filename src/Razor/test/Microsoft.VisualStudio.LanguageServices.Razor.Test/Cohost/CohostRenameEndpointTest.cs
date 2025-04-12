@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [Fact(Skip = "Cannot edit source generated documents")]
+    [Fact(Skip = "Roslyn doesn't perform rename in source generated documents")]
     public Task CSharp_Method()
         => VerifyRenamesAsync(
             input: """
@@ -52,7 +52,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 The end.
                 """);
 
-    [Theory(Skip = "Cannot edit source generated documents")]
+    [Theory]
     [InlineData("$$Component")]
     [InlineData("Com$$ponent")]
     [InlineData("Component$$")]
@@ -100,7 +100,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 """,
             renames: [("Component.razor", "DifferentName.razor")]);
 
-    [Theory(Skip = "Cannot edit source generated documents")]
+    [Theory]
     [InlineData("$$Component")]
     [InlineData("Com$$ponent")]
     [InlineData("Component$$")]
@@ -150,15 +150,15 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
     [Fact]
     public Task Mvc()
-       => VerifyRenamesAsync(
-           input: """
+        => VerifyRenamesAsync(
+            input: """
                 This is a Razor document.
 
                 <Com$$ponent />
 
                 The end.
                 """,
-           additionalFiles: [
+            additionalFiles: [
                 (FilePath("Component.razor"), "")
            ],
            newName: "DifferentName",
