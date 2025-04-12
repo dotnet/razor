@@ -160,10 +160,10 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 """,
             additionalFiles: [
                 (FilePath("Component.razor"), "")
-           ],
-           newName: "DifferentName",
-           expected: "",
-           fileKind: RazorFileKind.Legacy);
+            ],
+            newName: "DifferentName",
+            expected: "",
+            fileKind: RazorFileKind.Legacy);
 
     private async Task VerifyRenamesAsync(
         string input,
