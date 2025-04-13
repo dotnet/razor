@@ -10,6 +10,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CohostEndpointAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CohostEndpointRegistration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensLegendService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensRangeEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IDynamicRegistrationProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorCohostClientCapabilitiesService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorCohostDynamicRegistrationService.cs" />

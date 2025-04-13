@@ -11,11 +11,12 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Razor.Settings;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -23,18 +24,18 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Shared]
 [CohostEndpoint(Methods.TextDocumentSemanticTokensRangeName)]
 [Export(typeof(IDynamicRegistrationProvider))]
-[ExportCohostStatelessLspService(typeof(CohostSemanticTokensRangeEndpoint))]
+[ExportRazorStatelessLspService(typeof(CohostSemanticTokensRangeEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostSemanticTokensRangeEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
-    IClientSettingsManager clientSettingsManager,
+    IClientSettingsReader clientSettingsManager,
     ISemanticTokensLegendService semanticTokensLegendService,
     ITelemetryReporter telemetryReporter)
     : AbstractRazorCohostDocumentRequestHandler<SemanticTokensRangeParams, SemanticTokens?>, IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
-    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
+    private readonly IClientSettingsReader _clientSettingsManager = clientSettingsManager;
     private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
@@ -51,7 +52,7 @@ internal sealed class CohostSemanticTokensRangeEndpoint(
 
             return [new Registration()
             {
-                Method = Methods.TextDocumentSemanticTokensRangeName,
+                Method = Methods.TextDocumentSemanticTokensName, /* TODO: This needs to be different for VS and VS Code */
                 RegisterOptions = new SemanticTokensRegistrationOptions()
                     .EnableSemanticTokens(_semanticTokensLegendService)
             }];
