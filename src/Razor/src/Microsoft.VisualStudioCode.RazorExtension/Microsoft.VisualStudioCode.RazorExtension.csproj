@@ -67,4 +67,6 @@
       <Content Include="$(PublishDir)\zh-Hant\**\*.*" Pack="true" PackagePath="content\zh-Hant\" CopyToOutputDirectory="false" />
     </ItemGroup>
   </Target>
+
+  <Import Project="..\Microsoft.CodeAnalysis.Razor.CohostingShared\Microsoft.CodeAnalysis.Razor.CohostingShared.projitems" Label="Shared" />
 </Project>
