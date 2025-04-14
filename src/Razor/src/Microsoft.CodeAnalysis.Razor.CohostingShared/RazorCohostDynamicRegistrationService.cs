@@ -26,7 +26,11 @@ internal class RazorCohostDynamicRegistrationService(
 {
     private static readonly DocumentFilter[] s_filter = [new DocumentFilter()
     {
+#if VSCODE
+        Language = "aspnetcorerazor",
+#else
         Language = CodeAnalysis.ExternalAccess.Razor.Cohost.Constants.RazorLanguageName,
+#endif
         Pattern = "**/*.{razor,cshtml}"
     }];
 

@@ -4,6 +4,7 @@
     <TargetFramework>$(NetVSCode)</TargetFramework>
     <Nullable>enable</Nullable>
     <IsShippingPackage>true</IsShippingPackage>
+    <DefineConstants>$(DefineConstants);VSCODE</DefineConstants>
 
     <!--
         Build a nuget package for this project.  This is not consumed as a standard NuGet package; it just
