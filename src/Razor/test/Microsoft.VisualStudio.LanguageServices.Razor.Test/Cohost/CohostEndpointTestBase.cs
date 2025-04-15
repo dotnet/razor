@@ -23,9 +23,8 @@ using Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Xunit;
 using Roslyn.Test.Utilities;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -137,13 +136,13 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
 
     protected TextDocument CreateProjectAndRazorDocument(
         string contents,
-        string? fileKind = null,
+        RazorFileKind? fileKind = null,
         (string fileName, string contents)[]? additionalFiles = null,
         bool createSeparateRemoteAndLocalWorkspaces = false,
         bool inGlobalNamespace = false)
     {
         // Using IsLegacy means null == component, so easier for test authors
-        var isComponent = !FileKinds.IsLegacy(fileKind);
+        var isComponent = fileKind != RazorFileKind.Legacy;
 
         var documentFilePath = isComponent
             ? TestProjectData.SomeProjectComponentFile1.FilePath

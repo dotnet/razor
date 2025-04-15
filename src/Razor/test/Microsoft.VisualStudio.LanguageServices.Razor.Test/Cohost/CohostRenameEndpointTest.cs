@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -164,9 +163,15 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
            ],
            newName: "DifferentName",
            expected: "",
-           fileKind: FileKinds.Legacy);
+           fileKind: RazorFileKind.Legacy);
 
-    private async Task VerifyRenamesAsync(string input, string newName, string expected, string? fileKind = null, (string fileName, string contents)[]? additionalFiles = null, (string oldName, string newName)[]? renames = null)
+    private async Task VerifyRenamesAsync(
+        string input,
+        string newName,
+        string expected,
+        RazorFileKind? fileKind = null,
+        (string fileName, string contents)[]? additionalFiles = null,
+        (string oldName, string newName)[]? renames = null)
     {
         TestFileMarkupParser.GetPosition(input, out var source, out var cursorPosition);
         var document = CreateProjectAndRazorDocument(source, fileKind, additionalFiles);
@@ -224,7 +229,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
             {
                 foreach (var edit in textDocumentEdit.Edits)
                 {
-                    inputText = inputText.WithChanges(inputText.GetTextChange(edit));
+                    inputText = inputText.WithChanges(inputText.GetTextChange((TextEdit)edit));
                 }
             }
         }

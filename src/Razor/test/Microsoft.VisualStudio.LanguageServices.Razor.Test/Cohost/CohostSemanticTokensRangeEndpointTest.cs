@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Settings;
+using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.Settings;
 using Microsoft.VisualStudio.Utilities;
@@ -85,7 +85,7 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
             }
             """;
 
-        await VerifySemanticTokensAsync(input, colorBackground, precise, fileKind: FileKinds.Legacy);
+        await VerifySemanticTokensAsync(input, colorBackground, precise, fileKind: RazorFileKind.Legacy);
     }
 
     [Theory]
@@ -110,10 +110,15 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
             }
             """;
 
-        await VerifySemanticTokensAsync(input, colorBackground, precise, fileKind: FileKinds.Legacy);
+        await VerifySemanticTokensAsync(input, colorBackground, precise, fileKind: RazorFileKind.Legacy);
     }
 
-    private async Task VerifySemanticTokensAsync(string input, bool colorBackground, bool precise, string? fileKind = null, [CallerMemberName] string? testName = null)
+    private async Task VerifySemanticTokensAsync(
+        string input,
+        bool colorBackground,
+        bool precise,
+        RazorFileKind? fileKind = null,
+        [CallerMemberName] string? testName = null)
     {
         var document = CreateProjectAndRazorDocument(input, fileKind);
         var sourceText = await document.GetTextAsync(DisposalToken);

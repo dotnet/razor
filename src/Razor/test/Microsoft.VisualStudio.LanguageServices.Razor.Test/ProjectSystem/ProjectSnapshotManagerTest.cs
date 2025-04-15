@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
@@ -130,7 +129,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         Assert.Single(
             project.DocumentFilePaths,
             filePath => filePath == s_documents[0].FilePath &&
-                        project.GetRequiredDocument(filePath).FileKind == FileKinds.Legacy);
+                        project.GetRequiredDocument(filePath).FileKind == RazorFileKind.Legacy);
 
         listener.AssertNotifications(
             x => x.DocumentAdded());
@@ -158,7 +157,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
         Assert.Single(
             project.DocumentFilePaths,
             filePath => filePath == s_documents[3].FilePath &&
-                        project.GetRequiredDocument(filePath).FileKind == FileKinds.Component);
+                        project.GetRequiredDocument(filePath).FileKind == RazorFileKind.Component);
 
         listener.AssertNotifications(
             x => x.DocumentAdded());

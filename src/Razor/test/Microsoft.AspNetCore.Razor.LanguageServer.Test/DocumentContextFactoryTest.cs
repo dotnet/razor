@@ -9,8 +9,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -103,7 +103,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         });
 
         // Act
-        Assert.True(factory.TryCreate(uri, new VisualStudio.LanguageServer.Protocol.VSProjectContext { Id = hostProject.Key.Id }, out var documentContext));
+        Assert.True(factory.TryCreate(uri, new VSProjectContext { Id = hostProject.Key.Id }, out var documentContext));
 
         // Assert
         Assert.Equal(uri, documentContext.Uri);
