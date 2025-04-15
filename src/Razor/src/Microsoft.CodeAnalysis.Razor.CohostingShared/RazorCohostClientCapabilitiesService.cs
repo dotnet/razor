@@ -2,10 +2,21 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-[Export(typeof(RazorCohostClientCapabilitiesService))]
+[Export(typeof(IRazorCohostStartupService))]
 [Export(typeof(IClientCapabilitiesService))]
-internal sealed class RazorCohostClientCapabilitiesService : AbstractClientCapabilitiesService;
+internal sealed class RazorCohostClientCapabilitiesService : AbstractClientCapabilitiesService, IRazorCohostStartupService
+{
+    public Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
+    {
+        SetCapabilities(clientCapabilities);
+
+        return Task.CompletedTask;
+    }
+}

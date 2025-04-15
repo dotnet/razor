@@ -7,22 +7,31 @@ using System.Threading;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 
 [ExportRazorStatelessLspService(typeof(RazorWorkspaceService)), Shared]
 [method: ImportingConstructor]
-internal sealed class WorkspaceService(ILoggerFactory loggerFactory) : RazorWorkspaceService
+internal sealed class WorkspaceService(ILoggerFactory loggerFactory, LanguageServerFeatureOptions languageServerFeatureOptions) : RazorWorkspaceService
 {
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
     private readonly ILogger _logger = loggerFactory.CreateLogger<WorkspaceService>();
     private readonly Lock _initializeLock = new();
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
+
     private RazorWorkspaceListener? _razorWorkspaceListener;
     private HashSet<ProjectId>? _projectIdWithDynamicFiles = [];
 
     public override void Initialize(Workspace workspace, string pipeName)
     {
+        if (_languageServerFeatureOptions.UseRazorCohostServer)
+        {
+            // Cohost server doesn't need to initialize the workspace listener.
+            return;
+        }
+
         HashSet<ProjectId> projectsToInitialize;
         lock (_initializeLock)
         {
@@ -50,6 +59,12 @@ internal sealed class WorkspaceService(ILoggerFactory loggerFactory) : RazorWork
 
     public override void NotifyDynamicFile(ProjectId projectId)
     {
+        if (_languageServerFeatureOptions.UseRazorCohostServer)
+        {
+            // Cohost server doesn't need to initialize the workspace listener.
+            return;
+        }
+
         if (_razorWorkspaceListener is null)
         {
             lock (_initializeLock)
