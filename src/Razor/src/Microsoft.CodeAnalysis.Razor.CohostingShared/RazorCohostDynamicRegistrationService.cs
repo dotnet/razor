@@ -16,13 +16,13 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-[Export(typeof(IRazorCohostDynamicRegistrationService))]
+[Export(typeof(ICohostStartupService))]
 [method: ImportingConstructor]
 internal class RazorCohostDynamicRegistrationService(
     LanguageServerFeatureOptions languageServerFeatureOptions,
     [ImportMany] IEnumerable<Lazy<IDynamicRegistrationProvider>> lazyRegistrationProviders,
     Lazy<RazorCohostClientCapabilitiesService> lazyRazorCohostClientCapabilitiesService)
-    : IRazorCohostDynamicRegistrationService
+    : ICohostStartupService
 {
     private static readonly DocumentFilter[] s_filter = [new DocumentFilter()
     {
@@ -38,7 +38,7 @@ internal class RazorCohostDynamicRegistrationService(
     private readonly ImmutableArray<Lazy<IDynamicRegistrationProvider>> _lazyRegistrationProviders = [.. lazyRegistrationProviders];
     private readonly Lazy<RazorCohostClientCapabilitiesService> _lazyRazorCohostClientCapabilitiesService = lazyRazorCohostClientCapabilitiesService;
 
-    public async Task RegisterAsync(string clientCapabilitiesString, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
+    public async Task StartupAsync(string clientCapabilitiesString, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
     {
         if (!_languageServerFeatureOptions.UseRazorCohostServer)
         {
