@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
@@ -66,6 +67,8 @@ internal class VSCodeLanguageServerFeatureOptions : LanguageServerFeatureOptions
         _useRazorCohostServer = GetBooleanOptionValue(options[0], _useRazorCohostServer);
         _useNewFormattingEngine = GetBooleanOptionValue(options[1], _useNewFormattingEngine);
         _forceRuntimeCodeGeneration = GetBooleanOptionValue(options[2], _forceRuntimeCodeGeneration);
+
+        RazorCohostingOptions.UseRazorCohostServer = _useRazorCohostServer;
     }
 
     private static bool GetBooleanOptionValue(JsonNode? jsonNode, bool defaultValue)
