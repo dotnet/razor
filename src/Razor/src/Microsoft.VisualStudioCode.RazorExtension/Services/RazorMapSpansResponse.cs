@@ -3,18 +3,17 @@
 
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 
 internal sealed class RazorMapSpansResponse
 {
-    [JsonPropertyName("razorDocument")]
-    public required TextDocumentIdentifier RazorDocument { get; set; }
+    [JsonPropertyName("ranges")]
+    public required LspRange[] Ranges { get; set; }
 
-    [JsonPropertyName("mappedSpans")]
+    [JsonPropertyName("spans")]
     public required RazorTextSpan[] Spans { get; set; }
 
-    [JsonPropertyName("mappedRanges")]
-    public required VisualStudio.LanguageServer.Protocol.Range[] Ranges { get; set; }
+    [JsonPropertyName("razorDocument")]
+    public required TextDocumentIdentifier RazorDocument { get; set; }
 }

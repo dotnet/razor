@@ -8,16 +8,12 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 
 internal class LspRazorMappingService(IRazorClientLanguageServerManager razorClientLanguageServerManager) : IRazorMappingService
 {
     private readonly IRazorClientLanguageServerManager _razorClientLanguageServerManager = razorClientLanguageServerManager;
-
-    private const string RazorMapSpansEndpoint = "razor/mapSpans";
-    private const string RazorMapChangesEndpoint = "razor/mapTextChanges";
 
     public async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
     {
@@ -36,7 +32,7 @@ internal class LspRazorMappingService(IRazorClientLanguageServerManager razorCli
         };
 
         var response = await _razorClientLanguageServerManager.SendRequestAsync<RazorMapSpansParams, RazorMapSpansResponse?>(
-            RazorMapSpansEndpoint,
+            LanguageServerConstants.RazorMapSpansEndpoint,
             mapParams,
             cancellationToken).ConfigureAwait(false);
 
@@ -70,7 +66,7 @@ internal class LspRazorMappingService(IRazorClientLanguageServerManager razorCli
             return [];
         }
 
-        var mapParams = new RazorMapChangesParams()
+        var mapParams = new RazorMapTextChangesParams()
         {
             CSharpDocument = new()
             {
@@ -79,8 +75,8 @@ internal class LspRazorMappingService(IRazorClientLanguageServerManager razorCli
             TextChanges = changes.Select(c => c.ToRazorTextChange()).ToArray()
         };
 
-        var response = await _razorClientLanguageServerManager.SendRequestAsync<RazorMapChangesParams, RazorMapChangesResponse?>(
-            RazorMapChangesEndpoint,
+        var response = await _razorClientLanguageServerManager.SendRequestAsync<RazorMapTextChangesParams, RazorMapTextChangesResponse?>(
+            LanguageServerConstants.RazorMapTextChangesEndpoint,
             mapParams,
             cancellationToken).ConfigureAwait(false);
 

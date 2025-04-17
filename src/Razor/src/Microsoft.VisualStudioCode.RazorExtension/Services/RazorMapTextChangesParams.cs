@@ -3,11 +3,10 @@
 
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 
-internal sealed class RazorMapChangesParams
+internal sealed class RazorMapTextChangesParams
 {
     [JsonPropertyName("csharpDocument")]
     public required TextDocumentIdentifier CSharpDocument { get; set; }

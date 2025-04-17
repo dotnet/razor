@@ -3,15 +3,14 @@
 
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 
-internal sealed class RazorMapSpansParams
+internal class RazorMapSpansParams
 {
     [JsonPropertyName("csharpDocument")]
-    public required TextDocumentIdentifier CSharpDocument { get; set; }
+    public required TextDocumentIdentifier CSharpDocument { get; internal set; }
 
     [JsonPropertyName("spans")]
-    public required RazorTextSpan[] Spans { get; set; }
+    public required RazorTextSpan[] Spans { get; internal set; }
 }

@@ -3,11 +3,10 @@
 
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 
-internal sealed class RazorMapChangesResponse
+internal sealed class RazorMapTextChangesResponse
 {
     [JsonPropertyName("razorDocument")]
     public required TextDocumentIdentifier RazorDocument { get; set; }
@@ -15,3 +14,4 @@ internal sealed class RazorMapChangesResponse
     [JsonPropertyName("mappedTextChanges")]
     public required RazorTextChange[] MappedTextChanges { get; set; }
 }
+
