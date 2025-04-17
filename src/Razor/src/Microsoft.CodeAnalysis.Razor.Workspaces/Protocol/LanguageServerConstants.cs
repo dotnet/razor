@@ -17,10 +17,6 @@ internal static class LanguageServerConstants
 
     public const string RazorMapToDocumentEditsEndpoint = "razor/mapToDocumentEdits";
 
-    public const string RazorMapSpansEndpoint = "razor/mapSpans";
-
-    public const string RazorMapTextChangesEndpoint = "razor/mapTextChanges";
-
     public const string RazorCodeActionRunnerCommand = "razor/runCodeAction";
 
     public const string RazorCompletionEndpointName = "razor/completion";

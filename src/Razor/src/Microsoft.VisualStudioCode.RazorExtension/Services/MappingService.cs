@@ -25,13 +25,15 @@ internal class MappingService(IRazorClientLanguageServerManager razorClientLangu
             return [];
         }
 
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
         var mapParams = new RazorMapSpansParams()
         {
             CSharpDocument = new()
             {
                 Uri = new(document.FilePath)
             },
-            Spans = spans.Select(span => span.ToRazorTextSpan()).ToArray()
+            Ranges = [.. spans.Select(sourceText.GetRange)]
         };
 
         var response = await _razorClientLanguageServerManager.SendRequestAsync<RazorMapSpansParams, RazorMapSpansResponse?>(
