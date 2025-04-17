@@ -11,8 +11,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 
-internal class LspRazorMappingService(IRazorClientLanguageServerManager razorClientLanguageServerManager) : IRazorMappingService
+internal class MappingService(IRazorClientLanguageServerManager razorClientLanguageServerManager) : IRazorMappingService
 {
+    private const string RazorMapSpansEndpoint = "razor/mapSpans";
+    private const string RazorMapTextChangesEndpoint = "razor/mapTextChanges";
+
     private readonly IRazorClientLanguageServerManager _razorClientLanguageServerManager = razorClientLanguageServerManager;
 
     public async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
@@ -32,7 +35,7 @@ internal class LspRazorMappingService(IRazorClientLanguageServerManager razorCli
         };
 
         var response = await _razorClientLanguageServerManager.SendRequestAsync<RazorMapSpansParams, RazorMapSpansResponse?>(
-            LanguageServerConstants.RazorMapSpansEndpoint,
+            RazorMapSpansEndpoint,
             mapParams,
             cancellationToken).ConfigureAwait(false);
 
@@ -76,7 +79,7 @@ internal class LspRazorMappingService(IRazorClientLanguageServerManager razorCli
         };
 
         var response = await _razorClientLanguageServerManager.SendRequestAsync<RazorMapTextChangesParams, RazorMapTextChangesResponse?>(
-            LanguageServerConstants.RazorMapTextChangesEndpoint,
+            RazorMapTextChangesEndpoint,
             mapParams,
             cancellationToken).ConfigureAwait(false);
 

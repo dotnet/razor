@@ -29,6 +29,6 @@ internal sealed class LspDocumentServiceProvider(IRazorClientLanguageServerManag
 
     private IRazorMappingService CreateMappingService()
     {
-        return new LspRazorMappingService(razorClientLanguageServerManager);
+        return new MappingService(razorClientLanguageServerManager);
     }
 }
