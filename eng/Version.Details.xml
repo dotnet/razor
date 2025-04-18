@@ -93,10 +93,6 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>284e2d86b5458da3f1f0e53f8a55ca62801d9bbb</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures" Version="5.0.0-1.25209.6">
-      <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>605d9346cdae106907f67663250788eff6048b09</Sha>
-    </Dependency>
     <Dependency Name="Microsoft.CodeAnalysis.LanguageServer.Protocol" Version="4.14.0-1.25218.2">
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>284e2d86b5458da3f1f0e53f8a55ca62801d9bbb</Sha>

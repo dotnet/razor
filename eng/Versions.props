@@ -56,7 +56,6 @@
     <MicrosoftCodeAnalysisExternalAccessFSharpPackageVersion>4.14.0-1.25218.2</MicrosoftCodeAnalysisExternalAccessFSharpPackageVersion>
     <MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>4.14.0-1.25218.2</MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>
     <MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>4.14.0-1.25218.2</MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>
-    <MicrosoftCodeAnalysisExternalAccessRazorEditorFeaturesPackageVersion>5.0.0-1.25209.6</MicrosoftCodeAnalysisExternalAccessRazorEditorFeaturesPackageVersion>
     <MicrosoftCodeAnalysisExternalAccessRazorFeaturesPackageVersion>4.14.0-1.25218.2</MicrosoftCodeAnalysisExternalAccessRazorFeaturesPackageVersion>
     <MicrosoftCodeAnalysisCommonPackageVersion>4.14.0-1.25218.2</MicrosoftCodeAnalysisCommonPackageVersion>
     <MicrosoftCodeAnalysisCSharpPackageVersion>4.14.0-1.25218.2</MicrosoftCodeAnalysisCSharpPackageVersion>
