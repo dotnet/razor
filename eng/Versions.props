@@ -52,7 +52,7 @@
     <MicrosoftSourceBuildIntermediatesourcebuildreferencepackagesPackageVersion>10.0.617601</MicrosoftSourceBuildIntermediatesourcebuildreferencepackagesPackageVersion>
     <MicrosoftSourceBuildIntermediatearcadePackageVersion>9.0.0-beta.25161.4</MicrosoftSourceBuildIntermediatearcadePackageVersion>
     <MicrosoftNetCompilersToolsetPackageVersion>4.14.0-3.25176.5</MicrosoftNetCompilersToolsetPackageVersion>
-    <MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>4.14.0-3.25176.5</MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>
+    <MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>4.14.0-1.25218.2</MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>
     <MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>4.14.0-3.25176.5</MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>
     <MicrosoftCodeAnalysisCommonPackageVersion>4.14.0-3.25176.5</MicrosoftCodeAnalysisCommonPackageVersion>
     <MicrosoftCodeAnalysisCSharpPackageVersion>4.14.0-3.25176.5</MicrosoftCodeAnalysisCSharpPackageVersion>
