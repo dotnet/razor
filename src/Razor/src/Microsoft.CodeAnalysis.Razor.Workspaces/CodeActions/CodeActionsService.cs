@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
@@ -102,11 +101,6 @@ internal class CodeActionsService(
         CancellationToken cancellationToken)
     {
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        if (codeDocument.IsUnsupported())
-        {
-            return null;
-        }
-
         var sourceText = codeDocument.Source.Text;
 
         if (!sourceText.TryGetAbsoluteIndex(request.Range.Start, out var startLocation))

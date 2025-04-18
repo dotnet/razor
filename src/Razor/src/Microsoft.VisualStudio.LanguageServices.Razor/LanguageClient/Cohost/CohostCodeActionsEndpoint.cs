@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -99,17 +98,19 @@ internal sealed class CohostCodeActionsEndpoint(
 
     private async Task<RazorVSInternalCodeAction[]> GetCSharpCodeActionsAsync(TextDocument razorDocument, VSCodeActionParams request, Guid correlationId, CancellationToken cancellationToken)
     {
-        if (!razorDocument.Project.TryGetCSharpDocument(request.TextDocument.Uri, out var generatedDocument))
+        var generatedDocument = await razorDocument.Project.TryGetCSharpDocumentFromGeneratedDocumentUriAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+        if (generatedDocument is null)
         {
             return [];
         }
 
-        var csharpRequest = JsonHelpers.ToRoslynLSP<Roslyn.LanguageServer.Protocol.CodeActionParams, VSCodeActionParams>(request).AssumeNotNull();
+        // We have to use our own type, which doesn't inherit from CodeActionParams, so we have to use Json to convert
+        var csharpRequest = JsonHelpers.Convert<VSCodeActionParams, CodeActionParams>(request).AssumeNotNull();
 
         using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentCodeActionName, "Razor.ExternalAccess", TelemetryThresholds.CodeActionSubLSPTelemetryThreshold, correlationId);
         var csharpCodeActions = await CodeActions.GetCodeActionsAsync(generatedDocument, csharpRequest, _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
 
-        return JsonHelpers.ToVsLSP<RazorVSInternalCodeAction[], Roslyn.LanguageServer.Protocol.CodeAction[]>(csharpCodeActions).AssumeNotNull();
+        return JsonHelpers.ConvertAll<CodeAction, RazorVSInternalCodeAction>(csharpCodeActions);
     }
 
     private async Task<RazorVSInternalCodeAction[]> GetHtmlCodeActionsAsync(TextDocument razorDocument, VSCodeActionParams request, Guid correlationId, CancellationToken cancellationToken)
@@ -135,7 +136,12 @@ internal sealed class CohostCodeActionsEndpoint(
                 request,
                 cancellationToken).ConfigureAwait(false);
 
-            return result?.Response ?? [];
+            if (result?.Response is null)
+            {
+                return [];
+            }
+
+            return result.Response;
         }
         finally
         {

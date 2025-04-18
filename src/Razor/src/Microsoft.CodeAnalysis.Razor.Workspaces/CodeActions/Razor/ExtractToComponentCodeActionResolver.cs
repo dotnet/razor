@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 
@@ -44,10 +43,6 @@ internal class ExtractToComponentCodeActionResolver(
         }
 
         var componentDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        if (componentDocument.IsUnsupported())
-        {
-            return null;
-        }
 
         var text = componentDocument.Source.Text;
         var path = FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath());
@@ -61,7 +56,7 @@ internal class ExtractToComponentCodeActionResolver(
             ? '/' + componentPath
             : componentPath;
 
-        var newComponentUri = VsLspFactory.CreateFilePathUri(componentPath);
+        var newComponentUri = LspFactory.CreateFilePathUri(componentPath);
 
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
@@ -72,7 +67,7 @@ internal class ExtractToComponentCodeActionResolver(
         var usingDirectives = syntaxTree.GetUsingDirectives();
         foreach (var usingDirective in usingDirectives)
         {
-            builder.AppendLine(usingDirective.ToFullString());
+            builder.AppendLine(usingDirective.ToString());
         }
 
         // If any using directives were added, add a newline before the extracted content.
@@ -109,7 +104,7 @@ internal class ExtractToComponentCodeActionResolver(
                     new TextEdit
                     {
                         NewText = builder.ToString(),
-                        Range = VsLspFactory.DefaultRange,
+                        Range = LspFactory.DefaultRange,
                     }
                 ],
             }
