@@ -8,9 +8,8 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.VisualStudio.Razor.Settings;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -109,8 +108,9 @@ public class CohostOnTypeFormattingEndpointTest(HtmlFormattingFixture htmlFormat
         IHtmlRequestInvoker requestInvoker;
         if (html)
         {
-            var htmlDocumentPublisher = new HtmlDocumentPublisher(RemoteServiceInvoker, StrictMock.Of<TrackingLSPDocumentManager>(), StrictMock.Of<JoinableTaskContext>(), LoggerFactory);
-            var generatedHtml = await htmlDocumentPublisher.GetHtmlSourceFromOOPAsync(document, DisposalToken);
+            var generatedHtml = await RemoteServiceInvoker.TryInvokeAsync<IRemoteHtmlDocumentService, string?>(document.Project.Solution,
+                (service, solutionInfo, ct) => service.GetHtmlDocumentTextAsync(solutionInfo, document.Id, ct),
+                DisposalToken).ConfigureAwait(false);
             Assert.NotNull(generatedHtml);
 
             var uri = new Uri(document.CreateUri(), $"{document.FilePath}{FeatureOptions.HtmlVirtualDocumentSuffix}");

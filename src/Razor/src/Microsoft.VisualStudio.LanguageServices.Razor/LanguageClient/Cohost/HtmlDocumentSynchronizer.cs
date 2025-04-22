@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Utilities;
 
@@ -20,10 +21,12 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Export(typeof(IHtmlDocumentSynchronizer))]
 [method: ImportingConstructor]
 internal sealed partial class HtmlDocumentSynchronizer(
+    IRemoteServiceInvoker remoteServiceInvoker,
     IHtmlDocumentPublisher htmlDocumentPublisher,
     ILoggerFactory loggerFactory)
     : LSPDocumentChangeListener, IHtmlDocumentSynchronizer
 {
+    private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IHtmlDocumentPublisher _htmlDocumentPublisher = htmlDocumentPublisher;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<HtmlDocumentSynchronizer>();
 
@@ -119,7 +122,9 @@ internal sealed partial class HtmlDocumentSynchronizer(
         string? htmlText;
         try
         {
-            htmlText = await _htmlDocumentPublisher.GetHtmlSourceFromOOPAsync(document, cancellationToken).ConfigureAwait(false);
+            htmlText = await _remoteServiceInvoker.TryInvokeAsync<IRemoteHtmlDocumentService, string?>(document.Project.Solution,
+                (service, solutionInfo, ct) => service.GetHtmlDocumentTextAsync(solutionInfo, document.Id, ct),
+                cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
