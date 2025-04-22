@@ -73,14 +73,11 @@ internal sealed class CohostDocumentHighlightEndpoint(
         }
 
         // If we didn't get anything from Razor or Roslyn, lets ask Html what they want to do
-        var result = await _requestInvoker.MakeHtmlLspRequestAsync<DocumentHighlightParams, DocumentHighlight[]>(
+        return await _requestInvoker.MakeHtmlLspRequestAsync<DocumentHighlightParams, DocumentHighlight[]>(
             razorDocument,
             Methods.TextDocumentDocumentHighlightName,
             request,
             cancellationToken).ConfigureAwait(false);
-
-        // Since we don't need to map positions in Html, and document highlight results don't have Uri's, we can return these results directly
-        return result;
     }
 
     internal TestAccessor GetTestAccessor() => new(this);

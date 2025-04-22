@@ -86,8 +86,7 @@ internal sealed class CohostSignatureHelpEndpoint(
             razorDocument,
             Methods.TextDocumentSignatureHelpName,
             request,
-            cancellationToken)
-            .ConfigureAwait(false);
+            cancellationToken).ConfigureAwait(false);
     }
 
     internal TestAccessor GetTestAccessor() => new(this);

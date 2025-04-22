@@ -71,16 +71,11 @@ internal sealed class CohostRenameEndpoint(
             return null;
         }
 
-        return await GetHtmlRenameEditAsync(request, razorDocument, cancellationToken).ConfigureAwait(false);
-    }
-
-    private Task<WorkspaceEdit?> GetHtmlRenameEditAsync(RenameParams request, TextDocument razorDocument, CancellationToken cancellationToken)
-    {
-        return _requestInvoker.MakeHtmlLspRequestAsync<RenameParams, WorkspaceEdit>(
+        return await _requestInvoker.MakeHtmlLspRequestAsync<RenameParams, WorkspaceEdit>(
             razorDocument,
             Methods.TextDocumentRenameName,
             request,
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
     }
 
     internal TestAccessor GetTestAccessor() => new(this);

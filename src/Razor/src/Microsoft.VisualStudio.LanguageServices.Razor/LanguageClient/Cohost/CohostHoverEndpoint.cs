@@ -76,17 +76,11 @@ internal sealed class CohostHoverEndpoint(
             return null;
         }
 
-        return await GetHtmlHoverAsync(request, razorDocument, cancellationToken).ConfigureAwait(false);
-    }
-
-    private Task<LspHover?> GetHtmlHoverAsync(TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
-    {
-        return _requestInvoker
-            .MakeHtmlLspRequestAsync<TextDocumentPositionParams, LspHover>(
-                razorDocument,
-                Methods.TextDocumentHoverName,
-                request,
-                cancellationToken);
+        return await _requestInvoker.MakeHtmlLspRequestAsync<TextDocumentPositionParams, LspHover>(
+            razorDocument,
+            Methods.TextDocumentHoverName,
+            request,
+            cancellationToken).ConfigureAwait(false);
     }
 
     internal TestAccessor GetTestAccessor() => new(this);
