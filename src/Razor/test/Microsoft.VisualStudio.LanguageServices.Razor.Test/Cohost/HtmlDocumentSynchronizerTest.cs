@@ -34,7 +34,7 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
     public async Task TrySynchronize_NewDocument_Generates()
     {
         var publisher = new TestHtmlDocumentPublisher();
-        var synchronizer = new HtmlDocumentSynchronizer(StrictMock.Of<TrackingLSPDocumentManager>(), publisher, LoggerFactory);
+        var synchronizer = new HtmlDocumentSynchronizer(publisher, LoggerFactory);
 
         var document = Workspace.CurrentSolution.GetAdditionalDocument(_documentId).AssumeNotNull();
 
@@ -52,7 +52,7 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
     public async Task TrySynchronize_ReopenedDocument_Generates()
     {
         var publisher = new TestHtmlDocumentPublisher();
-        var synchronizer = new HtmlDocumentSynchronizer(StrictMock.Of<TrackingLSPDocumentManager>(), publisher, LoggerFactory);
+        var synchronizer = new HtmlDocumentSynchronizer(publisher, LoggerFactory);
 
         var document = Workspace.CurrentSolution.GetAdditionalDocument(_documentId).AssumeNotNull();
 
@@ -81,7 +81,7 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
     public async Task TrySynchronize_CancelledGeneration_Generates()
     {
         var publisher = new TestHtmlDocumentPublisher();
-        var synchronizer = new HtmlDocumentSynchronizer(StrictMock.Of<TrackingLSPDocumentManager>(), publisher, LoggerFactory);
+        var synchronizer = new HtmlDocumentSynchronizer(publisher, LoggerFactory);
 
         var document = Workspace.CurrentSolution.GetAdditionalDocument(_documentId).AssumeNotNull();
 
@@ -103,7 +103,7 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
     public async Task TrySynchronize_ExceptionDuringGeneration_Generates()
     {
         var publisher = new TestHtmlDocumentPublisher(() => throw new Exception());
-        var synchronizer = new HtmlDocumentSynchronizer(StrictMock.Of<TrackingLSPDocumentManager>(), publisher, LoggerFactory);
+        var synchronizer = new HtmlDocumentSynchronizer(publisher, LoggerFactory);
 
         var document = Workspace.CurrentSolution.GetAdditionalDocument(_documentId).AssumeNotNull();
 
@@ -125,7 +125,7 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
     public async Task TrySynchronize_WorkspaceMovedForward_NoDocumentChanges_DoesntGenerate()
     {
         var publisher = new TestHtmlDocumentPublisher();
-        var synchronizer = new HtmlDocumentSynchronizer(StrictMock.Of<TrackingLSPDocumentManager>(), publisher, LoggerFactory);
+        var synchronizer = new HtmlDocumentSynchronizer(publisher, LoggerFactory);
 
         var document = Workspace.CurrentSolution.GetAdditionalDocument(_documentId).AssumeNotNull();
         var version1 = await RazorDocumentVersion.CreateAsync(document, DisposalToken);
@@ -156,7 +156,7 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
     public async Task TrySynchronize_WorkspaceUnchanged_DocumentChanges_Generates()
     {
         var publisher = new TestHtmlDocumentPublisher();
-        var synchronizer = new HtmlDocumentSynchronizer(StrictMock.Of<TrackingLSPDocumentManager>(), publisher, LoggerFactory);
+        var synchronizer = new HtmlDocumentSynchronizer(publisher, LoggerFactory);
 
         var document = Workspace.CurrentSolution.GetAdditionalDocument(_documentId).AssumeNotNull();
         var version1 = await RazorDocumentVersion.CreateAsync(document, DisposalToken);
@@ -192,7 +192,7 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
     {
         var tcs = new TaskCompletionSource<bool>();
         var publisher = new TestHtmlDocumentPublisher(() => tcs.Task);
-        var synchronizer = new HtmlDocumentSynchronizer(StrictMock.Of<TrackingLSPDocumentManager>(), publisher, LoggerFactory);
+        var synchronizer = new HtmlDocumentSynchronizer(publisher, LoggerFactory);
 
         var document1 = Workspace.CurrentSolution.GetAdditionalDocument(_documentId).AssumeNotNull();
         var version1 = await RazorDocumentVersion.CreateAsync(document1, DisposalToken);
@@ -222,7 +222,7 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
     {
         var tcs = new TaskCompletionSource<bool>();
         var publisher = new TestHtmlDocumentPublisher(() => tcs.Task);
-        var synchronizer = new HtmlDocumentSynchronizer(StrictMock.Of<TrackingLSPDocumentManager>(), publisher, LoggerFactory);
+        var synchronizer = new HtmlDocumentSynchronizer(publisher, LoggerFactory);
 
         var document = Workspace.CurrentSolution.GetAdditionalDocument(_documentId).AssumeNotNull();
 
@@ -246,7 +246,7 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
     {
         var tcs = new TaskCompletionSource<bool>();
         var publisher = new TestHtmlDocumentPublisher(() => tcs.Task);
-        var synchronizer = new HtmlDocumentSynchronizer(StrictMock.Of<TrackingLSPDocumentManager>(), publisher, LoggerFactory);
+        var synchronizer = new HtmlDocumentSynchronizer(publisher, LoggerFactory);
 
         var document = Workspace.CurrentSolution.GetAdditionalDocument(_documentId).AssumeNotNull();
 
@@ -278,7 +278,7 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
     {
         var tcs = new TaskCompletionSource<bool>();
         var publisher = new TestHtmlDocumentPublisher(() => tcs.Task);
-        var synchronizer = new HtmlDocumentSynchronizer(StrictMock.Of<TrackingLSPDocumentManager>(), publisher, LoggerFactory);
+        var synchronizer = new HtmlDocumentSynchronizer(publisher, LoggerFactory);
 
         var document = Workspace.CurrentSolution.GetAdditionalDocument(_documentId).AssumeNotNull();
         var version = await RazorDocumentVersion.CreateAsync(document, DisposalToken);

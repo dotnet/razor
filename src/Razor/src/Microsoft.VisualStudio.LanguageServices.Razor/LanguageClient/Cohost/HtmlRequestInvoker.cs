@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -17,20 +18,35 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [method: ImportingConstructor]
 internal sealed class HtmlRequestInvoker(
     LSPRequestInvoker requestInvoker,
+    LSPDocumentManager documentManager,
     IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     ITelemetryReporter telemetryReporter,
     ILoggerFactory loggerFactory) : IHtmlRequestInvoker
 {
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
+    private readonly TrackingLSPDocumentManager _documentManager = documentManager as TrackingLSPDocumentManager ?? throw new InvalidOperationException("Expected TrackingLSPDocumentManager");
     private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<HtmlRequestInvoker>();
 
     public async Task<TResponse?> MakeHtmlLspRequestAsync<TRequest, TResponse>(TextDocument razorDocument, string method, TRequest request, TimeSpan threshold, Guid correlationId, CancellationToken cancellationToken) where TRequest : notnull
     {
-        var htmlDocument = await _htmlDocumentSynchronizer.TryGetSynchronizedHtmlDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
-        if (htmlDocument is null)
+        var syncResult = await _htmlDocumentSynchronizer.TrySynchronizeAsync(razorDocument, cancellationToken).ConfigureAwait(false);
+        if (!syncResult)
         {
+            _logger.LogDebug($"Couldn't synchronize for {razorDocument.FilePath}");
+            return default;
+        }
+
+        if (!_documentManager.TryGetDocument(razorDocument.CreateUri(), out var snapshot))
+        {
+            _logger.LogError($"Couldn't find document in LSPDocumentManager for {razorDocument.FilePath}");
+            return default;
+        }
+
+        if (!snapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocument))
+        {
+            _logger.LogError($"Couldn't find virtual document snapshot for {snapshot.Uri}");
             return default;
         }
 
@@ -49,7 +65,7 @@ internal sealed class HtmlRequestInvoker(
             using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentCodeActionName, RazorLSPConstants.HtmlLanguageServerName, threshold, correlationId);
 
             var result = await _requestInvoker.ReinvokeRequestOnServerAsync<TRequest, TResponse?>(
-                htmlDocument.Buffer,
+                htmlDocument.Snapshot.TextBuffer,
                 method,
                 RazorLSPConstants.HtmlLanguageServerName,
                 request,

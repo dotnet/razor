@@ -20,13 +20,11 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Export(typeof(IHtmlDocumentSynchronizer))]
 [method: ImportingConstructor]
 internal sealed partial class HtmlDocumentSynchronizer(
-    LSPDocumentManager documentManager,
     IHtmlDocumentPublisher htmlDocumentPublisher,
     ILoggerFactory loggerFactory)
     : LSPDocumentChangeListener, IHtmlDocumentSynchronizer
 {
     private readonly IHtmlDocumentPublisher _htmlDocumentPublisher = htmlDocumentPublisher;
-    private readonly TrackingLSPDocumentManager _documentManager = documentManager as TrackingLSPDocumentManager ?? throw new InvalidOperationException("Expected TrackingLSPDocumentManager");
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<HtmlDocumentSynchronizer>();
 
     private readonly Dictionary<Uri, SynchronizationRequest> _synchronizationRequests = [];
@@ -46,30 +44,6 @@ internal sealed partial class HtmlDocumentSynchronizer(
                 }
             }
         }
-    }
-
-    public async Task<HtmlDocumentResult?> TryGetSynchronizedHtmlDocumentAsync(TextDocument razorDocument, CancellationToken cancellationToken)
-    {
-        var syncResult = await TrySynchronizeAsync(razorDocument, cancellationToken).ConfigureAwait(false);
-        if (!syncResult)
-        {
-            _logger.LogDebug($"Couldn't synchronize for {razorDocument.FilePath}");
-            return null;
-        }
-
-        if (!_documentManager.TryGetDocument(razorDocument.CreateUri(), out var snapshot))
-        {
-            _logger.LogError($"Couldn't find document in LSPDocumentManager for {razorDocument.FilePath}");
-            return null;
-        }
-
-        if (!snapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var document))
-        {
-            _logger.LogError($"Couldn't find virtual document snapshot for {snapshot.Uri}");
-            return null;
-        }
-
-        return new HtmlDocumentResult(document.Uri, document.Snapshot.TextBuffer);
     }
 
     public async Task<bool> TrySynchronizeAsync(TextDocument document, CancellationToken cancellationToken)
