@@ -11,10 +11,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Razor.Extensions;
 using Microsoft.VisualStudio.Razor.Settings;
 using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
@@ -28,17 +28,15 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [ExportCohostStatelessLspService(typeof(CohostDocumentPullDiagnosticsEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
-internal class CohostDocumentPullDiagnosticsEndpoint(
+internal sealed class CohostDocumentPullDiagnosticsEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
-    IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
-    LSPRequestInvoker requestInvoker,
+    IHtmlRequestInvoker requestInvoker,
     IClientSettingsManager clientSettingsManager,
     ILoggerFactory loggerFactory)
     : AbstractRazorCohostDocumentRequestHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>, IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
-    private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
-    private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
+    private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostDocumentPullDiagnosticsEndpoint>();
 
@@ -165,33 +163,24 @@ internal class CohostDocumentPullDiagnosticsEndpoint(
 
     private async Task<LspDiagnostic[]> GetHtmlDiagnosticsAsync(TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        var htmlDocument = await _htmlDocumentSynchronizer.TryGetSynchronizedHtmlDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
-        if (htmlDocument is null)
-        {
-            return [];
-        }
-
         var diagnosticsParams = new VSInternalDocumentDiagnosticsParams
         {
-            TextDocument = new TextDocumentIdentifier { Uri = htmlDocument.Uri }
+            TextDocument = new TextDocumentIdentifier { Uri = razorDocument.CreateUri() }
         };
 
-        _logger.LogDebug($"Getting Html diagnostics for {htmlDocument.Uri}");
-
-        var result = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>(
-            htmlDocument.Buffer,
+        var result = await _requestInvoker.MakeHtmlLspRequestAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
+            razorDocument,
             VSInternalMethods.DocumentPullDiagnosticName,
-            RazorLSPConstants.HtmlLanguageServerName,
             diagnosticsParams,
             cancellationToken).ConfigureAwait(false);
 
-        if (result?.Response is null)
+        if (result is null)
         {
             return [];
         }
 
         using var allDiagnostics = new PooledArrayBuilder<LspDiagnostic>();
-        foreach (var report in result.Response)
+        foreach (var report in result)
         {
             if (report.Diagnostics is not null)
             {

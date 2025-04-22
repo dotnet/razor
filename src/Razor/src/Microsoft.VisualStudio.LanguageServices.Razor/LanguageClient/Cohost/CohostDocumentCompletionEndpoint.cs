@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Razor.Settings;
 using Microsoft.VisualStudio.Razor.Snippets;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.RazorVSInternalCompletionList?>;
@@ -35,10 +34,9 @@ internal sealed class CohostDocumentCompletionEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
     IClientSettingsManager clientSettingsManager,
     IClientCapabilitiesService clientCapabilitiesService,
-    IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     SnippetCompletionItemProvider snippetCompletionItemProvider,
     LanguageServerFeatureOptions languageServerFeatureOptions,
-    LSPRequestInvoker requestInvoker,
+    IHtmlRequestInvoker requestInvoker,
     CompletionListCache completionListCache,
     ILoggerFactory loggerFactory)
     : AbstractRazorCohostDocumentRequestHandler<CompletionParams, RazorVSInternalCompletionList?>, IDynamicRegistrationProvider
@@ -46,10 +44,9 @@ internal sealed class CohostDocumentCompletionEndpoint(
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
-    private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
     private readonly SnippetCompletionItemProvider _snippetCompletionItemProvider = snippetCompletionItemProvider;
     private readonly CompletionTriggerAndCommitCharacters _triggerAndCommitCharacters = new(languageServerFeatureOptions);
-    private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
+    private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
     private readonly CompletionListCache _completionListCache = completionListCache;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostDocumentCompletionEndpoint>();
 
@@ -218,29 +215,17 @@ internal sealed class CohostDocumentCompletionEndpoint(
         RazorCompletionOptions razorCompletionOptions,
         CancellationToken cancellationToken)
     {
-        var htmlDocument = await _htmlDocumentSynchronizer.TryGetSynchronizedHtmlDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
-        if (htmlDocument is null)
-        {
-            return null;
-        }
-
-        var originalTextDocumentIdentifier = request.TextDocument;
-        request.TextDocument = request.TextDocument.WithUri(htmlDocument.Uri);
-
-        _logger.LogDebug($"Getting completion list for {htmlDocument.Uri} at {request.Position}");
-
-        var result = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, RazorVSInternalCompletionList?>(
-            htmlDocument.Buffer,
+        var result = await _requestInvoker.MakeHtmlLspRequestAsync<CompletionParams, RazorVSInternalCompletionList>(
+            razorDocument,
             Methods.TextDocumentCompletionName,
-            RazorLSPConstants.HtmlLanguageServerName,
             request,
             cancellationToken).ConfigureAwait(false);
 
-        var rewrittenResponse = DelegatedCompletionHelper.RewriteHtmlResponse(result?.Response, razorCompletionOptions);
+        var rewrittenResponse = DelegatedCompletionHelper.RewriteHtmlResponse(result, razorCompletionOptions);
 
         var completionCapability = _clientCapabilitiesService.ClientCapabilities.TextDocument?.Completion as VSInternalCompletionSetting;
 
-        var razorDocumentIdentifier = new TextDocumentIdentifierAndVersion(originalTextDocumentIdentifier, Version: 0);
+        var razorDocumentIdentifier = new TextDocumentIdentifierAndVersion(request.TextDocument, Version: 0);
         var resolutionContext = new DelegatedCompletionResolutionContext(razorDocumentIdentifier, RazorLanguageKind.Html, rewrittenResponse.Data);
         var resultId = _completionListCache.Add(rewrittenResponse, resolutionContext);
         rewrittenResponse.SetResultId(resultId, completionCapability);
