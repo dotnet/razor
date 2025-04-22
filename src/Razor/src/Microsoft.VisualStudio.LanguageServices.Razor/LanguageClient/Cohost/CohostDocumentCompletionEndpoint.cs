@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Razor.Settings;
 using Microsoft.VisualStudio.Razor.Snippets;
@@ -38,6 +40,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IHtmlRequestInvoker requestInvoker,
     CompletionListCache completionListCache,
+    ITelemetryReporter telemetryReporter,
     ILoggerFactory loggerFactory)
     : AbstractRazorCohostDocumentRequestHandler<CompletionParams, RazorVSInternalCompletionList?>, IDynamicRegistrationProvider
 {
@@ -48,6 +51,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
     private readonly CompletionTriggerAndCommitCharacters _triggerAndCommitCharacters = new(languageServerFeatureOptions);
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
     private readonly CompletionListCache _completionListCache = completionListCache;
+    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostDocumentCompletionEndpoint>();
 
     protected override bool MutatesSolutionState => false;
@@ -101,16 +105,19 @@ internal sealed class CohostDocumentCompletionEndpoint(
 
         _logger.LogDebug($"Invoking completion for {razorDocument.FilePath}");
 
+        var correlationId = Guid.NewGuid();
+        using var _1 = _telemetryReporter.TrackLspRequest(Methods.TextDocumentCompletionName, LanguageServerConstants.RazorLanguageServerName, TelemetryThresholds.CompletionRazorTelemetryThreshold, correlationId);
+
         if (await _remoteServiceInvoker.TryInvokeAsync<IRemoteCompletionService, CompletionPositionInfo?>(
-                razorDocument.Project.Solution,
-                (service, solutionInfo, cancellationToken)
-                    => service.GetPositionInfoAsync(
-                            solutionInfo,
-                            razorDocument.Id,
-                            completionContext,
-                            request.Position,
-                            cancellationToken),
-                cancellationToken).ConfigureAwait(false) is not { } completionPositionInfo)
+            razorDocument.Project.Solution,
+            (service, solutionInfo, cancellationToken)
+                => service.GetPositionInfoAsync(
+                        solutionInfo,
+                        razorDocument.Id,
+                        completionContext,
+                        request.Position,
+                        cancellationToken),
+            cancellationToken).ConfigureAwait(false) is not { } completionPositionInfo)
         {
             // If we can't figure out position info for request position we can't return completions
             return null;
@@ -143,8 +150,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
             // results we don't want to show. So we want to call HTML LSP only if we know we are in HTML content.
             if (documentPositionInfo.LanguageKind == RazorLanguageKind.Html)
             {
-                htmlCompletionList = await GetHtmlCompletionListAsync(
-                    request, razorDocument, razorCompletionOptions, cancellationToken).ConfigureAwait(false);
+                htmlCompletionList = await GetHtmlCompletionListAsync(request, razorDocument, razorCompletionOptions, correlationId, cancellationToken).ConfigureAwait(false);
 
                 if (htmlCompletionList is not null)
                 {
@@ -165,6 +171,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
                         completionContext,
                         razorCompletionOptions,
                         existingHtmlCompletions,
+                        correlationId,
                         cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
@@ -213,12 +220,15 @@ internal sealed class CohostDocumentCompletionEndpoint(
         CompletionParams request,
         TextDocument razorDocument,
         RazorCompletionOptions razorCompletionOptions,
+        Guid correlationId,
         CancellationToken cancellationToken)
     {
         var result = await _requestInvoker.MakeHtmlLspRequestAsync<CompletionParams, RazorVSInternalCompletionList>(
             razorDocument,
             Methods.TextDocumentCompletionName,
             request,
+            TelemetryThresholds.CompletionSubLSPTelemetryThreshold,
+            correlationId,
             cancellationToken).ConfigureAwait(false);
 
         var rewrittenResponse = DelegatedCompletionHelper.RewriteHtmlResponse(result, razorCompletionOptions);
