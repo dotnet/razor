@@ -7,13 +7,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 #pragma warning disable RS0030 // Do not use banned APIs
 [Shared]
-[CohostEndpoint(CustomMessageNames.ColorPresentationMethodName)]
+[CohostEndpoint(Methods.TextDocumentColorPresentationName)]
 [ExportCohostStatelessLspService(typeof(CohostColorPresentationEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -37,7 +36,7 @@ internal sealed class CohostColorPresentationEndpoint(
     {
         return await _requestInvoker.MakeHtmlLspRequestAsync<ColorPresentationParams, ColorPresentation[]>(
             razorDocument,
-            CustomMessageNames.ColorPresentationMethodName,
+            Methods.TextDocumentColorPresentationName,
             request,
             cancellationToken).ConfigureAwait(false);
     }
