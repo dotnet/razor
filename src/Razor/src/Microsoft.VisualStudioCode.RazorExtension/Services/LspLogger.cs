@@ -49,6 +49,6 @@ internal class LspLogger(string categoryName, RazorClientServerManagerProvider r
             Message = formattedMessage,
         };
 
-        clientLanguageServerManager.SendNotificationAsync(Methods.WindowLogMessageName, @params, CancellationToken.None).Forget();
+        clientLanguageServerManager.SendNotificationAsync("razor/log", @params, CancellationToken.None).Forget();
     }
 }
