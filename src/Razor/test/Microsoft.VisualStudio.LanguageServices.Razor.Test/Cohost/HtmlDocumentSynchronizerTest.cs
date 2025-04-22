@@ -7,13 +7,11 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.VisualStudio.Razor.LanguageClient.Cohost.HtmlDocumentSynchronizer;
@@ -64,8 +62,7 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
         Assert.True(await synchronizer.TrySynchronizeAsync(document, DisposalToken));
 
         // "Close" the document
-        var snapshot = StrictMock.Of<LSPDocumentSnapshot>(d => d.Uri == new Uri(document.FilePath));
-        synchronizer.Changed(snapshot, null, null, null, LSPDocumentChangeKind.Removed);
+        synchronizer.DocumentRemoved(document.CreateUri());
 
         Assert.True(await synchronizer.TrySynchronizeAsync(document, DisposalToken));
 
@@ -239,7 +236,6 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
         var publisher = new TestHtmlDocumentPublisher();
         var remoteServiceInvoker = new RemoteServiceInvoker(document, () => tcs.Task);
         var synchronizer = new HtmlDocumentSynchronizer(remoteServiceInvoker, publisher, LoggerFactory);
-
 
         var task1 = synchronizer.TrySynchronizeAsync(document, DisposalToken);
         var task2 = synchronizer.TrySynchronizeAsync(document, DisposalToken);

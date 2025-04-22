@@ -11,20 +11,16 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-[ContentType(RazorConstants.RazorLSPContentTypeName)]
-[Export(typeof(LSPDocumentChangeListener))]
 [Export(typeof(IHtmlDocumentSynchronizer))]
 [method: ImportingConstructor]
 internal sealed partial class HtmlDocumentSynchronizer(
     IRemoteServiceInvoker remoteServiceInvoker,
     IHtmlDocumentPublisher htmlDocumentPublisher,
     ILoggerFactory loggerFactory)
-    : LSPDocumentChangeListener, IHtmlDocumentSynchronizer
+    : IHtmlDocumentSynchronizer
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IHtmlDocumentPublisher _htmlDocumentPublisher = htmlDocumentPublisher;
@@ -33,18 +29,15 @@ internal sealed partial class HtmlDocumentSynchronizer(
     private readonly Dictionary<Uri, SynchronizationRequest> _synchronizationRequests = [];
     private readonly object _gate = new();
 
-    public override void Changed(LSPDocumentSnapshot? old, LSPDocumentSnapshot? @new, VirtualDocumentSnapshot? virtualOld, VirtualDocumentSnapshot? virtualNew, LSPDocumentChangeKind kind)
+    public void DocumentRemoved(Uri razorFileUri)
     {
-        if (kind == LSPDocumentChangeKind.Removed && old is not null)
+        lock (_gate)
         {
-            lock (_gate)
+            if (_synchronizationRequests.TryGetValue(razorFileUri, out var request))
             {
-                if (_synchronizationRequests.TryGetValue(old.Uri, out var request))
-                {
-                    _logger.LogDebug($"Document {old.Uri} removed, so we're disposing and clearing out the sync request for it");
-                    request.Dispose();
-                    _synchronizationRequests.Remove(old.Uri);
-                }
+                _logger.LogDebug($"Document {razorFileUri} removed, so we're disposing and clearing out the sync request for it");
+                request.Dispose();
+                _synchronizationRequests.Remove(razorFileUri);
             }
         }
     }
