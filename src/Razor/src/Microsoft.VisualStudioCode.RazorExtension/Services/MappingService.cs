@@ -20,7 +20,8 @@ internal class MappingService(IRazorClientLanguageServerManager razorClientLangu
 
     public async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(document.FilePath))
+        if (string.IsNullOrWhiteSpace(document.FilePath) ||
+            (spans.TryGetNonEnumeratedCount(out var count) && count == 0))
         {
             return [];
         }
@@ -64,9 +65,15 @@ internal class MappingService(IRazorClientLanguageServerManager razorClientLangu
 
     public async Task<ImmutableArray<RazorMappedEditResult>> MapTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
     {
-        var changes = await newDocument.GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false);
-
         if (string.IsNullOrWhiteSpace(newDocument.FilePath))
+        {
+            return [];
+        }
+
+        var changes = await newDocument.GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false);
+        var textChanges = changes.Select(c => c.ToRazorTextChange()).ToArray();
+
+        if (textChanges.Length == 0)
         {
             return [];
         }
@@ -77,7 +84,7 @@ internal class MappingService(IRazorClientLanguageServerManager razorClientLangu
             {
                 Uri = new(newDocument.FilePath)
             },
-            TextChanges = changes.Select(c => c.ToRazorTextChange()).ToArray()
+            TextChanges = textChanges
         };
 
         var response = await _razorClientLanguageServerManager.SendRequestAsync<RazorMapTextChangesParams, RazorMapTextChangesResponse?>(
