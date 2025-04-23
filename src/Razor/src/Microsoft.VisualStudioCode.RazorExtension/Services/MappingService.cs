@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
@@ -11,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 
-internal class MappingService(IRazorClientLanguageServerManager razorClientLanguageServerManager) : IRazorMappingService
+internal sealed class MappingService(IRazorClientLanguageServerManager razorClientLanguageServerManager) : IRazorMappingService
 {
     private const string RazorMapSpansEndpoint = "razor/mapSpans";
     private const string RazorMapTextChangesEndpoint = "razor/mapTextChanges";
@@ -57,6 +58,12 @@ internal class MappingService(IRazorClientLanguageServerManager razorClientLangu
         {
             var span = response.Spans[i];
             var range = response.Ranges[i];
+
+            if (range.IsUndefined())
+            {
+                continue;
+            }
+
             builder.Add(new RazorMappedSpanResult(filePath, range.ToLinePositionSpan(), span.ToTextSpan()));
         }
 
@@ -99,8 +106,8 @@ internal class MappingService(IRazorClientLanguageServerManager razorClientLangu
 
         Debug.Assert(response.MappedTextChanges.Length == changes.Count(), "The number of mapped text changes should match the number of input text changes.");
         var filePath = response.RazorDocument.Uri.GetDocumentFilePath();
-
-        var result = new RazorMappedEditResult(filePath, Array.ConvertAll(response.MappedTextChanges, mappedChange => mappedChange.ToTextChange())));
+        var convertedChanges = Array.ConvertAll(response.MappedTextChanges, mappedChange => mappedChange.ToTextChange());
+        var result = new RazorMappedEditResult(filePath, convertedChanges);
         return [result];
     }
 }

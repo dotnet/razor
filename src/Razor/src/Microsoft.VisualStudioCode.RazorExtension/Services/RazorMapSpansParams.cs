@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 
-internal class RazorMapSpansParams
+internal sealed class RazorMapSpansParams
 {
     [JsonPropertyName("csharpDocument")]
     public required TextDocumentIdentifier CSharpDocument { get; internal set; }
