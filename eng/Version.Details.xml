@@ -101,7 +101,7 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>dd027d8c917595e809a39b6f2c4f7a94105fb07f</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.Analyzers" Version="3.12.0-beta1.25209.6">
+    <Dependency Name="Microsoft.CodeAnalysis.Analyzers" Version="3.12.0-beta1.25222.9">
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>dd027d8c917595e809a39b6f2c4f7a94105fb07f</Sha>
     </Dependency>
