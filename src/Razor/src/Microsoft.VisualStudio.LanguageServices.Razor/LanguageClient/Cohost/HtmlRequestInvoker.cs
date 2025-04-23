@@ -3,6 +3,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -50,14 +51,18 @@ internal sealed class HtmlRequestInvoker(
             return default;
         }
 
+        // If the request is for a text document, we need to update the Uri to point to the Html document,
+        // and most importantly set it back again before leaving the method in case a caller uses it.
         Uri? originalUri = null;
+        var textDocumentRequest = request as ITextDocumentParams;
+        if (textDocumentRequest is not null)
+        {
+            originalUri = textDocumentRequest.TextDocument.Uri;
+            textDocumentRequest.TextDocument.Uri = htmlDocument.Uri;
+        }
+
         try
         {
-            if (request is ITextDocumentParams textDocumentRequest)
-            {
-                originalUri = textDocumentRequest.TextDocument.Uri;
-                textDocumentRequest.TextDocument.Uri = htmlDocument.Uri;
-            }
 
             _logger.LogDebug($"Making LSP request for {method} from {htmlDocument.Uri}{(request is ITextDocumentPositionParams positionParams ? $" at {positionParams.Position}" : "")}.");
 
@@ -80,9 +85,14 @@ internal sealed class HtmlRequestInvoker(
         }
         finally
         {
-            if (request is ITextDocumentParams textDocumentRequest)
+            Debug.Assert(
+                (textDocumentRequest is null && originalUri is null) ||
+                (textDocumentRequest is not null && originalUri is not null), "textDocumentRequest and originalUri should either both be null or both be non-null");
+
+            // Reset the Uri if we changed it.
+            if (textDocumentRequest is not null && originalUri is not null)
             {
-                textDocumentRequest.TextDocument.Uri = originalUri.AssumeNotNull();
+                textDocumentRequest.TextDocument.Uri = originalUri;
             }
         }
     }
