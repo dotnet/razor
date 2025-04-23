@@ -11,13 +11,15 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudioCode.RazorExtension.Services;
 using Xunit;
 
+namespace Microsoft.VisualStudioCode.RazorExtension.Test;
+
 public class MappingServiceTests
 {
     private readonly MappingService _mappingService;
 
     public MappingServiceTests()
     {
-        _mappingService = new MappingService(new TestRazorClientManagerService());
+        _mappingService = new MappingService(new TestRazorClientLanguageServerManager());
     }
 
     [Fact]

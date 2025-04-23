@@ -6,7 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
-internal class TestRazorClientManagerService : IRazorClientLanguageServerManager
+namespace Microsoft.VisualStudioCode.RazorExtension.Test;
+
+internal class TestRazorClientLanguageServerManager : IRazorClientLanguageServerManager
 {
     private readonly ConcurrentStack<(string, object?)> _requests = new();
 
