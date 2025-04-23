@@ -9,8 +9,11 @@ using Microsoft.VisualStudio.Threading;
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 /// <summary>
-/// ILogger implementation that logs via the window/logMessage LSP method
+/// ILogger implementation that logs via the razor/log LSP method
 /// </summary>
+/// <remarks>
+/// The handler for this custom log message is implemented in the C# extension and is responsible for writing the message to the output window.
+/// </remarks>
 internal class LspLogger(string categoryName, RazorClientServerManagerProvider razorClientServerManagerProvider) : ILogger
 {
     private readonly string _categoryName = categoryName;
