@@ -109,4 +109,20 @@ public class PageDirectiveTest : RazorProjectEngineTestBase
         // Assert
         Assert.Equal("some-route-template", pageDirective.RouteTemplate);
     }
+
+    [Fact]
+    public void TryGetPageDirective_ParsesExpressionRouteTemplate()
+    {
+        // Arrange
+        var codeDocument = ProjectEngine.CreateCodeDocument("@page AppRoutes.Home");
+        var processor = CreateCodeDocumentProcessor(codeDocument);
+        var documentNode = processor.GetDocumentNode();
+
+        // Act
+        Assert.True(PageDirective.TryGetPageDirective(documentNode, out var pageDirective));
+
+        // Assert
+        Assert.Null(pageDirective!.RouteTemplate);
+        Assert.Equal("AppRoutes.Home", pageDirective.RouteTemplateNode!.Content);
+    }
 }

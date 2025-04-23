@@ -14,5 +14,6 @@ public enum DirectiveTokenKind
     Attribute,
     Boolean,
     GenericTypeConstraint,
-    IdentifierOrExpression
+    IdentifierOrExpression,
+    IdentifierOrExpressionOrString
 }

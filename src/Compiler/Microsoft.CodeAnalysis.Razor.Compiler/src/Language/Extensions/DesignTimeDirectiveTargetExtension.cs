@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -215,6 +216,9 @@ internal class DesignTimeDirectiveTargetExtension : IDesignTimeDirectiveTargetEx
                         context.CodeWriter.WriteLine(";");
                     }
                     break;
+
+                case DirectiveTokenKind.IdentifierOrExpressionOrString:
+                    throw new NotSupportedException("This directive token kind is not supported");
             }
             context.CodeWriter.CurrentIndent = originalIndent;
         }

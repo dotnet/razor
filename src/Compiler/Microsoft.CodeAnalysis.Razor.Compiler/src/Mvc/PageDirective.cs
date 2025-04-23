@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,19 +17,28 @@ public class PageDirective
         DirectiveKind.SingleLine,
         builder =>
         {
-            builder.AddOptionalStringToken(RazorExtensionsResources.PageDirective_RouteToken_Name, RazorExtensionsResources.PageDirective_RouteToken_Description);
+            builder
+                .AddOptionalIdentifierOrExpressionOrString(
+                    RazorExtensionsResources.PageDirective_RouteToken_Name,
+                    RazorExtensionsResources.PageDirective_RouteToken_Description)
+            ;
             builder.Usage = DirectiveUsage.FileScopedSinglyOccurring;
             builder.Description = RazorExtensionsResources.PageDirective_Description;
         });
 
-    private PageDirective(string routeTemplate, IntermediateNode directiveNode, SourceSpan? source)
+    private PageDirective(
+        string? routeTemplate, DirectiveTokenIntermediateNode? routeTemplateNode,
+        IntermediateNode directiveNode, SourceSpan? source)
     {
         RouteTemplate = routeTemplate;
+        RouteTemplateNode = routeTemplateNode;
         DirectiveNode = directiveNode;
         Source = source;
     }
 
-    public string RouteTemplate { get; }
+    public string? RouteTemplate { get; }
+
+    public DirectiveTokenIntermediateNode? RouteTemplateNode { get; }
 
     public IntermediateNode DirectiveNode { get; }
 
@@ -48,7 +55,7 @@ public class PageDirective
         return builder;
     }
 
-    public static bool TryGetPageDirective(DocumentIntermediateNode documentNode, out PageDirective pageDirective)
+    public static bool TryGetPageDirective(DocumentIntermediateNode documentNode, out PageDirective? pageDirective)
     {
         var visitor = new Visitor();
         for (var i = 0; i < documentNode.Children.Count; i++)
@@ -63,34 +70,42 @@ public class PageDirective
         }
 
         var tokens = visitor.DirectiveTokens.ToList();
-        string routeTemplate = null;
+        string? routeTemplate = null;
         SourceSpan? sourceSpan = null;
+        DirectiveTokenIntermediateNode? routeTemplateNode = null;
         if (tokens.Count > 0)
         {
-            routeTemplate = TrimQuotes(tokens[0].Content);
-            sourceSpan = tokens[0].Source;
+            routeTemplateNode = tokens[0];
+            routeTemplate = TryGetQuotedContent(routeTemplateNode.Content);
+            sourceSpan = routeTemplateNode.Source;
         }
 
-        pageDirective = new PageDirective(routeTemplate, visitor.DirectiveNode, sourceSpan);
+        Debug.Assert(visitor.DirectiveNode is not null);
+
+        pageDirective = new PageDirective(routeTemplate, routeTemplateNode, visitor.DirectiveNode, sourceSpan);
         return true;
     }
 
-    private static string TrimQuotes(string content)
+    private static string? TryGetQuotedContent(string content)
     {
         // Tokens aren't captured if they're malformed. Therefore, this method will
-        // always be called with a valid token content.
-        Debug.Assert(content.Length >= 2);
-        Debug.Assert(content.StartsWith("\"", StringComparison.Ordinal));
-        Debug.Assert(content.EndsWith("\"", StringComparison.Ordinal));
+        // always be called with a valid token content. However, we could also
+        // receive an expression that is not a string literal. We will therefore
+        // only try to parse the simple string literal case, and otherwise let the
+        // C# expression parser determine the constant value.
+        if (content is ['\"', .. var literal, '\"'])
+        {
+            return literal;
+        }
 
-        return content.Substring(1, content.Length - 2);
+        return null;
     }
 
     private class Visitor : IntermediateNodeWalker
     {
-        public IntermediateNode DirectiveNode { get; private set; }
+        public IntermediateNode DirectiveNode { get; private set; } = null!;
 
-        public IEnumerable<DirectiveTokenIntermediateNode> DirectiveTokens { get; private set; }
+        public IEnumerable<DirectiveTokenIntermediateNode>? DirectiveTokens { get; private set; }
 
         public override void VisitDirective(DirectiveIntermediateNode node)
         {
