@@ -34,9 +34,9 @@ internal sealed class RazorMapToDocumentRangesEndpoint :
 
     public async Task<RazorMapToDocumentRangesResponse?> HandleRequestAsync(RazorMapToDocumentRangesParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        if (request is null)
+        if (request.Kind == RazorLanguageKind.Razor)
         {
-            throw new ArgumentNullException(nameof(request));
+            return null;
         }
 
         var documentContext = requestContext.DocumentContext;
@@ -50,7 +50,6 @@ internal sealed class RazorMapToDocumentRangesEndpoint :
         {
             RazorLanguageKind.CSharp => codeDocument.GetCSharpDocument(),
             RazorLanguageKind.Html => codeDocument.GetHtmlDocument(),
-            RazorLanguageKind.Razor => null,
             _ => throw new NotSupportedException($"Unsupported language kind '{request.Kind}'."),
         };
 
