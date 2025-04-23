@@ -49,7 +49,7 @@ internal class MappingService(IRazorClientLanguageServerManager razorClientLangu
         Debug.Assert(response.Spans.Length == spans.Count(), "The number of mapped spans should match the number of input spans.");
         Debug.Assert(response.Ranges.Length == spans.Count(), "The number of mapped ranges should match the number of input spans.");
 
-        var builder = ImmutableArray.CreateBuilder<RazorMappedSpanResult>(response.Spans.Length);
+        using var builder = new PooledArrayBuilder<RazorMappedSpanResult>(response.Spans.Length);
         var filePath = response.RazorDocument.Uri.GetDocumentFilePath();
 
         for (var i = 0; i < response.Spans.Length; i++)
@@ -93,7 +93,7 @@ internal class MappingService(IRazorClientLanguageServerManager razorClientLangu
         Debug.Assert(response.MappedTextChanges.Length == changes.Count(), "The number of mapped text changes should match the number of input text changes.");
         var filePath = response.RazorDocument.Uri.GetDocumentFilePath();
 
-        var result = new RazorMappedEditResult(filePath, response.MappedTextChanges.Select(mappedChange => mappedChange.ToTextChange()).ToArray());
+        var result = new RazorMappedEditResult(filePath, Array.ConvertAll(response.MappedTextChanges, mappedChange => mappedChange.ToTextChange())));
         return [result];
     }
 }
