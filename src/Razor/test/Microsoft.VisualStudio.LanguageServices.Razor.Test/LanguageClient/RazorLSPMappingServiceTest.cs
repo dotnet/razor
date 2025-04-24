@@ -21,16 +21,16 @@ public class RazorLSPMappingServiceTest(ITestOutputHelper testOutput) : ToolingT
 
     private const string MockGeneratedContent = """
         Hello
-            This is the source text in the generated C# file.
-            This is some more sample text for demo purposes.
+        This is the source text in the generated C# file.
+        This is some more sample text for demo purposes.
         """;
 
     private const string MockRazorContent = """
         Hello
-            This is the
-            source text
-            in the generated C# file.
-            This is some more sample text for demo purposes.
+        This is the
+        source text
+        in the generated C# file.
+        This is some more sample text for demo purposes.
         """;
 
     private static readonly SourceText s_sourceTextGenerated = SourceText.From(MockGeneratedContent);
