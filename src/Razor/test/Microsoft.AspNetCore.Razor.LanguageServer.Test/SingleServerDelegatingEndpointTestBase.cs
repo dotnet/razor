@@ -77,7 +77,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase(ITestOutput
             capabilitiesUpdater,
             DisposalToken);
 
-        await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString()).ConfigureAwait(false);
+        await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString(), DisposalToken);
 
         return new TestLanguageServer(csharpServer, csharpDocumentUri);
     }

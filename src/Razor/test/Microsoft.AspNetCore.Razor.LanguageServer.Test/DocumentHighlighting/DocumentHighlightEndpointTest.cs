@@ -106,7 +106,7 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
         };
         await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
             csharpSourceText, csharpDocumentUri, serverCapabilities, razorMappingService: null, capabilitiesUpdater: null, DisposalToken);
-        await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString());
+        await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString(), DisposalToken);
 
         var razorFilePath = "C:/path/to/file.razor";
         var documentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument);

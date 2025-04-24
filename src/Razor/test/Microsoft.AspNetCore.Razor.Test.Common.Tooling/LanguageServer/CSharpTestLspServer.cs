@@ -186,17 +186,17 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
 
     #region Document Change Methods
 
-    public Task OpenDocumentAsync(Uri documentUri, string documentText)
+    public Task OpenDocumentAsync(Uri documentUri, string documentText, CancellationToken cancellationToken)
     {
         var didOpenParams = new DidOpenTextDocumentParams
         {
             TextDocument = new() { Uri = documentUri, Text = documentText }
         };
 
-        return ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, _disposeTokenSource.Token);
+        return ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, cancellationToken);
     }
 
-    internal Task ReplaceTextAsync(Uri documentUri, params (LspRange Range, string Text)[] changes)
+    internal Task ReplaceTextAsync(Uri documentUri, (LspRange Range, string Text)[] changes, CancellationToken cancellationToken)
     {
         var didChangeParams = new DidChangeTextDocumentParams()
         {
@@ -204,7 +204,7 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
             ContentChanges = Array.ConvertAll(changes, ConvertToEvent)
         };
 
-        return ExecuteRequestAsync<DidChangeTextDocumentParams, object>(Methods.TextDocumentDidChangeName, didChangeParams, _disposeTokenSource.Token);
+        return ExecuteRequestAsync<DidChangeTextDocumentParams, object>(Methods.TextDocumentDidChangeName, didChangeParams, cancellationToken);
 
         static TextDocumentContentChangeEvent ConvertToEvent((LspRange Range, string Text) change)
         {

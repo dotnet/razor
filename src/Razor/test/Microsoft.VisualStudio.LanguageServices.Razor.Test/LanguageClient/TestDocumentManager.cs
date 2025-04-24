@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
@@ -78,7 +79,7 @@ internal class TestDocumentManager(CSharpTestLspServer testLspServer = null) : T
         }).ToArray();
 
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-        _testLspServer.ReplaceTextAsync(virtualDocumentSnapshot.Uri, rangesAndTexts).Wait();
+        _testLspServer.ReplaceTextAsync(virtualDocumentSnapshot.Uri, rangesAndTexts, CancellationToken.None).Wait();
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
     }
 
