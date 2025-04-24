@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
-using Microsoft.CodeAnalysis.Razor.Logging;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -19,12 +18,10 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostColorPresentationEndpoint(
-    IHtmlRequestInvoker requestInvoker,
-    ILoggerFactory loggerFactory)
+    IHtmlRequestInvoker requestInvoker)
     : AbstractRazorCohostDocumentRequestHandler<ColorPresentationParams, ColorPresentation[]?>
 {
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostColorPresentationEndpoint>();
 
     protected override bool MutatesSolutionState => false;
 
@@ -38,8 +35,6 @@ internal sealed class CohostColorPresentationEndpoint(
 
     private async Task<ColorPresentation[]?> HandleRequestAsync(ColorPresentationParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        _logger.LogDebug($"Document color request for {request.TextDocument.Uri}");
-
         return await _requestInvoker.MakeHtmlLspRequestAsync<ColorPresentationParams, ColorPresentation[]>(
             razorDocument,
             Methods.TextDocumentColorPresentationName,
