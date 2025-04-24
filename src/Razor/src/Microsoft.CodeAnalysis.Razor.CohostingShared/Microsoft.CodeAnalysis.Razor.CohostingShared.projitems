@@ -12,6 +12,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)CohostEndpointAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CohostDocSyncEndpointRegistration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CohostStartupService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InlayHints\CohostInlayHintEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InlayHints\CohostInlayHintResolveEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IRazorCohostStartupService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensLegendService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensRangeEndpoint.cs" />
