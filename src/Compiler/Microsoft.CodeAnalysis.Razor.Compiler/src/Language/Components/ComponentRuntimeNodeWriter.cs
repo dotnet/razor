@@ -174,6 +174,11 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             throw new ArgumentNullException(nameof(node));
         }
 
+        if (!string.IsNullOrWhiteSpace(node.Content))
+        {
+            WriteLineInfo(context, node);
+        }
+
         context.CodeWriter
             .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{ComponentsApi.RenderTreeBuilder.AddMarkupContent}")
             .Write((_sourceSequence++).ToString(CultureInfo.InvariantCulture))
@@ -193,6 +198,8 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         {
             throw new ArgumentNullException(nameof(node));
         }
+
+        WriteLineInfo(context, node);
 
         context.CodeWriter
             .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{ComponentsApi.RenderTreeBuilder.OpenElement}")
@@ -332,11 +339,42 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             renderApi = ComponentsApi.RenderTreeBuilder.AddMarkupContent;
         }
 
+        if (!string.IsNullOrWhiteSpace(content))
+        {
+            WriteLineInfo(context, node);
+        }
+
         context.CodeWriter
             .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{renderApi}")
             .Write((_sourceSequence++).ToString(CultureInfo.InvariantCulture))
             .WriteParameterSeparator()
             .WriteStringLiteral(content)
+            .WriteEndMethodInvocation();
+    }
+
+    private void WriteLineInfo(CodeRenderingContext context, IntermediateNode node)
+    {
+        if (node.Source is null)
+        {
+            //Debugger.Launch();
+            return;
+        }
+        WriteComment(context, (c) => c.WriteEnhancedLineNumberDirective(node.Source.Value, escapeFilePath: true));
+    }
+
+
+    private void WriteComment(CodeRenderingContext context, Action<CodeWriter> commentContentFunc)
+    {
+        context.CodeWriter
+            .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{ComponentsApi.RenderTreeBuilder.AddMarkupContent}")
+            .Write((_sourceSequence++).ToString(CultureInfo.InvariantCulture))
+            .WriteParameterSeparator()
+            .Write(@"""<!-- ");
+
+        commentContentFunc(context.CodeWriter);
+
+        context.CodeWriter
+            .Write(@" -->""")
             .WriteEndMethodInvocation();
     }
 
@@ -391,6 +429,8 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         {
             throw new ArgumentNullException(nameof(node));
         }
+        WriteLineInfo(context, node);
+        WriteComment(context, (c) => c.Write("#component start " + node.TagName));
 
         if (ShouldSuppressTypeInferenceCall(node))
         {
@@ -556,6 +596,8 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 typeInferenceCaptureScope.Value.Dispose();
             }
         }
+
+        WriteComment(context, (c) => c.Write("#component end"));
     }
 
     public override void WriteComponentTypeInferenceMethod(CodeRenderingContext context, ComponentTypeInferenceMethodIntermediateNode node)

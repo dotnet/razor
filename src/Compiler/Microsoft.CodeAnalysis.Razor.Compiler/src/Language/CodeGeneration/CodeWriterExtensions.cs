@@ -152,7 +152,7 @@ internal static class CodeWriterExtensions
         return writer;
     }
 
-    public static CodeWriter WriteEnhancedLineNumberDirective(this CodeWriter writer, SourceSpan span, int characterOffset = 0)
+    public static CodeWriter WriteEnhancedLineNumberDirective(this CodeWriter writer, SourceSpan span, int characterOffset = 0, bool escapeFilePath = false)
     {
         // All values here need to be offset by 1 since #line uses a 1-indexed numbering system.
         var lineNumberAsString = (span.LineIndex + 1).ToString(CultureInfo.InvariantCulture);
@@ -175,8 +175,14 @@ internal static class CodeWriterExtensions
             var characterOffsetAsString = characterOffset.ToString(CultureInfo.InvariantCulture);
             writer.Write(characterOffsetAsString).Write(" ");
         }
-
-        return writer.Write("\"").Write(span.FilePath).WriteLine("\"");
+        if (!escapeFilePath)
+        {
+            return writer.Write("\"").Write(span.FilePath).WriteLine("\"");
+        }
+        else
+        {
+            return writer.Write("\\\"").Write(span.FilePath.Replace("\\", "\\\\")).Write("\\\"");
+        }
     }
 
     public static CodeWriter WriteLineNumberDirective(this CodeWriter writer, SourceSpan span)

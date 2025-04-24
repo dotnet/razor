@@ -35,6 +35,9 @@ internal class ComponentMarkupBlockPass : ComponentIntermediateNodePassBase, IRa
         RazorCodeDocument codeDocument,
         DocumentIntermediateNode documentNode)
     {
+        // PROTOTYPE: we need to turn this off in DEBUG mode if we're emitting line infos
+        return;
+
         if (!IsComponentDocument(documentNode))
         {
             return;
