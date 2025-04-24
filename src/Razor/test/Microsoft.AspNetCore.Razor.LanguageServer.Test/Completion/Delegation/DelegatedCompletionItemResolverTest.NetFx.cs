@@ -269,6 +269,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
             }
         };
 
+        // Don't declare this with an 'await using'. The caller owns the lifetime of this C# LSP server.
         var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
             csharpSourceText, csharpDocumentUri, serverCapabilities, DisposalToken);
 
