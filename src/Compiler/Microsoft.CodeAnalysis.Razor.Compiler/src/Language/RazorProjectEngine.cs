@@ -461,7 +461,9 @@ public sealed class RazorProjectEngine
         builder.Features.Add(new ComponentGenericTypePass());
         builder.Features.Add(new ComponentChildContentDiagnosticPass());
         builder.Features.Add(new ComponentMarkupDiagnosticPass());
-        builder.Features.Add(new ComponentMarkupBlockPass(razorLanguageVersion));
+
+        // PROTOTYPE: we need to turn this off in DEBUG mode if we're emitting line infos
+        //builder.Features.Add(new ComponentMarkupBlockPass(razorLanguageVersion));
         builder.Features.Add(new ComponentMarkupEncodingPass(razorLanguageVersion));
     }
 
