@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    private readonly TestLanguageServer _languageServer = new TestLanguageServer(new Dictionary<string, Func<object?, Task<object>>>()
+    private readonly TestLanguageServer _languageServer = new(new()
     {
         [CustomMessageNames.RazorFormatNewFileEndpointName] = c => Task.FromResult<object>(null!),
     });
@@ -644,7 +644,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
         var codeDocument = CreateCodeDocument(contents);
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
-        var languageServer = new TestLanguageServer(new Dictionary<string, Func<object?, Task<object>>>()
+        var languageServer = new TestLanguageServer(new()
         {
             [CustomMessageNames.RazorFormatNewFileEndpointName] = c => Task.FromResult<object>("Hi there! I'm from Roslyn"),
         });

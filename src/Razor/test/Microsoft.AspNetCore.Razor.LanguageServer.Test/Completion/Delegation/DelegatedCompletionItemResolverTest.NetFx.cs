@@ -305,7 +305,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
         private readonly CompletionResolveRequestResponseFactory _requestHandler;
 
         private TestDelegatedCompletionItemResolverServer(CompletionResolveRequestResponseFactory requestHandler)
-            : base(new Dictionary<string, Func<object, Task<object>>>()
+            : base(new()
             {
                 [LanguageServerConstants.RazorCompletionResolveEndpointName] = requestHandler.OnCompletionResolveDelegationAsync,
                 [LanguageServerConstants.RazorGetFormattingOptionsEndpointName] = requestHandler.OnGetFormattingOptionsAsync,
@@ -316,72 +316,57 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
 
         public DelegatedCompletionItemResolveParams DelegatedParams => _requestHandler.DelegatedParams;
 
-        public static TestDelegatedCompletionItemResolverServer Create(
-            CSharpTestLspServer csharpServer,
-            CancellationToken cancellationToken)
+        public static TestDelegatedCompletionItemResolverServer Create(CSharpTestLspServer csharpServer, CancellationToken cancellationToken)
         {
             var requestHandler = new DelegatedCSharpCompletionRequestHandler(csharpServer, cancellationToken);
-            var provider = new TestDelegatedCompletionItemResolverServer(requestHandler);
-            return provider;
+
+            return new TestDelegatedCompletionItemResolverServer(requestHandler);
         }
 
         public static TestDelegatedCompletionItemResolverServer Create(VSInternalCompletionItem resolveResponse = null)
         {
             resolveResponse ??= new VSInternalCompletionItem();
             var requestResponseFactory = new StaticCompletionResolveRequestHandler(resolveResponse);
-            var provider = new TestDelegatedCompletionItemResolverServer(requestResponseFactory);
-            return provider;
+
+            return new TestDelegatedCompletionItemResolverServer(requestResponseFactory);
         }
 
-        private class StaticCompletionResolveRequestHandler(VSInternalCompletionItem resolveResponse) : CompletionResolveRequestResponseFactory
+        private sealed class StaticCompletionResolveRequestHandler(
+            VSInternalCompletionItem response)
+            : CompletionResolveRequestResponseFactory
         {
-            private readonly VSInternalCompletionItem _resolveResponse = resolveResponse;
-            private DelegatedCompletionItemResolveParams _delegatedParams;
-
-            public override DelegatedCompletionItemResolveParams DelegatedParams => _delegatedParams;
-
-            public override Task<object> OnCompletionResolveDelegationAsync(object parameters)
-            {
-                var resolveParams = (DelegatedCompletionItemResolveParams)parameters;
-                _delegatedParams = resolveParams;
-
-                return Task.FromResult<object>(_resolveResponse);
-            }
+            protected override Task<VSInternalCompletionItem> OnCompletionResolveDelegationCoreAsync(DelegatedCompletionItemResolveParams @params)
+                => Task.FromResult(response);
         }
 
-        private class DelegatedCSharpCompletionRequestHandler(
+        private sealed class DelegatedCSharpCompletionRequestHandler(
             CSharpTestLspServer csharpServer,
-            CancellationToken cancellationToken) : CompletionResolveRequestResponseFactory
+            CancellationToken cancellationToken)
+            : CompletionResolveRequestResponseFactory
         {
-            private readonly CSharpTestLspServer _csharpServer = csharpServer;
-            private readonly CancellationToken _cancellationToken = cancellationToken;
-            private DelegatedCompletionItemResolveParams _delegatedParams;
-
-            public override DelegatedCompletionItemResolveParams DelegatedParams => _delegatedParams;
-
-            public override async Task<object> OnCompletionResolveDelegationAsync(object parameters)
+            protected override Task<VSInternalCompletionItem> OnCompletionResolveDelegationCoreAsync(DelegatedCompletionItemResolveParams @params)
             {
-                var resolveParams = (DelegatedCompletionItemResolveParams)parameters;
-                _delegatedParams = resolveParams;
-
-                var resolvedCompletionItem = await _csharpServer.ExecuteRequestAsync<VSInternalCompletionItem, VSInternalCompletionItem>(
+                return csharpServer.ExecuteRequestAsync<VSInternalCompletionItem, VSInternalCompletionItem>(
                     Methods.TextDocumentCompletionResolveName,
-                    _delegatedParams.CompletionItem,
-                    _cancellationToken);
-
-                return resolvedCompletionItem;
+                    @params.CompletionItem,
+                    cancellationToken);
             }
         }
 
         private abstract class CompletionResolveRequestResponseFactory
         {
-            public abstract DelegatedCompletionItemResolveParams DelegatedParams { get; }
+            public DelegatedCompletionItemResolveParams DelegatedParams { get; private set; }
 
-            public abstract Task<object> OnCompletionResolveDelegationAsync(object parameters);
+            public async Task<object> OnCompletionResolveDelegationAsync(object @params)
+            {
+                DelegatedParams = Assert.IsType<DelegatedCompletionItemResolveParams>(@params);
 
-#pragma warning disable IDE0060 // Remove unused parameter
-            public Task<object> OnGetFormattingOptionsAsync(object parameters)
-#pragma warning restore IDE0060 // Remove unused parameter
+                return await OnCompletionResolveDelegationCoreAsync(DelegatedParams);
+            }
+
+            protected abstract Task<VSInternalCompletionItem> OnCompletionResolveDelegationCoreAsync(DelegatedCompletionItemResolveParams @params);
+
+            public Func<object, Task<object>> OnGetFormattingOptionsAsync { get; } = _ =>
             {
                 var formattingOptions = new FormattingOptions()
                 {
@@ -390,7 +375,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
                 };
 
                 return Task.FromResult<object>(formattingOptions);
-            }
+            };
         }
     }
 }

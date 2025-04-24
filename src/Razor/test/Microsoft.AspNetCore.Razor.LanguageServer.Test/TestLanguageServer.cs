@@ -6,36 +6,24 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
 
-internal class TestLanguageServer : IClientConnection
+internal class TestLanguageServer(Dictionary<string, Func<object?, Task<object>>> requestResponseFactory) : IClientConnection
 {
-    private readonly IReadOnlyDictionary<string, Func<object?, Task<object>>> _requestResponseFactory;
-
-    public TestLanguageServer(Dictionary<string, Func<object?, Task<object>>> requestResponseFactory)
-    {
-        _requestResponseFactory = requestResponseFactory;
-    }
+    private readonly Dictionary<string, Func<object?, Task<object>>> _requestResponseFactory = requestResponseFactory;
 
     public Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public Task SendNotificationAsync(string method, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public async Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
     {
-        if (!_requestResponseFactory.TryGetValue(method, out var factory))
-        {
-            throw new InvalidOperationException($"No request factory setup for {method}");
-        }
+        Assert.True(_requestResponseFactory.TryGetValue(method, out var factory), $"No request factory setup for {method}");
 
-        var result = await factory(@params);
-        return (TResponse)result;
+        return (TResponse)await factory(@params);
     }
 }

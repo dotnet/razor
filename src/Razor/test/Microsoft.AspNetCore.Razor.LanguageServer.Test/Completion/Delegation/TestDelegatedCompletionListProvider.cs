@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
@@ -25,7 +24,7 @@ internal class TestDelegatedCompletionListProvider : DelegatedCompletionListProv
         ILoggerFactory loggerFactory)
         : base(
             new LspDocumentMappingService(new LSPFilePathService(TestLanguageServerFeatureOptions.Instance), new TestDocumentContextFactory(), loggerFactory),
-            new TestLanguageServer(new Dictionary<string, Func<object, Task<object>>>()
+            new TestLanguageServer(new()
             {
                 [LanguageServerConstants.RazorCompletionEndpointName] = completionFactory.OnDelegationAsync,
             }),
@@ -45,8 +44,8 @@ internal class TestDelegatedCompletionListProvider : DelegatedCompletionListProv
         CancellationToken cancellationToken)
     {
         var requestResponseFactory = new DelegatedCSharpCompletionRequestResponseFactory(csharpServer, cancellationToken);
-        var provider = new TestDelegatedCompletionListProvider(requestResponseFactory, loggerFactory);
-        return provider;
+
+        return new TestDelegatedCompletionListProvider(requestResponseFactory, loggerFactory);
     }
 
     public static TestDelegatedCompletionListProvider Create(
@@ -92,19 +91,12 @@ internal class TestDelegatedCompletionListProvider : DelegatedCompletionListProv
         }
     }
 
-    private class DelegatedCSharpCompletionRequestResponseFactory : CompletionRequestResponseFactory
+    private class DelegatedCSharpCompletionRequestResponseFactory(
+        CSharpTestLspServer csharpServer,
+        CancellationToken cancellationToken)
+        : CompletionRequestResponseFactory
     {
-        private readonly CSharpTestLspServer _csharpServer;
-        private readonly CancellationToken _cancellationToken;
         private DelegatedCompletionParams _delegatedParams;
-
-        public DelegatedCSharpCompletionRequestResponseFactory(
-            CSharpTestLspServer csharpServer,
-            CancellationToken cancellationToken)
-        {
-            _csharpServer = csharpServer;
-            _cancellationToken = cancellationToken;
-        }
 
         public override DelegatedCompletionParams DelegatedParams => _delegatedParams;
 
@@ -125,10 +117,10 @@ internal class TestDelegatedCompletionListProvider : DelegatedCompletionListProv
                 }
             };
 
-            var delegatedCompletionList = await _csharpServer.ExecuteRequestAsync<CompletionParams, RazorVSInternalCompletionList>(
+            var delegatedCompletionList = await csharpServer.ExecuteRequestAsync<CompletionParams, RazorVSInternalCompletionList>(
                 Methods.TextDocumentCompletionName,
                 csharpCompletionParams,
-                _cancellationToken);
+                cancellationToken);
 
             return delegatedCompletionList;
         }
