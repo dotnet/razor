@@ -37,7 +37,7 @@ internal class ComponentMarkupBlockPass : ComponentIntermediateNodePassBase, IRa
     {
         // PROTOTYPE: we need to turn this off in DEBUG mode if we're emitting line infos
         return;
-
+#if FALSE
         if (!IsComponentDocument(documentNode))
         {
             return;
@@ -378,5 +378,6 @@ internal class ComponentMarkupBlockPass : ComponentIntermediateNodePassBase, IRa
                 }
             }
         }
+#endif
     }
 }
