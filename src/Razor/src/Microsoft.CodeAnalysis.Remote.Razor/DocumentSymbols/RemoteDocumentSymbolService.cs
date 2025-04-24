@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -58,21 +57,17 @@ internal sealed partial class RemoteDocumentSymbolService(in ServiceArgs args) :
         return _documentSymbolService.GetDocumentSymbols(context.Uri, csharpDocument, csharpSymbols);
     }
 
-    [return: NotNullIfNotNull(nameof(roslynDocumentSymbols))]
-    private static DocumentSymbol[]? ConvertDocumentSymbols(DocumentSymbol[]? roslynDocumentSymbols)
+    private static DocumentSymbol[] ConvertDocumentSymbols(DocumentSymbol[] roslynDocumentSymbols)
     {
-        if (roslynDocumentSymbols is null)
-        {
-            return null;
-        }
-
         var converted = new DocumentSymbol[roslynDocumentSymbols.Length];
         for (var i = 0; i < roslynDocumentSymbols.Length; i++)
         {
             var symbol = roslynDocumentSymbols[i];
             converted[i] = new DocumentSymbol
             {
-                Children = ConvertDocumentSymbols(symbol.Children),
+                Children = symbol.Children is { } children
+                    ? ConvertDocumentSymbols(children)
+                    : null,
 #pragma warning disable CS0618 // Type or member is obsolete
                 Deprecated = symbol.Deprecated,
 #pragma warning restore CS0618 // Type or member is obsolete
