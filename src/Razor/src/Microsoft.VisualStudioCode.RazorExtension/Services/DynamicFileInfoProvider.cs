@@ -58,7 +58,7 @@ internal sealed partial class LspDynamicFileProvider(IRazorClientLanguageServerM
             _clientLanguageServerManager);
 
         return new RazorDynamicFileInfo(
-            response.CSharpDocument.Uri.ToString(),
+            RazorUri.GetDocumentFilePathFromUri(response.CSharpDocument.Uri),
             SourceCodeKind.Regular,
             textLoader,
             documentServiceProvider: EmptyServiceProvider.Instance);
