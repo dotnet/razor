@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 
-public sealed class CSharpTestLspServer : IAsyncDisposable
+internal sealed class CSharpTestLspServer : IAsyncDisposable
 {
     private readonly AdhocWorkspace _testWorkspace;
     private readonly ExportProvider _exportProvider;
