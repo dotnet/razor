@@ -348,11 +348,45 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
         Assert.Null(attributeNode.Value);
 
         var classNode = documentNode.GetClassNode();
+        var routeTemplateConstNode = GetPageRouteTemplateConstNode(classNode);
+        Assert.NotNull(routeTemplateConstNode);
+    }
 
-        var routeTemplateConstNode = classNode.Children
+    [Fact]
+    public void RazorPageDocumentClassifierPass_HandlesIncompleteQuotedStringLiteral()
+    {
+        // Arrange
+        const string content = $$"""
+            @page "
+            
+            @code {
+                public static class AppRoutes
+                {
+                    public const string Home = "/index";
+                }
+            }
+            """;
+        var source = TestRazorSourceDocument.Create(content, filePath: "ignored", relativePath: "Test.cshtml");
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
+
+        // Act
+        processor.ExecutePass<RazorPageDocumentClassifierPass>();
+
+        // Assert
+        var documentNode = processor.GetDocumentNode();
+        var extensionNodes = documentNode.GetExtensionNodes();
+        Assert.Empty(extensionNodes);
+
+        var classNode = documentNode.GetClassNode();
+        var routeTemplateConstNode = GetPageRouteTemplateConstNode(classNode);
+        Assert.Null(routeTemplateConstNode);
+    }
+
+    private static FieldDeclarationIntermediateNode? GetPageRouteTemplateConstNode(ClassDeclarationIntermediateNode classNode)
+    {
+        return classNode.Children
             .OfType<FieldDeclarationIntermediateNode>()
             .FirstOrDefault(s => s.FieldName is ViewComponentTypes.PageRouteTemplateFieldName);
-
-        Assert.NotNull(routeTemplateConstNode);
     }
 }
