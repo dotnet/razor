@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -55,7 +56,7 @@ public class PageDirective
         return builder;
     }
 
-    public static bool TryGetPageDirective(DocumentIntermediateNode documentNode, out PageDirective? pageDirective)
+    public static bool TryGetPageDirective(DocumentIntermediateNode documentNode, [NotNullWhen(true)] out PageDirective? pageDirective)
     {
         var visitor = new Visitor();
         for (var i = 0; i < documentNode.Children.Count; i++)
