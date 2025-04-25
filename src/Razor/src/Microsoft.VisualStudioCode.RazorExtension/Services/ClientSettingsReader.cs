@@ -5,15 +5,25 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 
-namespace Microsoft.VisualStudioCode.RazorExtension.Services;
+namespace Microsoft.VisualStudioCode.RazorExtension.Configuration;
 
 [Shared]
 [Export(typeof(IClientSettingsReader))]
+[Export(typeof(ClientSettingsReader))]
 internal class ClientSettingsReader : IClientSettingsReader
 {
+    private ClientSettings _currentSettings = ClientSettings.Default;
+
     public ClientSettings GetClientSettings()
     {
-        // TODO: Implement logic to read client settings
-        return ClientSettings.Default;
+        return _currentSettings;
+    }
+
+    public void Update(ClientAdvancedSettings updateSettings)
+    {
+        _currentSettings = _currentSettings with
+        {
+            AdvancedSettings = updateSettings
+        };
     }
 }
