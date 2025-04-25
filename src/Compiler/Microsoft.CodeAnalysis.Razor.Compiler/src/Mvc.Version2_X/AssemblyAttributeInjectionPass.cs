@@ -55,8 +55,8 @@ public class AssemblyAttributeInjectionPass : IntermediateNodePassBase, IRazorOp
         else if (documentNode.DocumentKind == RazorPageDocumentClassifierPass.RazorPageDocumentKind &&
             PageDirective.TryGetPageDirective(documentNode, out var pageDirective))
         {
-            var escapedRoutePrefix = MakeVerbatimStringLiteral(pageDirective.RouteTemplate);
-            attribute = $"[assembly:{RazorPageAttribute}({escapedPath}, typeof({generatedTypeName}), {escapedRoutePrefix})]";
+            var routeTemplateExpression = ProduceRouteTemplateExpression(generatedTypeName, pageDirective);
+            attribute = $"[assembly:{RazorPageAttribute}({escapedPath}, typeof({generatedTypeName}), {routeTemplateExpression})]";
         }
         else
         {
@@ -74,6 +74,25 @@ public class AssemblyAttributeInjectionPass : IntermediateNodePassBase, IRazorOp
         });
 
         documentNode.Children.Insert(index, pageAttribute);
+    }
+
+    private static string ProduceRouteTemplateExpression(string generatedTypeName, PageDirective directive)
+    {
+        if (directive.RouteTemplate is not null)
+        {
+            return MakeVerbatimStringLiteral(directive.RouteTemplate);
+        }
+
+        if (!string.IsNullOrEmpty(directive.RouteTemplateNode?.Content))
+        {
+            // If we have a complex expression assigned to the route template,
+            // we generate a public const field named __RouteTemplate assigned
+            // to the route template expression, so we add a reference to that
+            // since we cannot evaluate the constant expression in this context
+            return $"global::{generatedTypeName}.{ViewComponentTypes.PageRouteTemplateFieldName}";
+        }
+
+        return "null";
     }
 
     private static string MakeVerbatimStringLiteral(string value)

@@ -29,6 +29,8 @@ internal static class ViewComponentTypes
 
     public const string SyncMethodName = "Invoke";
 
+    public const string PageRouteTemplateFieldName = "__RouteTemplate";
+
     public static class ViewComponent
     {
         public const string Name = "Name";

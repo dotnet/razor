@@ -218,6 +218,9 @@ internal class DesignTimeDirectiveTargetExtension : IDesignTimeDirectiveTargetEx
                     break;
 
                 case DirectiveTokenKind.IdentifierOrExpressionOrString:
+                    // This token is only used in the @page directive so far,
+                    // which should not trigger a call here. Hence this remains
+                    // unsupported until demanded.
                     throw new NotSupportedException("This directive token kind is not supported");
             }
             context.CodeWriter.CurrentIndent = originalIndent;

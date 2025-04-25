@@ -293,7 +293,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
     }
 
     [Fact]
-    public void Execute_AddsRazorPagettribute_ToPage()
+    public void Execute_AddsRazorPageAttribute_ToPage()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create("test", RazorSourceDocumentProperties.Create(filePath: null, relativePath: "/Views/Index.cshtml"));
@@ -397,6 +397,68 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
 
         // Assert
         Assert.Collection(documentNode.Children,
+            node =>
+            {
+                var csharpCode = Assert.IsType<CSharpCodeIntermediateNode>(node);
+                var token = Assert.IsAssignableFrom<IntermediateToken>(Assert.Single(csharpCode.Children));
+                Assert.Equal(TokenKind.CSharp, token.Kind);
+                Assert.Equal(expectedAttribute, token.Content);
+            },
+            node => Assert.Same(@namespace, node));
+    }
+
+    [Fact]
+    public void Execute_AddsRazorPageAttribute_WithCustomExpression()
+    {
+        // Arrange
+        var source = TestRazorSourceDocument.Create("test", RazorSourceDocumentProperties.Create(filePath: null, relativePath: "/Views/Index.cshtml"));
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+
+        var expectedAttribute = "[assembly:global::Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure.RazorPageAttribute(@\"/Views/Index.cshtml\", typeof(SomeNamespace.SomeName), global::SomeNamespace.SomeName.__RouteTemplate)]";
+
+        var documentNode = new DocumentIntermediateNode()
+        {
+            DocumentKind = RazorPageDocumentClassifierPass.RazorPageDocumentKind,
+            Options = codeDocument.CodeGenerationOptions
+        };
+
+        var builder = IntermediateNodeBuilder.Create(documentNode);
+
+        var pageDirective = new DirectiveIntermediateNode
+        {
+            Directive = PageDirective.Directive,
+        };
+
+        builder.Add(pageDirective);
+
+        var @namespace = new NamespaceDeclarationIntermediateNode
+        {
+            Content = "SomeNamespace",
+            Annotations =
+            {
+                [CommonAnnotations.PrimaryNamespace] = CommonAnnotations.PrimaryNamespace
+            }
+        };
+
+        builder.Push(@namespace);
+
+        var @class = new ClassDeclarationIntermediateNode
+        {
+            ClassName = "SomeName",
+            Annotations =
+            {
+                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
+            }
+        };
+
+        builder.Add(@class);
+
+        // Act
+        ProjectEngine.ExecutePass<AssemblyAttributeInjectionPass>(codeDocument, documentNode);
+
+        // Assert
+        Assert.Collection(documentNode.Children,
+            node => Assert.Same(pageDirective, node),
             node =>
             {
                 var csharpCode = Assert.IsType<CSharpCodeIntermediateNode>(node);

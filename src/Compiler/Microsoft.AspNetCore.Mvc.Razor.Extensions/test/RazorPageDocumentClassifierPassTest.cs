@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -315,5 +316,43 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
 
         Assert.Equal("RouteTemplate", attributeNode.Key);
         Assert.Equal("some-route", attributeNode.Value);
+    }
+
+    [Fact]
+    public void RazorPageDocumentClassifierPass_AddsRouteTemplateMetadata_UsingConstantExpression_DefinedInSameRazorFile()
+    {
+        // Arrange
+        const string content = $$"""
+            @page AppRoutes.Home
+
+            @code {
+                public static class AppRoutes
+                {
+                    public const string Home = "/index";
+                }
+            }
+            """;
+        var source = TestRazorSourceDocument.Create(content, filePath: "ignored", relativePath: "Test.cshtml");
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
+
+        // Act
+        processor.ExecutePass<RazorPageDocumentClassifierPass>();
+
+        // Assert
+        var documentNode = processor.GetDocumentNode();
+        var extensionNode = documentNode.GetExtensionNode();
+        var attributeNode = Assert.IsType<RazorCompiledItemMetadataAttributeIntermediateNode>(extensionNode);
+
+        Assert.Equal(RazorPageDocumentClassifierPass.RouteTemplateKey, attributeNode.Key);
+        Assert.Null(attributeNode.Value);
+
+        var classNode = documentNode.GetClassNode();
+
+        var routeTemplateConstNode = classNode.Children
+            .OfType<FieldDeclarationIntermediateNode>()
+            .FirstOrDefault(s => s.FieldName is ViewComponentTypes.PageRouteTemplateFieldName);
+
+        Assert.NotNull(routeTemplateConstNode);
     }
 }
