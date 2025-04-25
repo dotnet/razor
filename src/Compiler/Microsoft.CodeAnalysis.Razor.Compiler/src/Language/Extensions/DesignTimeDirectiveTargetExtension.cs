@@ -54,6 +54,17 @@ internal class DesignTimeDirectiveTargetExtension : IDesignTimeDirectiveTargetEx
             return;
         }
 
+        if (tokenKind is DirectiveTokenKind.IdentifierOrExpressionOrString)
+        {
+            // We need to evaluate the kind of content that we have received,
+            // either an identifier or expression, or a simple string
+            // This does not support verbatim/interpolated/raw strings
+            // We simply check the expression's type and reuse the logic below
+            tokenKind = node.Content.StartsWith('"')
+                ? DirectiveTokenKind.String
+                : DirectiveTokenKind.IdentifierOrExpression;
+        }
+
         // Wrap the directive token in a lambda to isolate variable names.
         context.CodeWriter
             .Write("((global::")
@@ -218,10 +229,7 @@ internal class DesignTimeDirectiveTargetExtension : IDesignTimeDirectiveTargetEx
                     break;
 
                 case DirectiveTokenKind.IdentifierOrExpressionOrString:
-                    // This token is only used in the @page directive so far,
-                    // which should not trigger a call here. Hence this remains
-                    // unsupported until demanded.
-                    throw new NotSupportedException("This directive token kind is not supported");
+                    throw new NotSupportedException("This directive token kind should have been handled");
             }
             context.CodeWriter.CurrentIndent = originalIndent;
         }

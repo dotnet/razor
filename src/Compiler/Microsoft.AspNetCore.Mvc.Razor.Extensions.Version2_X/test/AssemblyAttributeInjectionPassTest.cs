@@ -427,6 +427,13 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
         var pageDirective = new DirectiveIntermediateNode
         {
             Directive = PageDirective.Directive,
+            Children =
+            {
+                new DirectiveTokenIntermediateNode
+                {
+                    Content = "AppRoutes.Home",
+                }
+            },
         };
 
         builder.Add(pageDirective);
