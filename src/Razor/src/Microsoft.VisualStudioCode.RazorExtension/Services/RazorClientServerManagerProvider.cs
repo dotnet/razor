@@ -20,6 +20,9 @@ internal class RazorClientServerManagerProvider() : IRazorCohostStartupService
 
     public IRazorClientLanguageServerManager? ClientLanguageServerManager => _razorClientLanguageServerManager;
 
+    // Register first because we have no dependencies, but nobody else can make requests without us
+    public int Order => int.MinValue;
+
     public Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
     {
         _razorClientLanguageServerManager = requestContext.GetRequiredService<IRazorClientLanguageServerManager>();
