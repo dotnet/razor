@@ -5,12 +5,13 @@ using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.VisualStudio.Razor.Snippets;
 
-[Export(typeof(SnippetCompletionItemProvider))]
-internal sealed class SnippetCompletionItemProvider
+[Export(typeof(ISnippetCompletionItemProvider))]
+internal sealed class SnippetCompletionItemProvider : ISnippetCompletionItemProvider
 {
     [ImportingConstructor]
     public SnippetCompletionItemProvider(SnippetCache snippetCache)
