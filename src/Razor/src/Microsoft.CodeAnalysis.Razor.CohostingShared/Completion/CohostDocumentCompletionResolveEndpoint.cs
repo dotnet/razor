@@ -9,34 +9,40 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.VisualStudio.Razor.Settings;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 #pragma warning disable RS0030 // Do not use banned APIs
+#if !VSCODE
+// Visual Studio requires us to register for every method name, VS Code correctly realises that if you
+// register for code actions, and say you have resolve support, then registering for resolve is unnecessary.
+// In fact it's an error.
+[Export(typeof(IDynamicRegistrationProvider))]
+#endif
 [Shared]
 [CohostEndpoint(Methods.TextDocumentCompletionResolveName)]
-[Export(typeof(IDynamicRegistrationProvider))]
-[ExportCohostStatelessLspService(typeof(CohostDocumentCompletionResolveEndpoint))]
+[ExportRazorStatelessLspService(typeof(CohostDocumentCompletionResolveEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostDocumentCompletionResolveEndpoint(
     CompletionListCache completionListCache,
     IRemoteServiceInvoker remoteServiceInvoker,
-    IClientSettingsManager clientSettingsManager,
+    IClientSettingsReader clientSettingsManager,
     IHtmlRequestInvoker requestInvoker,
     ILoggerFactory loggerFactory)
     : AbstractRazorCohostDocumentRequestHandler<VSInternalCompletionItem, VSInternalCompletionItem?>, IDynamicRegistrationProvider
 {
     private readonly CompletionListCache _completionListCache = completionListCache;
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
-    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
+    private readonly IClientSettingsReader _clientSettingsManager = clientSettingsManager;
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostDocumentCompletionEndpoint>();
 
