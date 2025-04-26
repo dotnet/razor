@@ -12,6 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CohostEndpointAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CohostDocSyncEndpointRegistration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CohostStartupService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\CohostDocumentPullDiagnosticsEndpointBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DocumentColor\CohostColorPresentationEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DocumentColor\CohostDocumentColorEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DocumentSymbol\CohostDocumentSymbolEndpoint.cs" />
