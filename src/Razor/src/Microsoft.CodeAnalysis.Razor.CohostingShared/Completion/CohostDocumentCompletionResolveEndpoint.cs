@@ -98,8 +98,17 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
         {
             Debug.Assert(delegatedContext.ProjectedKind == RazorLanguageKind.Html);
 
+#if VSCODE
+            Debug.Assert(_requestInvoker is not null);
+            Debug.Assert(_logger is not null);
+            Debug.Assert(nameof(DelegatedCompletionHelper).Length > 0);
+
+            // We don't support completion resolve in VS Code
+            return completionItem;
+#else
             completionItem.Data = DelegatedCompletionHelper.GetOriginalCompletionItemData(completionItem, completionList, delegatedContext.OriginalCompletionListData);
             return await ResolveHtmlCompletionItemAsync(completionItem, razorDocument, cancellationToken).ConfigureAwait(false);
+#endif
         }
 
         var clientSettings = _clientSettingsManager.GetClientSettings();
@@ -125,6 +134,7 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
         return result;
     }
 
+#if !VSCODE
     private async Task<VSInternalCompletionItem> ResolveHtmlCompletionItemAsync(
         VSInternalCompletionItem request,
         TextDocument razorDocument,
@@ -140,6 +150,7 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
 
         return result ?? request;
     }
+#endif
 
     internal TestAccessor GetTestAccessor() => new(this);
 

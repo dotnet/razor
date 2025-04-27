@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -81,9 +82,15 @@ internal sealed class CohostCodeActionsEndpoint(
             return null;
         }
 
+        // This is just to prevent a warning for an unused field in the VS Code extension
+        Debug.Assert(_requestInvoker is not null);
+
         var delegatedCodeActions = requestInfo.LanguageKind switch
         {
+            // We don't support Html code actions in VS Code
+#if !VSCODE
             RazorLanguageKind.Html => await GetHtmlCodeActionsAsync(razorDocument, request, correlationId, cancellationToken).ConfigureAwait(false),
+#endif
             RazorLanguageKind.CSharp => await GetCSharpCodeActionsAsync(razorDocument, requestInfo.CSharpRequest.AssumeNotNull(), correlationId, cancellationToken).ConfigureAwait(false),
             _ => []
         };
@@ -111,6 +118,7 @@ internal sealed class CohostCodeActionsEndpoint(
         return JsonHelpers.ConvertAll<CodeAction, RazorVSInternalCodeAction>(csharpCodeActions);
     }
 
+#if !VSCODE
     private async Task<RazorVSInternalCodeAction[]> GetHtmlCodeActionsAsync(TextDocument razorDocument, VSCodeActionParams request, Guid correlationId, CancellationToken cancellationToken)
     {
         var result = await _requestInvoker.MakeHtmlLspRequestAsync<VSCodeActionParams, RazorVSInternalCodeAction[]>(
@@ -128,6 +136,7 @@ internal sealed class CohostCodeActionsEndpoint(
 
         return result;
     }
+#endif
 
     internal TestAccessor GetTestAccessor() => new(this);
 

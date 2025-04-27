@@ -67,12 +67,10 @@ internal sealed class DocumentPullDiagnosticsEndpoint(
         };
     }
 
-    protected override DocumentDiagnosticParams CreateHtmlParams(Uri uri)
+    protected override DocumentDiagnosticParams? CreateHtmlParams(Uri uri)
     {
-        return new DocumentDiagnosticParams
-        {
-            TextDocument = new TextDocumentIdentifier { Uri = uri }
-        };
+        // We don't support Html diagnostics in VS Code
+        return null;
     }
 
     protected override LspDiagnostic[] GetHtmlDiagnostics(FullDocumentDiagnosticReport? result)

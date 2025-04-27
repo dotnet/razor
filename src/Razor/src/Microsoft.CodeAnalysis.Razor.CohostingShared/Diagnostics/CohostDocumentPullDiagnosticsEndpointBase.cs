@@ -37,7 +37,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequestType, 
 
     protected abstract string LspMethodName { get; }
     protected abstract LspDiagnostic[] GetHtmlDiagnostics(TResponseType result);
-    protected abstract TRequestType CreateHtmlParams(Uri uri);
+    protected abstract TRequestType? CreateHtmlParams(Uri uri);
 
     protected async Task<LspDiagnostic[]?> HandleRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
     {
@@ -102,6 +102,11 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequestType, 
     private async Task<LspDiagnostic[]> GetHtmlDiagnosticsAsync(TextDocument razorDocument, Guid correletionId, CancellationToken cancellationToken)
     {
         var diagnosticsParams = CreateHtmlParams(razorDocument.CreateUri());
+
+        if (diagnosticsParams is null)
+        {
+            return [];
+        }
 
         var result = await _requestInvoker.MakeHtmlLspRequestAsync<TRequestType, TResponseType>(
             razorDocument,
