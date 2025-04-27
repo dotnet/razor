@@ -40,7 +40,11 @@ internal class VSCodeRemoteServicesInitializer(
         // Normal remote service invoker logic requires a solution, but we don't have one here. Fortunately we don't need one, and since
         // we know this is VS Code specific, its all just smoke and mirrors anyway. We can avoid the smoke :)
         var serviceInterceptor = new VSCodeBrokeredServiceInterceptor();
+
+        var logger = _loggerFactory.GetOrCreateLogger<VSCodeRemoteServicesInitializer>();
+        logger.LogDebug("Initializing remote services.");
         var service = await InProcServiceFactory.CreateServiceAsync<IRemoteClientInitializationService>(serviceInterceptor, _loggerFactory).ConfigureAwait(false);
+        logger.LogDebug("Initialized remote services.");
 
         await service.InitializeAsync(new RemoteClientInitializationOptions
         {
