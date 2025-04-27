@@ -7,6 +7,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -29,10 +30,12 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
     IClientSettingsManager clientSettingsManager,
     ITelemetryReporter telemetryReporter,
     ILoggerFactory loggerFactory)
-    : CohostDocumentPullDiagnosticsEndpointBase(remoteServiceInvoker, requestInvoker, telemetryReporter, loggerFactory), IDynamicRegistrationProvider
+    : CohostDocumentPullDiagnosticsEndpointBase<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(remoteServiceInvoker, requestInvoker, telemetryReporter, loggerFactory), IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
+
+    protected override string LspMethodName => VSInternalMethods.DocumentPullDiagnosticName;
 
     public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
@@ -51,20 +54,56 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
         return [];
     }
 
-    protected override Task<VSInternalDiagnosticReport[]?> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams request)
+        => request.TextDocument?.ToRazorTextDocumentIdentifier();
+
+    protected async override Task<VSInternalDiagnosticReport[]> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
     {
         if (request.QueryingDiagnosticKind?.Value == VSInternalDiagnosticKind.Task.Value)
         {
-            return HandleTaskListItemRequestAsync(
+            return await HandleTaskListItemRequestAsync(
                 context.TextDocument.AssumeNotNull(),
                 _clientSettingsManager.GetClientSettings().AdvancedSettings.TaskListDescriptors,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
         }
 
-        return HandleRequestAsync(context.TextDocument.AssumeNotNull(), cancellationToken);
+        var results = await HandleRequestAsync(context.TextDocument.AssumeNotNull(), cancellationToken).ConfigureAwait(false);
+
+        if (results is null)
+        {
+            return [];
+        }
+
+        return [new()
+        {
+            Diagnostics = results,
+            ResultId = Guid.NewGuid().ToString()
+        }];
     }
 
-    private async Task<VSInternalDiagnosticReport[]?> HandleTaskListItemRequestAsync(TextDocument razorDocument, ImmutableArray<string> taskListDescriptors, CancellationToken cancellationToken)
+    protected override VSInternalDocumentDiagnosticsParams CreateHtmlParams(Uri uri)
+    {
+        return new VSInternalDocumentDiagnosticsParams
+        {
+            TextDocument = new TextDocumentIdentifier { Uri = uri }
+        };
+    }
+
+    protected override LspDiagnostic[] GetHtmlDiagnostics(VSInternalDiagnosticReport[] result)
+    {
+        using var allDiagnostics = new PooledArrayBuilder<LspDiagnostic>();
+        foreach (var report in result)
+        {
+            if (report.Diagnostics is not null)
+            {
+                allDiagnostics.AddRange(report.Diagnostics);
+            }
+        }
+
+        return allDiagnostics.ToArray();
+    }
+
+    private async Task<VSInternalDiagnosticReport[]> HandleTaskListItemRequestAsync(TextDocument razorDocument, ImmutableArray<string> taskListDescriptors, CancellationToken cancellationToken)
     {
         var diagnostics = await _remoteServiceInvoker.TryInvokeAsync<IRemoteDiagnosticsService, ImmutableArray<LspDiagnostic>>(
             razorDocument.Project.Solution,
@@ -73,7 +112,7 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
 
         if (diagnostics.IsDefaultOrEmpty)
         {
-            return null;
+            return [];
         }
 
         return
@@ -90,10 +129,10 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
 
     internal readonly struct TestAccessor(CohostDocumentPullDiagnosticsEndpoint instance)
     {
-        public Task<VSInternalDiagnosticReport[]?> HandleRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
+        public Task<LspDiagnostic[]?> HandleRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
             => instance.HandleRequestAsync(razorDocument, cancellationToken);
 
-        public Task<VSInternalDiagnosticReport[]?> HandleTaskListItemRequestAsync(TextDocument razorDocument, ImmutableArray<string> taskListDescriptors, CancellationToken cancellationToken)
+        public Task<VSInternalDiagnosticReport[]> HandleTaskListItemRequestAsync(TextDocument razorDocument, ImmutableArray<string> taskListDescriptors, CancellationToken cancellationToken)
             => instance.HandleTaskListItemRequestAsync(razorDocument, taskListDescriptors, cancellationToken);
     }
 }

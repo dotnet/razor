@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -26,8 +27,10 @@ internal sealed class DocumentPullDiagnosticsEndpoint(
     IHtmlRequestInvoker requestInvoker,
     ITelemetryReporter telemetryReporter,
     ILoggerFactory loggerFactory)
-    : CohostDocumentPullDiagnosticsEndpointBase(remoteServiceInvoker, requestInvoker, telemetryReporter, loggerFactory), IDynamicRegistrationProvider
+    : CohostDocumentPullDiagnosticsEndpointBase<DocumentDiagnosticParams, FullDocumentDiagnosticReport?>(remoteServiceInvoker, requestInvoker, telemetryReporter, loggerFactory), IDynamicRegistrationProvider
 {
+    protected override string LspMethodName => Methods.TextDocumentDiagnosticName;
+
     public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Diagnostic?.DynamicRegistration is true)
@@ -45,9 +48,36 @@ internal sealed class DocumentPullDiagnosticsEndpoint(
         return [];
     }
 
-    protected override Task<VSInternalDiagnosticReport[]?> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(DocumentDiagnosticParams request)
+        => request.TextDocument?.ToRazorTextDocumentIdentifier();
+
+    protected async override Task<FullDocumentDiagnosticReport?> HandleRequestAsync(DocumentDiagnosticParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
     {
-        return HandleRequestAsync(context.TextDocument.AssumeNotNull(), cancellationToken);
+        var results = await HandleRequestAsync(context.TextDocument.AssumeNotNull(), cancellationToken).ConfigureAwait(false);
+
+        if (results is null)
+        {
+            return null;
+        }
+
+        return new()
+        {
+            Items = results,
+            ResultId = Guid.NewGuid().ToString()
+        };
+    }
+
+    protected override DocumentDiagnosticParams CreateHtmlParams(Uri uri)
+    {
+        return new DocumentDiagnosticParams
+        {
+            TextDocument = new TextDocumentIdentifier { Uri = uri }
+        };
+    }
+
+    protected override LspDiagnostic[] GetHtmlDiagnostics(FullDocumentDiagnosticReport? result)
+    {
+        return result?.Items ?? [];
     }
 }
 

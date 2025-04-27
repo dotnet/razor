@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
@@ -19,29 +18,31 @@ using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Hand
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-internal abstract class CohostDocumentPullDiagnosticsEndpointBase(
+internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequestType, TResponseType>(
     IRemoteServiceInvoker remoteServiceInvoker,
     IHtmlRequestInvoker requestInvoker,
     ITelemetryReporter telemetryReporter,
     ILoggerFactory loggerFactory)
-    : AbstractRazorCohostDocumentRequestHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>
+    : AbstractRazorCohostDocumentRequestHandler<TRequestType, TResponseType>
+    where TRequestType : notnull
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostDocumentPullDiagnosticsEndpointBase>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostDocumentPullDiagnosticsEndpointBase<TRequestType, TResponseType>>();
 
     protected override bool MutatesSolutionState => false;
 
     protected override bool RequiresLSPSolution => true;
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams request)
-        => request.TextDocument?.ToRazorTextDocumentIdentifier();
+    protected abstract string LspMethodName { get; }
+    protected abstract LspDiagnostic[] GetHtmlDiagnostics(TResponseType result);
+    protected abstract TRequestType CreateHtmlParams(Uri uri);
 
-    protected async Task<VSInternalDiagnosticReport[]?> HandleRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
+    protected async Task<LspDiagnostic[]?> HandleRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
     {
         var correlationId = Guid.NewGuid();
-        using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentCompletionName, LanguageServerConstants.RazorLanguageServerName, TelemetryThresholds.DiagnosticsRazorTelemetryThreshold, correlationId);
+        using var _ = _telemetryReporter.TrackLspRequest(LspMethodName, LanguageServerConstants.RazorLanguageServerName, TelemetryThresholds.DiagnosticsRazorTelemetryThreshold, correlationId);
 
         // Diagnostics is a little different, because Roslyn is not designed to run diagnostics in OOP. Their system will transition to OOP
         // as it needs, but we have to start here in devenv. This is not as big a problem as it sounds, specifically for diagnostics, because
@@ -80,14 +81,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase(
         }
 
         _logger.LogDebug($"Reporting {diagnostics.Length} diagnostics back to the client");
-        return
-        [
-            new()
-            {
-                Diagnostics = diagnostics.ToArray(),
-                ResultId = Guid.NewGuid().ToString()
-            }
-        ];
+        return diagnostics.ToArray();
     }
 
     private async Task<LspDiagnostic[]> GetCSharpDiagnosticsAsync(TextDocument razorDocument, Guid correletionId, CancellationToken cancellationToken)
@@ -100,25 +94,18 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase(
 
         _logger.LogDebug($"Getting C# diagnostics for {generatedDocument.FilePath}");
 
-        using var _ = _telemetryReporter.TrackLspRequest(VSInternalMethods.DocumentPullDiagnosticName, "Razor.ExternalAccess", TelemetryThresholds.DiagnosticsSubLSPTelemetryThreshold, correletionId);
+        using var _ = _telemetryReporter.TrackLspRequest(LspMethodName, "Razor.ExternalAccess", TelemetryThresholds.DiagnosticsSubLSPTelemetryThreshold, correletionId);
         var diagnostics = await ExternalHandlers.Diagnostics.GetDocumentDiagnosticsAsync(generatedDocument, supportsVisualStudioExtensions: true, cancellationToken).ConfigureAwait(false);
         return diagnostics.ToArray();
     }
 
     private async Task<LspDiagnostic[]> GetHtmlDiagnosticsAsync(TextDocument razorDocument, Guid correletionId, CancellationToken cancellationToken)
     {
-        var diagnosticsParams = new VSInternalDocumentDiagnosticsParams
-        {
-            TextDocument = new TextDocumentIdentifier { Uri = razorDocument.CreateUri() }
-        };
+        var diagnosticsParams = CreateHtmlParams(razorDocument.CreateUri());
 
-        var result = await _requestInvoker.MakeHtmlLspRequestAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
+        var result = await _requestInvoker.MakeHtmlLspRequestAsync<TRequestType, TResponseType>(
             razorDocument,
-#if VSCODE
-            Methods.TextDocumentDiagnosticName,
-#else
-            VSInternalMethods.DocumentPullDiagnosticName,
-#endif
+            LspMethodName,
             diagnosticsParams,
             TelemetryThresholds.DiagnosticsSubLSPTelemetryThreshold,
             correletionId,
@@ -129,15 +116,6 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase(
             return [];
         }
 
-        using var allDiagnostics = new PooledArrayBuilder<LspDiagnostic>();
-        foreach (var report in result)
-        {
-            if (report.Diagnostics is not null)
-            {
-                allDiagnostics.AddRange(report.Diagnostics);
-            }
-        }
-
-        return allDiagnostics.ToArray();
+        return GetHtmlDiagnostics(result);
     }
 }
