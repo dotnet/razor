@@ -293,7 +293,7 @@ public class FallbackWindowsRazorProjectHostTest : VisualStudioWorkspaceTestBase
         Assert.True(result);
         Assert.Equal(expectedFullPath, document.FilePath);
         Assert.Equal(expectedTargetPath, document.TargetPath);
-        Assert.Equal(FileKinds.Legacy, document.FileKind);
+        Assert.Equal(RazorFileKind.Legacy, document.FileKind);
     }
 
     [UIFact]

@@ -9,11 +9,10 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Razor.ProjectSystem;
 
@@ -86,11 +85,11 @@ internal partial class BackgroundDocumentGenerator : IRazorStartupService, IDisp
     protected Task WaitUntilCurrentBatchCompletesAsync()
         => _workQueue.WaitUntilCurrentBatchCompletesAsync();
 
-    protected virtual async Task ProcessDocumentAsync(DocumentSnapshot document, CancellationToken cancellationToken)
+    protected virtual Task ProcessDocumentAsync(DocumentSnapshot document, CancellationToken cancellationToken)
     {
-        await document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-
         UpdateFileInfo(document);
+
+        return Task.CompletedTask;
     }
 
     public virtual void EnqueueIfNecessary(DocumentKey documentKey)

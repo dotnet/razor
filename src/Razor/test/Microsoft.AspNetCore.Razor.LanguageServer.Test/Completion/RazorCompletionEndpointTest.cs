@@ -6,9 +6,8 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -29,7 +28,7 @@ public class RazorCompletionEndpointTest(ITestOutputHelper testOutput) : Languag
             {
                 Uri = new Uri(documentPath)
             },
-            Position = VsLspFactory.CreatePosition(0, 1),
+            Position = LspFactory.CreatePosition(0, 1),
             Context = new VSInternalCompletionContext(),
         };
         var requestContext = CreateRazorRequestContext(documentContext: null);
@@ -57,7 +56,7 @@ public class RazorCompletionEndpointTest(ITestOutputHelper testOutput) : Languag
             {
                 Uri = uri
             },
-            Position = VsLspFactory.CreatePosition(0, 1),
+            Position = LspFactory.CreatePosition(0, 1),
             Context = new VSInternalCompletionContext() { InvokeKind = VSInternalCompletionInvokeKind.Typing },
         };
         var requestContext = CreateRazorRequestContext(documentContext);

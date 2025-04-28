@@ -5,13 +5,13 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.VisualStudio.Razor.DynamicFiles;
 using Moq;
 using Xunit;
@@ -44,8 +44,8 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
         _projectManager = CreateProjectSnapshotManager();
 
         var hostProject = new HostProject(@"C:\project.csproj", @"C:\obj", RazorConfiguration.Default, rootNamespace: "TestNamespace");
-        var hostDocument1 = new HostDocument(@"C:\document1.razor", "document1.razor", FileKinds.Component);
-        var hostDocument2 = new HostDocument(@"C:\document2.razor", "document2.razor", FileKinds.Component);
+        var hostDocument1 = new HostDocument(@"C:\document1.razor", "document1.razor", RazorFileKind.Component);
+        var hostDocument2 = new HostDocument(@"C:\document2.razor", "document2.razor", RazorFileKind.Component);
 
         await _projectManager.UpdateAsync(updater =>
         {
