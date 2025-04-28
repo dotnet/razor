@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
-  <Source Uri="https://github.com/dotnet/dotnet" Mapping="razor" Sha="919f64d9fd105eda6d412b926d9c20951383150f" BarId="265833" />
+  <Source Uri="https://github.com/dotnet/dotnet" Mapping="razor" Sha="c71a5e287b51dabb97b7e0be5c4ba9b11f840402" BarId="265935" />
   <ProductDependencies>
     <!-- Intermediate is necessary for source build. -->
     <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-reference-packages" Version="9.0.0-alpha.1.25209.1">
@@ -86,9 +86,9 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>05e49aa98995349ffa26a19020333293ffe99670</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures" Version="5.0.0-1.25225.102">
+    <Dependency Name="Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures" Version="5.0.0-1.25227.101">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>919f64d9fd105eda6d412b926d9c20951383150f</Sha>
+      <Sha>c71a5e287b51dabb97b7e0be5c4ba9b11f840402</Sha>
     </Dependency>
     <Dependency Name="Microsoft.CodeAnalysis.LanguageServer.Protocol" Version="5.0.0-1.25222.12">
       <Uri>https://github.com/dotnet/roslyn</Uri>
