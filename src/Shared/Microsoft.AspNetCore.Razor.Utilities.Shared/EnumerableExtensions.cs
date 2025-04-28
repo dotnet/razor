@@ -132,7 +132,7 @@ internal static class EnumerableExtensions
     ///  Sorts the elements of an <see cref="IEnumerable{T}"/> in ascending order.
     /// </summary>
     /// <typeparam name="T">The type of the elements in <paramref name="sequence"/>.</typeparam>
-    /// <param name="sequence">An <see cref="IEnumerable{T}"/> to ordered.</param>
+    /// <param name="sequence">An <see cref="IEnumerable{T}"/> whose elements will be sorted.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in ascending order.
     /// </returns>
@@ -156,7 +156,7 @@ internal static class EnumerableExtensions
     ///  Sorts the elements of an <see cref="IEnumerable{T}"/> in ascending order.
     /// </summary>
     /// <typeparam name="T">The type of the elements in <paramref name="sequence"/>.</typeparam>
-    /// <param name="sequence">An <see cref="IEnumerable{T}"/> to ordered.</param>
+    /// <param name="sequence">An <see cref="IEnumerable{T}"/> whose elements will be sorted.</param>
     /// <param name="comparer">An <see cref="IComparer{T}"/> to compare elements.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in ascending order.
@@ -181,7 +181,7 @@ internal static class EnumerableExtensions
     ///  Sorts the elements of an <see cref="IEnumerable{T}"/> in ascending order.
     /// </summary>
     /// <typeparam name="T">The type of the elements in <paramref name="sequence"/>.</typeparam>
-    /// <param name="sequence">An <see cref="IEnumerable{T}"/> to ordered.</param>
+    /// <param name="sequence">An <see cref="IEnumerable{T}"/> whose elements will be sorted.</param>
     /// <param name="comparison">An <see cref="Comparison{T}"/> to compare elements.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in ascending order.
@@ -206,7 +206,7 @@ internal static class EnumerableExtensions
     ///  Sorts the elements of an <see cref="IEnumerable{T}"/> in descending order.
     /// </summary>
     /// <typeparam name="T">The type of the elements in <paramref name="sequence"/>.</typeparam>
-    /// <param name="sequence">An <see cref="IEnumerable{T}"/> to ordered.</param>
+    /// <param name="sequence">An <see cref="IEnumerable{T}"/> whose elements will be sorted.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in descending order.
     /// </returns>
@@ -230,7 +230,7 @@ internal static class EnumerableExtensions
     ///  Sorts the elements of an <see cref="IEnumerable{T}"/> in descending order.
     /// </summary>
     /// <typeparam name="T">The type of the elements in <paramref name="sequence"/>.</typeparam>
-    /// <param name="sequence">An <see cref="IEnumerable{T}"/> to ordered.</param>
+    /// <param name="sequence">An <see cref="IEnumerable{T}"/> whose elements will be sorted.</param>
     /// <param name="comparer">An <see cref="IComparer{T}"/> to compare elements.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in descending order.
@@ -255,7 +255,7 @@ internal static class EnumerableExtensions
     ///  Sorts the elements of an <see cref="IEnumerable{T}"/> in descending order.
     /// </summary>
     /// <typeparam name="T">The type of the elements in <paramref name="sequence"/>.</typeparam>
-    /// <param name="sequence">An <see cref="IEnumerable{T}"/> to ordered.</param>
+    /// <param name="sequence">An <see cref="IEnumerable{T}"/> whose elements will be sorted.</param>
     /// <param name="comparison">An <see cref="Comparison{T}"/> to compare elements.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in descending order.
@@ -281,7 +281,7 @@ internal static class EnumerableExtensions
     /// </summary>
     /// <typeparam name="TElement">The type of the elements in <paramref name="sequence"/>.</typeparam>
     /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
-    /// <param name="sequence">An <see cref="IEnumerable{T}"/> to ordered.</param>
+    /// <param name="sequence">An <see cref="IEnumerable{T}"/> whose elements will be sorted.</param>
     /// <param name="keySelector">A function to extract a key from an element.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in ascending order according to a key.
@@ -308,7 +308,7 @@ internal static class EnumerableExtensions
     /// </summary>
     /// <typeparam name="TElement">The type of the elements in <paramref name="sequence"/>.</typeparam>
     /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
-    /// <param name="sequence">An <see cref="IEnumerable{T}"/> to ordered.</param>
+    /// <param name="sequence">An <see cref="IEnumerable{T}"/> whose elements will be sorted.</param>
     /// <param name="keySelector">A function to extract a key from an element.</param>
     /// <param name="comparer">An <see cref="IComparer{T}"/> to compare keys.</param>
     /// <returns>
@@ -336,7 +336,7 @@ internal static class EnumerableExtensions
     /// </summary>
     /// <typeparam name="TElement">The type of the elements in <paramref name="sequence"/>.</typeparam>
     /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
-    /// <param name="sequence">An <see cref="IEnumerable{T}"/> to ordered.</param>
+    /// <param name="sequence">An <see cref="IEnumerable{T}"/> whose elements will be sorted.</param>
     /// <param name="keySelector">A function to extract a key from an element.</param>
     /// <param name="comparison">An <see cref="Comparison{T}"/> to compare keys.</param>
     /// <returns>
@@ -364,7 +364,7 @@ internal static class EnumerableExtensions
     /// </summary>
     /// <typeparam name="TElement">The type of the elements in <paramref name="sequence"/>.</typeparam>
     /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
-    /// <param name="sequence">An <see cref="IEnumerable{T}"/> to ordered.</param>
+    /// <param name="sequence">An <see cref="IEnumerable{T}"/> whose elements will be sorted.</param>
     /// <param name="keySelector">A function to extract a key from an element.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in descending order according to a key.
@@ -391,7 +391,7 @@ internal static class EnumerableExtensions
     /// </summary>
     /// <typeparam name="TElement">The type of the elements in <paramref name="sequence"/>.</typeparam>
     /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
-    /// <param name="sequence">An <see cref="IEnumerable{T}"/> to ordered.</param>
+    /// <param name="sequence">An <see cref="IEnumerable{T}"/> whose elements will be sorted.</param>
     /// <param name="keySelector">A function to extract a key from an element.</param>
     /// <param name="comparer">An <see cref="IComparer{T}"/> to compare keys.</param>
     /// <returns>
@@ -419,7 +419,7 @@ internal static class EnumerableExtensions
     /// </summary>
     /// <typeparam name="TElement">The type of the elements in <paramref name="sequence"/>.</typeparam>
     /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
-    /// <param name="sequence">An <see cref="IEnumerable{T}"/> to ordered.</param>
+    /// <param name="sequence">An <see cref="IEnumerable{T}"/> whose elements will be sorted.</param>
     /// <param name="keySelector">A function to extract a key from an element.</param>
     /// <param name="comparison">An <see cref="Comparison{T}"/> to compare keys.</param>
     /// <returns>

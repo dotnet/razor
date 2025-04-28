@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
@@ -227,7 +227,7 @@ internal static partial class ImmutableArrayExtensions
     ///  Sorts the elements of an <see cref="ImmutableArray{T}"/> in ascending order.
     /// </summary>
     /// <typeparam name="T">The type of the elements in <paramref name="array"/>.</typeparam>
-    /// <param name="array">An array to ordered.</param>
+    /// <param name="array">An array to be sorted.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in ascending order.
     /// </returns>
@@ -241,7 +241,7 @@ internal static partial class ImmutableArrayExtensions
     ///  Sorts the elements of an <see cref="ImmutableArray{T}"/> in ascending order.
     /// </summary>
     /// <typeparam name="T">The type of the elements in <paramref name="array"/>.</typeparam>
-    /// <param name="array">An array to ordered.</param>
+    /// <param name="array">An array to be sorted.</param>
     /// <param name="comparer">An <see cref="IComparer{T}"/> to compare elements.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in ascending order.
@@ -256,7 +256,7 @@ internal static partial class ImmutableArrayExtensions
     ///  Sorts the elements of an <see cref="ImmutableArray{T}"/> in ascending order.
     /// </summary>
     /// <typeparam name="T">The type of the elements in <paramref name="array"/>.</typeparam>
-    /// <param name="array">An array to ordered.</param>
+    /// <param name="array">An array to be sorted.</param>
     /// <param name="comparison">A <see cref="Comparison{T}"/> to compare elements.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in ascending order.
@@ -271,7 +271,7 @@ internal static partial class ImmutableArrayExtensions
     ///  Sorts the elements of an <see cref="ImmutableArray{T}"/> in descending order.
     /// </summary>
     /// <typeparam name="T">The type of the elements in <paramref name="array"/>.</typeparam>
-    /// <param name="array">An array to ordered.</param>
+    /// <param name="array">An array to be sorted.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in descending order.
     /// </returns>
@@ -285,7 +285,7 @@ internal static partial class ImmutableArrayExtensions
     ///  Sorts the elements of an <see cref="ImmutableArray{T}"/> in descending order.
     /// </summary>
     /// <typeparam name="T">The type of the elements in <paramref name="array"/>.</typeparam>
-    /// <param name="array">An array to ordered.</param>
+    /// <param name="array">An array to be sorted.</param>
     /// <param name="comparer">An <see cref="IComparer{T}"/> to compare elements.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in descending order.
@@ -300,7 +300,7 @@ internal static partial class ImmutableArrayExtensions
     ///  Sorts the elements of an <see cref="ImmutableArray{T}"/> in descending order.
     /// </summary>
     /// <typeparam name="T">The type of the elements in <paramref name="array"/>.</typeparam>
-    /// <param name="array">An array to ordered.</param>
+    /// <param name="array">An array to be sorted.</param>
     /// <param name="comparison">A <see cref="Comparison{T}"/> to compare elements.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in descending order.
@@ -316,7 +316,7 @@ internal static partial class ImmutableArrayExtensions
     /// </summary>
     /// <typeparam name="TElement">The type of the elements in <paramref name="array"/>.</typeparam>
     /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
-    /// <param name="array">An array to ordered.</param>
+    /// <param name="array">An array to be sorted.</param>
     /// <param name="keySelector">A function to extract a key from an element.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in ascending order according to a key.
@@ -333,7 +333,7 @@ internal static partial class ImmutableArrayExtensions
     /// </summary>
     /// <typeparam name="TElement">The type of the elements in <paramref name="array"/>.</typeparam>
     /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
-    /// <param name="array">An array to ordered.</param>
+    /// <param name="array">An array to be sorted.</param>
     /// <param name="keySelector">A function to extract a key from an element.</param>
     /// <param name="comparer">An <see cref="IComparer{T}"/> to compare keys.</param>
     /// <returns>
@@ -351,7 +351,7 @@ internal static partial class ImmutableArrayExtensions
     /// </summary>
     /// <typeparam name="TElement">The type of the elements in <paramref name="array"/>.</typeparam>
     /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
-    /// <param name="array">An array to ordered.</param>
+    /// <param name="array">An array to be sorted.</param>
     /// <param name="keySelector">A function to extract a key from an element.</param>
     /// <param name="comparison">A <see cref="Comparison{T}"/> to compare keys.</param>
     /// <returns>
@@ -369,7 +369,7 @@ internal static partial class ImmutableArrayExtensions
     /// </summary>
     /// <typeparam name="TElement">The type of the elements in <paramref name="array"/>.</typeparam>
     /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
-    /// <param name="array">An array to ordered.</param>
+    /// <param name="array">An array to be sorted.</param>
     /// <param name="keySelector">A function to extract a key from an element.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in descending order according to a key.
@@ -386,7 +386,7 @@ internal static partial class ImmutableArrayExtensions
     /// </summary>
     /// <typeparam name="TElement">The type of the elements in <paramref name="array"/>.</typeparam>
     /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
-    /// <param name="array">An array to ordered.</param>
+    /// <param name="array">An array to be sorted.</param>
     /// <param name="keySelector">A function to extract a key from an element.</param>
     /// <param name="comparer">An <see cref="IComparer{T}"/> to compare keys.</param>
     /// <returns>
@@ -404,7 +404,7 @@ internal static partial class ImmutableArrayExtensions
     /// </summary>
     /// <typeparam name="TElement">The type of the elements in <paramref name="array"/>.</typeparam>
     /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
-    /// <param name="array">An array to ordered.</param>
+    /// <param name="array">An array to be sorted.</param>
     /// <param name="keySelector">A function to extract a key from an element.</param>
     /// <param name="comparison">A <see cref="Comparison{T}"/> to compare keys.</param>
     /// <returns>
