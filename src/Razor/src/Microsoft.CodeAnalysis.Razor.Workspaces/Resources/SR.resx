@@ -211,4 +211,7 @@
   <data name="Unsupported_razor_project_info_version_encountered" xml:space="preserve">
     <value>Unsupported razor project info version encounted.</value>
   </data>
+  <data name="Simplify_Tag_To_SelfClosing_Title" xml:space="preserve">
+    <value>Simplify tag to self-closing</value>
+  </data>
 </root>

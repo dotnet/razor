@@ -44,6 +44,10 @@ internal sealed class OOPExtractToComponentCodeActionProvider : ExtractToCompone
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
 [method: ImportingConstructor]
+internal sealed class OOPSimplifyTagToSelfClosingCodeActionProvider(ILoggerFactory loggerFactory) : SimplifyTagToSelfClosingCodeActionProvider(loggerFactory);
+
+[Export(typeof(IRazorCodeActionProvider)), Shared]
+[method: ImportingConstructor]
 internal sealed class OOPComponentAccessibilityCodeActionProvider(IFileSystem fileSystem) : ComponentAccessibilityCodeActionProvider(fileSystem);
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
@@ -78,6 +82,10 @@ internal sealed class OOPExtractToCodeBehindCodeActionResolver(
 [Export(typeof(IRazorCodeActionResolver)), Shared]
 [method: ImportingConstructor]
 internal sealed class OOPExtractToComponentCodeActionResolver(LanguageServerFeatureOptions languageServerFeatureOptions) : ExtractToComponentCodeActionResolver(languageServerFeatureOptions);
+
+[Export(typeof(IRazorCodeActionResolver)), Shared]
+[method: ImportingConstructor]
+internal sealed class OOPSimplifyTagToSelfClosingCodeActionResolver() : SimplifyTagToSelfClosingCodeActionResolver();
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
 [method: ImportingConstructor]

@@ -318,6 +318,19 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
         return Node != null;
     }
 
+    public bool Any(Func<TNode, bool> predicate)
+    {
+        foreach (var node in this)
+        {
+            if (predicate(node))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public SyntaxList<TNode> Where(Func<TNode, bool> predicate)
     {
         using var _ = SyntaxListBuilderPool.GetPooledBuilder<TNode>(out var builder);
