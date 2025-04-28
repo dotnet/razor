@@ -26,6 +26,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
     }
 
     private readonly IRazorComponentDefinitionService _componentDefinitionService = args.ExportProvider.GetExportedValue<IRazorComponentDefinitionService>();
+    private readonly IRemoteWorkspaceProvider _workspaceProvider = args.WorkspaceProvider;
 
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
 
@@ -78,7 +79,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
 
         var locations = await ExternalHandlers.GoToDefinition
             .GetDefinitionsAsync(
-                RemoteWorkspaceAccessor.GetWorkspace(),
+                _workspaceProvider.GetWorkspace(),
                 generatedDocument,
                 typeOnly: false,
                 positionInfo.Position.ToLinePosition(),

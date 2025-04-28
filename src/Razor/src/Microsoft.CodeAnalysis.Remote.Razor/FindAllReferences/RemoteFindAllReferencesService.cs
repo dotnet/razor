@@ -27,6 +27,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
     }
 
     private readonly IClientCapabilitiesService _clientCapabilitiesService = args.ExportProvider.GetExportedValue<IClientCapabilitiesService>();
+    private readonly IRemoteWorkspaceProvider _workspaceProvider = args.WorkspaceProvider;
 
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
 
@@ -67,7 +68,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
 
         var results = await ExternalHandlers.FindAllReferences
             .FindReferencesAsync(
-                RemoteWorkspaceAccessor.GetWorkspace(),
+                _workspaceProvider.GetWorkspace(),
                 generatedDocument,
                 positionInfo.Position.ToLinePosition(),
                 _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions,

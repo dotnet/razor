@@ -11,5 +11,6 @@ internal readonly record struct ServiceArgs(
     IServiceBroker? ServiceBroker,
     ExportProvider ExportProvider,
     ILoggerFactory ServiceLoggerFactory,
+    IRemoteWorkspaceProvider WorkspaceProvider,
     ServiceRpcDescriptor.RpcConnection? ServerConnection = null,
     IRazorBrokeredServiceInterceptor? Interceptor = null);

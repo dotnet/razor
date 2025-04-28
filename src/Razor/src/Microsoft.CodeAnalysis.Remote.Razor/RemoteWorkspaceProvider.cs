@@ -7,8 +7,10 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal static class RemoteWorkspaceAccessor
+internal class RemoteWorkspaceProvider : IRemoteWorkspaceProvider
 {
+    public static RemoteWorkspaceProvider Instance = new();
+
     /// <summary>
     /// Gets the remote workspace used in the Roslyn OOP process
     /// </summary>
@@ -19,7 +21,7 @@ internal static class RemoteWorkspaceAccessor
     ///
     /// This should be used sparingly and carefully, and no updates should be made to the workspace.
     /// </remarks>
-    public static Workspace GetWorkspace()
+    public Workspace GetWorkspace()
         => RazorBrokeredServiceImplementation.GetWorkspace();
 
     /// <summary>

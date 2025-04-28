@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
@@ -19,8 +20,10 @@ namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 [Export(typeof(IRemoteServiceInvoker))]
 [method: ImportingConstructor]
 internal class VSCodeRemoteServiceInvoker(
+    IRemoteWorkspaceProvider remoteWorkspaceProvider,
     ILoggerFactory loggerFactory) : IRemoteServiceInvoker, IDisposable
 {
+    private readonly IRemoteWorkspaceProvider _remoteWorkspaceProvider = remoteWorkspaceProvider;
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
     private readonly Dictionary<Type, object> _services = [];
     private readonly Lock _serviceLock = new();
@@ -61,7 +64,7 @@ internal class VSCodeRemoteServiceInvoker(
         // Create the service using the InProcServiceFactory
         try
         {
-            var service = await InProcServiceFactory.CreateServiceAsync<TService>(_serviceInterceptor, _loggerFactory).ConfigureAwait(false);
+            var service = await InProcServiceFactory.CreateServiceAsync<TService>(_serviceInterceptor, _remoteWorkspaceProvider, _loggerFactory).ConfigureAwait(false);
 
             lock (_serviceLock)
             {

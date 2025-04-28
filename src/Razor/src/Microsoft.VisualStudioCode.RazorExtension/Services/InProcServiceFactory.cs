@@ -47,12 +47,12 @@ internal static class InProcServiceFactory
     }
 
     public static async Task<TService> CreateServiceAsync<TService>(
-        VSCodeBrokeredServiceInterceptor brokeredServiceInterceptor, ILoggerFactory loggerFactory)
+        VSCodeBrokeredServiceInterceptor brokeredServiceInterceptor, IRemoteWorkspaceProvider remoteWorkspaceProvider, ILoggerFactory loggerFactory)
         where TService : class
     {
         Assumes.True(s_factoryMap.TryGetValue(typeof(TService), out var factory));
 
-        var brokeredServiceData = new RazorBrokeredServiceData(ExportProvider: null, loggerFactory, brokeredServiceInterceptor);
+        var brokeredServiceData = new RazorBrokeredServiceData(ExportProvider: null, loggerFactory, brokeredServiceInterceptor, remoteWorkspaceProvider);
         var hostProvidedServices = new HostProvidedServices(brokeredServiceData);
 
         return (TService)await factory.CreateInProcAsync(hostProvidedServices).ConfigureAwait(false);

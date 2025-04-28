@@ -9,4 +9,5 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 internal sealed record class RazorBrokeredServiceData(
     ExportProvider? ExportProvider,
     ILoggerFactory? LoggerFactory,
-    IRazorBrokeredServiceInterceptor? Interceptor);
+    IRazorBrokeredServiceInterceptor? Interceptor,
+    IRemoteWorkspaceProvider? RemoteWorkspaceProvider);
