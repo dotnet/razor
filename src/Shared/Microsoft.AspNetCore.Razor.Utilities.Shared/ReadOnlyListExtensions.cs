@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
@@ -11,9 +11,25 @@ namespace System.Collections.Generic;
 
 internal static class ReadOnlyListExtensions
 {
-    public static ImmutableArray<TResult> SelectAsArray<T, TResult>(this IReadOnlyList<T> source, Func<T, TResult> selector)
+    /// <summary>
+    ///  Projects each element of an <see cref="IReadOnlyList{T}"/> into a new form.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="list"/>.</typeparam>
+    /// <typeparam name="TResult">The type of the value returned by <paramref name="selector"/>.</typeparam>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> of values to invoke a transform function on.</param>
+    /// <param name="selector">A transform function to apply to each element.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
+    ///  on each element of <paramref name="list"/>.
+    /// </returns>
+    public static ImmutableArray<TResult> SelectAsArray<T, TResult>(this IReadOnlyList<T> list, Func<T, TResult> selector)
     {
-        return source switch
+        if (list is ImmutableArray<T> array)
+        {
+            return ImmutableArrayExtensions.SelectAsArray(array, selector);
+        }
+
+        return list switch
         {
             [] => [],
             [var item] => [selector(item)],

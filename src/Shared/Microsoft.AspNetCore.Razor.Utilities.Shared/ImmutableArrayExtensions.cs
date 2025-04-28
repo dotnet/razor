@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
@@ -30,9 +30,20 @@ internal static partial class ImmutableArrayExtensions
         }
     }
 
-    public static ImmutableArray<TResult> SelectAsArray<T, TResult>(this ImmutableArray<T> source, Func<T, TResult> selector)
+    /// <summary>
+    ///  Projects each element of an <see cref="ImmutableArray{T}"/> into a new form.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="array"/>.</typeparam>
+    /// <typeparam name="TResult">The type of the value returned by <paramref name="selector"/>.</typeparam>
+    /// <param name="array">An array of values to invoke a transform function on.</param>
+    /// <param name="selector">A transform function to apply to each element.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
+    ///  on each element of <paramref name="array"/>.
+    /// </returns>
+    public static ImmutableArray<TResult> SelectAsArray<T, TResult>(this ImmutableArray<T> array, Func<T, TResult> selector)
     {
-        return source switch
+        return array switch
         {
             [] => [],
             [var item] => [selector(item)],

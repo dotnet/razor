@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
@@ -11,6 +11,17 @@ namespace System.Collections.Generic;
 
 internal static class EnumerableExtensions
 {
+    /// <summary>
+    ///  Projects each element of an <see cref="IEnumerable{T}"/> into a new form.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="source"/>.</typeparam>
+    /// <typeparam name="TResult">The type of the value returned by <paramref name="selector"/>.</typeparam>
+    /// <param name="source">A sequence of values to invoke a transform function on.</param>
+    /// <param name="selector">A transform function to apply to each element.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
+    ///  on each element of <paramref name="source"/>.
+    /// </returns>
     public static ImmutableArray<TResult> SelectAsArray<T, TResult>(this IEnumerable<T> source, Func<T, TResult> selector)
     {
         if (source is ImmutableArray<T> array)
@@ -20,7 +31,7 @@ internal static class EnumerableExtensions
 
         if (source is IReadOnlyList<T> list)
         {
-            return list.SelectAsArray(selector);
+            return ReadOnlyListExtensions.SelectAsArray(list, selector);
         }
 
         return BuildResult(source, selector);
