@@ -19,16 +19,16 @@ namespace Test
         {
             __builder.OpenComponent<global::Test.MyComponent<
 #nullable restore
-#line (1,20)-(1,26) "x:\dir\subdir\Test\TestComponent.cshtml"
-string
+#line (1,38)-(1,56) "x:\dir\subdir\Test\TestComponent.cshtml"
+IComposedInterface
 
 #line default
 #line hidden
 #nullable disable
             , 
 #nullable restore
-#line (1,38)-(1,56) "x:\dir\subdir\Test\TestComponent.cshtml"
-IComposedInterface
+#line (1,20)-(1,26) "x:\dir\subdir\Test\TestComponent.cshtml"
+string
 
 #line default
 #line hidden

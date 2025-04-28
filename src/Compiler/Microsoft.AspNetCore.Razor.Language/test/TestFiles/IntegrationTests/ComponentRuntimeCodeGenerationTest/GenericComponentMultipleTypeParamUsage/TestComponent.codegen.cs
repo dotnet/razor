@@ -35,16 +35,16 @@ TItem2
         {
             __builder.OpenComponent<global::Test.TestComponent<
 #nullable restore
-#line (11,24)-(11,27) "x:\dir\subdir\Test\TestComponent.cshtml"
-int
+#line (11,36)-(11,42) "x:\dir\subdir\Test\TestComponent.cshtml"
+string
 
 #line default
 #line hidden
 #nullable disable
             , 
 #nullable restore
-#line (11,36)-(11,42) "x:\dir\subdir\Test\TestComponent.cshtml"
-string
+#line (11,24)-(11,27) "x:\dir\subdir\Test\TestComponent.cshtml"
+int
 
 #line default
 #line hidden

@@ -1,12 +1,12 @@
-﻿Source Location: (19:0,19 [6] x:\dir\subdir\Test\TestComponent.cshtml)
-|string|
-Generated Location: (799:22,0 [6] )
-|string|
+﻿Source Location: (37:0,37 [18] x:\dir\subdir\Test\TestComponent.cshtml)
+|IComposedInterface|
+Generated Location: (799:22,0 [18] )
+|IComposedInterface|
 
-Source Location: (37:0,37 [18] x:\dir\subdir\Test\TestComponent.cshtml)
-|IComposedInterface|
-Generated Location: (955:30,0 [18] )
-|IComposedInterface|
+Source Location: (19:0,19 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|string|
+Generated Location: (967:30,0 [6] )
+|string|
 
 Source Location: (63:0,63 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 |Value|
