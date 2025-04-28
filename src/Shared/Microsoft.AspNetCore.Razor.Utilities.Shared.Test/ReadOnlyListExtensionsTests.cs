@@ -300,4 +300,26 @@ public class ReadOnlyListExtensionsTest
         var actual = enumerable.SelectAsArray(static x => x * 2);
         Assert.Equal<int>(expected, actual);
     }
+
+    [Fact]
+    public void SelectAsArray_Index()
+    {
+        IReadOnlyList<int> data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        ImmutableArray<int> expected = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+
+        var actual = data.SelectAsArray(static (x, index) => x + index);
+        Assert.Equal<int>(expected, actual);
+    }
+
+    [Fact]
+    public void SelectAsArray_Index_Enumerable()
+    {
+        IReadOnlyList<int> data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        ImmutableArray<int> expected = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+
+        var enumerable = (IEnumerable<int>)data;
+
+        var actual = enumerable.SelectAsArray(static (x, index) => x + index);
+        Assert.Equal<int>(expected, actual);
+    }
 }

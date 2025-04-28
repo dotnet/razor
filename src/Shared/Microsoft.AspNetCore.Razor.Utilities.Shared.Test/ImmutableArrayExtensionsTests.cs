@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
@@ -69,6 +69,40 @@ public class ImmutableArrayExtensionsTests
         var enumerable = (IEnumerable<int>)data;
 
         var actual = enumerable.SelectAsArray(static x => x * 2);
+        Assert.Equal<int>(expected, actual);
+    }
+
+    [Fact]
+    public void SelectAsArray_Index()
+    {
+        ImmutableArray<int> data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        ImmutableArray<int> expected = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+
+        var actual = data.SelectAsArray(static (x, index) => x + index);
+        Assert.Equal<int>(expected, actual);
+    }
+
+    [Fact]
+    public void SelectAsArray_Index_ReadOnlyList()
+    {
+        ImmutableArray<int> data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        ImmutableArray<int> expected = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+
+        var list = (IReadOnlyList<int>)data;
+
+        var actual = list.SelectAsArray(static (x, index) => x + index);
+        Assert.Equal<int>(expected, actual);
+    }
+
+    [Fact]
+    public void SelectAsArray_Index_Enumerable()
+    {
+        ImmutableArray<int> data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        ImmutableArray<int> expected = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+
+        var enumerable = (IEnumerable<int>)data;
+
+        var actual = enumerable.SelectAsArray(static (x, index) => x + index);
         Assert.Equal<int>(expected, actual);
     }
 }

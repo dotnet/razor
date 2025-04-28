@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
@@ -46,6 +46,49 @@ internal static class ReadOnlyListExtensions
             for (var i = 0; i < items.Count; i++)
             {
                 results.Add(selector(items[i]));
+            }
+
+            return results.DrainToImmutable();
+        }
+    }
+
+    /// <summary>
+    ///  Projects each element of an <see cref="IReadOnlyList{T}"/> into a new form by incorporating the element's index.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="list"/>.</typeparam>
+    /// <typeparam name="TResult">The type of the value returned by <paramref name="selector"/>.</typeparam>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> of values to invoke a transform function on.</param>
+    /// <param name="selector">
+    ///  A transform function to apply to each element; the second parameter of the function represents the index of the element.
+    /// </param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
+    ///  on each element of <paramref name="list"/>.
+    /// </returns>
+    public static ImmutableArray<TResult> SelectAsArray<T, TResult>(this IReadOnlyList<T> list, Func<T, int, TResult> selector)
+    {
+        if (list is ImmutableArray<T> array)
+        {
+            return ImmutableArrayExtensions.SelectAsArray(array, selector);
+        }
+
+        return list switch
+        {
+            [] => [],
+            [var item] => [selector(item, 0)],
+            [var item1, var item2] => [selector(item1, 0), selector(item2, 1)],
+            [var item1, var item2, var item3] => [selector(item1, 0), selector(item2, 1), selector(item3, 2)],
+            [var item1, var item2, var item3, var item4] => [selector(item1, 0), selector(item2, 1), selector(item3, 2), selector(item4, 3)],
+            var items => BuildResult(items, selector)
+        };
+
+        static ImmutableArray<TResult> BuildResult(IReadOnlyList<T> items, Func<T, int, TResult> selector)
+        {
+            using var results = new PooledArrayBuilder<TResult>(capacity: items.Count);
+
+            for (var i = 0; i < items.Count; i++)
+            {
+                results.Add(selector(items[i], i));
             }
 
             return results.DrainToImmutable();
