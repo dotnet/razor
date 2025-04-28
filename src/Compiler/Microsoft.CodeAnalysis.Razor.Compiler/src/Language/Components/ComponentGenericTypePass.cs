@@ -310,7 +310,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
         private void RewriteTypeNames(TypeNameRewriter rewriter, ComponentIntermediateNode node, bool? hasTypeArgumentSpecified = null, IDictionary<string, Binding>? bindings = null)
         {
             // Rewrite the component type name
-            node.TypeName = rewriter.Rewrite(node.TypeName);
+            rewriter.RewriteComponentTypeName(node);
 
             foreach (var attribute in node.Attributes)
             {
