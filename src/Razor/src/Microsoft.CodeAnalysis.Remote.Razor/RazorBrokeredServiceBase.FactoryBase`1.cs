@@ -84,7 +84,7 @@ internal abstract partial class RazorBrokeredServiceBase
                     ? new TraceSourceLoggerFactory(traceSource)
                     : EmptyLoggerFactory.Instance);
 
-            var workspaceProvider = brokeredServiceData?.RemoteWorkspaceProvider ?? RemoteWorkspaceProvider.Instance;
+            var workspaceProvider = brokeredServiceData?.WorkspaceProvider ?? RemoteWorkspaceProvider.Instance;
 
             // Update the MEF composition's IHostServicesAccessor to the target workspace
             var hostServicesProvider = exportProvider.GetExportedValue<RemoteHostServicesProvider>();

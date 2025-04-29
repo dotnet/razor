@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
@@ -20,12 +19,12 @@ namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 internal class VSCodeRemoteServicesInitializer(
     LanguageServerFeatureOptions featureOptions,
     ISemanticTokensLegendService semanticTokensLegendService,
-    IRemoteWorkspaceProvider remoteWorkspaceProvider,
+    IWorkspaceProvider workspaceProvider,
     ILoggerFactory loggerFactory) : IRazorCohostStartupService
 {
     private readonly LanguageServerFeatureOptions _featureOptions = featureOptions;
     private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
-    private readonly IRemoteWorkspaceProvider _remoteWorkspaceProvider = remoteWorkspaceProvider;
+    private readonly IWorkspaceProvider _workspaceProvider = workspaceProvider;
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
 
     public int Order => WellKnownStartupOrder.RemoteServices;
@@ -44,7 +43,7 @@ internal class VSCodeRemoteServicesInitializer(
 
         var logger = _loggerFactory.GetOrCreateLogger<VSCodeRemoteServicesInitializer>();
         logger.LogDebug("Initializing remote services.");
-        var service = await InProcServiceFactory.CreateServiceAsync<IRemoteClientInitializationService>(serviceInterceptor, _remoteWorkspaceProvider, _loggerFactory).ConfigureAwait(false);
+        var service = await InProcServiceFactory.CreateServiceAsync<IRemoteClientInitializationService>(serviceInterceptor, _workspaceProvider, _loggerFactory).ConfigureAwait(false);
         logger.LogDebug("Initialized remote services.");
 
         await service.InitializeAsync(new RemoteClientInitializationOptions

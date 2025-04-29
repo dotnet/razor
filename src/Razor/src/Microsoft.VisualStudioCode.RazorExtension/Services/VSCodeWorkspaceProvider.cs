@@ -4,14 +4,14 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Remote.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 
 [Shared]
-[Export(typeof(IRemoteWorkspaceProvider))]
-[Export(typeof(VSCodeRemoteWorkspaceProvider))]
-internal class VSCodeRemoteWorkspaceProvider : IRemoteWorkspaceProvider
+[Export(typeof(IWorkspaceProvider))]
+[Export(typeof(VSCodeWorkspaceProvider))]
+internal class VSCodeWorkspaceProvider : IWorkspaceProvider
 {
     private Workspace? _workspace;
 

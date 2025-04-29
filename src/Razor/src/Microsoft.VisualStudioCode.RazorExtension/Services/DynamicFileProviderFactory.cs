@@ -12,10 +12,10 @@ namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 [method: ImportingConstructor]
 internal sealed class DynamicFileProviderFactory(
     LanguageServerFeatureOptions featureOptions,
-    VSCodeRemoteWorkspaceProvider workspaceProvider) : AbstractRazorLspServiceFactory
+    VSCodeWorkspaceProvider workspaceProvider) : AbstractRazorLspServiceFactory
 {
     private readonly LanguageServerFeatureOptions _featureOptions = featureOptions;
-    private readonly VSCodeRemoteWorkspaceProvider _workspaceProvider = workspaceProvider;
+    private readonly VSCodeWorkspaceProvider _workspaceProvider = workspaceProvider;
 
     protected override AbstractRazorLspService CreateService(IRazorLspServices lspServices)
     {

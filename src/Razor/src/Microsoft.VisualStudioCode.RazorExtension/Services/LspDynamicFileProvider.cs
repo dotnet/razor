@@ -14,14 +14,14 @@ namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 internal sealed partial class LspDynamicFileProvider(
     IRazorClientLanguageServerManager clientLanguageServerManager,
     LanguageServerFeatureOptions languageServerFeatureOptions,
-    VSCodeRemoteWorkspaceProvider workspaceProvider) : RazorLspDynamicFileInfoProvider
+    VSCodeWorkspaceProvider workspaceProvider) : RazorLspDynamicFileInfoProvider
 {
     private const string ProvideRazorDynamicFileInfoMethodName = "razor/provideDynamicFileInfo";
     private const string RemoveRazorDynamicFileInfoMethodName = "razor/removeDynamicFileInfo";
 
     private readonly IRazorClientLanguageServerManager _clientLanguageServerManager = clientLanguageServerManager;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
-    private readonly VSCodeRemoteWorkspaceProvider _workspaceProvider = workspaceProvider;
+    private readonly VSCodeWorkspaceProvider _workspaceProvider = workspaceProvider;
 
     public override async Task<RazorDynamicFileInfo?> GetDynamicFileInfoAsync(Workspace workspace, ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {

@@ -4,10 +4,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal class RemoteWorkspaceProvider : IRemoteWorkspaceProvider
+internal class RemoteWorkspaceProvider : IWorkspaceProvider
 {
     public static RemoteWorkspaceProvider Instance = new();
 

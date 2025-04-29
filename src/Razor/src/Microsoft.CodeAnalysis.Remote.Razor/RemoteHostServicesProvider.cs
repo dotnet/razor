@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 [Export(typeof(RemoteHostServicesProvider))]
 internal sealed class RemoteHostServicesProvider : IHostServicesProvider
 {
-    private IRemoteWorkspaceProvider? _workspaceProvider;
+    private IWorkspaceProvider? _workspaceProvider;
 
-    public void SetWorkspaceProvider(IRemoteWorkspaceProvider workspaceProvider)
+    public void SetWorkspaceProvider(IWorkspaceProvider workspaceProvider)
     {
         _workspaceProvider = workspaceProvider;
     }
