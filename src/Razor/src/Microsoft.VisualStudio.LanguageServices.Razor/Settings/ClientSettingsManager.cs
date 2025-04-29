@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.Razor.Settings;
 [Export(typeof(IClientSettingsManager))]
 internal class ClientSettingsManager : IClientSettingsManager
 {
-    public event EventHandler<ClientSettingsChangedEventArgs>? ClientSettingsChanged;
+    public event EventHandler<EventArgs>? ClientSettingsChanged;
 
     private readonly object _settingsUpdateLock = new();
     private readonly IAdvancedSettingsStorage? _advancedSettingsStorage;
@@ -106,8 +106,7 @@ internal class ClientSettingsManager : IClientSettingsManager
         {
             _settings = settings;
 
-            var args = new ClientSettingsChangedEventArgs(_settings);
-            ClientSettingsChanged?.Invoke(this, args);
+            ClientSettingsChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 }

@@ -13,5 +13,5 @@ internal interface IClientSettingsManager : IClientSettingsReader
     void Update(ClientCompletionSettings updateSettings);
     void Update(ClientAdvancedSettings updateSettings);
 
-    event EventHandler<ClientSettingsChangedEventArgs> ClientSettingsChanged;
+    event EventHandler<EventArgs> ClientSettingsChanged;
 }
