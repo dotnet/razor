@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Composition;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
@@ -22,6 +22,6 @@ internal sealed class VSCodeWorkspaceProvider : IWorkspaceProvider
 
     public Workspace GetWorkspace()
     {
-        return _workspace ?? throw new InvalidOperationException("Accessing the workspace before it has been provided");
+        return _workspace ?? Assumed.Unreachable<Workspace>("Accessing the workspace before it has been provided");
     }
 }
