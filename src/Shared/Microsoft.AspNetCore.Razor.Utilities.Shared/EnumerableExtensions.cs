@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -38,12 +39,18 @@ internal static class EnumerableExtensions
 
         static ImmutableArray<TResult> BuildResult(IEnumerable<T> items, Func<T, TResult> selector)
         {
-            using var results = new PooledArrayBuilder<TResult>();
+            int? capacity = items.TryGetCount(out var count)
+                ? count
+                : null;
+
+            using var results = new PooledArrayBuilder<TResult>(capacity);
 
             foreach (var item in items)
             {
                 results.Add(selector(item));
             }
+
+            Debug.Assert(capacity is null || results.Count == capacity);
 
             return results.DrainToImmutable();
         }
@@ -79,7 +86,11 @@ internal static class EnumerableExtensions
 
         static ImmutableArray<TResult> BuildResult(IEnumerable<T> items, Func<T, int, TResult> selector)
         {
-            using var results = new PooledArrayBuilder<TResult>();
+            int? capacity = items.TryGetCount(out var count)
+                ? count
+                : null;
+
+            using var results = new PooledArrayBuilder<TResult>(capacity);
 
             var index = 0;
 
@@ -87,6 +98,8 @@ internal static class EnumerableExtensions
             {
                 results.Add(selector(item, index++));
             }
+
+            Debug.Assert(capacity is null || results.Count == capacity);
 
             return results.DrainToImmutable();
         }
