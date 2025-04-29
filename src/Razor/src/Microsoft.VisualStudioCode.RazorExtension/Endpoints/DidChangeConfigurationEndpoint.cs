@@ -10,8 +10,8 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
-using Microsoft.VisualStudioCode.RazorExtension.Configuration;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Endpoints;
 
@@ -20,10 +20,10 @@ namespace Microsoft.VisualStudioCode.RazorExtension.Endpoints;
 [ExportRazorStatelessLspService(typeof(DidChangeConfigurationEndpoint))]
 [method: ImportingConstructor]
 internal class DidChangeConfigurationEndpoint(
-    ClientSettingsReader clientSettingsReader,
+    IClientSettingsManager clientSettingsManager,
     ILoggerFactory loggerFactory) : AbstractRazorCohostRequestHandler<DidChangeConfigurationParams, object?>, IDynamicRegistrationProvider, ICohostStartupService
 {
-    private readonly ClientSettingsReader _clientSettingsReader = clientSettingsReader;
+    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DidChangeConfigurationEndpoint>();
 
     protected override bool MutatesSolutionState => false;
@@ -73,14 +73,14 @@ internal class DidChangeConfigurationEndpoint(
             configurationParams,
             cancellationToken).ConfigureAwait(false);
 
-        var current = _clientSettingsReader.GetClientSettings().AdvancedSettings;
+        var current = _clientSettingsManager.GetClientSettings().AdvancedSettings;
         var settings = current with
         {
             CodeBlockBraceOnNextLine = GetBooleanOptionValue(options[0], current.CodeBlockBraceOnNextLine),
             CommitElementsWithSpace = GetBooleanOptionValue(options[1], current.CommitElementsWithSpace),
         };
 
-        _clientSettingsReader.Update(settings);
+        _clientSettingsManager.Update(settings);
     }
 
     private static bool GetBooleanOptionValue(JsonNode? jsonNode, bool defaultValue)

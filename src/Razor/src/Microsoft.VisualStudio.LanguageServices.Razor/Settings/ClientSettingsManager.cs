@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Razor.Settings;
 
-[Export(typeof(IClientSettingsReader))]
 [Export(typeof(IClientSettingsManager))]
 internal class ClientSettingsManager : IClientSettingsManager
 {
