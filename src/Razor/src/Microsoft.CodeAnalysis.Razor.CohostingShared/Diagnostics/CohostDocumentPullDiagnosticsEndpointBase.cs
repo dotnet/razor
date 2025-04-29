@@ -58,13 +58,10 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequestType, 
         {
             await Task.WhenAll(htmlTask, csharpTask).ConfigureAwait(false);
         }
-        catch (Exception e)
+        catch (Exception e) when (e is not OperationCanceledException)
         {
-            if (e is not OperationCanceledException)
-            {
-                _logger.LogError(e, $"Exception thrown in PullDiagnostic delegation");
-                throw;
-            }
+            _logger.LogError(e, $"Exception thrown in PullDiagnostic delegation");
+            throw;
         }
 
         var csharpDiagnostics = csharpTask.VerifyCompleted();
