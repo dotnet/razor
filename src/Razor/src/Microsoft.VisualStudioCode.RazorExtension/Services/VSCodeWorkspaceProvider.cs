@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 [Shared]
 [Export(typeof(IWorkspaceProvider))]
 [Export(typeof(VSCodeWorkspaceProvider))]
-internal class VSCodeWorkspaceProvider : IWorkspaceProvider
+internal sealed class VSCodeWorkspaceProvider : IWorkspaceProvider
 {
     private Workspace? _workspace;
 

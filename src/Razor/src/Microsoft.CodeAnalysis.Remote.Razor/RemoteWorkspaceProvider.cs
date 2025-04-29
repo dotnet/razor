@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal class RemoteWorkspaceProvider : IWorkspaceProvider
+internal sealed class RemoteWorkspaceProvider : IWorkspaceProvider
 {
     public static RemoteWorkspaceProvider Instance = new();
 
