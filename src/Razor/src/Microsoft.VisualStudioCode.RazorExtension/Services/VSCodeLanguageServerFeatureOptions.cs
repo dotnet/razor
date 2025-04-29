@@ -49,8 +49,7 @@ internal class VSCodeLanguageServerFeatureOptions(RazorClientServerManagerProvid
     public override bool ForceRuntimeCodeGeneration => _forceRuntimeCodeGeneration;
     public override bool UseNewFormattingEngine => _useNewFormattingEngine;
 
-    // Register early in case something needs to know what options are enabled
-    public int Order => -1000;
+    public int Order => WellKnownStartupOrder.LanguageServerFeatureOptions;
 
     public async Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
     {

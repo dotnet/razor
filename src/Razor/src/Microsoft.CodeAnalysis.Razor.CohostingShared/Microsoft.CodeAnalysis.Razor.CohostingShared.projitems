@@ -40,6 +40,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RazorCohostClientCapabilitiesService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorCohostDynamicRegistrationService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorLSPConstants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WellKnownStartupOrder.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)SemanticTokens\" />

@@ -37,8 +37,7 @@ internal class RazorCohostDynamicRegistrationService(
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorCohostDynamicRegistrationService>();
 
-    // Dynamic registration is ordered last, because endpoints do all sorts of weird things in their register methods
-    public int Order => int.MaxValue;
+    public int Order => WellKnownStartupOrder.DynamicRegistration;
 
     public async Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
     {

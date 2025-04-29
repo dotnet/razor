@@ -28,9 +28,7 @@ internal class VSCodeRemoteServicesInitializer(
     private readonly IRemoteWorkspaceProvider _remoteWorkspaceProvider = remoteWorkspaceProvider;
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
 
-    // We'll initialize a little early, in case someone tries to make a "remote" call at startup, but we can't be too early
-    // because the semantic tokens legend service depends on a few things.
-    public int Order => -500;
+    public int Order => WellKnownStartupOrder.RemoteServices;
 
     public async Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
     {
