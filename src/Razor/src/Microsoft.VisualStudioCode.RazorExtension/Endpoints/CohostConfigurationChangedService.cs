@@ -1,14 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Composition;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -16,41 +14,24 @@ using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 namespace Microsoft.VisualStudioCode.RazorExtension.Endpoints;
 
 [Shared]
-[CohostEndpoint(Methods.WorkspaceDidChangeConfigurationName)]
-[ExportRazorStatelessLspService(typeof(DidChangeConfigurationEndpoint))]
+[Export(typeof(ICohostConfigurationChangedService))]
+[Export(typeof(IRazorCohostStartupService))]
 [method: ImportingConstructor]
-internal class DidChangeConfigurationEndpoint(
+internal class CohostConfigurationChangedService(
     IClientSettingsManager clientSettingsManager,
-    ILoggerFactory loggerFactory) : AbstractRazorCohostRequestHandler<DidChangeConfigurationParams, object?>, IDynamicRegistrationProvider, ICohostStartupService
+    ILoggerFactory loggerFactory) : ICohostConfigurationChangedService, IRazorCohostStartupService
 {
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DidChangeConfigurationEndpoint>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostConfigurationChangedService>();
 
-    protected override bool MutatesSolutionState => false;
-    protected override bool RequiresLSPSolution => false;
-
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
-    {
-        if (clientCapabilities.Workspace?.DidChangeConfiguration?.DynamicRegistration is true)
-        {
-            return [new Registration
-                {
-                    Method = Methods.WorkspaceDidChangeConfigurationName
-                }];
-        }
-
-        return [];
-    }
-
-    public Task StartupAsync(string serializedClientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
+    public Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
     {
         return RefreshOptionsAsync(requestContext, cancellationToken);
     }
 
-    protected override Task<object?> HandleRequestAsync(DidChangeConfigurationParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+    public Task OnConfigurationChangedAsync(RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
     {
-        _ = RefreshOptionsAsync(context, cancellationToken);
-        return Task.FromResult<object?>(null);
+        return RefreshOptionsAsync(requestContext, cancellationToken);
     }
 
     private async Task RefreshOptionsAsync(RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
@@ -63,8 +44,8 @@ internal class DidChangeConfigurationEndpoint(
         {
             Items = [
                 //TODO: new ConfigurationItem { Section = "razor.format.enable" },
-                new ConfigurationItem { Section = "razor.format.codeBlockBraceOnNextLine" },
-                new ConfigurationItem { Section = "razor.completion.commitElementsWithSpace" },
+                new ConfigurationItem { Section = "razor.format.code_block_brace_on_next_line" },
+                new ConfigurationItem { Section = "razor.completion.commit_elements_with_space" },
             ]
         };
 
