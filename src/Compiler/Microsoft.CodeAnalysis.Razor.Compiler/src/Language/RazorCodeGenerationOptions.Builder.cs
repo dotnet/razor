@@ -18,6 +18,11 @@ public sealed partial class RazorCodeGenerationOptions
         public string? RootNamespace { get; set; }
 
         /// <summary>
+        /// Gets or sets the assembly name this code is being generated into
+        /// </summary>
+        public string? AssemblyName { get; set; }
+
+        /// <summary>
         /// Gets or sets a value that determines if unique ids are suppressed for testing.
         /// </summary>
         public string? SuppressUniqueIds { get; set; }
@@ -38,6 +43,12 @@ public sealed partial class RazorCodeGenerationOptions
         {
             get => _flags.IsFlagSet(Flags.IndentWithTabs);
             set => _flags.UpdateFlag(Flags.IndentWithTabs, value);
+        }
+
+        public bool EmitSourceMapAnnotations
+        {
+            get => _flags.IsFlagSet(Flags.EmitSourceMapAnnotations);
+            set => _flags.UpdateFlag(Flags.EmitSourceMapAnnotations, value);
         }
 
         /// <summary>
@@ -154,6 +165,6 @@ public sealed partial class RazorCodeGenerationOptions
         }
 
         public RazorCodeGenerationOptions ToOptions()
-            => new(IndentSize, NewLine, RootNamespace, SuppressUniqueIds, _flags);
+            => new(IndentSize, NewLine, RootNamespace, AssemblyName, SuppressUniqueIds, _flags);
     }
 }

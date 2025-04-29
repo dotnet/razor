@@ -114,6 +114,8 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     builder.SupportLocalizedComponentNames = razorSourceGeneratorOptions.SupportLocalizedComponentNames;
                     builder.SuppressUniqueIds = razorSourceGeneratorOptions.TestSuppressUniqueIds;
                     builder.SuppressAddComponentParameter = razorSourceGeneratorOptions.Configuration.SuppressAddComponentParameter;
+                    builder.EmitSourceMapAnnotations = razorSourceGeneratorOptions.ProduceAnnotations;
+                    builder.AssemblyName = razorSourceGeneratorOptions.AssemblyName;
                 });
 
                 b.ConfigureParserOptions(builder =>

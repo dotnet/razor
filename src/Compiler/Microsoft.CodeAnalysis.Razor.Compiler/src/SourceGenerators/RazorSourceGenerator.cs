@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor;
@@ -48,7 +49,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Combine(metadataRefs.Collect())
                 .SuppressIfNeeded(isGeneratorSuppressed)
                 .Select(ComputeRazorSourceGeneratorOptions)
-                .ReportDiagnostics(context);
+                .ReportDiagnostics(context)
+                .Combine(compilation)
+                .Select((pair, _) => pair.Left with { AssemblyName = pair.Right.AssemblyName });
 
             var sourceItems = additionalTexts
                 .Where(static (file) => file.Path.EndsWith(".razor", StringComparison.OrdinalIgnoreCase) || file.Path.EndsWith(".cshtml", StringComparison.OrdinalIgnoreCase))

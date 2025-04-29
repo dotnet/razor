@@ -15,6 +15,7 @@ public sealed partial class RazorCodeGenerationOptions
         indentSize: DefaultIndentSize,
         newLine: DefaultNewLine,
         rootNamespace: null,
+        assemblyName: null,
         suppressUniqueIds: null,
         flags: Flags.DefaultFlags);
 
@@ -22,6 +23,7 @@ public sealed partial class RazorCodeGenerationOptions
         indentSize: DefaultIndentSize,
         newLine: DefaultNewLine,
         rootNamespace: null,
+        assemblyName: null,
         suppressUniqueIds: null,
         flags: Flags.DefaultDesignTimeFlags);
 
@@ -34,6 +36,11 @@ public sealed partial class RazorCodeGenerationOptions
     public string? RootNamespace { get; }
 
     /// <summary>
+    /// Gets the assembly name this code is being generated into
+    /// </summary>
+    public string? AssemblyName { get; }
+
+    /// <summary>
     /// Gets a value used for unique ids for testing purposes. Null for unique ids.
     /// </summary>
     public string? SuppressUniqueIds { get; }
@@ -44,12 +51,14 @@ public sealed partial class RazorCodeGenerationOptions
         int indentSize,
         string newLine,
         string? rootNamespace,
+        string? assemblyName,
         string? suppressUniqueIds,
         Flags flags)
     {
         IndentSize = indentSize;
         NewLine = newLine;
         RootNamespace = rootNamespace;
+        AssemblyName = assemblyName;
         SuppressUniqueIds = suppressUniqueIds;
         _flags = flags;
     }
@@ -151,25 +160,28 @@ public sealed partial class RazorCodeGenerationOptions
     public bool RemapLinePragmaPathsOnWindows
         => _flags.HasFlag(Flags.RemapLinePragmaPathsOnWindows);
 
+    public bool EmitSourceMapAnnotations
+        => _flags.HasFlag(Flags.EmitSourceMapAnnotations);
+
     public RazorCodeGenerationOptions WithIndentSize(int value)
         => IndentSize == value
             ? this
-            : new(value, NewLine, RootNamespace, SuppressUniqueIds, _flags);
+            : new(value, NewLine, RootNamespace, AssemblyName, SuppressUniqueIds, _flags);
 
     public RazorCodeGenerationOptions WithNewLine(string value)
         => NewLine == value
             ? this
-            : new(IndentSize, value, RootNamespace, SuppressUniqueIds, _flags);
+            : new(IndentSize, value, RootNamespace, AssemblyName, SuppressUniqueIds, _flags);
 
     public RazorCodeGenerationOptions WithRootNamespace(string? value)
         => RootNamespace == value
             ? this
-            : new(IndentSize, NewLine, value, SuppressUniqueIds, _flags);
+            : new(IndentSize, NewLine, value, AssemblyName, SuppressUniqueIds, _flags);
 
     public RazorCodeGenerationOptions WithSuppressUniqueIds(string? value)
         => RootNamespace == value
             ? this
-            : new(IndentSize, NewLine, RootNamespace, value, _flags);
+            : new(IndentSize, NewLine, RootNamespace, AssemblyName, value, _flags);
 
     public RazorCodeGenerationOptions WithFlags(
         Optional<bool> designTime = default,
@@ -183,7 +195,8 @@ public sealed partial class RazorCodeGenerationOptions
         Optional<bool> supportLocalizedComponentNames = default,
         Optional<bool> useEnhancedLinePragma = default,
         Optional<bool> suppressAddComponentParameter = default,
-        Optional<bool> remapLinePragmaPathsOnWindows = default)
+        Optional<bool> remapLinePragmaPathsOnWindows = default,
+        Optional<bool> emitSourceMapAnnotations = default)
     {
         var flags = _flags;
 
@@ -247,8 +260,13 @@ public sealed partial class RazorCodeGenerationOptions
             flags.UpdateFlag(Flags.RemapLinePragmaPathsOnWindows, remapLinePragmaPathsOnWindows.Value);
         }
 
+        if (emitSourceMapAnnotations.HasValue)
+        {
+            flags.UpdateFlag(Flags.EmitSourceMapAnnotations, emitSourceMapAnnotations.Value);
+        }
+
         return flags == _flags
             ? this
-            : new(IndentSize, NewLine, RootNamespace, SuppressUniqueIds, flags);
+            : new(IndentSize, NewLine, RootNamespace, AssemblyName, SuppressUniqueIds, flags);
     }
 }

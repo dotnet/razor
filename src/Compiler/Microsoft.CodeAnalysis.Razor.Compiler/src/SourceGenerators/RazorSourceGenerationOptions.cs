@@ -32,6 +32,10 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
         internal bool UseRoslynTokenizer { get; set; } = true;
 
+        internal string? AssemblyName { get; set; }
+
+        internal bool ProduceAnnotations { get; set; }
+
         public override int GetHashCode() => Configuration.GetHashCode();
     }
 }
