@@ -1397,11 +1397,6 @@ internal static class ReadOnlyListExtensions
     /// </returns>
     public static ImmutableArray<TResult> SelectAndOrderAsArray<T, TResult>(this IReadOnlyList<T> list, Func<T, TResult> selector)
     {
-        if (list is ImmutableArray<T> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderAsArray(array, selector);
-        }
-
         var result = list.SelectAsArray(selector);
         result.Unsafe().Order();
 
@@ -1423,11 +1418,6 @@ internal static class ReadOnlyListExtensions
     public static ImmutableArray<TResult> SelectAndOrderAsArray<T, TResult>(
         this IReadOnlyList<T> list, Func<T, TResult> selector, IComparer<TResult> comparer)
     {
-        if (list is ImmutableArray<T> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderAsArray(array, selector, comparer);
-        }
-
         var result = list.SelectAsArray(selector);
         result.Unsafe().Order(comparer);
 
@@ -1449,11 +1439,6 @@ internal static class ReadOnlyListExtensions
     public static ImmutableArray<TResult> SelectAndOrderAsArray<T, TResult>(
         this IReadOnlyList<T> list, Func<T, TResult> selector, Comparison<TResult> comparison)
     {
-        if (list is ImmutableArray<T> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderAsArray(array, selector, comparison);
-        }
-
         var result = list.SelectAsArray(selector);
         result.Unsafe().Order(comparison);
 
@@ -1473,11 +1458,6 @@ internal static class ReadOnlyListExtensions
     /// </returns>
     public static ImmutableArray<TResult> SelectAndOrderDescendingAsArray<T, TResult>(this IReadOnlyList<T> list, Func<T, TResult> selector)
     {
-        if (list is ImmutableArray<T> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderDescendingAsArray(array, selector);
-        }
-
         var result = list.SelectAsArray(selector);
         result.Unsafe().OrderDescending();
 
@@ -1499,11 +1479,6 @@ internal static class ReadOnlyListExtensions
     public static ImmutableArray<TResult> SelectAndOrderDescendingAsArray<T, TResult>(
         this IReadOnlyList<T> list, Func<T, TResult> selector, IComparer<TResult> comparer)
     {
-        if (list is ImmutableArray<T> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderDescendingAsArray(array, selector, comparer);
-        }
-
         var result = list.SelectAsArray(selector);
         result.Unsafe().OrderDescending(comparer);
 
@@ -1525,11 +1500,6 @@ internal static class ReadOnlyListExtensions
     public static ImmutableArray<TResult> SelectAndOrderDescendingAsArray<T, TResult>(
         this IReadOnlyList<T> list, Func<T, TResult> selector, Comparison<TResult> comparison)
     {
-        if (list is ImmutableArray<T> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderDescendingAsArray(array, selector, comparison);
-        }
-
         var result = list.SelectAsArray(selector);
         result.Unsafe().OrderDescending(comparison);
 
@@ -1552,11 +1522,6 @@ internal static class ReadOnlyListExtensions
     public static ImmutableArray<TResult> SelectAndOrderByAsArray<TElement, TKey, TResult>(
         this IReadOnlyList<TElement> list, Func<TElement, TResult> selector, Func<TResult, TKey> keySelector)
     {
-        if (list is ImmutableArray<TElement> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderByAsArray(array, selector, keySelector);
-        }
-
         var result = list.SelectAsArray(selector);
         result.Unsafe().OrderBy(keySelector);
 
@@ -1580,11 +1545,6 @@ internal static class ReadOnlyListExtensions
     public static ImmutableArray<TResult> SelectAndOrderByAsArray<TElement, TKey, TResult>(
         this IReadOnlyList<TElement> list, Func<TElement, TResult> selector, Func<TResult, TKey> keySelector, IComparer<TKey> comparer)
     {
-        if (list is ImmutableArray<TElement> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderByAsArray(array, selector, keySelector, comparer);
-        }
-
         var result = list.SelectAsArray(selector);
         result.Unsafe().OrderBy(keySelector, comparer);
 
@@ -1608,11 +1568,6 @@ internal static class ReadOnlyListExtensions
     public static ImmutableArray<TResult> SelectAndOrderByAsArray<TElement, TKey, TResult>(
         this IReadOnlyList<TElement> list, Func<TElement, TResult> selector, Func<TResult, TKey> keySelector, Comparison<TKey> comparison)
     {
-        if (list is ImmutableArray<TElement> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderByAsArray(array, selector, keySelector, comparison);
-        }
-
         var result = list.SelectAsArray(selector);
         result.Unsafe().OrderBy(keySelector, comparison);
 
@@ -1635,11 +1590,6 @@ internal static class ReadOnlyListExtensions
     public static ImmutableArray<TResult> SelectAndOrderByDescendingAsArray<TElement, TKey, TResult>(
         this IReadOnlyList<TElement> list, Func<TElement, TResult> selector, Func<TResult, TKey> keySelector)
     {
-        if (list is ImmutableArray<TElement> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderByDescendingAsArray(array, selector, keySelector);
-        }
-
         var result = list.SelectAsArray(selector);
         result.Unsafe().OrderByDescending(keySelector);
 
@@ -1663,11 +1613,6 @@ internal static class ReadOnlyListExtensions
     public static ImmutableArray<TResult> SelectAndOrderByDescendingAsArray<TElement, TKey, TResult>(
         this IReadOnlyList<TElement> list, Func<TElement, TResult> selector, Func<TResult, TKey> keySelector, IComparer<TKey> comparer)
     {
-        if (list is ImmutableArray<TElement> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderByDescendingAsArray(array, selector, keySelector, comparer);
-        }
-
         var result = list.SelectAsArray(selector);
         result.Unsafe().OrderByDescending(keySelector, comparer);
 
@@ -1691,11 +1636,6 @@ internal static class ReadOnlyListExtensions
     public static ImmutableArray<TResult> SelectAndOrderByDescendingAsArray<TElement, TKey, TResult>(
         this IReadOnlyList<TElement> list, Func<TElement, TResult> selector, Func<TResult, TKey> keySelector, Comparison<TKey> comparison)
     {
-        if (list is ImmutableArray<TElement> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderByDescendingAsArray(array, selector, keySelector, comparison);
-        }
-
         var result = list.SelectAsArray(selector);
         result.Unsafe().OrderByDescending(keySelector, comparison);
 

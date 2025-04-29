@@ -577,16 +577,6 @@ internal static class EnumerableExtensions
     /// </returns>
     public static ImmutableArray<TResult> SelectAndOrderAsArray<T, TResult>(this IEnumerable<T> sequence, Func<T, TResult> selector)
     {
-        if (sequence is ImmutableArray<T> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderAsArray(array, selector);
-        }
-
-        if (sequence is IReadOnlyList<T> list)
-        {
-            return ReadOnlyListExtensions.SelectAndOrderAsArray(list, selector);
-        }
-
         var result = sequence.SelectAsArray(selector);
         result.Unsafe().Order();
 
@@ -608,16 +598,6 @@ internal static class EnumerableExtensions
     public static ImmutableArray<TResult> SelectAndOrderAsArray<T, TResult>(
         this IEnumerable<T> sequence, Func<T, TResult> selector, IComparer<TResult> comparer)
     {
-        if (sequence is ImmutableArray<T> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderAsArray(array, selector, comparer);
-        }
-
-        if (sequence is IReadOnlyList<T> list)
-        {
-            return ReadOnlyListExtensions.SelectAndOrderAsArray(list, selector, comparer);
-        }
-
         var result = sequence.SelectAsArray(selector);
         result.Unsafe().Order(comparer);
 
@@ -639,16 +619,6 @@ internal static class EnumerableExtensions
     public static ImmutableArray<TResult> SelectAndOrderAsArray<T, TResult>(
         this IEnumerable<T> sequence, Func<T, TResult> selector, Comparison<TResult> comparison)
     {
-        if (sequence is ImmutableArray<T> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderAsArray(array, selector, comparison);
-        }
-
-        if (sequence is IReadOnlyList<T> list)
-        {
-            return ReadOnlyListExtensions.SelectAndOrderAsArray(list, selector, comparison);
-        }
-
         var result = sequence.SelectAsArray(selector);
         result.Unsafe().Order(comparison);
 
@@ -668,16 +638,6 @@ internal static class EnumerableExtensions
     /// </returns>
     public static ImmutableArray<TResult> SelectAndOrderDescendingAsArray<T, TResult>(this IEnumerable<T> sequence, Func<T, TResult> selector)
     {
-        if (sequence is ImmutableArray<T> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderDescendingAsArray(array, selector);
-        }
-
-        if (sequence is IReadOnlyList<T> list)
-        {
-            return ReadOnlyListExtensions.SelectAndOrderDescendingAsArray(list, selector);
-        }
-
         var result = sequence.SelectAsArray(selector);
         result.Unsafe().OrderDescending();
 
@@ -699,16 +659,6 @@ internal static class EnumerableExtensions
     public static ImmutableArray<TResult> SelectAndOrderDescendingAsArray<T, TResult>(
         this IEnumerable<T> sequence, Func<T, TResult> selector, IComparer<TResult> comparer)
     {
-        if (sequence is ImmutableArray<T> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderDescendingAsArray(array, selector, comparer);
-        }
-
-        if (sequence is IReadOnlyList<T> list)
-        {
-            return ReadOnlyListExtensions.SelectAndOrderDescendingAsArray(list, selector, comparer);
-        }
-
         var result = sequence.SelectAsArray(selector);
         result.Unsafe().OrderDescending(comparer);
 
@@ -730,16 +680,6 @@ internal static class EnumerableExtensions
     public static ImmutableArray<TResult> SelectAndOrderDescendingAsArray<T, TResult>(
         this IEnumerable<T> sequence, Func<T, TResult> selector, Comparison<TResult> comparison)
     {
-        if (sequence is ImmutableArray<T> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderDescendingAsArray(array, selector, comparison);
-        }
-
-        if (sequence is IReadOnlyList<T> list)
-        {
-            return ReadOnlyListExtensions.SelectAndOrderDescendingAsArray(list, selector, comparison);
-        }
-
         var result = sequence.SelectAsArray(selector);
         result.Unsafe().OrderDescending(comparison);
 
@@ -762,16 +702,6 @@ internal static class EnumerableExtensions
     public static ImmutableArray<TResult> SelectAndOrderByAsArray<TElement, TKey, TResult>(
         this IEnumerable<TElement> sequence, Func<TElement, TResult> selector, Func<TResult, TKey> keySelector)
     {
-        if (sequence is ImmutableArray<TElement> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderByAsArray(array, selector, keySelector);
-        }
-
-        if (sequence is IReadOnlyList<TElement> list)
-        {
-            return ReadOnlyListExtensions.SelectAndOrderByAsArray(list, selector, keySelector);
-        }
-
         var result = sequence.SelectAsArray(selector);
         result.Unsafe().OrderBy(keySelector);
 
@@ -795,16 +725,6 @@ internal static class EnumerableExtensions
     public static ImmutableArray<TResult> SelectAndOrderByAsArray<TElement, TKey, TResult>(
         this IEnumerable<TElement> sequence, Func<TElement, TResult> selector, Func<TResult, TKey> keySelector, IComparer<TKey> comparer)
     {
-        if (sequence is ImmutableArray<TElement> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderByAsArray(array, selector, keySelector, comparer);
-        }
-
-        if (sequence is IReadOnlyList<TElement> list)
-        {
-            return ReadOnlyListExtensions.SelectAndOrderByAsArray(list, selector, keySelector, comparer);
-        }
-
         var result = sequence.SelectAsArray(selector);
         result.Unsafe().OrderBy(keySelector, comparer);
 
@@ -828,16 +748,6 @@ internal static class EnumerableExtensions
     public static ImmutableArray<TResult> SelectAndOrderByAsArray<TElement, TKey, TResult>(
         this IEnumerable<TElement> sequence, Func<TElement, TResult> selector, Func<TResult, TKey> keySelector, Comparison<TKey> comparison)
     {
-        if (sequence is ImmutableArray<TElement> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderByAsArray(array, selector, keySelector, comparison);
-        }
-
-        if (sequence is IReadOnlyList<TElement> list)
-        {
-            return ReadOnlyListExtensions.SelectAndOrderByAsArray(list, selector, keySelector, comparison);
-        }
-
         var result = sequence.SelectAsArray(selector);
         result.Unsafe().OrderBy(keySelector, comparison);
 
@@ -860,16 +770,6 @@ internal static class EnumerableExtensions
     public static ImmutableArray<TResult> SelectAndOrderByDescendingAsArray<TElement, TKey, TResult>(
         this IEnumerable<TElement> sequence, Func<TElement, TResult> selector, Func<TResult, TKey> keySelector)
     {
-        if (sequence is ImmutableArray<TElement> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderByDescendingAsArray(array, selector, keySelector);
-        }
-
-        if (sequence is IReadOnlyList<TElement> list)
-        {
-            return ReadOnlyListExtensions.SelectAndOrderByDescendingAsArray(list, selector, keySelector);
-        }
-
         var result = sequence.SelectAsArray(selector);
         result.Unsafe().OrderByDescending(keySelector);
 
@@ -893,16 +793,6 @@ internal static class EnumerableExtensions
     public static ImmutableArray<TResult> SelectAndOrderByDescendingAsArray<TElement, TKey, TResult>(
         this IEnumerable<TElement> sequence, Func<TElement, TResult> selector, Func<TResult, TKey> keySelector, IComparer<TKey> comparer)
     {
-        if (sequence is ImmutableArray<TElement> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderByDescendingAsArray(array, selector, keySelector, comparer);
-        }
-
-        if (sequence is IReadOnlyList<TElement> list)
-        {
-            return ReadOnlyListExtensions.SelectAndOrderByDescendingAsArray(list, selector, keySelector, comparer);
-        }
-
         var result = sequence.SelectAsArray(selector);
         result.Unsafe().OrderByDescending(keySelector, comparer);
 
@@ -926,16 +816,6 @@ internal static class EnumerableExtensions
     public static ImmutableArray<TResult> SelectAndOrderByDescendingAsArray<TElement, TKey, TResult>(
         this IEnumerable<TElement> sequence, Func<TElement, TResult> selector, Func<TResult, TKey> keySelector, Comparison<TKey> comparison)
     {
-        if (sequence is ImmutableArray<TElement> array)
-        {
-            return ImmutableArrayExtensions.SelectAndOrderByDescendingAsArray(array, selector, keySelector, comparison);
-        }
-
-        if (sequence is IReadOnlyList<TElement> list)
-        {
-            return ReadOnlyListExtensions.SelectAndOrderByDescendingAsArray(list, selector, keySelector, comparison);
-        }
-
         var result = sequence.SelectAsArray(selector);
         result.Unsafe().OrderByDescending(keySelector, comparison);
 
