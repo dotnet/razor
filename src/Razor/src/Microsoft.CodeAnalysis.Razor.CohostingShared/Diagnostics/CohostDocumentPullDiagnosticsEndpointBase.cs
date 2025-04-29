@@ -19,26 +19,26 @@ using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Hand
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequestType, TResponseType>(
+internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TResponse>(
     IRemoteServiceInvoker remoteServiceInvoker,
     IHtmlRequestInvoker requestInvoker,
     ITelemetryReporter telemetryReporter,
     ILoggerFactory loggerFactory)
-    : AbstractRazorCohostDocumentRequestHandler<TRequestType, TResponseType>
-    where TRequestType : notnull
+    : AbstractRazorCohostDocumentRequestHandler<TRequest, TResponse>
+    where TRequest : notnull
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostDocumentPullDiagnosticsEndpointBase<TRequestType, TResponseType>>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostDocumentPullDiagnosticsEndpointBase<TRequest, TResponse>>();
 
     protected override bool MutatesSolutionState => false;
 
     protected override bool RequiresLSPSolution => true;
 
     protected abstract string LspMethodName { get; }
-    protected abstract LspDiagnostic[] GetHtmlDiagnostics(TResponseType result);
-    protected abstract TRequestType? CreateHtmlParams(Uri uri);
+    protected abstract LspDiagnostic[] GetHtmlDiagnostics(TResponse result);
+    protected abstract TRequest? CreateHtmlParams(Uri uri);
 
     protected async Task<LspDiagnostic[]?> HandleRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
     {
@@ -106,7 +106,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequestType, 
             return [];
         }
 
-        var result = await _requestInvoker.MakeHtmlLspRequestAsync<TRequestType, TResponseType>(
+        var result = await _requestInvoker.MakeHtmlLspRequestAsync<TRequest, TResponse>(
             razorDocument,
             LspMethodName,
             diagnosticsParams,
