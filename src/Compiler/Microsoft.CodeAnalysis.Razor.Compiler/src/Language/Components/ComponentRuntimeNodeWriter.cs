@@ -359,9 +359,13 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             //Debugger.Launch();
             return;
         }
-        WriteComment(context, (c) => c.WriteEnhancedLineNumberDirective(node.Source.Value, escapeFilePath: true));
+        WriteComment(context, (c) => {
+            c.WriteEnhancedLineNumberDirective(node.Source.Value, escapeFilePath: true)
+              .Write(" \\\"")
+              .Write(context.Options.AssemblyName)
+              .Write("\\\"");
+        });
     }
-
 
     private void WriteComment(CodeRenderingContext context, Action<CodeWriter> commentContentFunc)
     {
