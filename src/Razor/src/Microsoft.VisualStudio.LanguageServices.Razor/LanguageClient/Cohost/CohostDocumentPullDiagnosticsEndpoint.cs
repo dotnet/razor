@@ -36,6 +36,7 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
 
     protected override string LspMethodName => VSInternalMethods.DocumentPullDiagnosticName;
+    protected override bool SupportsHtmlDiagnostics => true;
 
     public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
@@ -67,7 +68,7 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
                 cancellationToken).ConfigureAwait(false);
         }
 
-        var results = await HandleRequestAsync(context.TextDocument.AssumeNotNull(), cancellationToken).ConfigureAwait(false);
+        var results = await GetDiagnosticsAsync(context.TextDocument.AssumeNotNull(), cancellationToken).ConfigureAwait(false);
 
         if (results is null)
         {
@@ -81,7 +82,7 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
         }];
     }
 
-    protected override VSInternalDocumentDiagnosticsParams? CreateHtmlParams(Uri uri)
+    protected override VSInternalDocumentDiagnosticsParams CreateHtmlParams(Uri uri)
     {
         return new VSInternalDocumentDiagnosticsParams
         {
@@ -89,7 +90,7 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
         };
     }
 
-    protected override LspDiagnostic[] GetHtmlDiagnostics(VSInternalDiagnosticReport[] result)
+    protected override LspDiagnostic[] ExtractHtmlDiagnostics(VSInternalDiagnosticReport[] result)
     {
         using var allDiagnostics = new PooledArrayBuilder<LspDiagnostic>();
         foreach (var report in result)
@@ -130,7 +131,7 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
     internal readonly struct TestAccessor(CohostDocumentPullDiagnosticsEndpoint instance)
     {
         public Task<LspDiagnostic[]?> HandleRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
-            => instance.HandleRequestAsync(razorDocument, cancellationToken);
+            => instance.GetDiagnosticsAsync(razorDocument, cancellationToken);
 
         public Task<VSInternalDiagnosticReport[]> HandleTaskListItemRequestAsync(TextDocument razorDocument, ImmutableArray<string> taskListDescriptors, CancellationToken cancellationToken)
             => instance.HandleTaskListItemRequestAsync(razorDocument, taskListDescriptors, cancellationToken);

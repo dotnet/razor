@@ -37,10 +37,19 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
     protected override bool RequiresLSPSolution => true;
 
     protected abstract string LspMethodName { get; }
-    protected abstract LspDiagnostic[] GetHtmlDiagnostics(TResponse result);
-    protected abstract TRequest? CreateHtmlParams(Uri uri);
+    protected abstract bool SupportsHtmlDiagnostics { get; }
 
-    protected async Task<LspDiagnostic[]?> HandleRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
+    protected virtual LspDiagnostic[] ExtractHtmlDiagnostics(TResponse result)
+    {
+        throw new NotImplementedException("If SupportsHtmlDiagnostics is true, you must implement GetHtmlDiagnostics");
+    }
+
+    protected virtual TRequest CreateHtmlParams(Uri uri)
+    {
+        throw new NotImplementedException("If SupportsHtmlDiagnostics is true, you must implement CreateHtmlParams");
+    }
+
+    protected async Task<LspDiagnostic[]?> GetDiagnosticsAsync(TextDocument razorDocument, CancellationToken cancellationToken)
     {
         var correlationId = Guid.NewGuid();
         using var _ = _telemetryReporter.TrackLspRequest(LspMethodName, LanguageServerConstants.RazorLanguageServerName, TelemetryThresholds.DiagnosticsRazorTelemetryThreshold, correlationId);
@@ -52,7 +61,9 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
         _logger.LogDebug($"Getting diagnostics for {razorDocument.FilePath}");
 
         var csharpTask = GetCSharpDiagnosticsAsync(razorDocument, correlationId, cancellationToken);
-        var htmlTask = GetHtmlDiagnosticsAsync(razorDocument, correlationId, cancellationToken);
+        var htmlTask = SupportsHtmlDiagnostics
+            ? GetHtmlDiagnosticsAsync(razorDocument, correlationId, cancellationToken)
+            : SpecializedTasks.EmptyArray<LspDiagnostic>();
 
         try
         {
@@ -101,11 +112,6 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
     {
         var diagnosticsParams = CreateHtmlParams(razorDocument.CreateUri());
 
-        if (diagnosticsParams is null)
-        {
-            return [];
-        }
-
         var result = await _requestInvoker.MakeHtmlLspRequestAsync<TRequest, TResponse>(
             razorDocument,
             LspMethodName,
@@ -119,6 +125,6 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
             return [];
         }
 
-        return GetHtmlDiagnostics(result);
+        return ExtractHtmlDiagnostics(result);
     }
 }

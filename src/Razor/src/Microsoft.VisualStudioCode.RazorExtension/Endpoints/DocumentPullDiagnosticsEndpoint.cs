@@ -30,6 +30,7 @@ internal sealed class DocumentPullDiagnosticsEndpoint(
     : CohostDocumentPullDiagnosticsEndpointBase<DocumentDiagnosticParams, FullDocumentDiagnosticReport?>(remoteServiceInvoker, requestInvoker, telemetryReporter, loggerFactory), IDynamicRegistrationProvider
 {
     protected override string LspMethodName => Methods.TextDocumentDiagnosticName;
+    protected override bool SupportsHtmlDiagnostics => false;
 
     public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
     {
@@ -53,7 +54,7 @@ internal sealed class DocumentPullDiagnosticsEndpoint(
 
     protected async override Task<FullDocumentDiagnosticReport?> HandleRequestAsync(DocumentDiagnosticParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
     {
-        var results = await HandleRequestAsync(context.TextDocument.AssumeNotNull(), cancellationToken).ConfigureAwait(false);
+        var results = await GetDiagnosticsAsync(context.TextDocument.AssumeNotNull(), cancellationToken).ConfigureAwait(false);
 
         if (results is null)
         {
@@ -65,17 +66,6 @@ internal sealed class DocumentPullDiagnosticsEndpoint(
             Items = results,
             ResultId = Guid.NewGuid().ToString()
         };
-    }
-
-    protected override DocumentDiagnosticParams? CreateHtmlParams(Uri uri)
-    {
-        // We don't support Html diagnostics in VS Code
-        return null;
-    }
-
-    protected override LspDiagnostic[] GetHtmlDiagnostics(FullDocumentDiagnosticReport? result)
-    {
-        return result?.Items ?? [];
     }
 }
 
