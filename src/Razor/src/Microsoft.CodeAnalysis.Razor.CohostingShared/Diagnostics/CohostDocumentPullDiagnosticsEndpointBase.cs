@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
@@ -66,8 +67,8 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequestType, 
             }
         }
 
-        var csharpDiagnostics = await csharpTask.ConfigureAwait(false);
-        var htmlDiagnostics = await htmlTask.ConfigureAwait(false);
+        var csharpDiagnostics = csharpTask.VerifyCompleted();
+        var htmlDiagnostics = htmlTask.VerifyCompleted();
 
         _logger.LogDebug($"Calling OOP with the {csharpDiagnostics.Length} C# and {htmlDiagnostics.Length} Html diagnostics");
         var diagnostics = await _remoteServiceInvoker.TryInvokeAsync<IRemoteDiagnosticsService, ImmutableArray<LspDiagnostic>>(
