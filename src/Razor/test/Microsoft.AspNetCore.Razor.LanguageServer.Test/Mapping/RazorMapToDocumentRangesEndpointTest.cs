@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -194,20 +195,22 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
     public async Task Handle_MapToDocumentRanges_CSharp_LargeFile()
     {
         // Arrange
-        var csharpSource = """
+        var chsarpAnnotatedSource = """
             class C
             {
                 public void M()
                 {
-                    var currentTime = DateTime.Now;
+                    var currentTime = [|DateTime.Now|];
                 }
             }
             """;
+
+        TestFileMarkupParser.GetSpan(chsarpAnnotatedSource, out var csharpSource, out var projectedRange);
         var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
             razorSource: "<p>@DateTime.Now</p>",
             projectedCSharpSource: csharpSource,
-            sourceMappings: [new SourceMapping(new SourceSpan(4, 12), new SourceSpan(66, 12))]);
+            sourceMappings: [new SourceMapping(new SourceSpan(4, 12), new SourceSpan(projectedRange.Start, projectedRange.Length))]);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_documentMappingService);
         var request = new RazorMapToDocumentRangesParams()
