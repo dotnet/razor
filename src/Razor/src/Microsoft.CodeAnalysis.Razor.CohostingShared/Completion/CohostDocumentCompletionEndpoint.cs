@@ -254,10 +254,10 @@ internal sealed class CohostDocumentCompletionEndpoint(
     {
         using var builder = new PooledArrayBuilder<VSInternalCompletionItem>();
         _snippetCompletionItemProvider.AssumeNotNull().AddSnippetCompletions(
+            ref builder.AsRef(),
             languageKind,
             invokeKind,
-            triggerCharacter,
-            ref builder.AsRef());
+            triggerCharacter);
 
         // If there were no snippets, just return the original list
         if (builder.Count == 0)

@@ -8,5 +8,5 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal interface ISnippetCompletionItemProvider
 {
-    void AddSnippetCompletions(RazorLanguageKind projectedKind, VSInternalCompletionInvokeKind invokeKind, string? triggerCharacter, ref PooledArrayBuilder<VSInternalCompletionItem> builder);
+    void AddSnippetCompletions(ref PooledArrayBuilder<VSInternalCompletionItem> builder, RazorLanguageKind projectedKind, VSInternalCompletionInvokeKind invokeKind, string? triggerCharacter);
 }

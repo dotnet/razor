@@ -22,10 +22,10 @@ internal sealed class SnippetCompletionItemProvider : ISnippetCompletionItemProv
     public SnippetCache SnippetCache { get; }
 
     public void AddSnippetCompletions(
+        ref PooledArrayBuilder<VSInternalCompletionItem> builder,
         RazorLanguageKind projectedKind,
         VSInternalCompletionInvokeKind invokeKind,
-        string? triggerCharacter,
-        ref PooledArrayBuilder<VSInternalCompletionItem> builder)
+        string? triggerCharacter)
     {
         // Temporary fix: snippets are broken in CSharp. We're investigating
         // but this is very disruptive. This quick fix unblocks things.
