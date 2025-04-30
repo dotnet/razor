@@ -41,12 +41,12 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
 
     protected virtual LspDiagnostic[] ExtractHtmlDiagnostics(TResponse result)
     {
-        throw new NotImplementedException("If SupportsHtmlDiagnostics is true, you must implement GetHtmlDiagnostics");
+        throw new NotSupportedException("If SupportsHtmlDiagnostics is true, you must implement GetHtmlDiagnostics");
     }
 
     protected virtual TRequest CreateHtmlParams(Uri uri)
     {
-        throw new NotImplementedException("If SupportsHtmlDiagnostics is true, you must implement CreateHtmlParams");
+        throw new NotSupportedException("If SupportsHtmlDiagnostics is true, you must implement CreateHtmlParams");
     }
 
     protected async Task<LspDiagnostic[]?> GetDiagnosticsAsync(TextDocument razorDocument, CancellationToken cancellationToken)
@@ -73,6 +73,11 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
         {
             _logger.LogError(e, $"Exception thrown in PullDiagnostic delegation");
             throw;
+        }
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return null;
         }
 
         var csharpDiagnostics = csharpTask.VerifyCompleted();

@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 [Export(typeof(ICohostStartupService))]
 [method: ImportingConstructor]
-internal class CohostStartupService(
+internal sealed class CohostStartupService(
     [ImportMany] IEnumerable<Lazy<IRazorCohostStartupService>> lazyStartupServices,
     ILoggerFactory loggerFactory) : ICohostStartupService
 {
@@ -32,11 +32,17 @@ internal class CohostStartupService(
 
         foreach (var provider in providers)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogInformation($"Razor extension startup cancelled.");
+                return;
+            }
+
             try
             {
                 await provider.StartupAsync(clientCapabilities, requestContext, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 _logger.LogError(ex, $"Error initializing Razor startup service '{provider.GetType().Name}'");
             }

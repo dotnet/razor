@@ -77,6 +77,5 @@ internal class RazorCohostDynamicRegistrationService(
                 Registrations = allRegistrations
             },
             cancellationToken).ConfigureAwait(false);
-
     }
 }
