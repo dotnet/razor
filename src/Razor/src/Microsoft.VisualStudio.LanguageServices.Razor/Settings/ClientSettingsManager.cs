@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Threading;
 namespace Microsoft.VisualStudio.Razor.Settings;
 
 [Export(typeof(IClientSettingsManager))]
-internal class ClientSettingsManager : IClientSettingsManager
+internal sealed class ClientSettingsManager : IClientSettingsManager
 {
     public event EventHandler<EventArgs>? ClientSettingsChanged;
 

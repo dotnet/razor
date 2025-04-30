@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudioCode.RazorExtension.Endpoints;
 [Export(typeof(ICohostConfigurationChangedService))]
 [Export(typeof(IRazorCohostStartupService))]
 [method: ImportingConstructor]
-internal class CohostConfigurationChangedService(
+internal sealed class CohostConfigurationChangedService(
     IClientSettingsManager clientSettingsManager,
     ILoggerFactory loggerFactory) : ICohostConfigurationChangedService, IRazorCohostStartupService
 {
