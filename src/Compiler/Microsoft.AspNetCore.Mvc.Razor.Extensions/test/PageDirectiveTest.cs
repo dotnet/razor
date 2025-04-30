@@ -122,7 +122,103 @@ public class PageDirectiveTest : RazorProjectEngineTestBase
         Assert.True(PageDirective.TryGetPageDirective(documentNode, out var pageDirective));
 
         // Assert
-        Assert.Null(pageDirective!.RouteTemplate);
+        Assert.Null(pageDirective.RouteTemplate);
         Assert.Equal("AppRoutes.Home", pageDirective.RouteTemplateNode!.Content);
+        Assert.Null(pageDirective.RouteTemplateToken);
+    }
+
+    [Fact]
+    public void TryGetPageDirective_DoesNotParseInterpolatedStringRouteTemplate()
+    {
+        // Arrange
+        var content = "@page $\"some-route-template\"";
+        var source = TestRazorSourceDocument.Create(content, filePath: "file");
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
+        var documentNode = processor.GetDocumentNode();
+
+        // Act
+        Assert.True(PageDirective.TryGetPageDirective(documentNode, out var pageDirective));
+
+        // Assert
+        Assert.Null(pageDirective.RouteTemplate);
+        Assert.Null(pageDirective.RouteTemplateNode);
+        Assert.Null(pageDirective.RouteTemplateToken);
+    }
+
+    [Fact]
+    public void TryGetPageDirective_ParsesCSharpExpression()
+    {
+        // Arrange
+        var content = "@page @(AppRoutes.Content + AppRoutes.Content.Home)";
+        var source = TestRazorSourceDocument.Create(content, filePath: "file");
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
+        var documentNode = processor.GetDocumentNode();
+
+        // Act
+        Assert.True(PageDirective.TryGetPageDirective(documentNode, out var pageDirective));
+
+        // Assert
+        Assert.Null(pageDirective.RouteTemplate);
+        Assert.Null(pageDirective.RouteTemplateNode);
+        Assert.Equal("AppRoutes.Content + AppRoutes.Content.Home", pageDirective.RouteTemplateToken!.Content);
+    }
+
+    [Fact]
+    public void TryGetPageDirective_ParsesCSharpExpressionContainingInterpolatedString()
+    {
+        // Arrange
+        var content = "@page @($\"{AppRoutes.Content}{AppRoutes.Content.Home}\")";
+        var source = TestRazorSourceDocument.Create(content, filePath: "file");
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
+        var documentNode = processor.GetDocumentNode();
+
+        // Act
+        Assert.True(PageDirective.TryGetPageDirective(documentNode, out var pageDirective));
+
+        // Assert
+        Assert.Null(pageDirective.RouteTemplate);
+        Assert.Null(pageDirective.RouteTemplateNode);
+        Assert.Equal("$\"{AppRoutes.Content}{AppRoutes.Content.Home}\"", pageDirective.RouteTemplateToken!.Content);
+    }
+
+    [Fact]
+    public void TryGetPageDirective_ParsesCSharpExpressionContainingVerbatimInterpolatedString()
+    {
+        // Arrange
+        var content = "@page @(@$\"{AppRoutes.Content}{AppRoutes.Content.Home}\")";
+        var source = TestRazorSourceDocument.Create(content, filePath: "file");
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
+        var documentNode = processor.GetDocumentNode();
+
+        // Act
+        Assert.True(PageDirective.TryGetPageDirective(documentNode, out var pageDirective));
+
+        // Assert
+        Assert.Null(pageDirective.RouteTemplate);
+        Assert.Null(pageDirective.RouteTemplateNode);
+        Assert.Equal("@$\"{AppRoutes.Content}{AppRoutes.Content.Home}\"", pageDirective.RouteTemplateToken!.Content);
+    }
+
+    [Fact]
+    public void TryGetPageDirective_ParsesCSharpExpressionContainingInterpolatedVerbatimString()
+    {
+        // Arrange
+        var content = "@page @($@\"{AppRoutes.Content}{AppRoutes.Content.Home}\")";
+        var source = TestRazorSourceDocument.Create(content, filePath: "file");
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
+        var documentNode = processor.GetDocumentNode();
+
+        // Act
+        Assert.True(PageDirective.TryGetPageDirective(documentNode, out var pageDirective));
+
+        // Assert
+        Assert.Null(pageDirective.RouteTemplate);
+        Assert.Null(pageDirective.RouteTemplateNode);
+        Assert.Equal("$@\"{AppRoutes.Content}{AppRoutes.Content.Home}\"", pageDirective.RouteTemplateToken!.Content);
     }
 }

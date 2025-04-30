@@ -29,10 +29,11 @@ public class PageDirective
 
     private PageDirective(
         string? routeTemplate, DirectiveTokenIntermediateNode? routeTemplateNode,
-        IntermediateNode directiveNode, SourceSpan? source)
+        LazyIntermediateToken? routeTemplateToken, IntermediateNode directiveNode, SourceSpan? source)
     {
         RouteTemplate = routeTemplate;
         RouteTemplateNode = routeTemplateNode;
+        RouteTemplateToken = routeTemplateToken;
         DirectiveNode = directiveNode;
         Source = source;
     }
@@ -40,6 +41,8 @@ public class PageDirective
     public string? RouteTemplate { get; }
 
     public DirectiveTokenIntermediateNode? RouteTemplateNode { get; }
+
+    public IntermediateToken? RouteTemplateToken { get; }
 
     public IntermediateNode DirectiveNode { get; }
 
@@ -71,23 +74,33 @@ public class PageDirective
         }
 
         var tokens = visitor.DirectiveTokens.ToList();
-        string? routeTemplate = null;
-        SourceSpan? sourceSpan = null;
+        var children = visitor.Children?.ToList();
         DirectiveTokenIntermediateNode? routeTemplateNode = null;
-        if (tokens.Count > 0)
+        LazyIntermediateToken? routeTemplateLazyToken = null;
+
+        if (tokens is [var firstToken, ..])
         {
-            routeTemplateNode = tokens[0];
-            routeTemplate = TryGetQuotedContent(routeTemplateNode.Content);
-            sourceSpan = routeTemplateNode.Source;
+            routeTemplateNode = firstToken;
         }
+
+        if (routeTemplateNode is null && children is [LazyIntermediateToken firstChild, ..])
+        {
+            routeTemplateLazyToken = firstChild;
+        }
+
+        var content = routeTemplateNode?.Content ?? routeTemplateLazyToken?.Content;
+        var source = routeTemplateNode?.Source ?? routeTemplateLazyToken?.Source;
+
+        var routeTemplate = TryGetQuotedContent(content);
+        var sourceSpan = source;
 
         Debug.Assert(visitor.DirectiveNode is not null);
 
-        pageDirective = new PageDirective(routeTemplate, routeTemplateNode, visitor.DirectiveNode, sourceSpan);
+        pageDirective = new PageDirective(routeTemplate, routeTemplateNode, routeTemplateLazyToken, visitor.DirectiveNode, sourceSpan);
         return true;
     }
 
-    private static string? TryGetQuotedContent(string content)
+    private static string? TryGetQuotedContent(string? content)
     {
         // Tokens aren't captured if they're malformed. Therefore, this method will
         // always be called with a valid token content. However, we could also
@@ -108,12 +121,15 @@ public class PageDirective
 
         public IEnumerable<DirectiveTokenIntermediateNode>? DirectiveTokens { get; private set; }
 
+        public IntermediateNodeCollection? Children { get; private set; }
+
         public override void VisitDirective(DirectiveIntermediateNode node)
         {
             if (node.Directive == Directive)
             {
                 DirectiveNode = node;
                 DirectiveTokens = node.Tokens;
+                Children = node.Children;
             }
         }
 
@@ -123,6 +139,7 @@ public class PageDirective
             {
                 DirectiveNode = node;
                 DirectiveTokens = node.Tokens;
+                Children = node.Children;
             }
         }
     }
