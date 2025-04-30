@@ -83,7 +83,7 @@ public class AssemblyAttributeInjectionPass : IntermediateNodePassBase, IRazorOp
             return MakeVerbatimStringLiteral(directive.RouteTemplate);
         }
 
-        if (!string.IsNullOrEmpty(directive.RouteTemplateNode?.Content))
+        if (!string.IsNullOrEmpty(directive.RouteTemplateContent))
         {
             // If we have a complex expression assigned to the route template,
             // we generate a public const field named __RouteTemplate assigned

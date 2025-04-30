@@ -44,6 +44,8 @@ public class PageDirective
 
     public IntermediateToken? RouteTemplateToken { get; }
 
+    public string? RouteTemplateContent => RouteTemplateNode?.Content ?? RouteTemplateToken?.Content;
+
     public IntermediateNode DirectiveNode { get; }
 
     public SourceSpan? Source { get; }
@@ -96,7 +98,8 @@ public class PageDirective
 
         Debug.Assert(visitor.DirectiveNode is not null);
 
-        pageDirective = new PageDirective(routeTemplate, routeTemplateNode, routeTemplateLazyToken, visitor.DirectiveNode, sourceSpan);
+        pageDirective = new PageDirective(routeTemplate, routeTemplateNode,
+            routeTemplateLazyToken, visitor.DirectiveNode, sourceSpan);
         return true;
     }
 

@@ -124,7 +124,8 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
             return;
         }
 
-        if (pageDirective.RouteTemplateNode is null)
+        // Only generate this attribute on Razor compile-time-known strings
+        if (pageDirective.RouteTemplate is null)
         {
             return;
         }
@@ -142,7 +143,8 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
 
     private void AddRouteTemplateConstant(ClassDeclarationIntermediateNode @class, PageDirective pageDirective)
     {
-        if (pageDirective.RouteTemplateNode is null)
+        var content = pageDirective.RouteTemplateContent;
+        if (content is null)
         {
             return;
         }
@@ -168,7 +170,7 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
             },
             FieldName = ViewComponentTypes.PageRouteTemplateFieldName,
             FieldType = "string",
-            Initializer = pageDirective.RouteTemplateNode.Content,
+            Initializer = content,
         };
         var constBuilder = IntermediateNodeBuilder.Create(@class);
         constBuilder.Push(routeTemplateConstNode);

@@ -341,15 +341,12 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
 
         // Assert
         var documentNode = processor.GetDocumentNode();
-        var extensionNode = documentNode.GetExtensionNode();
-        var attributeNode = Assert.IsType<RazorCompiledItemMetadataAttributeIntermediateNode>(extensionNode);
-
-        Assert.Equal(RazorPageDocumentClassifierPass.RouteTemplateKey, attributeNode.Key);
-        Assert.Null(attributeNode.Value);
+        var extensionNodes = documentNode.GetExtensionNodes();
+        Assert.Empty(extensionNodes);
 
         var classNode = documentNode.GetClassNode();
         var routeTemplateConstNode = GetPageRouteTemplateConstNode(classNode);
-        Assert.NotNull(routeTemplateConstNode);
+        Assert.Equal("AppRoutes.Home", routeTemplateConstNode!.Initializer);
     }
 
     [Fact]
@@ -381,6 +378,42 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
         var classNode = documentNode.GetClassNode();
         var routeTemplateConstNode = GetPageRouteTemplateConstNode(classNode);
         Assert.Null(routeTemplateConstNode);
+    }
+
+    [Fact]
+    public void RazorPageDocumentClassifierPass_AddsRouteTemplateMetadata_UsingInterpolatedString()
+    {
+        // Arrange
+        const string content = $$"""
+            @page @($"{AppRoutes.Content.Parent}{AppRoutes.Content.Home}")
+
+            @code {
+                public static class AppRoutes
+                {
+                    public static class Content
+                    {
+                        public const string Parent = "/content";
+                        public const string Home = "/home";
+                    }
+                }
+            }
+            """;
+        var source = TestRazorSourceDocument.Create(content, filePath: "ignored", relativePath: "Test.cshtml");
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
+
+        // Act
+        processor.ExecutePass<RazorPageDocumentClassifierPass>();
+
+        // Assert
+        var documentNode = processor.GetDocumentNode();
+        var extensionNodes = documentNode.GetExtensionNodes();
+        Assert.Empty(extensionNodes);
+
+        var classNode = documentNode.GetClassNode();
+        var routeTemplateConstNode = GetPageRouteTemplateConstNode(classNode);
+        Assert.NotNull(routeTemplateConstNode);
+        Assert.Equal("$\"{AppRoutes.Content.Parent}{AppRoutes.Content.Home}\"", routeTemplateConstNode!.Initializer);
     }
 
     private static FieldDeclarationIntermediateNode? GetPageRouteTemplateConstNode(ClassDeclarationIntermediateNode classNode)
