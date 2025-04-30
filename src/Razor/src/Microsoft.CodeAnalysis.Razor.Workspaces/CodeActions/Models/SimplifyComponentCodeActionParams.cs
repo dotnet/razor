@@ -7,9 +7,9 @@ namespace Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 
 internal sealed class SimplifyTagToSelfClosingCodeActionParams
 {
-    [JsonPropertyName("start")]
-    public int Start { get; set; }
+    [JsonPropertyName("startTagCloseAngleIndex")]
+    public int StartTagCloseAngleIndex { get; set; }
 
-    [JsonPropertyName("end")]
-    public int End { get; set; }
+    [JsonPropertyName("endTagCloseAngleIndex")]
+    public int EndTagCloseAngleIndex { get; set; }
 }

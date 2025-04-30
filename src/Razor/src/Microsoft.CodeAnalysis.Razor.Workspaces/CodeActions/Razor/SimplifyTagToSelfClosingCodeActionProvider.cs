@@ -22,9 +22,6 @@ internal class SimplifyTagToSelfClosingCodeActionProvider(ILoggerFactory loggerF
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<SimplifyTagToSelfClosingCodeActionProvider>();
 
-    private const string RenderFragmentTypeName = "Microsoft.AspNetCore.Components.RenderFragment";
-    private const string GenericRenderFragmentTypeName = "Microsoft.AspNetCore.Components.RenderFragment<";
-
     public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
         if (context.HasSelection)
@@ -56,7 +53,7 @@ internal class SimplifyTagToSelfClosingCodeActionProvider(ILoggerFactory loggerF
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        var owner = syntaxTree.Root.FindInnermostNode(context.StartAbsoluteIndex, includeWhitespace: !context.HasSelection)?.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
+        var owner = syntaxTree.Root.FindInnermostNode(context.StartAbsoluteIndex, includeWhitespace: false)?.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
         if (owner is not MarkupTagHelperElementSyntax markupElementSyntax)
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
@@ -71,8 +68,8 @@ internal class SimplifyTagToSelfClosingCodeActionProvider(ILoggerFactory loggerF
         // Provide code action to simplify
         var actionParams = new SimplifyTagToSelfClosingCodeActionParams
         {
-            Start = markupElementSyntax.StartTag.CloseAngle.SpanStart,
-            End = markupElementSyntax.EndTag.CloseAngle.EndPosition,
+            StartTagCloseAngleIndex = markupElementSyntax.StartTag.CloseAngle.SpanStart,
+            EndTagCloseAngleIndex = markupElementSyntax.EndTag.CloseAngle.EndPosition,
         };
 
         var resolutionParams = new RazorCodeActionResolutionParams()
@@ -118,21 +115,29 @@ internal class SimplifyTagToSelfClosingCodeActionProvider(ILoggerFactory loggerF
         }
 
         // Check whether the Component must have children
-        if (boundTagHelper.BoundAttributes.Any(attribute =>
-            // Attribute has `EditorRequired` flag
-            attribute is { TypeName: string typeName, IsEditorRequired: true } &&
-
-            // It has type of a `RenderFragment`
-            (typeName == RenderFragmentTypeName || typeName.StartsWith(GenericRenderFragmentTypeName, StringComparison.Ordinal)) &&
-
-            // It is not set or bound as an attribute
-            !markupElementSyntax.TagHelperInfo!.BindingResult.Attributes.Any(a =>
-                a.Key == attribute.Name ||
-                (a.Key.StartsWith("@bind-", StringComparison.Ordinal) && a.Key.AsSpan("@bind-".Length).Equals(attribute.Name, StringComparison.Ordinal))
-            )
-        ))
+        foreach (var attribute in boundTagHelper.BoundAttributes)
         {
-            return false;
+            // Parameter is not required
+            if (attribute is not { IsEditorRequired: true })
+            {
+                continue;
+            }
+
+            // Parameter is not a `RenderFragment` or `RenderFragment<T>`
+            if (!attribute.IsChildContentProperty() && !attribute.IsParameterizedChildContentProperty())
+            {
+                continue;
+            }
+
+            // Parameter is not set or bound as an attribute
+            if (!markupElementSyntax.TagHelperInfo!.BindingResult.Attributes.Any(a =>
+                a.Key == attribute.Name ||
+                (a.Key.StartsWith("@bind-", StringComparison.Ordinal) && a.Key.AsSpan("@bind-".Length).Equals(attribute.Name, StringComparison.Ordinal)) ||
+                (a.Key.StartsWith("@bind-", StringComparison.Ordinal) && a.Key.EndsWith(":get", StringComparison.Ordinal) && a.Key.AsSpan()["@bind-".Length..^":get".Length].Equals(attribute.Name, StringComparison.Ordinal))
+            ))
+            {
+                return false;
+            }
         }
 
         return true;

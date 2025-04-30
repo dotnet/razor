@@ -37,7 +37,7 @@ internal class SimplifyTagToSelfClosingCodeActionResolver() : IRazorCodeActionRe
         }
 
         var text = componentDocument.Source.Text;
-        var removeRange = text.GetRange(actionParams.Start, actionParams.End);
+        var removeRange = text.GetRange(actionParams.StartTagCloseAngleIndex, actionParams.EndTagCloseAngleIndex);
 
         var documentChanges = new TextDocumentEdit[]
         {

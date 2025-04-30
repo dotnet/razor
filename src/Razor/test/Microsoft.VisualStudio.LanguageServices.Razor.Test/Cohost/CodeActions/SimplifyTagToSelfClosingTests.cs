@@ -260,7 +260,7 @@ public class SimplifyTagToSelfClosingTests(ITestOutputHelper testOutputHelper) :
     }
 
     [Fact]
-    public async Task AllEditorRequiredRenderFragmentAttributesAreSetOrBoundAsAttributesButBodyIsWhiteSpace()
+    public async Task AllEditorRequiredRenderFragmentAttributesAreSetOrBoundAsDirectiveAttributesButBodyIsWhiteSpace()
     {
         await VerifyCodeActionAsync(
             input: """
@@ -280,6 +280,51 @@ public class SimplifyTagToSelfClosingTests(ITestOutputHelper testOutputHelper) :
                 <div></div>
 
                 <Component @bind-ChildContent="LocalChildContent" />
+
+                <div></div>
+                
+                @code {
+                    private RenderFragment? LocalChildContent { get; set; }
+                }
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.SimplifyTagToSelfClosingAction,
+            additionalFiles: [
+                (FilePath("Component.razor"), """
+                    <div>
+                        @if (ChildContent is { } cc)
+                        {
+                            @cc
+                        }
+                    </div>
+                    
+                    @code {
+                        [Parameter, EditorRequired]
+                        public RenderFragment? ChildContent { get; set; }
+                    }
+                    """)]);
+    }
+
+    [Fact]
+    public async Task AllEditorRequiredRenderFragmentAttributesAreSetOrBoundWithGetSetAsDirectiveAttributesButBodyIsWhiteSpace()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                <Compo[||]nent @bind-ChildContent:get="LocalChildContent" @bind-ChildContent:set="_ => { }">
+                    
+                </Component>
+
+                <div></div>
+
+                @code {
+                    private RenderFragment? LocalChildContent { get; set; }
+                }
+                """,
+            expected: """
+                <div></div>
+
+                <Component @bind-ChildContent:get="LocalChildContent" @bind-ChildContent:set="_ => { }" />
 
                 <div></div>
                 
