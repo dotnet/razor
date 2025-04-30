@@ -17,13 +17,19 @@ internal class DirectiveAttributeEventParameterCompletionItemProvider : IRazorCo
 
     public ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
-        var owner = context.Owner?.FirstAncestorOrSelf<MarkupTagHelperDirectiveAttributeSyntax>();
-        if (owner is null)
+        var owner = context.Owner?.Parent;
+
+        if (owner is MarkupTagHelperAttributeValueSyntax parentValueSyntax)
+        {
+            owner = parentValueSyntax.Parent;
+        }
+
+        if (owner is not MarkupTagHelperDirectiveAttributeSyntax directiveAttributeSyntax)
         {
             return [];
         }
 
-        if (owner is not
+        if (directiveAttributeSyntax is not
             {
                 Colon.IsMissing: false,
                 ParameterName: { IsMissing: false, LiteralTokens: [{ Content: "event" }] },
