@@ -124,7 +124,7 @@ internal class SimplifyTagToSelfClosingCodeActionProvider(ILoggerFactory loggerF
             }
 
             // Parameter is not a `RenderFragment` or `RenderFragment<T>`
-            if (!attribute.IsChildContentProperty() && !attribute.IsParameterizedChildContentProperty())
+            if (!attribute.IsChildContentProperty())
             {
                 continue;
             }
