@@ -23,6 +23,7 @@
                 DirectiveToken - (617:12,14 [96] ) - Microsoft.AspNetCore.Mvc.Razor.TagHelpers.UrlResolutionTagHelper, Microsoft.AspNetCore.Mvc.Razor
                 DirectiveToken - (729:13,14 [87] ) - Microsoft.AspNetCore.Mvc.Razor.TagHelpers.HeadTagHelper, Microsoft.AspNetCore.Mvc.Razor
                 DirectiveToken - (832:14,14 [87] ) - Microsoft.AspNetCore.Mvc.Razor.TagHelpers.BodyTagHelper, Microsoft.AspNetCore.Mvc.Razor
+                DirectiveToken - (100:3,6 [0] IncompleteDirectives.cshtml) - 
                 DirectiveToken - (128:7,7 [0] IncompleteDirectives.cshtml) - 
                 DirectiveToken - (149:10,8 [0] IncompleteDirectives.cshtml) - 
                 DirectiveToken - (159:11,8 [17] IncompleteDirectives.cshtml) - MyService<TModel>
@@ -37,6 +38,7 @@
                 HtmlContent - (85:1,0 [2] IncompleteDirectives.cshtml)
                     LazyIntermediateToken - (85:1,0 [2] IncompleteDirectives.cshtml) - Html - \n
                 MalformedDirective - (94:3,0 [8] IncompleteDirectives.cshtml) - page
+                    DirectiveToken - (100:3,6 [0] IncompleteDirectives.cshtml) - 
                 MalformedDirective - (102:4,0 [6] IncompleteDirectives.cshtml) - page
                 HtmlContent - (108:4,6 [5] IncompleteDirectives.cshtml)
                     LazyIntermediateToken - (108:4,6 [5] IncompleteDirectives.cshtml) - Html - "\n\n

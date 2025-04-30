@@ -18,6 +18,14 @@ namespace AspNetCore
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
         ((global::System.Action)(() => {
+#line 4 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml"
+ 
+
+#line default
+#line hidden
+        }
+        ))();
+        ((global::System.Action)(() => {
 #line 8 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml"
  
 
