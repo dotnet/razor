@@ -165,7 +165,7 @@ public class MyModel
         AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
 
         var diagnotics = compiled.CodeDocument.GetCSharpDocument().Diagnostics;
-        Assert.Equal("RZ1016", Assert.Single(diagnotics).Id);
+        Assert.Equal("RZ1046", Assert.Single(diagnotics).Id);
     }
 
     [Fact]
@@ -620,7 +620,7 @@ public class MyModel
         AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
 
         var diagnotics = compiled.CodeDocument.GetCSharpDocument().Diagnostics;
-        Assert.Equal("RZ1016", Assert.Single(diagnotics).Id);
+        Assert.Equal("RZ1046", Assert.Single(diagnotics).Id);
     }
 
     [Fact]
