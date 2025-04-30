@@ -1736,9 +1736,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                             }
                             else
                             {
-                                // TODO: Create a specialized error for this token kind
                                 Context.ErrorSink.OnError(
-                                    RazorDiagnosticFactory.CreateParsing_DirectiveExpectsQuotedStringLiteral(
+                                    RazorDiagnosticFactory.CreateParsing_DirectiveExpectsIdentifierOrExpressionOrString(
                                         new SourceSpan(CurrentStart, CurrentToken.Content.Length), descriptor.Directive));
 
                                 // Default to a string literal as the missing token's kind
