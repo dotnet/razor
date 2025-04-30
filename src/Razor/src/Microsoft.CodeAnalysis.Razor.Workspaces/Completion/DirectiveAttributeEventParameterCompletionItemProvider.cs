@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Editor.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-internal class DirectiveAttributeEventParameterCompletionItemProvider() : IRazorCompletionItemProvider
+internal class DirectiveAttributeEventParameterCompletionItemProvider : IRazorCompletionItemProvider
 {
     private static readonly ImmutableArray<RazorCompletionItem> s_eventCompletionItems = HtmlFacts.FormEvents
         .SelectAsArray(e => RazorCompletionItem.CreateDirectiveAttributeEventParameterHtmlEventValue(e, e, s_commitCharacters));

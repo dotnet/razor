@@ -1,11 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -202,29 +202,15 @@ public class DirectiveAttributeEventParameterCompletionItemProviderTest : RazorT
             RazorCompletionItemKind.DirectiveAttributeParameterEventValue == completion.Kind);
     }
 
-    private RazorCompletionContext CreateRazorCompletionContext(string documentContent)
+    private RazorCompletionContext CreateRazorCompletionContext(TestCode documentContent)
     {
-        documentContent = ExtractCaretPosition(documentContent, out var absoluteIndex);
-
-        var codeDocument = GetCodeDocument(documentContent);
+        var codeDocument = GetCodeDocument(documentContent.Text);
         var syntaxTree = codeDocument.GetSyntaxTree();
         var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
+        var absoluteIndex = documentContent.Position;
 
         var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex);
         owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, absoluteIndex);
         return new RazorCompletionContext(absoluteIndex, owner, syntaxTree, tagHelperDocumentContext);
-
-        static string ExtractCaretPosition(string document, out int caretPosition)
-        {
-            var index = document.IndexOf("$$", StringComparison.Ordinal);
-            if (index == -1)
-            {
-                caretPosition = -1;
-                return document;
-            }
-
-            caretPosition = index;
-            return document.Remove(index, 2);
-        }
     }
 }
