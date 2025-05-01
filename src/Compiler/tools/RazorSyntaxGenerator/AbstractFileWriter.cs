@@ -134,15 +134,28 @@ internal abstract class AbstractFileWriter
     }
 
     /// <summary>
+    ///  Writes all <paramref name="values"/> with each value separated by a comma.
+    /// </summary>
+    /// <remarks>
+    ///  Values can be either <see cref="string"/>s or <see cref="IEnumerable{T}"/>s of
+    ///  <see cref="string"/>.  All of these are flattened into a single sequence that is joined.
+    ///  Empty strings are ignored.
+    /// </remarks>
+    protected void WriteCommaSeparatedList(params IEnumerable<object> values)
+    {
+        Write(CommaJoin(values));
+    }
+
+    /// <summary>
     /// Joins all the values together in <paramref name="values"/> into one string with each
     /// value separated by a comma.  Values can be either <see cref="string"/>s or <see
     /// cref="IEnumerable{T}"/>s of <see cref="string"/>.  All of these are flattened into a
     /// single sequence that is joined. Empty strings are ignored.
     /// </summary>
-    protected static string CommaJoin(params object[] values)
+    protected static string CommaJoin(params IEnumerable<object> values)
         => Join(", ", values);
 
-    protected static string Join(string separator, params object[] values)
+    protected static string Join(string separator, params IEnumerable<object> values)
         => string.Join(separator, values.SelectMany(v => (v switch
         {
             string s => [s],
@@ -318,6 +331,7 @@ internal abstract class AbstractFileWriter
 
     protected static string CamelCase(string name)
     {
+        // Special logic to handle 'CSharp' correctly
         if (name.StartsWith("CSharp", StringComparison.OrdinalIgnoreCase))
         {
             name = "csharp" + name[6..];

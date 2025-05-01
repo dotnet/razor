@@ -5,8 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Xml;
@@ -174,13 +172,13 @@ internal class SourceWriter : AbstractFileWriter
                         {
                             var field = nodeFields[i];
                             var type = GetFieldType(field, green: true);
-                            WriteLine("private readonly {0} {1};", type, UnderscoreCamelCase(field.Name));
+                            WriteLine("private readonly {0} {1};", type, GetFieldName(field));
                         }
 
                         for (int i = 0, n = valueFields.Count; i < n; i++)
                         {
                             var field = valueFields[i];
-                            WriteLine("private readonly {0} {1};", field.Type, UnderscoreCamelCase(field.Name));
+                            WriteLine("private readonly {0} {1};", field.Type, GetFieldName(field));
                         }
 
                         // write constructor with diagnostics and annotations
@@ -229,33 +227,32 @@ internal class SourceWriter : AbstractFileWriter
                         // property accessors
                         foreach (var field in nodeFields)
                         {
-                            var name = field.Name;
                             var type = field.Type;
 
                             WriteComment(field.PropertyComment);
 
                             if (IsNodeList(type))
                             {
-                                WriteLine($"public {OverrideOrNewModifier(field)}{type} {name} => new {type}({UnderscoreCamelCase(name)});");
+                                WriteLine($"public {OverrideOrNewModifier(field)}{type} {field.Name} => new {type}({GetFieldName(field)});");
                             }
                             else if (IsSeparatedNodeList(type))
                             {
-                                WriteLine($"public {OverrideOrNewModifier(field)}{type} {name} => new {type}(new SyntaxList<GreenNode>({UnderscoreCamelCase(name)}));");
+                                WriteLine($"public {OverrideOrNewModifier(field)}{type} {field.Name} => new {type}(new SyntaxList<GreenNode>({GetFieldName(field)}));");
                             }
                             else if (type == "SyntaxNodeOrTokenList")
                             {
-                                WriteLine($"public {OverrideOrNewModifier(field)}SyntaxList<GreenNode> {name} => new SyntaxList<GreenNode>({UnderscoreCamelCase(name)});");
+                                WriteLine($"public {OverrideOrNewModifier(field)}SyntaxList<GreenNode> {field.Name} => new SyntaxList<GreenNode>({GetFieldName(field)});");
                             }
                             else
                             {
-                                WriteLine($"public {OverrideOrNewModifier(field)}{type} {name} => {UnderscoreCamelCase(name)};");
+                                WriteLine($"public {OverrideOrNewModifier(field)}{type} {field.Name} => {GetFieldName(field)};");
                             }
                         }
 
                         foreach (var field in valueFields)
                         {
                             WriteComment(field.PropertyComment);
-                            WriteLine($"public {OverrideOrNewModifier(field)}{field.Type} {field.Name} => {UnderscoreCamelCase(field.Name)};");
+                            WriteLine($"public {OverrideOrNewModifier(field)}{field.Type} {field.Name} => {GetFieldName(field)};");
                         }
 
                         // GetSlot
@@ -269,7 +266,7 @@ internal class SourceWriter : AbstractFileWriter
                         else if (nodeFields.Count == 1)
                         {
                             WriteLine();
-                            WriteIndentedLine($"=> index == 0 ? this.{UnderscoreCamelCase(nodeFields[0].Name)} : null;");
+                            WriteIndentedLine($"=> index == 0 ? this.{GetFieldName(nodeFields[0])} : null;");
                         }
                         else
                         {
@@ -282,7 +279,7 @@ internal class SourceWriter : AbstractFileWriter
                                     for (int i = 0, n = nodeFields.Count; i < n; i++)
                                     {
                                         var field = nodeFields[i];
-                                        WriteLine($"{i} => {UnderscoreCamelCase(field.Name)},");
+                                        WriteLine($"{i} => {GetFieldName(field)},");
                                     }
 
                                     WriteLine("_ => null");
@@ -310,12 +307,12 @@ internal class SourceWriter : AbstractFileWriter
         {
             var type = GetFieldType(field, green: true);
 
-            Write($", {type} {CamelCase(field.Name)}");
+            Write($", {type} {GetParameterName(field)}");
         }
 
         foreach (var field in valueFields)
         {
-            Write($", {field.Type} {CamelCase(field.Name)}");
+            Write($", {field.Type} {GetParameterName(field)}");
         }
     }
 
@@ -328,24 +325,24 @@ internal class SourceWriter : AbstractFileWriter
         {
             if (IsAnyList(field.Type) || IsOptional(field))
             {
-                WriteLine($"if ({CamelCase(field.Name)} != null)");
+                WriteLine($"if ({GetParameterName(field)} != null)");
 
                 using (Block())
                 {
-                    WriteLine($"AdjustFlagsAndWidth({CamelCase(field.Name)});");
-                    WriteLine($"{UnderscoreCamelCase(field.Name)} = {CamelCase(field.Name)};");
+                    WriteLine($"AdjustFlagsAndWidth({GetParameterName(field)});");
+                    WriteLine($"{GetFieldName(field)} = {GetParameterName(field)};");
                 }
             }
             else
             {
-                WriteLine($"AdjustFlagsAndWidth({CamelCase(field.Name)});");
-                WriteLine($"{UnderscoreCamelCase(field.Name)} = {CamelCase(field.Name)};");
+                WriteLine($"AdjustFlagsAndWidth({GetParameterName(field)});");
+                WriteLine($"{GetFieldName(field)} = {GetParameterName(field)};");
             }
         }
 
         foreach (var field in valueFields)
         {
-            WriteLine($"{UnderscoreCamelCase(field.Name)} = {CamelCase(field.Name)};");
+            WriteLine($"{GetFieldName(field)} = {GetParameterName(field)};");
         }
     }
 
@@ -356,11 +353,11 @@ internal class SourceWriter : AbstractFileWriter
         using (Indent())
         {
             Write($"=> new {node.Name}(");
-            Write(CommaJoin(
+            WriteCommaSeparatedList(
                 "Kind",
-                node.Fields.Select(f => UnderscoreCamelCase(f.Name)),
+                node.Fields.Select(GetFieldName),
                 "GetDiagnostics()",
-                "annotations"));
+                "annotations");
             WriteLine(");");
         }
     }
@@ -372,11 +369,11 @@ internal class SourceWriter : AbstractFileWriter
         using (Indent())
         {
             Write($"=> new {node.Name}(");
-            Write(CommaJoin(
+            WriteCommaSeparatedList(
                 "Kind",
-                node.Fields.Select(f => UnderscoreCamelCase(f.Name)),
+                node.Fields.Select(GetFieldName),
                 "diagnostics",
-                "GetAnnotations()"));
+                "GetAnnotations()");
             WriteLine(");");
         }
     }
@@ -415,7 +412,7 @@ internal class SourceWriter : AbstractFileWriter
         Write($"public {node.Name} Update(");
 
         // parameters
-        Write(CommaJoin(node.Fields.Select(static f =>
+        WriteCommaSeparatedList(node.Fields.Select(static f =>
         {
             var type =
                 f.Type == "SyntaxNodeOrTokenList" ? "InternalSyntax.SyntaxList<GreenNode>" :
@@ -424,8 +421,8 @@ internal class SourceWriter : AbstractFileWriter
                 IsSeparatedNodeList(f.Type) ? "InternalSyntax." + f.Type :
                 f.Type;
 
-            return $"{type} {CamelCase(f.Name)}";
-        })));
+            return $"{type} {GetParameterName(f)}";
+        }));
         WriteLine(")");
 
         using (Block())
@@ -441,7 +438,7 @@ internal class SourceWriter : AbstractFileWriter
                         Write(" || ");
                     }
 
-                    Write($"{CamelCase(field.Name)} != {field.Name}");
+                    Write($"{GetParameterName(field)} != {field.Name}");
                     nCompared++;
                 }
             }
@@ -451,9 +448,9 @@ internal class SourceWriter : AbstractFileWriter
                 using (Block())
                 {
                     Write($"var newNode = SyntaxFactory.{StripPost(node.Name, "Syntax")}(");
-                    Write(CommaJoin(
+                    WriteCommaSeparatedList(
                         node.Kinds.Count > 1 ? "Kind" : "",
-                        node.Fields.Select(f => CamelCase(f.Name))));
+                        node.Fields.Select(GetParameterName));
 
                     WriteLine(");");
                     WriteLine("var diags = GetDiagnostics();");
@@ -501,7 +498,7 @@ internal class SourceWriter : AbstractFileWriter
                     else
                     {
                         Write("=> node.Update(");
-                        Write(CommaJoin(node.Fields.Select(f =>
+                        WriteCommaSeparatedList(node.Fields.Select(f =>
                         {
                             if (IsAnyList(f.Type))
                             {
@@ -515,7 +512,7 @@ internal class SourceWriter : AbstractFileWriter
                             {
                                 return $"node.{f.Name}";
                             }
-                        })));
+                        }));
                         WriteLine(");");
                     }
                 }
@@ -560,7 +557,7 @@ internal class SourceWriter : AbstractFileWriter
 
             using (Block(addSemicolon: true))
             {
-                var nodes = Tree.Types.Where(n => !(n is PredefinedNode) && !(n is AbstractNode)).ToList();
+                var nodes = Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode).ToList();
                 for (int i = 0, n = nodes.Count; i < n; i++)
                 {
                     var node = nodes[i];
@@ -606,11 +603,11 @@ internal class SourceWriter : AbstractFileWriter
             //WriteLine("#if DEBUG");
             foreach (var field in nodeFields)
             {
-                var pname = CamelCase(field.Name);
+                var pname = GetParameterName(field);
 
                 if (!IsAnyList(field.Type) && !IsOptional(field))
                 {
-                    WriteLine($"ArgHelper.ThrowIfNull({CamelCase(field.Name)});");
+                    WriteLine($"ArgHelper.ThrowIfNull({pname});");
                 }
                 if (field.Type == "SyntaxToken" && field.Kinds != null && field.Kinds.Count > 0)
                 {
@@ -756,7 +753,7 @@ internal class SourceWriter : AbstractFileWriter
             {
                 type = "Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax." + type;
             }
-            Write($"{type} {CamelCase(field.Name)}");
+            Write($"{type} {GetParameterName(field)}");
         }
     }
 
@@ -777,11 +774,11 @@ internal class SourceWriter : AbstractFileWriter
             Write(", ");
             if (field.Type == "SyntaxList<SyntaxToken>" || IsAnyList(field.Type))
             {
-                Write($"{CamelCase(field.Name)}.Node");
+                Write($"{GetParameterName(field)}.Node");
             }
             else
             {
-                Write(CamelCase(field.Name));
+                Write(GetParameterName(field));
             }
         }
         // values are at end
@@ -789,7 +786,7 @@ internal class SourceWriter : AbstractFileWriter
         {
             var field = valueFields[i];
             Write(", ");
-            Write(CamelCase(field.Name));
+            Write(GetParameterName(field));
         }
         if (withSyntaxFactoryContext)
         {
@@ -844,8 +841,8 @@ internal class SourceWriter : AbstractFileWriter
                                 WriteLine();
                                 WriteComment(field.PropertyComment);
                                 WriteLine($"public abstract {(IsNew(field) ? "new " : "")}{fieldType} {field.Name} {{ get; }}");
-                                WriteLine($"public {abstractNode.Name} With{field.Name}({fieldType} {CamelCase(field.Name)}) => With{field.Name}Core({CamelCase(field.Name)});");
-                                WriteLine($"internal abstract {abstractNode.Name} With{field.Name}Core({fieldType} {CamelCase(field.Name)});");
+                                WriteLine($"public {abstractNode.Name} With{field.Name}({fieldType} {GetParameterName(field)}) => With{field.Name}Core({GetParameterName(field)});");
+                                WriteLine($"internal abstract {abstractNode.Name} With{field.Name}Core({fieldType} {GetParameterName(field)});");
 
                                 if (IsAnyList(field.Type))
                                 {
@@ -893,7 +890,8 @@ internal class SourceWriter : AbstractFileWriter
 
                             foreach (var baseField in baseNodeFields)
                             {
-                                WriteLine($"public new {abstractNode.Name} With{baseField.Name}({GetRedFieldType(baseField)} {CamelCase(baseField.Name)}) => ({abstractNode.Name})With{baseField.Name}Core({CamelCase(baseField.Name)});");
+                                WriteLine($"public new {abstractNode.Name} With{baseField.Name}({GetRedFieldType(baseField)} {GetParameterName(baseField)}) " +
+                                    $"=> ({abstractNode.Name})With{baseField.Name}Core({GetParameterName(baseField)});");
                             }
 
                             foreach (var baseField in baseNodeFields)
@@ -945,12 +943,12 @@ internal class SourceWriter : AbstractFileWriter
                             //{
                             if (IsSeparatedNodeList(field.Type) || field.Type == "SyntaxNodeOrTokenList")
                             {
-                                WriteLine($"private SyntaxNode {UnderscoreCamelCase(field.Name)};");
+                                WriteLine($"private SyntaxNode {GetFieldName(field)};");
                             }
                             else
                             {
                                 var type = GetFieldType(field, green: false);
-                                WriteLine($"private {type} {UnderscoreCamelCase(field.Name)};");
+                                WriteLine($"private {type} {GetFieldName(field)};");
                             }
                             //}
                         }
@@ -1013,7 +1011,7 @@ internal class SourceWriter : AbstractFileWriter
 
                             if (IsNodeList(field.Type))
                             {
-                                WriteLine($" => new {field.Type}(GetRed(ref {UnderscoreCamelCase(field.Name)}, {i}));");
+                                WriteLine($" => new {field.Type}(GetRed(ref {GetFieldName(field)}, {i}));");
                             }
                             else if (IsSeparatedNodeList(field.Type))
                             {
@@ -1023,7 +1021,7 @@ internal class SourceWriter : AbstractFileWriter
                                     WriteLine("get");
                                     using (Block())
                                     {
-                                        WriteLine($"var red = GetRed(ref {UnderscoreCamelCase(field.Name)}, {i});");
+                                        WriteLine($"var red = GetRed(ref {GetFieldName(field)}, {i});");
                                         WriteLine($"return red != null ? new {field.Type}(red, {GetChildIndex(i)}) : default;");
                                     }
                                 }
@@ -1036,11 +1034,11 @@ internal class SourceWriter : AbstractFileWriter
                             {
                                 if (i == 0)
                                 {
-                                    WriteLine($" => GetRedAtZero(ref {UnderscoreCamelCase(field.Name)});");
+                                    WriteLine($" => GetRedAtZero(ref {GetFieldName(field)});");
                                 }
                                 else
                                 {
-                                    WriteLine($" => GetRed(ref {UnderscoreCamelCase(field.Name)}, {i});");
+                                    WriteLine($" => GetRed(ref {GetFieldName(field)}, {i});");
                                 }
                             }
                             //}
@@ -1071,8 +1069,8 @@ internal class SourceWriter : AbstractFileWriter
                             {
                                 var (field, index) = relevantNodes[0];
                                 var whenTrue = index == 0
-                                    ? $"GetRedAtZero(ref this.{UnderscoreCamelCase(field.Name)})"
-                                    : $"GetRed(ref this.{UnderscoreCamelCase(field.Name)}, {index})";
+                                    ? $"GetRedAtZero(ref this.{GetFieldName(field)})"
+                                    : $"GetRed(ref this.{GetFieldName(field)}, {index})";
 
                                 WriteLine($" => index == {index} ? {whenTrue} : null;");
                             }
@@ -1088,11 +1086,11 @@ internal class SourceWriter : AbstractFileWriter
                                         {
                                             if (index == 0)
                                             {
-                                                WriteLine($"{index} => GetRedAtZero(ref {UnderscoreCamelCase(field.Name)}),");
+                                                WriteLine($"{index} => GetRedAtZero(ref {GetFieldName(field)}),");
                                             }
                                             else
                                             {
-                                                WriteLine($"{index} => GetRed(ref {UnderscoreCamelCase(field.Name)}, {index}),");
+                                                WriteLine($"{index} => GetRed(ref {GetFieldName(field)}, {index}),");
                                             }
                                         }
 
@@ -1120,7 +1118,7 @@ internal class SourceWriter : AbstractFileWriter
                             else if (relevantNodes.Count == 1)
                             {
                                 var (field, index) = relevantNodes[0];
-                                WriteLine($" => index == {index} ? this.{UnderscoreCamelCase(field.Name)} : null;");
+                                WriteLine($" => index == {index} ? this.{GetFieldName(field)} : null;");
                             }
                             else
                             {
@@ -1132,7 +1130,7 @@ internal class SourceWriter : AbstractFileWriter
                                     {
                                         foreach (var (field, index) in relevantNodes)
                                         {
-                                            WriteLine($"{index} => this.{UnderscoreCamelCase(field.Name)},");
+                                            WriteLine($"{index} => this.{GetFieldName(field)},");
                                         }
 
                                         WriteLine("_ => null");
@@ -1208,8 +1206,8 @@ internal class SourceWriter : AbstractFileWriter
     {
         WriteLine();
         Write($"public {node.Name} Update(");
-        Write(CommaJoin(
-            node.Fields.Select(f => $"{GetRedPropertyType(f)} {CamelCase(f.Name)}")));
+        WriteCommaSeparatedList(
+            node.Fields.Select(f => $"{GetRedPropertyType(f)} {GetParameterName(f)}"));
         WriteLine(")");
 
         using (Block())
@@ -1225,7 +1223,7 @@ internal class SourceWriter : AbstractFileWriter
                         Write(" || ");
                     }
 
-                    Write($"{CamelCase(field.Name)} != {field.Name}");
+                    Write($"{GetParameterName(field)} != {field.Name}");
                     nCompared++;
                 }
             }
@@ -1236,9 +1234,9 @@ internal class SourceWriter : AbstractFileWriter
                 using (Block())
                 {
                     Write($"var newNode = SyntaxFactory.{StripPost(node.Name, "Syntax")}(");
-                    Write(CommaJoin(
+                    WriteCommaSeparatedList(
                         node.Kinds.Count > 1 ? "Kind" : string.Empty,
-                        node.Fields.Select(f => $"{CamelCase(f.Name)}")));
+                        node.Fields.Select(f => GetParameterName(f)));
                     WriteLine(");");
                     WriteLine("var diagnostics = GetDiagnostics();");
                     WriteLine("if (diagnostics != null && diagnostics.Length > 0)");
@@ -1270,16 +1268,16 @@ internal class SourceWriter : AbstractFileWriter
                 var baseType = GetHighestBaseTypeWithField(node, field.Name);
                 if (baseType != null)
                 {
-                    WriteLine($"internal override {baseType.Name} With{field.Name}Core({type} {CamelCase(field.Name)}) => With{field.Name}({CamelCase(field.Name)});");
+                    WriteLine($"internal override {baseType.Name} With{field.Name}Core({type} {GetParameterName(field)}) => With{field.Name}({GetParameterName(field)});");
                     isNew = true;
                 }
             }
 
-            Write($"public{(isNew ? " new " : " ")}{node.Name} With{StripPost(field.Name, "Opt")}({type} {CamelCase(field.Name)}) => Update(");
+            Write($"public{(isNew ? " new " : " ")}{node.Name} With{StripPost(field.Name, "Opt")}({type} {GetParameterName(field)}) => Update(");
 
             // call update inside each setter
-            Write(CommaJoin(node.Fields.Select(f =>
-                f == field ? CamelCase(f.Name) : f.Name)));
+            WriteCommaSeparatedList(node.Fields.Select(f =>
+                f == field ? GetParameterName(f) : f.Name));
             WriteLine(");");
         }
     }
@@ -1389,7 +1387,7 @@ internal class SourceWriter : AbstractFileWriter
             using (Block())
             {
                 var factoryName = StripPost(referencedNode.Name, "Syntax");
-                var varName = StripPost(UnderscoreCamelCase(field.Name), "Opt");
+                var varName = StripPost(GetFieldName(field), "Opt");
                 WriteLine($"var {varName} = this.{field.Name} ?? SyntaxFactory.{factoryName}();");
                 WriteLine($"return this.With{StripPost(field.Name, "Opt")}({varName}.With{StripPost(referencedNodeField.Name, "Opt")}({varName}.{referencedNodeField.Name}.AddRange(items)));");
             }
@@ -1430,7 +1428,7 @@ internal class SourceWriter : AbstractFileWriter
                     using (Indent())
                     {
                         Write("=> node.Update(");
-                        Write(CommaJoin(node.Fields.Select(f =>
+                        WriteCommaSeparatedList(node.Fields.Select(f =>
                         {
                             if (IsNodeOrNodeList(f.Type))
                             {
@@ -1449,7 +1447,7 @@ internal class SourceWriter : AbstractFileWriter
                             }
 
                             return $"node.{f.Name}";
-                        })));
+                        }));
 
                         WriteLine(");");
                     }
@@ -1553,9 +1551,9 @@ internal class SourceWriter : AbstractFileWriter
 
         WriteComment($"<summary>Creates a new {node.Name} instance.</summary>");
         Write($"public static {node.Name} {StripPost(node.Name, "Syntax")}(");
-        Write(CommaJoin(
+        WriteCommaSeparatedList(
             node.Kinds.Count > 1 ? "SyntaxKind kind" : string.Empty,
-            node.Fields.Select(f => $"{GetRedPropertyType(f)} {CamelCase(f.Name)}")));
+            node.Fields.Select(f => $"{GetRedPropertyType(f)} {GetParameterName(f)}"));
         WriteLine(")");
 
         if (hasValidation)
@@ -1582,11 +1580,11 @@ internal class SourceWriter : AbstractFileWriter
             // validate parameters
             foreach (var field in nodeFields)
             {
-                var pname = CamelCase(field.Name);
+                var pname = GetParameterName(field);
 
                 if (!IsAnyList(field.Type) && !IsOptional(field))
                 {
-                    WriteLine($"ArgHelper.ThrowIfNull({CamelCase(field.Name)});");
+                    WriteLine($"ArgHelper.ThrowIfNull({pname});");
                 }
 
                 if (field.Type == "SyntaxToken" && field.Kinds?.Count > 0)
@@ -1648,7 +1646,7 @@ internal class SourceWriter : AbstractFileWriter
             Write($"=> ({node.Name})InternalSyntax.SyntaxFactory.{StripPost(node.Name, "Syntax")}(");
         }
 
-        Write(CommaJoin(
+        WriteCommaSeparatedList(
             node.Kinds.Count > 1 ? "kind" : string.Empty,
             nodeFields.Select(f =>
             {
@@ -1656,36 +1654,36 @@ internal class SourceWriter : AbstractFileWriter
                 {
                     if (IsOptional(f))
                     {
-                        return $"(Syntax.InternalSyntax.SyntaxToken){CamelCase(f.Name)}?.Green";
+                        return $"(Syntax.InternalSyntax.SyntaxToken){GetParameterName(f)}?.Green";
                     }
                     else
                     {
-                        return $"(Syntax.InternalSyntax.SyntaxToken){CamelCase(f.Name)}.Green";
+                        return $"(Syntax.InternalSyntax.SyntaxToken){GetParameterName(f)}.Green";
                     }
                 }
                 else if (f.Type == "SyntaxList<SyntaxToken>")
                 {
-                    return $"{CamelCase(f.Name)}.Node.ToGreenList<InternalSyntax.SyntaxToken>()";
+                    return $"{GetParameterName(f)}.Node.ToGreenList<InternalSyntax.SyntaxToken>()";
                 }
                 else if (IsNodeList(f.Type))
                 {
-                    return $"{CamelCase(f.Name)}.Node.ToGreenList<InternalSyntax.{GetElementType(f.Type)}>()";
+                    return $"{GetParameterName(f)}.Node.ToGreenList<InternalSyntax.{GetElementType(f.Type)}>()";
                 }
                 else if (IsSeparatedNodeList(f.Type))
                 {
-                    return $"{CamelCase(f.Name)}.Node.ToGreenSeparatedList<InternalSyntax.{GetElementType(f.Type)}>()";
+                    return $"{GetParameterName(f)}.Node.ToGreenSeparatedList<InternalSyntax.{GetElementType(f.Type)}>()";
                 }
                 else if (f.Type == "SyntaxNodeOrTokenList")
                 {
-                    return $"{CamelCase(f.Name)}.Node.ToGreenList<GreenNode>()";
+                    return $"{GetParameterName(f)}.Node.ToGreenList<GreenNode>()";
                 }
                 else
                 {
-                    return $"{CamelCase(f.Name)} == null ? null : (InternalSyntax.{f.Type}){CamelCase(f.Name)}.Green";
+                    return $"{GetParameterName(f)} == null ? null : (InternalSyntax.{f.Type}){GetParameterName(f)}.Green";
                 }
             }),
             // values are at end
-            valueFields.Select(f => CamelCase(f.Name))));
+            valueFields.Select(f => GetParameterName(f)));
 
         WriteLine(").CreateRed();");
 
@@ -1803,21 +1801,21 @@ internal class SourceWriter : AbstractFileWriter
 
         WriteComment($"<summary>Creates a new {node.Name} instance.</summary>");
         Write($"public static {node.Name} {StripPost(node.Name, "Syntax")}(");
-        Write(CommaJoin(
+        WriteCommaSeparatedList(
             node.Kinds.Count > 1 ? "SyntaxKind kind" : string.Empty,
             node.Fields
                 .Where(factoryWithNoAutoCreatableTokenFields.Contains)
-                .Select(f => $"{GetRedPropertyType(f)} {CamelCase(f.Name)}")));
+                .Select(f => $"{GetRedPropertyType(f)} {GetParameterName(f)}"));
         WriteLine(")");
 
         using (Indent())
         {
             Write($"=> SyntaxFactory.{StripPost(node.Name, "Syntax")}(");
-            Write(CommaJoin(
+            WriteCommaSeparatedList(
                 node.Kinds.Count > 1 ? "kind" : string.Empty,
                 node.Fields.Select(f => factoryWithNoAutoCreatableTokenFields.Contains(f)
-                    ? CamelCase(f.Name)
-                    : GetDefaultValue(node, f))));
+                    ? GetParameterName(f)
+                    : GetDefaultValue(node, f)));
             WriteLine(");");
         }
     }
@@ -1886,7 +1884,7 @@ internal class SourceWriter : AbstractFileWriter
 
         WriteComment($"<summary>Creates a new {node.Name} instance.</summary>");
         Write($"public static {node.Name} {StripPost(node.Name, "Syntax")}(");
-        Write(CommaJoin(
+        WriteCommaSeparatedList(
             node.Kinds.Count > 1 ? "SyntaxKind kind" : string.Empty,
             node.Fields.Where(minimalFactoryfields.Contains).Select(f =>
             {
@@ -1899,20 +1897,20 @@ internal class SourceWriter : AbstractFileWriter
                         type = "string";
                     }
 
-                    return $"{type} {CamelCase(f.Name)}";
+                    return $"{type} {GetParameterName(f)}";
                 }
                 else
                 {
-                    return $"{type} {CamelCase(f.Name)} = default({type})";
+                    return $"{type} {GetParameterName(f)} = default({type})";
                 }
-            })));
+            }));
         WriteLine(")");
 
         using (Indent())
         {
             Write($"=> SyntaxFactory.{StripPost(node.Name, "Syntax")}(");
 
-            Write(CommaJoin(
+            WriteCommaSeparatedList(
                 node.Kinds.Count > 1 ? "kind" : string.Empty,
                 node.Fields.Select(f =>
                 {
@@ -1922,28 +1920,28 @@ internal class SourceWriter : AbstractFileWriter
                         {
                             if (withStringNames && CanAutoConvertFromString(f))
                             {
-                                return $"{GetStringConverterMethod(f)}({CamelCase(f.Name)})";
+                                return $"{GetStringConverterMethod(f)}({GetParameterName(f)})";
                             }
                             else
                             {
-                                return CamelCase(f.Name);
+                                return GetParameterName(f);
                             }
                         }
                         else
                         {
                             if (IsOptional(f) || IsAnyList(f.Type))
                             {
-                                return CamelCase(f.Name);
+                                return GetParameterName(f);
                             }
                             else
                             {
-                                return $"{CamelCase(f.Name)} ?? {GetDefaultValue(node, f)}";
+                                return $"{GetParameterName(f)} ?? {GetDefaultValue(node, f)}";
                             }
                         }
                     }
 
                     return GetDefaultValue(node, f);
-                })));
+                }));
             WriteLine(");");
         }
     }
@@ -2013,4 +2011,10 @@ internal class SourceWriter : AbstractFileWriter
             }
         }
     }
+
+    private static string GetFieldName(Field field)
+        => UnderscoreCamelCase(field.Name);
+
+    private static string GetParameterName(Field field)
+        => CamelCase(field.Name);
 }
