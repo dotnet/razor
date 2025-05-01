@@ -42,7 +42,8 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
         bool codeBlockBraceOnNextLine = false,
         bool insertSpaces = true,
         int tabSize = 4,
-        bool allowDiagnostics = false)
+        bool allowDiagnostics = false,
+        bool debugAssertsEnabled = true)
     {
         (input, expected) = ProcessFormattingContext(input, expected);
 
@@ -57,6 +58,11 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
             //var codeDocument = await snapshot.GetGeneratedOutputAsync(DisposalToken);
             //var csharpDocument = codeDocument.GetCSharpDocument();
             //Assert.False(csharpDocument.Diagnostics.Any(), "Error creating document:" + Environment.NewLine + string.Join(Environment.NewLine, csharpDocument.Diagnostics));
+        }
+
+        if (debugAssertsEnabled)
+        {
+            // Cohosting tests do not use this value
         }
 
         var generatedHtml = await RemoteServiceInvoker.TryInvokeAsync<IRemoteHtmlDocumentService, string?>(document.Project.Solution,
