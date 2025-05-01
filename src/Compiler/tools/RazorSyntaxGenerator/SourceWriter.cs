@@ -56,7 +56,6 @@ internal class SourceWriter : AbstractFileWriter
     {
         WriteFileHeader();
 
-        WriteLine();
         WriteLine("namespace Microsoft.AspNetCore.Razor.Language.Syntax");
         WriteLine("{");
         WriteLine();
@@ -68,7 +67,6 @@ internal class SourceWriter : AbstractFileWriter
     {
         WriteFileHeader();
 
-        WriteLine();
         WriteLine("namespace Microsoft.AspNetCore.Razor.Language.Syntax");
         WriteLine("{");
         //WriteLine("    using Microsoft.AspNetCore.Razor.Language.Syntax;");

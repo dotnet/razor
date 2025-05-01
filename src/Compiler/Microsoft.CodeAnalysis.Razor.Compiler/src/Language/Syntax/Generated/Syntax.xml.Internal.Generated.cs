@@ -9,8 +9,6 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 {
-
-
   internal abstract partial class RazorBlockSyntax : RazorSyntaxNode
   {
     internal RazorBlockSyntax(SyntaxKind kind, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
@@ -4701,7 +4699,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     public static RazorMetaCodeSyntax RazorMetaCode(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> metaCode, ISpanChunkGenerator chunkGenerator)
     {
-
       var result = new RazorMetaCodeSyntax(SyntaxKind.RazorMetaCode, metaCode.Node, chunkGenerator);
 
       return result;
@@ -4709,7 +4706,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     public static GenericBlockSyntax GenericBlock(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> children)
     {
-
       var result = new GenericBlockSyntax(SyntaxKind.GenericBlock, children.Node);
 
       return result;
@@ -4717,7 +4713,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     public static UnclassifiedTextLiteralSyntax UnclassifiedTextLiteral(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
-
       var result = new UnclassifiedTextLiteralSyntax(SyntaxKind.UnclassifiedTextLiteral, literalTokens.Node, chunkGenerator);
 
       return result;
@@ -4725,7 +4720,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     public static MarkupBlockSyntax MarkupBlock(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> children)
     {
-
       var result = new MarkupBlockSyntax(SyntaxKind.MarkupBlock, children.Node);
 
       return result;
@@ -4733,7 +4727,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     public static MarkupTransitionSyntax MarkupTransition(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> transitionTokens, ISpanChunkGenerator chunkGenerator)
     {
-
       var result = new MarkupTransitionSyntax(SyntaxKind.MarkupTransition, transitionTokens.Node, chunkGenerator);
 
       return result;
@@ -4741,7 +4734,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     public static MarkupTextLiteralSyntax MarkupTextLiteral(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
-
       var result = new MarkupTextLiteralSyntax(SyntaxKind.MarkupTextLiteral, literalTokens.Node, chunkGenerator);
 
       return result;
@@ -4749,7 +4741,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     public static MarkupEphemeralTextLiteralSyntax MarkupEphemeralTextLiteral(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
-
       var result = new MarkupEphemeralTextLiteralSyntax(SyntaxKind.MarkupEphemeralTextLiteral, literalTokens.Node, chunkGenerator);
 
       return result;
@@ -4757,7 +4748,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     public static MarkupCommentBlockSyntax MarkupCommentBlock(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> children)
     {
-
       var result = new MarkupCommentBlockSyntax(SyntaxKind.MarkupCommentBlock, children.Node);
 
       return result;
@@ -4792,7 +4782,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     public static MarkupMiscAttributeContentSyntax MarkupMiscAttributeContent(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> children)
     {
-
       var result = new MarkupMiscAttributeContentSyntax(SyntaxKind.MarkupMiscAttributeContent, children.Node);
 
       return result;
@@ -4800,7 +4789,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     public static MarkupLiteralAttributeValueSyntax MarkupLiteralAttributeValue(MarkupTextLiteralSyntax prefix, MarkupTextLiteralSyntax value)
     {
-
       var result = new MarkupLiteralAttributeValueSyntax(SyntaxKind.MarkupLiteralAttributeValue, prefix, value);
 
       return result;
@@ -4818,7 +4806,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     public static MarkupElementSyntax MarkupElement(MarkupStartTagSyntax startTag, Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> body, MarkupEndTagSyntax endTag)
     {
-
       var result = new MarkupElementSyntax(SyntaxKind.MarkupElement, startTag, body.Node, endTag);
 
       return result;
@@ -5081,7 +5068,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     public static MarkupTagHelperAttributeValueSyntax MarkupTagHelperAttributeValue(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> children)
     {
-
       var result = new MarkupTagHelperAttributeValueSyntax(SyntaxKind.MarkupTagHelperAttributeValue, children.Node);
 
       return result;
@@ -5120,7 +5106,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     public static CSharpCodeBlockSyntax CSharpCodeBlock(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> children)
     {
-
       var result = new CSharpCodeBlockSyntax(SyntaxKind.CSharpCodeBlock, children.Node);
 
       return result;
@@ -5145,7 +5130,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     public static CSharpStatementLiteralSyntax CSharpStatementLiteral(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
-
       var result = new CSharpStatementLiteralSyntax(SyntaxKind.CSharpStatementLiteral, literalTokens.Node, chunkGenerator);
 
       return result;
@@ -5153,7 +5137,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     public static CSharpExpressionLiteralSyntax CSharpExpressionLiteral(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
-
       var result = new CSharpExpressionLiteralSyntax(SyntaxKind.CSharpExpressionLiteral, literalTokens.Node, chunkGenerator);
 
       return result;
@@ -5161,7 +5144,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     public static CSharpEphemeralTextLiteralSyntax CSharpEphemeralTextLiteral(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
-
       var result = new CSharpEphemeralTextLiteralSyntax(SyntaxKind.CSharpEphemeralTextLiteral, literalTokens.Node, chunkGenerator);
 
       return result;
@@ -5169,7 +5151,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     public static CSharpTemplateBlockSyntax CSharpTemplateBlock(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> children)
     {
-
       var result = new CSharpTemplateBlockSyntax(SyntaxKind.CSharpTemplateBlock, children.Node);
 
       return result;

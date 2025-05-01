@@ -7,10 +7,8 @@ using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 
-
 namespace Microsoft.AspNetCore.Razor.Language.Syntax
 {
-
   internal partial class SyntaxVisitor<TResult>
   {
     /// <summary>Called when the visitor visits a RazorDocumentSyntax node.</summary>
@@ -809,7 +807,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
 
   internal static partial class SyntaxFactory
   {
-
     /// <summary>Creates a new RazorDocumentSyntax instance.</summary>
     public static RazorDocumentSyntax RazorDocument(RazorBlockSyntax document, SyntaxToken endOfFile)
     {

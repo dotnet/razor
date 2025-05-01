@@ -7,11 +7,8 @@ using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 
-
 namespace Microsoft.AspNetCore.Razor.Language.Syntax
 {
-
-
   internal abstract partial class RazorBlockSyntax : RazorSyntaxNode
   {
     internal RazorBlockSyntax(GreenNode green, SyntaxNode parent, int position)
