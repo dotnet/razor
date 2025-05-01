@@ -24,6 +24,8 @@ internal sealed class CohostConfigurationChangedService(
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostConfigurationChangedService>();
 
+    public int Order => WellKnownStartupOrder.Default;
+
     public Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
     {
         return RefreshOptionsAsync(requestContext, cancellationToken);
