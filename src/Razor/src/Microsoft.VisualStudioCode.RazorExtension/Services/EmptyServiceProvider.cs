@@ -9,7 +9,7 @@ internal sealed class EmptyServiceProvider : IRazorDocumentServiceProvider
 {
     public static readonly EmptyServiceProvider Instance = new();
 
-    public bool CanApplyChange => true;
+    public bool CanApplyChange => false;
 
     public bool SupportDiagnostics => true;
 
