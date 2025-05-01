@@ -9,9 +9,9 @@ internal sealed class EmptyServiceProvider : IRazorDocumentServiceProvider
 {
     public static readonly EmptyServiceProvider Instance = new();
 
-    public bool CanApplyChange => false;
+    public bool CanApplyChange => true;
 
-    public bool SupportDiagnostics => false;
+    public bool SupportDiagnostics => true;
 
     public TService? GetService<TService>() where TService : class
     {
