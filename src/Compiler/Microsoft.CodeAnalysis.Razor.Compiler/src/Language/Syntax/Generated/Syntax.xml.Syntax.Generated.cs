@@ -31,50 +31,27 @@ internal sealed partial class RazorDocumentSyntax : RazorSyntaxNode
     {
     }
 
-    public RazorBlockSyntax Document 
-    {
-        get
-        {
-            return GetRedAtZero(ref _document);
-        }
-    }
-
-    public SyntaxToken EndOfFile 
-    {
-        get
-        {
-            return GetRed(ref _endOfFile, 1);
-        }
-    }
+    public RazorBlockSyntax Document  => GetRedAtZero(ref _document);
+    public SyntaxToken EndOfFile  => GetRed(ref _endOfFile, 1);
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _document);
-            case 1: return GetRed(ref _endOfFile, 1);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _document),
+            1 => GetRed(ref _endOfFile, 1),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _document;
-            case 1: return _endOfFile;
-            default: return null;
-        }
-    }
+            0 => this._document,
+            1 => this._endOfFile,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitRazorDocument(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitRazorDocument(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitRazorDocument(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitRazorDocument(this);
 
     public RazorDocumentSyntax Update(RazorBlockSyntax document, SyntaxToken endOfFile)
     {
@@ -85,23 +62,14 @@ internal sealed partial class RazorDocumentSyntax : RazorSyntaxNode
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public RazorDocumentSyntax WithDocument(RazorBlockSyntax document)
-    {
-        return Update(document, EndOfFile);
-    }
-
-    public RazorDocumentSyntax WithEndOfFile(SyntaxToken endOfFile)
-    {
-        return Update(Document, endOfFile);
-    }
+    public RazorDocumentSyntax WithDocument(RazorBlockSyntax document) => Update(document, EndOfFile);
+    public RazorDocumentSyntax WithEndOfFile(SyntaxToken endOfFile) => Update(Document, endOfFile);
 }
 
 internal sealed partial class RazorCommentBlockSyntax : RazorSyntaxNode
@@ -117,80 +85,36 @@ internal sealed partial class RazorCommentBlockSyntax : RazorSyntaxNode
     {
     }
 
-    public SyntaxToken StartCommentTransition 
-    {
-        get
-        {
-            return GetRedAtZero(ref _startCommentTransition);
-        }
-    }
-
-    public SyntaxToken StartCommentStar 
-    {
-        get
-        {
-            return GetRed(ref _startCommentStar, 1);
-        }
-    }
-
-    public SyntaxToken Comment 
-    {
-        get
-        {
-            return GetRed(ref _comment, 2);
-        }
-    }
-
-    public SyntaxToken EndCommentStar 
-    {
-        get
-        {
-            return GetRed(ref _endCommentStar, 3);
-        }
-    }
-
-    public SyntaxToken EndCommentTransition 
-    {
-        get
-        {
-            return GetRed(ref _endCommentTransition, 4);
-        }
-    }
+    public SyntaxToken StartCommentTransition  => GetRedAtZero(ref _startCommentTransition);
+    public SyntaxToken StartCommentStar  => GetRed(ref _startCommentStar, 1);
+    public SyntaxToken Comment  => GetRed(ref _comment, 2);
+    public SyntaxToken EndCommentStar  => GetRed(ref _endCommentStar, 3);
+    public SyntaxToken EndCommentTransition  => GetRed(ref _endCommentTransition, 4);
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _startCommentTransition);
-            case 1: return GetRed(ref _startCommentStar, 1);
-            case 2: return GetRed(ref _comment, 2);
-            case 3: return GetRed(ref _endCommentStar, 3);
-            case 4: return GetRed(ref _endCommentTransition, 4);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _startCommentTransition),
+            1 => GetRed(ref _startCommentStar, 1),
+            2 => GetRed(ref _comment, 2),
+            3 => GetRed(ref _endCommentStar, 3),
+            4 => GetRed(ref _endCommentTransition, 4),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _startCommentTransition;
-            case 1: return _startCommentStar;
-            case 2: return _comment;
-            case 3: return _endCommentStar;
-            case 4: return _endCommentTransition;
-            default: return null;
-        }
-    }
+            0 => this._startCommentTransition,
+            1 => this._startCommentStar,
+            2 => this._comment,
+            3 => this._endCommentStar,
+            4 => this._endCommentTransition,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitRazorCommentBlock(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitRazorCommentBlock(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitRazorCommentBlock(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitRazorCommentBlock(this);
 
     public RazorCommentBlockSyntax Update(SyntaxToken startCommentTransition, SyntaxToken startCommentStar, SyntaxToken comment, SyntaxToken endCommentStar, SyntaxToken endCommentTransition)
     {
@@ -201,38 +125,17 @@ internal sealed partial class RazorCommentBlockSyntax : RazorSyntaxNode
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public RazorCommentBlockSyntax WithStartCommentTransition(SyntaxToken startCommentTransition)
-    {
-        return Update(startCommentTransition, StartCommentStar, Comment, EndCommentStar, EndCommentTransition);
-    }
-
-    public RazorCommentBlockSyntax WithStartCommentStar(SyntaxToken startCommentStar)
-    {
-        return Update(StartCommentTransition, startCommentStar, Comment, EndCommentStar, EndCommentTransition);
-    }
-
-    public RazorCommentBlockSyntax WithComment(SyntaxToken comment)
-    {
-        return Update(StartCommentTransition, StartCommentStar, comment, EndCommentStar, EndCommentTransition);
-    }
-
-    public RazorCommentBlockSyntax WithEndCommentStar(SyntaxToken endCommentStar)
-    {
-        return Update(StartCommentTransition, StartCommentStar, Comment, endCommentStar, EndCommentTransition);
-    }
-
-    public RazorCommentBlockSyntax WithEndCommentTransition(SyntaxToken endCommentTransition)
-    {
-        return Update(StartCommentTransition, StartCommentStar, Comment, EndCommentStar, endCommentTransition);
-    }
+    public RazorCommentBlockSyntax WithStartCommentTransition(SyntaxToken startCommentTransition) => Update(startCommentTransition, StartCommentStar, Comment, EndCommentStar, EndCommentTransition);
+    public RazorCommentBlockSyntax WithStartCommentStar(SyntaxToken startCommentStar) => Update(StartCommentTransition, startCommentStar, Comment, EndCommentStar, EndCommentTransition);
+    public RazorCommentBlockSyntax WithComment(SyntaxToken comment) => Update(StartCommentTransition, StartCommentStar, comment, EndCommentStar, EndCommentTransition);
+    public RazorCommentBlockSyntax WithEndCommentStar(SyntaxToken endCommentStar) => Update(StartCommentTransition, StartCommentStar, Comment, endCommentStar, EndCommentTransition);
+    public RazorCommentBlockSyntax WithEndCommentTransition(SyntaxToken endCommentTransition) => Update(StartCommentTransition, StartCommentStar, Comment, EndCommentStar, endCommentTransition);
 }
 
 internal sealed partial class RazorMetaCodeSyntax : RazorSyntaxNode
@@ -244,42 +147,15 @@ internal sealed partial class RazorMetaCodeSyntax : RazorSyntaxNode
     {
     }
 
-    public SyntaxList<SyntaxToken> MetaCode 
-    {
-        get
-        {
-            return new SyntaxList<SyntaxToken>(GetRed(ref _metaCode, 0));
-        }
-    }
+    public SyntaxList<SyntaxToken> MetaCode  => new SyntaxList<SyntaxToken>(GetRed(ref _metaCode, 0));
+    public ISpanChunkGenerator ChunkGenerator => ((InternalSyntax.RazorMetaCodeSyntax)Green).ChunkGenerator;
 
-    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.RazorMetaCodeSyntax)Green).ChunkGenerator; } }
+    internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._metaCode) : null;
 
-    internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return GetRedAtZero(ref _metaCode);
-            default: return null;
-        }
-    }
-    internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return _metaCode;
-            default: return null;
-        }
-    }
+    internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this._metaCode : null;
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitRazorMetaCode(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitRazorMetaCode(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitRazorMetaCode(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitRazorMetaCode(this);
 
     public RazorMetaCodeSyntax Update(SyntaxList<SyntaxToken> metaCode, ISpanChunkGenerator chunkGenerator)
     {
@@ -290,28 +166,16 @@ internal sealed partial class RazorMetaCodeSyntax : RazorSyntaxNode
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public RazorMetaCodeSyntax WithMetaCode(SyntaxList<SyntaxToken> metaCode)
-    {
-        return Update(metaCode, ChunkGenerator);
-    }
+    public RazorMetaCodeSyntax WithMetaCode(SyntaxList<SyntaxToken> metaCode) => Update(metaCode, ChunkGenerator);
+    public RazorMetaCodeSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator) => Update(MetaCode, chunkGenerator);
 
-    public RazorMetaCodeSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
-    {
-        return Update(MetaCode, chunkGenerator);
-    }
-
-    public RazorMetaCodeSyntax AddMetaCode(params SyntaxToken[] items)
-    {
-        return WithMetaCode(this.MetaCode.AddRange(items));
-    }
+    public RazorMetaCodeSyntax AddMetaCode(params SyntaxToken[] items) => WithMetaCode(this.MetaCode.AddRange(items));
 }
 
 internal sealed partial class GenericBlockSyntax : RazorBlockSyntax
@@ -323,40 +187,14 @@ internal sealed partial class GenericBlockSyntax : RazorBlockSyntax
     {
     }
 
-    public override SyntaxList<RazorSyntaxNode> Children 
-    {
-        get
-        {
-            return new SyntaxList<RazorSyntaxNode>(GetRed(ref _children, 0));
-        }
-    }
+    public override SyntaxList<RazorSyntaxNode> Children  => new SyntaxList<RazorSyntaxNode>(GetRed(ref _children, 0));
 
-    internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return GetRedAtZero(ref _children);
-            default: return null;
-        }
-    }
-    internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return _children;
-            default: return null;
-        }
-    }
+    internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._children) : null;
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitGenericBlock(this);
-    }
+    internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this._children : null;
 
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitGenericBlock(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitGenericBlock(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitGenericBlock(this);
 
     public GenericBlockSyntax Update(SyntaxList<RazorSyntaxNode> children)
     {
@@ -367,25 +205,17 @@ internal sealed partial class GenericBlockSyntax : RazorBlockSyntax
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
     internal override RazorBlockSyntax WithChildrenCore(SyntaxList<RazorSyntaxNode> children) => WithChildren(children);
-    public new GenericBlockSyntax WithChildren(SyntaxList<RazorSyntaxNode> children)
-    {
-        return Update(children);
-    }
+    public new GenericBlockSyntax WithChildren(SyntaxList<RazorSyntaxNode> children) => Update(children);
     internal override RazorBlockSyntax AddChildrenCore(params RazorSyntaxNode[] items) => AddChildren(items);
 
-    public new GenericBlockSyntax AddChildren(params RazorSyntaxNode[] items)
-    {
-        return WithChildren(this.Children.AddRange(items));
-    }
+    public new GenericBlockSyntax AddChildren(params RazorSyntaxNode[] items) => WithChildren(this.Children.AddRange(items));
 }
 
 internal sealed partial class UnclassifiedTextLiteralSyntax : RazorSyntaxNode
@@ -397,42 +227,15 @@ internal sealed partial class UnclassifiedTextLiteralSyntax : RazorSyntaxNode
     {
     }
 
-    public SyntaxList<SyntaxToken> LiteralTokens 
-    {
-        get
-        {
-            return new SyntaxList<SyntaxToken>(GetRed(ref _literalTokens, 0));
-        }
-    }
+    public SyntaxList<SyntaxToken> LiteralTokens  => new SyntaxList<SyntaxToken>(GetRed(ref _literalTokens, 0));
+    public ISpanChunkGenerator ChunkGenerator => ((InternalSyntax.UnclassifiedTextLiteralSyntax)Green).ChunkGenerator;
 
-    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.UnclassifiedTextLiteralSyntax)Green).ChunkGenerator; } }
+    internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._literalTokens) : null;
 
-    internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return GetRedAtZero(ref _literalTokens);
-            default: return null;
-        }
-    }
-    internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return _literalTokens;
-            default: return null;
-        }
-    }
+    internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this._literalTokens : null;
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitUnclassifiedTextLiteral(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitUnclassifiedTextLiteral(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitUnclassifiedTextLiteral(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitUnclassifiedTextLiteral(this);
 
     public UnclassifiedTextLiteralSyntax Update(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
@@ -443,28 +246,16 @@ internal sealed partial class UnclassifiedTextLiteralSyntax : RazorSyntaxNode
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public UnclassifiedTextLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens)
-    {
-        return Update(literalTokens, ChunkGenerator);
-    }
+    public UnclassifiedTextLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens) => Update(literalTokens, ChunkGenerator);
+    public UnclassifiedTextLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator) => Update(LiteralTokens, chunkGenerator);
 
-    public UnclassifiedTextLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
-    {
-        return Update(LiteralTokens, chunkGenerator);
-    }
-
-    public UnclassifiedTextLiteralSyntax AddLiteralTokens(params SyntaxToken[] items)
-    {
-        return WithLiteralTokens(this.LiteralTokens.AddRange(items));
-    }
+    public UnclassifiedTextLiteralSyntax AddLiteralTokens(params SyntaxToken[] items) => WithLiteralTokens(this.LiteralTokens.AddRange(items));
 }
 
 internal abstract partial class MarkupSyntaxNode : RazorSyntaxNode
@@ -484,40 +275,14 @@ internal sealed partial class MarkupBlockSyntax : RazorBlockSyntax
     {
     }
 
-    public override SyntaxList<RazorSyntaxNode> Children 
-    {
-        get
-        {
-            return new SyntaxList<RazorSyntaxNode>(GetRed(ref _children, 0));
-        }
-    }
+    public override SyntaxList<RazorSyntaxNode> Children  => new SyntaxList<RazorSyntaxNode>(GetRed(ref _children, 0));
 
-    internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return GetRedAtZero(ref _children);
-            default: return null;
-        }
-    }
-    internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return _children;
-            default: return null;
-        }
-    }
+    internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._children) : null;
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMarkupBlock(this);
-    }
+    internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this._children : null;
 
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitMarkupBlock(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupBlock(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupBlock(this);
 
     public MarkupBlockSyntax Update(SyntaxList<RazorSyntaxNode> children)
     {
@@ -528,25 +293,17 @@ internal sealed partial class MarkupBlockSyntax : RazorBlockSyntax
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
     internal override RazorBlockSyntax WithChildrenCore(SyntaxList<RazorSyntaxNode> children) => WithChildren(children);
-    public new MarkupBlockSyntax WithChildren(SyntaxList<RazorSyntaxNode> children)
-    {
-        return Update(children);
-    }
+    public new MarkupBlockSyntax WithChildren(SyntaxList<RazorSyntaxNode> children) => Update(children);
     internal override RazorBlockSyntax AddChildrenCore(params RazorSyntaxNode[] items) => AddChildren(items);
 
-    public new MarkupBlockSyntax AddChildren(params RazorSyntaxNode[] items)
-    {
-        return WithChildren(this.Children.AddRange(items));
-    }
+    public new MarkupBlockSyntax AddChildren(params RazorSyntaxNode[] items) => WithChildren(this.Children.AddRange(items));
 }
 
 internal sealed partial class MarkupTransitionSyntax : MarkupSyntaxNode
@@ -558,42 +315,15 @@ internal sealed partial class MarkupTransitionSyntax : MarkupSyntaxNode
     {
     }
 
-    public SyntaxList<SyntaxToken> TransitionTokens 
-    {
-        get
-        {
-            return new SyntaxList<SyntaxToken>(GetRed(ref _transitionTokens, 0));
-        }
-    }
+    public SyntaxList<SyntaxToken> TransitionTokens  => new SyntaxList<SyntaxToken>(GetRed(ref _transitionTokens, 0));
+    public ISpanChunkGenerator ChunkGenerator => ((InternalSyntax.MarkupTransitionSyntax)Green).ChunkGenerator;
 
-    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.MarkupTransitionSyntax)Green).ChunkGenerator; } }
+    internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._transitionTokens) : null;
 
-    internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return GetRedAtZero(ref _transitionTokens);
-            default: return null;
-        }
-    }
-    internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return _transitionTokens;
-            default: return null;
-        }
-    }
+    internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this._transitionTokens : null;
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMarkupTransition(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitMarkupTransition(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupTransition(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupTransition(this);
 
     public MarkupTransitionSyntax Update(SyntaxList<SyntaxToken> transitionTokens, ISpanChunkGenerator chunkGenerator)
     {
@@ -604,28 +334,16 @@ internal sealed partial class MarkupTransitionSyntax : MarkupSyntaxNode
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public MarkupTransitionSyntax WithTransitionTokens(SyntaxList<SyntaxToken> transitionTokens)
-    {
-        return Update(transitionTokens, ChunkGenerator);
-    }
+    public MarkupTransitionSyntax WithTransitionTokens(SyntaxList<SyntaxToken> transitionTokens) => Update(transitionTokens, ChunkGenerator);
+    public MarkupTransitionSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator) => Update(TransitionTokens, chunkGenerator);
 
-    public MarkupTransitionSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
-    {
-        return Update(TransitionTokens, chunkGenerator);
-    }
-
-    public MarkupTransitionSyntax AddTransitionTokens(params SyntaxToken[] items)
-    {
-        return WithTransitionTokens(this.TransitionTokens.AddRange(items));
-    }
+    public MarkupTransitionSyntax AddTransitionTokens(params SyntaxToken[] items) => WithTransitionTokens(this.TransitionTokens.AddRange(items));
 }
 
 internal sealed partial class MarkupTextLiteralSyntax : MarkupSyntaxNode
@@ -637,42 +355,15 @@ internal sealed partial class MarkupTextLiteralSyntax : MarkupSyntaxNode
     {
     }
 
-    public SyntaxList<SyntaxToken> LiteralTokens 
-    {
-        get
-        {
-            return new SyntaxList<SyntaxToken>(GetRed(ref _literalTokens, 0));
-        }
-    }
+    public SyntaxList<SyntaxToken> LiteralTokens  => new SyntaxList<SyntaxToken>(GetRed(ref _literalTokens, 0));
+    public ISpanChunkGenerator ChunkGenerator => ((InternalSyntax.MarkupTextLiteralSyntax)Green).ChunkGenerator;
 
-    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.MarkupTextLiteralSyntax)Green).ChunkGenerator; } }
+    internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._literalTokens) : null;
 
-    internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return GetRedAtZero(ref _literalTokens);
-            default: return null;
-        }
-    }
-    internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return _literalTokens;
-            default: return null;
-        }
-    }
+    internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this._literalTokens : null;
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMarkupTextLiteral(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitMarkupTextLiteral(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupTextLiteral(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupTextLiteral(this);
 
     public MarkupTextLiteralSyntax Update(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
@@ -683,28 +374,16 @@ internal sealed partial class MarkupTextLiteralSyntax : MarkupSyntaxNode
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public MarkupTextLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens)
-    {
-        return Update(literalTokens, ChunkGenerator);
-    }
+    public MarkupTextLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens) => Update(literalTokens, ChunkGenerator);
+    public MarkupTextLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator) => Update(LiteralTokens, chunkGenerator);
 
-    public MarkupTextLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
-    {
-        return Update(LiteralTokens, chunkGenerator);
-    }
-
-    public MarkupTextLiteralSyntax AddLiteralTokens(params SyntaxToken[] items)
-    {
-        return WithLiteralTokens(this.LiteralTokens.AddRange(items));
-    }
+    public MarkupTextLiteralSyntax AddLiteralTokens(params SyntaxToken[] items) => WithLiteralTokens(this.LiteralTokens.AddRange(items));
 }
 
 internal sealed partial class MarkupEphemeralTextLiteralSyntax : MarkupSyntaxNode
@@ -716,42 +395,15 @@ internal sealed partial class MarkupEphemeralTextLiteralSyntax : MarkupSyntaxNod
     {
     }
 
-    public SyntaxList<SyntaxToken> LiteralTokens 
-    {
-        get
-        {
-            return new SyntaxList<SyntaxToken>(GetRed(ref _literalTokens, 0));
-        }
-    }
+    public SyntaxList<SyntaxToken> LiteralTokens  => new SyntaxList<SyntaxToken>(GetRed(ref _literalTokens, 0));
+    public ISpanChunkGenerator ChunkGenerator => ((InternalSyntax.MarkupEphemeralTextLiteralSyntax)Green).ChunkGenerator;
 
-    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.MarkupEphemeralTextLiteralSyntax)Green).ChunkGenerator; } }
+    internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._literalTokens) : null;
 
-    internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return GetRedAtZero(ref _literalTokens);
-            default: return null;
-        }
-    }
-    internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return _literalTokens;
-            default: return null;
-        }
-    }
+    internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this._literalTokens : null;
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMarkupEphemeralTextLiteral(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitMarkupEphemeralTextLiteral(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupEphemeralTextLiteral(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupEphemeralTextLiteral(this);
 
     public MarkupEphemeralTextLiteralSyntax Update(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
@@ -762,28 +414,16 @@ internal sealed partial class MarkupEphemeralTextLiteralSyntax : MarkupSyntaxNod
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public MarkupEphemeralTextLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens)
-    {
-        return Update(literalTokens, ChunkGenerator);
-    }
+    public MarkupEphemeralTextLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens) => Update(literalTokens, ChunkGenerator);
+    public MarkupEphemeralTextLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator) => Update(LiteralTokens, chunkGenerator);
 
-    public MarkupEphemeralTextLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
-    {
-        return Update(LiteralTokens, chunkGenerator);
-    }
-
-    public MarkupEphemeralTextLiteralSyntax AddLiteralTokens(params SyntaxToken[] items)
-    {
-        return WithLiteralTokens(this.LiteralTokens.AddRange(items));
-    }
+    public MarkupEphemeralTextLiteralSyntax AddLiteralTokens(params SyntaxToken[] items) => WithLiteralTokens(this.LiteralTokens.AddRange(items));
 }
 
 internal sealed partial class MarkupCommentBlockSyntax : RazorBlockSyntax
@@ -795,40 +435,14 @@ internal sealed partial class MarkupCommentBlockSyntax : RazorBlockSyntax
     {
     }
 
-    public override SyntaxList<RazorSyntaxNode> Children 
-    {
-        get
-        {
-            return new SyntaxList<RazorSyntaxNode>(GetRed(ref _children, 0));
-        }
-    }
+    public override SyntaxList<RazorSyntaxNode> Children  => new SyntaxList<RazorSyntaxNode>(GetRed(ref _children, 0));
 
-    internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return GetRedAtZero(ref _children);
-            default: return null;
-        }
-    }
-    internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return _children;
-            default: return null;
-        }
-    }
+    internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._children) : null;
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMarkupCommentBlock(this);
-    }
+    internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this._children : null;
 
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitMarkupCommentBlock(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupCommentBlock(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupCommentBlock(this);
 
     public MarkupCommentBlockSyntax Update(SyntaxList<RazorSyntaxNode> children)
     {
@@ -839,25 +453,17 @@ internal sealed partial class MarkupCommentBlockSyntax : RazorBlockSyntax
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
     internal override RazorBlockSyntax WithChildrenCore(SyntaxList<RazorSyntaxNode> children) => WithChildren(children);
-    public new MarkupCommentBlockSyntax WithChildren(SyntaxList<RazorSyntaxNode> children)
-    {
-        return Update(children);
-    }
+    public new MarkupCommentBlockSyntax WithChildren(SyntaxList<RazorSyntaxNode> children) => Update(children);
     internal override RazorBlockSyntax AddChildrenCore(params RazorSyntaxNode[] items) => AddChildren(items);
 
-    public new MarkupCommentBlockSyntax AddChildren(params RazorSyntaxNode[] items)
-    {
-        return WithChildren(this.Children.AddRange(items));
-    }
+    public new MarkupCommentBlockSyntax AddChildren(params RazorSyntaxNode[] items) => WithChildren(this.Children.AddRange(items));
 }
 
 internal sealed partial class MarkupMinimizedAttributeBlockSyntax : MarkupSyntaxNode
@@ -870,50 +476,27 @@ internal sealed partial class MarkupMinimizedAttributeBlockSyntax : MarkupSyntax
     {
     }
 
-    public MarkupTextLiteralSyntax NamePrefix 
-    {
-        get
-        {
-            return GetRedAtZero(ref _namePrefix);
-        }
-    }
-
-    public MarkupTextLiteralSyntax Name 
-    {
-        get
-        {
-            return GetRed(ref _name, 1);
-        }
-    }
+    public MarkupTextLiteralSyntax NamePrefix  => GetRedAtZero(ref _namePrefix);
+    public MarkupTextLiteralSyntax Name  => GetRed(ref _name, 1);
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _namePrefix);
-            case 1: return GetRed(ref _name, 1);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _namePrefix),
+            1 => GetRed(ref _name, 1),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _namePrefix;
-            case 1: return _name;
-            default: return null;
-        }
-    }
+            0 => this._namePrefix,
+            1 => this._name,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMarkupMinimizedAttributeBlock(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitMarkupMinimizedAttributeBlock(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupMinimizedAttributeBlock(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupMinimizedAttributeBlock(this);
 
     public MarkupMinimizedAttributeBlockSyntax Update(MarkupTextLiteralSyntax namePrefix, MarkupTextLiteralSyntax name)
     {
@@ -924,28 +507,16 @@ internal sealed partial class MarkupMinimizedAttributeBlockSyntax : MarkupSyntax
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public MarkupMinimizedAttributeBlockSyntax WithNamePrefix(MarkupTextLiteralSyntax namePrefix)
-    {
-        return Update(namePrefix, Name);
-    }
+    public MarkupMinimizedAttributeBlockSyntax WithNamePrefix(MarkupTextLiteralSyntax namePrefix) => Update(namePrefix, Name);
+    public MarkupMinimizedAttributeBlockSyntax WithName(MarkupTextLiteralSyntax name) => Update(NamePrefix, name);
 
-    public MarkupMinimizedAttributeBlockSyntax WithName(MarkupTextLiteralSyntax name)
-    {
-        return Update(NamePrefix, name);
-    }
-
-    public MarkupMinimizedAttributeBlockSyntax AddNameLiteralTokens(params SyntaxToken[] items)
-    {
-        return this.WithName(this.Name.WithLiteralTokens(this.Name.LiteralTokens.AddRange(items)));
-    }
+    public MarkupMinimizedAttributeBlockSyntax AddNameLiteralTokens(params SyntaxToken[] items) => WithName(this.Name.WithLiteralTokens(this.Name.LiteralTokens.AddRange(items)));
 }
 
 internal sealed partial class MarkupAttributeBlockSyntax : MarkupSyntaxNode
@@ -963,100 +534,42 @@ internal sealed partial class MarkupAttributeBlockSyntax : MarkupSyntaxNode
     {
     }
 
-    public MarkupTextLiteralSyntax NamePrefix 
-    {
-        get
-        {
-            return GetRedAtZero(ref _namePrefix);
-        }
-    }
-
-    public MarkupTextLiteralSyntax Name 
-    {
-        get
-        {
-            return GetRed(ref _name, 1);
-        }
-    }
-
-    public MarkupTextLiteralSyntax NameSuffix 
-    {
-        get
-        {
-            return GetRed(ref _nameSuffix, 2);
-        }
-    }
-
-    public SyntaxToken EqualsToken 
-    {
-        get
-        {
-            return GetRed(ref _equalsToken, 3);
-        }
-    }
-
-    public MarkupTextLiteralSyntax ValuePrefix 
-    {
-        get
-        {
-            return GetRed(ref _valuePrefix, 4);
-        }
-    }
-
-    public RazorBlockSyntax Value 
-    {
-        get
-        {
-            return GetRed(ref _value, 5);
-        }
-    }
-
-    public MarkupTextLiteralSyntax ValueSuffix 
-    {
-        get
-        {
-            return GetRed(ref _valueSuffix, 6);
-        }
-    }
+    public MarkupTextLiteralSyntax NamePrefix  => GetRedAtZero(ref _namePrefix);
+    public MarkupTextLiteralSyntax Name  => GetRed(ref _name, 1);
+    public MarkupTextLiteralSyntax NameSuffix  => GetRed(ref _nameSuffix, 2);
+    public SyntaxToken EqualsToken  => GetRed(ref _equalsToken, 3);
+    public MarkupTextLiteralSyntax ValuePrefix  => GetRed(ref _valuePrefix, 4);
+    public RazorBlockSyntax Value  => GetRed(ref _value, 5);
+    public MarkupTextLiteralSyntax ValueSuffix  => GetRed(ref _valueSuffix, 6);
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _namePrefix);
-            case 1: return GetRed(ref _name, 1);
-            case 2: return GetRed(ref _nameSuffix, 2);
-            case 3: return GetRed(ref _equalsToken, 3);
-            case 4: return GetRed(ref _valuePrefix, 4);
-            case 5: return GetRed(ref _value, 5);
-            case 6: return GetRed(ref _valueSuffix, 6);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _namePrefix),
+            1 => GetRed(ref _name, 1),
+            2 => GetRed(ref _nameSuffix, 2),
+            3 => GetRed(ref _equalsToken, 3),
+            4 => GetRed(ref _valuePrefix, 4),
+            5 => GetRed(ref _value, 5),
+            6 => GetRed(ref _valueSuffix, 6),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _namePrefix;
-            case 1: return _name;
-            case 2: return _nameSuffix;
-            case 3: return _equalsToken;
-            case 4: return _valuePrefix;
-            case 5: return _value;
-            case 6: return _valueSuffix;
-            default: return null;
-        }
-    }
+            0 => this._namePrefix,
+            1 => this._name,
+            2 => this._nameSuffix,
+            3 => this._equalsToken,
+            4 => this._valuePrefix,
+            5 => this._value,
+            6 => this._valueSuffix,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMarkupAttributeBlock(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitMarkupAttributeBlock(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupAttributeBlock(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupAttributeBlock(this);
 
     public MarkupAttributeBlockSyntax Update(MarkupTextLiteralSyntax namePrefix, MarkupTextLiteralSyntax name, MarkupTextLiteralSyntax nameSuffix, SyntaxToken equalsToken, MarkupTextLiteralSyntax valuePrefix, RazorBlockSyntax value, MarkupTextLiteralSyntax valueSuffix)
     {
@@ -1067,53 +580,21 @@ internal sealed partial class MarkupAttributeBlockSyntax : MarkupSyntaxNode
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public MarkupAttributeBlockSyntax WithNamePrefix(MarkupTextLiteralSyntax namePrefix)
-    {
-        return Update(namePrefix, Name, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
-    }
+    public MarkupAttributeBlockSyntax WithNamePrefix(MarkupTextLiteralSyntax namePrefix) => Update(namePrefix, Name, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
+    public MarkupAttributeBlockSyntax WithName(MarkupTextLiteralSyntax name) => Update(NamePrefix, name, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
+    public MarkupAttributeBlockSyntax WithNameSuffix(MarkupTextLiteralSyntax nameSuffix) => Update(NamePrefix, Name, nameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
+    public MarkupAttributeBlockSyntax WithEqualsToken(SyntaxToken equalsToken) => Update(NamePrefix, Name, NameSuffix, equalsToken, ValuePrefix, Value, ValueSuffix);
+    public MarkupAttributeBlockSyntax WithValuePrefix(MarkupTextLiteralSyntax valuePrefix) => Update(NamePrefix, Name, NameSuffix, EqualsToken, valuePrefix, Value, ValueSuffix);
+    public MarkupAttributeBlockSyntax WithValue(RazorBlockSyntax value) => Update(NamePrefix, Name, NameSuffix, EqualsToken, ValuePrefix, value, ValueSuffix);
+    public MarkupAttributeBlockSyntax WithValueSuffix(MarkupTextLiteralSyntax valueSuffix) => Update(NamePrefix, Name, NameSuffix, EqualsToken, ValuePrefix, Value, valueSuffix);
 
-    public MarkupAttributeBlockSyntax WithName(MarkupTextLiteralSyntax name)
-    {
-        return Update(NamePrefix, name, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
-    }
-
-    public MarkupAttributeBlockSyntax WithNameSuffix(MarkupTextLiteralSyntax nameSuffix)
-    {
-        return Update(NamePrefix, Name, nameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
-    }
-
-    public MarkupAttributeBlockSyntax WithEqualsToken(SyntaxToken equalsToken)
-    {
-        return Update(NamePrefix, Name, NameSuffix, equalsToken, ValuePrefix, Value, ValueSuffix);
-    }
-
-    public MarkupAttributeBlockSyntax WithValuePrefix(MarkupTextLiteralSyntax valuePrefix)
-    {
-        return Update(NamePrefix, Name, NameSuffix, EqualsToken, valuePrefix, Value, ValueSuffix);
-    }
-
-    public MarkupAttributeBlockSyntax WithValue(RazorBlockSyntax value)
-    {
-        return Update(NamePrefix, Name, NameSuffix, EqualsToken, ValuePrefix, value, ValueSuffix);
-    }
-
-    public MarkupAttributeBlockSyntax WithValueSuffix(MarkupTextLiteralSyntax valueSuffix)
-    {
-        return Update(NamePrefix, Name, NameSuffix, EqualsToken, ValuePrefix, Value, valueSuffix);
-    }
-
-    public MarkupAttributeBlockSyntax AddNameLiteralTokens(params SyntaxToken[] items)
-    {
-        return this.WithName(this.Name.WithLiteralTokens(this.Name.LiteralTokens.AddRange(items)));
-    }
+    public MarkupAttributeBlockSyntax AddNameLiteralTokens(params SyntaxToken[] items) => WithName(this.Name.WithLiteralTokens(this.Name.LiteralTokens.AddRange(items)));
 }
 
 internal sealed partial class MarkupMiscAttributeContentSyntax : MarkupSyntaxNode
@@ -1125,40 +606,14 @@ internal sealed partial class MarkupMiscAttributeContentSyntax : MarkupSyntaxNod
     {
     }
 
-    public SyntaxList<RazorSyntaxNode> Children 
-    {
-        get
-        {
-            return new SyntaxList<RazorSyntaxNode>(GetRed(ref _children, 0));
-        }
-    }
+    public SyntaxList<RazorSyntaxNode> Children  => new SyntaxList<RazorSyntaxNode>(GetRed(ref _children, 0));
 
-    internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return GetRedAtZero(ref _children);
-            default: return null;
-        }
-    }
-    internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return _children;
-            default: return null;
-        }
-    }
+    internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._children) : null;
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMarkupMiscAttributeContent(this);
-    }
+    internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this._children : null;
 
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitMarkupMiscAttributeContent(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupMiscAttributeContent(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupMiscAttributeContent(this);
 
     public MarkupMiscAttributeContentSyntax Update(SyntaxList<RazorSyntaxNode> children)
     {
@@ -1169,23 +624,15 @@ internal sealed partial class MarkupMiscAttributeContentSyntax : MarkupSyntaxNod
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public MarkupMiscAttributeContentSyntax WithChildren(SyntaxList<RazorSyntaxNode> children)
-    {
-        return Update(children);
-    }
+    public MarkupMiscAttributeContentSyntax WithChildren(SyntaxList<RazorSyntaxNode> children) => Update(children);
 
-    public MarkupMiscAttributeContentSyntax AddChildren(params RazorSyntaxNode[] items)
-    {
-        return WithChildren(this.Children.AddRange(items));
-    }
+    public MarkupMiscAttributeContentSyntax AddChildren(params RazorSyntaxNode[] items) => WithChildren(this.Children.AddRange(items));
 }
 
 internal sealed partial class MarkupLiteralAttributeValueSyntax : MarkupSyntaxNode
@@ -1198,50 +645,27 @@ internal sealed partial class MarkupLiteralAttributeValueSyntax : MarkupSyntaxNo
     {
     }
 
-    public MarkupTextLiteralSyntax Prefix 
-    {
-        get
-        {
-            return GetRedAtZero(ref _prefix);
-        }
-    }
-
-    public MarkupTextLiteralSyntax Value 
-    {
-        get
-        {
-            return GetRed(ref _value, 1);
-        }
-    }
+    public MarkupTextLiteralSyntax Prefix  => GetRedAtZero(ref _prefix);
+    public MarkupTextLiteralSyntax Value  => GetRed(ref _value, 1);
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _prefix);
-            case 1: return GetRed(ref _value, 1);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _prefix),
+            1 => GetRed(ref _value, 1),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _prefix;
-            case 1: return _value;
-            default: return null;
-        }
-    }
+            0 => this._prefix,
+            1 => this._value,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMarkupLiteralAttributeValue(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitMarkupLiteralAttributeValue(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupLiteralAttributeValue(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupLiteralAttributeValue(this);
 
     public MarkupLiteralAttributeValueSyntax Update(MarkupTextLiteralSyntax prefix, MarkupTextLiteralSyntax value)
     {
@@ -1252,23 +676,14 @@ internal sealed partial class MarkupLiteralAttributeValueSyntax : MarkupSyntaxNo
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public MarkupLiteralAttributeValueSyntax WithPrefix(MarkupTextLiteralSyntax prefix)
-    {
-        return Update(prefix, Value);
-    }
-
-    public MarkupLiteralAttributeValueSyntax WithValue(MarkupTextLiteralSyntax value)
-    {
-        return Update(Prefix, value);
-    }
+    public MarkupLiteralAttributeValueSyntax WithPrefix(MarkupTextLiteralSyntax prefix) => Update(prefix, Value);
+    public MarkupLiteralAttributeValueSyntax WithValue(MarkupTextLiteralSyntax value) => Update(Prefix, value);
 }
 
 internal sealed partial class MarkupDynamicAttributeValueSyntax : MarkupSyntaxNode
@@ -1281,50 +696,27 @@ internal sealed partial class MarkupDynamicAttributeValueSyntax : MarkupSyntaxNo
     {
     }
 
-    public MarkupTextLiteralSyntax Prefix 
-    {
-        get
-        {
-            return GetRedAtZero(ref _prefix);
-        }
-    }
-
-    public RazorBlockSyntax Value 
-    {
-        get
-        {
-            return GetRed(ref _value, 1);
-        }
-    }
+    public MarkupTextLiteralSyntax Prefix  => GetRedAtZero(ref _prefix);
+    public RazorBlockSyntax Value  => GetRed(ref _value, 1);
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _prefix);
-            case 1: return GetRed(ref _value, 1);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _prefix),
+            1 => GetRed(ref _value, 1),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _prefix;
-            case 1: return _value;
-            default: return null;
-        }
-    }
+            0 => this._prefix,
+            1 => this._value,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMarkupDynamicAttributeValue(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitMarkupDynamicAttributeValue(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupDynamicAttributeValue(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupDynamicAttributeValue(this);
 
     public MarkupDynamicAttributeValueSyntax Update(MarkupTextLiteralSyntax prefix, RazorBlockSyntax value)
     {
@@ -1335,23 +727,14 @@ internal sealed partial class MarkupDynamicAttributeValueSyntax : MarkupSyntaxNo
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public MarkupDynamicAttributeValueSyntax WithPrefix(MarkupTextLiteralSyntax prefix)
-    {
-        return Update(prefix, Value);
-    }
-
-    public MarkupDynamicAttributeValueSyntax WithValue(RazorBlockSyntax value)
-    {
-        return Update(Prefix, value);
-    }
+    public MarkupDynamicAttributeValueSyntax WithPrefix(MarkupTextLiteralSyntax prefix) => Update(prefix, Value);
+    public MarkupDynamicAttributeValueSyntax WithValue(RazorBlockSyntax value) => Update(Prefix, value);
 }
 
 internal sealed partial class MarkupElementSyntax : MarkupSyntaxNode
@@ -1365,60 +748,30 @@ internal sealed partial class MarkupElementSyntax : MarkupSyntaxNode
     {
     }
 
-    public MarkupStartTagSyntax StartTag 
-    {
-        get
-        {
-            return GetRedAtZero(ref _startTag);
-        }
-    }
-
-    public SyntaxList<RazorSyntaxNode> Body 
-    {
-        get
-        {
-            return new SyntaxList<RazorSyntaxNode>(GetRed(ref _body, 1));
-        }
-    }
-
-    public MarkupEndTagSyntax EndTag 
-    {
-        get
-        {
-            return GetRed(ref _endTag, 2);
-        }
-    }
+    public MarkupStartTagSyntax StartTag  => GetRedAtZero(ref _startTag);
+    public SyntaxList<RazorSyntaxNode> Body  => new SyntaxList<RazorSyntaxNode>(GetRed(ref _body, 1));
+    public MarkupEndTagSyntax EndTag  => GetRed(ref _endTag, 2);
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _startTag);
-            case 1: return GetRed(ref _body, 1);
-            case 2: return GetRed(ref _endTag, 2);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _startTag),
+            1 => GetRed(ref _body, 1),
+            2 => GetRed(ref _endTag, 2),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _startTag;
-            case 1: return _body;
-            case 2: return _endTag;
-            default: return null;
-        }
-    }
+            0 => this._startTag,
+            1 => this._body,
+            2 => this._endTag,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMarkupElement(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitMarkupElement(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupElement(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupElement(this);
 
     public MarkupElementSyntax Update(MarkupStartTagSyntax startTag, SyntaxList<RazorSyntaxNode> body, MarkupEndTagSyntax endTag)
     {
@@ -1429,33 +782,17 @@ internal sealed partial class MarkupElementSyntax : MarkupSyntaxNode
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public MarkupElementSyntax WithStartTag(MarkupStartTagSyntax startTag)
-    {
-        return Update(startTag, Body, EndTag);
-    }
+    public MarkupElementSyntax WithStartTag(MarkupStartTagSyntax startTag) => Update(startTag, Body, EndTag);
+    public MarkupElementSyntax WithBody(SyntaxList<RazorSyntaxNode> body) => Update(StartTag, body, EndTag);
+    public MarkupElementSyntax WithEndTag(MarkupEndTagSyntax endTag) => Update(StartTag, Body, endTag);
 
-    public MarkupElementSyntax WithBody(SyntaxList<RazorSyntaxNode> body)
-    {
-        return Update(StartTag, body, EndTag);
-    }
-
-    public MarkupElementSyntax WithEndTag(MarkupEndTagSyntax endTag)
-    {
-        return Update(StartTag, Body, endTag);
-    }
-
-    public MarkupElementSyntax AddBody(params RazorSyntaxNode[] items)
-    {
-        return WithBody(this.Body.AddRange(items));
-    }
+    public MarkupElementSyntax AddBody(params RazorSyntaxNode[] items) => WithBody(this.Body.AddRange(items));
 }
 
 internal sealed partial class MarkupStartTagSyntax : MarkupSyntaxNode
@@ -1472,92 +809,40 @@ internal sealed partial class MarkupStartTagSyntax : MarkupSyntaxNode
     {
     }
 
-    public SyntaxToken OpenAngle 
-    {
-        get
-        {
-            return GetRedAtZero(ref _openAngle);
-        }
-    }
-
-    public SyntaxToken Bang 
-    {
-        get
-        {
-            return GetRed(ref _bang, 1);
-        }
-    }
-
-    public SyntaxToken Name 
-    {
-        get
-        {
-            return GetRed(ref _name, 2);
-        }
-    }
-
-    public SyntaxList<RazorSyntaxNode> Attributes 
-    {
-        get
-        {
-            return new SyntaxList<RazorSyntaxNode>(GetRed(ref _attributes, 3));
-        }
-    }
-
-    public SyntaxToken ForwardSlash 
-    {
-        get
-        {
-            return GetRed(ref _forwardSlash, 4);
-        }
-    }
-
-    public SyntaxToken CloseAngle 
-    {
-        get
-        {
-            return GetRed(ref _closeAngle, 5);
-        }
-    }
-
-    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.MarkupStartTagSyntax)Green).ChunkGenerator; } }
+    public SyntaxToken OpenAngle  => GetRedAtZero(ref _openAngle);
+    public SyntaxToken Bang  => GetRed(ref _bang, 1);
+    public SyntaxToken Name  => GetRed(ref _name, 2);
+    public SyntaxList<RazorSyntaxNode> Attributes  => new SyntaxList<RazorSyntaxNode>(GetRed(ref _attributes, 3));
+    public SyntaxToken ForwardSlash  => GetRed(ref _forwardSlash, 4);
+    public SyntaxToken CloseAngle  => GetRed(ref _closeAngle, 5);
+    public ISpanChunkGenerator ChunkGenerator => ((InternalSyntax.MarkupStartTagSyntax)Green).ChunkGenerator;
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _openAngle);
-            case 1: return GetRed(ref _bang, 1);
-            case 2: return GetRed(ref _name, 2);
-            case 3: return GetRed(ref _attributes, 3);
-            case 4: return GetRed(ref _forwardSlash, 4);
-            case 5: return GetRed(ref _closeAngle, 5);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _openAngle),
+            1 => GetRed(ref _bang, 1),
+            2 => GetRed(ref _name, 2),
+            3 => GetRed(ref _attributes, 3),
+            4 => GetRed(ref _forwardSlash, 4),
+            5 => GetRed(ref _closeAngle, 5),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _openAngle;
-            case 1: return _bang;
-            case 2: return _name;
-            case 3: return _attributes;
-            case 4: return _forwardSlash;
-            case 5: return _closeAngle;
-            default: return null;
-        }
-    }
+            0 => this._openAngle,
+            1 => this._bang,
+            2 => this._name,
+            3 => this._attributes,
+            4 => this._forwardSlash,
+            5 => this._closeAngle,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMarkupStartTag(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitMarkupStartTag(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupStartTag(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupStartTag(this);
 
     public MarkupStartTagSyntax Update(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
     {
@@ -1568,53 +853,21 @@ internal sealed partial class MarkupStartTagSyntax : MarkupSyntaxNode
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public MarkupStartTagSyntax WithOpenAngle(SyntaxToken openAngle)
-    {
-        return Update(openAngle, Bang, Name, Attributes, ForwardSlash, CloseAngle, ChunkGenerator);
-    }
+    public MarkupStartTagSyntax WithOpenAngle(SyntaxToken openAngle) => Update(openAngle, Bang, Name, Attributes, ForwardSlash, CloseAngle, ChunkGenerator);
+    public MarkupStartTagSyntax WithBang(SyntaxToken bang) => Update(OpenAngle, bang, Name, Attributes, ForwardSlash, CloseAngle, ChunkGenerator);
+    public MarkupStartTagSyntax WithName(SyntaxToken name) => Update(OpenAngle, Bang, name, Attributes, ForwardSlash, CloseAngle, ChunkGenerator);
+    public MarkupStartTagSyntax WithAttributes(SyntaxList<RazorSyntaxNode> attributes) => Update(OpenAngle, Bang, Name, attributes, ForwardSlash, CloseAngle, ChunkGenerator);
+    public MarkupStartTagSyntax WithForwardSlash(SyntaxToken forwardSlash) => Update(OpenAngle, Bang, Name, Attributes, forwardSlash, CloseAngle, ChunkGenerator);
+    public MarkupStartTagSyntax WithCloseAngle(SyntaxToken closeAngle) => Update(OpenAngle, Bang, Name, Attributes, ForwardSlash, closeAngle, ChunkGenerator);
+    public MarkupStartTagSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator) => Update(OpenAngle, Bang, Name, Attributes, ForwardSlash, CloseAngle, chunkGenerator);
 
-    public MarkupStartTagSyntax WithBang(SyntaxToken bang)
-    {
-        return Update(OpenAngle, bang, Name, Attributes, ForwardSlash, CloseAngle, ChunkGenerator);
-    }
-
-    public MarkupStartTagSyntax WithName(SyntaxToken name)
-    {
-        return Update(OpenAngle, Bang, name, Attributes, ForwardSlash, CloseAngle, ChunkGenerator);
-    }
-
-    public MarkupStartTagSyntax WithAttributes(SyntaxList<RazorSyntaxNode> attributes)
-    {
-        return Update(OpenAngle, Bang, Name, attributes, ForwardSlash, CloseAngle, ChunkGenerator);
-    }
-
-    public MarkupStartTagSyntax WithForwardSlash(SyntaxToken forwardSlash)
-    {
-        return Update(OpenAngle, Bang, Name, Attributes, forwardSlash, CloseAngle, ChunkGenerator);
-    }
-
-    public MarkupStartTagSyntax WithCloseAngle(SyntaxToken closeAngle)
-    {
-        return Update(OpenAngle, Bang, Name, Attributes, ForwardSlash, closeAngle, ChunkGenerator);
-    }
-
-    public MarkupStartTagSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
-    {
-        return Update(OpenAngle, Bang, Name, Attributes, ForwardSlash, CloseAngle, chunkGenerator);
-    }
-
-    public MarkupStartTagSyntax AddAttributes(params RazorSyntaxNode[] items)
-    {
-        return WithAttributes(this.Attributes.AddRange(items));
-    }
+    public MarkupStartTagSyntax AddAttributes(params RazorSyntaxNode[] items) => WithAttributes(this.Attributes.AddRange(items));
 }
 
 internal sealed partial class MarkupEndTagSyntax : MarkupSyntaxNode
@@ -1631,92 +884,40 @@ internal sealed partial class MarkupEndTagSyntax : MarkupSyntaxNode
     {
     }
 
-    public SyntaxToken OpenAngle 
-    {
-        get
-        {
-            return GetRedAtZero(ref _openAngle);
-        }
-    }
-
-    public SyntaxToken ForwardSlash 
-    {
-        get
-        {
-            return GetRed(ref _forwardSlash, 1);
-        }
-    }
-
-    public SyntaxToken Bang 
-    {
-        get
-        {
-            return GetRed(ref _bang, 2);
-        }
-    }
-
-    public SyntaxToken Name 
-    {
-        get
-        {
-            return GetRed(ref _name, 3);
-        }
-    }
-
-    public MarkupMiscAttributeContentSyntax MiscAttributeContent 
-    {
-        get
-        {
-            return GetRed(ref _miscAttributeContent, 4);
-        }
-    }
-
-    public SyntaxToken CloseAngle 
-    {
-        get
-        {
-            return GetRed(ref _closeAngle, 5);
-        }
-    }
-
-    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.MarkupEndTagSyntax)Green).ChunkGenerator; } }
+    public SyntaxToken OpenAngle  => GetRedAtZero(ref _openAngle);
+    public SyntaxToken ForwardSlash  => GetRed(ref _forwardSlash, 1);
+    public SyntaxToken Bang  => GetRed(ref _bang, 2);
+    public SyntaxToken Name  => GetRed(ref _name, 3);
+    public MarkupMiscAttributeContentSyntax MiscAttributeContent  => GetRed(ref _miscAttributeContent, 4);
+    public SyntaxToken CloseAngle  => GetRed(ref _closeAngle, 5);
+    public ISpanChunkGenerator ChunkGenerator => ((InternalSyntax.MarkupEndTagSyntax)Green).ChunkGenerator;
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _openAngle);
-            case 1: return GetRed(ref _forwardSlash, 1);
-            case 2: return GetRed(ref _bang, 2);
-            case 3: return GetRed(ref _name, 3);
-            case 4: return GetRed(ref _miscAttributeContent, 4);
-            case 5: return GetRed(ref _closeAngle, 5);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _openAngle),
+            1 => GetRed(ref _forwardSlash, 1),
+            2 => GetRed(ref _bang, 2),
+            3 => GetRed(ref _name, 3),
+            4 => GetRed(ref _miscAttributeContent, 4),
+            5 => GetRed(ref _closeAngle, 5),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _openAngle;
-            case 1: return _forwardSlash;
-            case 2: return _bang;
-            case 3: return _name;
-            case 4: return _miscAttributeContent;
-            case 5: return _closeAngle;
-            default: return null;
-        }
-    }
+            0 => this._openAngle,
+            1 => this._forwardSlash,
+            2 => this._bang,
+            3 => this._name,
+            4 => this._miscAttributeContent,
+            5 => this._closeAngle,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMarkupEndTag(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitMarkupEndTag(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupEndTag(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupEndTag(this);
 
     public MarkupEndTagSyntax Update(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
     {
@@ -1727,48 +928,19 @@ internal sealed partial class MarkupEndTagSyntax : MarkupSyntaxNode
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public MarkupEndTagSyntax WithOpenAngle(SyntaxToken openAngle)
-    {
-        return Update(openAngle, ForwardSlash, Bang, Name, MiscAttributeContent, CloseAngle, ChunkGenerator);
-    }
-
-    public MarkupEndTagSyntax WithForwardSlash(SyntaxToken forwardSlash)
-    {
-        return Update(OpenAngle, forwardSlash, Bang, Name, MiscAttributeContent, CloseAngle, ChunkGenerator);
-    }
-
-    public MarkupEndTagSyntax WithBang(SyntaxToken bang)
-    {
-        return Update(OpenAngle, ForwardSlash, bang, Name, MiscAttributeContent, CloseAngle, ChunkGenerator);
-    }
-
-    public MarkupEndTagSyntax WithName(SyntaxToken name)
-    {
-        return Update(OpenAngle, ForwardSlash, Bang, name, MiscAttributeContent, CloseAngle, ChunkGenerator);
-    }
-
-    public MarkupEndTagSyntax WithMiscAttributeContent(MarkupMiscAttributeContentSyntax miscAttributeContent)
-    {
-        return Update(OpenAngle, ForwardSlash, Bang, Name, miscAttributeContent, CloseAngle, ChunkGenerator);
-    }
-
-    public MarkupEndTagSyntax WithCloseAngle(SyntaxToken closeAngle)
-    {
-        return Update(OpenAngle, ForwardSlash, Bang, Name, MiscAttributeContent, closeAngle, ChunkGenerator);
-    }
-
-    public MarkupEndTagSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
-    {
-        return Update(OpenAngle, ForwardSlash, Bang, Name, MiscAttributeContent, CloseAngle, chunkGenerator);
-    }
+    public MarkupEndTagSyntax WithOpenAngle(SyntaxToken openAngle) => Update(openAngle, ForwardSlash, Bang, Name, MiscAttributeContent, CloseAngle, ChunkGenerator);
+    public MarkupEndTagSyntax WithForwardSlash(SyntaxToken forwardSlash) => Update(OpenAngle, forwardSlash, Bang, Name, MiscAttributeContent, CloseAngle, ChunkGenerator);
+    public MarkupEndTagSyntax WithBang(SyntaxToken bang) => Update(OpenAngle, ForwardSlash, bang, Name, MiscAttributeContent, CloseAngle, ChunkGenerator);
+    public MarkupEndTagSyntax WithName(SyntaxToken name) => Update(OpenAngle, ForwardSlash, Bang, name, MiscAttributeContent, CloseAngle, ChunkGenerator);
+    public MarkupEndTagSyntax WithMiscAttributeContent(MarkupMiscAttributeContentSyntax miscAttributeContent) => Update(OpenAngle, ForwardSlash, Bang, Name, miscAttributeContent, CloseAngle, ChunkGenerator);
+    public MarkupEndTagSyntax WithCloseAngle(SyntaxToken closeAngle) => Update(OpenAngle, ForwardSlash, Bang, Name, MiscAttributeContent, closeAngle, ChunkGenerator);
+    public MarkupEndTagSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator) => Update(OpenAngle, ForwardSlash, Bang, Name, MiscAttributeContent, CloseAngle, chunkGenerator);
 
     public MarkupEndTagSyntax AddMiscAttributeContentChildren(params RazorSyntaxNode[] items)
     {
@@ -1788,60 +960,30 @@ internal sealed partial class MarkupTagHelperElementSyntax : MarkupSyntaxNode
     {
     }
 
-    public MarkupTagHelperStartTagSyntax StartTag 
-    {
-        get
-        {
-            return GetRedAtZero(ref _startTag);
-        }
-    }
-
-    public SyntaxList<RazorSyntaxNode> Body 
-    {
-        get
-        {
-            return new SyntaxList<RazorSyntaxNode>(GetRed(ref _body, 1));
-        }
-    }
-
-    public MarkupTagHelperEndTagSyntax EndTag 
-    {
-        get
-        {
-            return GetRed(ref _endTag, 2);
-        }
-    }
+    public MarkupTagHelperStartTagSyntax StartTag  => GetRedAtZero(ref _startTag);
+    public SyntaxList<RazorSyntaxNode> Body  => new SyntaxList<RazorSyntaxNode>(GetRed(ref _body, 1));
+    public MarkupTagHelperEndTagSyntax EndTag  => GetRed(ref _endTag, 2);
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _startTag);
-            case 1: return GetRed(ref _body, 1);
-            case 2: return GetRed(ref _endTag, 2);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _startTag),
+            1 => GetRed(ref _body, 1),
+            2 => GetRed(ref _endTag, 2),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _startTag;
-            case 1: return _body;
-            case 2: return _endTag;
-            default: return null;
-        }
-    }
+            0 => this._startTag,
+            1 => this._body,
+            2 => this._endTag,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMarkupTagHelperElement(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitMarkupTagHelperElement(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupTagHelperElement(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupTagHelperElement(this);
 
     public MarkupTagHelperElementSyntax Update(MarkupTagHelperStartTagSyntax startTag, SyntaxList<RazorSyntaxNode> body, MarkupTagHelperEndTagSyntax endTag)
     {
@@ -1852,38 +994,19 @@ internal sealed partial class MarkupTagHelperElementSyntax : MarkupSyntaxNode
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public MarkupTagHelperElementSyntax WithStartTag(MarkupTagHelperStartTagSyntax startTag)
-    {
-        return Update(startTag, Body, EndTag);
-    }
+    public MarkupTagHelperElementSyntax WithStartTag(MarkupTagHelperStartTagSyntax startTag) => Update(startTag, Body, EndTag);
+    public MarkupTagHelperElementSyntax WithBody(SyntaxList<RazorSyntaxNode> body) => Update(StartTag, body, EndTag);
+    public MarkupTagHelperElementSyntax WithEndTag(MarkupTagHelperEndTagSyntax endTag) => Update(StartTag, Body, endTag);
 
-    public MarkupTagHelperElementSyntax WithBody(SyntaxList<RazorSyntaxNode> body)
-    {
-        return Update(StartTag, body, EndTag);
-    }
+    public MarkupTagHelperElementSyntax AddStartTagAttributes(params RazorSyntaxNode[] items) => WithStartTag(this.StartTag.WithAttributes(this.StartTag.Attributes.AddRange(items)));
 
-    public MarkupTagHelperElementSyntax WithEndTag(MarkupTagHelperEndTagSyntax endTag)
-    {
-        return Update(StartTag, Body, endTag);
-    }
-
-    public MarkupTagHelperElementSyntax AddStartTagAttributes(params RazorSyntaxNode[] items)
-    {
-        return this.WithStartTag(this.StartTag.WithAttributes(this.StartTag.Attributes.AddRange(items)));
-    }
-
-    public MarkupTagHelperElementSyntax AddBody(params RazorSyntaxNode[] items)
-    {
-        return WithBody(this.Body.AddRange(items));
-    }
+    public MarkupTagHelperElementSyntax AddBody(params RazorSyntaxNode[] items) => WithBody(this.Body.AddRange(items));
 }
 
 internal sealed partial class MarkupTagHelperStartTagSyntax : MarkupSyntaxNode
@@ -1900,92 +1023,40 @@ internal sealed partial class MarkupTagHelperStartTagSyntax : MarkupSyntaxNode
     {
     }
 
-    public SyntaxToken OpenAngle 
-    {
-        get
-        {
-            return GetRedAtZero(ref _openAngle);
-        }
-    }
-
-    public SyntaxToken Bang 
-    {
-        get
-        {
-            return GetRed(ref _bang, 1);
-        }
-    }
-
-    public SyntaxToken Name 
-    {
-        get
-        {
-            return GetRed(ref _name, 2);
-        }
-    }
-
-    public SyntaxList<RazorSyntaxNode> Attributes 
-    {
-        get
-        {
-            return new SyntaxList<RazorSyntaxNode>(GetRed(ref _attributes, 3));
-        }
-    }
-
-    public SyntaxToken ForwardSlash 
-    {
-        get
-        {
-            return GetRed(ref _forwardSlash, 4);
-        }
-    }
-
-    public SyntaxToken CloseAngle 
-    {
-        get
-        {
-            return GetRed(ref _closeAngle, 5);
-        }
-    }
-
-    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.MarkupTagHelperStartTagSyntax)Green).ChunkGenerator; } }
+    public SyntaxToken OpenAngle  => GetRedAtZero(ref _openAngle);
+    public SyntaxToken Bang  => GetRed(ref _bang, 1);
+    public SyntaxToken Name  => GetRed(ref _name, 2);
+    public SyntaxList<RazorSyntaxNode> Attributes  => new SyntaxList<RazorSyntaxNode>(GetRed(ref _attributes, 3));
+    public SyntaxToken ForwardSlash  => GetRed(ref _forwardSlash, 4);
+    public SyntaxToken CloseAngle  => GetRed(ref _closeAngle, 5);
+    public ISpanChunkGenerator ChunkGenerator => ((InternalSyntax.MarkupTagHelperStartTagSyntax)Green).ChunkGenerator;
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _openAngle);
-            case 1: return GetRed(ref _bang, 1);
-            case 2: return GetRed(ref _name, 2);
-            case 3: return GetRed(ref _attributes, 3);
-            case 4: return GetRed(ref _forwardSlash, 4);
-            case 5: return GetRed(ref _closeAngle, 5);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _openAngle),
+            1 => GetRed(ref _bang, 1),
+            2 => GetRed(ref _name, 2),
+            3 => GetRed(ref _attributes, 3),
+            4 => GetRed(ref _forwardSlash, 4),
+            5 => GetRed(ref _closeAngle, 5),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _openAngle;
-            case 1: return _bang;
-            case 2: return _name;
-            case 3: return _attributes;
-            case 4: return _forwardSlash;
-            case 5: return _closeAngle;
-            default: return null;
-        }
-    }
+            0 => this._openAngle,
+            1 => this._bang,
+            2 => this._name,
+            3 => this._attributes,
+            4 => this._forwardSlash,
+            5 => this._closeAngle,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMarkupTagHelperStartTag(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitMarkupTagHelperStartTag(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupTagHelperStartTag(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupTagHelperStartTag(this);
 
     public MarkupTagHelperStartTagSyntax Update(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
     {
@@ -1996,53 +1067,21 @@ internal sealed partial class MarkupTagHelperStartTagSyntax : MarkupSyntaxNode
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public MarkupTagHelperStartTagSyntax WithOpenAngle(SyntaxToken openAngle)
-    {
-        return Update(openAngle, Bang, Name, Attributes, ForwardSlash, CloseAngle, ChunkGenerator);
-    }
+    public MarkupTagHelperStartTagSyntax WithOpenAngle(SyntaxToken openAngle) => Update(openAngle, Bang, Name, Attributes, ForwardSlash, CloseAngle, ChunkGenerator);
+    public MarkupTagHelperStartTagSyntax WithBang(SyntaxToken bang) => Update(OpenAngle, bang, Name, Attributes, ForwardSlash, CloseAngle, ChunkGenerator);
+    public MarkupTagHelperStartTagSyntax WithName(SyntaxToken name) => Update(OpenAngle, Bang, name, Attributes, ForwardSlash, CloseAngle, ChunkGenerator);
+    public MarkupTagHelperStartTagSyntax WithAttributes(SyntaxList<RazorSyntaxNode> attributes) => Update(OpenAngle, Bang, Name, attributes, ForwardSlash, CloseAngle, ChunkGenerator);
+    public MarkupTagHelperStartTagSyntax WithForwardSlash(SyntaxToken forwardSlash) => Update(OpenAngle, Bang, Name, Attributes, forwardSlash, CloseAngle, ChunkGenerator);
+    public MarkupTagHelperStartTagSyntax WithCloseAngle(SyntaxToken closeAngle) => Update(OpenAngle, Bang, Name, Attributes, ForwardSlash, closeAngle, ChunkGenerator);
+    public MarkupTagHelperStartTagSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator) => Update(OpenAngle, Bang, Name, Attributes, ForwardSlash, CloseAngle, chunkGenerator);
 
-    public MarkupTagHelperStartTagSyntax WithBang(SyntaxToken bang)
-    {
-        return Update(OpenAngle, bang, Name, Attributes, ForwardSlash, CloseAngle, ChunkGenerator);
-    }
-
-    public MarkupTagHelperStartTagSyntax WithName(SyntaxToken name)
-    {
-        return Update(OpenAngle, Bang, name, Attributes, ForwardSlash, CloseAngle, ChunkGenerator);
-    }
-
-    public MarkupTagHelperStartTagSyntax WithAttributes(SyntaxList<RazorSyntaxNode> attributes)
-    {
-        return Update(OpenAngle, Bang, Name, attributes, ForwardSlash, CloseAngle, ChunkGenerator);
-    }
-
-    public MarkupTagHelperStartTagSyntax WithForwardSlash(SyntaxToken forwardSlash)
-    {
-        return Update(OpenAngle, Bang, Name, Attributes, forwardSlash, CloseAngle, ChunkGenerator);
-    }
-
-    public MarkupTagHelperStartTagSyntax WithCloseAngle(SyntaxToken closeAngle)
-    {
-        return Update(OpenAngle, Bang, Name, Attributes, ForwardSlash, closeAngle, ChunkGenerator);
-    }
-
-    public MarkupTagHelperStartTagSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
-    {
-        return Update(OpenAngle, Bang, Name, Attributes, ForwardSlash, CloseAngle, chunkGenerator);
-    }
-
-    public MarkupTagHelperStartTagSyntax AddAttributes(params RazorSyntaxNode[] items)
-    {
-        return WithAttributes(this.Attributes.AddRange(items));
-    }
+    public MarkupTagHelperStartTagSyntax AddAttributes(params RazorSyntaxNode[] items) => WithAttributes(this.Attributes.AddRange(items));
 }
 
 internal sealed partial class MarkupTagHelperEndTagSyntax : MarkupSyntaxNode
@@ -2059,92 +1098,40 @@ internal sealed partial class MarkupTagHelperEndTagSyntax : MarkupSyntaxNode
     {
     }
 
-    public SyntaxToken OpenAngle 
-    {
-        get
-        {
-            return GetRedAtZero(ref _openAngle);
-        }
-    }
-
-    public SyntaxToken ForwardSlash 
-    {
-        get
-        {
-            return GetRed(ref _forwardSlash, 1);
-        }
-    }
-
-    public SyntaxToken Bang 
-    {
-        get
-        {
-            return GetRed(ref _bang, 2);
-        }
-    }
-
-    public SyntaxToken Name 
-    {
-        get
-        {
-            return GetRed(ref _name, 3);
-        }
-    }
-
-    public MarkupMiscAttributeContentSyntax MiscAttributeContent 
-    {
-        get
-        {
-            return GetRed(ref _miscAttributeContent, 4);
-        }
-    }
-
-    public SyntaxToken CloseAngle 
-    {
-        get
-        {
-            return GetRed(ref _closeAngle, 5);
-        }
-    }
-
-    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.MarkupTagHelperEndTagSyntax)Green).ChunkGenerator; } }
+    public SyntaxToken OpenAngle  => GetRedAtZero(ref _openAngle);
+    public SyntaxToken ForwardSlash  => GetRed(ref _forwardSlash, 1);
+    public SyntaxToken Bang  => GetRed(ref _bang, 2);
+    public SyntaxToken Name  => GetRed(ref _name, 3);
+    public MarkupMiscAttributeContentSyntax MiscAttributeContent  => GetRed(ref _miscAttributeContent, 4);
+    public SyntaxToken CloseAngle  => GetRed(ref _closeAngle, 5);
+    public ISpanChunkGenerator ChunkGenerator => ((InternalSyntax.MarkupTagHelperEndTagSyntax)Green).ChunkGenerator;
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _openAngle);
-            case 1: return GetRed(ref _forwardSlash, 1);
-            case 2: return GetRed(ref _bang, 2);
-            case 3: return GetRed(ref _name, 3);
-            case 4: return GetRed(ref _miscAttributeContent, 4);
-            case 5: return GetRed(ref _closeAngle, 5);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _openAngle),
+            1 => GetRed(ref _forwardSlash, 1),
+            2 => GetRed(ref _bang, 2),
+            3 => GetRed(ref _name, 3),
+            4 => GetRed(ref _miscAttributeContent, 4),
+            5 => GetRed(ref _closeAngle, 5),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _openAngle;
-            case 1: return _forwardSlash;
-            case 2: return _bang;
-            case 3: return _name;
-            case 4: return _miscAttributeContent;
-            case 5: return _closeAngle;
-            default: return null;
-        }
-    }
+            0 => this._openAngle,
+            1 => this._forwardSlash,
+            2 => this._bang,
+            3 => this._name,
+            4 => this._miscAttributeContent,
+            5 => this._closeAngle,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMarkupTagHelperEndTag(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitMarkupTagHelperEndTag(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupTagHelperEndTag(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupTagHelperEndTag(this);
 
     public MarkupTagHelperEndTagSyntax Update(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
     {
@@ -2155,48 +1142,19 @@ internal sealed partial class MarkupTagHelperEndTagSyntax : MarkupSyntaxNode
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public MarkupTagHelperEndTagSyntax WithOpenAngle(SyntaxToken openAngle)
-    {
-        return Update(openAngle, ForwardSlash, Bang, Name, MiscAttributeContent, CloseAngle, ChunkGenerator);
-    }
-
-    public MarkupTagHelperEndTagSyntax WithForwardSlash(SyntaxToken forwardSlash)
-    {
-        return Update(OpenAngle, forwardSlash, Bang, Name, MiscAttributeContent, CloseAngle, ChunkGenerator);
-    }
-
-    public MarkupTagHelperEndTagSyntax WithBang(SyntaxToken bang)
-    {
-        return Update(OpenAngle, ForwardSlash, bang, Name, MiscAttributeContent, CloseAngle, ChunkGenerator);
-    }
-
-    public MarkupTagHelperEndTagSyntax WithName(SyntaxToken name)
-    {
-        return Update(OpenAngle, ForwardSlash, Bang, name, MiscAttributeContent, CloseAngle, ChunkGenerator);
-    }
-
-    public MarkupTagHelperEndTagSyntax WithMiscAttributeContent(MarkupMiscAttributeContentSyntax miscAttributeContent)
-    {
-        return Update(OpenAngle, ForwardSlash, Bang, Name, miscAttributeContent, CloseAngle, ChunkGenerator);
-    }
-
-    public MarkupTagHelperEndTagSyntax WithCloseAngle(SyntaxToken closeAngle)
-    {
-        return Update(OpenAngle, ForwardSlash, Bang, Name, MiscAttributeContent, closeAngle, ChunkGenerator);
-    }
-
-    public MarkupTagHelperEndTagSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
-    {
-        return Update(OpenAngle, ForwardSlash, Bang, Name, MiscAttributeContent, CloseAngle, chunkGenerator);
-    }
+    public MarkupTagHelperEndTagSyntax WithOpenAngle(SyntaxToken openAngle) => Update(openAngle, ForwardSlash, Bang, Name, MiscAttributeContent, CloseAngle, ChunkGenerator);
+    public MarkupTagHelperEndTagSyntax WithForwardSlash(SyntaxToken forwardSlash) => Update(OpenAngle, forwardSlash, Bang, Name, MiscAttributeContent, CloseAngle, ChunkGenerator);
+    public MarkupTagHelperEndTagSyntax WithBang(SyntaxToken bang) => Update(OpenAngle, ForwardSlash, bang, Name, MiscAttributeContent, CloseAngle, ChunkGenerator);
+    public MarkupTagHelperEndTagSyntax WithName(SyntaxToken name) => Update(OpenAngle, ForwardSlash, Bang, name, MiscAttributeContent, CloseAngle, ChunkGenerator);
+    public MarkupTagHelperEndTagSyntax WithMiscAttributeContent(MarkupMiscAttributeContentSyntax miscAttributeContent) => Update(OpenAngle, ForwardSlash, Bang, Name, miscAttributeContent, CloseAngle, ChunkGenerator);
+    public MarkupTagHelperEndTagSyntax WithCloseAngle(SyntaxToken closeAngle) => Update(OpenAngle, ForwardSlash, Bang, Name, MiscAttributeContent, closeAngle, ChunkGenerator);
+    public MarkupTagHelperEndTagSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator) => Update(OpenAngle, ForwardSlash, Bang, Name, MiscAttributeContent, CloseAngle, chunkGenerator);
 
     public MarkupTagHelperEndTagSyntax AddMiscAttributeContentChildren(params RazorSyntaxNode[] items)
     {
@@ -2220,100 +1178,42 @@ internal sealed partial class MarkupTagHelperAttributeSyntax : MarkupSyntaxNode
     {
     }
 
-    public MarkupTextLiteralSyntax NamePrefix 
-    {
-        get
-        {
-            return GetRedAtZero(ref _namePrefix);
-        }
-    }
-
-    public MarkupTextLiteralSyntax Name 
-    {
-        get
-        {
-            return GetRed(ref _name, 1);
-        }
-    }
-
-    public MarkupTextLiteralSyntax NameSuffix 
-    {
-        get
-        {
-            return GetRed(ref _nameSuffix, 2);
-        }
-    }
-
-    public SyntaxToken EqualsToken 
-    {
-        get
-        {
-            return GetRed(ref _equalsToken, 3);
-        }
-    }
-
-    public MarkupTextLiteralSyntax ValuePrefix 
-    {
-        get
-        {
-            return GetRed(ref _valuePrefix, 4);
-        }
-    }
-
-    public MarkupTagHelperAttributeValueSyntax Value 
-    {
-        get
-        {
-            return GetRed(ref _value, 5);
-        }
-    }
-
-    public MarkupTextLiteralSyntax ValueSuffix 
-    {
-        get
-        {
-            return GetRed(ref _valueSuffix, 6);
-        }
-    }
+    public MarkupTextLiteralSyntax NamePrefix  => GetRedAtZero(ref _namePrefix);
+    public MarkupTextLiteralSyntax Name  => GetRed(ref _name, 1);
+    public MarkupTextLiteralSyntax NameSuffix  => GetRed(ref _nameSuffix, 2);
+    public SyntaxToken EqualsToken  => GetRed(ref _equalsToken, 3);
+    public MarkupTextLiteralSyntax ValuePrefix  => GetRed(ref _valuePrefix, 4);
+    public MarkupTagHelperAttributeValueSyntax Value  => GetRed(ref _value, 5);
+    public MarkupTextLiteralSyntax ValueSuffix  => GetRed(ref _valueSuffix, 6);
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _namePrefix);
-            case 1: return GetRed(ref _name, 1);
-            case 2: return GetRed(ref _nameSuffix, 2);
-            case 3: return GetRed(ref _equalsToken, 3);
-            case 4: return GetRed(ref _valuePrefix, 4);
-            case 5: return GetRed(ref _value, 5);
-            case 6: return GetRed(ref _valueSuffix, 6);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _namePrefix),
+            1 => GetRed(ref _name, 1),
+            2 => GetRed(ref _nameSuffix, 2),
+            3 => GetRed(ref _equalsToken, 3),
+            4 => GetRed(ref _valuePrefix, 4),
+            5 => GetRed(ref _value, 5),
+            6 => GetRed(ref _valueSuffix, 6),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _namePrefix;
-            case 1: return _name;
-            case 2: return _nameSuffix;
-            case 3: return _equalsToken;
-            case 4: return _valuePrefix;
-            case 5: return _value;
-            case 6: return _valueSuffix;
-            default: return null;
-        }
-    }
+            0 => this._namePrefix,
+            1 => this._name,
+            2 => this._nameSuffix,
+            3 => this._equalsToken,
+            4 => this._valuePrefix,
+            5 => this._value,
+            6 => this._valueSuffix,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMarkupTagHelperAttribute(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitMarkupTagHelperAttribute(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupTagHelperAttribute(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupTagHelperAttribute(this);
 
     public MarkupTagHelperAttributeSyntax Update(MarkupTextLiteralSyntax namePrefix, MarkupTextLiteralSyntax name, MarkupTextLiteralSyntax nameSuffix, SyntaxToken equalsToken, MarkupTextLiteralSyntax valuePrefix, MarkupTagHelperAttributeValueSyntax value, MarkupTextLiteralSyntax valueSuffix)
     {
@@ -2324,58 +1224,23 @@ internal sealed partial class MarkupTagHelperAttributeSyntax : MarkupSyntaxNode
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public MarkupTagHelperAttributeSyntax WithNamePrefix(MarkupTextLiteralSyntax namePrefix)
-    {
-        return Update(namePrefix, Name, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
-    }
+    public MarkupTagHelperAttributeSyntax WithNamePrefix(MarkupTextLiteralSyntax namePrefix) => Update(namePrefix, Name, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
+    public MarkupTagHelperAttributeSyntax WithName(MarkupTextLiteralSyntax name) => Update(NamePrefix, name, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
+    public MarkupTagHelperAttributeSyntax WithNameSuffix(MarkupTextLiteralSyntax nameSuffix) => Update(NamePrefix, Name, nameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
+    public MarkupTagHelperAttributeSyntax WithEqualsToken(SyntaxToken equalsToken) => Update(NamePrefix, Name, NameSuffix, equalsToken, ValuePrefix, Value, ValueSuffix);
+    public MarkupTagHelperAttributeSyntax WithValuePrefix(MarkupTextLiteralSyntax valuePrefix) => Update(NamePrefix, Name, NameSuffix, EqualsToken, valuePrefix, Value, ValueSuffix);
+    public MarkupTagHelperAttributeSyntax WithValue(MarkupTagHelperAttributeValueSyntax value) => Update(NamePrefix, Name, NameSuffix, EqualsToken, ValuePrefix, value, ValueSuffix);
+    public MarkupTagHelperAttributeSyntax WithValueSuffix(MarkupTextLiteralSyntax valueSuffix) => Update(NamePrefix, Name, NameSuffix, EqualsToken, ValuePrefix, Value, valueSuffix);
 
-    public MarkupTagHelperAttributeSyntax WithName(MarkupTextLiteralSyntax name)
-    {
-        return Update(NamePrefix, name, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
-    }
+    public MarkupTagHelperAttributeSyntax AddNameLiteralTokens(params SyntaxToken[] items) => WithName(this.Name.WithLiteralTokens(this.Name.LiteralTokens.AddRange(items)));
 
-    public MarkupTagHelperAttributeSyntax WithNameSuffix(MarkupTextLiteralSyntax nameSuffix)
-    {
-        return Update(NamePrefix, Name, nameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
-    }
-
-    public MarkupTagHelperAttributeSyntax WithEqualsToken(SyntaxToken equalsToken)
-    {
-        return Update(NamePrefix, Name, NameSuffix, equalsToken, ValuePrefix, Value, ValueSuffix);
-    }
-
-    public MarkupTagHelperAttributeSyntax WithValuePrefix(MarkupTextLiteralSyntax valuePrefix)
-    {
-        return Update(NamePrefix, Name, NameSuffix, EqualsToken, valuePrefix, Value, ValueSuffix);
-    }
-
-    public MarkupTagHelperAttributeSyntax WithValue(MarkupTagHelperAttributeValueSyntax value)
-    {
-        return Update(NamePrefix, Name, NameSuffix, EqualsToken, ValuePrefix, value, ValueSuffix);
-    }
-
-    public MarkupTagHelperAttributeSyntax WithValueSuffix(MarkupTextLiteralSyntax valueSuffix)
-    {
-        return Update(NamePrefix, Name, NameSuffix, EqualsToken, ValuePrefix, Value, valueSuffix);
-    }
-
-    public MarkupTagHelperAttributeSyntax AddNameLiteralTokens(params SyntaxToken[] items)
-    {
-        return this.WithName(this.Name.WithLiteralTokens(this.Name.LiteralTokens.AddRange(items)));
-    }
-
-    public MarkupTagHelperAttributeSyntax AddValueChildren(params RazorSyntaxNode[] items)
-    {
-        return this.WithValue(this.Value.WithChildren(this.Value.Children.AddRange(items)));
-    }
+    public MarkupTagHelperAttributeSyntax AddValueChildren(params RazorSyntaxNode[] items) => WithValue(this.Value.WithChildren(this.Value.Children.AddRange(items)));
 }
 
 internal sealed partial class MarkupMinimizedTagHelperAttributeSyntax : MarkupSyntaxNode
@@ -2388,50 +1253,27 @@ internal sealed partial class MarkupMinimizedTagHelperAttributeSyntax : MarkupSy
     {
     }
 
-    public MarkupTextLiteralSyntax NamePrefix 
-    {
-        get
-        {
-            return GetRedAtZero(ref _namePrefix);
-        }
-    }
-
-    public MarkupTextLiteralSyntax Name 
-    {
-        get
-        {
-            return GetRed(ref _name, 1);
-        }
-    }
+    public MarkupTextLiteralSyntax NamePrefix  => GetRedAtZero(ref _namePrefix);
+    public MarkupTextLiteralSyntax Name  => GetRed(ref _name, 1);
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _namePrefix);
-            case 1: return GetRed(ref _name, 1);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _namePrefix),
+            1 => GetRed(ref _name, 1),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _namePrefix;
-            case 1: return _name;
-            default: return null;
-        }
-    }
+            0 => this._namePrefix,
+            1 => this._name,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMarkupMinimizedTagHelperAttribute(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitMarkupMinimizedTagHelperAttribute(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupMinimizedTagHelperAttribute(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupMinimizedTagHelperAttribute(this);
 
     public MarkupMinimizedTagHelperAttributeSyntax Update(MarkupTextLiteralSyntax namePrefix, MarkupTextLiteralSyntax name)
     {
@@ -2442,28 +1284,16 @@ internal sealed partial class MarkupMinimizedTagHelperAttributeSyntax : MarkupSy
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public MarkupMinimizedTagHelperAttributeSyntax WithNamePrefix(MarkupTextLiteralSyntax namePrefix)
-    {
-        return Update(namePrefix, Name);
-    }
+    public MarkupMinimizedTagHelperAttributeSyntax WithNamePrefix(MarkupTextLiteralSyntax namePrefix) => Update(namePrefix, Name);
+    public MarkupMinimizedTagHelperAttributeSyntax WithName(MarkupTextLiteralSyntax name) => Update(NamePrefix, name);
 
-    public MarkupMinimizedTagHelperAttributeSyntax WithName(MarkupTextLiteralSyntax name)
-    {
-        return Update(NamePrefix, name);
-    }
-
-    public MarkupMinimizedTagHelperAttributeSyntax AddNameLiteralTokens(params SyntaxToken[] items)
-    {
-        return this.WithName(this.Name.WithLiteralTokens(this.Name.LiteralTokens.AddRange(items)));
-    }
+    public MarkupMinimizedTagHelperAttributeSyntax AddNameLiteralTokens(params SyntaxToken[] items) => WithName(this.Name.WithLiteralTokens(this.Name.LiteralTokens.AddRange(items)));
 }
 
 internal sealed partial class MarkupTagHelperAttributeValueSyntax : RazorBlockSyntax
@@ -2475,40 +1305,14 @@ internal sealed partial class MarkupTagHelperAttributeValueSyntax : RazorBlockSy
     {
     }
 
-    public override SyntaxList<RazorSyntaxNode> Children 
-    {
-        get
-        {
-            return new SyntaxList<RazorSyntaxNode>(GetRed(ref _children, 0));
-        }
-    }
+    public override SyntaxList<RazorSyntaxNode> Children  => new SyntaxList<RazorSyntaxNode>(GetRed(ref _children, 0));
 
-    internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return GetRedAtZero(ref _children);
-            default: return null;
-        }
-    }
-    internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return _children;
-            default: return null;
-        }
-    }
+    internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._children) : null;
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMarkupTagHelperAttributeValue(this);
-    }
+    internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this._children : null;
 
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitMarkupTagHelperAttributeValue(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupTagHelperAttributeValue(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupTagHelperAttributeValue(this);
 
     public MarkupTagHelperAttributeValueSyntax Update(SyntaxList<RazorSyntaxNode> children)
     {
@@ -2519,25 +1323,17 @@ internal sealed partial class MarkupTagHelperAttributeValueSyntax : RazorBlockSy
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
     internal override RazorBlockSyntax WithChildrenCore(SyntaxList<RazorSyntaxNode> children) => WithChildren(children);
-    public new MarkupTagHelperAttributeValueSyntax WithChildren(SyntaxList<RazorSyntaxNode> children)
-    {
-        return Update(children);
-    }
+    public new MarkupTagHelperAttributeValueSyntax WithChildren(SyntaxList<RazorSyntaxNode> children) => Update(children);
     internal override RazorBlockSyntax AddChildrenCore(params RazorSyntaxNode[] items) => AddChildren(items);
 
-    public new MarkupTagHelperAttributeValueSyntax AddChildren(params RazorSyntaxNode[] items)
-    {
-        return WithChildren(this.Children.AddRange(items));
-    }
+    public new MarkupTagHelperAttributeValueSyntax AddChildren(params RazorSyntaxNode[] items) => WithChildren(this.Children.AddRange(items));
 }
 
 internal sealed partial class MarkupTagHelperDirectiveAttributeSyntax : MarkupSyntaxNode
@@ -2558,130 +1354,51 @@ internal sealed partial class MarkupTagHelperDirectiveAttributeSyntax : MarkupSy
     {
     }
 
-    public MarkupTextLiteralSyntax NamePrefix 
-    {
-        get
-        {
-            return GetRedAtZero(ref _namePrefix);
-        }
-    }
-
-    public RazorMetaCodeSyntax Transition 
-    {
-        get
-        {
-            return GetRed(ref _transition, 1);
-        }
-    }
-
-    public MarkupTextLiteralSyntax Name 
-    {
-        get
-        {
-            return GetRed(ref _name, 2);
-        }
-    }
-
-    public RazorMetaCodeSyntax Colon 
-    {
-        get
-        {
-            return GetRed(ref _colon, 3);
-        }
-    }
-
-    public MarkupTextLiteralSyntax ParameterName 
-    {
-        get
-        {
-            return GetRed(ref _parameterName, 4);
-        }
-    }
-
-    public MarkupTextLiteralSyntax NameSuffix 
-    {
-        get
-        {
-            return GetRed(ref _nameSuffix, 5);
-        }
-    }
-
-    public SyntaxToken EqualsToken 
-    {
-        get
-        {
-            return GetRed(ref _equalsToken, 6);
-        }
-    }
-
-    public MarkupTextLiteralSyntax ValuePrefix 
-    {
-        get
-        {
-            return GetRed(ref _valuePrefix, 7);
-        }
-    }
-
-    public MarkupTagHelperAttributeValueSyntax Value 
-    {
-        get
-        {
-            return GetRed(ref _value, 8);
-        }
-    }
-
-    public MarkupTextLiteralSyntax ValueSuffix 
-    {
-        get
-        {
-            return GetRed(ref _valueSuffix, 9);
-        }
-    }
+    public MarkupTextLiteralSyntax NamePrefix  => GetRedAtZero(ref _namePrefix);
+    public RazorMetaCodeSyntax Transition  => GetRed(ref _transition, 1);
+    public MarkupTextLiteralSyntax Name  => GetRed(ref _name, 2);
+    public RazorMetaCodeSyntax Colon  => GetRed(ref _colon, 3);
+    public MarkupTextLiteralSyntax ParameterName  => GetRed(ref _parameterName, 4);
+    public MarkupTextLiteralSyntax NameSuffix  => GetRed(ref _nameSuffix, 5);
+    public SyntaxToken EqualsToken  => GetRed(ref _equalsToken, 6);
+    public MarkupTextLiteralSyntax ValuePrefix  => GetRed(ref _valuePrefix, 7);
+    public MarkupTagHelperAttributeValueSyntax Value  => GetRed(ref _value, 8);
+    public MarkupTextLiteralSyntax ValueSuffix  => GetRed(ref _valueSuffix, 9);
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _namePrefix);
-            case 1: return GetRed(ref _transition, 1);
-            case 2: return GetRed(ref _name, 2);
-            case 3: return GetRed(ref _colon, 3);
-            case 4: return GetRed(ref _parameterName, 4);
-            case 5: return GetRed(ref _nameSuffix, 5);
-            case 6: return GetRed(ref _equalsToken, 6);
-            case 7: return GetRed(ref _valuePrefix, 7);
-            case 8: return GetRed(ref _value, 8);
-            case 9: return GetRed(ref _valueSuffix, 9);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _namePrefix),
+            1 => GetRed(ref _transition, 1),
+            2 => GetRed(ref _name, 2),
+            3 => GetRed(ref _colon, 3),
+            4 => GetRed(ref _parameterName, 4),
+            5 => GetRed(ref _nameSuffix, 5),
+            6 => GetRed(ref _equalsToken, 6),
+            7 => GetRed(ref _valuePrefix, 7),
+            8 => GetRed(ref _value, 8),
+            9 => GetRed(ref _valueSuffix, 9),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _namePrefix;
-            case 1: return _transition;
-            case 2: return _name;
-            case 3: return _colon;
-            case 4: return _parameterName;
-            case 5: return _nameSuffix;
-            case 6: return _equalsToken;
-            case 7: return _valuePrefix;
-            case 8: return _value;
-            case 9: return _valueSuffix;
-            default: return null;
-        }
-    }
+            0 => this._namePrefix,
+            1 => this._transition,
+            2 => this._name,
+            3 => this._colon,
+            4 => this._parameterName,
+            5 => this._nameSuffix,
+            6 => this._equalsToken,
+            7 => this._valuePrefix,
+            8 => this._value,
+            9 => this._valueSuffix,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMarkupTagHelperDirectiveAttribute(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitMarkupTagHelperDirectiveAttribute(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupTagHelperDirectiveAttribute(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupTagHelperDirectiveAttribute(this);
 
     public MarkupTagHelperDirectiveAttributeSyntax Update(MarkupTextLiteralSyntax namePrefix, RazorMetaCodeSyntax transition, MarkupTextLiteralSyntax name, RazorMetaCodeSyntax colon, MarkupTextLiteralSyntax parameterName, MarkupTextLiteralSyntax nameSuffix, SyntaxToken equalsToken, MarkupTextLiteralSyntax valuePrefix, MarkupTagHelperAttributeValueSyntax value, MarkupTextLiteralSyntax valueSuffix)
     {
@@ -2692,78 +1409,28 @@ internal sealed partial class MarkupTagHelperDirectiveAttributeSyntax : MarkupSy
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public MarkupTagHelperDirectiveAttributeSyntax WithNamePrefix(MarkupTextLiteralSyntax namePrefix)
-    {
-        return Update(namePrefix, Transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
-    }
+    public MarkupTagHelperDirectiveAttributeSyntax WithNamePrefix(MarkupTextLiteralSyntax namePrefix) => Update(namePrefix, Transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
+    public MarkupTagHelperDirectiveAttributeSyntax WithTransition(RazorMetaCodeSyntax transition) => Update(NamePrefix, transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
+    public MarkupTagHelperDirectiveAttributeSyntax WithName(MarkupTextLiteralSyntax name) => Update(NamePrefix, Transition, name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
+    public MarkupTagHelperDirectiveAttributeSyntax WithColon(RazorMetaCodeSyntax colon) => Update(NamePrefix, Transition, Name, colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
+    public MarkupTagHelperDirectiveAttributeSyntax WithParameterName(MarkupTextLiteralSyntax parameterName) => Update(NamePrefix, Transition, Name, Colon, parameterName, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
+    public MarkupTagHelperDirectiveAttributeSyntax WithNameSuffix(MarkupTextLiteralSyntax nameSuffix) => Update(NamePrefix, Transition, Name, Colon, ParameterName, nameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
+    public MarkupTagHelperDirectiveAttributeSyntax WithEqualsToken(SyntaxToken equalsToken) => Update(NamePrefix, Transition, Name, Colon, ParameterName, NameSuffix, equalsToken, ValuePrefix, Value, ValueSuffix);
+    public MarkupTagHelperDirectiveAttributeSyntax WithValuePrefix(MarkupTextLiteralSyntax valuePrefix) => Update(NamePrefix, Transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, valuePrefix, Value, ValueSuffix);
+    public MarkupTagHelperDirectiveAttributeSyntax WithValue(MarkupTagHelperAttributeValueSyntax value) => Update(NamePrefix, Transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, value, ValueSuffix);
+    public MarkupTagHelperDirectiveAttributeSyntax WithValueSuffix(MarkupTextLiteralSyntax valueSuffix) => Update(NamePrefix, Transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, valueSuffix);
 
-    public MarkupTagHelperDirectiveAttributeSyntax WithTransition(RazorMetaCodeSyntax transition)
-    {
-        return Update(NamePrefix, transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
-    }
+    public MarkupTagHelperDirectiveAttributeSyntax AddTransitionMetaCode(params SyntaxToken[] items) => WithTransition(this.Transition.WithMetaCode(this.Transition.MetaCode.AddRange(items)));
 
-    public MarkupTagHelperDirectiveAttributeSyntax WithName(MarkupTextLiteralSyntax name)
-    {
-        return Update(NamePrefix, Transition, name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
-    }
+    public MarkupTagHelperDirectiveAttributeSyntax AddNameLiteralTokens(params SyntaxToken[] items) => WithName(this.Name.WithLiteralTokens(this.Name.LiteralTokens.AddRange(items)));
 
-    public MarkupTagHelperDirectiveAttributeSyntax WithColon(RazorMetaCodeSyntax colon)
-    {
-        return Update(NamePrefix, Transition, Name, colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
-    }
-
-    public MarkupTagHelperDirectiveAttributeSyntax WithParameterName(MarkupTextLiteralSyntax parameterName)
-    {
-        return Update(NamePrefix, Transition, Name, Colon, parameterName, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
-    }
-
-    public MarkupTagHelperDirectiveAttributeSyntax WithNameSuffix(MarkupTextLiteralSyntax nameSuffix)
-    {
-        return Update(NamePrefix, Transition, Name, Colon, ParameterName, nameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
-    }
-
-    public MarkupTagHelperDirectiveAttributeSyntax WithEqualsToken(SyntaxToken equalsToken)
-    {
-        return Update(NamePrefix, Transition, Name, Colon, ParameterName, NameSuffix, equalsToken, ValuePrefix, Value, ValueSuffix);
-    }
-
-    public MarkupTagHelperDirectiveAttributeSyntax WithValuePrefix(MarkupTextLiteralSyntax valuePrefix)
-    {
-        return Update(NamePrefix, Transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, valuePrefix, Value, ValueSuffix);
-    }
-
-    public MarkupTagHelperDirectiveAttributeSyntax WithValue(MarkupTagHelperAttributeValueSyntax value)
-    {
-        return Update(NamePrefix, Transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, value, ValueSuffix);
-    }
-
-    public MarkupTagHelperDirectiveAttributeSyntax WithValueSuffix(MarkupTextLiteralSyntax valueSuffix)
-    {
-        return Update(NamePrefix, Transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, valueSuffix);
-    }
-
-    public MarkupTagHelperDirectiveAttributeSyntax AddTransitionMetaCode(params SyntaxToken[] items)
-    {
-        return this.WithTransition(this.Transition.WithMetaCode(this.Transition.MetaCode.AddRange(items)));
-    }
-
-    public MarkupTagHelperDirectiveAttributeSyntax AddNameLiteralTokens(params SyntaxToken[] items)
-    {
-        return this.WithName(this.Name.WithLiteralTokens(this.Name.LiteralTokens.AddRange(items)));
-    }
-
-    public MarkupTagHelperDirectiveAttributeSyntax AddValueChildren(params RazorSyntaxNode[] items)
-    {
-        return this.WithValue(this.Value.WithChildren(this.Value.Children.AddRange(items)));
-    }
+    public MarkupTagHelperDirectiveAttributeSyntax AddValueChildren(params RazorSyntaxNode[] items) => WithValue(this.Value.WithChildren(this.Value.Children.AddRange(items)));
 }
 
 internal sealed partial class MarkupMinimizedTagHelperDirectiveAttributeSyntax : MarkupSyntaxNode
@@ -2779,80 +1446,36 @@ internal sealed partial class MarkupMinimizedTagHelperDirectiveAttributeSyntax :
     {
     }
 
-    public MarkupTextLiteralSyntax NamePrefix 
-    {
-        get
-        {
-            return GetRedAtZero(ref _namePrefix);
-        }
-    }
-
-    public RazorMetaCodeSyntax Transition 
-    {
-        get
-        {
-            return GetRed(ref _transition, 1);
-        }
-    }
-
-    public MarkupTextLiteralSyntax Name 
-    {
-        get
-        {
-            return GetRed(ref _name, 2);
-        }
-    }
-
-    public RazorMetaCodeSyntax Colon 
-    {
-        get
-        {
-            return GetRed(ref _colon, 3);
-        }
-    }
-
-    public MarkupTextLiteralSyntax ParameterName 
-    {
-        get
-        {
-            return GetRed(ref _parameterName, 4);
-        }
-    }
+    public MarkupTextLiteralSyntax NamePrefix  => GetRedAtZero(ref _namePrefix);
+    public RazorMetaCodeSyntax Transition  => GetRed(ref _transition, 1);
+    public MarkupTextLiteralSyntax Name  => GetRed(ref _name, 2);
+    public RazorMetaCodeSyntax Colon  => GetRed(ref _colon, 3);
+    public MarkupTextLiteralSyntax ParameterName  => GetRed(ref _parameterName, 4);
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _namePrefix);
-            case 1: return GetRed(ref _transition, 1);
-            case 2: return GetRed(ref _name, 2);
-            case 3: return GetRed(ref _colon, 3);
-            case 4: return GetRed(ref _parameterName, 4);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _namePrefix),
+            1 => GetRed(ref _transition, 1),
+            2 => GetRed(ref _name, 2),
+            3 => GetRed(ref _colon, 3),
+            4 => GetRed(ref _parameterName, 4),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _namePrefix;
-            case 1: return _transition;
-            case 2: return _name;
-            case 3: return _colon;
-            case 4: return _parameterName;
-            default: return null;
-        }
-    }
+            0 => this._namePrefix,
+            1 => this._transition,
+            2 => this._name,
+            3 => this._colon,
+            4 => this._parameterName,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMarkupMinimizedTagHelperDirectiveAttribute(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitMarkupMinimizedTagHelperDirectiveAttribute(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupMinimizedTagHelperDirectiveAttribute(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupMinimizedTagHelperDirectiveAttribute(this);
 
     public MarkupMinimizedTagHelperDirectiveAttributeSyntax Update(MarkupTextLiteralSyntax namePrefix, RazorMetaCodeSyntax transition, MarkupTextLiteralSyntax name, RazorMetaCodeSyntax colon, MarkupTextLiteralSyntax parameterName)
     {
@@ -2863,48 +1486,21 @@ internal sealed partial class MarkupMinimizedTagHelperDirectiveAttributeSyntax :
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public MarkupMinimizedTagHelperDirectiveAttributeSyntax WithNamePrefix(MarkupTextLiteralSyntax namePrefix)
-    {
-        return Update(namePrefix, Transition, Name, Colon, ParameterName);
-    }
+    public MarkupMinimizedTagHelperDirectiveAttributeSyntax WithNamePrefix(MarkupTextLiteralSyntax namePrefix) => Update(namePrefix, Transition, Name, Colon, ParameterName);
+    public MarkupMinimizedTagHelperDirectiveAttributeSyntax WithTransition(RazorMetaCodeSyntax transition) => Update(NamePrefix, transition, Name, Colon, ParameterName);
+    public MarkupMinimizedTagHelperDirectiveAttributeSyntax WithName(MarkupTextLiteralSyntax name) => Update(NamePrefix, Transition, name, Colon, ParameterName);
+    public MarkupMinimizedTagHelperDirectiveAttributeSyntax WithColon(RazorMetaCodeSyntax colon) => Update(NamePrefix, Transition, Name, colon, ParameterName);
+    public MarkupMinimizedTagHelperDirectiveAttributeSyntax WithParameterName(MarkupTextLiteralSyntax parameterName) => Update(NamePrefix, Transition, Name, Colon, parameterName);
 
-    public MarkupMinimizedTagHelperDirectiveAttributeSyntax WithTransition(RazorMetaCodeSyntax transition)
-    {
-        return Update(NamePrefix, transition, Name, Colon, ParameterName);
-    }
+    public MarkupMinimizedTagHelperDirectiveAttributeSyntax AddTransitionMetaCode(params SyntaxToken[] items) => WithTransition(this.Transition.WithMetaCode(this.Transition.MetaCode.AddRange(items)));
 
-    public MarkupMinimizedTagHelperDirectiveAttributeSyntax WithName(MarkupTextLiteralSyntax name)
-    {
-        return Update(NamePrefix, Transition, name, Colon, ParameterName);
-    }
-
-    public MarkupMinimizedTagHelperDirectiveAttributeSyntax WithColon(RazorMetaCodeSyntax colon)
-    {
-        return Update(NamePrefix, Transition, Name, colon, ParameterName);
-    }
-
-    public MarkupMinimizedTagHelperDirectiveAttributeSyntax WithParameterName(MarkupTextLiteralSyntax parameterName)
-    {
-        return Update(NamePrefix, Transition, Name, Colon, parameterName);
-    }
-
-    public MarkupMinimizedTagHelperDirectiveAttributeSyntax AddTransitionMetaCode(params SyntaxToken[] items)
-    {
-        return this.WithTransition(this.Transition.WithMetaCode(this.Transition.MetaCode.AddRange(items)));
-    }
-
-    public MarkupMinimizedTagHelperDirectiveAttributeSyntax AddNameLiteralTokens(params SyntaxToken[] items)
-    {
-        return this.WithName(this.Name.WithLiteralTokens(this.Name.LiteralTokens.AddRange(items)));
-    }
+    public MarkupMinimizedTagHelperDirectiveAttributeSyntax AddNameLiteralTokens(params SyntaxToken[] items) => WithName(this.Name.WithLiteralTokens(this.Name.LiteralTokens.AddRange(items)));
 }
 
 internal abstract partial class CSharpSyntaxNode : RazorSyntaxNode
@@ -2924,40 +1520,14 @@ internal sealed partial class CSharpCodeBlockSyntax : RazorBlockSyntax
     {
     }
 
-    public override SyntaxList<RazorSyntaxNode> Children 
-    {
-        get
-        {
-            return new SyntaxList<RazorSyntaxNode>(GetRed(ref _children, 0));
-        }
-    }
+    public override SyntaxList<RazorSyntaxNode> Children  => new SyntaxList<RazorSyntaxNode>(GetRed(ref _children, 0));
 
-    internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return GetRedAtZero(ref _children);
-            default: return null;
-        }
-    }
-    internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return _children;
-            default: return null;
-        }
-    }
+    internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._children) : null;
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCSharpCodeBlock(this);
-    }
+    internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this._children : null;
 
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitCSharpCodeBlock(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitCSharpCodeBlock(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitCSharpCodeBlock(this);
 
     public CSharpCodeBlockSyntax Update(SyntaxList<RazorSyntaxNode> children)
     {
@@ -2968,25 +1538,17 @@ internal sealed partial class CSharpCodeBlockSyntax : RazorBlockSyntax
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
     internal override RazorBlockSyntax WithChildrenCore(SyntaxList<RazorSyntaxNode> children) => WithChildren(children);
-    public new CSharpCodeBlockSyntax WithChildren(SyntaxList<RazorSyntaxNode> children)
-    {
-        return Update(children);
-    }
+    public new CSharpCodeBlockSyntax WithChildren(SyntaxList<RazorSyntaxNode> children) => Update(children);
     internal override RazorBlockSyntax AddChildrenCore(params RazorSyntaxNode[] items) => AddChildren(items);
 
-    public new CSharpCodeBlockSyntax AddChildren(params RazorSyntaxNode[] items)
-    {
-        return WithChildren(this.Children.AddRange(items));
-    }
+    public new CSharpCodeBlockSyntax AddChildren(params RazorSyntaxNode[] items) => WithChildren(this.Children.AddRange(items));
 }
 
 internal sealed partial class CSharpTransitionSyntax : CSharpSyntaxNode
@@ -2998,42 +1560,15 @@ internal sealed partial class CSharpTransitionSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxToken Transition 
-    {
-        get
-        {
-            return GetRedAtZero(ref _transition);
-        }
-    }
+    public SyntaxToken Transition  => GetRedAtZero(ref _transition);
+    public ISpanChunkGenerator ChunkGenerator => ((InternalSyntax.CSharpTransitionSyntax)Green).ChunkGenerator;
 
-    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.CSharpTransitionSyntax)Green).ChunkGenerator; } }
+    internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._transition) : null;
 
-    internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return GetRedAtZero(ref _transition);
-            default: return null;
-        }
-    }
-    internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return _transition;
-            default: return null;
-        }
-    }
+    internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this._transition : null;
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCSharpTransition(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitCSharpTransition(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitCSharpTransition(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitCSharpTransition(this);
 
     public CSharpTransitionSyntax Update(SyntaxToken transition, ISpanChunkGenerator chunkGenerator)
     {
@@ -3044,23 +1579,14 @@ internal sealed partial class CSharpTransitionSyntax : CSharpSyntaxNode
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public CSharpTransitionSyntax WithTransition(SyntaxToken transition)
-    {
-        return Update(transition, ChunkGenerator);
-    }
-
-    public CSharpTransitionSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
-    {
-        return Update(Transition, chunkGenerator);
-    }
+    public CSharpTransitionSyntax WithTransition(SyntaxToken transition) => Update(transition, ChunkGenerator);
+    public CSharpTransitionSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator) => Update(Transition, chunkGenerator);
 }
 
 internal sealed partial class CSharpStatementLiteralSyntax : CSharpSyntaxNode
@@ -3072,42 +1598,15 @@ internal sealed partial class CSharpStatementLiteralSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxList<SyntaxToken> LiteralTokens 
-    {
-        get
-        {
-            return new SyntaxList<SyntaxToken>(GetRed(ref _literalTokens, 0));
-        }
-    }
+    public SyntaxList<SyntaxToken> LiteralTokens  => new SyntaxList<SyntaxToken>(GetRed(ref _literalTokens, 0));
+    public ISpanChunkGenerator ChunkGenerator => ((InternalSyntax.CSharpStatementLiteralSyntax)Green).ChunkGenerator;
 
-    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.CSharpStatementLiteralSyntax)Green).ChunkGenerator; } }
+    internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._literalTokens) : null;
 
-    internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return GetRedAtZero(ref _literalTokens);
-            default: return null;
-        }
-    }
-    internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return _literalTokens;
-            default: return null;
-        }
-    }
+    internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this._literalTokens : null;
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCSharpStatementLiteral(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitCSharpStatementLiteral(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitCSharpStatementLiteral(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitCSharpStatementLiteral(this);
 
     public CSharpStatementLiteralSyntax Update(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
@@ -3118,28 +1617,16 @@ internal sealed partial class CSharpStatementLiteralSyntax : CSharpSyntaxNode
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public CSharpStatementLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens)
-    {
-        return Update(literalTokens, ChunkGenerator);
-    }
+    public CSharpStatementLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens) => Update(literalTokens, ChunkGenerator);
+    public CSharpStatementLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator) => Update(LiteralTokens, chunkGenerator);
 
-    public CSharpStatementLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
-    {
-        return Update(LiteralTokens, chunkGenerator);
-    }
-
-    public CSharpStatementLiteralSyntax AddLiteralTokens(params SyntaxToken[] items)
-    {
-        return WithLiteralTokens(this.LiteralTokens.AddRange(items));
-    }
+    public CSharpStatementLiteralSyntax AddLiteralTokens(params SyntaxToken[] items) => WithLiteralTokens(this.LiteralTokens.AddRange(items));
 }
 
 internal sealed partial class CSharpExpressionLiteralSyntax : CSharpSyntaxNode
@@ -3151,42 +1638,15 @@ internal sealed partial class CSharpExpressionLiteralSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxList<SyntaxToken> LiteralTokens 
-    {
-        get
-        {
-            return new SyntaxList<SyntaxToken>(GetRed(ref _literalTokens, 0));
-        }
-    }
+    public SyntaxList<SyntaxToken> LiteralTokens  => new SyntaxList<SyntaxToken>(GetRed(ref _literalTokens, 0));
+    public ISpanChunkGenerator ChunkGenerator => ((InternalSyntax.CSharpExpressionLiteralSyntax)Green).ChunkGenerator;
 
-    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.CSharpExpressionLiteralSyntax)Green).ChunkGenerator; } }
+    internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._literalTokens) : null;
 
-    internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return GetRedAtZero(ref _literalTokens);
-            default: return null;
-        }
-    }
-    internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return _literalTokens;
-            default: return null;
-        }
-    }
+    internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this._literalTokens : null;
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCSharpExpressionLiteral(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitCSharpExpressionLiteral(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitCSharpExpressionLiteral(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitCSharpExpressionLiteral(this);
 
     public CSharpExpressionLiteralSyntax Update(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
@@ -3197,28 +1657,16 @@ internal sealed partial class CSharpExpressionLiteralSyntax : CSharpSyntaxNode
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public CSharpExpressionLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens)
-    {
-        return Update(literalTokens, ChunkGenerator);
-    }
+    public CSharpExpressionLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens) => Update(literalTokens, ChunkGenerator);
+    public CSharpExpressionLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator) => Update(LiteralTokens, chunkGenerator);
 
-    public CSharpExpressionLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
-    {
-        return Update(LiteralTokens, chunkGenerator);
-    }
-
-    public CSharpExpressionLiteralSyntax AddLiteralTokens(params SyntaxToken[] items)
-    {
-        return WithLiteralTokens(this.LiteralTokens.AddRange(items));
-    }
+    public CSharpExpressionLiteralSyntax AddLiteralTokens(params SyntaxToken[] items) => WithLiteralTokens(this.LiteralTokens.AddRange(items));
 }
 
 internal sealed partial class CSharpEphemeralTextLiteralSyntax : CSharpSyntaxNode
@@ -3230,42 +1678,15 @@ internal sealed partial class CSharpEphemeralTextLiteralSyntax : CSharpSyntaxNod
     {
     }
 
-    public SyntaxList<SyntaxToken> LiteralTokens 
-    {
-        get
-        {
-            return new SyntaxList<SyntaxToken>(GetRed(ref _literalTokens, 0));
-        }
-    }
+    public SyntaxList<SyntaxToken> LiteralTokens  => new SyntaxList<SyntaxToken>(GetRed(ref _literalTokens, 0));
+    public ISpanChunkGenerator ChunkGenerator => ((InternalSyntax.CSharpEphemeralTextLiteralSyntax)Green).ChunkGenerator;
 
-    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.CSharpEphemeralTextLiteralSyntax)Green).ChunkGenerator; } }
+    internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._literalTokens) : null;
 
-    internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return GetRedAtZero(ref _literalTokens);
-            default: return null;
-        }
-    }
-    internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return _literalTokens;
-            default: return null;
-        }
-    }
+    internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this._literalTokens : null;
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCSharpEphemeralTextLiteral(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitCSharpEphemeralTextLiteral(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitCSharpEphemeralTextLiteral(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitCSharpEphemeralTextLiteral(this);
 
     public CSharpEphemeralTextLiteralSyntax Update(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
@@ -3276,28 +1697,16 @@ internal sealed partial class CSharpEphemeralTextLiteralSyntax : CSharpSyntaxNod
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public CSharpEphemeralTextLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens)
-    {
-        return Update(literalTokens, ChunkGenerator);
-    }
+    public CSharpEphemeralTextLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens) => Update(literalTokens, ChunkGenerator);
+    public CSharpEphemeralTextLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator) => Update(LiteralTokens, chunkGenerator);
 
-    public CSharpEphemeralTextLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
-    {
-        return Update(LiteralTokens, chunkGenerator);
-    }
-
-    public CSharpEphemeralTextLiteralSyntax AddLiteralTokens(params SyntaxToken[] items)
-    {
-        return WithLiteralTokens(this.LiteralTokens.AddRange(items));
-    }
+    public CSharpEphemeralTextLiteralSyntax AddLiteralTokens(params SyntaxToken[] items) => WithLiteralTokens(this.LiteralTokens.AddRange(items));
 }
 
 internal sealed partial class CSharpTemplateBlockSyntax : RazorBlockSyntax
@@ -3309,40 +1718,14 @@ internal sealed partial class CSharpTemplateBlockSyntax : RazorBlockSyntax
     {
     }
 
-    public override SyntaxList<RazorSyntaxNode> Children 
-    {
-        get
-        {
-            return new SyntaxList<RazorSyntaxNode>(GetRed(ref _children, 0));
-        }
-    }
+    public override SyntaxList<RazorSyntaxNode> Children  => new SyntaxList<RazorSyntaxNode>(GetRed(ref _children, 0));
 
-    internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return GetRedAtZero(ref _children);
-            default: return null;
-        }
-    }
-    internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return _children;
-            default: return null;
-        }
-    }
+    internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._children) : null;
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCSharpTemplateBlock(this);
-    }
+    internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this._children : null;
 
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitCSharpTemplateBlock(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitCSharpTemplateBlock(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitCSharpTemplateBlock(this);
 
     public CSharpTemplateBlockSyntax Update(SyntaxList<RazorSyntaxNode> children)
     {
@@ -3353,25 +1736,17 @@ internal sealed partial class CSharpTemplateBlockSyntax : RazorBlockSyntax
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
     internal override RazorBlockSyntax WithChildrenCore(SyntaxList<RazorSyntaxNode> children) => WithChildren(children);
-    public new CSharpTemplateBlockSyntax WithChildren(SyntaxList<RazorSyntaxNode> children)
-    {
-        return Update(children);
-    }
+    public new CSharpTemplateBlockSyntax WithChildren(SyntaxList<RazorSyntaxNode> children) => Update(children);
     internal override RazorBlockSyntax AddChildrenCore(params RazorSyntaxNode[] items) => AddChildren(items);
 
-    public new CSharpTemplateBlockSyntax AddChildren(params RazorSyntaxNode[] items)
-    {
-        return WithChildren(this.Children.AddRange(items));
-    }
+    public new CSharpTemplateBlockSyntax AddChildren(params RazorSyntaxNode[] items) => WithChildren(this.Children.AddRange(items));
 }
 
 internal abstract partial class CSharpRazorBlockSyntax : CSharpSyntaxNode
@@ -3400,50 +1775,27 @@ internal sealed partial class CSharpStatementSyntax : CSharpRazorBlockSyntax
     {
     }
 
-    public override CSharpTransitionSyntax Transition 
-    {
-        get
-        {
-            return GetRedAtZero(ref _transition);
-        }
-    }
-
-    public override CSharpSyntaxNode Body 
-    {
-        get
-        {
-            return GetRed(ref _body, 1);
-        }
-    }
+    public override CSharpTransitionSyntax Transition  => GetRedAtZero(ref _transition);
+    public override CSharpSyntaxNode Body  => GetRed(ref _body, 1);
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _transition);
-            case 1: return GetRed(ref _body, 1);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _transition),
+            1 => GetRed(ref _body, 1),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _transition;
-            case 1: return _body;
-            default: return null;
-        }
-    }
+            0 => this._transition,
+            1 => this._body,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCSharpStatement(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitCSharpStatement(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitCSharpStatement(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitCSharpStatement(this);
 
     public CSharpStatementSyntax Update(CSharpTransitionSyntax transition, CSharpSyntaxNode body)
     {
@@ -3454,25 +1806,16 @@ internal sealed partial class CSharpStatementSyntax : CSharpRazorBlockSyntax
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
     internal override CSharpRazorBlockSyntax WithTransitionCore(CSharpTransitionSyntax transition) => WithTransition(transition);
-    public new CSharpStatementSyntax WithTransition(CSharpTransitionSyntax transition)
-    {
-        return Update(transition, Body);
-    }
-
+    public new CSharpStatementSyntax WithTransition(CSharpTransitionSyntax transition) => Update(transition, Body);
     internal override CSharpRazorBlockSyntax WithBodyCore(CSharpSyntaxNode body) => WithBody(body);
-    public new CSharpStatementSyntax WithBody(CSharpSyntaxNode body)
-    {
-        return Update(Transition, body);
-    }
+    public new CSharpStatementSyntax WithBody(CSharpSyntaxNode body) => Update(Transition, body);
 }
 
 internal sealed partial class CSharpStatementBodySyntax : CSharpSyntaxNode
@@ -3486,60 +1829,30 @@ internal sealed partial class CSharpStatementBodySyntax : CSharpSyntaxNode
     {
     }
 
-    public RazorMetaCodeSyntax OpenBrace 
-    {
-        get
-        {
-            return GetRedAtZero(ref _openBrace);
-        }
-    }
-
-    public CSharpCodeBlockSyntax CSharpCode 
-    {
-        get
-        {
-            return GetRed(ref _csharpCode, 1);
-        }
-    }
-
-    public RazorMetaCodeSyntax CloseBrace 
-    {
-        get
-        {
-            return GetRed(ref _closeBrace, 2);
-        }
-    }
+    public RazorMetaCodeSyntax OpenBrace  => GetRedAtZero(ref _openBrace);
+    public CSharpCodeBlockSyntax CSharpCode  => GetRed(ref _csharpCode, 1);
+    public RazorMetaCodeSyntax CloseBrace  => GetRed(ref _closeBrace, 2);
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _openBrace);
-            case 1: return GetRed(ref _csharpCode, 1);
-            case 2: return GetRed(ref _closeBrace, 2);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _openBrace),
+            1 => GetRed(ref _csharpCode, 1),
+            2 => GetRed(ref _closeBrace, 2),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _openBrace;
-            case 1: return _csharpCode;
-            case 2: return _closeBrace;
-            default: return null;
-        }
-    }
+            0 => this._openBrace,
+            1 => this._csharpCode,
+            2 => this._closeBrace,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCSharpStatementBody(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitCSharpStatementBody(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitCSharpStatementBody(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitCSharpStatementBody(this);
 
     public CSharpStatementBodySyntax Update(RazorMetaCodeSyntax openBrace, CSharpCodeBlockSyntax csharpCode, RazorMetaCodeSyntax closeBrace)
     {
@@ -3550,43 +1863,21 @@ internal sealed partial class CSharpStatementBodySyntax : CSharpSyntaxNode
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public CSharpStatementBodySyntax WithOpenBrace(RazorMetaCodeSyntax openBrace)
-    {
-        return Update(openBrace, CSharpCode, CloseBrace);
-    }
+    public CSharpStatementBodySyntax WithOpenBrace(RazorMetaCodeSyntax openBrace) => Update(openBrace, CSharpCode, CloseBrace);
+    public CSharpStatementBodySyntax WithCSharpCode(CSharpCodeBlockSyntax csharpCode) => Update(OpenBrace, csharpCode, CloseBrace);
+    public CSharpStatementBodySyntax WithCloseBrace(RazorMetaCodeSyntax closeBrace) => Update(OpenBrace, CSharpCode, closeBrace);
 
-    public CSharpStatementBodySyntax WithCSharpCode(CSharpCodeBlockSyntax csharpCode)
-    {
-        return Update(OpenBrace, csharpCode, CloseBrace);
-    }
+    public CSharpStatementBodySyntax AddOpenBraceMetaCode(params SyntaxToken[] items) => WithOpenBrace(this.OpenBrace.WithMetaCode(this.OpenBrace.MetaCode.AddRange(items)));
 
-    public CSharpStatementBodySyntax WithCloseBrace(RazorMetaCodeSyntax closeBrace)
-    {
-        return Update(OpenBrace, CSharpCode, closeBrace);
-    }
+    public CSharpStatementBodySyntax AddCSharpCodeChildren(params RazorSyntaxNode[] items) => WithCSharpCode(this.CSharpCode.WithChildren(this.CSharpCode.Children.AddRange(items)));
 
-    public CSharpStatementBodySyntax AddOpenBraceMetaCode(params SyntaxToken[] items)
-    {
-        return this.WithOpenBrace(this.OpenBrace.WithMetaCode(this.OpenBrace.MetaCode.AddRange(items)));
-    }
-
-    public CSharpStatementBodySyntax AddCSharpCodeChildren(params RazorSyntaxNode[] items)
-    {
-        return this.WithCSharpCode(this.CSharpCode.WithChildren(this.CSharpCode.Children.AddRange(items)));
-    }
-
-    public CSharpStatementBodySyntax AddCloseBraceMetaCode(params SyntaxToken[] items)
-    {
-        return this.WithCloseBrace(this.CloseBrace.WithMetaCode(this.CloseBrace.MetaCode.AddRange(items)));
-    }
+    public CSharpStatementBodySyntax AddCloseBraceMetaCode(params SyntaxToken[] items) => WithCloseBrace(this.CloseBrace.WithMetaCode(this.CloseBrace.MetaCode.AddRange(items)));
 }
 
 internal sealed partial class CSharpExplicitExpressionSyntax : CSharpRazorBlockSyntax
@@ -3599,50 +1890,27 @@ internal sealed partial class CSharpExplicitExpressionSyntax : CSharpRazorBlockS
     {
     }
 
-    public override CSharpTransitionSyntax Transition 
-    {
-        get
-        {
-            return GetRedAtZero(ref _transition);
-        }
-    }
-
-    public override CSharpSyntaxNode Body 
-    {
-        get
-        {
-            return GetRed(ref _body, 1);
-        }
-    }
+    public override CSharpTransitionSyntax Transition  => GetRedAtZero(ref _transition);
+    public override CSharpSyntaxNode Body  => GetRed(ref _body, 1);
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _transition);
-            case 1: return GetRed(ref _body, 1);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _transition),
+            1 => GetRed(ref _body, 1),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _transition;
-            case 1: return _body;
-            default: return null;
-        }
-    }
+            0 => this._transition,
+            1 => this._body,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCSharpExplicitExpression(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitCSharpExplicitExpression(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitCSharpExplicitExpression(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitCSharpExplicitExpression(this);
 
     public CSharpExplicitExpressionSyntax Update(CSharpTransitionSyntax transition, CSharpSyntaxNode body)
     {
@@ -3653,25 +1921,16 @@ internal sealed partial class CSharpExplicitExpressionSyntax : CSharpRazorBlockS
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
     internal override CSharpRazorBlockSyntax WithTransitionCore(CSharpTransitionSyntax transition) => WithTransition(transition);
-    public new CSharpExplicitExpressionSyntax WithTransition(CSharpTransitionSyntax transition)
-    {
-        return Update(transition, Body);
-    }
-
+    public new CSharpExplicitExpressionSyntax WithTransition(CSharpTransitionSyntax transition) => Update(transition, Body);
     internal override CSharpRazorBlockSyntax WithBodyCore(CSharpSyntaxNode body) => WithBody(body);
-    public new CSharpExplicitExpressionSyntax WithBody(CSharpSyntaxNode body)
-    {
-        return Update(Transition, body);
-    }
+    public new CSharpExplicitExpressionSyntax WithBody(CSharpSyntaxNode body) => Update(Transition, body);
 }
 
 internal sealed partial class CSharpExplicitExpressionBodySyntax : CSharpSyntaxNode
@@ -3685,60 +1944,30 @@ internal sealed partial class CSharpExplicitExpressionBodySyntax : CSharpSyntaxN
     {
     }
 
-    public RazorMetaCodeSyntax OpenParen 
-    {
-        get
-        {
-            return GetRedAtZero(ref _openParen);
-        }
-    }
-
-    public CSharpCodeBlockSyntax CSharpCode 
-    {
-        get
-        {
-            return GetRed(ref _csharpCode, 1);
-        }
-    }
-
-    public RazorMetaCodeSyntax CloseParen 
-    {
-        get
-        {
-            return GetRed(ref _closeParen, 2);
-        }
-    }
+    public RazorMetaCodeSyntax OpenParen  => GetRedAtZero(ref _openParen);
+    public CSharpCodeBlockSyntax CSharpCode  => GetRed(ref _csharpCode, 1);
+    public RazorMetaCodeSyntax CloseParen  => GetRed(ref _closeParen, 2);
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _openParen);
-            case 1: return GetRed(ref _csharpCode, 1);
-            case 2: return GetRed(ref _closeParen, 2);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _openParen),
+            1 => GetRed(ref _csharpCode, 1),
+            2 => GetRed(ref _closeParen, 2),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _openParen;
-            case 1: return _csharpCode;
-            case 2: return _closeParen;
-            default: return null;
-        }
-    }
+            0 => this._openParen,
+            1 => this._csharpCode,
+            2 => this._closeParen,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCSharpExplicitExpressionBody(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitCSharpExplicitExpressionBody(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitCSharpExplicitExpressionBody(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitCSharpExplicitExpressionBody(this);
 
     public CSharpExplicitExpressionBodySyntax Update(RazorMetaCodeSyntax openParen, CSharpCodeBlockSyntax csharpCode, RazorMetaCodeSyntax closeParen)
     {
@@ -3749,43 +1978,21 @@ internal sealed partial class CSharpExplicitExpressionBodySyntax : CSharpSyntaxN
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public CSharpExplicitExpressionBodySyntax WithOpenParen(RazorMetaCodeSyntax openParen)
-    {
-        return Update(openParen, CSharpCode, CloseParen);
-    }
+    public CSharpExplicitExpressionBodySyntax WithOpenParen(RazorMetaCodeSyntax openParen) => Update(openParen, CSharpCode, CloseParen);
+    public CSharpExplicitExpressionBodySyntax WithCSharpCode(CSharpCodeBlockSyntax csharpCode) => Update(OpenParen, csharpCode, CloseParen);
+    public CSharpExplicitExpressionBodySyntax WithCloseParen(RazorMetaCodeSyntax closeParen) => Update(OpenParen, CSharpCode, closeParen);
 
-    public CSharpExplicitExpressionBodySyntax WithCSharpCode(CSharpCodeBlockSyntax csharpCode)
-    {
-        return Update(OpenParen, csharpCode, CloseParen);
-    }
+    public CSharpExplicitExpressionBodySyntax AddOpenParenMetaCode(params SyntaxToken[] items) => WithOpenParen(this.OpenParen.WithMetaCode(this.OpenParen.MetaCode.AddRange(items)));
 
-    public CSharpExplicitExpressionBodySyntax WithCloseParen(RazorMetaCodeSyntax closeParen)
-    {
-        return Update(OpenParen, CSharpCode, closeParen);
-    }
+    public CSharpExplicitExpressionBodySyntax AddCSharpCodeChildren(params RazorSyntaxNode[] items) => WithCSharpCode(this.CSharpCode.WithChildren(this.CSharpCode.Children.AddRange(items)));
 
-    public CSharpExplicitExpressionBodySyntax AddOpenParenMetaCode(params SyntaxToken[] items)
-    {
-        return this.WithOpenParen(this.OpenParen.WithMetaCode(this.OpenParen.MetaCode.AddRange(items)));
-    }
-
-    public CSharpExplicitExpressionBodySyntax AddCSharpCodeChildren(params RazorSyntaxNode[] items)
-    {
-        return this.WithCSharpCode(this.CSharpCode.WithChildren(this.CSharpCode.Children.AddRange(items)));
-    }
-
-    public CSharpExplicitExpressionBodySyntax AddCloseParenMetaCode(params SyntaxToken[] items)
-    {
-        return this.WithCloseParen(this.CloseParen.WithMetaCode(this.CloseParen.MetaCode.AddRange(items)));
-    }
+    public CSharpExplicitExpressionBodySyntax AddCloseParenMetaCode(params SyntaxToken[] items) => WithCloseParen(this.CloseParen.WithMetaCode(this.CloseParen.MetaCode.AddRange(items)));
 }
 
 internal sealed partial class CSharpImplicitExpressionSyntax : CSharpRazorBlockSyntax
@@ -3798,50 +2005,27 @@ internal sealed partial class CSharpImplicitExpressionSyntax : CSharpRazorBlockS
     {
     }
 
-    public override CSharpTransitionSyntax Transition 
-    {
-        get
-        {
-            return GetRedAtZero(ref _transition);
-        }
-    }
-
-    public override CSharpSyntaxNode Body 
-    {
-        get
-        {
-            return GetRed(ref _body, 1);
-        }
-    }
+    public override CSharpTransitionSyntax Transition  => GetRedAtZero(ref _transition);
+    public override CSharpSyntaxNode Body  => GetRed(ref _body, 1);
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _transition);
-            case 1: return GetRed(ref _body, 1);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _transition),
+            1 => GetRed(ref _body, 1),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _transition;
-            case 1: return _body;
-            default: return null;
-        }
-    }
+            0 => this._transition,
+            1 => this._body,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCSharpImplicitExpression(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitCSharpImplicitExpression(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitCSharpImplicitExpression(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitCSharpImplicitExpression(this);
 
     public CSharpImplicitExpressionSyntax Update(CSharpTransitionSyntax transition, CSharpSyntaxNode body)
     {
@@ -3852,25 +2036,16 @@ internal sealed partial class CSharpImplicitExpressionSyntax : CSharpRazorBlockS
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
     internal override CSharpRazorBlockSyntax WithTransitionCore(CSharpTransitionSyntax transition) => WithTransition(transition);
-    public new CSharpImplicitExpressionSyntax WithTransition(CSharpTransitionSyntax transition)
-    {
-        return Update(transition, Body);
-    }
-
+    public new CSharpImplicitExpressionSyntax WithTransition(CSharpTransitionSyntax transition) => Update(transition, Body);
     internal override CSharpRazorBlockSyntax WithBodyCore(CSharpSyntaxNode body) => WithBody(body);
-    public new CSharpImplicitExpressionSyntax WithBody(CSharpSyntaxNode body)
-    {
-        return Update(Transition, body);
-    }
+    public new CSharpImplicitExpressionSyntax WithBody(CSharpSyntaxNode body) => Update(Transition, body);
 }
 
 internal sealed partial class CSharpImplicitExpressionBodySyntax : CSharpSyntaxNode
@@ -3882,40 +2057,14 @@ internal sealed partial class CSharpImplicitExpressionBodySyntax : CSharpSyntaxN
     {
     }
 
-    public CSharpCodeBlockSyntax CSharpCode 
-    {
-        get
-        {
-            return GetRedAtZero(ref _csharpCode);
-        }
-    }
+    public CSharpCodeBlockSyntax CSharpCode  => GetRedAtZero(ref _csharpCode);
 
-    internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return GetRedAtZero(ref _csharpCode);
-            default: return null;
-        }
-    }
-    internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return _csharpCode;
-            default: return null;
-        }
-    }
+    internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._csharpCode) : null;
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCSharpImplicitExpressionBody(this);
-    }
+    internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this._csharpCode : null;
 
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitCSharpImplicitExpressionBody(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitCSharpImplicitExpressionBody(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitCSharpImplicitExpressionBody(this);
 
     public CSharpImplicitExpressionBodySyntax Update(CSharpCodeBlockSyntax csharpCode)
     {
@@ -3926,23 +2075,15 @@ internal sealed partial class CSharpImplicitExpressionBodySyntax : CSharpSyntaxN
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public CSharpImplicitExpressionBodySyntax WithCSharpCode(CSharpCodeBlockSyntax csharpCode)
-    {
-        return Update(csharpCode);
-    }
+    public CSharpImplicitExpressionBodySyntax WithCSharpCode(CSharpCodeBlockSyntax csharpCode) => Update(csharpCode);
 
-    public CSharpImplicitExpressionBodySyntax AddCSharpCodeChildren(params RazorSyntaxNode[] items)
-    {
-        return this.WithCSharpCode(this.CSharpCode.WithChildren(this.CSharpCode.Children.AddRange(items)));
-    }
+    public CSharpImplicitExpressionBodySyntax AddCSharpCodeChildren(params RazorSyntaxNode[] items) => WithCSharpCode(this.CSharpCode.WithChildren(this.CSharpCode.Children.AddRange(items)));
 }
 
 internal sealed partial class RazorDirectiveSyntax : CSharpRazorBlockSyntax
@@ -3955,50 +2096,27 @@ internal sealed partial class RazorDirectiveSyntax : CSharpRazorBlockSyntax
     {
     }
 
-    public override CSharpTransitionSyntax Transition 
-    {
-        get
-        {
-            return GetRedAtZero(ref _transition);
-        }
-    }
-
-    public override CSharpSyntaxNode Body 
-    {
-        get
-        {
-            return GetRed(ref _body, 1);
-        }
-    }
+    public override CSharpTransitionSyntax Transition  => GetRedAtZero(ref _transition);
+    public override CSharpSyntaxNode Body  => GetRed(ref _body, 1);
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _transition);
-            case 1: return GetRed(ref _body, 1);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _transition),
+            1 => GetRed(ref _body, 1),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _transition;
-            case 1: return _body;
-            default: return null;
-        }
-    }
+            0 => this._transition,
+            1 => this._body,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitRazorDirective(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitRazorDirective(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitRazorDirective(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitRazorDirective(this);
 
     public RazorDirectiveSyntax Update(CSharpTransitionSyntax transition, CSharpSyntaxNode body)
     {
@@ -4009,25 +2127,16 @@ internal sealed partial class RazorDirectiveSyntax : CSharpRazorBlockSyntax
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
     internal override CSharpRazorBlockSyntax WithTransitionCore(CSharpTransitionSyntax transition) => WithTransition(transition);
-    public new RazorDirectiveSyntax WithTransition(CSharpTransitionSyntax transition)
-    {
-        return Update(transition, Body);
-    }
-
+    public new RazorDirectiveSyntax WithTransition(CSharpTransitionSyntax transition) => Update(transition, Body);
     internal override CSharpRazorBlockSyntax WithBodyCore(CSharpSyntaxNode body) => WithBody(body);
-    public new RazorDirectiveSyntax WithBody(CSharpSyntaxNode body)
-    {
-        return Update(Transition, body);
-    }
+    public new RazorDirectiveSyntax WithBody(CSharpSyntaxNode body) => Update(Transition, body);
 }
 
 internal sealed partial class RazorDirectiveBodySyntax : CSharpSyntaxNode
@@ -4040,50 +2149,27 @@ internal sealed partial class RazorDirectiveBodySyntax : CSharpSyntaxNode
     {
     }
 
-    public RazorSyntaxNode Keyword 
-    {
-        get
-        {
-            return GetRedAtZero(ref _keyword);
-        }
-    }
-
-    public CSharpCodeBlockSyntax CSharpCode 
-    {
-        get
-        {
-            return GetRed(ref _csharpCode, 1);
-        }
-    }
+    public RazorSyntaxNode Keyword  => GetRedAtZero(ref _keyword);
+    public CSharpCodeBlockSyntax CSharpCode  => GetRed(ref _csharpCode, 1);
 
     internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return GetRedAtZero(ref _keyword);
-            case 1: return GetRed(ref _csharpCode, 1);
-            default: return null;
-        }
-    }
+            0 => GetRedAtZero(ref _keyword),
+            1 => GetRed(ref _csharpCode, 1),
+            _ => null
+        };
+
     internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
+        => index switch
         {
-            case 0: return _keyword;
-            case 1: return _csharpCode;
-            default: return null;
-        }
-    }
+            0 => this._keyword,
+            1 => this._csharpCode,
+            _ => null
+        };
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitRazorDirectiveBody(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitRazorDirectiveBody(this);
-    }
+    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitRazorDirectiveBody(this);
+    public override void Accept(SyntaxVisitor visitor) => visitor.VisitRazorDirectiveBody(this);
 
     public RazorDirectiveBodySyntax Update(RazorSyntaxNode keyword, CSharpCodeBlockSyntax csharpCode)
     {
@@ -4094,23 +2180,14 @@ internal sealed partial class RazorDirectiveBodySyntax : CSharpSyntaxNode
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-                return newNode.WithAnnotations(annotations);
-            return newNode;
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
         return this;
     }
 
-    public RazorDirectiveBodySyntax WithKeyword(RazorSyntaxNode keyword)
-    {
-        return Update(keyword, CSharpCode);
-    }
-
-    public RazorDirectiveBodySyntax WithCSharpCode(CSharpCodeBlockSyntax csharpCode)
-    {
-        return Update(Keyword, csharpCode);
-    }
+    public RazorDirectiveBodySyntax WithKeyword(RazorSyntaxNode keyword) => Update(keyword, CSharpCode);
+    public RazorDirectiveBodySyntax WithCSharpCode(CSharpCodeBlockSyntax csharpCode) => Update(Keyword, csharpCode);
 
     public RazorDirectiveBodySyntax AddCSharpCodeChildren(params RazorSyntaxNode[] items)
     {
