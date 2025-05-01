@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 
-namespace Microsoft.AspNetCore.Razor.Language.Syntax
+namespace Microsoft.AspNetCore.Razor.Language.Syntax;
+
+internal abstract partial class RazorBlockSyntax : RazorSyntaxNode
 {
-  internal abstract partial class RazorBlockSyntax : RazorSyntaxNode
-  {
     internal RazorBlockSyntax(GreenNode green, SyntaxNode parent, int position)
-      : base(green, parent, position)
+        : base(green, parent, position)
     {
     }
 
@@ -19,10 +19,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
 
     public RazorBlockSyntax AddChildren(params RazorSyntaxNode[] items) => AddChildrenCore(items);
     internal abstract RazorBlockSyntax AddChildrenCore(params RazorSyntaxNode[] items);
-  }
+}
 
-  internal sealed partial class RazorDocumentSyntax : RazorSyntaxNode
-  {
+internal sealed partial class RazorDocumentSyntax : RazorSyntaxNode
+{
     private RazorBlockSyntax _document;
     private SyntaxToken _endOfFile;
 
@@ -83,10 +83,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.RazorDocument(document, endOfFile);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -102,10 +102,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return Update(Document, endOfFile);
     }
-  }
+}
 
-  internal sealed partial class RazorCommentBlockSyntax : RazorSyntaxNode
-  {
+internal sealed partial class RazorCommentBlockSyntax : RazorSyntaxNode
+{
     private SyntaxToken _startCommentTransition;
     private SyntaxToken _startCommentStar;
     private SyntaxToken _comment;
@@ -199,10 +199,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.RazorCommentBlock(startCommentTransition, startCommentStar, comment, endCommentStar, endCommentTransition);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -233,10 +233,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return Update(StartCommentTransition, StartCommentStar, Comment, EndCommentStar, endCommentTransition);
     }
-  }
+}
 
-  internal sealed partial class RazorMetaCodeSyntax : RazorSyntaxNode
-  {
+internal sealed partial class RazorMetaCodeSyntax : RazorSyntaxNode
+{
     private SyntaxNode _metaCode;
 
     internal RazorMetaCodeSyntax(GreenNode green, SyntaxNode parent, int position)
@@ -288,10 +288,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.RazorMetaCode(metaCode, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -312,10 +312,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return WithMetaCode(this.MetaCode.AddRange(items));
     }
-  }
+}
 
-  internal sealed partial class GenericBlockSyntax : RazorBlockSyntax
-  {
+internal sealed partial class GenericBlockSyntax : RazorBlockSyntax
+{
     private SyntaxNode _children;
 
     internal GenericBlockSyntax(GreenNode green, SyntaxNode parent, int position)
@@ -365,10 +365,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.GenericBlock(children);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -386,10 +386,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return WithChildren(this.Children.AddRange(items));
     }
-  }
+}
 
-  internal sealed partial class UnclassifiedTextLiteralSyntax : RazorSyntaxNode
-  {
+internal sealed partial class UnclassifiedTextLiteralSyntax : RazorSyntaxNode
+{
     private SyntaxNode _literalTokens;
 
     internal UnclassifiedTextLiteralSyntax(GreenNode green, SyntaxNode parent, int position)
@@ -441,10 +441,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.UnclassifiedTextLiteral(literalTokens, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -465,18 +465,18 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return WithLiteralTokens(this.LiteralTokens.AddRange(items));
     }
-  }
+}
 
-  internal abstract partial class MarkupSyntaxNode : RazorSyntaxNode
-  {
+internal abstract partial class MarkupSyntaxNode : RazorSyntaxNode
+{
     internal MarkupSyntaxNode(GreenNode green, SyntaxNode parent, int position)
-      : base(green, parent, position)
+        : base(green, parent, position)
     {
     }
-  }
+}
 
-  internal sealed partial class MarkupBlockSyntax : RazorBlockSyntax
-  {
+internal sealed partial class MarkupBlockSyntax : RazorBlockSyntax
+{
     private SyntaxNode _children;
 
     internal MarkupBlockSyntax(GreenNode green, SyntaxNode parent, int position)
@@ -526,10 +526,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.MarkupBlock(children);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -547,10 +547,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return WithChildren(this.Children.AddRange(items));
     }
-  }
+}
 
-  internal sealed partial class MarkupTransitionSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupTransitionSyntax : MarkupSyntaxNode
+{
     private SyntaxNode _transitionTokens;
 
     internal MarkupTransitionSyntax(GreenNode green, SyntaxNode parent, int position)
@@ -602,10 +602,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.MarkupTransition(transitionTokens, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -626,10 +626,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return WithTransitionTokens(this.TransitionTokens.AddRange(items));
     }
-  }
+}
 
-  internal sealed partial class MarkupTextLiteralSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupTextLiteralSyntax : MarkupSyntaxNode
+{
     private SyntaxNode _literalTokens;
 
     internal MarkupTextLiteralSyntax(GreenNode green, SyntaxNode parent, int position)
@@ -681,10 +681,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.MarkupTextLiteral(literalTokens, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -705,10 +705,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return WithLiteralTokens(this.LiteralTokens.AddRange(items));
     }
-  }
+}
 
-  internal sealed partial class MarkupEphemeralTextLiteralSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupEphemeralTextLiteralSyntax : MarkupSyntaxNode
+{
     private SyntaxNode _literalTokens;
 
     internal MarkupEphemeralTextLiteralSyntax(GreenNode green, SyntaxNode parent, int position)
@@ -760,10 +760,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.MarkupEphemeralTextLiteral(literalTokens, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -784,10 +784,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return WithLiteralTokens(this.LiteralTokens.AddRange(items));
     }
-  }
+}
 
-  internal sealed partial class MarkupCommentBlockSyntax : RazorBlockSyntax
-  {
+internal sealed partial class MarkupCommentBlockSyntax : RazorBlockSyntax
+{
     private SyntaxNode _children;
 
     internal MarkupCommentBlockSyntax(GreenNode green, SyntaxNode parent, int position)
@@ -837,10 +837,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.MarkupCommentBlock(children);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -858,10 +858,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return WithChildren(this.Children.AddRange(items));
     }
-  }
+}
 
-  internal sealed partial class MarkupMinimizedAttributeBlockSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupMinimizedAttributeBlockSyntax : MarkupSyntaxNode
+{
     private MarkupTextLiteralSyntax _namePrefix;
     private MarkupTextLiteralSyntax _name;
 
@@ -922,10 +922,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.MarkupMinimizedAttributeBlock(namePrefix, name);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -946,10 +946,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return this.WithName(this.Name.WithLiteralTokens(this.Name.LiteralTokens.AddRange(items)));
     }
-  }
+}
 
-  internal sealed partial class MarkupAttributeBlockSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupAttributeBlockSyntax : MarkupSyntaxNode
+{
     private MarkupTextLiteralSyntax _namePrefix;
     private MarkupTextLiteralSyntax _name;
     private MarkupTextLiteralSyntax _nameSuffix;
@@ -1065,10 +1065,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.MarkupAttributeBlock(namePrefix, name, nameSuffix, equalsToken, valuePrefix, value, valueSuffix);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -1114,10 +1114,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return this.WithName(this.Name.WithLiteralTokens(this.Name.LiteralTokens.AddRange(items)));
     }
-  }
+}
 
-  internal sealed partial class MarkupMiscAttributeContentSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupMiscAttributeContentSyntax : MarkupSyntaxNode
+{
     private SyntaxNode _children;
 
     internal MarkupMiscAttributeContentSyntax(GreenNode green, SyntaxNode parent, int position)
@@ -1167,10 +1167,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.MarkupMiscAttributeContent(children);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -1186,10 +1186,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return WithChildren(this.Children.AddRange(items));
     }
-  }
+}
 
-  internal sealed partial class MarkupLiteralAttributeValueSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupLiteralAttributeValueSyntax : MarkupSyntaxNode
+{
     private MarkupTextLiteralSyntax _prefix;
     private MarkupTextLiteralSyntax _value;
 
@@ -1250,10 +1250,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.MarkupLiteralAttributeValue(prefix, value);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -1269,10 +1269,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return Update(Prefix, value);
     }
-  }
+}
 
-  internal sealed partial class MarkupDynamicAttributeValueSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupDynamicAttributeValueSyntax : MarkupSyntaxNode
+{
     private MarkupTextLiteralSyntax _prefix;
     private RazorBlockSyntax _value;
 
@@ -1333,10 +1333,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.MarkupDynamicAttributeValue(prefix, value);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -1352,10 +1352,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return Update(Prefix, value);
     }
-  }
+}
 
-  internal sealed partial class MarkupElementSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupElementSyntax : MarkupSyntaxNode
+{
     private MarkupStartTagSyntax _startTag;
     private SyntaxNode _body;
     private MarkupEndTagSyntax _endTag;
@@ -1427,10 +1427,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.MarkupElement(startTag, body, endTag);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -1456,10 +1456,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return WithBody(this.Body.AddRange(items));
     }
-  }
+}
 
-  internal sealed partial class MarkupStartTagSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupStartTagSyntax : MarkupSyntaxNode
+{
     private SyntaxToken _openAngle;
     private SyntaxToken _bang;
     private SyntaxToken _name;
@@ -1566,10 +1566,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.MarkupStartTag(openAngle, bang, name, attributes, forwardSlash, closeAngle, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -1615,10 +1615,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return WithAttributes(this.Attributes.AddRange(items));
     }
-  }
+}
 
-  internal sealed partial class MarkupEndTagSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupEndTagSyntax : MarkupSyntaxNode
+{
     private SyntaxToken _openAngle;
     private SyntaxToken _forwardSlash;
     private SyntaxToken _bang;
@@ -1725,10 +1725,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.MarkupEndTag(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -1775,10 +1775,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         var _miscAttributeContent = this.MiscAttributeContent ?? SyntaxFactory.MarkupMiscAttributeContent();
         return this.WithMiscAttributeContent(_miscAttributeContent.WithChildren(_miscAttributeContent.Children.AddRange(items)));
     }
-  }
+}
 
-  internal sealed partial class MarkupTagHelperElementSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupTagHelperElementSyntax : MarkupSyntaxNode
+{
     private MarkupTagHelperStartTagSyntax _startTag;
     private SyntaxNode _body;
     private MarkupTagHelperEndTagSyntax _endTag;
@@ -1850,10 +1850,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.MarkupTagHelperElement(startTag, body, endTag);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -1884,10 +1884,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return WithBody(this.Body.AddRange(items));
     }
-  }
+}
 
-  internal sealed partial class MarkupTagHelperStartTagSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupTagHelperStartTagSyntax : MarkupSyntaxNode
+{
     private SyntaxToken _openAngle;
     private SyntaxToken _bang;
     private SyntaxToken _name;
@@ -1994,10 +1994,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.MarkupTagHelperStartTag(openAngle, bang, name, attributes, forwardSlash, closeAngle, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -2043,10 +2043,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return WithAttributes(this.Attributes.AddRange(items));
     }
-  }
+}
 
-  internal sealed partial class MarkupTagHelperEndTagSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupTagHelperEndTagSyntax : MarkupSyntaxNode
+{
     private SyntaxToken _openAngle;
     private SyntaxToken _forwardSlash;
     private SyntaxToken _bang;
@@ -2153,10 +2153,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.MarkupTagHelperEndTag(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -2203,10 +2203,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         var _miscAttributeContent = this.MiscAttributeContent ?? SyntaxFactory.MarkupMiscAttributeContent();
         return this.WithMiscAttributeContent(_miscAttributeContent.WithChildren(_miscAttributeContent.Children.AddRange(items)));
     }
-  }
+}
 
-  internal sealed partial class MarkupTagHelperAttributeSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupTagHelperAttributeSyntax : MarkupSyntaxNode
+{
     private MarkupTextLiteralSyntax _namePrefix;
     private MarkupTextLiteralSyntax _name;
     private MarkupTextLiteralSyntax _nameSuffix;
@@ -2322,10 +2322,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.MarkupTagHelperAttribute(namePrefix, name, nameSuffix, equalsToken, valuePrefix, value, valueSuffix);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -2376,10 +2376,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return this.WithValue(this.Value.WithChildren(this.Value.Children.AddRange(items)));
     }
-  }
+}
 
-  internal sealed partial class MarkupMinimizedTagHelperAttributeSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupMinimizedTagHelperAttributeSyntax : MarkupSyntaxNode
+{
     private MarkupTextLiteralSyntax _namePrefix;
     private MarkupTextLiteralSyntax _name;
 
@@ -2440,10 +2440,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.MarkupMinimizedTagHelperAttribute(namePrefix, name);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -2464,10 +2464,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return this.WithName(this.Name.WithLiteralTokens(this.Name.LiteralTokens.AddRange(items)));
     }
-  }
+}
 
-  internal sealed partial class MarkupTagHelperAttributeValueSyntax : RazorBlockSyntax
-  {
+internal sealed partial class MarkupTagHelperAttributeValueSyntax : RazorBlockSyntax
+{
     private SyntaxNode _children;
 
     internal MarkupTagHelperAttributeValueSyntax(GreenNode green, SyntaxNode parent, int position)
@@ -2517,10 +2517,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.MarkupTagHelperAttributeValue(children);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -2538,10 +2538,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return WithChildren(this.Children.AddRange(items));
     }
-  }
+}
 
-  internal sealed partial class MarkupTagHelperDirectiveAttributeSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupTagHelperDirectiveAttributeSyntax : MarkupSyntaxNode
+{
     private MarkupTextLiteralSyntax _namePrefix;
     private RazorMetaCodeSyntax _transition;
     private MarkupTextLiteralSyntax _name;
@@ -2690,10 +2690,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.MarkupTagHelperDirectiveAttribute(namePrefix, transition, name, colon, parameterName, nameSuffix, equalsToken, valuePrefix, value, valueSuffix);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -2764,10 +2764,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return this.WithValue(this.Value.WithChildren(this.Value.Children.AddRange(items)));
     }
-  }
+}
 
-  internal sealed partial class MarkupMinimizedTagHelperDirectiveAttributeSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupMinimizedTagHelperDirectiveAttributeSyntax : MarkupSyntaxNode
+{
     private MarkupTextLiteralSyntax _namePrefix;
     private RazorMetaCodeSyntax _transition;
     private MarkupTextLiteralSyntax _name;
@@ -2861,10 +2861,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.MarkupMinimizedTagHelperDirectiveAttribute(namePrefix, transition, name, colon, parameterName);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -2905,18 +2905,18 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return this.WithName(this.Name.WithLiteralTokens(this.Name.LiteralTokens.AddRange(items)));
     }
-  }
+}
 
-  internal abstract partial class CSharpSyntaxNode : RazorSyntaxNode
-  {
+internal abstract partial class CSharpSyntaxNode : RazorSyntaxNode
+{
     internal CSharpSyntaxNode(GreenNode green, SyntaxNode parent, int position)
-      : base(green, parent, position)
+        : base(green, parent, position)
     {
     }
-  }
+}
 
-  internal sealed partial class CSharpCodeBlockSyntax : RazorBlockSyntax
-  {
+internal sealed partial class CSharpCodeBlockSyntax : RazorBlockSyntax
+{
     private SyntaxNode _children;
 
     internal CSharpCodeBlockSyntax(GreenNode green, SyntaxNode parent, int position)
@@ -2966,10 +2966,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.CSharpCodeBlock(children);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -2987,10 +2987,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return WithChildren(this.Children.AddRange(items));
     }
-  }
+}
 
-  internal sealed partial class CSharpTransitionSyntax : CSharpSyntaxNode
-  {
+internal sealed partial class CSharpTransitionSyntax : CSharpSyntaxNode
+{
     private SyntaxToken _transition;
 
     internal CSharpTransitionSyntax(GreenNode green, SyntaxNode parent, int position)
@@ -3042,10 +3042,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.CSharpTransition(transition, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -3061,10 +3061,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return Update(Transition, chunkGenerator);
     }
-  }
+}
 
-  internal sealed partial class CSharpStatementLiteralSyntax : CSharpSyntaxNode
-  {
+internal sealed partial class CSharpStatementLiteralSyntax : CSharpSyntaxNode
+{
     private SyntaxNode _literalTokens;
 
     internal CSharpStatementLiteralSyntax(GreenNode green, SyntaxNode parent, int position)
@@ -3116,10 +3116,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.CSharpStatementLiteral(literalTokens, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -3140,10 +3140,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return WithLiteralTokens(this.LiteralTokens.AddRange(items));
     }
-  }
+}
 
-  internal sealed partial class CSharpExpressionLiteralSyntax : CSharpSyntaxNode
-  {
+internal sealed partial class CSharpExpressionLiteralSyntax : CSharpSyntaxNode
+{
     private SyntaxNode _literalTokens;
 
     internal CSharpExpressionLiteralSyntax(GreenNode green, SyntaxNode parent, int position)
@@ -3195,10 +3195,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.CSharpExpressionLiteral(literalTokens, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -3219,10 +3219,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return WithLiteralTokens(this.LiteralTokens.AddRange(items));
     }
-  }
+}
 
-  internal sealed partial class CSharpEphemeralTextLiteralSyntax : CSharpSyntaxNode
-  {
+internal sealed partial class CSharpEphemeralTextLiteralSyntax : CSharpSyntaxNode
+{
     private SyntaxNode _literalTokens;
 
     internal CSharpEphemeralTextLiteralSyntax(GreenNode green, SyntaxNode parent, int position)
@@ -3274,10 +3274,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.CSharpEphemeralTextLiteral(literalTokens, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -3298,10 +3298,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return WithLiteralTokens(this.LiteralTokens.AddRange(items));
     }
-  }
+}
 
-  internal sealed partial class CSharpTemplateBlockSyntax : RazorBlockSyntax
-  {
+internal sealed partial class CSharpTemplateBlockSyntax : RazorBlockSyntax
+{
     private SyntaxNode _children;
 
     internal CSharpTemplateBlockSyntax(GreenNode green, SyntaxNode parent, int position)
@@ -3351,10 +3351,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.CSharpTemplateBlock(children);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -3372,12 +3372,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return WithChildren(this.Children.AddRange(items));
     }
-  }
+}
 
-  internal abstract partial class CSharpRazorBlockSyntax : CSharpSyntaxNode
-  {
+internal abstract partial class CSharpRazorBlockSyntax : CSharpSyntaxNode
+{
     internal CSharpRazorBlockSyntax(GreenNode green, SyntaxNode parent, int position)
-      : base(green, parent, position)
+        : base(green, parent, position)
     {
     }
 
@@ -3388,10 +3388,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     public abstract CSharpSyntaxNode Body { get; }
     public CSharpRazorBlockSyntax WithBody(CSharpSyntaxNode body) => WithBodyCore(body);
     internal abstract CSharpRazorBlockSyntax WithBodyCore(CSharpSyntaxNode body);
-  }
+}
 
-  internal sealed partial class CSharpStatementSyntax : CSharpRazorBlockSyntax
-  {
+internal sealed partial class CSharpStatementSyntax : CSharpRazorBlockSyntax
+{
     private CSharpTransitionSyntax _transition;
     private CSharpSyntaxNode _body;
 
@@ -3452,10 +3452,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.CSharpStatement(transition, body);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -3473,10 +3473,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return Update(Transition, body);
     }
-  }
+}
 
-  internal sealed partial class CSharpStatementBodySyntax : CSharpSyntaxNode
-  {
+internal sealed partial class CSharpStatementBodySyntax : CSharpSyntaxNode
+{
     private RazorMetaCodeSyntax _openBrace;
     private CSharpCodeBlockSyntax _cSharpCode;
     private RazorMetaCodeSyntax _closeBrace;
@@ -3548,10 +3548,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.CSharpStatementBody(openBrace, cSharpCode, closeBrace);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -3587,10 +3587,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return this.WithCloseBrace(this.CloseBrace.WithMetaCode(this.CloseBrace.MetaCode.AddRange(items)));
     }
-  }
+}
 
-  internal sealed partial class CSharpExplicitExpressionSyntax : CSharpRazorBlockSyntax
-  {
+internal sealed partial class CSharpExplicitExpressionSyntax : CSharpRazorBlockSyntax
+{
     private CSharpTransitionSyntax _transition;
     private CSharpSyntaxNode _body;
 
@@ -3651,10 +3651,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.CSharpExplicitExpression(transition, body);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -3672,10 +3672,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return Update(Transition, body);
     }
-  }
+}
 
-  internal sealed partial class CSharpExplicitExpressionBodySyntax : CSharpSyntaxNode
-  {
+internal sealed partial class CSharpExplicitExpressionBodySyntax : CSharpSyntaxNode
+{
     private RazorMetaCodeSyntax _openParen;
     private CSharpCodeBlockSyntax _cSharpCode;
     private RazorMetaCodeSyntax _closeParen;
@@ -3747,10 +3747,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.CSharpExplicitExpressionBody(openParen, cSharpCode, closeParen);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -3786,10 +3786,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return this.WithCloseParen(this.CloseParen.WithMetaCode(this.CloseParen.MetaCode.AddRange(items)));
     }
-  }
+}
 
-  internal sealed partial class CSharpImplicitExpressionSyntax : CSharpRazorBlockSyntax
-  {
+internal sealed partial class CSharpImplicitExpressionSyntax : CSharpRazorBlockSyntax
+{
     private CSharpTransitionSyntax _transition;
     private CSharpSyntaxNode _body;
 
@@ -3850,10 +3850,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.CSharpImplicitExpression(transition, body);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -3871,10 +3871,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return Update(Transition, body);
     }
-  }
+}
 
-  internal sealed partial class CSharpImplicitExpressionBodySyntax : CSharpSyntaxNode
-  {
+internal sealed partial class CSharpImplicitExpressionBodySyntax : CSharpSyntaxNode
+{
     private CSharpCodeBlockSyntax _cSharpCode;
 
     internal CSharpImplicitExpressionBodySyntax(GreenNode green, SyntaxNode parent, int position)
@@ -3924,10 +3924,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.CSharpImplicitExpressionBody(cSharpCode);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -3943,10 +3943,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return this.WithCSharpCode(this.CSharpCode.WithChildren(this.CSharpCode.Children.AddRange(items)));
     }
-  }
+}
 
-  internal sealed partial class RazorDirectiveSyntax : CSharpRazorBlockSyntax
-  {
+internal sealed partial class RazorDirectiveSyntax : CSharpRazorBlockSyntax
+{
     private CSharpTransitionSyntax _transition;
     private CSharpSyntaxNode _body;
 
@@ -4007,10 +4007,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.RazorDirective(transition, body);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -4028,10 +4028,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return Update(Transition, body);
     }
-  }
+}
 
-  internal sealed partial class RazorDirectiveBodySyntax : CSharpSyntaxNode
-  {
+internal sealed partial class RazorDirectiveBodySyntax : CSharpSyntaxNode
+{
     private RazorSyntaxNode _keyword;
     private CSharpCodeBlockSyntax _cSharpCode;
 
@@ -4092,10 +4092,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
             var newNode = SyntaxFactory.RazorDirectiveBody(keyword, cSharpCode);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
-               newNode = newNode.WithDiagnostics(diagnostics);
+                newNode = newNode.WithDiagnostics(diagnostics);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
+                return newNode.WithAnnotations(annotations);
             return newNode;
         }
 
@@ -4117,5 +4117,4 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         var _cSharpCode = this.CSharpCode ?? SyntaxFactory.CSharpCodeBlock();
         return this.WithCSharpCode(_cSharpCode.WithChildren(_cSharpCode.Children.AddRange(items)));
     }
-  }
 }

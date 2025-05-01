@@ -4,24 +4,24 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 
-namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
+namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
+
+internal abstract partial class RazorBlockSyntax : RazorSyntaxNode
 {
-  internal abstract partial class RazorBlockSyntax : RazorSyntaxNode
-  {
     internal RazorBlockSyntax(SyntaxKind kind, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
-      : base(kind, diagnostics, annotations)
+        : base(kind, diagnostics, annotations)
     {
     }
     internal RazorBlockSyntax(SyntaxKind kind)
-      : base(kind)
+        : base(kind)
     {
     }
 
     public abstract SyntaxList<RazorSyntaxNode> Children { get; }
-  }
+}
 
-  internal sealed partial class RazorDocumentSyntax : RazorSyntaxNode
-  {
+internal sealed partial class RazorDocumentSyntax : RazorSyntaxNode
+{
     private readonly RazorBlockSyntax _document;
     private readonly SyntaxToken _endOfFile;
 
@@ -61,7 +61,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.RazorDocumentSyntax(this, parent, position);
+        return new Syntax.RazorDocumentSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -81,10 +81,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.RazorDocument(document, endOfFile);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -93,17 +93,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new RazorDocumentSyntax(Kind, _document, _endOfFile, diagnostics, GetAnnotations());
+        return new RazorDocumentSyntax(Kind, _document, _endOfFile, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new RazorDocumentSyntax(Kind, _document, _endOfFile, GetDiagnostics(), annotations);
+        return new RazorDocumentSyntax(Kind, _document, _endOfFile, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class RazorCommentBlockSyntax : RazorSyntaxNode
-  {
+internal sealed partial class RazorCommentBlockSyntax : RazorSyntaxNode
+{
     private readonly SyntaxToken _startCommentTransition;
     private readonly SyntaxToken _startCommentStar;
     private readonly SyntaxToken _comment;
@@ -164,7 +164,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.RazorCommentBlockSyntax(this, parent, position);
+        return new Syntax.RazorCommentBlockSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -184,10 +184,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.RazorCommentBlock(startCommentTransition, startCommentStar, comment, endCommentStar, endCommentTransition);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -196,17 +196,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new RazorCommentBlockSyntax(Kind, _startCommentTransition, _startCommentStar, _comment, _endCommentStar, _endCommentTransition, diagnostics, GetAnnotations());
+        return new RazorCommentBlockSyntax(Kind, _startCommentTransition, _startCommentStar, _comment, _endCommentStar, _endCommentTransition, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new RazorCommentBlockSyntax(Kind, _startCommentTransition, _startCommentStar, _comment, _endCommentStar, _endCommentTransition, GetDiagnostics(), annotations);
+        return new RazorCommentBlockSyntax(Kind, _startCommentTransition, _startCommentStar, _comment, _endCommentStar, _endCommentTransition, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class RazorMetaCodeSyntax : RazorSyntaxNode
-  {
+internal sealed partial class RazorMetaCodeSyntax : RazorSyntaxNode
+{
     private readonly GreenNode _metaCode;
     private readonly ISpanChunkGenerator _chunkGenerator;
 
@@ -249,7 +249,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.RazorMetaCodeSyntax(this, parent, position);
+        return new Syntax.RazorMetaCodeSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -269,10 +269,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.RazorMetaCode(metaCode, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -281,17 +281,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new RazorMetaCodeSyntax(Kind, _metaCode, _chunkGenerator, diagnostics, GetAnnotations());
+        return new RazorMetaCodeSyntax(Kind, _metaCode, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new RazorMetaCodeSyntax(Kind, _metaCode, _chunkGenerator, GetDiagnostics(), annotations);
+        return new RazorMetaCodeSyntax(Kind, _metaCode, _chunkGenerator, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class GenericBlockSyntax : RazorBlockSyntax
-  {
+internal sealed partial class GenericBlockSyntax : RazorBlockSyntax
+{
     private readonly GreenNode _children;
 
     internal GenericBlockSyntax(SyntaxKind kind, GreenNode children, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
@@ -330,7 +330,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.GenericBlockSyntax(this, parent, position);
+        return new Syntax.GenericBlockSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -350,10 +350,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.GenericBlock(children);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -362,17 +362,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new GenericBlockSyntax(Kind, _children, diagnostics, GetAnnotations());
+        return new GenericBlockSyntax(Kind, _children, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new GenericBlockSyntax(Kind, _children, GetDiagnostics(), annotations);
+        return new GenericBlockSyntax(Kind, _children, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class UnclassifiedTextLiteralSyntax : RazorSyntaxNode
-  {
+internal sealed partial class UnclassifiedTextLiteralSyntax : RazorSyntaxNode
+{
     private readonly GreenNode _literalTokens;
     private readonly ISpanChunkGenerator _chunkGenerator;
 
@@ -415,7 +415,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.UnclassifiedTextLiteralSyntax(this, parent, position);
+        return new Syntax.UnclassifiedTextLiteralSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -435,10 +435,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.UnclassifiedTextLiteral(literalTokens, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -447,29 +447,29 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new UnclassifiedTextLiteralSyntax(Kind, _literalTokens, _chunkGenerator, diagnostics, GetAnnotations());
+        return new UnclassifiedTextLiteralSyntax(Kind, _literalTokens, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new UnclassifiedTextLiteralSyntax(Kind, _literalTokens, _chunkGenerator, GetDiagnostics(), annotations);
+        return new UnclassifiedTextLiteralSyntax(Kind, _literalTokens, _chunkGenerator, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal abstract partial class MarkupSyntaxNode : RazorSyntaxNode
-  {
+internal abstract partial class MarkupSyntaxNode : RazorSyntaxNode
+{
     internal MarkupSyntaxNode(SyntaxKind kind, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
-      : base(kind, diagnostics, annotations)
+        : base(kind, diagnostics, annotations)
     {
     }
     internal MarkupSyntaxNode(SyntaxKind kind)
-      : base(kind)
+        : base(kind)
     {
     }
-  }
+}
 
-  internal sealed partial class MarkupBlockSyntax : RazorBlockSyntax
-  {
+internal sealed partial class MarkupBlockSyntax : RazorBlockSyntax
+{
     private readonly GreenNode _children;
 
     internal MarkupBlockSyntax(SyntaxKind kind, GreenNode children, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
@@ -508,7 +508,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.MarkupBlockSyntax(this, parent, position);
+        return new Syntax.MarkupBlockSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -528,10 +528,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.MarkupBlock(children);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -540,17 +540,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupBlockSyntax(Kind, _children, diagnostics, GetAnnotations());
+        return new MarkupBlockSyntax(Kind, _children, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupBlockSyntax(Kind, _children, GetDiagnostics(), annotations);
+        return new MarkupBlockSyntax(Kind, _children, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class MarkupTransitionSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupTransitionSyntax : MarkupSyntaxNode
+{
     private readonly GreenNode _transitionTokens;
     private readonly ISpanChunkGenerator _chunkGenerator;
 
@@ -593,7 +593,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.MarkupTransitionSyntax(this, parent, position);
+        return new Syntax.MarkupTransitionSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -613,10 +613,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.MarkupTransition(transitionTokens, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -625,17 +625,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupTransitionSyntax(Kind, _transitionTokens, _chunkGenerator, diagnostics, GetAnnotations());
+        return new MarkupTransitionSyntax(Kind, _transitionTokens, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupTransitionSyntax(Kind, _transitionTokens, _chunkGenerator, GetDiagnostics(), annotations);
+        return new MarkupTransitionSyntax(Kind, _transitionTokens, _chunkGenerator, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class MarkupTextLiteralSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupTextLiteralSyntax : MarkupSyntaxNode
+{
     private readonly GreenNode _literalTokens;
     private readonly ISpanChunkGenerator _chunkGenerator;
 
@@ -678,7 +678,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.MarkupTextLiteralSyntax(this, parent, position);
+        return new Syntax.MarkupTextLiteralSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -698,10 +698,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.MarkupTextLiteral(literalTokens, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -710,17 +710,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupTextLiteralSyntax(Kind, _literalTokens, _chunkGenerator, diagnostics, GetAnnotations());
+        return new MarkupTextLiteralSyntax(Kind, _literalTokens, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupTextLiteralSyntax(Kind, _literalTokens, _chunkGenerator, GetDiagnostics(), annotations);
+        return new MarkupTextLiteralSyntax(Kind, _literalTokens, _chunkGenerator, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class MarkupEphemeralTextLiteralSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupEphemeralTextLiteralSyntax : MarkupSyntaxNode
+{
     private readonly GreenNode _literalTokens;
     private readonly ISpanChunkGenerator _chunkGenerator;
 
@@ -763,7 +763,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.MarkupEphemeralTextLiteralSyntax(this, parent, position);
+        return new Syntax.MarkupEphemeralTextLiteralSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -783,10 +783,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.MarkupEphemeralTextLiteral(literalTokens, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -795,17 +795,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupEphemeralTextLiteralSyntax(Kind, _literalTokens, _chunkGenerator, diagnostics, GetAnnotations());
+        return new MarkupEphemeralTextLiteralSyntax(Kind, _literalTokens, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupEphemeralTextLiteralSyntax(Kind, _literalTokens, _chunkGenerator, GetDiagnostics(), annotations);
+        return new MarkupEphemeralTextLiteralSyntax(Kind, _literalTokens, _chunkGenerator, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class MarkupCommentBlockSyntax : RazorBlockSyntax
-  {
+internal sealed partial class MarkupCommentBlockSyntax : RazorBlockSyntax
+{
     private readonly GreenNode _children;
 
     internal MarkupCommentBlockSyntax(SyntaxKind kind, GreenNode children, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
@@ -844,7 +844,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.MarkupCommentBlockSyntax(this, parent, position);
+        return new Syntax.MarkupCommentBlockSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -864,10 +864,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.MarkupCommentBlock(children);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -876,17 +876,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupCommentBlockSyntax(Kind, _children, diagnostics, GetAnnotations());
+        return new MarkupCommentBlockSyntax(Kind, _children, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupCommentBlockSyntax(Kind, _children, GetDiagnostics(), annotations);
+        return new MarkupCommentBlockSyntax(Kind, _children, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class MarkupMinimizedAttributeBlockSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupMinimizedAttributeBlockSyntax : MarkupSyntaxNode
+{
     private readonly MarkupTextLiteralSyntax _namePrefix;
     private readonly MarkupTextLiteralSyntax _name;
 
@@ -932,7 +932,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.MarkupMinimizedAttributeBlockSyntax(this, parent, position);
+        return new Syntax.MarkupMinimizedAttributeBlockSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -952,10 +952,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.MarkupMinimizedAttributeBlock(namePrefix, name);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -964,17 +964,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupMinimizedAttributeBlockSyntax(Kind, _namePrefix, _name, diagnostics, GetAnnotations());
+        return new MarkupMinimizedAttributeBlockSyntax(Kind, _namePrefix, _name, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupMinimizedAttributeBlockSyntax(Kind, _namePrefix, _name, GetDiagnostics(), annotations);
+        return new MarkupMinimizedAttributeBlockSyntax(Kind, _namePrefix, _name, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class MarkupAttributeBlockSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupAttributeBlockSyntax : MarkupSyntaxNode
+{
     private readonly MarkupTextLiteralSyntax _namePrefix;
     private readonly MarkupTextLiteralSyntax _name;
     private readonly MarkupTextLiteralSyntax _nameSuffix;
@@ -1079,7 +1079,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.MarkupAttributeBlockSyntax(this, parent, position);
+        return new Syntax.MarkupAttributeBlockSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -1099,10 +1099,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.MarkupAttributeBlock(namePrefix, name, nameSuffix, equalsToken, valuePrefix, value, valueSuffix);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -1111,17 +1111,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupAttributeBlockSyntax(Kind, _namePrefix, _name, _nameSuffix, _equalsToken, _valuePrefix, _value, _valueSuffix, diagnostics, GetAnnotations());
+        return new MarkupAttributeBlockSyntax(Kind, _namePrefix, _name, _nameSuffix, _equalsToken, _valuePrefix, _value, _valueSuffix, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupAttributeBlockSyntax(Kind, _namePrefix, _name, _nameSuffix, _equalsToken, _valuePrefix, _value, _valueSuffix, GetDiagnostics(), annotations);
+        return new MarkupAttributeBlockSyntax(Kind, _namePrefix, _name, _nameSuffix, _equalsToken, _valuePrefix, _value, _valueSuffix, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class MarkupMiscAttributeContentSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupMiscAttributeContentSyntax : MarkupSyntaxNode
+{
     private readonly GreenNode _children;
 
     internal MarkupMiscAttributeContentSyntax(SyntaxKind kind, GreenNode children, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
@@ -1160,7 +1160,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.MarkupMiscAttributeContentSyntax(this, parent, position);
+        return new Syntax.MarkupMiscAttributeContentSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -1180,10 +1180,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.MarkupMiscAttributeContent(children);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -1192,17 +1192,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupMiscAttributeContentSyntax(Kind, _children, diagnostics, GetAnnotations());
+        return new MarkupMiscAttributeContentSyntax(Kind, _children, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupMiscAttributeContentSyntax(Kind, _children, GetDiagnostics(), annotations);
+        return new MarkupMiscAttributeContentSyntax(Kind, _children, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class MarkupLiteralAttributeValueSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupLiteralAttributeValueSyntax : MarkupSyntaxNode
+{
     private readonly MarkupTextLiteralSyntax _prefix;
     private readonly MarkupTextLiteralSyntax _value;
 
@@ -1254,7 +1254,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.MarkupLiteralAttributeValueSyntax(this, parent, position);
+        return new Syntax.MarkupLiteralAttributeValueSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -1274,10 +1274,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.MarkupLiteralAttributeValue(prefix, value);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -1286,17 +1286,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupLiteralAttributeValueSyntax(Kind, _prefix, _value, diagnostics, GetAnnotations());
+        return new MarkupLiteralAttributeValueSyntax(Kind, _prefix, _value, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupLiteralAttributeValueSyntax(Kind, _prefix, _value, GetDiagnostics(), annotations);
+        return new MarkupLiteralAttributeValueSyntax(Kind, _prefix, _value, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class MarkupDynamicAttributeValueSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupDynamicAttributeValueSyntax : MarkupSyntaxNode
+{
     private readonly MarkupTextLiteralSyntax _prefix;
     private readonly RazorBlockSyntax _value;
 
@@ -1342,7 +1342,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.MarkupDynamicAttributeValueSyntax(this, parent, position);
+        return new Syntax.MarkupDynamicAttributeValueSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -1362,10 +1362,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.MarkupDynamicAttributeValue(prefix, value);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -1374,17 +1374,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupDynamicAttributeValueSyntax(Kind, _prefix, _value, diagnostics, GetAnnotations());
+        return new MarkupDynamicAttributeValueSyntax(Kind, _prefix, _value, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupDynamicAttributeValueSyntax(Kind, _prefix, _value, GetDiagnostics(), annotations);
+        return new MarkupDynamicAttributeValueSyntax(Kind, _prefix, _value, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class MarkupElementSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupElementSyntax : MarkupSyntaxNode
+{
     private readonly MarkupStartTagSyntax _startTag;
     private readonly GreenNode _body;
     private readonly MarkupEndTagSyntax _endTag;
@@ -1449,7 +1449,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.MarkupElementSyntax(this, parent, position);
+        return new Syntax.MarkupElementSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -1469,10 +1469,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.MarkupElement(startTag, body, endTag);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -1481,17 +1481,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupElementSyntax(Kind, _startTag, _body, _endTag, diagnostics, GetAnnotations());
+        return new MarkupElementSyntax(Kind, _startTag, _body, _endTag, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupElementSyntax(Kind, _startTag, _body, _endTag, GetDiagnostics(), annotations);
+        return new MarkupElementSyntax(Kind, _startTag, _body, _endTag, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class MarkupStartTagSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupStartTagSyntax : MarkupSyntaxNode
+{
     private readonly SyntaxToken _openAngle;
     private readonly SyntaxToken _bang;
     private readonly SyntaxToken _name;
@@ -1581,7 +1581,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.MarkupStartTagSyntax(this, parent, position);
+        return new Syntax.MarkupStartTagSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -1601,10 +1601,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.MarkupStartTag(openAngle, bang, name, attributes, forwardSlash, closeAngle, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -1613,17 +1613,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupStartTagSyntax(Kind, _openAngle, _bang, _name, _attributes, _forwardSlash, _closeAngle, _chunkGenerator, diagnostics, GetAnnotations());
+        return new MarkupStartTagSyntax(Kind, _openAngle, _bang, _name, _attributes, _forwardSlash, _closeAngle, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupStartTagSyntax(Kind, _openAngle, _bang, _name, _attributes, _forwardSlash, _closeAngle, _chunkGenerator, GetDiagnostics(), annotations);
+        return new MarkupStartTagSyntax(Kind, _openAngle, _bang, _name, _attributes, _forwardSlash, _closeAngle, _chunkGenerator, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class MarkupEndTagSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupEndTagSyntax : MarkupSyntaxNode
+{
     private readonly SyntaxToken _openAngle;
     private readonly SyntaxToken _forwardSlash;
     private readonly SyntaxToken _bang;
@@ -1707,7 +1707,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.MarkupEndTagSyntax(this, parent, position);
+        return new Syntax.MarkupEndTagSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -1727,10 +1727,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.MarkupEndTag(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -1739,17 +1739,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupEndTagSyntax(Kind, _openAngle, _forwardSlash, _bang, _name, _miscAttributeContent, _closeAngle, _chunkGenerator, diagnostics, GetAnnotations());
+        return new MarkupEndTagSyntax(Kind, _openAngle, _forwardSlash, _bang, _name, _miscAttributeContent, _closeAngle, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupEndTagSyntax(Kind, _openAngle, _forwardSlash, _bang, _name, _miscAttributeContent, _closeAngle, _chunkGenerator, GetDiagnostics(), annotations);
+        return new MarkupEndTagSyntax(Kind, _openAngle, _forwardSlash, _bang, _name, _miscAttributeContent, _closeAngle, _chunkGenerator, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class MarkupTagHelperElementSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupTagHelperElementSyntax : MarkupSyntaxNode
+{
     private readonly MarkupTagHelperStartTagSyntax _startTag;
     private readonly GreenNode _body;
     private readonly MarkupTagHelperEndTagSyntax _endTag;
@@ -1808,7 +1808,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.MarkupTagHelperElementSyntax(this, parent, position);
+        return new Syntax.MarkupTagHelperElementSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -1828,10 +1828,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.MarkupTagHelperElement(startTag, body, endTag);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -1840,17 +1840,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupTagHelperElementSyntax(Kind, _startTag, _body, _endTag, diagnostics, GetAnnotations());
+        return new MarkupTagHelperElementSyntax(Kind, _startTag, _body, _endTag, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupTagHelperElementSyntax(Kind, _startTag, _body, _endTag, GetDiagnostics(), annotations);
+        return new MarkupTagHelperElementSyntax(Kind, _startTag, _body, _endTag, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class MarkupTagHelperStartTagSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupTagHelperStartTagSyntax : MarkupSyntaxNode
+{
     private readonly SyntaxToken _openAngle;
     private readonly SyntaxToken _bang;
     private readonly SyntaxToken _name;
@@ -1940,7 +1940,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.MarkupTagHelperStartTagSyntax(this, parent, position);
+        return new Syntax.MarkupTagHelperStartTagSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -1960,10 +1960,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.MarkupTagHelperStartTag(openAngle, bang, name, attributes, forwardSlash, closeAngle, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -1972,17 +1972,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupTagHelperStartTagSyntax(Kind, _openAngle, _bang, _name, _attributes, _forwardSlash, _closeAngle, _chunkGenerator, diagnostics, GetAnnotations());
+        return new MarkupTagHelperStartTagSyntax(Kind, _openAngle, _bang, _name, _attributes, _forwardSlash, _closeAngle, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupTagHelperStartTagSyntax(Kind, _openAngle, _bang, _name, _attributes, _forwardSlash, _closeAngle, _chunkGenerator, GetDiagnostics(), annotations);
+        return new MarkupTagHelperStartTagSyntax(Kind, _openAngle, _bang, _name, _attributes, _forwardSlash, _closeAngle, _chunkGenerator, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class MarkupTagHelperEndTagSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupTagHelperEndTagSyntax : MarkupSyntaxNode
+{
     private readonly SyntaxToken _openAngle;
     private readonly SyntaxToken _forwardSlash;
     private readonly SyntaxToken _bang;
@@ -2066,7 +2066,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.MarkupTagHelperEndTagSyntax(this, parent, position);
+        return new Syntax.MarkupTagHelperEndTagSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -2086,10 +2086,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.MarkupTagHelperEndTag(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -2098,17 +2098,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupTagHelperEndTagSyntax(Kind, _openAngle, _forwardSlash, _bang, _name, _miscAttributeContent, _closeAngle, _chunkGenerator, diagnostics, GetAnnotations());
+        return new MarkupTagHelperEndTagSyntax(Kind, _openAngle, _forwardSlash, _bang, _name, _miscAttributeContent, _closeAngle, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupTagHelperEndTagSyntax(Kind, _openAngle, _forwardSlash, _bang, _name, _miscAttributeContent, _closeAngle, _chunkGenerator, GetDiagnostics(), annotations);
+        return new MarkupTagHelperEndTagSyntax(Kind, _openAngle, _forwardSlash, _bang, _name, _miscAttributeContent, _closeAngle, _chunkGenerator, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class MarkupTagHelperAttributeSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupTagHelperAttributeSyntax : MarkupSyntaxNode
+{
     private readonly MarkupTextLiteralSyntax _namePrefix;
     private readonly MarkupTextLiteralSyntax _name;
     private readonly MarkupTextLiteralSyntax _nameSuffix;
@@ -2207,7 +2207,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.MarkupTagHelperAttributeSyntax(this, parent, position);
+        return new Syntax.MarkupTagHelperAttributeSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -2227,10 +2227,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.MarkupTagHelperAttribute(namePrefix, name, nameSuffix, equalsToken, valuePrefix, value, valueSuffix);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -2239,17 +2239,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupTagHelperAttributeSyntax(Kind, _namePrefix, _name, _nameSuffix, _equalsToken, _valuePrefix, _value, _valueSuffix, diagnostics, GetAnnotations());
+        return new MarkupTagHelperAttributeSyntax(Kind, _namePrefix, _name, _nameSuffix, _equalsToken, _valuePrefix, _value, _valueSuffix, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupTagHelperAttributeSyntax(Kind, _namePrefix, _name, _nameSuffix, _equalsToken, _valuePrefix, _value, _valueSuffix, GetDiagnostics(), annotations);
+        return new MarkupTagHelperAttributeSyntax(Kind, _namePrefix, _name, _nameSuffix, _equalsToken, _valuePrefix, _value, _valueSuffix, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class MarkupMinimizedTagHelperAttributeSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupMinimizedTagHelperAttributeSyntax : MarkupSyntaxNode
+{
     private readonly MarkupTextLiteralSyntax _namePrefix;
     private readonly MarkupTextLiteralSyntax _name;
 
@@ -2295,7 +2295,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.MarkupMinimizedTagHelperAttributeSyntax(this, parent, position);
+        return new Syntax.MarkupMinimizedTagHelperAttributeSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -2315,10 +2315,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.MarkupMinimizedTagHelperAttribute(namePrefix, name);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -2327,17 +2327,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupMinimizedTagHelperAttributeSyntax(Kind, _namePrefix, _name, diagnostics, GetAnnotations());
+        return new MarkupMinimizedTagHelperAttributeSyntax(Kind, _namePrefix, _name, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupMinimizedTagHelperAttributeSyntax(Kind, _namePrefix, _name, GetDiagnostics(), annotations);
+        return new MarkupMinimizedTagHelperAttributeSyntax(Kind, _namePrefix, _name, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class MarkupTagHelperAttributeValueSyntax : RazorBlockSyntax
-  {
+internal sealed partial class MarkupTagHelperAttributeValueSyntax : RazorBlockSyntax
+{
     private readonly GreenNode _children;
 
     internal MarkupTagHelperAttributeValueSyntax(SyntaxKind kind, GreenNode children, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
@@ -2376,7 +2376,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.MarkupTagHelperAttributeValueSyntax(this, parent, position);
+        return new Syntax.MarkupTagHelperAttributeValueSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -2396,10 +2396,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.MarkupTagHelperAttributeValue(children);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -2408,17 +2408,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupTagHelperAttributeValueSyntax(Kind, _children, diagnostics, GetAnnotations());
+        return new MarkupTagHelperAttributeValueSyntax(Kind, _children, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupTagHelperAttributeValueSyntax(Kind, _children, GetDiagnostics(), annotations);
+        return new MarkupTagHelperAttributeValueSyntax(Kind, _children, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class MarkupTagHelperDirectiveAttributeSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupTagHelperDirectiveAttributeSyntax : MarkupSyntaxNode
+{
     private readonly MarkupTextLiteralSyntax _namePrefix;
     private readonly RazorMetaCodeSyntax _transition;
     private readonly MarkupTextLiteralSyntax _name;
@@ -2550,7 +2550,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.MarkupTagHelperDirectiveAttributeSyntax(this, parent, position);
+        return new Syntax.MarkupTagHelperDirectiveAttributeSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -2570,10 +2570,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.MarkupTagHelperDirectiveAttribute(namePrefix, transition, name, colon, parameterName, nameSuffix, equalsToken, valuePrefix, value, valueSuffix);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -2582,17 +2582,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupTagHelperDirectiveAttributeSyntax(Kind, _namePrefix, _transition, _name, _colon, _parameterName, _nameSuffix, _equalsToken, _valuePrefix, _value, _valueSuffix, diagnostics, GetAnnotations());
+        return new MarkupTagHelperDirectiveAttributeSyntax(Kind, _namePrefix, _transition, _name, _colon, _parameterName, _nameSuffix, _equalsToken, _valuePrefix, _value, _valueSuffix, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupTagHelperDirectiveAttributeSyntax(Kind, _namePrefix, _transition, _name, _colon, _parameterName, _nameSuffix, _equalsToken, _valuePrefix, _value, _valueSuffix, GetDiagnostics(), annotations);
+        return new MarkupTagHelperDirectiveAttributeSyntax(Kind, _namePrefix, _transition, _name, _colon, _parameterName, _nameSuffix, _equalsToken, _valuePrefix, _value, _valueSuffix, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class MarkupMinimizedTagHelperDirectiveAttributeSyntax : MarkupSyntaxNode
-  {
+internal sealed partial class MarkupMinimizedTagHelperDirectiveAttributeSyntax : MarkupSyntaxNode
+{
     private readonly MarkupTextLiteralSyntax _namePrefix;
     private readonly RazorMetaCodeSyntax _transition;
     private readonly MarkupTextLiteralSyntax _name;
@@ -2671,7 +2671,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.MarkupMinimizedTagHelperDirectiveAttributeSyntax(this, parent, position);
+        return new Syntax.MarkupMinimizedTagHelperDirectiveAttributeSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -2691,10 +2691,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.MarkupMinimizedTagHelperDirectiveAttribute(namePrefix, transition, name, colon, parameterName);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -2703,29 +2703,29 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupMinimizedTagHelperDirectiveAttributeSyntax(Kind, _namePrefix, _transition, _name, _colon, _parameterName, diagnostics, GetAnnotations());
+        return new MarkupMinimizedTagHelperDirectiveAttributeSyntax(Kind, _namePrefix, _transition, _name, _colon, _parameterName, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupMinimizedTagHelperDirectiveAttributeSyntax(Kind, _namePrefix, _transition, _name, _colon, _parameterName, GetDiagnostics(), annotations);
+        return new MarkupMinimizedTagHelperDirectiveAttributeSyntax(Kind, _namePrefix, _transition, _name, _colon, _parameterName, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal abstract partial class CSharpSyntaxNode : RazorSyntaxNode
-  {
+internal abstract partial class CSharpSyntaxNode : RazorSyntaxNode
+{
     internal CSharpSyntaxNode(SyntaxKind kind, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
-      : base(kind, diagnostics, annotations)
+        : base(kind, diagnostics, annotations)
     {
     }
     internal CSharpSyntaxNode(SyntaxKind kind)
-      : base(kind)
+        : base(kind)
     {
     }
-  }
+}
 
-  internal sealed partial class CSharpCodeBlockSyntax : RazorBlockSyntax
-  {
+internal sealed partial class CSharpCodeBlockSyntax : RazorBlockSyntax
+{
     private readonly GreenNode _children;
 
     internal CSharpCodeBlockSyntax(SyntaxKind kind, GreenNode children, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
@@ -2764,7 +2764,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.CSharpCodeBlockSyntax(this, parent, position);
+        return new Syntax.CSharpCodeBlockSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -2784,10 +2784,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.CSharpCodeBlock(children);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -2796,17 +2796,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new CSharpCodeBlockSyntax(Kind, _children, diagnostics, GetAnnotations());
+        return new CSharpCodeBlockSyntax(Kind, _children, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new CSharpCodeBlockSyntax(Kind, _children, GetDiagnostics(), annotations);
+        return new CSharpCodeBlockSyntax(Kind, _children, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class CSharpTransitionSyntax : CSharpSyntaxNode
-  {
+internal sealed partial class CSharpTransitionSyntax : CSharpSyntaxNode
+{
     private readonly SyntaxToken _transition;
     private readonly ISpanChunkGenerator _chunkGenerator;
 
@@ -2843,7 +2843,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.CSharpTransitionSyntax(this, parent, position);
+        return new Syntax.CSharpTransitionSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -2863,10 +2863,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.CSharpTransition(transition, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -2875,17 +2875,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new CSharpTransitionSyntax(Kind, _transition, _chunkGenerator, diagnostics, GetAnnotations());
+        return new CSharpTransitionSyntax(Kind, _transition, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new CSharpTransitionSyntax(Kind, _transition, _chunkGenerator, GetDiagnostics(), annotations);
+        return new CSharpTransitionSyntax(Kind, _transition, _chunkGenerator, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class CSharpStatementLiteralSyntax : CSharpSyntaxNode
-  {
+internal sealed partial class CSharpStatementLiteralSyntax : CSharpSyntaxNode
+{
     private readonly GreenNode _literalTokens;
     private readonly ISpanChunkGenerator _chunkGenerator;
 
@@ -2928,7 +2928,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.CSharpStatementLiteralSyntax(this, parent, position);
+        return new Syntax.CSharpStatementLiteralSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -2948,10 +2948,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.CSharpStatementLiteral(literalTokens, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -2960,17 +2960,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new CSharpStatementLiteralSyntax(Kind, _literalTokens, _chunkGenerator, diagnostics, GetAnnotations());
+        return new CSharpStatementLiteralSyntax(Kind, _literalTokens, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new CSharpStatementLiteralSyntax(Kind, _literalTokens, _chunkGenerator, GetDiagnostics(), annotations);
+        return new CSharpStatementLiteralSyntax(Kind, _literalTokens, _chunkGenerator, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class CSharpExpressionLiteralSyntax : CSharpSyntaxNode
-  {
+internal sealed partial class CSharpExpressionLiteralSyntax : CSharpSyntaxNode
+{
     private readonly GreenNode _literalTokens;
     private readonly ISpanChunkGenerator _chunkGenerator;
 
@@ -3013,7 +3013,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.CSharpExpressionLiteralSyntax(this, parent, position);
+        return new Syntax.CSharpExpressionLiteralSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -3033,10 +3033,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.CSharpExpressionLiteral(literalTokens, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -3045,17 +3045,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new CSharpExpressionLiteralSyntax(Kind, _literalTokens, _chunkGenerator, diagnostics, GetAnnotations());
+        return new CSharpExpressionLiteralSyntax(Kind, _literalTokens, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new CSharpExpressionLiteralSyntax(Kind, _literalTokens, _chunkGenerator, GetDiagnostics(), annotations);
+        return new CSharpExpressionLiteralSyntax(Kind, _literalTokens, _chunkGenerator, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class CSharpEphemeralTextLiteralSyntax : CSharpSyntaxNode
-  {
+internal sealed partial class CSharpEphemeralTextLiteralSyntax : CSharpSyntaxNode
+{
     private readonly GreenNode _literalTokens;
     private readonly ISpanChunkGenerator _chunkGenerator;
 
@@ -3098,7 +3098,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.CSharpEphemeralTextLiteralSyntax(this, parent, position);
+        return new Syntax.CSharpEphemeralTextLiteralSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -3118,10 +3118,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.CSharpEphemeralTextLiteral(literalTokens, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -3130,17 +3130,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new CSharpEphemeralTextLiteralSyntax(Kind, _literalTokens, _chunkGenerator, diagnostics, GetAnnotations());
+        return new CSharpEphemeralTextLiteralSyntax(Kind, _literalTokens, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new CSharpEphemeralTextLiteralSyntax(Kind, _literalTokens, _chunkGenerator, GetDiagnostics(), annotations);
+        return new CSharpEphemeralTextLiteralSyntax(Kind, _literalTokens, _chunkGenerator, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class CSharpTemplateBlockSyntax : RazorBlockSyntax
-  {
+internal sealed partial class CSharpTemplateBlockSyntax : RazorBlockSyntax
+{
     private readonly GreenNode _children;
 
     internal CSharpTemplateBlockSyntax(SyntaxKind kind, GreenNode children, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
@@ -3179,7 +3179,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.CSharpTemplateBlockSyntax(this, parent, position);
+        return new Syntax.CSharpTemplateBlockSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -3199,10 +3199,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.CSharpTemplateBlock(children);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -3211,33 +3211,33 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new CSharpTemplateBlockSyntax(Kind, _children, diagnostics, GetAnnotations());
+        return new CSharpTemplateBlockSyntax(Kind, _children, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new CSharpTemplateBlockSyntax(Kind, _children, GetDiagnostics(), annotations);
+        return new CSharpTemplateBlockSyntax(Kind, _children, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal abstract partial class CSharpRazorBlockSyntax : CSharpSyntaxNode
-  {
+internal abstract partial class CSharpRazorBlockSyntax : CSharpSyntaxNode
+{
     internal CSharpRazorBlockSyntax(SyntaxKind kind, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
-      : base(kind, diagnostics, annotations)
+        : base(kind, diagnostics, annotations)
     {
     }
     internal CSharpRazorBlockSyntax(SyntaxKind kind)
-      : base(kind)
+        : base(kind)
     {
     }
 
     public abstract CSharpTransitionSyntax Transition { get; }
 
     public abstract CSharpSyntaxNode Body { get; }
-  }
+}
 
-  internal sealed partial class CSharpStatementSyntax : CSharpRazorBlockSyntax
-  {
+internal sealed partial class CSharpStatementSyntax : CSharpRazorBlockSyntax
+{
     private readonly CSharpTransitionSyntax _transition;
     private readonly CSharpSyntaxNode _body;
 
@@ -3277,7 +3277,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.CSharpStatementSyntax(this, parent, position);
+        return new Syntax.CSharpStatementSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -3297,10 +3297,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.CSharpStatement(transition, body);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -3309,17 +3309,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new CSharpStatementSyntax(Kind, _transition, _body, diagnostics, GetAnnotations());
+        return new CSharpStatementSyntax(Kind, _transition, _body, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new CSharpStatementSyntax(Kind, _transition, _body, GetDiagnostics(), annotations);
+        return new CSharpStatementSyntax(Kind, _transition, _body, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class CSharpStatementBodySyntax : CSharpSyntaxNode
-  {
+internal sealed partial class CSharpStatementBodySyntax : CSharpSyntaxNode
+{
     private readonly RazorMetaCodeSyntax _openBrace;
     private readonly CSharpCodeBlockSyntax _cSharpCode;
     private readonly RazorMetaCodeSyntax _closeBrace;
@@ -3366,7 +3366,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.CSharpStatementBodySyntax(this, parent, position);
+        return new Syntax.CSharpStatementBodySyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -3386,10 +3386,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.CSharpStatementBody(openBrace, cSharpCode, closeBrace);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -3398,17 +3398,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new CSharpStatementBodySyntax(Kind, _openBrace, _cSharpCode, _closeBrace, diagnostics, GetAnnotations());
+        return new CSharpStatementBodySyntax(Kind, _openBrace, _cSharpCode, _closeBrace, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new CSharpStatementBodySyntax(Kind, _openBrace, _cSharpCode, _closeBrace, GetDiagnostics(), annotations);
+        return new CSharpStatementBodySyntax(Kind, _openBrace, _cSharpCode, _closeBrace, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class CSharpExplicitExpressionSyntax : CSharpRazorBlockSyntax
-  {
+internal sealed partial class CSharpExplicitExpressionSyntax : CSharpRazorBlockSyntax
+{
     private readonly CSharpTransitionSyntax _transition;
     private readonly CSharpSyntaxNode _body;
 
@@ -3448,7 +3448,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.CSharpExplicitExpressionSyntax(this, parent, position);
+        return new Syntax.CSharpExplicitExpressionSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -3468,10 +3468,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.CSharpExplicitExpression(transition, body);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -3480,17 +3480,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new CSharpExplicitExpressionSyntax(Kind, _transition, _body, diagnostics, GetAnnotations());
+        return new CSharpExplicitExpressionSyntax(Kind, _transition, _body, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new CSharpExplicitExpressionSyntax(Kind, _transition, _body, GetDiagnostics(), annotations);
+        return new CSharpExplicitExpressionSyntax(Kind, _transition, _body, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class CSharpExplicitExpressionBodySyntax : CSharpSyntaxNode
-  {
+internal sealed partial class CSharpExplicitExpressionBodySyntax : CSharpSyntaxNode
+{
     private readonly RazorMetaCodeSyntax _openParen;
     private readonly CSharpCodeBlockSyntax _cSharpCode;
     private readonly RazorMetaCodeSyntax _closeParen;
@@ -3537,7 +3537,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.CSharpExplicitExpressionBodySyntax(this, parent, position);
+        return new Syntax.CSharpExplicitExpressionBodySyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -3557,10 +3557,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.CSharpExplicitExpressionBody(openParen, cSharpCode, closeParen);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -3569,17 +3569,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new CSharpExplicitExpressionBodySyntax(Kind, _openParen, _cSharpCode, _closeParen, diagnostics, GetAnnotations());
+        return new CSharpExplicitExpressionBodySyntax(Kind, _openParen, _cSharpCode, _closeParen, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new CSharpExplicitExpressionBodySyntax(Kind, _openParen, _cSharpCode, _closeParen, GetDiagnostics(), annotations);
+        return new CSharpExplicitExpressionBodySyntax(Kind, _openParen, _cSharpCode, _closeParen, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class CSharpImplicitExpressionSyntax : CSharpRazorBlockSyntax
-  {
+internal sealed partial class CSharpImplicitExpressionSyntax : CSharpRazorBlockSyntax
+{
     private readonly CSharpTransitionSyntax _transition;
     private readonly CSharpSyntaxNode _body;
 
@@ -3619,7 +3619,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.CSharpImplicitExpressionSyntax(this, parent, position);
+        return new Syntax.CSharpImplicitExpressionSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -3639,10 +3639,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.CSharpImplicitExpression(transition, body);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -3651,17 +3651,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new CSharpImplicitExpressionSyntax(Kind, _transition, _body, diagnostics, GetAnnotations());
+        return new CSharpImplicitExpressionSyntax(Kind, _transition, _body, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new CSharpImplicitExpressionSyntax(Kind, _transition, _body, GetDiagnostics(), annotations);
+        return new CSharpImplicitExpressionSyntax(Kind, _transition, _body, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class CSharpImplicitExpressionBodySyntax : CSharpSyntaxNode
-  {
+internal sealed partial class CSharpImplicitExpressionBodySyntax : CSharpSyntaxNode
+{
     private readonly CSharpCodeBlockSyntax _cSharpCode;
 
     internal CSharpImplicitExpressionBodySyntax(SyntaxKind kind, CSharpCodeBlockSyntax cSharpCode, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
@@ -3694,7 +3694,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.CSharpImplicitExpressionBodySyntax(this, parent, position);
+        return new Syntax.CSharpImplicitExpressionBodySyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -3714,10 +3714,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.CSharpImplicitExpressionBody(cSharpCode);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -3726,17 +3726,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new CSharpImplicitExpressionBodySyntax(Kind, _cSharpCode, diagnostics, GetAnnotations());
+        return new CSharpImplicitExpressionBodySyntax(Kind, _cSharpCode, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new CSharpImplicitExpressionBodySyntax(Kind, _cSharpCode, GetDiagnostics(), annotations);
+        return new CSharpImplicitExpressionBodySyntax(Kind, _cSharpCode, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class RazorDirectiveSyntax : CSharpRazorBlockSyntax
-  {
+internal sealed partial class RazorDirectiveSyntax : CSharpRazorBlockSyntax
+{
     private readonly CSharpTransitionSyntax _transition;
     private readonly CSharpSyntaxNode _body;
 
@@ -3776,7 +3776,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.RazorDirectiveSyntax(this, parent, position);
+        return new Syntax.RazorDirectiveSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -3796,10 +3796,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.RazorDirective(transition, body);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -3808,17 +3808,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new RazorDirectiveSyntax(Kind, _transition, _body, diagnostics, GetAnnotations());
+        return new RazorDirectiveSyntax(Kind, _transition, _body, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new RazorDirectiveSyntax(Kind, _transition, _body, GetDiagnostics(), annotations);
+        return new RazorDirectiveSyntax(Kind, _transition, _body, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal sealed partial class RazorDirectiveBodySyntax : CSharpSyntaxNode
-  {
+internal sealed partial class RazorDirectiveBodySyntax : CSharpSyntaxNode
+{
     private readonly RazorSyntaxNode _keyword;
     private readonly CSharpCodeBlockSyntax _cSharpCode;
 
@@ -3864,7 +3864,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new Syntax.RazorDirectiveBodySyntax(this, parent, position);
+        return new Syntax.RazorDirectiveBodySyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
@@ -3884,10 +3884,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             var newNode = SyntaxFactory.RazorDirectiveBody(keyword, cSharpCode);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
+                newNode = newNode.WithDiagnosticsGreen(diags);
             var annotations = GetAnnotations();
             if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
+                newNode = newNode.WithAnnotationsGreen(annotations);
             return newNode;
         }
 
@@ -3896,1403 +3896,1402 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new RazorDirectiveBodySyntax(Kind, _keyword, _cSharpCode, diagnostics, GetAnnotations());
+        return new RazorDirectiveBodySyntax(Kind, _keyword, _cSharpCode, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new RazorDirectiveBodySyntax(Kind, _keyword, _cSharpCode, GetDiagnostics(), annotations);
+        return new RazorDirectiveBodySyntax(Kind, _keyword, _cSharpCode, GetDiagnostics(), annotations);
     }
-  }
+}
 
-  internal partial class SyntaxVisitor<TResult>
-  {
+internal partial class SyntaxVisitor<TResult>
+{
     public virtual TResult VisitRazorDocument(RazorDocumentSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitRazorCommentBlock(RazorCommentBlockSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitRazorMetaCode(RazorMetaCodeSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitGenericBlock(GenericBlockSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitUnclassifiedTextLiteral(UnclassifiedTextLiteralSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitMarkupBlock(MarkupBlockSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitMarkupTransition(MarkupTransitionSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitMarkupTextLiteral(MarkupTextLiteralSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitMarkupEphemeralTextLiteral(MarkupEphemeralTextLiteralSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitMarkupCommentBlock(MarkupCommentBlockSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitMarkupMinimizedAttributeBlock(MarkupMinimizedAttributeBlockSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitMarkupAttributeBlock(MarkupAttributeBlockSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitMarkupMiscAttributeContent(MarkupMiscAttributeContentSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitMarkupLiteralAttributeValue(MarkupLiteralAttributeValueSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitMarkupDynamicAttributeValue(MarkupDynamicAttributeValueSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitMarkupElement(MarkupElementSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitMarkupStartTag(MarkupStartTagSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitMarkupEndTag(MarkupEndTagSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitMarkupTagHelperEndTag(MarkupTagHelperEndTagSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitMarkupTagHelperAttribute(MarkupTagHelperAttributeSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitMarkupMinimizedTagHelperAttribute(MarkupMinimizedTagHelperAttributeSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitMarkupTagHelperAttributeValue(MarkupTagHelperAttributeValueSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitMarkupTagHelperDirectiveAttribute(MarkupTagHelperDirectiveAttributeSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitMarkupMinimizedTagHelperDirectiveAttribute(MarkupMinimizedTagHelperDirectiveAttributeSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitCSharpCodeBlock(CSharpCodeBlockSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitCSharpTransition(CSharpTransitionSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitCSharpStatementLiteral(CSharpStatementLiteralSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitCSharpExpressionLiteral(CSharpExpressionLiteralSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitCSharpEphemeralTextLiteral(CSharpEphemeralTextLiteralSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitCSharpTemplateBlock(CSharpTemplateBlockSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitCSharpStatement(CSharpStatementSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitCSharpStatementBody(CSharpStatementBodySyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitCSharpExplicitExpression(CSharpExplicitExpressionSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitCSharpExplicitExpressionBody(CSharpExplicitExpressionBodySyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitCSharpImplicitExpression(CSharpImplicitExpressionSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitCSharpImplicitExpressionBody(CSharpImplicitExpressionBodySyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitRazorDirective(RazorDirectiveSyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
 
     public virtual TResult VisitRazorDirectiveBody(RazorDirectiveBodySyntax node)
     {
-      return DefaultVisit(node);
+        return DefaultVisit(node);
     }
-  }
+}
 
 
-  internal partial class SyntaxVisitor
-  {
+internal partial class SyntaxVisitor
+{
     public virtual void VisitRazorDocument(RazorDocumentSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitRazorCommentBlock(RazorCommentBlockSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitRazorMetaCode(RazorMetaCodeSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitGenericBlock(GenericBlockSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitUnclassifiedTextLiteral(UnclassifiedTextLiteralSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitMarkupBlock(MarkupBlockSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitMarkupTransition(MarkupTransitionSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitMarkupTextLiteral(MarkupTextLiteralSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitMarkupEphemeralTextLiteral(MarkupEphemeralTextLiteralSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitMarkupCommentBlock(MarkupCommentBlockSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitMarkupMinimizedAttributeBlock(MarkupMinimizedAttributeBlockSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitMarkupAttributeBlock(MarkupAttributeBlockSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitMarkupMiscAttributeContent(MarkupMiscAttributeContentSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitMarkupLiteralAttributeValue(MarkupLiteralAttributeValueSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitMarkupDynamicAttributeValue(MarkupDynamicAttributeValueSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitMarkupElement(MarkupElementSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitMarkupStartTag(MarkupStartTagSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitMarkupEndTag(MarkupEndTagSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitMarkupTagHelperEndTag(MarkupTagHelperEndTagSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitMarkupTagHelperAttribute(MarkupTagHelperAttributeSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitMarkupMinimizedTagHelperAttribute(MarkupMinimizedTagHelperAttributeSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitMarkupTagHelperAttributeValue(MarkupTagHelperAttributeValueSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitMarkupTagHelperDirectiveAttribute(MarkupTagHelperDirectiveAttributeSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitMarkupMinimizedTagHelperDirectiveAttribute(MarkupMinimizedTagHelperDirectiveAttributeSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitCSharpCodeBlock(CSharpCodeBlockSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitCSharpTransition(CSharpTransitionSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitCSharpStatementLiteral(CSharpStatementLiteralSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitCSharpExpressionLiteral(CSharpExpressionLiteralSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitCSharpEphemeralTextLiteral(CSharpEphemeralTextLiteralSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitCSharpTemplateBlock(CSharpTemplateBlockSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitCSharpStatement(CSharpStatementSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitCSharpStatementBody(CSharpStatementBodySyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitCSharpExplicitExpression(CSharpExplicitExpressionSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitCSharpExplicitExpressionBody(CSharpExplicitExpressionBodySyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitCSharpImplicitExpression(CSharpImplicitExpressionSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitCSharpImplicitExpressionBody(CSharpImplicitExpressionBodySyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitRazorDirective(RazorDirectiveSyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
 
     public virtual void VisitRazorDirectiveBody(RazorDirectiveBodySyntax node)
     {
-      DefaultVisit(node);
+        DefaultVisit(node);
     }
-  }
+}
 
-  internal partial class SyntaxRewriter : SyntaxVisitor<GreenNode>
-  {
+internal partial class SyntaxRewriter : SyntaxVisitor<GreenNode>
+{
     public override GreenNode VisitRazorDocument(RazorDocumentSyntax node)
     {
-      var document = (RazorBlockSyntax)Visit(node.Document);
-      var endOfFile = (SyntaxToken)Visit(node.EndOfFile);
-      return node.Update(document, endOfFile);
+        var document = (RazorBlockSyntax)Visit(node.Document);
+        var endOfFile = (SyntaxToken)Visit(node.EndOfFile);
+        return node.Update(document, endOfFile);
     }
 
     public override GreenNode VisitRazorCommentBlock(RazorCommentBlockSyntax node)
     {
-      var startCommentTransition = (SyntaxToken)Visit(node.StartCommentTransition);
-      var startCommentStar = (SyntaxToken)Visit(node.StartCommentStar);
-      var comment = (SyntaxToken)Visit(node.Comment);
-      var endCommentStar = (SyntaxToken)Visit(node.EndCommentStar);
-      var endCommentTransition = (SyntaxToken)Visit(node.EndCommentTransition);
-      return node.Update(startCommentTransition, startCommentStar, comment, endCommentStar, endCommentTransition);
+        var startCommentTransition = (SyntaxToken)Visit(node.StartCommentTransition);
+        var startCommentStar = (SyntaxToken)Visit(node.StartCommentStar);
+        var comment = (SyntaxToken)Visit(node.Comment);
+        var endCommentStar = (SyntaxToken)Visit(node.EndCommentStar);
+        var endCommentTransition = (SyntaxToken)Visit(node.EndCommentTransition);
+        return node.Update(startCommentTransition, startCommentStar, comment, endCommentStar, endCommentTransition);
     }
 
     public override GreenNode VisitRazorMetaCode(RazorMetaCodeSyntax node)
     {
-      var metaCode = VisitList(node.MetaCode);
-      return node.Update(metaCode, node.ChunkGenerator);
+        var metaCode = VisitList(node.MetaCode);
+        return node.Update(metaCode, node.ChunkGenerator);
     }
 
     public override GreenNode VisitGenericBlock(GenericBlockSyntax node)
     {
-      var children = VisitList(node.Children);
-      return node.Update(children);
+        var children = VisitList(node.Children);
+        return node.Update(children);
     }
 
     public override GreenNode VisitUnclassifiedTextLiteral(UnclassifiedTextLiteralSyntax node)
     {
-      var literalTokens = VisitList(node.LiteralTokens);
-      return node.Update(literalTokens, node.ChunkGenerator);
+        var literalTokens = VisitList(node.LiteralTokens);
+        return node.Update(literalTokens, node.ChunkGenerator);
     }
 
     public override GreenNode VisitMarkupBlock(MarkupBlockSyntax node)
     {
-      var children = VisitList(node.Children);
-      return node.Update(children);
+        var children = VisitList(node.Children);
+        return node.Update(children);
     }
 
     public override GreenNode VisitMarkupTransition(MarkupTransitionSyntax node)
     {
-      var transitionTokens = VisitList(node.TransitionTokens);
-      return node.Update(transitionTokens, node.ChunkGenerator);
+        var transitionTokens = VisitList(node.TransitionTokens);
+        return node.Update(transitionTokens, node.ChunkGenerator);
     }
 
     public override GreenNode VisitMarkupTextLiteral(MarkupTextLiteralSyntax node)
     {
-      var literalTokens = VisitList(node.LiteralTokens);
-      return node.Update(literalTokens, node.ChunkGenerator);
+        var literalTokens = VisitList(node.LiteralTokens);
+        return node.Update(literalTokens, node.ChunkGenerator);
     }
 
     public override GreenNode VisitMarkupEphemeralTextLiteral(MarkupEphemeralTextLiteralSyntax node)
     {
-      var literalTokens = VisitList(node.LiteralTokens);
-      return node.Update(literalTokens, node.ChunkGenerator);
+        var literalTokens = VisitList(node.LiteralTokens);
+        return node.Update(literalTokens, node.ChunkGenerator);
     }
 
     public override GreenNode VisitMarkupCommentBlock(MarkupCommentBlockSyntax node)
     {
-      var children = VisitList(node.Children);
-      return node.Update(children);
+        var children = VisitList(node.Children);
+        return node.Update(children);
     }
 
     public override GreenNode VisitMarkupMinimizedAttributeBlock(MarkupMinimizedAttributeBlockSyntax node)
     {
-      var namePrefix = (MarkupTextLiteralSyntax)Visit(node.NamePrefix);
-      var name = (MarkupTextLiteralSyntax)Visit(node.Name);
-      return node.Update(namePrefix, name);
+        var namePrefix = (MarkupTextLiteralSyntax)Visit(node.NamePrefix);
+        var name = (MarkupTextLiteralSyntax)Visit(node.Name);
+        return node.Update(namePrefix, name);
     }
 
     public override GreenNode VisitMarkupAttributeBlock(MarkupAttributeBlockSyntax node)
     {
-      var namePrefix = (MarkupTextLiteralSyntax)Visit(node.NamePrefix);
-      var name = (MarkupTextLiteralSyntax)Visit(node.Name);
-      var nameSuffix = (MarkupTextLiteralSyntax)Visit(node.NameSuffix);
-      var equalsToken = (SyntaxToken)Visit(node.EqualsToken);
-      var valuePrefix = (MarkupTextLiteralSyntax)Visit(node.ValuePrefix);
-      var value = (RazorBlockSyntax)Visit(node.Value);
-      var valueSuffix = (MarkupTextLiteralSyntax)Visit(node.ValueSuffix);
-      return node.Update(namePrefix, name, nameSuffix, equalsToken, valuePrefix, value, valueSuffix);
+        var namePrefix = (MarkupTextLiteralSyntax)Visit(node.NamePrefix);
+        var name = (MarkupTextLiteralSyntax)Visit(node.Name);
+        var nameSuffix = (MarkupTextLiteralSyntax)Visit(node.NameSuffix);
+        var equalsToken = (SyntaxToken)Visit(node.EqualsToken);
+        var valuePrefix = (MarkupTextLiteralSyntax)Visit(node.ValuePrefix);
+        var value = (RazorBlockSyntax)Visit(node.Value);
+        var valueSuffix = (MarkupTextLiteralSyntax)Visit(node.ValueSuffix);
+        return node.Update(namePrefix, name, nameSuffix, equalsToken, valuePrefix, value, valueSuffix);
     }
 
     public override GreenNode VisitMarkupMiscAttributeContent(MarkupMiscAttributeContentSyntax node)
     {
-      var children = VisitList(node.Children);
-      return node.Update(children);
+        var children = VisitList(node.Children);
+        return node.Update(children);
     }
 
     public override GreenNode VisitMarkupLiteralAttributeValue(MarkupLiteralAttributeValueSyntax node)
     {
-      var prefix = (MarkupTextLiteralSyntax)Visit(node.Prefix);
-      var value = (MarkupTextLiteralSyntax)Visit(node.Value);
-      return node.Update(prefix, value);
+        var prefix = (MarkupTextLiteralSyntax)Visit(node.Prefix);
+        var value = (MarkupTextLiteralSyntax)Visit(node.Value);
+        return node.Update(prefix, value);
     }
 
     public override GreenNode VisitMarkupDynamicAttributeValue(MarkupDynamicAttributeValueSyntax node)
     {
-      var prefix = (MarkupTextLiteralSyntax)Visit(node.Prefix);
-      var value = (RazorBlockSyntax)Visit(node.Value);
-      return node.Update(prefix, value);
+        var prefix = (MarkupTextLiteralSyntax)Visit(node.Prefix);
+        var value = (RazorBlockSyntax)Visit(node.Value);
+        return node.Update(prefix, value);
     }
 
     public override GreenNode VisitMarkupElement(MarkupElementSyntax node)
     {
-      var startTag = (MarkupStartTagSyntax)Visit(node.StartTag);
-      var body = VisitList(node.Body);
-      var endTag = (MarkupEndTagSyntax)Visit(node.EndTag);
-      return node.Update(startTag, body, endTag);
+        var startTag = (MarkupStartTagSyntax)Visit(node.StartTag);
+        var body = VisitList(node.Body);
+        var endTag = (MarkupEndTagSyntax)Visit(node.EndTag);
+        return node.Update(startTag, body, endTag);
     }
 
     public override GreenNode VisitMarkupStartTag(MarkupStartTagSyntax node)
     {
-      var openAngle = (SyntaxToken)Visit(node.OpenAngle);
-      var bang = (SyntaxToken)Visit(node.Bang);
-      var name = (SyntaxToken)Visit(node.Name);
-      var attributes = VisitList(node.Attributes);
-      var forwardSlash = (SyntaxToken)Visit(node.ForwardSlash);
-      var closeAngle = (SyntaxToken)Visit(node.CloseAngle);
-      return node.Update(openAngle, bang, name, attributes, forwardSlash, closeAngle, node.ChunkGenerator);
+        var openAngle = (SyntaxToken)Visit(node.OpenAngle);
+        var bang = (SyntaxToken)Visit(node.Bang);
+        var name = (SyntaxToken)Visit(node.Name);
+        var attributes = VisitList(node.Attributes);
+        var forwardSlash = (SyntaxToken)Visit(node.ForwardSlash);
+        var closeAngle = (SyntaxToken)Visit(node.CloseAngle);
+        return node.Update(openAngle, bang, name, attributes, forwardSlash, closeAngle, node.ChunkGenerator);
     }
 
     public override GreenNode VisitMarkupEndTag(MarkupEndTagSyntax node)
     {
-      var openAngle = (SyntaxToken)Visit(node.OpenAngle);
-      var forwardSlash = (SyntaxToken)Visit(node.ForwardSlash);
-      var bang = (SyntaxToken)Visit(node.Bang);
-      var name = (SyntaxToken)Visit(node.Name);
-      var miscAttributeContent = (MarkupMiscAttributeContentSyntax)Visit(node.MiscAttributeContent);
-      var closeAngle = (SyntaxToken)Visit(node.CloseAngle);
-      return node.Update(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, node.ChunkGenerator);
+        var openAngle = (SyntaxToken)Visit(node.OpenAngle);
+        var forwardSlash = (SyntaxToken)Visit(node.ForwardSlash);
+        var bang = (SyntaxToken)Visit(node.Bang);
+        var name = (SyntaxToken)Visit(node.Name);
+        var miscAttributeContent = (MarkupMiscAttributeContentSyntax)Visit(node.MiscAttributeContent);
+        var closeAngle = (SyntaxToken)Visit(node.CloseAngle);
+        return node.Update(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, node.ChunkGenerator);
     }
 
     public override GreenNode VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
     {
-      var startTag = (MarkupTagHelperStartTagSyntax)Visit(node.StartTag);
-      var body = VisitList(node.Body);
-      var endTag = (MarkupTagHelperEndTagSyntax)Visit(node.EndTag);
-      return node.Update(startTag, body, endTag);
+        var startTag = (MarkupTagHelperStartTagSyntax)Visit(node.StartTag);
+        var body = VisitList(node.Body);
+        var endTag = (MarkupTagHelperEndTagSyntax)Visit(node.EndTag);
+        return node.Update(startTag, body, endTag);
     }
 
     public override GreenNode VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
     {
-      var openAngle = (SyntaxToken)Visit(node.OpenAngle);
-      var bang = (SyntaxToken)Visit(node.Bang);
-      var name = (SyntaxToken)Visit(node.Name);
-      var attributes = VisitList(node.Attributes);
-      var forwardSlash = (SyntaxToken)Visit(node.ForwardSlash);
-      var closeAngle = (SyntaxToken)Visit(node.CloseAngle);
-      return node.Update(openAngle, bang, name, attributes, forwardSlash, closeAngle, node.ChunkGenerator);
+        var openAngle = (SyntaxToken)Visit(node.OpenAngle);
+        var bang = (SyntaxToken)Visit(node.Bang);
+        var name = (SyntaxToken)Visit(node.Name);
+        var attributes = VisitList(node.Attributes);
+        var forwardSlash = (SyntaxToken)Visit(node.ForwardSlash);
+        var closeAngle = (SyntaxToken)Visit(node.CloseAngle);
+        return node.Update(openAngle, bang, name, attributes, forwardSlash, closeAngle, node.ChunkGenerator);
     }
 
     public override GreenNode VisitMarkupTagHelperEndTag(MarkupTagHelperEndTagSyntax node)
     {
-      var openAngle = (SyntaxToken)Visit(node.OpenAngle);
-      var forwardSlash = (SyntaxToken)Visit(node.ForwardSlash);
-      var bang = (SyntaxToken)Visit(node.Bang);
-      var name = (SyntaxToken)Visit(node.Name);
-      var miscAttributeContent = (MarkupMiscAttributeContentSyntax)Visit(node.MiscAttributeContent);
-      var closeAngle = (SyntaxToken)Visit(node.CloseAngle);
-      return node.Update(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, node.ChunkGenerator);
+        var openAngle = (SyntaxToken)Visit(node.OpenAngle);
+        var forwardSlash = (SyntaxToken)Visit(node.ForwardSlash);
+        var bang = (SyntaxToken)Visit(node.Bang);
+        var name = (SyntaxToken)Visit(node.Name);
+        var miscAttributeContent = (MarkupMiscAttributeContentSyntax)Visit(node.MiscAttributeContent);
+        var closeAngle = (SyntaxToken)Visit(node.CloseAngle);
+        return node.Update(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, node.ChunkGenerator);
     }
 
     public override GreenNode VisitMarkupTagHelperAttribute(MarkupTagHelperAttributeSyntax node)
     {
-      var namePrefix = (MarkupTextLiteralSyntax)Visit(node.NamePrefix);
-      var name = (MarkupTextLiteralSyntax)Visit(node.Name);
-      var nameSuffix = (MarkupTextLiteralSyntax)Visit(node.NameSuffix);
-      var equalsToken = (SyntaxToken)Visit(node.EqualsToken);
-      var valuePrefix = (MarkupTextLiteralSyntax)Visit(node.ValuePrefix);
-      var value = (MarkupTagHelperAttributeValueSyntax)Visit(node.Value);
-      var valueSuffix = (MarkupTextLiteralSyntax)Visit(node.ValueSuffix);
-      return node.Update(namePrefix, name, nameSuffix, equalsToken, valuePrefix, value, valueSuffix);
+        var namePrefix = (MarkupTextLiteralSyntax)Visit(node.NamePrefix);
+        var name = (MarkupTextLiteralSyntax)Visit(node.Name);
+        var nameSuffix = (MarkupTextLiteralSyntax)Visit(node.NameSuffix);
+        var equalsToken = (SyntaxToken)Visit(node.EqualsToken);
+        var valuePrefix = (MarkupTextLiteralSyntax)Visit(node.ValuePrefix);
+        var value = (MarkupTagHelperAttributeValueSyntax)Visit(node.Value);
+        var valueSuffix = (MarkupTextLiteralSyntax)Visit(node.ValueSuffix);
+        return node.Update(namePrefix, name, nameSuffix, equalsToken, valuePrefix, value, valueSuffix);
     }
 
     public override GreenNode VisitMarkupMinimizedTagHelperAttribute(MarkupMinimizedTagHelperAttributeSyntax node)
     {
-      var namePrefix = (MarkupTextLiteralSyntax)Visit(node.NamePrefix);
-      var name = (MarkupTextLiteralSyntax)Visit(node.Name);
-      return node.Update(namePrefix, name);
+        var namePrefix = (MarkupTextLiteralSyntax)Visit(node.NamePrefix);
+        var name = (MarkupTextLiteralSyntax)Visit(node.Name);
+        return node.Update(namePrefix, name);
     }
 
     public override GreenNode VisitMarkupTagHelperAttributeValue(MarkupTagHelperAttributeValueSyntax node)
     {
-      var children = VisitList(node.Children);
-      return node.Update(children);
+        var children = VisitList(node.Children);
+        return node.Update(children);
     }
 
     public override GreenNode VisitMarkupTagHelperDirectiveAttribute(MarkupTagHelperDirectiveAttributeSyntax node)
     {
-      var namePrefix = (MarkupTextLiteralSyntax)Visit(node.NamePrefix);
-      var transition = (RazorMetaCodeSyntax)Visit(node.Transition);
-      var name = (MarkupTextLiteralSyntax)Visit(node.Name);
-      var colon = (RazorMetaCodeSyntax)Visit(node.Colon);
-      var parameterName = (MarkupTextLiteralSyntax)Visit(node.ParameterName);
-      var nameSuffix = (MarkupTextLiteralSyntax)Visit(node.NameSuffix);
-      var equalsToken = (SyntaxToken)Visit(node.EqualsToken);
-      var valuePrefix = (MarkupTextLiteralSyntax)Visit(node.ValuePrefix);
-      var value = (MarkupTagHelperAttributeValueSyntax)Visit(node.Value);
-      var valueSuffix = (MarkupTextLiteralSyntax)Visit(node.ValueSuffix);
-      return node.Update(namePrefix, transition, name, colon, parameterName, nameSuffix, equalsToken, valuePrefix, value, valueSuffix);
+        var namePrefix = (MarkupTextLiteralSyntax)Visit(node.NamePrefix);
+        var transition = (RazorMetaCodeSyntax)Visit(node.Transition);
+        var name = (MarkupTextLiteralSyntax)Visit(node.Name);
+        var colon = (RazorMetaCodeSyntax)Visit(node.Colon);
+        var parameterName = (MarkupTextLiteralSyntax)Visit(node.ParameterName);
+        var nameSuffix = (MarkupTextLiteralSyntax)Visit(node.NameSuffix);
+        var equalsToken = (SyntaxToken)Visit(node.EqualsToken);
+        var valuePrefix = (MarkupTextLiteralSyntax)Visit(node.ValuePrefix);
+        var value = (MarkupTagHelperAttributeValueSyntax)Visit(node.Value);
+        var valueSuffix = (MarkupTextLiteralSyntax)Visit(node.ValueSuffix);
+        return node.Update(namePrefix, transition, name, colon, parameterName, nameSuffix, equalsToken, valuePrefix, value, valueSuffix);
     }
 
     public override GreenNode VisitMarkupMinimizedTagHelperDirectiveAttribute(MarkupMinimizedTagHelperDirectiveAttributeSyntax node)
     {
-      var namePrefix = (MarkupTextLiteralSyntax)Visit(node.NamePrefix);
-      var transition = (RazorMetaCodeSyntax)Visit(node.Transition);
-      var name = (MarkupTextLiteralSyntax)Visit(node.Name);
-      var colon = (RazorMetaCodeSyntax)Visit(node.Colon);
-      var parameterName = (MarkupTextLiteralSyntax)Visit(node.ParameterName);
-      return node.Update(namePrefix, transition, name, colon, parameterName);
+        var namePrefix = (MarkupTextLiteralSyntax)Visit(node.NamePrefix);
+        var transition = (RazorMetaCodeSyntax)Visit(node.Transition);
+        var name = (MarkupTextLiteralSyntax)Visit(node.Name);
+        var colon = (RazorMetaCodeSyntax)Visit(node.Colon);
+        var parameterName = (MarkupTextLiteralSyntax)Visit(node.ParameterName);
+        return node.Update(namePrefix, transition, name, colon, parameterName);
     }
 
     public override GreenNode VisitCSharpCodeBlock(CSharpCodeBlockSyntax node)
     {
-      var children = VisitList(node.Children);
-      return node.Update(children);
+        var children = VisitList(node.Children);
+        return node.Update(children);
     }
 
     public override GreenNode VisitCSharpTransition(CSharpTransitionSyntax node)
     {
-      var transition = (SyntaxToken)Visit(node.Transition);
-      return node.Update(transition, node.ChunkGenerator);
+        var transition = (SyntaxToken)Visit(node.Transition);
+        return node.Update(transition, node.ChunkGenerator);
     }
 
     public override GreenNode VisitCSharpStatementLiteral(CSharpStatementLiteralSyntax node)
     {
-      var literalTokens = VisitList(node.LiteralTokens);
-      return node.Update(literalTokens, node.ChunkGenerator);
+        var literalTokens = VisitList(node.LiteralTokens);
+        return node.Update(literalTokens, node.ChunkGenerator);
     }
 
     public override GreenNode VisitCSharpExpressionLiteral(CSharpExpressionLiteralSyntax node)
     {
-      var literalTokens = VisitList(node.LiteralTokens);
-      return node.Update(literalTokens, node.ChunkGenerator);
+        var literalTokens = VisitList(node.LiteralTokens);
+        return node.Update(literalTokens, node.ChunkGenerator);
     }
 
     public override GreenNode VisitCSharpEphemeralTextLiteral(CSharpEphemeralTextLiteralSyntax node)
     {
-      var literalTokens = VisitList(node.LiteralTokens);
-      return node.Update(literalTokens, node.ChunkGenerator);
+        var literalTokens = VisitList(node.LiteralTokens);
+        return node.Update(literalTokens, node.ChunkGenerator);
     }
 
     public override GreenNode VisitCSharpTemplateBlock(CSharpTemplateBlockSyntax node)
     {
-      var children = VisitList(node.Children);
-      return node.Update(children);
+        var children = VisitList(node.Children);
+        return node.Update(children);
     }
 
     public override GreenNode VisitCSharpStatement(CSharpStatementSyntax node)
     {
-      var transition = (CSharpTransitionSyntax)Visit(node.Transition);
-      var body = (CSharpSyntaxNode)Visit(node.Body);
-      return node.Update(transition, body);
+        var transition = (CSharpTransitionSyntax)Visit(node.Transition);
+        var body = (CSharpSyntaxNode)Visit(node.Body);
+        return node.Update(transition, body);
     }
 
     public override GreenNode VisitCSharpStatementBody(CSharpStatementBodySyntax node)
     {
-      var openBrace = (RazorMetaCodeSyntax)Visit(node.OpenBrace);
-      var cSharpCode = (CSharpCodeBlockSyntax)Visit(node.CSharpCode);
-      var closeBrace = (RazorMetaCodeSyntax)Visit(node.CloseBrace);
-      return node.Update(openBrace, cSharpCode, closeBrace);
+        var openBrace = (RazorMetaCodeSyntax)Visit(node.OpenBrace);
+        var cSharpCode = (CSharpCodeBlockSyntax)Visit(node.CSharpCode);
+        var closeBrace = (RazorMetaCodeSyntax)Visit(node.CloseBrace);
+        return node.Update(openBrace, cSharpCode, closeBrace);
     }
 
     public override GreenNode VisitCSharpExplicitExpression(CSharpExplicitExpressionSyntax node)
     {
-      var transition = (CSharpTransitionSyntax)Visit(node.Transition);
-      var body = (CSharpSyntaxNode)Visit(node.Body);
-      return node.Update(transition, body);
+        var transition = (CSharpTransitionSyntax)Visit(node.Transition);
+        var body = (CSharpSyntaxNode)Visit(node.Body);
+        return node.Update(transition, body);
     }
 
     public override GreenNode VisitCSharpExplicitExpressionBody(CSharpExplicitExpressionBodySyntax node)
     {
-      var openParen = (RazorMetaCodeSyntax)Visit(node.OpenParen);
-      var cSharpCode = (CSharpCodeBlockSyntax)Visit(node.CSharpCode);
-      var closeParen = (RazorMetaCodeSyntax)Visit(node.CloseParen);
-      return node.Update(openParen, cSharpCode, closeParen);
+        var openParen = (RazorMetaCodeSyntax)Visit(node.OpenParen);
+        var cSharpCode = (CSharpCodeBlockSyntax)Visit(node.CSharpCode);
+        var closeParen = (RazorMetaCodeSyntax)Visit(node.CloseParen);
+        return node.Update(openParen, cSharpCode, closeParen);
     }
 
     public override GreenNode VisitCSharpImplicitExpression(CSharpImplicitExpressionSyntax node)
     {
-      var transition = (CSharpTransitionSyntax)Visit(node.Transition);
-      var body = (CSharpSyntaxNode)Visit(node.Body);
-      return node.Update(transition, body);
+        var transition = (CSharpTransitionSyntax)Visit(node.Transition);
+        var body = (CSharpSyntaxNode)Visit(node.Body);
+        return node.Update(transition, body);
     }
 
     public override GreenNode VisitCSharpImplicitExpressionBody(CSharpImplicitExpressionBodySyntax node)
     {
-      var cSharpCode = (CSharpCodeBlockSyntax)Visit(node.CSharpCode);
-      return node.Update(cSharpCode);
+        var cSharpCode = (CSharpCodeBlockSyntax)Visit(node.CSharpCode);
+        return node.Update(cSharpCode);
     }
 
     public override GreenNode VisitRazorDirective(RazorDirectiveSyntax node)
     {
-      var transition = (CSharpTransitionSyntax)Visit(node.Transition);
-      var body = (CSharpSyntaxNode)Visit(node.Body);
-      return node.Update(transition, body);
+        var transition = (CSharpTransitionSyntax)Visit(node.Transition);
+        var body = (CSharpSyntaxNode)Visit(node.Body);
+        return node.Update(transition, body);
     }
 
     public override GreenNode VisitRazorDirectiveBody(RazorDirectiveBodySyntax node)
     {
-      var keyword = (RazorSyntaxNode)Visit(node.Keyword);
-      var cSharpCode = (CSharpCodeBlockSyntax)Visit(node.CSharpCode);
-      return node.Update(keyword, cSharpCode);
+        var keyword = (RazorSyntaxNode)Visit(node.Keyword);
+        var cSharpCode = (CSharpCodeBlockSyntax)Visit(node.CSharpCode);
+        return node.Update(keyword, cSharpCode);
     }
-  }
+}
 
-  internal static partial class SyntaxFactory
-  {
+internal static partial class SyntaxFactory
+{
     public static RazorDocumentSyntax RazorDocument(RazorBlockSyntax document, SyntaxToken endOfFile)
     {
-      if (document == null)
-        throw new ArgumentNullException(nameof(document));
-      if (endOfFile == null)
-        throw new ArgumentNullException(nameof(endOfFile));
-      switch (endOfFile.Kind)
-      {
-        case SyntaxKind.EndOfFile:
-          break;
-        default:
-          throw new ArgumentException("endOfFile");
-      }
+        if (document == null)
+            throw new ArgumentNullException(nameof(document));
+        if (endOfFile == null)
+            throw new ArgumentNullException(nameof(endOfFile));
+        switch (endOfFile.Kind)
+        {
+            case SyntaxKind.EndOfFile:
+                break;
+            default:
+                throw new ArgumentException("endOfFile");
+        }
 
-      var result = new RazorDocumentSyntax(SyntaxKind.RazorDocument, document, endOfFile);
+        var result = new RazorDocumentSyntax(SyntaxKind.RazorDocument, document, endOfFile);
 
-      return result;
+        return result;
     }
 
     public static RazorCommentBlockSyntax RazorCommentBlock(SyntaxToken startCommentTransition, SyntaxToken startCommentStar, SyntaxToken comment, SyntaxToken endCommentStar, SyntaxToken endCommentTransition)
     {
-      if (startCommentTransition == null)
-        throw new ArgumentNullException(nameof(startCommentTransition));
-      switch (startCommentTransition.Kind)
-      {
-        case SyntaxKind.RazorCommentTransition:
-          break;
-        default:
-          throw new ArgumentException("startCommentTransition");
-      }
-      if (startCommentStar == null)
-        throw new ArgumentNullException(nameof(startCommentStar));
-      switch (startCommentStar.Kind)
-      {
-        case SyntaxKind.RazorCommentStar:
-          break;
-        default:
-          throw new ArgumentException("startCommentStar");
-      }
-      if (comment == null)
-        throw new ArgumentNullException(nameof(comment));
-      switch (comment.Kind)
-      {
-        case SyntaxKind.RazorCommentLiteral:
-          break;
-        default:
-          throw new ArgumentException("comment");
-      }
-      if (endCommentStar == null)
-        throw new ArgumentNullException(nameof(endCommentStar));
-      switch (endCommentStar.Kind)
-      {
-        case SyntaxKind.RazorCommentStar:
-          break;
-        default:
-          throw new ArgumentException("endCommentStar");
-      }
-      if (endCommentTransition == null)
-        throw new ArgumentNullException(nameof(endCommentTransition));
-      switch (endCommentTransition.Kind)
-      {
-        case SyntaxKind.RazorCommentTransition:
-          break;
-        default:
-          throw new ArgumentException("endCommentTransition");
-      }
+        if (startCommentTransition == null)
+            throw new ArgumentNullException(nameof(startCommentTransition));
+        switch (startCommentTransition.Kind)
+        {
+            case SyntaxKind.RazorCommentTransition:
+                break;
+            default:
+                throw new ArgumentException("startCommentTransition");
+        }
+        if (startCommentStar == null)
+            throw new ArgumentNullException(nameof(startCommentStar));
+        switch (startCommentStar.Kind)
+        {
+            case SyntaxKind.RazorCommentStar:
+                break;
+            default:
+                throw new ArgumentException("startCommentStar");
+        }
+        if (comment == null)
+            throw new ArgumentNullException(nameof(comment));
+        switch (comment.Kind)
+        {
+            case SyntaxKind.RazorCommentLiteral:
+                break;
+            default:
+                throw new ArgumentException("comment");
+        }
+        if (endCommentStar == null)
+            throw new ArgumentNullException(nameof(endCommentStar));
+        switch (endCommentStar.Kind)
+        {
+            case SyntaxKind.RazorCommentStar:
+                break;
+            default:
+                throw new ArgumentException("endCommentStar");
+        }
+        if (endCommentTransition == null)
+            throw new ArgumentNullException(nameof(endCommentTransition));
+        switch (endCommentTransition.Kind)
+        {
+            case SyntaxKind.RazorCommentTransition:
+                break;
+            default:
+                throw new ArgumentException("endCommentTransition");
+        }
 
-      return new RazorCommentBlockSyntax(SyntaxKind.RazorComment, startCommentTransition, startCommentStar, comment, endCommentStar, endCommentTransition);
+        return new RazorCommentBlockSyntax(SyntaxKind.RazorComment, startCommentTransition, startCommentStar, comment, endCommentStar, endCommentTransition);
     }
 
     public static RazorMetaCodeSyntax RazorMetaCode(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> metaCode, ISpanChunkGenerator chunkGenerator)
     {
-      var result = new RazorMetaCodeSyntax(SyntaxKind.RazorMetaCode, metaCode.Node, chunkGenerator);
+        var result = new RazorMetaCodeSyntax(SyntaxKind.RazorMetaCode, metaCode.Node, chunkGenerator);
 
-      return result;
+        return result;
     }
 
     public static GenericBlockSyntax GenericBlock(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> children)
     {
-      var result = new GenericBlockSyntax(SyntaxKind.GenericBlock, children.Node);
+        var result = new GenericBlockSyntax(SyntaxKind.GenericBlock, children.Node);
 
-      return result;
+        return result;
     }
 
     public static UnclassifiedTextLiteralSyntax UnclassifiedTextLiteral(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
-      var result = new UnclassifiedTextLiteralSyntax(SyntaxKind.UnclassifiedTextLiteral, literalTokens.Node, chunkGenerator);
+        var result = new UnclassifiedTextLiteralSyntax(SyntaxKind.UnclassifiedTextLiteral, literalTokens.Node, chunkGenerator);
 
-      return result;
+        return result;
     }
 
     public static MarkupBlockSyntax MarkupBlock(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> children)
     {
-      var result = new MarkupBlockSyntax(SyntaxKind.MarkupBlock, children.Node);
+        var result = new MarkupBlockSyntax(SyntaxKind.MarkupBlock, children.Node);
 
-      return result;
+        return result;
     }
 
     public static MarkupTransitionSyntax MarkupTransition(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> transitionTokens, ISpanChunkGenerator chunkGenerator)
     {
-      var result = new MarkupTransitionSyntax(SyntaxKind.MarkupTransition, transitionTokens.Node, chunkGenerator);
+        var result = new MarkupTransitionSyntax(SyntaxKind.MarkupTransition, transitionTokens.Node, chunkGenerator);
 
-      return result;
+        return result;
     }
 
     public static MarkupTextLiteralSyntax MarkupTextLiteral(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
-      var result = new MarkupTextLiteralSyntax(SyntaxKind.MarkupTextLiteral, literalTokens.Node, chunkGenerator);
+        var result = new MarkupTextLiteralSyntax(SyntaxKind.MarkupTextLiteral, literalTokens.Node, chunkGenerator);
 
-      return result;
+        return result;
     }
 
     public static MarkupEphemeralTextLiteralSyntax MarkupEphemeralTextLiteral(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
-      var result = new MarkupEphemeralTextLiteralSyntax(SyntaxKind.MarkupEphemeralTextLiteral, literalTokens.Node, chunkGenerator);
+        var result = new MarkupEphemeralTextLiteralSyntax(SyntaxKind.MarkupEphemeralTextLiteral, literalTokens.Node, chunkGenerator);
 
-      return result;
+        return result;
     }
 
     public static MarkupCommentBlockSyntax MarkupCommentBlock(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> children)
     {
-      var result = new MarkupCommentBlockSyntax(SyntaxKind.MarkupCommentBlock, children.Node);
+        var result = new MarkupCommentBlockSyntax(SyntaxKind.MarkupCommentBlock, children.Node);
 
-      return result;
+        return result;
     }
 
     public static MarkupMinimizedAttributeBlockSyntax MarkupMinimizedAttributeBlock(MarkupTextLiteralSyntax namePrefix, MarkupTextLiteralSyntax name)
     {
-      if (name == null)
-        throw new ArgumentNullException(nameof(name));
+        if (name == null)
+            throw new ArgumentNullException(nameof(name));
 
-      var result = new MarkupMinimizedAttributeBlockSyntax(SyntaxKind.MarkupMinimizedAttributeBlock, namePrefix, name);
+        var result = new MarkupMinimizedAttributeBlockSyntax(SyntaxKind.MarkupMinimizedAttributeBlock, namePrefix, name);
 
-      return result;
+        return result;
     }
 
     public static MarkupAttributeBlockSyntax MarkupAttributeBlock(MarkupTextLiteralSyntax namePrefix, MarkupTextLiteralSyntax name, MarkupTextLiteralSyntax nameSuffix, SyntaxToken equalsToken, MarkupTextLiteralSyntax valuePrefix, RazorBlockSyntax value, MarkupTextLiteralSyntax valueSuffix)
     {
-      if (name == null)
-        throw new ArgumentNullException(nameof(name));
-      if (equalsToken == null)
-        throw new ArgumentNullException(nameof(equalsToken));
-      switch (equalsToken.Kind)
-      {
-        case SyntaxKind.Equals:
-          break;
-        default:
-          throw new ArgumentException("equalsToken");
-      }
+        if (name == null)
+            throw new ArgumentNullException(nameof(name));
+        if (equalsToken == null)
+            throw new ArgumentNullException(nameof(equalsToken));
+        switch (equalsToken.Kind)
+        {
+            case SyntaxKind.Equals:
+                break;
+            default:
+                throw new ArgumentException("equalsToken");
+        }
 
-      return new MarkupAttributeBlockSyntax(SyntaxKind.MarkupAttributeBlock, namePrefix, name, nameSuffix, equalsToken, valuePrefix, value, valueSuffix);
+        return new MarkupAttributeBlockSyntax(SyntaxKind.MarkupAttributeBlock, namePrefix, name, nameSuffix, equalsToken, valuePrefix, value, valueSuffix);
     }
 
     public static MarkupMiscAttributeContentSyntax MarkupMiscAttributeContent(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> children)
     {
-      var result = new MarkupMiscAttributeContentSyntax(SyntaxKind.MarkupMiscAttributeContent, children.Node);
+        var result = new MarkupMiscAttributeContentSyntax(SyntaxKind.MarkupMiscAttributeContent, children.Node);
 
-      return result;
+        return result;
     }
 
     public static MarkupLiteralAttributeValueSyntax MarkupLiteralAttributeValue(MarkupTextLiteralSyntax prefix, MarkupTextLiteralSyntax value)
     {
-      var result = new MarkupLiteralAttributeValueSyntax(SyntaxKind.MarkupLiteralAttributeValue, prefix, value);
+        var result = new MarkupLiteralAttributeValueSyntax(SyntaxKind.MarkupLiteralAttributeValue, prefix, value);
 
-      return result;
+        return result;
     }
 
     public static MarkupDynamicAttributeValueSyntax MarkupDynamicAttributeValue(MarkupTextLiteralSyntax prefix, RazorBlockSyntax value)
     {
-      if (value == null)
-        throw new ArgumentNullException(nameof(value));
+        if (value == null)
+            throw new ArgumentNullException(nameof(value));
 
-      var result = new MarkupDynamicAttributeValueSyntax(SyntaxKind.MarkupDynamicAttributeValue, prefix, value);
+        var result = new MarkupDynamicAttributeValueSyntax(SyntaxKind.MarkupDynamicAttributeValue, prefix, value);
 
-      return result;
+        return result;
     }
 
     public static MarkupElementSyntax MarkupElement(MarkupStartTagSyntax startTag, Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> body, MarkupEndTagSyntax endTag)
     {
-      var result = new MarkupElementSyntax(SyntaxKind.MarkupElement, startTag, body.Node, endTag);
+        var result = new MarkupElementSyntax(SyntaxKind.MarkupElement, startTag, body.Node, endTag);
 
-      return result;
+        return result;
     }
 
     public static MarkupStartTagSyntax MarkupStartTag(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
     {
-      if (openAngle == null)
-        throw new ArgumentNullException(nameof(openAngle));
-      switch (openAngle.Kind)
-      {
-        case SyntaxKind.OpenAngle:
-          break;
-        default:
-          throw new ArgumentException("openAngle");
-      }
-      if (bang != null)
-      {
-      switch (bang.Kind)
-      {
-        case SyntaxKind.Bang:
-        case SyntaxKind.None:
-          break;
-        default:
-          throw new ArgumentException("bang");
-      }
-      }
-      if (name == null)
-        throw new ArgumentNullException(nameof(name));
-      switch (name.Kind)
-      {
-        case SyntaxKind.Text:
-          break;
-        default:
-          throw new ArgumentException("name");
-      }
-      if (forwardSlash != null)
-      {
-      switch (forwardSlash.Kind)
-      {
-        case SyntaxKind.ForwardSlash:
-        case SyntaxKind.None:
-          break;
-        default:
-          throw new ArgumentException("forwardSlash");
-      }
-      }
-      if (closeAngle == null)
-        throw new ArgumentNullException(nameof(closeAngle));
-      switch (closeAngle.Kind)
-      {
-        case SyntaxKind.CloseAngle:
-          break;
-        default:
-          throw new ArgumentException("closeAngle");
-      }
+        if (openAngle == null)
+            throw new ArgumentNullException(nameof(openAngle));
+        switch (openAngle.Kind)
+        {
+            case SyntaxKind.OpenAngle:
+                break;
+            default:
+                throw new ArgumentException("openAngle");
+        }
+        if (bang != null)
+        {
+            switch (bang.Kind)
+            {
+                case SyntaxKind.Bang:
+                case SyntaxKind.None:
+                    break;
+                default:
+                    throw new ArgumentException("bang");
+            }
+        }
+        if (name == null)
+            throw new ArgumentNullException(nameof(name));
+        switch (name.Kind)
+        {
+            case SyntaxKind.Text:
+                break;
+            default:
+                throw new ArgumentException("name");
+        }
+        if (forwardSlash != null)
+        {
+            switch (forwardSlash.Kind)
+            {
+                case SyntaxKind.ForwardSlash:
+                case SyntaxKind.None:
+                    break;
+                default:
+                    throw new ArgumentException("forwardSlash");
+            }
+        }
+        if (closeAngle == null)
+            throw new ArgumentNullException(nameof(closeAngle));
+        switch (closeAngle.Kind)
+        {
+            case SyntaxKind.CloseAngle:
+                break;
+            default:
+                throw new ArgumentException("closeAngle");
+        }
 
-      return new MarkupStartTagSyntax(SyntaxKind.MarkupStartTag, openAngle, bang, name, attributes.Node, forwardSlash, closeAngle, chunkGenerator);
+        return new MarkupStartTagSyntax(SyntaxKind.MarkupStartTag, openAngle, bang, name, attributes.Node, forwardSlash, closeAngle, chunkGenerator);
     }
 
     public static MarkupEndTagSyntax MarkupEndTag(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
     {
-      if (openAngle == null)
-        throw new ArgumentNullException(nameof(openAngle));
-      switch (openAngle.Kind)
-      {
-        case SyntaxKind.OpenAngle:
-          break;
-        default:
-          throw new ArgumentException("openAngle");
-      }
-      if (forwardSlash == null)
-        throw new ArgumentNullException(nameof(forwardSlash));
-      switch (forwardSlash.Kind)
-      {
-        case SyntaxKind.ForwardSlash:
-          break;
-        default:
-          throw new ArgumentException("forwardSlash");
-      }
-      if (bang != null)
-      {
-      switch (bang.Kind)
-      {
-        case SyntaxKind.Bang:
-        case SyntaxKind.None:
-          break;
-        default:
-          throw new ArgumentException("bang");
-      }
-      }
-      if (name == null)
-        throw new ArgumentNullException(nameof(name));
-      switch (name.Kind)
-      {
-        case SyntaxKind.Text:
-          break;
-        default:
-          throw new ArgumentException("name");
-      }
-      if (closeAngle == null)
-        throw new ArgumentNullException(nameof(closeAngle));
-      switch (closeAngle.Kind)
-      {
-        case SyntaxKind.CloseAngle:
-          break;
-        default:
-          throw new ArgumentException("closeAngle");
-      }
+        if (openAngle == null)
+            throw new ArgumentNullException(nameof(openAngle));
+        switch (openAngle.Kind)
+        {
+            case SyntaxKind.OpenAngle:
+                break;
+            default:
+                throw new ArgumentException("openAngle");
+        }
+        if (forwardSlash == null)
+            throw new ArgumentNullException(nameof(forwardSlash));
+        switch (forwardSlash.Kind)
+        {
+            case SyntaxKind.ForwardSlash:
+                break;
+            default:
+                throw new ArgumentException("forwardSlash");
+        }
+        if (bang != null)
+        {
+            switch (bang.Kind)
+            {
+                case SyntaxKind.Bang:
+                case SyntaxKind.None:
+                    break;
+                default:
+                    throw new ArgumentException("bang");
+            }
+        }
+        if (name == null)
+            throw new ArgumentNullException(nameof(name));
+        switch (name.Kind)
+        {
+            case SyntaxKind.Text:
+                break;
+            default:
+                throw new ArgumentException("name");
+        }
+        if (closeAngle == null)
+            throw new ArgumentNullException(nameof(closeAngle));
+        switch (closeAngle.Kind)
+        {
+            case SyntaxKind.CloseAngle:
+                break;
+            default:
+                throw new ArgumentException("closeAngle");
+        }
 
-      return new MarkupEndTagSyntax(SyntaxKind.MarkupEndTag, openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, chunkGenerator);
+        return new MarkupEndTagSyntax(SyntaxKind.MarkupEndTag, openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, chunkGenerator);
     }
 
     public static MarkupTagHelperElementSyntax MarkupTagHelperElement(MarkupTagHelperStartTagSyntax startTag, Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> body, MarkupTagHelperEndTagSyntax endTag)
     {
-      if (startTag == null)
-        throw new ArgumentNullException(nameof(startTag));
+        if (startTag == null)
+            throw new ArgumentNullException(nameof(startTag));
 
-      var result = new MarkupTagHelperElementSyntax(SyntaxKind.MarkupTagHelperElement, startTag, body.Node, endTag);
+        var result = new MarkupTagHelperElementSyntax(SyntaxKind.MarkupTagHelperElement, startTag, body.Node, endTag);
 
-      return result;
+        return result;
     }
 
     public static MarkupTagHelperStartTagSyntax MarkupTagHelperStartTag(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
     {
-      if (openAngle == null)
-        throw new ArgumentNullException(nameof(openAngle));
-      switch (openAngle.Kind)
-      {
-        case SyntaxKind.OpenAngle:
-          break;
-        default:
-          throw new ArgumentException("openAngle");
-      }
-      if (bang != null)
-      {
-      switch (bang.Kind)
-      {
-        case SyntaxKind.Bang:
-        case SyntaxKind.None:
-          break;
-        default:
-          throw new ArgumentException("bang");
-      }
-      }
-      if (name == null)
-        throw new ArgumentNullException(nameof(name));
-      switch (name.Kind)
-      {
-        case SyntaxKind.Text:
-          break;
-        default:
-          throw new ArgumentException("name");
-      }
-      if (forwardSlash != null)
-      {
-      switch (forwardSlash.Kind)
-      {
-        case SyntaxKind.ForwardSlash:
-        case SyntaxKind.None:
-          break;
-        default:
-          throw new ArgumentException("forwardSlash");
-      }
-      }
-      if (closeAngle == null)
-        throw new ArgumentNullException(nameof(closeAngle));
-      switch (closeAngle.Kind)
-      {
-        case SyntaxKind.CloseAngle:
-          break;
-        default:
-          throw new ArgumentException("closeAngle");
-      }
+        if (openAngle == null)
+            throw new ArgumentNullException(nameof(openAngle));
+        switch (openAngle.Kind)
+        {
+            case SyntaxKind.OpenAngle:
+                break;
+            default:
+                throw new ArgumentException("openAngle");
+        }
+        if (bang != null)
+        {
+            switch (bang.Kind)
+            {
+                case SyntaxKind.Bang:
+                case SyntaxKind.None:
+                    break;
+                default:
+                    throw new ArgumentException("bang");
+            }
+        }
+        if (name == null)
+            throw new ArgumentNullException(nameof(name));
+        switch (name.Kind)
+        {
+            case SyntaxKind.Text:
+                break;
+            default:
+                throw new ArgumentException("name");
+        }
+        if (forwardSlash != null)
+        {
+            switch (forwardSlash.Kind)
+            {
+                case SyntaxKind.ForwardSlash:
+                case SyntaxKind.None:
+                    break;
+                default:
+                    throw new ArgumentException("forwardSlash");
+            }
+        }
+        if (closeAngle == null)
+            throw new ArgumentNullException(nameof(closeAngle));
+        switch (closeAngle.Kind)
+        {
+            case SyntaxKind.CloseAngle:
+                break;
+            default:
+                throw new ArgumentException("closeAngle");
+        }
 
-      return new MarkupTagHelperStartTagSyntax(SyntaxKind.MarkupTagHelperStartTag, openAngle, bang, name, attributes.Node, forwardSlash, closeAngle, chunkGenerator);
+        return new MarkupTagHelperStartTagSyntax(SyntaxKind.MarkupTagHelperStartTag, openAngle, bang, name, attributes.Node, forwardSlash, closeAngle, chunkGenerator);
     }
 
     public static MarkupTagHelperEndTagSyntax MarkupTagHelperEndTag(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
     {
-      if (openAngle == null)
-        throw new ArgumentNullException(nameof(openAngle));
-      switch (openAngle.Kind)
-      {
-        case SyntaxKind.OpenAngle:
-          break;
-        default:
-          throw new ArgumentException("openAngle");
-      }
-      if (forwardSlash == null)
-        throw new ArgumentNullException(nameof(forwardSlash));
-      switch (forwardSlash.Kind)
-      {
-        case SyntaxKind.ForwardSlash:
-          break;
-        default:
-          throw new ArgumentException("forwardSlash");
-      }
-      if (bang != null)
-      {
-      switch (bang.Kind)
-      {
-        case SyntaxKind.Bang:
-        case SyntaxKind.None:
-          break;
-        default:
-          throw new ArgumentException("bang");
-      }
-      }
-      if (name == null)
-        throw new ArgumentNullException(nameof(name));
-      switch (name.Kind)
-      {
-        case SyntaxKind.Text:
-          break;
-        default:
-          throw new ArgumentException("name");
-      }
-      if (closeAngle == null)
-        throw new ArgumentNullException(nameof(closeAngle));
-      switch (closeAngle.Kind)
-      {
-        case SyntaxKind.CloseAngle:
-          break;
-        default:
-          throw new ArgumentException("closeAngle");
-      }
+        if (openAngle == null)
+            throw new ArgumentNullException(nameof(openAngle));
+        switch (openAngle.Kind)
+        {
+            case SyntaxKind.OpenAngle:
+                break;
+            default:
+                throw new ArgumentException("openAngle");
+        }
+        if (forwardSlash == null)
+            throw new ArgumentNullException(nameof(forwardSlash));
+        switch (forwardSlash.Kind)
+        {
+            case SyntaxKind.ForwardSlash:
+                break;
+            default:
+                throw new ArgumentException("forwardSlash");
+        }
+        if (bang != null)
+        {
+            switch (bang.Kind)
+            {
+                case SyntaxKind.Bang:
+                case SyntaxKind.None:
+                    break;
+                default:
+                    throw new ArgumentException("bang");
+            }
+        }
+        if (name == null)
+            throw new ArgumentNullException(nameof(name));
+        switch (name.Kind)
+        {
+            case SyntaxKind.Text:
+                break;
+            default:
+                throw new ArgumentException("name");
+        }
+        if (closeAngle == null)
+            throw new ArgumentNullException(nameof(closeAngle));
+        switch (closeAngle.Kind)
+        {
+            case SyntaxKind.CloseAngle:
+                break;
+            default:
+                throw new ArgumentException("closeAngle");
+        }
 
-      return new MarkupTagHelperEndTagSyntax(SyntaxKind.MarkupTagHelperEndTag, openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, chunkGenerator);
+        return new MarkupTagHelperEndTagSyntax(SyntaxKind.MarkupTagHelperEndTag, openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, chunkGenerator);
     }
 
     public static MarkupTagHelperAttributeSyntax MarkupTagHelperAttribute(MarkupTextLiteralSyntax namePrefix, MarkupTextLiteralSyntax name, MarkupTextLiteralSyntax nameSuffix, SyntaxToken equalsToken, MarkupTextLiteralSyntax valuePrefix, MarkupTagHelperAttributeValueSyntax value, MarkupTextLiteralSyntax valueSuffix)
     {
-      if (name == null)
-        throw new ArgumentNullException(nameof(name));
-      if (equalsToken == null)
-        throw new ArgumentNullException(nameof(equalsToken));
-      switch (equalsToken.Kind)
-      {
-        case SyntaxKind.Equals:
-          break;
-        default:
-          throw new ArgumentException("equalsToken");
-      }
-      if (value == null)
-        throw new ArgumentNullException(nameof(value));
+        if (name == null)
+            throw new ArgumentNullException(nameof(name));
+        if (equalsToken == null)
+            throw new ArgumentNullException(nameof(equalsToken));
+        switch (equalsToken.Kind)
+        {
+            case SyntaxKind.Equals:
+                break;
+            default:
+                throw new ArgumentException("equalsToken");
+        }
+        if (value == null)
+            throw new ArgumentNullException(nameof(value));
 
-      return new MarkupTagHelperAttributeSyntax(SyntaxKind.MarkupTagHelperAttribute, namePrefix, name, nameSuffix, equalsToken, valuePrefix, value, valueSuffix);
+        return new MarkupTagHelperAttributeSyntax(SyntaxKind.MarkupTagHelperAttribute, namePrefix, name, nameSuffix, equalsToken, valuePrefix, value, valueSuffix);
     }
 
     public static MarkupMinimizedTagHelperAttributeSyntax MarkupMinimizedTagHelperAttribute(MarkupTextLiteralSyntax namePrefix, MarkupTextLiteralSyntax name)
     {
-      if (name == null)
-        throw new ArgumentNullException(nameof(name));
+        if (name == null)
+            throw new ArgumentNullException(nameof(name));
 
-      var result = new MarkupMinimizedTagHelperAttributeSyntax(SyntaxKind.MarkupMinimizedTagHelperAttribute, namePrefix, name);
+        var result = new MarkupMinimizedTagHelperAttributeSyntax(SyntaxKind.MarkupMinimizedTagHelperAttribute, namePrefix, name);
 
-      return result;
+        return result;
     }
 
     public static MarkupTagHelperAttributeValueSyntax MarkupTagHelperAttributeValue(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> children)
     {
-      var result = new MarkupTagHelperAttributeValueSyntax(SyntaxKind.MarkupTagHelperAttributeValue, children.Node);
+        var result = new MarkupTagHelperAttributeValueSyntax(SyntaxKind.MarkupTagHelperAttributeValue, children.Node);
 
-      return result;
+        return result;
     }
 
     public static MarkupTagHelperDirectiveAttributeSyntax MarkupTagHelperDirectiveAttribute(MarkupTextLiteralSyntax namePrefix, RazorMetaCodeSyntax transition, MarkupTextLiteralSyntax name, RazorMetaCodeSyntax colon, MarkupTextLiteralSyntax parameterName, MarkupTextLiteralSyntax nameSuffix, SyntaxToken equalsToken, MarkupTextLiteralSyntax valuePrefix, MarkupTagHelperAttributeValueSyntax value, MarkupTextLiteralSyntax valueSuffix)
     {
-      if (transition == null)
-        throw new ArgumentNullException(nameof(transition));
-      if (name == null)
-        throw new ArgumentNullException(nameof(name));
-      if (equalsToken == null)
-        throw new ArgumentNullException(nameof(equalsToken));
-      switch (equalsToken.Kind)
-      {
-        case SyntaxKind.Equals:
-          break;
-        default:
-          throw new ArgumentException("equalsToken");
-      }
-      if (value == null)
-        throw new ArgumentNullException(nameof(value));
+        if (transition == null)
+            throw new ArgumentNullException(nameof(transition));
+        if (name == null)
+            throw new ArgumentNullException(nameof(name));
+        if (equalsToken == null)
+            throw new ArgumentNullException(nameof(equalsToken));
+        switch (equalsToken.Kind)
+        {
+            case SyntaxKind.Equals:
+                break;
+            default:
+                throw new ArgumentException("equalsToken");
+        }
+        if (value == null)
+            throw new ArgumentNullException(nameof(value));
 
-      return new MarkupTagHelperDirectiveAttributeSyntax(SyntaxKind.MarkupTagHelperDirectiveAttribute, namePrefix, transition, name, colon, parameterName, nameSuffix, equalsToken, valuePrefix, value, valueSuffix);
+        return new MarkupTagHelperDirectiveAttributeSyntax(SyntaxKind.MarkupTagHelperDirectiveAttribute, namePrefix, transition, name, colon, parameterName, nameSuffix, equalsToken, valuePrefix, value, valueSuffix);
     }
 
     public static MarkupMinimizedTagHelperDirectiveAttributeSyntax MarkupMinimizedTagHelperDirectiveAttribute(MarkupTextLiteralSyntax namePrefix, RazorMetaCodeSyntax transition, MarkupTextLiteralSyntax name, RazorMetaCodeSyntax colon, MarkupTextLiteralSyntax parameterName)
     {
-      if (transition == null)
-        throw new ArgumentNullException(nameof(transition));
-      if (name == null)
-        throw new ArgumentNullException(nameof(name));
+        if (transition == null)
+            throw new ArgumentNullException(nameof(transition));
+        if (name == null)
+            throw new ArgumentNullException(nameof(name));
 
-      return new MarkupMinimizedTagHelperDirectiveAttributeSyntax(SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute, namePrefix, transition, name, colon, parameterName);
+        return new MarkupMinimizedTagHelperDirectiveAttributeSyntax(SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute, namePrefix, transition, name, colon, parameterName);
     }
 
     public static CSharpCodeBlockSyntax CSharpCodeBlock(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> children)
     {
-      var result = new CSharpCodeBlockSyntax(SyntaxKind.CSharpCodeBlock, children.Node);
+        var result = new CSharpCodeBlockSyntax(SyntaxKind.CSharpCodeBlock, children.Node);
 
-      return result;
+        return result;
     }
 
     public static CSharpTransitionSyntax CSharpTransition(SyntaxToken transition, ISpanChunkGenerator chunkGenerator)
     {
-      if (transition == null)
-        throw new ArgumentNullException(nameof(transition));
-      switch (transition.Kind)
-      {
-        case SyntaxKind.Transition:
-          break;
-        default:
-          throw new ArgumentException("transition");
-      }
+        if (transition == null)
+            throw new ArgumentNullException(nameof(transition));
+        switch (transition.Kind)
+        {
+            case SyntaxKind.Transition:
+                break;
+            default:
+                throw new ArgumentException("transition");
+        }
 
-      var result = new CSharpTransitionSyntax(SyntaxKind.CSharpTransition, transition, chunkGenerator);
+        var result = new CSharpTransitionSyntax(SyntaxKind.CSharpTransition, transition, chunkGenerator);
 
-      return result;
+        return result;
     }
 
     public static CSharpStatementLiteralSyntax CSharpStatementLiteral(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
-      var result = new CSharpStatementLiteralSyntax(SyntaxKind.CSharpStatementLiteral, literalTokens.Node, chunkGenerator);
+        var result = new CSharpStatementLiteralSyntax(SyntaxKind.CSharpStatementLiteral, literalTokens.Node, chunkGenerator);
 
-      return result;
+        return result;
     }
 
     public static CSharpExpressionLiteralSyntax CSharpExpressionLiteral(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
-      var result = new CSharpExpressionLiteralSyntax(SyntaxKind.CSharpExpressionLiteral, literalTokens.Node, chunkGenerator);
+        var result = new CSharpExpressionLiteralSyntax(SyntaxKind.CSharpExpressionLiteral, literalTokens.Node, chunkGenerator);
 
-      return result;
+        return result;
     }
 
     public static CSharpEphemeralTextLiteralSyntax CSharpEphemeralTextLiteral(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
-      var result = new CSharpEphemeralTextLiteralSyntax(SyntaxKind.CSharpEphemeralTextLiteral, literalTokens.Node, chunkGenerator);
+        var result = new CSharpEphemeralTextLiteralSyntax(SyntaxKind.CSharpEphemeralTextLiteral, literalTokens.Node, chunkGenerator);
 
-      return result;
+        return result;
     }
 
     public static CSharpTemplateBlockSyntax CSharpTemplateBlock(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> children)
     {
-      var result = new CSharpTemplateBlockSyntax(SyntaxKind.CSharpTemplateBlock, children.Node);
+        var result = new CSharpTemplateBlockSyntax(SyntaxKind.CSharpTemplateBlock, children.Node);
 
-      return result;
+        return result;
     }
 
     public static CSharpStatementSyntax CSharpStatement(CSharpTransitionSyntax transition, CSharpSyntaxNode body)
     {
-      if (transition == null)
-        throw new ArgumentNullException(nameof(transition));
-      if (body == null)
-        throw new ArgumentNullException(nameof(body));
+        if (transition == null)
+            throw new ArgumentNullException(nameof(transition));
+        if (body == null)
+            throw new ArgumentNullException(nameof(body));
 
-      var result = new CSharpStatementSyntax(SyntaxKind.CSharpStatement, transition, body);
+        var result = new CSharpStatementSyntax(SyntaxKind.CSharpStatement, transition, body);
 
-      return result;
+        return result;
     }
 
     public static CSharpStatementBodySyntax CSharpStatementBody(RazorMetaCodeSyntax openBrace, CSharpCodeBlockSyntax cSharpCode, RazorMetaCodeSyntax closeBrace)
     {
-      if (openBrace == null)
-        throw new ArgumentNullException(nameof(openBrace));
-      if (cSharpCode == null)
-        throw new ArgumentNullException(nameof(cSharpCode));
-      if (closeBrace == null)
-        throw new ArgumentNullException(nameof(closeBrace));
+        if (openBrace == null)
+            throw new ArgumentNullException(nameof(openBrace));
+        if (cSharpCode == null)
+            throw new ArgumentNullException(nameof(cSharpCode));
+        if (closeBrace == null)
+            throw new ArgumentNullException(nameof(closeBrace));
 
-      var result = new CSharpStatementBodySyntax(SyntaxKind.CSharpStatementBody, openBrace, cSharpCode, closeBrace);
+        var result = new CSharpStatementBodySyntax(SyntaxKind.CSharpStatementBody, openBrace, cSharpCode, closeBrace);
 
-      return result;
+        return result;
     }
 
     public static CSharpExplicitExpressionSyntax CSharpExplicitExpression(CSharpTransitionSyntax transition, CSharpSyntaxNode body)
     {
-      if (transition == null)
-        throw new ArgumentNullException(nameof(transition));
-      if (body == null)
-        throw new ArgumentNullException(nameof(body));
+        if (transition == null)
+            throw new ArgumentNullException(nameof(transition));
+        if (body == null)
+            throw new ArgumentNullException(nameof(body));
 
-      var result = new CSharpExplicitExpressionSyntax(SyntaxKind.CSharpExplicitExpression, transition, body);
+        var result = new CSharpExplicitExpressionSyntax(SyntaxKind.CSharpExplicitExpression, transition, body);
 
-      return result;
+        return result;
     }
 
     public static CSharpExplicitExpressionBodySyntax CSharpExplicitExpressionBody(RazorMetaCodeSyntax openParen, CSharpCodeBlockSyntax cSharpCode, RazorMetaCodeSyntax closeParen)
     {
-      if (openParen == null)
-        throw new ArgumentNullException(nameof(openParen));
-      if (cSharpCode == null)
-        throw new ArgumentNullException(nameof(cSharpCode));
-      if (closeParen == null)
-        throw new ArgumentNullException(nameof(closeParen));
+        if (openParen == null)
+            throw new ArgumentNullException(nameof(openParen));
+        if (cSharpCode == null)
+            throw new ArgumentNullException(nameof(cSharpCode));
+        if (closeParen == null)
+            throw new ArgumentNullException(nameof(closeParen));
 
-      var result = new CSharpExplicitExpressionBodySyntax(SyntaxKind.CSharpExplicitExpressionBody, openParen, cSharpCode, closeParen);
+        var result = new CSharpExplicitExpressionBodySyntax(SyntaxKind.CSharpExplicitExpressionBody, openParen, cSharpCode, closeParen);
 
-      return result;
+        return result;
     }
 
     public static CSharpImplicitExpressionSyntax CSharpImplicitExpression(CSharpTransitionSyntax transition, CSharpSyntaxNode body)
     {
-      if (transition == null)
-        throw new ArgumentNullException(nameof(transition));
-      if (body == null)
-        throw new ArgumentNullException(nameof(body));
+        if (transition == null)
+            throw new ArgumentNullException(nameof(transition));
+        if (body == null)
+            throw new ArgumentNullException(nameof(body));
 
-      var result = new CSharpImplicitExpressionSyntax(SyntaxKind.CSharpImplicitExpression, transition, body);
+        var result = new CSharpImplicitExpressionSyntax(SyntaxKind.CSharpImplicitExpression, transition, body);
 
-      return result;
+        return result;
     }
 
     public static CSharpImplicitExpressionBodySyntax CSharpImplicitExpressionBody(CSharpCodeBlockSyntax cSharpCode)
     {
-      if (cSharpCode == null)
-        throw new ArgumentNullException(nameof(cSharpCode));
+        if (cSharpCode == null)
+            throw new ArgumentNullException(nameof(cSharpCode));
 
-      var result = new CSharpImplicitExpressionBodySyntax(SyntaxKind.CSharpImplicitExpressionBody, cSharpCode);
+        var result = new CSharpImplicitExpressionBodySyntax(SyntaxKind.CSharpImplicitExpressionBody, cSharpCode);
 
-      return result;
+        return result;
     }
 
     public static RazorDirectiveSyntax RazorDirective(CSharpTransitionSyntax transition, CSharpSyntaxNode body)
     {
-      if (transition == null)
-        throw new ArgumentNullException(nameof(transition));
-      if (body == null)
-        throw new ArgumentNullException(nameof(body));
+        if (transition == null)
+            throw new ArgumentNullException(nameof(transition));
+        if (body == null)
+            throw new ArgumentNullException(nameof(body));
 
-      var result = new RazorDirectiveSyntax(SyntaxKind.RazorDirective, transition, body);
+        var result = new RazorDirectiveSyntax(SyntaxKind.RazorDirective, transition, body);
 
-      return result;
+        return result;
     }
 
     public static RazorDirectiveBodySyntax RazorDirectiveBody(RazorSyntaxNode keyword, CSharpCodeBlockSyntax cSharpCode)
     {
-      if (keyword == null)
-        throw new ArgumentNullException(nameof(keyword));
+        if (keyword == null)
+            throw new ArgumentNullException(nameof(keyword));
 
-      var result = new RazorDirectiveBodySyntax(SyntaxKind.RazorDirectiveBody, keyword, cSharpCode);
+        var result = new RazorDirectiveBodySyntax(SyntaxKind.RazorDirectiveBody, keyword, cSharpCode);
 
-      return result;
+        return result;
     }
 
     internal static IEnumerable<Type> GetNodeTypes()
     {
         return new Type[] {
-           typeof(RazorDocumentSyntax),
-           typeof(RazorCommentBlockSyntax),
-           typeof(RazorMetaCodeSyntax),
-           typeof(GenericBlockSyntax),
-           typeof(UnclassifiedTextLiteralSyntax),
-           typeof(MarkupBlockSyntax),
-           typeof(MarkupTransitionSyntax),
-           typeof(MarkupTextLiteralSyntax),
-           typeof(MarkupEphemeralTextLiteralSyntax),
-           typeof(MarkupCommentBlockSyntax),
-           typeof(MarkupMinimizedAttributeBlockSyntax),
-           typeof(MarkupAttributeBlockSyntax),
-           typeof(MarkupMiscAttributeContentSyntax),
-           typeof(MarkupLiteralAttributeValueSyntax),
-           typeof(MarkupDynamicAttributeValueSyntax),
-           typeof(MarkupElementSyntax),
-           typeof(MarkupStartTagSyntax),
-           typeof(MarkupEndTagSyntax),
-           typeof(MarkupTagHelperElementSyntax),
-           typeof(MarkupTagHelperStartTagSyntax),
-           typeof(MarkupTagHelperEndTagSyntax),
-           typeof(MarkupTagHelperAttributeSyntax),
-           typeof(MarkupMinimizedTagHelperAttributeSyntax),
-           typeof(MarkupTagHelperAttributeValueSyntax),
-           typeof(MarkupTagHelperDirectiveAttributeSyntax),
-           typeof(MarkupMinimizedTagHelperDirectiveAttributeSyntax),
-           typeof(CSharpCodeBlockSyntax),
-           typeof(CSharpTransitionSyntax),
-           typeof(CSharpStatementLiteralSyntax),
-           typeof(CSharpExpressionLiteralSyntax),
-           typeof(CSharpEphemeralTextLiteralSyntax),
-           typeof(CSharpTemplateBlockSyntax),
-           typeof(CSharpStatementSyntax),
-           typeof(CSharpStatementBodySyntax),
-           typeof(CSharpExplicitExpressionSyntax),
-           typeof(CSharpExplicitExpressionBodySyntax),
-           typeof(CSharpImplicitExpressionSyntax),
-           typeof(CSharpImplicitExpressionBodySyntax),
-           typeof(RazorDirectiveSyntax),
-           typeof(RazorDirectiveBodySyntax)
+            typeof(RazorDocumentSyntax),
+            typeof(RazorCommentBlockSyntax),
+            typeof(RazorMetaCodeSyntax),
+            typeof(GenericBlockSyntax),
+            typeof(UnclassifiedTextLiteralSyntax),
+            typeof(MarkupBlockSyntax),
+            typeof(MarkupTransitionSyntax),
+            typeof(MarkupTextLiteralSyntax),
+            typeof(MarkupEphemeralTextLiteralSyntax),
+            typeof(MarkupCommentBlockSyntax),
+            typeof(MarkupMinimizedAttributeBlockSyntax),
+            typeof(MarkupAttributeBlockSyntax),
+            typeof(MarkupMiscAttributeContentSyntax),
+            typeof(MarkupLiteralAttributeValueSyntax),
+            typeof(MarkupDynamicAttributeValueSyntax),
+            typeof(MarkupElementSyntax),
+            typeof(MarkupStartTagSyntax),
+            typeof(MarkupEndTagSyntax),
+            typeof(MarkupTagHelperElementSyntax),
+            typeof(MarkupTagHelperStartTagSyntax),
+            typeof(MarkupTagHelperEndTagSyntax),
+            typeof(MarkupTagHelperAttributeSyntax),
+            typeof(MarkupMinimizedTagHelperAttributeSyntax),
+            typeof(MarkupTagHelperAttributeValueSyntax),
+            typeof(MarkupTagHelperDirectiveAttributeSyntax),
+            typeof(MarkupMinimizedTagHelperDirectiveAttributeSyntax),
+            typeof(CSharpCodeBlockSyntax),
+            typeof(CSharpTransitionSyntax),
+            typeof(CSharpStatementLiteralSyntax),
+            typeof(CSharpExpressionLiteralSyntax),
+            typeof(CSharpEphemeralTextLiteralSyntax),
+            typeof(CSharpTemplateBlockSyntax),
+            typeof(CSharpStatementSyntax),
+            typeof(CSharpStatementBodySyntax),
+            typeof(CSharpExplicitExpressionSyntax),
+            typeof(CSharpExplicitExpressionBodySyntax),
+            typeof(CSharpImplicitExpressionSyntax),
+            typeof(CSharpImplicitExpressionBodySyntax),
+            typeof(RazorDirectiveSyntax),
+            typeof(RazorDirectiveBodySyntax)
         };
     }
-  }
 }

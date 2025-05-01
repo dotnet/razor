@@ -40,18 +40,36 @@ internal abstract class AbstractFileWriter
 
     #region Output helpers
 
-    protected void Indent()
+    protected void IncreaseIndent()
     {
         _indentLevel++;
     }
 
-    protected void Unindent()
+    protected void DescreaseIndent()
     {
         if (_indentLevel <= 0)
         {
             throw new InvalidOperationException("Cannot unindent from base level");
         }
         _indentLevel--;
+    }
+
+    protected IndentScope Indent() => new(this);
+
+    protected readonly ref struct IndentScope
+    {
+        private readonly AbstractFileWriter _writer;
+
+        public IndentScope(AbstractFileWriter writer)
+        {
+            _writer = writer;
+            _writer.IncreaseIndent();
+        }
+
+        public readonly void Dispose()
+        {
+            _writer.DescreaseIndent();
+        }
     }
 
     protected void Write(string msg)
@@ -71,9 +89,30 @@ internal abstract class AbstractFileWriter
         WriteLine("");
     }
 
+    protected void WriteIndentedLine(string msg)
+    {
+        using (Indent())
+        {
+            WriteLine(msg);
+        }
+    }
+
+    protected void WriteIndentedLine(string msg, params object[] args)
+    {
+        using (Indent())
+        {
+            WriteLine(msg, args);
+        }
+    }
+
     protected void WriteLine(string msg)
     {
-        WriteIndentIfNeeded();
+        if (msg.Length > 0)
+        {
+            // Don't write the indent if we're writing a blank line.
+            WriteIndentIfNeeded();
+        }
+
         _writer.WriteLine(msg);
         _needIndent = true; //need an indent after each line break
     }
@@ -97,13 +136,31 @@ internal abstract class AbstractFileWriter
     protected void OpenBlock()
     {
         WriteLine("{");
-        Indent();
+        IncreaseIndent();
     }
 
     protected void CloseBlock()
     {
-        Unindent();
+        DescreaseIndent();
         WriteLine("}");
+    }
+
+    protected BlockScope Block() => new(this);
+
+    protected readonly ref struct BlockScope
+    {
+        private readonly AbstractFileWriter _writer;
+
+        public BlockScope(AbstractFileWriter writer)
+        {
+            _writer = writer;
+            _writer.OpenBlock();
+        }
+
+        public readonly void Dispose()
+        {
+            _writer.CloseBlock();
+        }
     }
 
     #endregion Output helpers
