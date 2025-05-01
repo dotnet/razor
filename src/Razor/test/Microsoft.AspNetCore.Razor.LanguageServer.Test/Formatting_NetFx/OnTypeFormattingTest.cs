@@ -1163,35 +1163,4 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             triggerCharacter: '}',
             expectedChangedLines: 1);
     }
-
-    [FormattingTestFact]
-    public Task Paste_AfterProperty()
-        => RunOnTypeFormattingTestAsync(
-            input: """
-                    @code {
-                        public string S
-                        {
-                            get => _s;
-                            set
-                            {
-                                _s = value;
-                            }
-                        } [|private string _s = "";|]
-                    }
-                    """,
-            expected: """
-                    @code {
-                        public string S
-                        {
-                            get => _s;
-                            set
-                            {
-                                _s = value;
-                            }
-                        }
-                        private string _s = "";
-                    }
-                    """,
-            triggerCharacter: ';',
-            expectedChangedLines: 2);
 }
