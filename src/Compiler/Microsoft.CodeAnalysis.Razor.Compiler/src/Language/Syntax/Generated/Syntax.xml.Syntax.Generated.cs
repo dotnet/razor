@@ -3478,7 +3478,7 @@ internal sealed partial class CSharpStatementSyntax : CSharpRazorBlockSyntax
 internal sealed partial class CSharpStatementBodySyntax : CSharpSyntaxNode
 {
     private RazorMetaCodeSyntax _openBrace;
-    private CSharpCodeBlockSyntax _cSharpCode;
+    private CSharpCodeBlockSyntax _csharpCode;
     private RazorMetaCodeSyntax _closeBrace;
 
     internal CSharpStatementBodySyntax(GreenNode green, SyntaxNode parent, int position)
@@ -3498,7 +3498,7 @@ internal sealed partial class CSharpStatementBodySyntax : CSharpSyntaxNode
     {
         get
         {
-            return GetRed(ref _cSharpCode, 1);
+            return GetRed(ref _csharpCode, 1);
         }
     }
 
@@ -3515,7 +3515,7 @@ internal sealed partial class CSharpStatementBodySyntax : CSharpSyntaxNode
         switch (index)
         {
             case 0: return GetRedAtZero(ref _openBrace);
-            case 1: return GetRed(ref _cSharpCode, 1);
+            case 1: return GetRed(ref _csharpCode, 1);
             case 2: return GetRed(ref _closeBrace, 2);
             default: return null;
         }
@@ -3525,7 +3525,7 @@ internal sealed partial class CSharpStatementBodySyntax : CSharpSyntaxNode
         switch (index)
         {
             case 0: return _openBrace;
-            case 1: return _cSharpCode;
+            case 1: return _csharpCode;
             case 2: return _closeBrace;
             default: return null;
         }
@@ -3541,11 +3541,11 @@ internal sealed partial class CSharpStatementBodySyntax : CSharpSyntaxNode
         visitor.VisitCSharpStatementBody(this);
     }
 
-    public CSharpStatementBodySyntax Update(RazorMetaCodeSyntax openBrace, CSharpCodeBlockSyntax cSharpCode, RazorMetaCodeSyntax closeBrace)
+    public CSharpStatementBodySyntax Update(RazorMetaCodeSyntax openBrace, CSharpCodeBlockSyntax csharpCode, RazorMetaCodeSyntax closeBrace)
     {
-        if (openBrace != OpenBrace || cSharpCode != CSharpCode || closeBrace != CloseBrace)
+        if (openBrace != OpenBrace || csharpCode != CSharpCode || closeBrace != CloseBrace)
         {
-            var newNode = SyntaxFactory.CSharpStatementBody(openBrace, cSharpCode, closeBrace);
+            var newNode = SyntaxFactory.CSharpStatementBody(openBrace, csharpCode, closeBrace);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
@@ -3563,9 +3563,9 @@ internal sealed partial class CSharpStatementBodySyntax : CSharpSyntaxNode
         return Update(openBrace, CSharpCode, CloseBrace);
     }
 
-    public CSharpStatementBodySyntax WithCSharpCode(CSharpCodeBlockSyntax cSharpCode)
+    public CSharpStatementBodySyntax WithCSharpCode(CSharpCodeBlockSyntax csharpCode)
     {
-        return Update(OpenBrace, cSharpCode, CloseBrace);
+        return Update(OpenBrace, csharpCode, CloseBrace);
     }
 
     public CSharpStatementBodySyntax WithCloseBrace(RazorMetaCodeSyntax closeBrace)
@@ -3677,7 +3677,7 @@ internal sealed partial class CSharpExplicitExpressionSyntax : CSharpRazorBlockS
 internal sealed partial class CSharpExplicitExpressionBodySyntax : CSharpSyntaxNode
 {
     private RazorMetaCodeSyntax _openParen;
-    private CSharpCodeBlockSyntax _cSharpCode;
+    private CSharpCodeBlockSyntax _csharpCode;
     private RazorMetaCodeSyntax _closeParen;
 
     internal CSharpExplicitExpressionBodySyntax(GreenNode green, SyntaxNode parent, int position)
@@ -3697,7 +3697,7 @@ internal sealed partial class CSharpExplicitExpressionBodySyntax : CSharpSyntaxN
     {
         get
         {
-            return GetRed(ref _cSharpCode, 1);
+            return GetRed(ref _csharpCode, 1);
         }
     }
 
@@ -3714,7 +3714,7 @@ internal sealed partial class CSharpExplicitExpressionBodySyntax : CSharpSyntaxN
         switch (index)
         {
             case 0: return GetRedAtZero(ref _openParen);
-            case 1: return GetRed(ref _cSharpCode, 1);
+            case 1: return GetRed(ref _csharpCode, 1);
             case 2: return GetRed(ref _closeParen, 2);
             default: return null;
         }
@@ -3724,7 +3724,7 @@ internal sealed partial class CSharpExplicitExpressionBodySyntax : CSharpSyntaxN
         switch (index)
         {
             case 0: return _openParen;
-            case 1: return _cSharpCode;
+            case 1: return _csharpCode;
             case 2: return _closeParen;
             default: return null;
         }
@@ -3740,11 +3740,11 @@ internal sealed partial class CSharpExplicitExpressionBodySyntax : CSharpSyntaxN
         visitor.VisitCSharpExplicitExpressionBody(this);
     }
 
-    public CSharpExplicitExpressionBodySyntax Update(RazorMetaCodeSyntax openParen, CSharpCodeBlockSyntax cSharpCode, RazorMetaCodeSyntax closeParen)
+    public CSharpExplicitExpressionBodySyntax Update(RazorMetaCodeSyntax openParen, CSharpCodeBlockSyntax csharpCode, RazorMetaCodeSyntax closeParen)
     {
-        if (openParen != OpenParen || cSharpCode != CSharpCode || closeParen != CloseParen)
+        if (openParen != OpenParen || csharpCode != CSharpCode || closeParen != CloseParen)
         {
-            var newNode = SyntaxFactory.CSharpExplicitExpressionBody(openParen, cSharpCode, closeParen);
+            var newNode = SyntaxFactory.CSharpExplicitExpressionBody(openParen, csharpCode, closeParen);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
@@ -3762,9 +3762,9 @@ internal sealed partial class CSharpExplicitExpressionBodySyntax : CSharpSyntaxN
         return Update(openParen, CSharpCode, CloseParen);
     }
 
-    public CSharpExplicitExpressionBodySyntax WithCSharpCode(CSharpCodeBlockSyntax cSharpCode)
+    public CSharpExplicitExpressionBodySyntax WithCSharpCode(CSharpCodeBlockSyntax csharpCode)
     {
-        return Update(OpenParen, cSharpCode, CloseParen);
+        return Update(OpenParen, csharpCode, CloseParen);
     }
 
     public CSharpExplicitExpressionBodySyntax WithCloseParen(RazorMetaCodeSyntax closeParen)
@@ -3875,7 +3875,7 @@ internal sealed partial class CSharpImplicitExpressionSyntax : CSharpRazorBlockS
 
 internal sealed partial class CSharpImplicitExpressionBodySyntax : CSharpSyntaxNode
 {
-    private CSharpCodeBlockSyntax _cSharpCode;
+    private CSharpCodeBlockSyntax _csharpCode;
 
     internal CSharpImplicitExpressionBodySyntax(GreenNode green, SyntaxNode parent, int position)
         : base(green, parent, position)
@@ -3886,7 +3886,7 @@ internal sealed partial class CSharpImplicitExpressionBodySyntax : CSharpSyntaxN
     {
         get
         {
-            return GetRedAtZero(ref _cSharpCode);
+            return GetRedAtZero(ref _csharpCode);
         }
     }
 
@@ -3894,7 +3894,7 @@ internal sealed partial class CSharpImplicitExpressionBodySyntax : CSharpSyntaxN
     {
         switch (index)
         {
-            case 0: return GetRedAtZero(ref _cSharpCode);
+            case 0: return GetRedAtZero(ref _csharpCode);
             default: return null;
         }
     }
@@ -3902,7 +3902,7 @@ internal sealed partial class CSharpImplicitExpressionBodySyntax : CSharpSyntaxN
     {
         switch (index)
         {
-            case 0: return _cSharpCode;
+            case 0: return _csharpCode;
             default: return null;
         }
     }
@@ -3917,11 +3917,11 @@ internal sealed partial class CSharpImplicitExpressionBodySyntax : CSharpSyntaxN
         visitor.VisitCSharpImplicitExpressionBody(this);
     }
 
-    public CSharpImplicitExpressionBodySyntax Update(CSharpCodeBlockSyntax cSharpCode)
+    public CSharpImplicitExpressionBodySyntax Update(CSharpCodeBlockSyntax csharpCode)
     {
-        if (cSharpCode != CSharpCode)
+        if (csharpCode != CSharpCode)
         {
-            var newNode = SyntaxFactory.CSharpImplicitExpressionBody(cSharpCode);
+            var newNode = SyntaxFactory.CSharpImplicitExpressionBody(csharpCode);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
@@ -3934,9 +3934,9 @@ internal sealed partial class CSharpImplicitExpressionBodySyntax : CSharpSyntaxN
         return this;
     }
 
-    public CSharpImplicitExpressionBodySyntax WithCSharpCode(CSharpCodeBlockSyntax cSharpCode)
+    public CSharpImplicitExpressionBodySyntax WithCSharpCode(CSharpCodeBlockSyntax csharpCode)
     {
-        return Update(cSharpCode);
+        return Update(csharpCode);
     }
 
     public CSharpImplicitExpressionBodySyntax AddCSharpCodeChildren(params RazorSyntaxNode[] items)
@@ -4033,7 +4033,7 @@ internal sealed partial class RazorDirectiveSyntax : CSharpRazorBlockSyntax
 internal sealed partial class RazorDirectiveBodySyntax : CSharpSyntaxNode
 {
     private RazorSyntaxNode _keyword;
-    private CSharpCodeBlockSyntax _cSharpCode;
+    private CSharpCodeBlockSyntax _csharpCode;
 
     internal RazorDirectiveBodySyntax(GreenNode green, SyntaxNode parent, int position)
         : base(green, parent, position)
@@ -4052,7 +4052,7 @@ internal sealed partial class RazorDirectiveBodySyntax : CSharpSyntaxNode
     {
         get
         {
-            return GetRed(ref _cSharpCode, 1);
+            return GetRed(ref _csharpCode, 1);
         }
     }
 
@@ -4061,7 +4061,7 @@ internal sealed partial class RazorDirectiveBodySyntax : CSharpSyntaxNode
         switch (index)
         {
             case 0: return GetRedAtZero(ref _keyword);
-            case 1: return GetRed(ref _cSharpCode, 1);
+            case 1: return GetRed(ref _csharpCode, 1);
             default: return null;
         }
     }
@@ -4070,7 +4070,7 @@ internal sealed partial class RazorDirectiveBodySyntax : CSharpSyntaxNode
         switch (index)
         {
             case 0: return _keyword;
-            case 1: return _cSharpCode;
+            case 1: return _csharpCode;
             default: return null;
         }
     }
@@ -4085,11 +4085,11 @@ internal sealed partial class RazorDirectiveBodySyntax : CSharpSyntaxNode
         visitor.VisitRazorDirectiveBody(this);
     }
 
-    public RazorDirectiveBodySyntax Update(RazorSyntaxNode keyword, CSharpCodeBlockSyntax cSharpCode)
+    public RazorDirectiveBodySyntax Update(RazorSyntaxNode keyword, CSharpCodeBlockSyntax csharpCode)
     {
-        if (keyword != Keyword || cSharpCode != CSharpCode)
+        if (keyword != Keyword || csharpCode != CSharpCode)
         {
-            var newNode = SyntaxFactory.RazorDirectiveBody(keyword, cSharpCode);
+            var newNode = SyntaxFactory.RazorDirectiveBody(keyword, csharpCode);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
@@ -4107,14 +4107,14 @@ internal sealed partial class RazorDirectiveBodySyntax : CSharpSyntaxNode
         return Update(keyword, CSharpCode);
     }
 
-    public RazorDirectiveBodySyntax WithCSharpCode(CSharpCodeBlockSyntax cSharpCode)
+    public RazorDirectiveBodySyntax WithCSharpCode(CSharpCodeBlockSyntax csharpCode)
     {
-        return Update(Keyword, cSharpCode);
+        return Update(Keyword, csharpCode);
     }
 
     public RazorDirectiveBodySyntax AddCSharpCodeChildren(params RazorSyntaxNode[] items)
     {
-        var _cSharpCode = this.CSharpCode ?? SyntaxFactory.CSharpCodeBlock();
-        return this.WithCSharpCode(_cSharpCode.WithChildren(_cSharpCode.Children.AddRange(items)));
+        var _csharpCode = this.CSharpCode ?? SyntaxFactory.CSharpCodeBlock();
+        return this.WithCSharpCode(_csharpCode.WithChildren(_csharpCode.Children.AddRange(items)));
     }
 }

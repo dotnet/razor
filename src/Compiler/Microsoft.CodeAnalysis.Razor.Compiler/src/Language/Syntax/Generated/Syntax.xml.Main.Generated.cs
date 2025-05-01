@@ -754,9 +754,9 @@ internal partial class SyntaxRewriter : SyntaxVisitor<SyntaxNode>
     public override SyntaxNode VisitCSharpStatementBody(CSharpStatementBodySyntax node)
     {
         var openBrace = (RazorMetaCodeSyntax)Visit(node.OpenBrace);
-        var cSharpCode = (CSharpCodeBlockSyntax)Visit(node.CSharpCode);
+        var csharpCode = (CSharpCodeBlockSyntax)Visit(node.CSharpCode);
         var closeBrace = (RazorMetaCodeSyntax)Visit(node.CloseBrace);
-        return node.Update(openBrace, cSharpCode, closeBrace);
+        return node.Update(openBrace, csharpCode, closeBrace);
     }
 
     public override SyntaxNode VisitCSharpExplicitExpression(CSharpExplicitExpressionSyntax node)
@@ -769,9 +769,9 @@ internal partial class SyntaxRewriter : SyntaxVisitor<SyntaxNode>
     public override SyntaxNode VisitCSharpExplicitExpressionBody(CSharpExplicitExpressionBodySyntax node)
     {
         var openParen = (RazorMetaCodeSyntax)Visit(node.OpenParen);
-        var cSharpCode = (CSharpCodeBlockSyntax)Visit(node.CSharpCode);
+        var csharpCode = (CSharpCodeBlockSyntax)Visit(node.CSharpCode);
         var closeParen = (RazorMetaCodeSyntax)Visit(node.CloseParen);
-        return node.Update(openParen, cSharpCode, closeParen);
+        return node.Update(openParen, csharpCode, closeParen);
     }
 
     public override SyntaxNode VisitCSharpImplicitExpression(CSharpImplicitExpressionSyntax node)
@@ -783,8 +783,8 @@ internal partial class SyntaxRewriter : SyntaxVisitor<SyntaxNode>
 
     public override SyntaxNode VisitCSharpImplicitExpressionBody(CSharpImplicitExpressionBodySyntax node)
     {
-        var cSharpCode = (CSharpCodeBlockSyntax)Visit(node.CSharpCode);
-        return node.Update(cSharpCode);
+        var csharpCode = (CSharpCodeBlockSyntax)Visit(node.CSharpCode);
+        return node.Update(csharpCode);
     }
 
     public override SyntaxNode VisitRazorDirective(RazorDirectiveSyntax node)
@@ -797,8 +797,8 @@ internal partial class SyntaxRewriter : SyntaxVisitor<SyntaxNode>
     public override SyntaxNode VisitRazorDirectiveBody(RazorDirectiveBodySyntax node)
     {
         var keyword = (RazorSyntaxNode)Visit(node.Keyword);
-        var cSharpCode = (CSharpCodeBlockSyntax)Visit(node.CSharpCode);
-        return node.Update(keyword, cSharpCode);
+        var csharpCode = (CSharpCodeBlockSyntax)Visit(node.CSharpCode);
+        return node.Update(keyword, csharpCode);
     }
 }
 
@@ -1501,15 +1501,15 @@ internal static partial class SyntaxFactory
     }
 
     /// <summary>Creates a new CSharpStatementBodySyntax instance.</summary>
-    public static CSharpStatementBodySyntax CSharpStatementBody(RazorMetaCodeSyntax openBrace, CSharpCodeBlockSyntax cSharpCode, RazorMetaCodeSyntax closeBrace)
+    public static CSharpStatementBodySyntax CSharpStatementBody(RazorMetaCodeSyntax openBrace, CSharpCodeBlockSyntax csharpCode, RazorMetaCodeSyntax closeBrace)
     {
         if (openBrace == null)
             throw new ArgumentNullException(nameof(openBrace));
-        if (cSharpCode == null)
-            throw new ArgumentNullException(nameof(cSharpCode));
+        if (csharpCode == null)
+            throw new ArgumentNullException(nameof(csharpCode));
         if (closeBrace == null)
             throw new ArgumentNullException(nameof(closeBrace));
-        return (CSharpStatementBodySyntax)InternalSyntax.SyntaxFactory.CSharpStatementBody(openBrace == null ? null : (InternalSyntax.RazorMetaCodeSyntax)openBrace.Green, cSharpCode == null ? null : (InternalSyntax.CSharpCodeBlockSyntax)cSharpCode.Green, closeBrace == null ? null : (InternalSyntax.RazorMetaCodeSyntax)closeBrace.Green).CreateRed();
+        return (CSharpStatementBodySyntax)InternalSyntax.SyntaxFactory.CSharpStatementBody(openBrace == null ? null : (InternalSyntax.RazorMetaCodeSyntax)openBrace.Green, csharpCode == null ? null : (InternalSyntax.CSharpCodeBlockSyntax)csharpCode.Green, closeBrace == null ? null : (InternalSyntax.RazorMetaCodeSyntax)closeBrace.Green).CreateRed();
     }
 
     /// <summary>Creates a new CSharpStatementBodySyntax instance.</summary>
@@ -1529,15 +1529,15 @@ internal static partial class SyntaxFactory
     }
 
     /// <summary>Creates a new CSharpExplicitExpressionBodySyntax instance.</summary>
-    public static CSharpExplicitExpressionBodySyntax CSharpExplicitExpressionBody(RazorMetaCodeSyntax openParen, CSharpCodeBlockSyntax cSharpCode, RazorMetaCodeSyntax closeParen)
+    public static CSharpExplicitExpressionBodySyntax CSharpExplicitExpressionBody(RazorMetaCodeSyntax openParen, CSharpCodeBlockSyntax csharpCode, RazorMetaCodeSyntax closeParen)
     {
         if (openParen == null)
             throw new ArgumentNullException(nameof(openParen));
-        if (cSharpCode == null)
-            throw new ArgumentNullException(nameof(cSharpCode));
+        if (csharpCode == null)
+            throw new ArgumentNullException(nameof(csharpCode));
         if (closeParen == null)
             throw new ArgumentNullException(nameof(closeParen));
-        return (CSharpExplicitExpressionBodySyntax)InternalSyntax.SyntaxFactory.CSharpExplicitExpressionBody(openParen == null ? null : (InternalSyntax.RazorMetaCodeSyntax)openParen.Green, cSharpCode == null ? null : (InternalSyntax.CSharpCodeBlockSyntax)cSharpCode.Green, closeParen == null ? null : (InternalSyntax.RazorMetaCodeSyntax)closeParen.Green).CreateRed();
+        return (CSharpExplicitExpressionBodySyntax)InternalSyntax.SyntaxFactory.CSharpExplicitExpressionBody(openParen == null ? null : (InternalSyntax.RazorMetaCodeSyntax)openParen.Green, csharpCode == null ? null : (InternalSyntax.CSharpCodeBlockSyntax)csharpCode.Green, closeParen == null ? null : (InternalSyntax.RazorMetaCodeSyntax)closeParen.Green).CreateRed();
     }
 
     /// <summary>Creates a new CSharpExplicitExpressionBodySyntax instance.</summary>
@@ -1557,11 +1557,11 @@ internal static partial class SyntaxFactory
     }
 
     /// <summary>Creates a new CSharpImplicitExpressionBodySyntax instance.</summary>
-    public static CSharpImplicitExpressionBodySyntax CSharpImplicitExpressionBody(CSharpCodeBlockSyntax cSharpCode)
+    public static CSharpImplicitExpressionBodySyntax CSharpImplicitExpressionBody(CSharpCodeBlockSyntax csharpCode)
     {
-        if (cSharpCode == null)
-            throw new ArgumentNullException(nameof(cSharpCode));
-        return (CSharpImplicitExpressionBodySyntax)InternalSyntax.SyntaxFactory.CSharpImplicitExpressionBody(cSharpCode == null ? null : (InternalSyntax.CSharpCodeBlockSyntax)cSharpCode.Green).CreateRed();
+        if (csharpCode == null)
+            throw new ArgumentNullException(nameof(csharpCode));
+        return (CSharpImplicitExpressionBodySyntax)InternalSyntax.SyntaxFactory.CSharpImplicitExpressionBody(csharpCode == null ? null : (InternalSyntax.CSharpCodeBlockSyntax)csharpCode.Green).CreateRed();
     }
 
     /// <summary>Creates a new CSharpImplicitExpressionBodySyntax instance.</summary>
@@ -1581,11 +1581,11 @@ internal static partial class SyntaxFactory
     }
 
     /// <summary>Creates a new RazorDirectiveBodySyntax instance.</summary>
-    public static RazorDirectiveBodySyntax RazorDirectiveBody(RazorSyntaxNode keyword, CSharpCodeBlockSyntax cSharpCode)
+    public static RazorDirectiveBodySyntax RazorDirectiveBody(RazorSyntaxNode keyword, CSharpCodeBlockSyntax csharpCode)
     {
         if (keyword == null)
             throw new ArgumentNullException(nameof(keyword));
-        return (RazorDirectiveBodySyntax)InternalSyntax.SyntaxFactory.RazorDirectiveBody(keyword == null ? null : (InternalSyntax.RazorSyntaxNode)keyword.Green, cSharpCode == null ? null : (InternalSyntax.CSharpCodeBlockSyntax)cSharpCode.Green).CreateRed();
+        return (RazorDirectiveBodySyntax)InternalSyntax.SyntaxFactory.RazorDirectiveBody(keyword == null ? null : (InternalSyntax.RazorSyntaxNode)keyword.Green, csharpCode == null ? null : (InternalSyntax.CSharpCodeBlockSyntax)csharpCode.Green).CreateRed();
     }
 
     /// <summary>Creates a new RazorDirectiveBodySyntax instance.</summary>
