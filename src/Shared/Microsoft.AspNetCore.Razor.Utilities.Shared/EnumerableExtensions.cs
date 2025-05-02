@@ -25,35 +25,57 @@ internal static class EnumerableExtensions
     /// </returns>
     public static ImmutableArray<TResult> SelectAsArray<T, TResult>(this IEnumerable<T> source, Func<T, TResult> selector)
     {
+        // If the source is an ImmutableArray<T> boxed as an IEnumerable<T>, it's better to unbox it here and
+        // call the SelectAsArray<T> extension method that takes an ImmutableArray<T>. Otherwise, it'll go
+        // through the IReadOnlyList<T> path.
         if (source is ImmutableArray<T> array)
         {
             return ImmutableArrayExtensions.SelectAsArray(array, selector);
         }
 
+        // If the source is an IReadOnlyList<T>, we should call the SelectAsArray<T> extension method that
+        // takes an IReadOnlyList<T>. This ensures that we don't foreach over it and incur the cost of allocating
+        // or boxing an enumerator.
         if (source is IReadOnlyList<T> list)
         {
             return ReadOnlyListExtensions.SelectAsArray(list, selector);
         }
 
-        return BuildResult(source, selector);
-
-        static ImmutableArray<TResult> BuildResult(IEnumerable<T> items, Func<T, TResult> selector)
+        // PERF: If we can get the count of the sequence, we can allocate the array up front.
+        if (source.TryGetCount(out var count))
         {
-            int? capacity = items.TryGetCount(out var count)
-                ? count
-                : null;
-
-            using var results = new PooledArrayBuilder<TResult>(capacity);
-
-            foreach (var item in items)
+            if (count == 0)
             {
-                results.Add(selector(item));
+                return [];
             }
 
-            Debug.Assert(capacity is null || results.Count == capacity);
+            var result = new TResult[count];
 
-            return results.DrainToImmutable();
+            var index = 0;
+            foreach (var item in source)
+            {
+                result[index++] = selector(item);
+            }
+
+            Debug.Assert(result.Length == count);
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(result);
         }
+
+        // Fall back to a PooledArrayBuilder if we can't get the count up front.
+        // If the enumerable has 4 or fewer items, this will still allocate a single array and fill it.
+        // However, if it has more than 4 items, it will acquire an ImmutableArray<TResult>.Builder from the default pool.
+        using var results = new PooledArrayBuilder<TResult>();
+
+        foreach (var item in source)
+        {
+            results.Add(selector(item));
+        }
+
+        // If the PooledArrayBuilder acquired an ImmutableArray<TResult>.Builder, using DrainToImmutable()
+        // avoid's allocating a new array and copying the results into it if the builder's capacity *happens*
+        // to be the same as the number of items. This is uncommon, but still useful.
+        return results.DrainToImmutable();
     }
 
     /// <summary>
@@ -72,37 +94,59 @@ internal static class EnumerableExtensions
     /// </returns>
     public static ImmutableArray<TResult> SelectAsArray<T, TResult>(this IEnumerable<T> source, Func<T, int, TResult> selector)
     {
+        // If the source is an ImmutableArray<T> boxed as an IEnumerable<T>, it's better to unbox it here and
+        // call the SelectAsArray<T> extension method that takes an ImmutableArray<T>. Otherwise, it'll go
+        // through the IReadOnlyList<T> path.
         if (source is ImmutableArray<T> array)
         {
             return ImmutableArrayExtensions.SelectAsArray(array, selector);
         }
 
+        // If the source is an IReadOnlyList<T>, we should call the SelectAsArray<T> extension method that
+        // takes an IReadOnlyList<T>. This ensures that we don't foreach over it and incur the cost of allocating
+        // or boxing an enumerator.
         if (source is IReadOnlyList<T> list)
         {
             return ReadOnlyListExtensions.SelectAsArray(list, selector);
         }
 
-        return BuildResult(source, selector);
+        var index = 0;
 
-        static ImmutableArray<TResult> BuildResult(IEnumerable<T> items, Func<T, int, TResult> selector)
+        // PERF: If we can get the count of the sequence, we can allocate the array up front.
+        if (source.TryGetCount(out var count))
         {
-            int? capacity = items.TryGetCount(out var count)
-                ? count
-                : null;
-
-            using var results = new PooledArrayBuilder<TResult>(capacity);
-
-            var index = 0;
-
-            foreach (var item in items)
+            if (count == 0)
             {
-                results.Add(selector(item, index++));
+                return [];
             }
 
-            Debug.Assert(capacity is null || results.Count == capacity);
+            var result = new TResult[count];
 
-            return results.DrainToImmutable();
+            foreach (var item in source)
+            {
+                result[index] = selector(item, index);
+                index++;
+            }
+
+            Debug.Assert(result.Length == count);
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(result);
         }
+
+        // Fall back to a PooledArrayBuilder if we can't get the count up front.
+        // If the enumerable has 4 or fewer items, this will still allocate a single array and fill it.
+        // However, if it has more than 4 items, it will acquire an ImmutableArray<TResult>.Builder from the default pool.
+        using var results = new PooledArrayBuilder<TResult>();
+
+        foreach (var item in source)
+        {
+            results.Add(selector(item, index++));
+        }
+
+        // If the PooledArrayBuilder acquired an ImmutableArray<TResult>.Builder, using DrainToImmutable()
+        // avoid's allocating a new array and copying the results into it if the builder's capacity *happens*
+        // to be the same as the number of items. This is uncommon, but still useful.
+        return results.DrainToImmutable();
     }
 
     public static bool TryGetCount<T>(this IEnumerable<T> sequence, out int count)

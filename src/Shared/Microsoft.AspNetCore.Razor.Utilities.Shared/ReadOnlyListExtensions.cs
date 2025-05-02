@@ -4,7 +4,6 @@
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace System.Collections.Generic;
@@ -24,32 +23,27 @@ internal static class ReadOnlyListExtensions
     /// </returns>
     public static ImmutableArray<TResult> SelectAsArray<T, TResult>(this IReadOnlyList<T> list, Func<T, TResult> selector)
     {
+        var count = list.Count;
+        if (count == 0)
+        {
+            return [];
+        }
+
+        // If the list is a boxed ImmutableArray<T>, it's better to unbox it here and call the SelectAsArray<T>
+        // extension method that takes an ImmutableArray<T> rather than iterating through the interface.
         if (list is ImmutableArray<T> array)
         {
             return ImmutableArrayExtensions.SelectAsArray(array, selector);
         }
 
-        return list switch
+        var result = new TResult[count];
+
+        for (var i = 0; i < count; i++)
         {
-            [] => [],
-            [var item] => [selector(item)],
-            [var item1, var item2] => [selector(item1), selector(item2)],
-            [var item1, var item2, var item3] => [selector(item1), selector(item2), selector(item3)],
-            [var item1, var item2, var item3, var item4] => [selector(item1), selector(item2), selector(item3), selector(item4)],
-            var items => BuildResult(items, selector)
-        };
-
-        static ImmutableArray<TResult> BuildResult(IReadOnlyList<T> items, Func<T, TResult> selector)
-        {
-            using var results = new PooledArrayBuilder<TResult>(capacity: items.Count);
-
-            for (var i = 0; i < items.Count; i++)
-            {
-                results.Add(selector(items[i]));
-            }
-
-            return results.DrainToImmutable();
+            result[i] = selector(list[i]);
         }
+
+        return ImmutableCollectionsMarshal.AsImmutableArray(result);
     }
 
     /// <summary>
@@ -67,73 +61,63 @@ internal static class ReadOnlyListExtensions
     /// </returns>
     public static ImmutableArray<TResult> SelectAsArray<T, TResult>(this IReadOnlyList<T> list, Func<T, int, TResult> selector)
     {
+        var count = list.Count;
+        if (count == 0)
+        {
+            return [];
+        }
+
+        // If the list is a boxed ImmutableArray<T>, it's better to unbox it here and call the SelectAsArray<T>
+        // extension method that takes an ImmutableArray<T> rather than iterating through the interface.
         if (list is ImmutableArray<T> array)
         {
             return ImmutableArrayExtensions.SelectAsArray(array, selector);
         }
 
-        return list switch
+        var result = new TResult[count];
+
+        for (var i = 0; i < count; i++)
         {
-            [] => [],
-            [var item] => [selector(item, 0)],
-            [var item1, var item2] => [selector(item1, 0), selector(item2, 1)],
-            [var item1, var item2, var item3] => [selector(item1, 0), selector(item2, 1), selector(item3, 2)],
-            [var item1, var item2, var item3, var item4] => [selector(item1, 0), selector(item2, 1), selector(item3, 2), selector(item4, 3)],
-            var items => BuildResult(items, selector)
-        };
-
-        static ImmutableArray<TResult> BuildResult(IReadOnlyList<T> items, Func<T, int, TResult> selector)
-        {
-            using var results = new PooledArrayBuilder<TResult>(capacity: items.Count);
-
-            for (var i = 0; i < items.Count; i++)
-            {
-                results.Add(selector(items[i], i));
-            }
-
-            return results.DrainToImmutable();
+            result[i] = selector(list[i], i);
         }
+
+        return ImmutableCollectionsMarshal.AsImmutableArray(result);
     }
 
     public static T[] ToArray<T>(this IReadOnlyList<T> list)
     {
-        return list switch
+        // If the list is a boxed ImmutableArray<T>, it's better to unbox it here and call through
+        // the official ImmutableArray<T>.ToArray() extension method.
+        if (list is ImmutableArray<T> array)
         {
-            [] => [],
-            [var item] => [item],
-            [var item1, var item2] => [item1, item2],
-            [var item1, var item2, var item3] => [item1, item2, item3],
-            [var item1, var item2, var item3, var item4] => [item1, item2, item3, item4],
-            var items => BuildResult(items)
-        };
-
-        static T[] BuildResult(IReadOnlyList<T> items)
-        {
-            var result = new T[items.Count];
-            items.CopyTo(result);
-
-            return result;
+            return Linq.ImmutableArrayExtensions.ToArray(array);
         }
+
+        return list.Count > 0
+            ? CreateArray(list)
+            : [];
     }
 
     public static ImmutableArray<T> ToImmutableArray<T>(this IReadOnlyList<T> list)
     {
-        return list switch
+        // If the list is a boxed ImmutableArray<T>, it's better to unbox it here and just return it.
+        // This is what the official IEnumerable<T>.ToImmutableArray() extension method does.
+        if (list is ImmutableArray<T> array)
         {
-            [] => [],
-            [var item] => [item],
-            [var item1, var item2] => [item1, item2],
-            [var item1, var item2, var item3] => [item1, item2, item3],
-            [var item1, var item2, var item3, var item4] => [item1, item2, item3, item4],
-            var items => BuildResult(items)
-        };
-
-        static ImmutableArray<T> BuildResult(IReadOnlyList<T> items)
-        {
-            var result = items.ToArray();
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(result);
+            return array;
         }
+
+        return list.Count > 0
+            ? ImmutableCollectionsMarshal.AsImmutableArray(CreateArray(list))
+            : [];
+    }
+
+    private static T[] CreateArray<T>(IReadOnlyList<T> list)
+    {
+        var result = new T[list.Count];
+        CopyTo(list, result);
+
+        return result;
     }
 
     /// <summary>
