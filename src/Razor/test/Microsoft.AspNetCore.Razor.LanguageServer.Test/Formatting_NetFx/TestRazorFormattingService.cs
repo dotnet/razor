@@ -45,14 +45,7 @@ internal static class TestRazorFormattingService
         var hostServicesProvider = new DefaultHostServicesProvider();
 
         var service = new RazorFormattingService(mappingService, hostServicesProvider, languageServerFeatureOptions, loggerFactory);
-        foreach (var validation in service.GetTestAccessor().FormattingValidationPasses)
-        {
-            if (validation is FormattingContentValidationPass contentValidationPass)
-            {
-                contentValidationPass.DebugAssertsEnabled = debugAssertsEnabled;
-            }
-        }
-
+        service.GetTestAccessor().SetDebugAssertsEnabled(debugAssertsEnabled);
         return service;
     }
 }

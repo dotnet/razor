@@ -147,7 +147,7 @@ internal class RazorFormattingService : IRazorFormattingService
                 options,
                 hostDocumentIndex,
                 triggerCharacter,
-                [_csharpOnTypeFormattingPass],
+                _csharpOnTypeFormattingPass,
                 collapseChanges: false,
                 automaticallyAddUsings: false,
                 validate: true,
@@ -168,7 +168,7 @@ internal class RazorFormattingService : IRazorFormattingService
                 options,
                 hostDocumentIndex,
                 triggerCharacter,
-                [_htmlOnTypeFormattingPass],
+                _htmlOnTypeFormattingPass,
                 collapseChanges: false,
                 automaticallyAddUsings: false,
                 validate: true,
@@ -188,7 +188,7 @@ internal class RazorFormattingService : IRazorFormattingService
             options,
             hostDocumentIndex: 0,
             triggerCharacter: '\0',
-            [_csharpOnTypeFormattingPass],
+            _csharpOnTypeFormattingPass,
             collapseChanges: false,
             automaticallyAddUsings: false,
             validate: true,
@@ -209,7 +209,7 @@ internal class RazorFormattingService : IRazorFormattingService
             options,
             hostDocumentIndex: 0,
             triggerCharacter: '\0',
-            [_csharpOnTypeFormattingPass],
+            _csharpOnTypeFormattingPass,
             collapseChanges: true,
             automaticallyAddUsings: true,
             validate: false,
@@ -232,7 +232,7 @@ internal class RazorFormattingService : IRazorFormattingService
             options,
             hostDocumentIndex: 0,
             triggerCharacter: '\0',
-            [_csharpOnTypeFormattingPass],
+            _csharpOnTypeFormattingPass,
             collapseChanges: true,
             automaticallyAddUsings: false,
             validate: false,
@@ -262,7 +262,7 @@ internal class RazorFormattingService : IRazorFormattingService
         RazorFormattingOptions options,
         int hostDocumentIndex,
         char triggerCharacter,
-        ImmutableArray<IFormattingPass> formattingPasses,
+        IFormattingPass formattingPass,
         bool collapseChanges,
         bool automaticallyAddUsings,
         bool validate,
@@ -279,42 +279,10 @@ internal class RazorFormattingService : IRazorFormattingService
             automaticallyAddUsings: automaticallyAddUsings,
             hostDocumentIndex,
             triggerCharacter);
-        var result = generatedDocumentChanges;
 
-        foreach (var pass in formattingPasses)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            result = await pass.ExecuteAsync(context, result, cancellationToken).ConfigureAwait(false);
-        }
-
+        var result = await formattingPass.ExecuteAsync(context, generatedDocumentChanges, cancellationToken).ConfigureAwait(false);
         var originalText = context.SourceText;
         var razorChanges = originalText.MinimizeTextChanges(result);
-
-        if (collapseChanges)
-        {
-            var collapsedEdit = MergeChanges(razorChanges, originalText);
-            if (collapsedEdit.NewText is null or { Length: 0 } &&
-                collapsedEdit.Span.IsEmpty)
-            {
-                return [];
-            }
-
-            ImmutableArray<TextChange> collapsedEdits = [collapsedEdit];
-
-            if (validate)
-            {
-                foreach (var validationPass in _validationPasses)
-                {
-                    var isValid = await validationPass.IsValidAsync(context, collapsedEdits, cancellationToken).ConfigureAwait(false);
-                    if (!isValid)
-                    {
-                        return [];
-                    }
-                }
-            }
-
-            return collapsedEdits;
-        }
 
         if (validate)
         {
@@ -326,6 +294,18 @@ internal class RazorFormattingService : IRazorFormattingService
                     return [];
                 }
             }
+        }
+
+        if (collapseChanges)
+        {
+            var collapsedEdit = MergeChanges(razorChanges, originalText);
+            if (collapsedEdit.NewText is null or { Length: 0 } &&
+                collapsedEdit.Span.IsEmpty)
+            {
+                return [];
+            }
+
+            return [collapsedEdit];
         }
 
         return razorChanges;
@@ -401,6 +381,11 @@ internal class RazorFormattingService : IRazorFormattingService
     {
         public static FrozenSet<string> GetCSharpTriggerCharacterSet() => s_csharpTriggerCharacterSet;
         public static FrozenSet<string> GetHtmlTriggerCharacterSet() => s_htmlTriggerCharacterSet;
-        public ImmutableArray<IFormattingValidationPass> FormattingValidationPasses => service._validationPasses;
+
+        public void SetDebugAssertsEnabled(bool debugAssertsEnabled)
+        {
+            var contentValidationPass = service._validationPasses.OfType<FormattingContentValidationPass>().Single();
+            contentValidationPass.DebugAssertsEnabled = debugAssertsEnabled;
+        }
     }
 }
