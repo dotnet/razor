@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.GoToDefinition;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
@@ -91,7 +92,8 @@ internal class SimplifyTagToSelfClosingCodeActionProvider(ILoggerFactory loggerF
         if (markupElementSyntax is not (
         { EndTag.CloseAngle.IsMissing: false } and
         { StartTag.ForwardSlash: null } and
-        { StartTag.CloseAngle.IsMissing: false }
+        { StartTag.CloseAngle.IsMissing: false } and
+        { TagHelperInfo.BindingResult.Descriptors: { IsEmpty: false } descriptors }
         ))
         {
             return false;
@@ -104,12 +106,8 @@ internal class SimplifyTagToSelfClosingCodeActionProvider(ILoggerFactory loggerF
         }
 
         // Get symbols for the markup element
-        if (!RazorComponentDefinitionHelpers.TryGetBoundTagHelpers(context.CodeDocument, markupElementSyntax.StartTag.Name.SpanStart, true, _logger, out var boundTagHelper, out _))
-        {
-            return false;
-        }
-
-        if (!boundTagHelper.IsComponentTagHelper)
+        var boundTagHelper = descriptors.FirstOrDefault(static d => d.IsComponentTagHelper);
+        if (boundTagHelper == null)
         {
             return false;
         }
