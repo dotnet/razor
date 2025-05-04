@@ -43,8 +43,7 @@ internal sealed class OOPExtractToCodeBehindCodeActionProvider(ILoggerFactory lo
 internal sealed class OOPExtractToComponentCodeActionProvider : ExtractToComponentCodeActionProvider;
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
-[method: ImportingConstructor]
-internal sealed class OOPSimplifyTagToSelfClosingCodeActionProvider(ILoggerFactory loggerFactory) : SimplifyTagToSelfClosingCodeActionProvider(loggerFactory);
+internal sealed class OOPSimplifyTagToSelfClosingCodeActionProvider : SimplifyTagToSelfClosingCodeActionProvider;
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
 [method: ImportingConstructor]

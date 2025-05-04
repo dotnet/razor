@@ -11,18 +11,13 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
-using Microsoft.CodeAnalysis.Razor.GoToDefinition;
-using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 
-internal class SimplifyTagToSelfClosingCodeActionProvider(ILoggerFactory loggerFactory) : IRazorCodeActionProvider
+internal class SimplifyTagToSelfClosingCodeActionProvider : IRazorCodeActionProvider
 {
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<SimplifyTagToSelfClosingCodeActionProvider>();
-
     public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
         if (context.HasSelection)
@@ -61,7 +56,7 @@ internal class SimplifyTagToSelfClosingCodeActionProvider(ILoggerFactory loggerF
         }
 
         // Check whether the code action is applicable to the element
-        if (!IsApplicableTo(context, markupElementSyntax))
+        if (!IsApplicableTo(markupElementSyntax))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
@@ -86,7 +81,7 @@ internal class SimplifyTagToSelfClosingCodeActionProvider(ILoggerFactory loggerF
         return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>([codeAction]);
     }
 
-    internal bool IsApplicableTo(RazorCodeActionContext context, MarkupTagHelperElementSyntax markupElementSyntax)
+    internal static bool IsApplicableTo(MarkupTagHelperElementSyntax markupElementSyntax)
     {
         // Check whether the element is self-closing
         if (markupElementSyntax is not (
