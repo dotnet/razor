@@ -129,9 +129,9 @@ internal class SimplifyTagToSelfClosingCodeActionProvider(ILoggerFactory loggerF
 
             // Parameter is not set or bound as an attribute
             if (!markupElementSyntax.TagHelperInfo!.BindingResult.Attributes.Any(a =>
-                a.Key == attribute.Name ||
-                (a.Key.StartsWith("@bind-", StringComparison.Ordinal) && a.Key.AsSpan("@bind-".Length).Equals(attribute.Name, StringComparison.Ordinal)) ||
-                (a.Key.StartsWith("@bind-", StringComparison.Ordinal) && a.Key.EndsWith(":get", StringComparison.Ordinal) && a.Key.AsSpan()["@bind-".Length..^":get".Length].Equals(attribute.Name, StringComparison.Ordinal))
+                RazorSyntaxFacts.TryGetComponentParameterNameFromFullAttributeName(a.Key, out var componentParameterName, out var directiveAttributeParameter) &&
+                componentParameterName.SequenceEqual(attribute.Name) &&
+                directiveAttributeParameter is { IsEmpty: true } or "get"
             ))
             {
                 return false;
