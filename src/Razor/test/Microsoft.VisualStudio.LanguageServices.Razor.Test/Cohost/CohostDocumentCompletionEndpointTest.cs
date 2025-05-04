@@ -481,6 +481,84 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     }
 
     [Fact]
+    public async Task HtmlAndDirectiveAttributeEventParameterEmptyNoSuffixHtmlEventNamesCompletion()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <input @bind="str" @bind:event="$$ />
+
+                The end.
+
+                @code {
+                    private string? str;
+                }
+                """,
+            completionContext: new RoslynVSInternalCompletionContext()
+            {
+                InvokeKind = RoslynVSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = null,
+                TriggerKind = RoslynCompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["oninput", "onchange", "onblur"],
+            delegatedItemLabels: [],
+            commitElementsWithSpace: true);
+    }
+
+    [Fact]
+    public async Task HtmlAndDirectiveAttributeEventParameterEmptyHtmlEventNamesCompletion()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <input @bind="str" @bind:event="$$" />
+
+                The end.
+
+                @code {
+                    private string? str;
+                }
+                """,
+            completionContext: new RoslynVSInternalCompletionContext()
+            {
+                InvokeKind = RoslynVSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = null,
+                TriggerKind = RoslynCompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["oninput", "onchange", "onblur"],
+            delegatedItemLabels: [],
+            commitElementsWithSpace: true);
+    }
+
+    [Fact]
+    public async Task HtmlAndDirectiveAttributeEventParameterNonEmptyHtmlEventNamesCompletion()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <input @bind="str" @bind:event="on$$" />
+
+                The end.
+
+                @code {
+                    private string? str;
+                }
+                """,
+            completionContext: new RoslynVSInternalCompletionContext()
+            {
+                InvokeKind = RoslynVSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = null,
+                TriggerKind = RoslynCompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["oninput", "onchange", "onblur"],
+            delegatedItemLabels: [],
+            commitElementsWithSpace: true);
+    }
+
+    [Fact]
     public async Task HtmlAttributeNamesAndTagHelpersCompletion()
     {
         await VerifyCompletionListAsync(
