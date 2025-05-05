@@ -134,7 +134,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
             """;
 
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, precise, supportsVSExtensions: supportsVSExtensions);
-        await AssertSemanticTokensAsync(documentText, precise, csharpTokens: csharpTokens, serverSupportsPreciseRanges: serverSupportsPreciseRanges);
+        await AssertSemanticTokensAsync(documentText, precise, supportsVSExtensions: supportsVSExtensions, csharpTokens: csharpTokens, serverSupportsPreciseRanges: serverSupportsPreciseRanges);
         VerifyTimesLanguageServerCalled(serverSupportsPreciseRanges, precise);
     }
 

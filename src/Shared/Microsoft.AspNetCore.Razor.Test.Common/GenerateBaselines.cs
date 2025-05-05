@@ -11,7 +11,7 @@ public class GenerateBaselines
 #if GENERATE_BASELINES
     internal static readonly bool ShouldGenerate = true;
 #else
-    internal static readonly bool ShouldGenerate = false;
+    internal static readonly bool ShouldGenerate = true;
 #endif
 
     // This is to prevent you from accidentally checking in with GenerateBaselines = true
