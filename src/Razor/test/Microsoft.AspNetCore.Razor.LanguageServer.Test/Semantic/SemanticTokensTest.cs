@@ -125,6 +125,23 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
 
     [Theory]
     [CombinatorialData]
+    public async Task GetSemanticTokens_CSharp_Attribute(bool precise, bool supportsVSExtensions)
+    {
+        var documentText = """
+            @using System.Diagnostics
+            @code {
+                [DebuggerDisplay($"{GetDebuggerDisplay,nq}")]
+                public class MyClass
+                {
+                }
+            }
+            """;
+
+        await VerifySemanticTokensAsync(documentText, precise, isRazorFile: true, supportsVSExtensions: supportsVSExtensions);
+    }
+
+    [Theory]
+    [CombinatorialData]
     public async Task GetSemanticTokens_CSharp_Implicit(bool serverSupportsPreciseRanges, bool precise, bool supportsVSExtensions)
     {
         var documentText = """

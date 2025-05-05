@@ -27,6 +27,7 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
         var input = """
             @page "/"
             @using System
+            @using System.Diagnostics
 
             <div>This is some HTML</div>
 
@@ -42,6 +43,11 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
 
             @code
             {
+                [DebuggerDisplay("{GetDebuggerDisplay,nq}")]
+                public class MyClass
+                {
+                }
+            
                 // I am also good, thanks for asking
 
                 /*
