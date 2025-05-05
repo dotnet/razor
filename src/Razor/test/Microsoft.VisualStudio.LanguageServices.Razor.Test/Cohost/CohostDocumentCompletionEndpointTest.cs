@@ -565,7 +565,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         delegatedItemLabels ??= [InvalidLabel];
         var response = new VSInternalCompletionList()
         {
-            Items = delegatedItemLabels.Select((label) => new VSInternalCompletionItem()
+            Items = delegatedItemLabels.Select((label) => new CompletionItem()
             {
                 Label = label,
                 CommitCharacters = delegatedItemCommitCharacters,
