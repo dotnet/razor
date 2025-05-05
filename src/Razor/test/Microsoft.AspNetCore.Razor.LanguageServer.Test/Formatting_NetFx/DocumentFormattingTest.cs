@@ -6083,7 +6083,8 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             expected: code);
     }
 
-    [FormattingTestFact]
+    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [WorkItem("https://github.com/dotnet/razor/issues/11777")]
     public Task RangeFormat_AfterProperty()
         => RunFormattingTestAsync(
             input: """
