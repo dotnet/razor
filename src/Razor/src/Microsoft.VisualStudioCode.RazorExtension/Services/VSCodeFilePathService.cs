@@ -24,7 +24,7 @@ internal sealed class VSCodeFilePathService(LanguageServerFeatureOptions options
         if (virtualDocumentUri.Scheme == "razor-html")
         {
             var builder = new UriBuilder(virtualDocumentUri);
-            builder.Scheme = "file";
+            builder.Scheme = Uri.UriSchemeFile;
             return base.GetRazorDocumentUri(builder.Uri);
         }
 
