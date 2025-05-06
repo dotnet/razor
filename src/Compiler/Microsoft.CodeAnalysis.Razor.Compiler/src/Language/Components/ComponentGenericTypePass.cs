@@ -35,7 +35,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
         visitor.Visit(documentNode);
     }
 
-    internal class Visitor : IntermediateNodeWalker
+    internal sealed class Visitor : IntermediateNodeWalker
     {
         // Incrementing ID for type inference method names
         private int _id;

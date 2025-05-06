@@ -121,9 +121,9 @@ internal static partial class TypeNameHelper
         codeWriter.Write(typeName);
     }
 
-    internal static ReadOnlyMemory<char> GetNonGenericTypeName(string TypeName)
+    internal static ReadOnlyMemory<char> GetNonGenericTypeName(string typeName)
     {
-        var memory = TypeName.AsMemory();
+        var memory = typeName.AsMemory();
         var index = memory.Span.IndexOf('<');
         return index == -1 ? memory : memory[..index];
     }
