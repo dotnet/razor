@@ -68,7 +68,6 @@
     <MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>5.0.0-1.25230.6</MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>
     <MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>5.0.0-1.25230.6</MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>
     <MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>5.0.0-1.25230.6</MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>
-    <MicrosoftSourceBuildIntermediateroslynPackageVersion>5.0.0-1.25230.6</MicrosoftSourceBuildIntermediateroslynPackageVersion>
     <MicrosoftVisualStudioLanguageServicesPackageVersion>5.0.0-1.25230.6</MicrosoftVisualStudioLanguageServicesPackageVersion>
     <!--
       Exception - Microsoft.Extensions.ObjectPool and System.Collections.Immutable packages are not updated by automation,
