@@ -7,21 +7,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
 internal partial class MarkupStartTagSyntax
 {
-    private SyntaxNode? _lazyChildren;
-
     public bool IsMarkupTransition
         => ((InternalSyntax.MarkupStartTagSyntax)Green).IsMarkupTransition;
-
-    public SyntaxList<RazorSyntaxNode> LegacyChildren
-    {
-        get
-        {
-            var children = _lazyChildren ??
-                InterlockedOperations.Initialize(ref _lazyChildren, this.ComputeStartTagLegacyChildren());
-
-            return new SyntaxList<RazorSyntaxNode>(children);
-        }
-    }
 
     public string GetTagNameWithOptionalBang()
     {
