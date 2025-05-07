@@ -53,8 +53,8 @@ internal abstract partial class BaseMarkupEndTagSyntax
 
             if (editHandler != null)
             {
-                acceptsAnyHandler = SpanEditHandler.CreateDefault(AcceptedCharactersInternal.Any);
-                acceptsNoneHandler = SpanEditHandler.CreateDefault(AcceptedCharactersInternal.None);
+                acceptsAnyHandler = SpanEditHandler.GetDefault(AcceptedCharactersInternal.Any);
+                acceptsNoneHandler = SpanEditHandler.GetDefault(AcceptedCharactersInternal.None);
             }
 
             // The prefix of an end tag(E.g '|</|!foo>') will have 'Any' accepted characters if a bang exists.

@@ -634,7 +634,7 @@ internal static class TagHelperBlockRewriter
 
         public override SyntaxNode VisitCSharpExplicitExpression(CSharpExplicitExpressionSyntax node)
         {
-            CSharpTransitionSyntax transition = null;
+            CSharpTransitionSyntax transition;
             using var _ = SyntaxListBuilderPool.GetPooledBuilder<RazorSyntaxNode>(out var builder);
 
             if (_rewriteAsMarkup)
@@ -643,7 +643,7 @@ internal static class TagHelperBlockRewriter
                 // Change to a MarkupChunkGenerator so that the '@' \ parenthesis is generated as part of the output.
                 // This is bad code, since @( is never valid C#, so we don't worry about trying to stitch the @ and the ( together.
                 var editHandler = _options.EnableSpanEditHandlers
-                    ? node.GetEditHandler() ?? SpanEditHandler.CreateDefault((content) => Enumerable.Empty<Syntax.InternalSyntax.SyntaxToken>(), AcceptedCharactersInternal.Any)
+                    ? node.GetEditHandler() ?? SpanEditHandler.GetDefault(AcceptedCharactersInternal.Any)
                     : null;
 
                 var expression = SyntaxFactory.CSharpExpressionLiteral(new SyntaxList<SyntaxToken>(node.Transition.Transition), MarkupChunkGenerator.Instance).WithEditHandler(editHandler);

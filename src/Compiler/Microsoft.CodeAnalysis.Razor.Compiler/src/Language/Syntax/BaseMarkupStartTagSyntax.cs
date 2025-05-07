@@ -42,8 +42,8 @@ internal abstract partial class BaseMarkupStartTagSyntax
         var editHandler = this.GetEditHandler();
         if (editHandler != null)
         {
-            acceptsAnyHandler = SpanEditHandler.CreateDefault(AcceptedCharactersInternal.Any);
-            acceptsNoneHandler = SpanEditHandler.CreateDefault(AcceptedCharactersInternal.None);
+            acceptsAnyHandler = SpanEditHandler.GetDefault(AcceptedCharactersInternal.Any);
+            acceptsNoneHandler = SpanEditHandler.GetDefault(AcceptedCharactersInternal.None);
 
             // We want to know if this tag contains non-whitespace attribute content to set
             // the appropriate AcceptedCharacters. The prefix of a start tag(E.g '|<foo| attr>')
