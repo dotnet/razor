@@ -46,8 +46,7 @@ internal static class SyntaxUtilities
     ///  This method returns the children of this start tag in legacy format.
     ///  This is needed to generate the same classified spans as the legacy syntax tree.
     /// </summary>
-    internal static SyntaxNode ComputeStartTagLegacyChildren<TNode>(this TNode startTag)
-        where TNode : SyntaxNode, IStartTagSyntaxNode
+    internal static SyntaxNode ComputeStartTagLegacyChildren(this BaseMarkupStartTagSyntax startTag)
     {
         using PooledArrayBuilder<SyntaxNode> builder = [];
         using PooledArrayBuilder<SyntaxToken> tokensBuilder = [];
@@ -125,8 +124,7 @@ internal static class SyntaxUtilities
             .AssumeNotNull($"ToListNode should not return null since builder was not empty.");
     }
 
-    internal static SyntaxNode ComputeEndTagLegacyChildren<TNode>(this TNode endTag)
-        where TNode : SyntaxNode, IEndTagSyntaxNode
+    internal static SyntaxNode ComputeEndTagLegacyChildren(this BaseMarkupEndTagSyntax endTag)
     {
         // This method returns the children of this end tag in legacy format.
         // This is needed to generate the same classified spans as the legacy syntax tree.

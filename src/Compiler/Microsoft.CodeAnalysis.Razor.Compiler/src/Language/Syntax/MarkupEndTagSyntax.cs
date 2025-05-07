@@ -3,7 +3,7 @@
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
-internal partial class MarkupEndTagSyntax : IEndTagSyntaxNode
+internal partial class MarkupEndTagSyntax
 {
     private SyntaxNode? _lazyChildren;
 

@@ -3,7 +3,7 @@
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
-internal partial class MarkupTagHelperStartTagSyntax : IStartTagSyntaxNode
+internal partial class MarkupTagHelperStartTagSyntax
 {
     private SyntaxNode? _lazyChildren;
 
