@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -284,9 +285,7 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
         tcs.SetResult(true);
 
         await Task.WhenAll(task1, task2);
-#pragma warning disable xUnit1031 // Do not use blocking task operations in test method
-        Assert.False(task1.Result.Synchronized);
-#pragma warning restore xUnit1031 // Do not use blocking task operations in test method
+        Assert.False(task1.VerifyCompleted().Synchronized);
 
         Assert.Collection(publisher.Publishes,
             i =>
@@ -309,8 +308,8 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
         var version = await RazorDocumentVersion.CreateAsync(document, DisposalToken);
 
         var accessor = synchronizer.GetTestAccessor();
-        var task1 = accessor.GetSynchronizationRequestTaskAsync(document, version);
-        var task2 = accessor.GetSynchronizationRequestTaskAsync(document, version);
+        var task1 = accessor.GetSynchronizationRequestTaskAsync(document, version, DisposalToken);
+        var task2 = accessor.GetSynchronizationRequestTaskAsync(document, version, DisposalToken);
 
         Assert.Same(task1, task2);
     }
@@ -348,7 +347,7 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
 
     private class TestHtmlDocumentPublisher : IHtmlDocumentPublisher
     {
-        private List<(TextDocument, string, ChecksumWrapper)> _publishes = [];
+        private readonly List<(TextDocument, string, ChecksumWrapper)> _publishes = [];
 
         public List<(TextDocument Document, string Text, ChecksumWrapper Checksum)> Publishes => _publishes;
 

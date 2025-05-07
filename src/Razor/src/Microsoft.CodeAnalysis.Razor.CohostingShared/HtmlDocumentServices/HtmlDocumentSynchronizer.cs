@@ -51,6 +51,19 @@ internal sealed partial class HtmlDocumentSynchronizer(
         return await GetSynchronizationRequestTaskAsync(document, requestedVersion, cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Returns a task that will complete when the html document for the Razor document has been made available
+    /// </summary>
+    /// <remarks>
+    /// Whilst this is a task-returning method, really its not is to manage the <see cref="_synchronizationRequests" /> dictionary.
+    /// When this method is called, one of 3 things could happen:
+    /// <list type="number">
+    /// <item>Nobody has asked for that document before, or they asked but the task failed, so a new task is started and returned</item>
+    /// <item>Somebody else already asked for that document, so you get the task they were given</item>
+    /// <item>Somebody else already asked for a future version of that document, so you get nothing</item>
+    /// </list>
+    /// If option 1 is taken, any pending tasks for older versions of the document will be cancelled.
+    /// </remarks>
     private Task<SynchronizationResult> GetSynchronizationRequestTaskAsync(TextDocument document, RazorDocumentVersion requestedVersion, CancellationToken cancellationToken)
     {
         lock (_gate)
@@ -70,9 +83,7 @@ internal sealed partial class HtmlDocumentSynchronizer(
                     // Html documents don't require semantic information. WorkspaceVersion changed too often to be used as a measure
                     // of equality for this purpose.
 
-#pragma warning disable VSTHRD103 // Use await instead of .Result
-#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
-                    if (request.Task.IsCompleted && request.Task.Result.Equals(default))
+                    if (request.Task.IsCompleted && !request.Task.VerifyCompleted().Synchronized)
                     {
                         _logger.LogDebug($"Already finished that version for {document.FilePath}, but was unsuccessful, so will recompute");
                         request.Dispose();
@@ -80,10 +91,10 @@ internal sealed partial class HtmlDocumentSynchronizer(
                     else
                     {
                         _logger.LogDebug($"Already {(request.Task.IsCompleted ? "finished" : "working on")} that version for {document.FilePath}");
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
                         return request.Task;
-                    }
 #pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
-#pragma warning restore VSTHRD103 // Use await instead of .Result
+                    }
                 }
                 else if (requestedVersion.WorkspaceVersion < request.RequestedVersion.WorkspaceVersion)
                 {
@@ -173,7 +184,7 @@ internal sealed partial class HtmlDocumentSynchronizer(
             _instance = instance;
         }
 
-        public Task<SynchronizationResult> GetSynchronizationRequestTaskAsync(TextDocument document, RazorDocumentVersion requestedVersion)
-            => _instance.GetSynchronizationRequestTaskAsync(document, requestedVersion, CancellationToken.None);
+        public Task<SynchronizationResult> GetSynchronizationRequestTaskAsync(TextDocument document, RazorDocumentVersion requestedVersion, CancellationToken cancellationToken)
+            => _instance.GetSynchronizationRequestTaskAsync(document, requestedVersion, cancellationToken);
     }
 }
