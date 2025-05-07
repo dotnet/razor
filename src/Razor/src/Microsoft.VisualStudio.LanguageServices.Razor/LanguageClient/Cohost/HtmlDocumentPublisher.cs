@@ -54,7 +54,7 @@ internal sealed class HtmlDocumentPublisher(
         }
 
         VisualStudioTextChange[] changes = [new(0, htmlDocument.Snapshot.Length, htmlText)];
-        _documentManager.UpdateVirtualDocument<HtmlVirtualDocument>(uri, changes, documentSnapshot.Version, state: synchronizationResult.Checksum.ToString());
+        _documentManager.UpdateVirtualDocument<HtmlVirtualDocument>(uri, changes, documentSnapshot.Version, state: synchronizationResult.Checksum);
 
         _logger.LogDebug($"Finished Html document generation for {document.FilePath} (into {uri})");
     }

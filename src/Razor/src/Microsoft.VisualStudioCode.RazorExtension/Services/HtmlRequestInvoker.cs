@@ -34,14 +34,15 @@ internal sealed class HtmlRequestInvoker(
             return default;
         }
 
-        _logger.LogDebug($"Making Html request for {method} on {razorDocument.FilePath}, checksum {syncResult.Checksum}");
+        var checksumString = syncResult.Checksum.ToString();
+        _logger.LogDebug($"Making Html request for {method} on {razorDocument.FilePath}, checksum {checksumString}");
 
         var forwardedRequest = new HtmlForwardedRequest<TRequest>(
             new TextDocumentIdentifier
             {
                 Uri = razorDocument.CreateUri()
             },
-            syncResult.Checksum.ToString(),
+            checksumString,
             request);
 
         var clientConnection = _razorClientServerManagerProvider.ClientLanguageServerManager.AssumeNotNull();

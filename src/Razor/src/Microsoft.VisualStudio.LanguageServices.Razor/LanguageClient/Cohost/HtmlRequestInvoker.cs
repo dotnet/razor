@@ -51,7 +51,8 @@ internal sealed class HtmlRequestInvoker(
             return default;
         }
 
-        if ((string)htmlDocument.State.AssumeNotNull() != syncResult.Checksum.ToString())
+        var existingChecksum = (ChecksumWrapper)htmlDocument.State.AssumeNotNull();
+        if (!existingChecksum.Equals(syncResult.Checksum))
         {
             _logger.LogError($"Checksum for {snapshot.Uri}, {htmlDocument.State} doesn't match {syncResult.Checksum}.");
             return default;
