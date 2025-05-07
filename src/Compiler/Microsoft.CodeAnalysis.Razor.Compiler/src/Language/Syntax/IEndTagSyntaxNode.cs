@@ -6,17 +6,17 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
-internal interface IStartTagSyntaxNode
+internal interface IEndTagSyntaxNode
 {
     SyntaxNode? Parent { get; }
     TextSpan Span { get; }
     int SpanStart { get; }
 
     SyntaxToken OpenAngle { get; }
+    SyntaxToken? ForwardSlash { get; }
     SyntaxToken? Bang { get; }
     SyntaxToken Name { get; }
-    SyntaxList<RazorSyntaxNode> Attributes { get; }
-    SyntaxToken? ForwardSlash { get; }
+    MarkupMiscAttributeContentSyntax? MiscAttributeContent { get; }
     SyntaxToken CloseAngle { get; }
     ISpanChunkGenerator? ChunkGenerator { get; }
 }

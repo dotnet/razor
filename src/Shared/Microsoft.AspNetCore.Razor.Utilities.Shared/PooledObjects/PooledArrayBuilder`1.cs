@@ -289,6 +289,44 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         }
     }
 
+    public void AddRange<TList>(TList list)
+        where TList : struct, IReadOnlyList<T>
+    {
+        var count = list.Count;
+        if (count == 0)
+        {
+            return;
+        }
+
+        if (TryGetBuilderAndEnsureCapacity(out var builder))
+        {
+            for (var i = 0; i < count; i++)
+            {
+                builder.Add(list[i]);
+            }
+
+            return;
+        }
+
+        if (_inlineCount + count <= InlineCapacity)
+        {
+            for (var i = 0; i < count; i++)
+            {
+                SetInlineElement(_inlineCount, list[i]);
+                _inlineCount++;
+            }
+        }
+        else
+        {
+            MoveInlineItemsToBuilder();
+
+            for (var i = 0; i < count; i++)
+            {
+                _builder.Add(list[i]);
+            }
+        }
+    }
+
     public void AddRange(IEnumerable<T> items)
     {
         if (TryGetBuilderAndEnsureCapacity(out var builder))
@@ -474,6 +512,14 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
             3 => [_element0, _element1, _element2],
             _ => [_element0, _element1, _element2, _element3]
         };
+    }
+
+    public T[] ToArrayAndClear()
+    {
+        var result = ToArray();
+        Clear();
+
+        return result;
     }
 
     public void Push(T item)

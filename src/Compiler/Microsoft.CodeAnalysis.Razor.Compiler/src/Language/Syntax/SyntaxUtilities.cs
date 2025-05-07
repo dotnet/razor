@@ -1,71 +1,77 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
-using System.Linq;
+using System;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
 internal static class SyntaxUtilities
 {
-    public static MarkupTextLiteralSyntax MergeTextLiterals(params MarkupTextLiteralSyntax[] literalSyntaxes)
+    public static MarkupTextLiteralSyntax MergeTextLiterals(params ReadOnlySpan<MarkupTextLiteralSyntax?> literals)
     {
         SyntaxNode? parent = null;
         var position = 0;
         var seenFirstLiteral = false;
-        var builder = InternalSyntax.SyntaxListBuilder.Create();
 
-        foreach (var syntax in literalSyntaxes)
+        using PooledArrayBuilder<SyntaxToken> builder = [];
+
+        foreach (var literal in literals)
         {
-            if (syntax == null)
+            if (literal == null)
             {
                 continue;
             }
-            else if (!seenFirstLiteral)
+
+            if (!seenFirstLiteral)
             {
                 // Set the parent and position of the merged literal to the value of the first non-null literal.
-                parent = syntax.Parent;
-                position = syntax.Position;
+                parent = literal.Parent;
+                position = literal.Position;
                 seenFirstLiteral = true;
             }
 
-            foreach (var token in syntax.LiteralTokens)
-            {
-                builder.Add(token.Green);
-            }
+            builder.AddRange(literal.LiteralTokens);
         }
 
-        var mergedLiteralSyntax = InternalSyntax.SyntaxFactory.MarkupTextLiteral(
-            builder.ToList<InternalSyntax.SyntaxToken>(), chunkGenerator: null);
-
-        return (MarkupTextLiteralSyntax)mergedLiteralSyntax.CreateRed(parent, position);
+        return (MarkupTextLiteralSyntax)InternalSyntax.SyntaxFactory
+            .MarkupTextLiteral(
+                literalTokens: builder.ToGreenListNode().ToGreenList<InternalSyntax.SyntaxToken>(),
+                chunkGenerator: null)
+            .CreateRed(parent, position);
     }
 
-    internal static SyntaxNode GetStartTagLegacyChildren(
-        SyntaxNode @this,
-        SyntaxList<RazorSyntaxNode> attributes,
-        SyntaxToken openAngle,
-        SyntaxToken bang,
-        SyntaxToken name,
-        SyntaxToken forwardSlash,
-        SyntaxToken closeAngle)
+    /// <summary>
+    ///  This method returns the children of this start tag in legacy format.
+    ///  This is needed to generate the same classified spans as the legacy syntax tree.
+    /// </summary>
+    internal static SyntaxNode ComputeStartTagLegacyChildren<TNode>(this TNode startTag)
+        where TNode : SyntaxNode, IStartTagSyntaxNode
     {
-        // This method returns the children of this start tag in legacy format.
-        // This is needed to generate the same classified spans as the legacy syntax tree.
-        using var _1 = SyntaxListBuilderPool.GetPooledBuilder(out var builder);
-        using var _2 = SyntaxListBuilderPool.GetPooledBuilder<SyntaxToken>(out var tokens);
+        using PooledArrayBuilder<SyntaxNode> builder = [];
+        using PooledArrayBuilder<SyntaxToken> tokensBuilder = [];
+
+        // Take a ref to tokensBuilder here to avoid calling AsRef() multiple times below
+        // for each call to ToListAndClear().
+        ref var tokens = ref tokensBuilder.AsRef();
 
         SpanEditHandler? acceptsAnyHandler = null;
+        SpanEditHandler? acceptsNoneHandler = null;
+
         var containsAttributesContent = false;
-        var editHandler = @this.GetEditHandler();
-        var chunkGenerator = @this.GetChunkGenerator();
+
+        var editHandler = startTag.GetEditHandler();
         if (editHandler != null)
         {
-            // We want to know if this tag contains non-whitespace attribute content to set the appropriate AcceptedCharacters.
-            // The prefix of a start tag(E.g '|<foo| attr>') will have 'Any' accepted characters if non-whitespace attribute content exists.
             acceptsAnyHandler = SpanEditHandler.CreateDefault(AcceptedCharactersInternal.Any);
-            foreach (var attribute in attributes)
+            acceptsNoneHandler = SpanEditHandler.CreateDefault(AcceptedCharactersInternal.None);
+
+            // We want to know if this tag contains non-whitespace attribute content to set
+            // the appropriate AcceptedCharacters. The prefix of a start tag(E.g '|<foo| attr>')
+            // will have 'Any' accepted characters if non-whitespace attribute content exists.
+
+            foreach (var attribute in startTag.Attributes)
             {
                 if (!string.IsNullOrWhiteSpace(attribute.GetContent()))
                 {
@@ -75,78 +81,81 @@ internal static class SyntaxUtilities
             }
         }
 
-        if (!openAngle.IsMissing)
+        var chunkGenerator = startTag.ChunkGenerator;
+
+        if (startTag.OpenAngle is { IsMissing: false } openAngle)
         {
             tokens.Add(openAngle);
         }
 
-        if (bang != null)
+        if (startTag.Bang is { IsMissing: false } bang)
         {
-            builder.Add(SyntaxFactory.MarkupTextLiteral(tokens.Consume(), chunkGenerator).WithEditHandler(acceptsAnyHandler));
+            builder.Add(NewMarkupTextLiteral(tokens.ToListAndClear(), chunkGenerator, acceptsAnyHandler));
 
-            tokens.Add(bang);
-            var acceptsNoneHandler = editHandler == null ? null : SpanEditHandler.CreateDefault(AcceptedCharactersInternal.None);
-            builder.Add(SyntaxFactory.RazorMetaCode(tokens.Consume(), chunkGenerator).WithEditHandler(acceptsNoneHandler));
+            // We can skip adding bang to the tokens builder, since we just cleared it.
+            builder.Add(NewRazorMetaCode(bang, chunkGenerator, acceptsNoneHandler));
         }
 
-        if (!name.IsMissing)
+        if (startTag.Name is { IsMissing: false } name)
         {
             tokens.Add(name);
         }
 
-        builder.Add(SyntaxFactory.MarkupTextLiteral(tokens.Consume(), chunkGenerator).WithEditHandler(containsAttributesContent ? acceptsAnyHandler : editHandler));
+        builder.Add(NewMarkupTextLiteral(
+            tokens.ToListAndClear(), chunkGenerator, containsAttributesContent ? acceptsAnyHandler : editHandler));
 
-        builder.AddRange(attributes);
+        builder.AddRange(startTag.Attributes);
 
-        if (forwardSlash != null)
+        if (startTag.ForwardSlash is { IsMissing: false } forwardSlash)
         {
             tokens.Add(forwardSlash);
         }
 
-        if (!closeAngle.IsMissing)
+        if (startTag.CloseAngle is { IsMissing: false } closeAngle)
         {
             tokens.Add(closeAngle);
         }
 
         if (tokens.Count > 0)
         {
-            builder.Add(SyntaxFactory.MarkupTextLiteral(tokens.Consume(), chunkGenerator).WithEditHandler(editHandler));
+            builder.Add(NewMarkupTextLiteral(tokens.ToListAndClear(), chunkGenerator, editHandler));
         }
 
-        return builder.ToListNode().AssumeNotNull().CreateRed(@this, @this.Position);
+        return builder.ToListNode(startTag, startTag.Position)
+            .AssumeNotNull($"ToListNode should not return null since builder was not empty.");
     }
 
-    internal static SyntaxNode GetEndTagLegacyChildren(
-        SyntaxNode @this,
-        SyntaxToken openAngle,
-        SyntaxToken forwardSlash,
-        SyntaxToken bang,
-        SyntaxToken name,
-        MarkupMiscAttributeContentSyntax miscAttributeContent,
-        SyntaxToken closeAngle)
+    internal static SyntaxNode ComputeEndTagLegacyChildren<TNode>(this TNode endTag)
+        where TNode : SyntaxNode, IEndTagSyntaxNode
     {
         // This method returns the children of this end tag in legacy format.
         // This is needed to generate the same classified spans as the legacy syntax tree.
-        using var _1 = SyntaxListBuilderPool.GetPooledBuilder(out var builder);
-        using var _2 = SyntaxListBuilderPool.GetPooledBuilder<SyntaxToken>(out var tokens);
 
-        var editHandler = @this.GetEditHandler();
-        var chunkGenerator = @this.GetChunkGenerator();
+        using PooledArrayBuilder<SyntaxNode> builder = [];
+        using PooledArrayBuilder<SyntaxToken> tokensBuilder = [];
 
-        if (!openAngle.IsMissing)
+        // Take a ref to tokensBuilder here to avoid calling AsRef() multiple times below
+        // for each call to ToListAndClear().
+        ref var tokens = ref tokensBuilder.AsRef();
+
+        var editHandler = endTag.GetEditHandler();
+        var chunkGenerator = endTag.GetChunkGenerator();
+
+        if (endTag.OpenAngle is { IsMissing: false} openAngle)
         {
             tokens.Add(openAngle);
         }
 
-        if (!forwardSlash.IsMissing)
+        if (endTag.ForwardSlash is { IsMissing: false } forwardSlash)
         {
             tokens.Add(forwardSlash);
         }
 
-        if (bang != null)
+        if (endTag.Bang is { IsMissing: false } bang)
         {
             SpanEditHandler? acceptsAnyHandler = null;
             SpanEditHandler? acceptsNoneHandler = null;
+
             if (editHandler != null)
             {
                 acceptsAnyHandler = SpanEditHandler.CreateDefault(AcceptedCharactersInternal.Any);
@@ -154,36 +163,51 @@ internal static class SyntaxUtilities
             }
 
             // The prefix of an end tag(E.g '|</|!foo>') will have 'Any' accepted characters if a bang exists.
-            builder.Add(SyntaxFactory.MarkupTextLiteral(tokens.Consume(), chunkGenerator).WithEditHandler(acceptsAnyHandler));
+            builder.Add(NewMarkupTextLiteral(tokens.ToListAndClear(), chunkGenerator, acceptsAnyHandler));
 
-            tokens.Add(bang);
-            builder.Add(SyntaxFactory.RazorMetaCode(tokens.Consume(), chunkGenerator).WithEditHandler(acceptsNoneHandler));
+            // We can skip adding bang to the tokens builder, since we just cleared it.
+            builder.Add(NewRazorMetaCode(bang, chunkGenerator, acceptsNoneHandler));
         }
 
-        if (!name.IsMissing)
+        if (endTag.Name is { IsMissing: false } name)
         {
             tokens.Add(name);
         }
 
-        if (miscAttributeContent?.Children != null && miscAttributeContent.Children.Count > 0)
+        if (endTag.MiscAttributeContent?.Children is { Count: > 0 } children)
         {
-            foreach (var content in miscAttributeContent.Children)
+            foreach (var content in children)
             {
-                tokens.AddRange(((MarkupTextLiteralSyntax)content).LiteralTokens);
+                var literal = (MarkupTextLiteralSyntax)content;
+                tokens.AddRange(literal.LiteralTokens);
             }
         }
 
-        if (!closeAngle.IsMissing)
+        if (endTag.CloseAngle is { IsMissing: false } closeAngle)
         {
             tokens.Add(closeAngle);
         }
 
-        builder.Add(SyntaxFactory.MarkupTextLiteral(tokens.Consume(), chunkGenerator).WithEditHandler(editHandler));
+        builder.Add(NewMarkupTextLiteral(tokens.ToListAndClear(), chunkGenerator, editHandler));
 
-        return builder.ToListNode().AssumeNotNull().CreateRed(@this, @this.Position);
+        return builder.ToListNode(endTag, endTag.Position)
+            .AssumeNotNull($"ToListNode should not return null since builder was not empty.");
     }
 
-    internal static SyntaxList<RazorSyntaxNode> GetRewrittenMarkupStartTagChildren(MarkupStartTagSyntax node, bool includeEditHandler = false)
+    private static MarkupTextLiteralSyntax NewMarkupTextLiteral(
+        SyntaxList<SyntaxToken> tokens, ISpanChunkGenerator? chunkGenerator, SpanEditHandler? editHandler)
+    {
+        return SyntaxFactory.MarkupTextLiteral(tokens, chunkGenerator).WithEditHandler(editHandler);
+    }
+
+    private static RazorMetaCodeSyntax NewRazorMetaCode(
+        SyntaxToken tokens, ISpanChunkGenerator? chunkGenerator, SpanEditHandler? editHandler)
+    {
+        return SyntaxFactory.RazorMetaCode(new(tokens), chunkGenerator).WithEditHandler(editHandler);
+    }
+
+    internal static SyntaxList<RazorSyntaxNode> GetRewrittenMarkupStartTagChildren(
+        MarkupStartTagSyntax node, bool includeEditHandler = false)
     {
         // Rewrites the children of the start tag to look like the legacy syntax tree.
         if (node.IsMarkupTransition)
@@ -191,73 +215,77 @@ internal static class SyntaxUtilities
             return GetRewrittenMarkupNodeChildren(node, node.ChunkGenerator, includeEditHandler);
         }
 
+        using PooledArrayBuilder<RazorSyntaxNode> newChildren = [];
+        using PooledArrayBuilder<MarkupTextLiteralSyntax> literals = [];
+
         SpanEditHandler? latestEditHandler = null;
 
-        var children = node.LegacyChildren;
-        using var _ = SyntaxListBuilderPool.GetPooledBuilder<RazorSyntaxNode>(out var newChildren);
-        var literals = new List<MarkupTextLiteralSyntax>();
-        foreach (var child in children)
+        foreach (var child in node.LegacyChildren)
         {
-            if (child is MarkupTextLiteralSyntax literal)
+            switch (child)
             {
-                literals.Add(literal);
+                case MarkupTextLiteralSyntax literal:
+                    literals.Add(literal);
 
-                if (includeEditHandler)
-                {
-                    latestEditHandler = literal.GetEditHandler() ?? latestEditHandler;
-                }
-            }
-            else if (child is MarkupMiscAttributeContentSyntax miscContent)
-            {
-                foreach (var contentChild in miscContent.Children)
-                {
-                    if (contentChild is MarkupTextLiteralSyntax contentLiteral)
+                    if (includeEditHandler)
                     {
-                        literals.Add(contentLiteral);
+                        latestEditHandler = literal.GetEditHandler() ?? latestEditHandler;
+                    }
 
-                        if (includeEditHandler)
+                    break;
+
+                case MarkupMiscAttributeContentSyntax miscContent:
+                    foreach (var contentChild in miscContent.Children)
+                    {
+                        if (contentChild is MarkupTextLiteralSyntax contentLiteral)
                         {
-                            latestEditHandler = contentLiteral.GetEditHandler() ?? latestEditHandler;
+                            literals.Add(contentLiteral);
+
+                            if (includeEditHandler)
+                            {
+                                latestEditHandler = contentLiteral.GetEditHandler() ?? latestEditHandler;
+                            }
+                        }
+                        else
+                        {
+                            // Pop stack
+                            AddLiteralIsIfNeeded();
+                            newChildren.Add(contentChild);
                         }
                     }
-                    else
-                    {
-                        // Pop stack
-                        AddLiteralIfExists();
-                        newChildren.Add(contentChild);
-                    }
-                }
-            }
-            else
-            {
-                AddLiteralIfExists();
-                newChildren.Add(child);
+
+                    break;
+
+                default:
+                    AddLiteralIsIfNeeded();
+                    newChildren.Add(child);
+                    break;
             }
         }
 
-        AddLiteralIfExists();
+        AddLiteralIsIfNeeded();
 
         return newChildren.ToList(node);
 
-        void AddLiteralIfExists()
+        void AddLiteralIsIfNeeded()
         {
             if (literals.Count > 0)
             {
-                var mergedLiteral = MergeTextLiterals(literals.ToArray());
+                var mergedLiteral = MergeTextLiterals(literals.ToArrayAndClear());
 
                 if (includeEditHandler)
                 {
                     mergedLiteral = mergedLiteral.WithEditHandler(latestEditHandler);
                 }
 
-                literals.Clear();
                 latestEditHandler = null;
                 newChildren.Add(mergedLiteral);
             }
         }
     }
 
-    internal static SyntaxList<RazorSyntaxNode> GetRewrittenMarkupEndTagChildren(MarkupEndTagSyntax node, bool includeEditHandler = false)
+    internal static SyntaxList<RazorSyntaxNode> GetRewrittenMarkupEndTagChildren(
+        MarkupEndTagSyntax node, bool includeEditHandler = false)
     {
         // Rewrites the children of the end tag to look like the legacy syntax tree.
         return node.IsMarkupTransition
@@ -266,18 +294,22 @@ internal static class SyntaxUtilities
     }
 
     internal static SyntaxList<RazorSyntaxNode> GetRewrittenMarkupNodeChildren(
-        MarkupSyntaxNode node,
-        ISpanChunkGenerator chunkGenerator,
-        bool includeEditHandler = false)
+        MarkupSyntaxNode node, ISpanChunkGenerator chunkGenerator, bool includeEditHandler = false)
     {
-        var tokens = node.DescendantNodes().OfType<SyntaxToken>().Where(t => !t.IsMissing).ToArray();
+        using PooledArrayBuilder<SyntaxToken> builder = [];
 
-        using var _ = SyntaxListBuilderPool.GetPooledBuilder<SyntaxToken>(out var builder);
-        builder.AddRange(tokens, 0, tokens.Length);
-        var transitionTokens = builder.ToList();
+        foreach (var descendantNode in node.DescendantNodes())
+        {
+            if (descendantNode is SyntaxToken { IsMissing: false } token)
+            {
+                builder.Add(token);
+            }
+        }
 
-        var markupTransition = SyntaxFactory
-            .MarkupTransition(transitionTokens, chunkGenerator).Green
+        var markupTransition = InternalSyntax.SyntaxFactory
+            .MarkupTransition(
+                builder.ToGreenListNode().ToGreenList<InternalSyntax.SyntaxToken>(),
+                chunkGenerator)
             .CreateRed(node, node.Position);
 
         if (includeEditHandler && node.GetEditHandler() is { } editHandler)

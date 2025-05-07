@@ -5,20 +5,16 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
 internal partial class MarkupTagHelperStartTagSyntax : IStartTagSyntaxNode
 {
-    private SyntaxNode _lazyChildren;
+    private SyntaxNode? _lazyChildren;
 
     public SyntaxList<RazorSyntaxNode> LegacyChildren
     {
         get
         {
-            var children = _lazyChildren ?? InterlockedOperations.Initialize(ref _lazyChildren, GetLegacyChildren());
+            var children = _lazyChildren ??
+                InterlockedOperations.Initialize(ref _lazyChildren, this.ComputeStartTagLegacyChildren());
 
             return new SyntaxList<RazorSyntaxNode>(children);
-
-            SyntaxNode GetLegacyChildren()
-            {
-                return SyntaxUtilities.GetStartTagLegacyChildren(this, Attributes, OpenAngle, Bang, Name, ForwardSlash, CloseAngle);
-            }
         }
     }
 }

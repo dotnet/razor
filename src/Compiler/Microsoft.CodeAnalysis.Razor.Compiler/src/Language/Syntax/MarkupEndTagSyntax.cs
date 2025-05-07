@@ -3,9 +3,9 @@
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
-internal partial class MarkupEndTagSyntax
+internal partial class MarkupEndTagSyntax : IEndTagSyntaxNode
 {
-    private SyntaxNode _lazyChildren;
+    private SyntaxNode? _lazyChildren;
 
     public bool IsMarkupTransition
         => ((InternalSyntax.MarkupEndTagSyntax)Green).IsMarkupTransition;
@@ -14,14 +14,10 @@ internal partial class MarkupEndTagSyntax
     {
         get
         {
-            var children = _lazyChildren ?? InterlockedOperations.Initialize(ref _lazyChildren, GetLegacyChildren());
+            var children = _lazyChildren ??
+                InterlockedOperations.Initialize(ref _lazyChildren, this.ComputeEndTagLegacyChildren());
 
             return new SyntaxList<RazorSyntaxNode>(children);
-
-            SyntaxNode GetLegacyChildren()
-            {
-                return SyntaxUtilities.GetEndTagLegacyChildren(this, OpenAngle, ForwardSlash, Bang, Name, MiscAttributeContent, CloseAngle);
-            }
         }
     }
 

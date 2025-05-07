@@ -3,9 +3,9 @@
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
-internal partial class MarkupTagHelperEndTagSyntax
+internal partial class MarkupTagHelperEndTagSyntax : IEndTagSyntaxNode
 {
-    private SyntaxNode _lazyChildren;
+    private SyntaxNode? _lazyChildren;
 
     // Copied directly from MarkupEndTagSyntax Children & GetLegacyChildren.
 
@@ -13,14 +13,10 @@ internal partial class MarkupTagHelperEndTagSyntax
     {
         get
         {
-            var children = _lazyChildren ?? InterlockedOperations.Initialize(ref _lazyChildren, GetLegacyChildren());
+            var children = _lazyChildren ??
+                InterlockedOperations.Initialize(ref _lazyChildren, this.ComputeEndTagLegacyChildren());
 
             return new SyntaxList<RazorSyntaxNode>(children);
-
-            SyntaxNode GetLegacyChildren()
-            {
-                return SyntaxUtilities.GetEndTagLegacyChildren(this, OpenAngle, ForwardSlash, Bang, Name, MiscAttributeContent, CloseAngle);
-            }
         }
     }
 }
