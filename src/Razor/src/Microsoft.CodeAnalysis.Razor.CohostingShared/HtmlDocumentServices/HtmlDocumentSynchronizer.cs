@@ -48,18 +48,19 @@ internal sealed partial class HtmlDocumentSynchronizer(
 
         _logger.LogDebug($"TrySynchronize for {document.FilePath} as at {requestedVersion}");
 
-        // We are not passing on the cancellation token through to the actual task that does the generation, because
-        // we do the actual work on whatever happens to be the first request that needs Html, without knowing how important
-        // that request is, nor why it might be cancelled. If that request is cancelled because of a document update,
-        // then the next request will cancel any work we start anyway, and if that request was cancelled for some other reason,
-        // then the next request probably wants the same version of the document, so we've got a head start.
-        return await GetSynchronizationRequestTaskAsync(document, requestedVersion).ConfigureAwait(false);
+        return await GetSynchronizationRequestTaskAsync(document, requestedVersion, cancellationToken).ConfigureAwait(false);
     }
 
-    private Task<SynchronizationResult> GetSynchronizationRequestTaskAsync(TextDocument document, RazorDocumentVersion requestedVersion)
+    private Task<SynchronizationResult> GetSynchronizationRequestTaskAsync(TextDocument document, RazorDocumentVersion requestedVersion, CancellationToken cancellationToken)
     {
         lock (_gate)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogDebug($"Not synchronizing Html text for {document.FilePath} as the request was cancelled.");
+                return SpecializedTasks.Default<SynchronizationResult>();
+            }
+
             var documentUri = document.CreateUri();
             if (_synchronizationRequests.TryGetValue(documentUri, out var request))
             {
@@ -104,7 +105,7 @@ internal sealed partial class HtmlDocumentSynchronizer(
 
             _logger.LogDebug($"Going to start working on Html for {document.FilePath} as at {requestedVersion}");
 
-            var newRequest = SynchronizationRequest.CreateAndStart(document, requestedVersion, PublishHtmlDocumentAsync);
+            var newRequest = SynchronizationRequest.CreateAndStart(document, requestedVersion, PublishHtmlDocumentAsync, cancellationToken);
             _synchronizationRequests[documentUri] = newRequest;
             return newRequest.Task;
         }
@@ -119,7 +120,7 @@ internal sealed partial class HtmlDocumentSynchronizer(
                 (service, solutionInfo, ct) => service.GetHtmlDocumentTextAsync(solutionInfo, document.Id, ct),
                 cancellationToken).ConfigureAwait(false);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _logger.LogError(ex, $"Error getting Html text for {document.FilePath}. Html document contents will be stale");
             return default;
@@ -127,7 +128,7 @@ internal sealed partial class HtmlDocumentSynchronizer(
 
         if (cancellationToken.IsCancellationRequested)
         {
-            // Checking cancellation before logging, as a new request coming in doesn't count as "Couldn't get Html"
+            _logger.LogDebug($"Not publishing Html text for {document.FilePath} as the request was cancelled.");
             return default;
         }
 
@@ -141,6 +142,14 @@ internal sealed partial class HtmlDocumentSynchronizer(
         {
             var result = new SynchronizationResult(true, requestedVersion.Checksum);
             await _htmlDocumentPublisher.PublishAsync(document, result, htmlText, cancellationToken).ConfigureAwait(false);
+
+            // If we were cancelled, we can't trust that the publish worked.
+            if (cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogDebug($"Not publishing Html text for {document.FilePath} as the request was cancelled.");
+                return default;
+            }
+
             return result;
         }
         catch (Exception ex)
@@ -165,6 +174,6 @@ internal sealed partial class HtmlDocumentSynchronizer(
         }
 
         public Task<SynchronizationResult> GetSynchronizationRequestTaskAsync(TextDocument document, RazorDocumentVersion requestedVersion)
-            => _instance.GetSynchronizationRequestTaskAsync(document, requestedVersion);
+            => _instance.GetSynchronizationRequestTaskAsync(document, requestedVersion, CancellationToken.None);
     }
 }

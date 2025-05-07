@@ -230,7 +230,6 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
 
         Assert.True((await task).Synchronized);
 
-        // We should have two publishes
         Assert.Collection(publisher.Publishes,
             i =>
             {
