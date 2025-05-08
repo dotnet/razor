@@ -233,6 +233,26 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     public readonly int Count
         => _builder?.Count ?? _inlineCount;
 
+    public readonly int Capacity
+        => _builder?.Capacity ?? _capacity ?? InlineCapacity;
+
+    public void SetCapacityIfLarger(int value)
+    {
+        if (value > Capacity)
+        {
+            if (TryGetBuilder(out var builder))
+            {
+                Debug.Assert(value > builder.Capacity);
+                builder.Capacity = value;
+            }
+            else
+            {
+                Debug.Assert(value > (_capacity ?? InlineCapacity));
+                _capacity = value;
+            }
+        }
+    }
+
     public void Add(T item)
     {
         if (TryGetBuilderAndEnsureCapacity(out var builder))
@@ -292,7 +312,12 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     public void AddRange<TList>(TList list)
         where TList : struct, IReadOnlyList<T>
     {
-        var count = list.Count;
+        AddRange(list, 0, list.Count);
+    }
+
+    public void AddRange<TList>(TList list, int index, int count)
+        where TList : struct, IReadOnlyList<T>
+    {
         if (count == 0)
         {
             return;
@@ -300,7 +325,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
         if (TryGetBuilderAndEnsureCapacity(out var builder))
         {
-            for (var i = 0; i < count; i++)
+            for (var i = index; i < count; i++)
             {
                 builder.Add(list[i]);
             }
@@ -310,7 +335,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
         if (_inlineCount + count <= InlineCapacity)
         {
-            for (var i = 0; i < count; i++)
+            for (var i = index; i < count; i++)
             {
                 SetInlineElement(_inlineCount, list[i]);
                 _inlineCount++;
@@ -320,7 +345,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         {
             MoveInlineItemsToBuilder();
 
-            for (var i = 0; i < count; i++)
+            for (var i = index; i < count; i++)
             {
                 _builder.Add(list[i]);
             }
