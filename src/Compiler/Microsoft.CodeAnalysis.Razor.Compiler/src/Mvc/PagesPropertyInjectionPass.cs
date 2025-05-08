@@ -21,7 +21,7 @@ public class PagesPropertyInjectionPass : IntermediateNodePassBase, IRazorOptimi
         var nullableEnabled = codeDocument.ParserOptions.LanguageVersion >= RazorLanguageVersion.Version_9_0 &&
                               !codeDocument.CodeGenerationOptions.SuppressNullabilityEnforcement;
 
-        var modelType = ModelDirective.GetModelType(documentNode);
+        var modelType = ModelDirective.GetModelType(documentNode).Content;
         var visitor = new Visitor();
         visitor.Visit(documentNode);
 
