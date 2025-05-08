@@ -33,3 +33,8 @@ Generated Location: (2991:59,0 [97] )
     }
 |
 
+Source Location: (25:2,7 [8] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml)
+|NewModel|
+Generated Location: (4788:95,0 [8] )
+|NewModel|
+
