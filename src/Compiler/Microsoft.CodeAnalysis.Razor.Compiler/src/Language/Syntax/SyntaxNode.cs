@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -272,6 +273,11 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
     public IEnumerable<SyntaxNode> DescendantNodesAndSelf(Func<SyntaxNode, bool>? descendIntoChildren = null)
     {
         return DescendantNodesImpl(Span, descendIntoChildren, includeSelf: true);
+    }
+
+    public IEnumerable<SyntaxToken> DescendantTokens(Func<SyntaxNode, bool>? descendIntoChildren = null)
+    {
+        return DescendantNodesImpl(Span, descendIntoChildren, includeSelf: true).OfType<SyntaxToken>();
     }
 
     protected internal SyntaxNode ReplaceCore<TNode>(
