@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -128,9 +128,9 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             documentNode.Diagnostics.Add(diagnostic);
         }
 
-        if (imports is { IsDefault: false } importsArray)
+        if (!imports.IsDefaultOrEmpty)
         {
-            foreach (var import in importsArray)
+            foreach (var import in imports)
             {
                 foreach (var diagnostic in import.Diagnostics)
                 {
@@ -1299,8 +1299,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             if (node.StartTag != null && node.EndTag != null && node.StartTag.IsVoidElement())
             {
                 element.Diagnostics.Add(
-                        ComponentDiagnosticFactory.Create_UnexpectedClosingTagForVoidElement(
-                            BuildSourceSpanFromNode(node.EndTag), node.EndTag.GetTagNameWithOptionalBang()));
+                    ComponentDiagnosticFactory.Create_UnexpectedClosingTagForVoidElement(
+                        BuildSourceSpanFromNode(node.EndTag), node.EndTag.GetTagNameWithOptionalBang()));
             }
             else if (node.StartTag != null && node.EndTag == null && !node.StartTag.IsVoidElement() && !node.StartTag.IsSelfClosing())
             {
