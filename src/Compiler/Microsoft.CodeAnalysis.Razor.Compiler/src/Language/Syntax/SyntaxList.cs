@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -8,16 +8,6 @@ internal abstract class SyntaxList : SyntaxNode
     protected SyntaxList(InternalSyntax.SyntaxList green, SyntaxNode parent, int position)
         : base(green, parent, position)
     {
-    }
-
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.Visit(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.Visit(this);
     }
 
     internal class WithTwoChildren : SyntaxList

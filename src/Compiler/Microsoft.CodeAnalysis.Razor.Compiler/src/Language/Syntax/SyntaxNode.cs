@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -43,10 +43,6 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
     public bool ContainsAnnotations => Green.ContainsAnnotations;
 
     internal string SerializedValue => SyntaxSerializer.Serialize(this);
-
-    public abstract TResult Accept<TResult>(SyntaxVisitor<TResult> visitor);
-
-    public abstract void Accept(SyntaxVisitor visitor);
 
     internal abstract SyntaxNode? GetNodeSlot(int index);
 
