@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using Microsoft.CodeAnalysis.Text;
-
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
 /// <summary>
@@ -14,21 +12,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 internal abstract class SyntaxWalker : SyntaxVisitor
 {
     private int _recursionDepth;
-    private readonly TextSpan? _range;
-
-    protected SyntaxWalker(TextSpan? range = null)
-    {
-        _range = range;
-    }
-
-    private bool ShouldVisit(TextSpan span)
-    {
-        return _range is TextSpan range && range.OverlapsWith(span);
-    }
 
     public override void Visit(SyntaxNode? node)
     {
-        if (node != null && ShouldVisit(node.Span))
+        if (node != null)
         {
             _recursionDepth++;
             StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
@@ -43,16 +30,13 @@ internal abstract class SyntaxWalker : SyntaxVisitor
     {
         foreach (var child in node.ChildNodes())
         {
-            if (ShouldVisit(child.Span))
+            if (child is SyntaxToken token)
             {
-                if (child is SyntaxToken token)
-                {
-                    VisitToken(token);
-                }
-                else
-                {
-                    Visit(child);
-                }
+                VisitToken(token);
+            }
+            else
+            {
+                Visit(child);
             }
         }
     }
