@@ -257,5 +257,17 @@ internal static class SyntaxNodeExtensions
                 base.Visit(node);
             }
         }
+
+        public override void VisitToken(SyntaxToken token)
+        {
+            if (token.ContainsDiagnostics == true)
+            {
+                var diagnostics = token.GetDiagnostics();
+
+                _diagnostics.AddRange(diagnostics);
+
+                base.VisitToken(token);
+            }
+        }
     }
 }
