@@ -9,4 +9,8 @@ internal abstract partial class RazorSyntaxNode : SyntaxNode
         : base(green, parent, position)
     {
     }
+
+    public abstract TResult? Accept<TResult>(SyntaxVisitor<TResult> visitor);
+
+    public abstract void Accept(SyntaxVisitor visitor);
 }

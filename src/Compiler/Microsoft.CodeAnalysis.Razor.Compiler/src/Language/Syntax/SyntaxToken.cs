@@ -31,16 +31,6 @@ internal class SyntaxToken : SyntaxNode
         throw new InvalidOperationException("Tokens can't have slots.");
     }
 
-    public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitToken(this);
-    }
-
-    public override void Accept(SyntaxVisitor visitor)
-    {
-        visitor.VisitToken(this);
-    }
-
     /// <summary>
     /// Gets the token that follows this token in the syntax tree.
     /// </summary>
