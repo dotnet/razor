@@ -1,6 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Diagnostics;
+
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
 /// <summary>
@@ -17,6 +19,9 @@ internal abstract partial class SyntaxVisitor<TResult>
     {
         if (node != null)
         {
+            Debug.Assert(!node.IsToken);
+            Debug.Assert(!node.IsList);
+
             return ((RazorSyntaxNode)node).Accept(this);
         }
 
@@ -25,6 +30,9 @@ internal abstract partial class SyntaxVisitor<TResult>
 
     protected virtual TResult? DefaultVisit(SyntaxNode node)
     {
+        Debug.Assert(!node.IsToken);
+        Debug.Assert(!node.IsList);
+
         return default;
     }
 }
@@ -39,11 +47,16 @@ internal abstract partial class SyntaxVisitor
     {
         if (node != null)
         {
+            Debug.Assert(!node.IsToken);
+            Debug.Assert(!node.IsList);
+
             ((RazorSyntaxNode)node).Accept(this);
         }
     }
 
     public virtual void DefaultVisit(SyntaxNode node)
     {
+        Debug.Assert(!node.IsToken);
+        Debug.Assert(!node.IsList);
     }
 }
