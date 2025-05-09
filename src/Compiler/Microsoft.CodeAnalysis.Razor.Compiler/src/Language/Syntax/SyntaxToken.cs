@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -16,6 +16,8 @@ internal class SyntaxToken : SyntaxNode
         : base(green, parent, position)
     {
     }
+
+    internal override string SerializedValue => Serializer.Serialize(this);
 
     internal new InternalSyntax.SyntaxToken Green => (InternalSyntax.SyntaxToken)base.Green;
 

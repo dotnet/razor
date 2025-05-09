@@ -10,6 +10,8 @@ internal abstract class SyntaxList : SyntaxNode
     {
     }
 
+    internal override string SerializedValue => $"List: {SlotCount} slots";
+
     internal sealed class WithTwoChildren : SyntaxList
     {
         private SyntaxNode? _child0;
