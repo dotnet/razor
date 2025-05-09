@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -15,6 +16,9 @@ internal abstract partial class SyntaxRewriter : SyntaxVisitor<SyntaxNode>
     {
         if (node != null)
         {
+            Debug.Assert(!node.IsToken);
+            Debug.Assert(!node.IsList);
+
             _recursionDepth++;
             StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
 

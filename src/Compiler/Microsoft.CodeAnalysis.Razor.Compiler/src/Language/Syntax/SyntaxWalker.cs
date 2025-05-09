@@ -1,6 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Diagnostics;
+
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
 /// <summary>
@@ -17,6 +19,9 @@ internal abstract class SyntaxWalker : SyntaxVisitor
     {
         if (node != null)
         {
+            Debug.Assert(!node.IsToken);
+            Debug.Assert(!node.IsList);
+
             _recursionDepth++;
             StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
 
@@ -28,6 +33,9 @@ internal abstract class SyntaxWalker : SyntaxVisitor
 
     public override void DefaultVisit(SyntaxNode node)
     {
+        Debug.Assert(!node.IsToken);
+        Debug.Assert(!node.IsList);
+
         foreach (var child in node.ChildNodes())
         {
             if (child is SyntaxToken token)
