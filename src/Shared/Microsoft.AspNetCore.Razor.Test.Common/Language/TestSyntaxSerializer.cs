@@ -55,7 +55,7 @@ internal sealed class TestSyntaxSerializer : SyntaxSerializer
 
     protected override void WriteValue(string value)
     {
-        Builder.Append(value.Replace("\r\n", "LF"));
+        Builder.Append(value.Replace("\r\n", "LF").Replace("\n", "LF"));
     }
 
     protected override void WriteSpanEditHandlers(SyntaxNode node)
