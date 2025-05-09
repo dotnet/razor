@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -7,7 +7,7 @@ using System;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
-internal class SyntaxToken : RazorSyntaxNode
+internal class SyntaxToken : SyntaxNode
 {
     internal static readonly Func<SyntaxToken, bool> NonZeroWidth = t => t.Width > 0;
     internal static readonly Func<SyntaxToken, bool> Any = t => true;
