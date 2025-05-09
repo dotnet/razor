@@ -107,16 +107,11 @@ internal class SyntaxSerializer
 
         public override SyntaxNode Visit(SyntaxNode node)
         {
-            if (node is SyntaxToken token)
-            {
-                return VisitToken(token);
-            }
-
             WriteNode(node);
             return node;
         }
 
-        public override SyntaxNode VisitToken(SyntaxToken token)
+        public override SyntaxToken VisitToken(SyntaxToken token)
         {
             WriteToken(token);
             return base.VisitToken(token);
