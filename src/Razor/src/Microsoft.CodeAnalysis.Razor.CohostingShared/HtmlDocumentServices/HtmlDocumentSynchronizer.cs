@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.Threading;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -27,18 +28,20 @@ internal sealed partial class HtmlDocumentSynchronizer(
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<HtmlDocumentSynchronizer>();
 
     private readonly Dictionary<Uri, SynchronizationRequest> _synchronizationRequests = [];
-    private readonly object _gate = new();
+    // Semaphore to lock access to the dictionary above
+#pragma warning disable RS0030 // Do not use banned APIs
+    private readonly SemaphoreSlim _semaphore = new(initialCount: 1);
+#pragma warning restore RS0030 // Do not use banned APIs
 
-    public void DocumentRemoved(Uri razorFileUri)
+    public void DocumentRemoved(Uri razorFileUri, CancellationToken cancellationToken)
     {
-        lock (_gate)
+        using var _ = _semaphore.DisposableWait(cancellationToken);
+
+        if (_synchronizationRequests.TryGetValue(razorFileUri, out var request))
         {
-            if (_synchronizationRequests.TryGetValue(razorFileUri, out var request))
-            {
-                _logger.LogDebug($"Document {razorFileUri} removed, so we're disposing and clearing out the sync request for it");
-                request.Dispose();
-                _synchronizationRequests.Remove(razorFileUri);
-            }
+            _logger.LogDebug($"Document {razorFileUri} removed, so we're disposing and clearing out the sync request for it");
+            request.Dispose();
+            _synchronizationRequests.Remove(razorFileUri);
         }
     }
 
@@ -64,16 +67,24 @@ internal sealed partial class HtmlDocumentSynchronizer(
     /// </list>
     /// If option 1 is taken, any pending tasks for older versions of the document will be cancelled.
     /// </remarks>
-    private Task<SynchronizationResult> GetSynchronizationRequestTaskAsync(TextDocument document, RazorDocumentVersion requestedVersion, CancellationToken cancellationToken)
+    private async Task<SynchronizationResult> GetSynchronizationRequestTaskAsync(TextDocument document, RazorDocumentVersion requestedVersion, CancellationToken cancellationToken)
     {
-        lock (_gate)
+        Task<SynchronizationResult> taskToGetResult;
+        using (var _ = await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
             if (cancellationToken.IsCancellationRequested)
             {
                 _logger.LogDebug($"Not synchronizing Html text for {document.FilePath} as the request was cancelled.");
-                return SpecializedTasks.Default<SynchronizationResult>();
+                return default;
             }
 
+            taskToGetResult = GetOrAddResultTask_CallUnderLockAsync();
+        }
+
+        return await taskToGetResult.ConfigureAwait(false);
+
+        Task<SynchronizationResult> GetOrAddResultTask_CallUnderLockAsync()
+        {
             var documentUri = document.CreateUri();
             if (_synchronizationRequests.TryGetValue(documentUri, out var request))
             {

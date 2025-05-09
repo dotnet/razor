@@ -64,7 +64,7 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
         Assert.True(syncResult.Synchronized);
 
         // "Close" the document
-        synchronizer.DocumentRemoved(document.CreateUri());
+        synchronizer.DocumentRemoved(document.CreateUri(), DisposalToken);
 
         Assert.True((await synchronizer.TrySynchronizeAsync(document, DisposalToken)).Synchronized);
 
@@ -296,13 +296,19 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
     }
 
     [Fact]
-    public async Task GetSynchronizationRequestTask_RequestSameVersion_ReturnsSameTask()
+    public async Task GetSynchronizationRequestTask_RequestSameVersion_InvokedRemoteOnce()
     {
         var document = Workspace.CurrentSolution.GetAdditionalDocument(_documentId).AssumeNotNull();
 
         var tcs = new TaskCompletionSource<bool>();
         var publisher = new TestHtmlDocumentPublisher();
-        var remoteServiceInvoker = new RemoteServiceInvoker(document, () => tcs.Task);
+
+        var remoteInvocations = 0;
+        var remoteServiceInvoker = new RemoteServiceInvoker(document, () =>
+        {
+            remoteInvocations++;
+            return tcs.Task;
+        });
         var synchronizer = new HtmlDocumentSynchronizer(remoteServiceInvoker, publisher, LoggerFactory);
 
         var version = await RazorDocumentVersion.CreateAsync(document, DisposalToken);
@@ -311,7 +317,7 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
         var task1 = accessor.GetSynchronizationRequestTaskAsync(document, version, DisposalToken);
         var task2 = accessor.GetSynchronizationRequestTaskAsync(document, version, DisposalToken);
 
-        Assert.Same(task1, task2);
+        Assert.Equal(1, remoteInvocations);
     }
 
     private class RemoteServiceInvoker(TextDocument document, Func<Task>? generateTask = null) : IRemoteServiceInvoker
