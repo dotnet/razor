@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -10,7 +10,7 @@ internal abstract class SyntaxList : SyntaxNode
     {
     }
 
-    internal class WithTwoChildren : SyntaxList
+    internal sealed class WithTwoChildren : SyntaxList
     {
         private SyntaxNode? _child0;
         private SyntaxNode? _child1;
@@ -37,7 +37,7 @@ internal abstract class SyntaxList : SyntaxNode
             };
     }
 
-    internal class WithThreeChildren : SyntaxList
+    internal sealed class WithThreeChildren : SyntaxList
     {
         private SyntaxNode? _child0;
         private SyntaxNode? _child1;
@@ -67,7 +67,7 @@ internal abstract class SyntaxList : SyntaxNode
             };
     }
 
-    internal class WithManyChildren : SyntaxList
+    internal sealed class WithManyChildren : SyntaxList
     {
         private readonly ArrayElement<SyntaxNode?>[] _children;
 
