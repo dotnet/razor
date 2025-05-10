@@ -23,6 +23,16 @@ namespace AspNetCoreGeneratedDocument
         private void __RazorDirectiveTokenHelpers__() {
         ((global::System.Action)(() => {
 #nullable restore
+#line 4 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml"
+ 
+
+#line default
+#line hidden
+#nullable disable
+        }
+        ))();
+        ((global::System.Action)(() => {
+#nullable restore
 #line 8 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml"
  
 

@@ -16,6 +16,7 @@
                 HtmlContent - (85:1,0 [2] IncompleteDirectives.cshtml)
                     LazyIntermediateToken - (85:1,0 [2] IncompleteDirectives.cshtml) - Html - \n
                 MalformedDirective - (94:3,0 [8] IncompleteDirectives.cshtml) - page
+                    DirectiveToken - (100:3,6 [0] IncompleteDirectives.cshtml) - 
                 MalformedDirective - (102:4,0 [6] IncompleteDirectives.cshtml) - page
                 HtmlContent - (108:4,6 [5] IncompleteDirectives.cshtml)
                     LazyIntermediateToken - (108:4,6 [5] IncompleteDirectives.cshtml) - Html - "\n\n
