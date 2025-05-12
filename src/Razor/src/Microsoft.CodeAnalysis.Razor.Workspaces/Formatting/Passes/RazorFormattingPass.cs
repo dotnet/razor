@@ -61,7 +61,7 @@ internal sealed class RazorFormattingPass(LanguageServerFeatureOptions languageS
         using var changes = new PooledArrayBuilder<TextChange>();
         var source = syntaxTree.Source;
 
-        foreach (var node in syntaxTree.Root.DescendantNodesAndTokens())
+        foreach (var node in syntaxTree.Root.DescendantNodes())
         {
             // Disclaimer: CSharpCodeBlockSyntax is used a _lot_ in razor so these methods are probably
             // being overly careful to only try to format syntax forms they care about.
@@ -253,10 +253,10 @@ internal sealed class RazorFormattingPass(LanguageServerFeatureOptions languageS
         //     <div></div>
         // }
         if (node is MarkupBlockSyntax markupBlockNode &&
-            markupBlockNode.Parent is CSharpCodeBlockSyntax cSharpCodeBlock)
+            markupBlockNode.Parent is CSharpCodeBlockSyntax csharpCodeBlock)
         {
-            var openBraceNode = cSharpCodeBlock.Children.PreviousSiblingOrSelf(markupBlockNode);
-            var closeBraceNode = cSharpCodeBlock.Children.NextSiblingOrSelf(markupBlockNode);
+            var openBraceNode = csharpCodeBlock.Children.PreviousSiblingOrSelf(markupBlockNode);
+            var closeBraceNode = csharpCodeBlock.Children.NextSiblingOrSelf(markupBlockNode);
 
             return FormatBlock(context, source, directiveNode: null, openBraceNode, markupBlockNode, closeBraceNode, ref changes);
         }

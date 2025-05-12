@@ -258,8 +258,8 @@ internal sealed class FormattingContext
             return;
         }
 
-        var oldTagHelperElements = oldCodeDocument.GetSyntaxTree().Root.DescendandNodesAndTokensAndSelf().OfType<MarkupTagHelperElementSyntax>().Count();
-        var newTagHelperElements = newCodeDocument.GetSyntaxTree().Root.DescendandNodesAndTokensAndSelf().OfType<MarkupTagHelperElementSyntax>().Count();
+        var oldTagHelperElements = oldCodeDocument.GetSyntaxTree().Root.DescendantNodesAndSelf().OfType<MarkupTagHelperElementSyntax>().Count();
+        var newTagHelperElements = newCodeDocument.GetSyntaxTree().Root.DescendantNodesAndSelf().OfType<MarkupTagHelperElementSyntax>().Count();
         Debug.Assert(oldTagHelperElements == newTagHelperElements, $"Previous context had {oldTagHelperElements} components, new only has {newTagHelperElements}.");
     }
 

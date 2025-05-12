@@ -24,7 +24,7 @@ internal static class RazorSyntaxTreeExtensions
     {
         using var builder = new PooledArrayBuilder<RazorDirectiveSyntax>();
 
-        foreach (var node in syntaxTree.Root.DescendantNodesAndTokens(ShouldDescendIntoChildren))
+        foreach (var node in syntaxTree.Root.DescendantNodes(ShouldDescendIntoChildren))
         {
             if (node is RazorDirectiveSyntax directive && predicate(directive))
             {

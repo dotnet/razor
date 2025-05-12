@@ -44,7 +44,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
 
         // Assert
         var rewrittenTree = codeDocument.GetSyntaxTree();
-        var erroredNode = rewrittenTree.Root.DescendantNodesAndTokens().First(n => n.GetChunkGenerator() is AddTagHelperChunkGenerator);
+        var erroredNode = rewrittenTree.Root.DescendantNodes().First(n => n.GetChunkGenerator() is AddTagHelperChunkGenerator);
         var chunkGenerator = Assert.IsType<AddTagHelperChunkGenerator>(erroredNode.GetChunkGenerator());
         Assert.Equal(expectedDiagnostics, chunkGenerator.Diagnostics);
     }
@@ -74,7 +74,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
 
         // Assert
         var rewrittenTree = codeDocument.GetSyntaxTree();
-        var erroredNode = rewrittenTree.Root.DescendantNodesAndTokens().First(n => n.GetChunkGenerator() is RemoveTagHelperChunkGenerator);
+        var erroredNode = rewrittenTree.Root.DescendantNodes().First(n => n.GetChunkGenerator() is RemoveTagHelperChunkGenerator);
         var chunkGenerator = Assert.IsType<RemoveTagHelperChunkGenerator>(erroredNode.GetChunkGenerator());
         Assert.Equal(expectedDiagnostics, chunkGenerator.Diagnostics);
     }
@@ -104,7 +104,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
 
         // Assert
         var rewrittenTree = codeDocument.GetSyntaxTree();
-        var erroredNode = rewrittenTree.Root.DescendantNodesAndTokens().First(n => n.GetChunkGenerator() is TagHelperPrefixDirectiveChunkGenerator);
+        var erroredNode = rewrittenTree.Root.DescendantNodes().First(n => n.GetChunkGenerator() is TagHelperPrefixDirectiveChunkGenerator);
         var chunkGenerator = Assert.IsType<TagHelperPrefixDirectiveChunkGenerator>(erroredNode.GetChunkGenerator());
         Assert.Equal(expectedDiagnostics, chunkGenerator.Diagnostics);
     }
@@ -139,9 +139,9 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
 
         // Assert
         var rewrittenTree = codeDocument.GetSyntaxTree();
-        var descendantNodes = rewrittenTree.Root.DescendantNodesAndTokens();
         Assert.Empty(rewrittenTree.Diagnostics);
-        var tagHelperNodes = descendantNodes.Where(n => n is MarkupTagHelperElementSyntax tagHelper).Cast<MarkupTagHelperElementSyntax>().ToArray();
+
+        var tagHelperNodes = rewrittenTree.Root.DescendantNodes().OfType<MarkupTagHelperElementSyntax>().ToArray();
         Assert.Equal("form", tagHelperNodes[0].TagHelperInfo.TagName);
         Assert.Equal("input", tagHelperNodes[1].TagHelperInfo.TagName);
     }
@@ -172,9 +172,9 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
 
         // Assert
         var rewrittenTree = codeDocument.GetSyntaxTree();
-        var descendantNodes = rewrittenTree.Root.DescendantNodesAndTokens();
         Assert.Empty(rewrittenTree.Diagnostics);
-        var tagHelperNodes = descendantNodes.Where(n => n is MarkupTagHelperElementSyntax tagHelper).Cast<MarkupTagHelperElementSyntax>().ToArray();
+
+        var tagHelperNodes = rewrittenTree.Root.DescendantNodes().OfType<MarkupTagHelperElementSyntax>().ToArray();
         Assert.Equal("form", tagHelperNodes[0].TagHelperInfo.TagName);
         Assert.Equal("input", tagHelperNodes[1].TagHelperInfo.TagName);
     }
@@ -210,9 +210,9 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
 
         // Assert
         var rewrittenTree = codeDocument.GetSyntaxTree();
-        var descendantNodes = rewrittenTree.Root.DescendantNodesAndTokens();
         Assert.Empty(rewrittenTree.Diagnostics);
-        var tagHelperNodes = descendantNodes.Where(n => n is MarkupTagHelperElementSyntax tagHelper).Cast<MarkupTagHelperElementSyntax>().ToArray();
+
+        var tagHelperNodes = rewrittenTree.Root.DescendantNodes().OfType<MarkupTagHelperElementSyntax>().ToArray();
         Assert.Equal("form", tagHelperNodes[0].TagHelperInfo.TagName);
         Assert.Equal("input", tagHelperNodes[1].TagHelperInfo.TagName);
     }
@@ -247,9 +247,9 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
 
         // Assert
         var rewrittenTree = codeDocument.GetSyntaxTree();
-        var descendantNodes = rewrittenTree.Root.DescendantNodesAndTokens();
         Assert.Empty(rewrittenTree.Diagnostics);
-        var tagHelperNodes = descendantNodes.Where(n => n is MarkupTagHelperElementSyntax tagHelper).Cast<MarkupTagHelperElementSyntax>().ToArray();
+
+        var tagHelperNodes = rewrittenTree.Root.DescendantNodes().OfType<MarkupTagHelperElementSyntax>().ToArray();
         Assert.Empty(tagHelperNodes);
     }
 
@@ -289,10 +289,9 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
 
         // Assert
         var rewrittenTree = codeDocument.GetSyntaxTree();
-        var descendantNodes = rewrittenTree.Root.DescendantNodesAndTokens();
         Assert.Empty(rewrittenTree.Diagnostics);
-        var tagHelperNodes = descendantNodes.Where(n => n is MarkupTagHelperElementSyntax tagHelper).Cast<MarkupTagHelperElementSyntax>().ToArray();
 
+        var tagHelperNodes = rewrittenTree.Root.DescendantNodes().OfType<MarkupTagHelperElementSyntax>().ToArray();
         var formTagHelper = Assert.Single(tagHelperNodes);
         Assert.Equal("form", formTagHelper.TagHelperInfo.TagName);
         Assert.Equal(2, formTagHelper.TagHelperInfo.BindingResult.GetBoundRules(tagHelper).Length);
@@ -334,10 +333,9 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
 
         // Assert
         var rewrittenTree = codeDocument.GetSyntaxTree();
-        var descendantNodes = rewrittenTree.Root.DescendantNodesAndTokens();
         Assert.Empty(rewrittenTree.Diagnostics);
-        var tagHelperNodes = descendantNodes.Where(n => n is MarkupTagHelperElementSyntax tagHelper).Cast<MarkupTagHelperElementSyntax>().ToArray();
 
+        var tagHelperNodes = rewrittenTree.Root.DescendantNodes().OfType<MarkupTagHelperElementSyntax>().ToArray();
         var formTagHelper = Assert.Single(tagHelperNodes);
         Assert.Equal("form", formTagHelper.TagHelperInfo.TagName);
         Assert.Equal(2, formTagHelper.TagHelperInfo.BindingResult.GetBoundRules(tagHelper).Length);
@@ -375,10 +373,9 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
 
         // Assert
         var rewrittenTree = codeDocument.GetSyntaxTree();
-        var descendantNodes = rewrittenTree.Root.DescendantNodesAndTokens();
         Assert.Empty(rewrittenTree.Diagnostics);
-        var tagHelperNodes = descendantNodes.Where(n => n is MarkupTagHelperElementSyntax tagHelper).Cast<MarkupTagHelperElementSyntax>().ToArray();
 
+        var tagHelperNodes = rewrittenTree.Root.DescendantNodes().OfType<MarkupTagHelperElementSyntax>().ToArray();
         var formTagHelper = Assert.Single(tagHelperNodes);
         Assert.Equal("form", formTagHelper.TagHelperInfo.TagName);
     }
@@ -1033,7 +1030,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         Assert.Null(visitor.TagHelperPrefix);
         var result = Assert.Single(results);
         Assert.Same(componentDescriptor, result);
-        var directiveChunkGenerator = (TagHelperPrefixDirectiveChunkGenerator)tree.Root.DescendantNodesAndTokens().First(n => n is CSharpStatementLiteralSyntax).GetChunkGenerator();
+        var directiveChunkGenerator = (TagHelperPrefixDirectiveChunkGenerator)tree.Root.DescendantNodes().First(n => n is CSharpStatementLiteralSyntax).GetChunkGenerator();
         var diagnostic = Assert.Single(directiveChunkGenerator.Diagnostics);
         Assert.Equal("RZ9978", diagnostic.Id);
     }

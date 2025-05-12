@@ -134,9 +134,9 @@ internal static class SyntaxUtilities
     {
         using PooledArrayBuilder<SyntaxToken> builder = [];
 
-        foreach (var descendantNode in node.DescendantNodesAndTokens())
+        foreach (var token in node.DescendantTokens())
         {
-            if (descendantNode is SyntaxToken { IsMissing: false } token)
+            if (!token.IsMissing)
             {
                 builder.Add(token);
             }

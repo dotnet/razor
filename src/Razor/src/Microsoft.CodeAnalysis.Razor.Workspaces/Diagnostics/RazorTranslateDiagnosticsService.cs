@@ -421,10 +421,8 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
         {
             // Only allow markup, generic & (non-razor comment) token nodes
             var containsNonMarkupNodes = attributeNode.DescendantNodesAndTokens()
-                .Any(static n => !(n is MarkupBlockSyntax ||
-                    n is MarkupSyntaxNode ||
-                    n is GenericBlockSyntax ||
-                    (n is SyntaxNode sn && sn.IsToken && sn.Kind != SyntaxKind.RazorCommentTransition)));
+                .Any(static n =>
+                    n is not (MarkupBlockSyntax or MarkupSyntaxNode or GenericBlockSyntax or { IsToken: true, Kind: SyntaxKind.RazorCommentTransition }));
 
             return containsNonMarkupNodes;
         }

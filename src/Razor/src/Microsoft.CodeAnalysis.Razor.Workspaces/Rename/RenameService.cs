@@ -185,8 +185,7 @@ internal class RenameService(
     {
         var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = uri };
         var tagHelperElements = codeDocument.GetSyntaxTree().Root
-            .DescendantNodesAndTokens()
-            .Where(n => n.Kind == RazorSyntaxKind.MarkupTagHelperElement)
+            .DescendantNodes()
             .OfType<MarkupTagHelperElementSyntax>();
 
         foreach (var originTagHelper in originTagHelpers)
