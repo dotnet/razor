@@ -39,7 +39,7 @@ public class RazorSyntaxTreeTest
         Assert.Empty(syntaxTree.Diagnostics);
         Assert.NotNull(syntaxTree);
 
-        var children = syntaxTree.Root.DescendantNodes();
+        var children = syntaxTree.Root.DescendantNodesAndTokens();
         Assert.All(children, node => Assert.Equal(filePath, node.GetSourceLocation(source).FilePath));
     }
 
@@ -57,8 +57,8 @@ public class RazorSyntaxTreeTest
         var root = syntaxTree.Root;
         Assert.NotNull(syntaxTree);
         Assert.Equal(61, root.EndPosition);
-        Assert.Single(root.DescendantNodes().Where(n => n is RazorDirectiveBodySyntax body && body.Keyword.GetContent() == "tagHelperPrefix"));
-        Assert.Empty(root.DescendantNodes().Where(n => n is MarkupElementSyntax));
+        Assert.Single(root.DescendantNodesAndTokens().Where(n => n is RazorDirectiveBodySyntax body && body.Keyword.GetContent() == "tagHelperPrefix"));
+        Assert.Empty(root.DescendantNodesAndTokens().Where(n => n is MarkupElementSyntax));
         Assert.Empty(syntaxTree.Diagnostics);
     }
 }

@@ -164,7 +164,7 @@ internal class ImplicitExpressionEditHandler : SpanEditHandler
             return false;
         }
 
-        var tokens = target.DescendantNodes().Where(n => n.IsToken).Cast<SyntaxToken>().ToArray();
+        var tokens = target.DescendantNodesAndTokens().Where(n => n.IsToken).Cast<SyntaxToken>().ToArray();
         for (var i = 0; i < tokens.Length; i++)
         {
             var token = tokens[i];
@@ -236,7 +236,7 @@ internal class ImplicitExpressionEditHandler : SpanEditHandler
         var changeStart = change.Span.AbsoluteIndex;
         var changeLength = change.Span.Length;
         var changeEnd = changeStart + changeLength;
-        var tokens = target.DescendantNodes().Where(n => n.IsToken).Cast<SyntaxToken>().ToArray();
+        var tokens = target.DescendantNodesAndTokens().Where(n => n.IsToken).Cast<SyntaxToken>().ToArray();
         if (!IsInsideParenthesis(changeStart, tokens) || !IsInsideParenthesis(changeEnd, tokens))
         {
             // Either the start or end of the delete does not fall inside of parenthesis, unacceptable inner deletion.
@@ -269,7 +269,7 @@ internal class ImplicitExpressionEditHandler : SpanEditHandler
             return false;
         }
 
-        var tokens = target.DescendantNodes().Where(n => n.IsToken).Cast<SyntaxToken>().ToArray();
+        var tokens = target.DescendantNodesAndTokens().Where(n => n.IsToken).Cast<SyntaxToken>().ToArray();
         if (IsInsideParenthesis(change.Span.AbsoluteIndex, tokens))
         {
             return true;

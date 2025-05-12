@@ -313,7 +313,7 @@ internal static partial class LegacySyntaxNodeExtensions
             throw new ArgumentNullException(nameof(node));
         }
 
-        foreach (var child in node.DescendantNodes())
+        foreach (var child in node.DescendantNodesAndTokens())
         {
             if (child is MarkupStartTagSyntax startTag)
             {

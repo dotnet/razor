@@ -217,7 +217,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
         public override void VisitRazorDirective(RazorDirectiveSyntax node)
         {
-            var descendantLiterals = node.DescendantNodes();
+            var descendantLiterals = node.DescendantNodesAndTokens();
             foreach (var child in descendantLiterals)
             {
                 if (child is not CSharpStatementLiteralSyntax literal)
@@ -407,7 +407,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
         public override void VisitRazorDirective(RazorDirectiveSyntax node)
         {
-            var descendantLiterals = node.DescendantNodes();
+            var descendantLiterals = node.DescendantNodesAndTokens();
             foreach (var child in descendantLiterals)
             {
                 if (child is not CSharpStatementLiteralSyntax literal)

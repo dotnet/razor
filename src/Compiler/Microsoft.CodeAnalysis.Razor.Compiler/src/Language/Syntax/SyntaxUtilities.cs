@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -134,7 +134,7 @@ internal static class SyntaxUtilities
     {
         using PooledArrayBuilder<SyntaxToken> builder = [];
 
-        foreach (var descendantNode in node.DescendantNodes())
+        foreach (var descendantNode in node.DescendantNodesAndTokens())
         {
             if (descendantNode is SyntaxToken { IsMissing: false } token)
             {

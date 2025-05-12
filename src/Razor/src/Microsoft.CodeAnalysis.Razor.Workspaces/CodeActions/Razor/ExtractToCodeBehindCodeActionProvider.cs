@@ -132,5 +132,5 @@ internal class ExtractToCodeBehindCodeActionProvider(ILoggerFactory loggerFactor
         => codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out @namespace);
 
     private static bool HasUnsupportedChildren(RazorSyntaxNode node)
-        => node.DescendantNodes().Any(n => n is MarkupBlockSyntax or CSharpTransitionSyntax or RazorCommentBlockSyntax);
+        => node.DescendantNodesAndTokens().Any(n => n is MarkupBlockSyntax or CSharpTransitionSyntax or RazorCommentBlockSyntax);
 }

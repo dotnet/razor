@@ -25,7 +25,7 @@ internal class RazorCSharpStatementKeywordFoldingProvider : AbstractSyntaxNodeFo
     protected override ImmutableArray<CSharpCodeBlockSyntax> GetFoldableNodes(RazorSyntaxTree syntaxTree)
     {
         return syntaxTree.Root
-            .DescendantNodes(node => node is RazorDocumentSyntax or MarkupBlockSyntax or MarkupElementSyntax or CSharpCodeBlockSyntax)
+            .DescendantNodesAndTokens(node => node is RazorDocumentSyntax or MarkupBlockSyntax or MarkupElementSyntax or CSharpCodeBlockSyntax)
             .OfType<CSharpStatementLiteralSyntax>()
             .Where(n => n is
             {

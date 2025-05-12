@@ -691,7 +691,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         public override void VisitMarkupDynamicAttributeValue(MarkupDynamicAttributeValueSyntax node)
         {
             var containsExpression = false;
-            var descendantNodes = node.DescendantNodes(n =>
+            var descendantNodes = node.DescendantNodesAndTokens(n =>
             {
                 // Don't go into sub block. They may contain expressions but we only care about the top level.
                 return !(n.Parent is CSharpCodeBlockSyntax);
@@ -1437,7 +1437,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         public override void VisitMarkupDynamicAttributeValue(MarkupDynamicAttributeValueSyntax node)
         {
             var containsExpression = false;
-            var descendantNodes = node.DescendantNodes(n =>
+            var descendantNodes = node.DescendantNodesAndTokens(n =>
             {
                 // Don't go into sub block. They may contain expressions but we only care about the top level.
                 return !(n.Parent is CSharpCodeBlockSyntax);

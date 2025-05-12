@@ -420,7 +420,7 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
         static bool CheckIfAttributeContainsNonMarkupNodes(RazorSyntaxNode attributeNode)
         {
             // Only allow markup, generic & (non-razor comment) token nodes
-            var containsNonMarkupNodes = attributeNode.DescendantNodes()
+            var containsNonMarkupNodes = attributeNode.DescendantNodesAndTokens()
                 .Any(static n => !(n is MarkupBlockSyntax ||
                     n is MarkupSyntaxNode ||
                     n is GenericBlockSyntax ||

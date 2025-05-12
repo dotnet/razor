@@ -140,7 +140,7 @@ internal static class RazorSyntaxFacts
 
     internal static bool TryGetNamespaceFromDirective(RazorDirectiveSyntax directiveNode, [NotNullWhen(true)] out string? @namespace)
     {
-        foreach (var child in directiveNode.DescendantNodes())
+        foreach (var child in directiveNode.DescendantNodesAndTokens())
         {
             if (child.GetChunkGenerator() is AddImportChunkGenerator usingStatement)
             {

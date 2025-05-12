@@ -992,7 +992,7 @@ public class FindTokenTests
         """;
         var (tree, position) = ParseWithPosition(text);
 
-        var token = tree.Root.DescendantNodes().OfType<SyntaxToken>().Single(t => t.Kind == SyntaxKind.Whitespace);
+        var token = tree.Root.DescendantNodesAndTokens().OfType<SyntaxToken>().Single(t => t.Kind == SyntaxKind.Whitespace);
         Assert.ThrowsAny<ArgumentOutOfRangeException>(() => token.FindToken(position, includeWhitespace: false));
         Assert.Same(token, token.FindToken(position, includeWhitespace: true));
     }
@@ -1006,7 +1006,7 @@ public class FindTokenTests
         """;
         var (tree, position) = ParseWithPosition(text);
 
-        var token = tree.Root.DescendantNodes().OfType<SyntaxToken>().Last(t => t.Kind == SyntaxKind.Whitespace);
+        var token = tree.Root.DescendantNodesAndTokens().OfType<SyntaxToken>().Last(t => t.Kind == SyntaxKind.Whitespace);
         Assert.ThrowsAny<ArgumentOutOfRangeException>(() => token.FindToken(position, includeWhitespace: false));
         Assert.Same(token, token.FindToken(position, includeWhitespace: true));
     }

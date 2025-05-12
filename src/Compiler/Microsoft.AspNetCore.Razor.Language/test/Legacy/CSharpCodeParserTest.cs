@@ -203,7 +203,7 @@ public class CSharpCodeParserTest
         var document = RazorSyntaxTree.Parse(source);
 
         // Assert
-        var erroredNode = document.Root.DescendantNodes().Last(n => n.GetChunkGenerator() is TagHelperPrefixDirectiveChunkGenerator);
+        var erroredNode = document.Root.DescendantNodesAndTokens().Last(n => n.GetChunkGenerator() is TagHelperPrefixDirectiveChunkGenerator);
         var chunkGenerator = Assert.IsType<TagHelperPrefixDirectiveChunkGenerator>(erroredNode.GetChunkGenerator());
         var diagnostic = Assert.Single(chunkGenerator.Diagnostics);
         Assert.Equal(expectedDiagnostic, diagnostic);

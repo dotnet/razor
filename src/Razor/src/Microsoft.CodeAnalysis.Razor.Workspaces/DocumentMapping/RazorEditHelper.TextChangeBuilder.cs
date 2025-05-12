@@ -162,7 +162,7 @@ internal static partial class RazorEditHelper
             {
                 var root = codeDocument.GetSyntaxTree().Root;
                 var nodeToInsertAfter = root
-                    .DescendantNodes()
+                    .DescendantNodesAndTokens()
                     .LastOrDefault(t => t is RazorDirectiveSyntax { DirectiveDescriptor: var descriptor }
                     && (descriptor == ComponentPageDirective.Directive
                         || descriptor == NamespaceDirective.Directive
@@ -392,7 +392,7 @@ internal static partial class RazorEditHelper
             using var remainingUsingsBuilder = new PooledArrayBuilder<RazorDirectiveSyntax>();
             var allUsingsInSameBlock = true;
 
-            foreach (var node in syntaxTreeRoot.DescendantNodes())
+            foreach (var node in syntaxTreeRoot.DescendantNodesAndTokens())
             {
                 cancellationToken.ThrowIfCancellationRequested();
 

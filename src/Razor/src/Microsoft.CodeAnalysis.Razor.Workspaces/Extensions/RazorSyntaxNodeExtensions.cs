@@ -307,7 +307,7 @@ internal static class RazorSyntaxNodeExtensions
         // TODO: This looks like a potential allocation hotspot and performance bottleneck.
 
         var nodeString = node.RemoveEmptyNewLines().ToString();
-        var matchingNode = target.DescendantNodesAndSelf()
+        var matchingNode = target.DescendandNodesAndTokensAndSelf()
             // Empty new lines can affect our comparison so we remove them since they're insignificant.
             .Where(n => n.RemoveEmptyNewLines().ToString() == nodeString)
             .FirstOrDefault();

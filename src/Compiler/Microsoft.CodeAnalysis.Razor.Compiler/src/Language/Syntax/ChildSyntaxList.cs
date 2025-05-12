@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.Extensions.Internal;
 
@@ -84,6 +85,7 @@ internal readonly struct ChildSyntaxList : IEquatable<ChildSyntaxList>, IReadOnl
         return green.IsList ? green.SlotCount : 1;
     }
 
+#nullable enable
     /// <summary>
     /// internal indexer that does not verify index.
     /// Used when caller has already ensured that index is within bounds.
@@ -145,6 +147,7 @@ internal readonly struct ChildSyntaxList : IEquatable<ChildSyntaxList>, IReadOnl
 
         return node;
     }
+#nullable disable
 
     /// <summary>
     /// Locate the node that is a child of the given <see cref="SyntaxNode"/> and contains the given position.
@@ -221,11 +224,12 @@ internal readonly struct ChildSyntaxList : IEquatable<ChildSyntaxList>, IReadOnl
         return node;
     }
 
+#nullable enable
     /// <summary>
     /// internal indexer that does not verify index.
     /// Used when caller has already ensured that index is within bounds.
     /// </summary>
-    internal static SyntaxNode ItemInternalAsNode(SyntaxNode node, int index)
+    internal static SyntaxNode? ItemInternalAsNode(SyntaxNode node, int index)
     {
         GreenNode greenChild;
         var green = node.Green;
@@ -266,6 +270,7 @@ internal readonly struct ChildSyntaxList : IEquatable<ChildSyntaxList>, IReadOnl
         // this is a single node
         return red;
     }
+#nullable disable
 
     // for debugging
 #pragma warning disable IDE0051 // Remove unused private members
@@ -448,7 +453,8 @@ internal readonly struct ChildSyntaxList : IEquatable<ChildSyntaxList>, IReadOnl
             _childIndex = -1;
         }
 
-        internal bool TryMoveNextAndGetCurrent(out SyntaxNode current)
+#nullable enable
+        internal bool TryMoveNextAndGetCurrent([NotNullWhen(true)] out SyntaxNode? current)
         {
             if (!MoveNext())
             {
@@ -460,7 +466,7 @@ internal readonly struct ChildSyntaxList : IEquatable<ChildSyntaxList>, IReadOnl
             return true;
         }
 
-        internal SyntaxNode TryMoveNextAndGetCurrentAsNode()
+        internal SyntaxNode? TryMoveNextAndGetCurrentAsNode()
         {
             while (MoveNext())
             {
@@ -473,6 +479,7 @@ internal readonly struct ChildSyntaxList : IEquatable<ChildSyntaxList>, IReadOnl
 
             return null;
         }
+#nullable disable
     }
 
     private class EnumeratorImpl : IEnumerator<SyntaxNode>

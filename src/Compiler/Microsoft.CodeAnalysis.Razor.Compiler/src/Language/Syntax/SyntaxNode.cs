@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -282,26 +283,48 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
     }
 
     /// <summary>
-    /// Gets a list of descendant nodes in prefix document order.
+    /// Gets a list of descendant nodes and tokens in prefix document order.
     /// </summary>
     /// <param name="descendIntoChildren">An optional function that determines if the search descends into the argument node's children.</param>
-    public IEnumerable<SyntaxNode> DescendantNodes(Func<SyntaxNode, bool>? descendIntoChildren = null)
+    public IEnumerable<SyntaxNode> DescendantNodesAndTokens(Func<SyntaxNode, bool>? descendIntoChildren = null)
     {
-        return DescendantNodesImpl(Span, descendIntoChildren, includeSelf: false);
+        return DescendantNodesAndTokensImpl(Span, descendIntoChildren, includeSelf: false);
+    }
+
+    //// <summary>
+    /// Gets a list of the descendant nodes and tokens in prefix document order.
+    /// </summary>
+    /// <param name="span">The span the node's full span must intersect.</param>
+    /// <param name="descendIntoChildren">An optional function that determines if the search descends into the argument node's children.</param>
+    public IEnumerable<SyntaxNode> DescendantNodesAndTokens(TextSpan span, Func<SyntaxNode, bool>? descendIntoChildren = null)
+    {
+        return DescendantNodesAndTokensImpl(span, descendIntoChildren, includeSelf: false);
     }
 
     /// <summary>
     /// Gets a list of descendant nodes (including this node) in prefix document order.
     /// </summary>
     /// <param name="descendIntoChildren">An optional function that determines if the search descends into the argument node's children.</param>
-    public IEnumerable<SyntaxNode> DescendantNodesAndSelf(Func<SyntaxNode, bool>? descendIntoChildren = null)
+    public IEnumerable<SyntaxNode> DescendandNodesAndTokensAndSelf(Func<SyntaxNode, bool>? descendIntoChildren = null)
     {
-        return DescendantNodesImpl(Span, descendIntoChildren, includeSelf: true);
+        return DescendantNodesAndTokensImpl(Span, descendIntoChildren, includeSelf: true);
     }
 
+    /// <summary>
+    /// Gets a list of descendant nodes (including this node) in prefix document order.
+    /// </summary>
+    /// <param name="descendIntoChildren">An optional function that determines if the search descends into the argument node's children.</param>
+    public IEnumerable<SyntaxNode> DescendandNodesAndTokensAndSelf(TextSpan span, Func<SyntaxNode, bool>? descendIntoChildren = null)
+    {
+        return DescendantNodesAndTokensImpl(span, descendIntoChildren, includeSelf: true);
+    }
+
+    /// <summary>
+    /// Gets a list of all the tokens in the span of this node.
+    /// </summary>
     public IEnumerable<SyntaxToken> DescendantTokens(Func<SyntaxNode, bool>? descendIntoChildren = null)
     {
-        return DescendantNodesImpl(Span, descendIntoChildren, includeSelf: true).OfType<SyntaxToken>();
+        return DescendantNodesAndTokensImpl(Span, descendIntoChildren, includeSelf: true).OfType<SyntaxToken>();
     }
 
     protected internal abstract SyntaxNode ReplaceCore<TNode>(

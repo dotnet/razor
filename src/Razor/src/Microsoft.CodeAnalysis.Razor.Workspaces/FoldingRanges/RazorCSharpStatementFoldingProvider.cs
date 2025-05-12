@@ -19,7 +19,7 @@ internal class RazorCSharpStatementFoldingProvider : AbstractSyntaxNodeFoldingPr
     protected override ImmutableArray<CSharpStatementSyntax> GetFoldableNodes(RazorSyntaxTree syntaxTree)
     {
         return syntaxTree.Root
-            .DescendantNodes(node => node is RazorDocumentSyntax or MarkupBlockSyntax or MarkupElementSyntax or CSharpCodeBlockSyntax)
+            .DescendantNodesAndTokens(node => node is RazorDocumentSyntax or MarkupBlockSyntax or MarkupElementSyntax or CSharpCodeBlockSyntax)
             .OfType<CSharpStatementSyntax>()
             .SelectAsArray(d => d);
     }
