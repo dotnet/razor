@@ -147,7 +147,7 @@ internal sealed partial class RazorMetaCodeSyntax : RazorSyntaxNode
     {
     }
 
-    public SyntaxList<SyntaxToken> MetaCode  => new SyntaxList<SyntaxToken>(GetRed(ref _metaCode, 0));
+    public SyntaxTokenList MetaCode  => new(GetRedAtZero(ref _metaCode));
     public ISpanChunkGenerator ChunkGenerator => ((InternalSyntax.RazorMetaCodeSyntax)Green).ChunkGenerator;
 
     internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._metaCode) : null;
@@ -157,7 +157,7 @@ internal sealed partial class RazorMetaCodeSyntax : RazorSyntaxNode
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitRazorMetaCode(this);
     public override void Accept(SyntaxVisitor visitor) => visitor.VisitRazorMetaCode(this);
 
-    public RazorMetaCodeSyntax Update(SyntaxList<SyntaxToken> metaCode, ISpanChunkGenerator chunkGenerator)
+    public RazorMetaCodeSyntax Update(SyntaxTokenList metaCode, ISpanChunkGenerator chunkGenerator)
     {
         if (metaCode != MetaCode || chunkGenerator != ChunkGenerator)
         {
@@ -172,7 +172,7 @@ internal sealed partial class RazorMetaCodeSyntax : RazorSyntaxNode
         return this;
     }
 
-    public RazorMetaCodeSyntax WithMetaCode(SyntaxList<SyntaxToken> metaCode) => Update(metaCode, ChunkGenerator);
+    public RazorMetaCodeSyntax WithMetaCode(SyntaxTokenList metaCode) => Update(metaCode, ChunkGenerator);
     public RazorMetaCodeSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator) => Update(MetaCode, chunkGenerator);
 
     public RazorMetaCodeSyntax AddMetaCode(params SyntaxToken[] items) => WithMetaCode(this.MetaCode.AddRange(items));
@@ -227,7 +227,7 @@ internal sealed partial class UnclassifiedTextLiteralSyntax : RazorSyntaxNode
     {
     }
 
-    public SyntaxList<SyntaxToken> LiteralTokens  => new SyntaxList<SyntaxToken>(GetRed(ref _literalTokens, 0));
+    public SyntaxTokenList LiteralTokens  => new(GetRedAtZero(ref _literalTokens));
     public ISpanChunkGenerator ChunkGenerator => ((InternalSyntax.UnclassifiedTextLiteralSyntax)Green).ChunkGenerator;
 
     internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._literalTokens) : null;
@@ -237,7 +237,7 @@ internal sealed partial class UnclassifiedTextLiteralSyntax : RazorSyntaxNode
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitUnclassifiedTextLiteral(this);
     public override void Accept(SyntaxVisitor visitor) => visitor.VisitUnclassifiedTextLiteral(this);
 
-    public UnclassifiedTextLiteralSyntax Update(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
+    public UnclassifiedTextLiteralSyntax Update(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator)
     {
         if (literalTokens != LiteralTokens || chunkGenerator != ChunkGenerator)
         {
@@ -252,7 +252,7 @@ internal sealed partial class UnclassifiedTextLiteralSyntax : RazorSyntaxNode
         return this;
     }
 
-    public UnclassifiedTextLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens) => Update(literalTokens, ChunkGenerator);
+    public UnclassifiedTextLiteralSyntax WithLiteralTokens(SyntaxTokenList literalTokens) => Update(literalTokens, ChunkGenerator);
     public UnclassifiedTextLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator) => Update(LiteralTokens, chunkGenerator);
 
     public UnclassifiedTextLiteralSyntax AddLiteralTokens(params SyntaxToken[] items) => WithLiteralTokens(this.LiteralTokens.AddRange(items));
@@ -315,7 +315,7 @@ internal sealed partial class MarkupTransitionSyntax : MarkupSyntaxNode
     {
     }
 
-    public SyntaxList<SyntaxToken> TransitionTokens  => new SyntaxList<SyntaxToken>(GetRed(ref _transitionTokens, 0));
+    public SyntaxTokenList TransitionTokens  => new(GetRedAtZero(ref _transitionTokens));
     public ISpanChunkGenerator ChunkGenerator => ((InternalSyntax.MarkupTransitionSyntax)Green).ChunkGenerator;
 
     internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._transitionTokens) : null;
@@ -325,7 +325,7 @@ internal sealed partial class MarkupTransitionSyntax : MarkupSyntaxNode
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupTransition(this);
     public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupTransition(this);
 
-    public MarkupTransitionSyntax Update(SyntaxList<SyntaxToken> transitionTokens, ISpanChunkGenerator chunkGenerator)
+    public MarkupTransitionSyntax Update(SyntaxTokenList transitionTokens, ISpanChunkGenerator chunkGenerator)
     {
         if (transitionTokens != TransitionTokens || chunkGenerator != ChunkGenerator)
         {
@@ -340,7 +340,7 @@ internal sealed partial class MarkupTransitionSyntax : MarkupSyntaxNode
         return this;
     }
 
-    public MarkupTransitionSyntax WithTransitionTokens(SyntaxList<SyntaxToken> transitionTokens) => Update(transitionTokens, ChunkGenerator);
+    public MarkupTransitionSyntax WithTransitionTokens(SyntaxTokenList transitionTokens) => Update(transitionTokens, ChunkGenerator);
     public MarkupTransitionSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator) => Update(TransitionTokens, chunkGenerator);
 
     public MarkupTransitionSyntax AddTransitionTokens(params SyntaxToken[] items) => WithTransitionTokens(this.TransitionTokens.AddRange(items));
@@ -355,7 +355,7 @@ internal sealed partial class MarkupTextLiteralSyntax : MarkupSyntaxNode
     {
     }
 
-    public SyntaxList<SyntaxToken> LiteralTokens  => new SyntaxList<SyntaxToken>(GetRed(ref _literalTokens, 0));
+    public SyntaxTokenList LiteralTokens  => new(GetRedAtZero(ref _literalTokens));
     public ISpanChunkGenerator ChunkGenerator => ((InternalSyntax.MarkupTextLiteralSyntax)Green).ChunkGenerator;
 
     internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._literalTokens) : null;
@@ -365,7 +365,7 @@ internal sealed partial class MarkupTextLiteralSyntax : MarkupSyntaxNode
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupTextLiteral(this);
     public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupTextLiteral(this);
 
-    public MarkupTextLiteralSyntax Update(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
+    public MarkupTextLiteralSyntax Update(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator)
     {
         if (literalTokens != LiteralTokens || chunkGenerator != ChunkGenerator)
         {
@@ -380,7 +380,7 @@ internal sealed partial class MarkupTextLiteralSyntax : MarkupSyntaxNode
         return this;
     }
 
-    public MarkupTextLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens) => Update(literalTokens, ChunkGenerator);
+    public MarkupTextLiteralSyntax WithLiteralTokens(SyntaxTokenList literalTokens) => Update(literalTokens, ChunkGenerator);
     public MarkupTextLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator) => Update(LiteralTokens, chunkGenerator);
 
     public MarkupTextLiteralSyntax AddLiteralTokens(params SyntaxToken[] items) => WithLiteralTokens(this.LiteralTokens.AddRange(items));
@@ -395,7 +395,7 @@ internal sealed partial class MarkupEphemeralTextLiteralSyntax : MarkupSyntaxNod
     {
     }
 
-    public SyntaxList<SyntaxToken> LiteralTokens  => new SyntaxList<SyntaxToken>(GetRed(ref _literalTokens, 0));
+    public SyntaxTokenList LiteralTokens  => new(GetRedAtZero(ref _literalTokens));
     public ISpanChunkGenerator ChunkGenerator => ((InternalSyntax.MarkupEphemeralTextLiteralSyntax)Green).ChunkGenerator;
 
     internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._literalTokens) : null;
@@ -405,7 +405,7 @@ internal sealed partial class MarkupEphemeralTextLiteralSyntax : MarkupSyntaxNod
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupEphemeralTextLiteral(this);
     public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupEphemeralTextLiteral(this);
 
-    public MarkupEphemeralTextLiteralSyntax Update(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
+    public MarkupEphemeralTextLiteralSyntax Update(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator)
     {
         if (literalTokens != LiteralTokens || chunkGenerator != ChunkGenerator)
         {
@@ -420,7 +420,7 @@ internal sealed partial class MarkupEphemeralTextLiteralSyntax : MarkupSyntaxNod
         return this;
     }
 
-    public MarkupEphemeralTextLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens) => Update(literalTokens, ChunkGenerator);
+    public MarkupEphemeralTextLiteralSyntax WithLiteralTokens(SyntaxTokenList literalTokens) => Update(literalTokens, ChunkGenerator);
     public MarkupEphemeralTextLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator) => Update(LiteralTokens, chunkGenerator);
 
     public MarkupEphemeralTextLiteralSyntax AddLiteralTokens(params SyntaxToken[] items) => WithLiteralTokens(this.LiteralTokens.AddRange(items));
@@ -1700,7 +1700,7 @@ internal sealed partial class CSharpStatementLiteralSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxList<SyntaxToken> LiteralTokens  => new SyntaxList<SyntaxToken>(GetRed(ref _literalTokens, 0));
+    public SyntaxTokenList LiteralTokens  => new(GetRedAtZero(ref _literalTokens));
     public ISpanChunkGenerator ChunkGenerator => ((InternalSyntax.CSharpStatementLiteralSyntax)Green).ChunkGenerator;
 
     internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._literalTokens) : null;
@@ -1710,7 +1710,7 @@ internal sealed partial class CSharpStatementLiteralSyntax : CSharpSyntaxNode
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitCSharpStatementLiteral(this);
     public override void Accept(SyntaxVisitor visitor) => visitor.VisitCSharpStatementLiteral(this);
 
-    public CSharpStatementLiteralSyntax Update(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
+    public CSharpStatementLiteralSyntax Update(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator)
     {
         if (literalTokens != LiteralTokens || chunkGenerator != ChunkGenerator)
         {
@@ -1725,7 +1725,7 @@ internal sealed partial class CSharpStatementLiteralSyntax : CSharpSyntaxNode
         return this;
     }
 
-    public CSharpStatementLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens) => Update(literalTokens, ChunkGenerator);
+    public CSharpStatementLiteralSyntax WithLiteralTokens(SyntaxTokenList literalTokens) => Update(literalTokens, ChunkGenerator);
     public CSharpStatementLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator) => Update(LiteralTokens, chunkGenerator);
 
     public CSharpStatementLiteralSyntax AddLiteralTokens(params SyntaxToken[] items) => WithLiteralTokens(this.LiteralTokens.AddRange(items));
@@ -1740,7 +1740,7 @@ internal sealed partial class CSharpExpressionLiteralSyntax : CSharpSyntaxNode
     {
     }
 
-    public SyntaxList<SyntaxToken> LiteralTokens  => new SyntaxList<SyntaxToken>(GetRed(ref _literalTokens, 0));
+    public SyntaxTokenList LiteralTokens  => new(GetRedAtZero(ref _literalTokens));
     public ISpanChunkGenerator ChunkGenerator => ((InternalSyntax.CSharpExpressionLiteralSyntax)Green).ChunkGenerator;
 
     internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._literalTokens) : null;
@@ -1750,7 +1750,7 @@ internal sealed partial class CSharpExpressionLiteralSyntax : CSharpSyntaxNode
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitCSharpExpressionLiteral(this);
     public override void Accept(SyntaxVisitor visitor) => visitor.VisitCSharpExpressionLiteral(this);
 
-    public CSharpExpressionLiteralSyntax Update(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
+    public CSharpExpressionLiteralSyntax Update(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator)
     {
         if (literalTokens != LiteralTokens || chunkGenerator != ChunkGenerator)
         {
@@ -1765,7 +1765,7 @@ internal sealed partial class CSharpExpressionLiteralSyntax : CSharpSyntaxNode
         return this;
     }
 
-    public CSharpExpressionLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens) => Update(literalTokens, ChunkGenerator);
+    public CSharpExpressionLiteralSyntax WithLiteralTokens(SyntaxTokenList literalTokens) => Update(literalTokens, ChunkGenerator);
     public CSharpExpressionLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator) => Update(LiteralTokens, chunkGenerator);
 
     public CSharpExpressionLiteralSyntax AddLiteralTokens(params SyntaxToken[] items) => WithLiteralTokens(this.LiteralTokens.AddRange(items));
@@ -1780,7 +1780,7 @@ internal sealed partial class CSharpEphemeralTextLiteralSyntax : CSharpSyntaxNod
     {
     }
 
-    public SyntaxList<SyntaxToken> LiteralTokens  => new SyntaxList<SyntaxToken>(GetRed(ref _literalTokens, 0));
+    public SyntaxTokenList LiteralTokens  => new(GetRedAtZero(ref _literalTokens));
     public ISpanChunkGenerator ChunkGenerator => ((InternalSyntax.CSharpEphemeralTextLiteralSyntax)Green).ChunkGenerator;
 
     internal override SyntaxNode GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this._literalTokens) : null;
@@ -1790,7 +1790,7 @@ internal sealed partial class CSharpEphemeralTextLiteralSyntax : CSharpSyntaxNod
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitCSharpEphemeralTextLiteral(this);
     public override void Accept(SyntaxVisitor visitor) => visitor.VisitCSharpEphemeralTextLiteral(this);
 
-    public CSharpEphemeralTextLiteralSyntax Update(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
+    public CSharpEphemeralTextLiteralSyntax Update(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator)
     {
         if (literalTokens != LiteralTokens || chunkGenerator != ChunkGenerator)
         {
@@ -1805,7 +1805,7 @@ internal sealed partial class CSharpEphemeralTextLiteralSyntax : CSharpSyntaxNod
         return this;
     }
 
-    public CSharpEphemeralTextLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens) => Update(literalTokens, ChunkGenerator);
+    public CSharpEphemeralTextLiteralSyntax WithLiteralTokens(SyntaxTokenList literalTokens) => Update(literalTokens, ChunkGenerator);
     public CSharpEphemeralTextLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator) => Update(LiteralTokens, chunkGenerator);
 
     public CSharpEphemeralTextLiteralSyntax AddLiteralTokens(params SyntaxToken[] items) => WithLiteralTokens(this.LiteralTokens.AddRange(items));

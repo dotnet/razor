@@ -417,12 +417,12 @@ internal static partial class SyntaxFactory
         => SyntaxFactory.RazorCommentBlock(SyntaxFactory.Token(SyntaxKind.RazorCommentTransition), SyntaxFactory.Token(SyntaxKind.RazorCommentStar), SyntaxFactory.Token(SyntaxKind.RazorCommentLiteral), SyntaxFactory.Token(SyntaxKind.RazorCommentStar), SyntaxFactory.Token(SyntaxKind.RazorCommentTransition));
 
     /// <summary>Creates a new RazorMetaCodeSyntax instance.</summary>
-    public static RazorMetaCodeSyntax RazorMetaCode(SyntaxList<SyntaxToken> metaCode, ISpanChunkGenerator chunkGenerator)
+    public static RazorMetaCodeSyntax RazorMetaCode(SyntaxTokenList metaCode, ISpanChunkGenerator chunkGenerator)
         => (RazorMetaCodeSyntax)InternalSyntax.SyntaxFactory.RazorMetaCode(metaCode.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator).CreateRed();
 
     /// <summary>Creates a new RazorMetaCodeSyntax instance.</summary>
     public static RazorMetaCodeSyntax RazorMetaCode(ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.RazorMetaCode(default(SyntaxList<SyntaxToken>), chunkGenerator);
+        => SyntaxFactory.RazorMetaCode(default(SyntaxTokenList), chunkGenerator);
 
     /// <summary>Creates a new GenericBlockSyntax instance.</summary>
     public static GenericBlockSyntax GenericBlock(SyntaxList<RazorSyntaxNode> children)
@@ -433,12 +433,12 @@ internal static partial class SyntaxFactory
         => SyntaxFactory.GenericBlock(default(SyntaxList<RazorSyntaxNode>));
 
     /// <summary>Creates a new UnclassifiedTextLiteralSyntax instance.</summary>
-    public static UnclassifiedTextLiteralSyntax UnclassifiedTextLiteral(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
+    public static UnclassifiedTextLiteralSyntax UnclassifiedTextLiteral(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator)
         => (UnclassifiedTextLiteralSyntax)InternalSyntax.SyntaxFactory.UnclassifiedTextLiteral(literalTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator).CreateRed();
 
     /// <summary>Creates a new UnclassifiedTextLiteralSyntax instance.</summary>
     public static UnclassifiedTextLiteralSyntax UnclassifiedTextLiteral(ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.UnclassifiedTextLiteral(default(SyntaxList<SyntaxToken>), chunkGenerator);
+        => SyntaxFactory.UnclassifiedTextLiteral(default(SyntaxTokenList), chunkGenerator);
 
     /// <summary>Creates a new MarkupBlockSyntax instance.</summary>
     public static MarkupBlockSyntax MarkupBlock(SyntaxList<RazorSyntaxNode> children)
@@ -449,28 +449,28 @@ internal static partial class SyntaxFactory
         => SyntaxFactory.MarkupBlock(default(SyntaxList<RazorSyntaxNode>));
 
     /// <summary>Creates a new MarkupTransitionSyntax instance.</summary>
-    public static MarkupTransitionSyntax MarkupTransition(SyntaxList<SyntaxToken> transitionTokens, ISpanChunkGenerator chunkGenerator)
+    public static MarkupTransitionSyntax MarkupTransition(SyntaxTokenList transitionTokens, ISpanChunkGenerator chunkGenerator)
         => (MarkupTransitionSyntax)InternalSyntax.SyntaxFactory.MarkupTransition(transitionTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator).CreateRed();
 
     /// <summary>Creates a new MarkupTransitionSyntax instance.</summary>
     public static MarkupTransitionSyntax MarkupTransition(ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.MarkupTransition(default(SyntaxList<SyntaxToken>), chunkGenerator);
+        => SyntaxFactory.MarkupTransition(default(SyntaxTokenList), chunkGenerator);
 
     /// <summary>Creates a new MarkupTextLiteralSyntax instance.</summary>
-    public static MarkupTextLiteralSyntax MarkupTextLiteral(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
+    public static MarkupTextLiteralSyntax MarkupTextLiteral(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator)
         => (MarkupTextLiteralSyntax)InternalSyntax.SyntaxFactory.MarkupTextLiteral(literalTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator).CreateRed();
 
     /// <summary>Creates a new MarkupTextLiteralSyntax instance.</summary>
     public static MarkupTextLiteralSyntax MarkupTextLiteral(ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.MarkupTextLiteral(default(SyntaxList<SyntaxToken>), chunkGenerator);
+        => SyntaxFactory.MarkupTextLiteral(default(SyntaxTokenList), chunkGenerator);
 
     /// <summary>Creates a new MarkupEphemeralTextLiteralSyntax instance.</summary>
-    public static MarkupEphemeralTextLiteralSyntax MarkupEphemeralTextLiteral(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
+    public static MarkupEphemeralTextLiteralSyntax MarkupEphemeralTextLiteral(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator)
         => (MarkupEphemeralTextLiteralSyntax)InternalSyntax.SyntaxFactory.MarkupEphemeralTextLiteral(literalTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator).CreateRed();
 
     /// <summary>Creates a new MarkupEphemeralTextLiteralSyntax instance.</summary>
     public static MarkupEphemeralTextLiteralSyntax MarkupEphemeralTextLiteral(ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.MarkupEphemeralTextLiteral(default(SyntaxList<SyntaxToken>), chunkGenerator);
+        => SyntaxFactory.MarkupEphemeralTextLiteral(default(SyntaxTokenList), chunkGenerator);
 
     /// <summary>Creates a new MarkupCommentBlockSyntax instance.</summary>
     public static MarkupCommentBlockSyntax MarkupCommentBlock(SyntaxList<RazorSyntaxNode> children)
@@ -757,28 +757,28 @@ internal static partial class SyntaxFactory
         => SyntaxFactory.CSharpTransition(SyntaxFactory.Token(SyntaxKind.Transition), chunkGenerator);
 
     /// <summary>Creates a new CSharpStatementLiteralSyntax instance.</summary>
-    public static CSharpStatementLiteralSyntax CSharpStatementLiteral(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
+    public static CSharpStatementLiteralSyntax CSharpStatementLiteral(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator)
         => (CSharpStatementLiteralSyntax)InternalSyntax.SyntaxFactory.CSharpStatementLiteral(literalTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator).CreateRed();
 
     /// <summary>Creates a new CSharpStatementLiteralSyntax instance.</summary>
     public static CSharpStatementLiteralSyntax CSharpStatementLiteral(ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.CSharpStatementLiteral(default(SyntaxList<SyntaxToken>), chunkGenerator);
+        => SyntaxFactory.CSharpStatementLiteral(default(SyntaxTokenList), chunkGenerator);
 
     /// <summary>Creates a new CSharpExpressionLiteralSyntax instance.</summary>
-    public static CSharpExpressionLiteralSyntax CSharpExpressionLiteral(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
+    public static CSharpExpressionLiteralSyntax CSharpExpressionLiteral(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator)
         => (CSharpExpressionLiteralSyntax)InternalSyntax.SyntaxFactory.CSharpExpressionLiteral(literalTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator).CreateRed();
 
     /// <summary>Creates a new CSharpExpressionLiteralSyntax instance.</summary>
     public static CSharpExpressionLiteralSyntax CSharpExpressionLiteral(ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.CSharpExpressionLiteral(default(SyntaxList<SyntaxToken>), chunkGenerator);
+        => SyntaxFactory.CSharpExpressionLiteral(default(SyntaxTokenList), chunkGenerator);
 
     /// <summary>Creates a new CSharpEphemeralTextLiteralSyntax instance.</summary>
-    public static CSharpEphemeralTextLiteralSyntax CSharpEphemeralTextLiteral(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
+    public static CSharpEphemeralTextLiteralSyntax CSharpEphemeralTextLiteral(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator)
         => (CSharpEphemeralTextLiteralSyntax)InternalSyntax.SyntaxFactory.CSharpEphemeralTextLiteral(literalTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator).CreateRed();
 
     /// <summary>Creates a new CSharpEphemeralTextLiteralSyntax instance.</summary>
     public static CSharpEphemeralTextLiteralSyntax CSharpEphemeralTextLiteral(ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.CSharpEphemeralTextLiteral(default(SyntaxList<SyntaxToken>), chunkGenerator);
+        => SyntaxFactory.CSharpEphemeralTextLiteral(default(SyntaxTokenList), chunkGenerator);
 
     /// <summary>Creates a new CSharpTemplateBlockSyntax instance.</summary>
     public static CSharpTemplateBlockSyntax CSharpTemplateBlock(SyntaxList<RazorSyntaxNode> children)

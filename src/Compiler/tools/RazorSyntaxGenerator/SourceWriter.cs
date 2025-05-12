@@ -941,16 +941,18 @@ internal class SourceWriter : AbstractFileWriter
                             //    && field.Type != "SyntaxList<SyntaxToken>"
                             //    )
                             //{
-                            if (IsSeparatedNodeList(field.Type) || field.Type == "SyntaxNodeOrTokenList")
+                            if (field.Type != "SyntaxTokenList")
                             {
-                                WriteLine($"private SyntaxNode {GetFieldName(field)};");
+                                if (IsSeparatedNodeList(field.Type) || field.Type == "SyntaxNodeOrTokenList")
+                                {
+                                    WriteLine($"private SyntaxNode {GetFieldName(field)};");
+                                }
+                                else
+                                {
+                                    var type = GetFieldType(field, green: false);
+                                    WriteLine($"private {type} {GetFieldName(field)};");
+                                }
                             }
-                            else
-                            {
-                                var type = GetFieldType(field, green: false);
-                                WriteLine($"private {type} {GetFieldName(field)};");
-                            }
-                            //}
                         }
 
                         // write constructor
@@ -966,6 +968,7 @@ internal class SourceWriter : AbstractFileWriter
                         for (var i = 0; i < nodeFields.Count; i++)
                         {
                             var field = nodeFields[i];
+
                             //if (field.Type == "SyntaxToken")
                             //{
                             //    WriteComment(field.PropertyComment, "    ");
@@ -988,60 +991,58 @@ internal class SourceWriter : AbstractFileWriter
                             //    }
                             //    WriteLine("    }");
                             //}
-                            /* Remove
-                            else if (field.Type == "SyntaxList<SyntaxToken>")
-                            {
-                                WriteComment(field.PropertyComment, "    ");
-                                WriteLine("    {0} {1}SyntaxTokenList {2} ", "public", OverrideOrNewModifier(field), field.Name);
-                                WriteLine("    {");
-                                WriteLine("        get");
-                                WriteLine("        {");
-                                WriteLine("            var slot = Green.GetSlot({0});", i);
-                                WriteLine("            if (slot != null)");
-                                WriteLine("                return new SyntaxTokenList(this, slot, {0}, {1});", GetChildPosition(i), GetChildIndex(i));
-                                WriteLine();
-                                WriteLine("            return default(SyntaxTokenList);");
-                                WriteLine("        }");
-                                WriteLine("    }");
-                            } */
-                            //else
-                            //{
-                            WriteComment(field.PropertyComment);
-                            Write($"public {OverrideOrNewModifier(field)}{field.Type} {field.Name} ");
 
-                            if (IsNodeList(field.Type))
+                            if (field.Type == "SyntaxList<SyntaxToken>")
                             {
-                                WriteLine($" => new {field.Type}(GetRed(ref {GetFieldName(field)}, {i}));");
-                            }
-                            else if (IsSeparatedNodeList(field.Type))
-                            {
-                                WriteLine();
-                                using (Block())
-                                {
-                                    WriteLine("get");
-                                    using (Block())
-                                    {
-                                        WriteLine($"var red = GetRed(ref {GetFieldName(field)}, {i});");
-                                        WriteLine($"return red != null ? new {field.Type}(red, {GetChildIndex(i)}) : default;");
-                                    }
-                                }
-                            }
-                            else if (field.Type == "SyntaxNodeOrTokenList")
-                            {
-                                throw new InvalidOperationException("field cannot be a random SyntaxNodeOrTokenList");
-                            }
-                            else
-                            {
+                                WriteComment(field.PropertyComment);
+                                Write($"public {OverrideOrNewModifier(field)}SyntaxTokenList {field.Name} ");
                                 if (i == 0)
                                 {
-                                    WriteLine($" => GetRedAtZero(ref {GetFieldName(field)});");
+                                    WriteLine($" => new(GetRedAtZero(ref {GetFieldName(field)}));");
                                 }
                                 else
                                 {
-                                    WriteLine($" => GetRed(ref {GetFieldName(field)}, {i});");
+                                    WriteLine($" => new(GetRed(ref {GetFieldName(field)}, {i}));");
                                 }
                             }
-                            //}
+                            else
+                            {
+                                WriteComment(field.PropertyComment);
+                                Write($"public {OverrideOrNewModifier(field)}{field.Type} {field.Name} ");
+
+                                if (IsNodeList(field.Type))
+                                {
+                                    WriteLine($" => new {field.Type}(GetRed(ref {GetFieldName(field)}, {i}));");
+                                }
+                                else if (IsSeparatedNodeList(field.Type))
+                                {
+                                    WriteLine();
+                                    using (Block())
+                                    {
+                                        WriteLine("get");
+                                        using (Block())
+                                        {
+                                            WriteLine($"var red = GetRed(ref {GetFieldName(field)}, {i});");
+                                            WriteLine($"return red != null ? new {field.Type}(red, {GetChildIndex(i)}) : default;");
+                                        }
+                                    }
+                                }
+                                else if (field.Type == "SyntaxNodeOrTokenList")
+                                {
+                                    throw new InvalidOperationException("field cannot be a random SyntaxNodeOrTokenList");
+                                }
+                                else
+                                {
+                                    if (i == 0)
+                                    {
+                                        WriteLine($" => GetRedAtZero(ref {GetFieldName(field)});");
+                                    }
+                                    else
+                                    {
+                                        WriteLine($" => GetRed(ref {GetFieldName(field)}, {i});");
+                                    }
+                                }
+                            }
                         }
 
                         foreach (var field in valueFields)
@@ -1153,8 +1154,9 @@ internal class SourceWriter : AbstractFileWriter
 
     private static string GetRedFieldType(Field field)
     {
-        //return field.Type == "SyntaxList<SyntaxToken>" ? "SyntaxTokenList" : field.Type;
-        return field.Type;
+        return field.Type == "SyntaxList<SyntaxToken>"
+            ? "SyntaxTokenList"
+            : field.Type;
     }
 
     private static string GetChildIndex(int i)
@@ -1711,9 +1713,9 @@ internal class SourceWriter : AbstractFileWriter
 
     private static string GetRedPropertyType(Field field)
     {
-        //if (field.Type == "SyntaxList<SyntaxToken>")
-        //    return "SyntaxTokenList";
-        return field.Type;
+        return field.Type == "SyntaxList<SyntaxToken>"
+            ? "SyntaxTokenList"
+            : field.Type;
     }
 
     private string GetDefaultValue(Node nd, Field field)
