@@ -13,6 +13,30 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
 internal abstract partial class SyntaxNode
 {
+    private IEnumerable<SyntaxNode> DescendantNodesImpl(TextSpan span, Func<SyntaxNode, bool>? descendIntoChildren, bool includeSelf)
+    {
+        if (includeSelf && IsInSpan(in span, Span))
+        {
+            yield return this;
+        }
+
+        using var stack = new ChildSyntaxListEnumeratorStack(this, descendIntoChildren);
+
+        while (stack.IsNotEmpty)
+        {
+            var node = stack.TryGetNextAsNodeInSpan(in span);
+            if (node != null)
+            {
+                // PERF: Push before yield return so that "node" is 'dead' after the yield
+                // and therefore doesn't need to be stored in the iterator state machine. This
+                // saves a field.
+                stack.PushChildren(node, descendIntoChildren);
+
+                yield return node;
+            }
+        }
+    }
+
     private IEnumerable<SyntaxNode> DescendantNodesAndTokensImpl(TextSpan span, Func<SyntaxNode, bool>? descendIntoChildren, bool includeSelf)
     {
         if (includeSelf && IsInSpan(in span, Span))
