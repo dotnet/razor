@@ -14,6 +14,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNode>, IEquatable<SyntaxList<TNode>>
     where TNode : SyntaxNode
 {
+    static SyntaxList()
+    {
+        // TODO: Remove when SyntaxToken is a struct.
+        Debug.Assert(typeof(TNode) != typeof(SyntaxToken), "Use SyntaxTokenList instead of SyntaxList<SyntaxToken>.");
+    }
+
     internal SyntaxNode? Node { get; } = node;
 
     /// <summary>
