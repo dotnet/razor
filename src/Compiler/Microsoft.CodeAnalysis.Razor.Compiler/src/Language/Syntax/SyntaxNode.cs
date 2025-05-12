@@ -216,6 +216,34 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
     }
 
     /// <summary>
+    /// Gets a list of the child nodes in prefix document order.
+    /// </summary>
+    public IEnumerable<SyntaxNode> ChildNodes()
+    {
+        foreach (var nodeOrToken in ChildNodesAndTokens())
+        {
+            if (!nodeOrToken.IsToken)
+            {
+                yield return nodeOrToken;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets a list of the direct child tokens of this node.
+    /// </summary>
+    public IEnumerable<SyntaxToken> ChildTokens()
+    {
+        foreach (var nodeOrToken in ChildNodesAndTokens())
+        {
+            if (nodeOrToken is SyntaxToken token)
+            {
+                yield return token;
+            }
+        }
+    }
+
+    /// <summary>
     /// Gets a list of ancestor nodes
     /// </summary>
     public IEnumerable<SyntaxNode> Ancestors()
