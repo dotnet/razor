@@ -128,7 +128,9 @@ internal static class RazorSyntaxNodeExtensions
         return lastNode;
     }
 
-    internal static bool TryGetPreviousSibling(this SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? previousSibling)
+    internal static bool TryGetPreviousSibling(
+        this RazorSyntaxNode node,
+        [NotNullWhen(true)] out RazorSyntaxNode? previousSibling)
     {
         previousSibling = null;
 
@@ -138,14 +140,14 @@ internal static class RazorSyntaxNodeExtensions
             return false;
         }
 
-        foreach (var child in parent.ChildNodesAndTokens())
+        foreach (var child in parent.ChildNodes())
         {
             if (ReferenceEquals(child, node))
             {
                 return previousSibling is not null;
             }
 
-            previousSibling = child;
+            previousSibling = (RazorSyntaxNode)child;
         }
 
         Debug.Fail("How can we iterate node.Parent.ChildNodes() and not find node again?");
@@ -332,7 +334,7 @@ internal static class RazorSyntaxNodeExtensions
         switch (node)
         {
             case CSharpCodeBlockSyntax outerCSharpCodeBlock:
-                var innerCSharpNode = outerCSharpCodeBlock.ChildNodesAndTokens().FirstOrDefault(
+                var innerCSharpNode = outerCSharpCodeBlock.ChildNodes().FirstOrDefault(
                     static n => n is CSharpStatementSyntax or
                                      RazorDirectiveSyntax or
                                      CSharpExplicitExpressionSyntax or
@@ -364,10 +366,10 @@ internal static class RazorSyntaxNodeExtensions
                 csharpCodeBlock = body.CSharpCode;
 
                 // var foo = "bar";
-                var innerCodeBlock = csharpCodeBlock.ChildNodesAndTokens().FirstOrDefault(IsCSharpCodeBlockSyntax);
+                var innerCodeBlock = csharpCodeBlock.ChildNodes().OfType<CSharpCodeBlockSyntax>().FirstOrDefault();
                 if (innerCodeBlock is not null)
                 {
-                    csharpCodeBlock = innerCodeBlock as CSharpCodeBlockSyntax;
+                    csharpCodeBlock = innerCodeBlock;
                 }
 
                 break;
@@ -395,16 +397,11 @@ internal static class RazorSyntaxNodeExtensions
                 var csharpStatementBody = csharpStatement.Body;
 
                 // var x = 1;
-                csharpCodeBlock = csharpStatementBody.ChildNodesAndTokens().FirstOrDefault(IsCSharpCodeBlockSyntax) as CSharpCodeBlockSyntax;
+                csharpCodeBlock = csharpStatementBody.ChildNodes().OfType<CSharpCodeBlockSyntax>().FirstOrDefault();
                 break;
         }
 
         return csharpCodeBlock is not null;
-
-        static bool IsCSharpCodeBlockSyntax(SyntaxNode node)
-        {
-            return node is CSharpCodeBlockSyntax;
-        }
     }
 
     public static bool IsAnyAttributeSyntax(this SyntaxNode node)

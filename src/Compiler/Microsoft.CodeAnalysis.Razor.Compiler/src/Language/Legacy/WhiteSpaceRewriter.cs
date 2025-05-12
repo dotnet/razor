@@ -44,13 +44,8 @@ internal class WhitespaceRewriter : SyntaxRewriter
         rewritten = null;
         whitespaceLiteral = null;
         var children = codeBlock.ChildNodesAndTokens();
-        if (children.Count < 2)
-        {
-            return false;
-        }
 
-        if (children[0] is CSharpStatementLiteralSyntax literal &&
-            (children[1] is CSharpExplicitExpressionSyntax || children[1] is CSharpImplicitExpressionSyntax))
+        if (children is [CSharpStatementLiteralSyntax literal, CSharpExplicitExpressionSyntax or CSharpImplicitExpressionSyntax, ..])
         {
             var containsNonWhitespace = literal.DescendantNodes()
                 .Where(n => n.IsToken)

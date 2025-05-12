@@ -563,8 +563,8 @@ internal sealed class SemanticTokensVisitor : SyntaxWalker
         // LSP spec forbids multi-line tokens, so we need to split this up.
         if (range.Start.Line != range.End.Line)
         {
-            var childNodes = node.ChildNodesAndTokens();
-            if (childNodes.Count == 0)
+            var children = node.ChildNodesAndTokens();
+            if (children.Count == 0)
             {
                 var charPosition = range.Start.Character;
                 var lineStartAbsoluteIndex = node.SpanStart - charPosition;
@@ -598,13 +598,13 @@ internal sealed class SemanticTokensVisitor : SyntaxWalker
             {
                 // We have to iterate over the individual nodes because this node might consist of multiple lines
                 // ie: "\r\ntext\r\n" would be parsed as one node containing three elements (newline, "text", newline).
-                foreach (var token in node.ChildNodesAndTokens())
+                foreach (var nodeOrToken in children)
                 {
                     // We skip whitespace to avoid "multiline" ranges for "/r/n", where the /n is interpreted as being on a new line.
                     // This also stops us from returning data for " ", which seems like a nice side-effect as it's not likely to have any colorization anyway.
-                    if (!token.ContainsOnlyWhitespace())
+                    if (!nodeOrToken.ContainsOnlyWhitespace())
                     {
-                        var lineSpan = token.GetLinePositionSpan(source);
+                        var lineSpan = nodeOrToken.GetLinePositionSpan(source);
                         var semantic = new SemanticRange(semanticKind, lineSpan.Start.Line, lineSpan.Start.Character, lineSpan.End.Line, lineSpan.End.Character, tokenModifier, fromRazor: true);
                         AddRange(semantic);
                     }
