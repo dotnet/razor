@@ -64,11 +64,7 @@ public class PagesPropertyInjectionPass : IntermediateNodePassBase, IRazorOptimi
                 return code + ";";
             }
 
-            return $"""
-                #nullable restore
-                {code}!;
-                #nullable disable
-                """;
+            return $"#nullable restore\r\n{code}!;\r\n#nullable disable";
         }
     }
 
