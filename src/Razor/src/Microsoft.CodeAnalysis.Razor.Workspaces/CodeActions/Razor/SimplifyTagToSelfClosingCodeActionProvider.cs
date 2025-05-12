@@ -84,12 +84,12 @@ internal class SimplifyTagToSelfClosingCodeActionProvider : IRazorCodeActionProv
     internal static bool IsApplicableTo(MarkupTagHelperElementSyntax markupElementSyntax)
     {
         // Check whether the element is self-closing
-        if (markupElementSyntax is not (
-        { EndTag.CloseAngle.IsMissing: false } and
-        { StartTag.ForwardSlash: null } and
-        { StartTag.CloseAngle.IsMissing: false } and
-        { TagHelperInfo.BindingResult.Descriptors: { IsEmpty: false } descriptors }
-        ))
+        if (markupElementSyntax is not
+            {
+                EndTag.CloseAngle.IsMissing: false,
+                StartTag: { ForwardSlash: null, CloseAngle.IsMissing: false },
+                TagHelperInfo.BindingResult.Descriptors: [.. var descriptors]
+            })
         {
             return false;
         }
@@ -111,7 +111,7 @@ internal class SimplifyTagToSelfClosingCodeActionProvider : IRazorCodeActionProv
         foreach (var attribute in boundTagHelper.BoundAttributes)
         {
             // Parameter is not required
-            if (attribute is not { IsEditorRequired: true })
+            if (attribute is { IsEditorRequired: false })
             {
                 continue;
             }

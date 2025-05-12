@@ -83,8 +83,7 @@ internal sealed class OOPExtractToCodeBehindCodeActionResolver(
 internal sealed class OOPExtractToComponentCodeActionResolver(LanguageServerFeatureOptions languageServerFeatureOptions) : ExtractToComponentCodeActionResolver(languageServerFeatureOptions);
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
-[method: ImportingConstructor]
-internal sealed class OOPSimplifyTagToSelfClosingCodeActionResolver() : SimplifyTagToSelfClosingCodeActionResolver();
+internal sealed class OOPSimplifyTagToSelfClosingCodeActionResolver : SimplifyTagToSelfClosingCodeActionResolver;
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
 [method: ImportingConstructor]

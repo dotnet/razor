@@ -4,7 +4,6 @@
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -13,7 +12,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 
-internal class SimplifyTagToSelfClosingCodeActionResolver() : IRazorCodeActionResolver
+internal class SimplifyTagToSelfClosingCodeActionResolver : IRazorCodeActionResolver
 {
     public string Action => LanguageServerConstants.CodeActions.SimplifyTagToSelfClosingAction;
 
@@ -31,10 +30,6 @@ internal class SimplifyTagToSelfClosingCodeActionResolver() : IRazorCodeActionRe
         }
 
         var componentDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        if (componentDocument.IsUnsupported())
-        {
-            return null;
-        }
 
         var text = componentDocument.Source.Text;
         var removeRange = text.GetRange(actionParams.StartTagCloseAngleIndex, actionParams.EndTagCloseAngleIndex);
