@@ -8,7 +8,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -157,36 +156,6 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
         }
 
         return Position + offset;
-    }
-
-    internal SyntaxTokenList GetTokens()
-    {
-        using PooledArrayBuilder<SyntaxToken> tokens = [];
-        using PooledArrayBuilder<SyntaxNode> stack = [];
-
-        stack.Push(this);
-
-        while (stack.Count > 0)
-        {
-            var current = stack.Pop();
-
-            if (current.SlotCount == 0 && current is SyntaxToken token)
-            {
-                tokens.Add(token);
-            }
-            else
-            {
-                for (var i = current.SlotCount - 1; i >= 0; i--)
-                {
-                    if (current.GetNodeSlot(i) is { } child)
-                    {
-                        stack.Push(child);
-                    }
-                }
-            }
-        }
-
-        return tokens.ToList();
     }
 
     /// <summary>

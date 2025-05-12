@@ -513,10 +513,9 @@ internal sealed class RazorFormattingPass(LanguageServerFeatureOptions languageS
 
             static int GetLeadingWhitespaceLength(RazorSyntaxNode node, FormattingContext context)
             {
-                var tokens = node.GetTokens();
                 var whitespaceLength = 0;
 
-                foreach (var token in tokens)
+                foreach (var token in node.DescendantTokens())
                 {
                     if (token.IsWhitespace())
                     {
@@ -545,12 +544,10 @@ internal sealed class RazorFormattingPass(LanguageServerFeatureOptions languageS
 
             static int GetTrailingWhitespaceLength(RazorSyntaxNode node, FormattingContext context)
             {
-                var tokens = node.GetTokens();
                 var whitespaceLength = 0;
 
-                for (var i = tokens.Count - 1; i >= 0; i--)
+                foreach (var token in node.DescendantTokens().Reverse())
                 {
-                    var token = tokens[i];
                     if (token.IsWhitespace())
                     {
                         if (token.Kind == SyntaxKind.NewLine)
