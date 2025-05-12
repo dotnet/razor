@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-using RazorSyntaxTokenList = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxList<Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxToken>;
+using RazorSyntaxTokenList = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxTokenList;
 using RazorSyntaxWalker = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxWalker;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;

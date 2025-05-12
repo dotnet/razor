@@ -28,23 +28,6 @@ internal readonly partial struct SyntaxTokenList(SyntaxNode? node) : IEquatable<
     }
 
     /// <summary>
-    /// Creates a list of syntax nodes.
-    /// </summary>
-    /// <param name="nodes">A sequence of element nodes.</param>
-    public SyntaxTokenList(SyntaxList<SyntaxToken> nodes)
-        : this(CreateNode(nodes))
-    {
-    }
-
-    private static SyntaxNode? CreateNode(SyntaxList<SyntaxToken> nodes)
-    {
-        using var builder = new PooledArrayBuilder<SyntaxToken>(nodes.Count);
-        builder.AddRange(nodes);
-
-        return builder.ToList().Node;
-    }
-
-    /// <summary>
     /// The number of nodes in the list.
     /// </summary>
     public int Count
@@ -331,16 +314,6 @@ internal readonly partial struct SyntaxTokenList(SyntaxNode? node) : IEquatable<
     public override int GetHashCode()
     {
         return Node?.GetHashCode() ?? 0;
-    }
-
-    public static implicit operator SyntaxTokenList(SyntaxList<SyntaxToken> list)
-    {
-        return new SyntaxTokenList(list.Node);
-    }
-
-    public static implicit operator SyntaxList<SyntaxToken>(SyntaxTokenList list)
-    {
-        return new SyntaxList<SyntaxToken>(list.Node);
     }
 
     /// <summary>

@@ -26,20 +26,20 @@ internal static class RazorSyntaxNodeExtensions
         return false;
     }
 
-    internal static bool IsUsingDirective(this SyntaxNode node, out SyntaxList<SyntaxNode> children)
+    internal static bool IsUsingDirective(this SyntaxNode node, out SyntaxTokenList tokens)
     {
         // Using directives are weird, because the directive keyword ("using") is part of the C# statement it represents
         if (node is RazorDirectiveSyntax { DirectiveDescriptor: null, Body: RazorDirectiveBodySyntax body } &&
-            body.Keyword is CSharpStatementLiteralSyntax { LiteralTokens: { Count: > 0 } literalTokens })
-        {
-            if (literalTokens[0] is { Kind: SyntaxKind.Keyword, Content: "using" })
+            body.Keyword is CSharpStatementLiteralSyntax
             {
-                children = literalTokens;
-                return true;
-            }
+                LiteralTokens: [{ Kind: SyntaxKind.Keyword, Content: "using" }, ..] literalTokens
+            })
+        {
+            tokens = literalTokens;
+            return true;
         }
 
-        children = default;
+        tokens = default;
         return false;
     }
 

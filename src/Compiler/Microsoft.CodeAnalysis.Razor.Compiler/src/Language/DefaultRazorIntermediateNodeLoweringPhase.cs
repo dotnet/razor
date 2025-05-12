@@ -492,7 +492,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             return node.GetSourceSpan(SourceDocument);
         }
 
-        protected static SyntaxList<SyntaxToken> MergeTokenLists(params ReadOnlySpan<SyntaxList<SyntaxToken>?> tokenLists)
+        protected static SyntaxTokenList MergeTokenLists(params ReadOnlySpan<SyntaxTokenList?> tokenLists)
         {
             var count = 0;
 
@@ -605,7 +605,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 node.NamePrefix?.LiteralTokens,
                 node.Name.LiteralTokens,
                 node.NameSuffix?.LiteralTokens,
-                new SyntaxList<SyntaxToken>(node.EqualsToken),
+                new SyntaxTokenList(node.EqualsToken),
                 node.ValuePrefix?.LiteralTokens);
 
             var prefix = (MarkupTextLiteralSyntax)SyntaxFactory.MarkupTextLiteral(prefixTokens, chunkGenerator: null).Green.CreateRed(node, node.NamePrefix?.Position ?? node.Name.Position);
@@ -1393,7 +1393,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 node.NamePrefix?.LiteralTokens,
                 node.Name.LiteralTokens,
                 node.NameSuffix?.LiteralTokens,
-                new SyntaxList<SyntaxToken>(node.EqualsToken),
+                new SyntaxTokenList(node.EqualsToken),
                 node.ValuePrefix?.LiteralTokens);
 
             var prefix = (MarkupTextLiteralSyntax)SyntaxFactory.MarkupTextLiteral(prefixTokens, chunkGenerator: null).Green.CreateRed(node, node.NamePrefix?.Position ?? node.Name.Position);

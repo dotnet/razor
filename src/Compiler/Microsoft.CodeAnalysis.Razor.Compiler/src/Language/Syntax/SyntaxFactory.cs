@@ -27,8 +27,8 @@ internal static partial class SyntaxFactory
 #nullable enable
 
     public static MarkupTextLiteralSyntax MarkupTextLiteral(SyntaxToken token, ISpanChunkGenerator? chunkGenerator)
-        => MarkupTextLiteral(new SyntaxList<SyntaxToken>(token), chunkGenerator);
+        => MarkupTextLiteral(new SyntaxTokenList(token), chunkGenerator);
 
     public static RazorMetaCodeSyntax RazorMetaCode(SyntaxToken token, ISpanChunkGenerator? chunkGenerator)
-        => RazorMetaCode(new SyntaxList<SyntaxToken>(token), chunkGenerator);
+        => RazorMetaCode(new SyntaxTokenList(token), chunkGenerator);
 }

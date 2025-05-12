@@ -159,7 +159,7 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
         return Position + offset;
     }
 
-    internal SyntaxList<SyntaxToken> GetTokens()
+    internal SyntaxTokenList GetTokens()
     {
         using PooledArrayBuilder<SyntaxToken> tokens = [];
         using PooledArrayBuilder<SyntaxNode> stack = [];

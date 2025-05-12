@@ -106,7 +106,7 @@ internal abstract partial class BaseMarkupStartTagSyntax
             .AssumeNotNull($"ToListNode should not return null since builder was not empty.");
 
         static MarkupTextLiteralSyntax MarkupTextLiteral(
-            SyntaxList<SyntaxToken> tokens, ISpanChunkGenerator? chunkGenerator, SpanEditHandler? editHandler)
+            SyntaxTokenList tokens, ISpanChunkGenerator? chunkGenerator, SpanEditHandler? editHandler)
         {
             var node = SyntaxFactory.MarkupTextLiteral(tokens, chunkGenerator);
 

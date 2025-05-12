@@ -90,7 +90,7 @@ internal abstract partial class BaseMarkupEndTagSyntax
 
 
         static MarkupTextLiteralSyntax MarkupTextLiteral(
-            SyntaxList<SyntaxToken> tokens, ISpanChunkGenerator? chunkGenerator, SpanEditHandler? editHandler)
+            SyntaxTokenList tokens, ISpanChunkGenerator? chunkGenerator, SpanEditHandler? editHandler)
         {
             var node = SyntaxFactory.MarkupTextLiteral(tokens, chunkGenerator);
 

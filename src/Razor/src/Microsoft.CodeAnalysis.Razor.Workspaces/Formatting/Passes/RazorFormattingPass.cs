@@ -324,21 +324,35 @@ internal sealed class RazorFormattingPass(LanguageServerFeatureOptions languageS
 
     private static void TryFormatSingleLineDirective(ref PooledArrayBuilder<TextChange> changes, RazorSyntaxNode node)
     {
-        // Looking for single line directives like
+        // Looking for single line directives like...
         //
         // @attribute [Obsolete("old")]
         //
         // The CSharpCodeBlockSyntax covers everything from the end of "attribute" to the end of the line
-        if (IsSingleLineDirective(node, out var children) || node.IsUsingDirective(out children))
+        //
+        // ... or using directives.
+
+        // Shrink any block of C# that only has whitespace down to a single space.
+        // In the @attribute case above this would only be the whitespace between the directive and code
+        // but for @inject its also between the type and the field name.
+
+        if (IsSingleLineDirective(node, out var children))
         {
-            // Shrink any block of C# that only has whitespace down to a single space.
-            // In the @attribute case above this would only be the whitespace between the directive and code
-            // but for @inject its also between the type and the field name.
             foreach (var child in children)
             {
                 if (child.ContainsOnlyWhitespace(includingNewLines: false))
                 {
                     ShrinkToSingleSpace(child, ref changes);
+                }
+            }
+        }
+        else if (node.IsUsingDirective(out var tokens))
+        {
+            foreach (var token in tokens)
+            {
+                if (token.ContainsOnlyWhitespace(includingNewLines: false))
+                {
+                    ShrinkToSingleSpace(token, ref changes);
                 }
             }
         }
