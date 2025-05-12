@@ -38,7 +38,7 @@ internal static partial class LegacySyntaxNodeExtensions
             var current = node;
             do
             {
-                var children = current.ChildNodes();
+                var children = current.ChildNodesAndTokens();
                 if (children.Count == 0)
                 {
                     break;

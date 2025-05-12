@@ -621,7 +621,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 if (node.Value is { } blockSyntax)
                 {
-                    var children = new ChildNodesHelper(blockSyntax.ChildNodes());
+                    var children = new ChildNodesHelper(blockSyntax.ChildNodesAndTokens());
 
                     if (children.TryCast<MarkupLiteralAttributeValueSyntax>(out var attributeLiteralArray))
                     {
@@ -1176,7 +1176,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 return;
             }
 
-            var children = new ChildNodesHelper(node.ChildNodes());
+            var children = new ChildNodesHelper(node.ChildNodesAndTokens());
             var position = node.Position;
             if (children.FirstOrDefault() is MarkupBlockSyntax { Children: [MarkupTextLiteralSyntax, MarkupEphemeralTextLiteralSyntax] } markupBlock)
             {
@@ -2150,7 +2150,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 return;
             }
 
-            var children = new ChildNodesHelper(node.ChildNodes());
+            var children = new ChildNodesHelper(node.ChildNodesAndTokens());
             var position = node.Position;
             if (children.FirstOrDefault() is MarkupBlockSyntax { Children: [MarkupTextLiteralSyntax, MarkupEphemeralTextLiteralSyntax] } markupBlock)
             {

@@ -17,7 +17,7 @@ internal class WhitespaceRewriter : SyntaxRewriter
             return base.Visit(node);
         }
 
-        var children = node.ChildNodes();
+        var children = node.ChildNodesAndTokens();
         for (var i = 0; i < children.Count; i++)
         {
             var child = children[i];
@@ -29,7 +29,7 @@ internal class WhitespaceRewriter : SyntaxRewriter
                 node = node.ReplaceNode(codeBlock, new SyntaxNode[] { whitespaceLiteral, rewritten });
 
                 // Since we replaced node, its children are different. Update our collection.
-                children = node.ChildNodes();
+                children = node.ChildNodesAndTokens();
             }
         }
 
@@ -43,7 +43,7 @@ internal class WhitespaceRewriter : SyntaxRewriter
 
         rewritten = null;
         whitespaceLiteral = null;
-        var children = codeBlock.ChildNodes();
+        var children = codeBlock.ChildNodesAndTokens();
         if (children.Count < 2)
         {
             return false;

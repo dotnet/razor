@@ -174,7 +174,7 @@ internal static partial class LegacySyntaxNodeExtensions
             MarkupEndTagSyntax endTag => LocateOwnerForSyntaxList(endTag.LegacyChildren, change),
             MarkupTagHelperStartTagSyntax startTagHelper => LocateOwnerForSyntaxList(startTagHelper.LegacyChildren, change),
             MarkupTagHelperEndTagSyntax endTagHelper => LocateOwnerForSyntaxList(endTagHelper.LegacyChildren, change),
-            _ => LocateOwnerForChildSyntaxList(node.ChildNodes(), change)
+            _ => LocateOwnerForChildSyntaxList(node.ChildNodesAndTokens(), change)
         };
 
         static SyntaxNode? LocateOwnerForSyntaxList(in SyntaxList<RazorSyntaxNode> list, SourceChange change)

@@ -210,7 +210,7 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
     /// <summary>
     /// The list of child nodes of this node, where each element is a SyntaxNode instance.
     /// </summary>
-    public ChildSyntaxList ChildNodes()
+    public ChildSyntaxList ChildNodesAndTokens()
     {
         return new ChildSyntaxList(this);
     }

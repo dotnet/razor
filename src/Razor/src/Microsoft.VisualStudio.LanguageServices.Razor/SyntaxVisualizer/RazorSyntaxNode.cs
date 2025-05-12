@@ -28,13 +28,13 @@ internal class RazorSyntaxNode : IEnumerable<RazorSyntaxNode>
     public RazorSyntaxNode(SyntaxNode node)
     {
         _node = node;
-        Children = new RazorSyntaxNodeList(_node.ChildNodes());
+        Children = new RazorSyntaxNodeList(_node.ChildNodesAndTokens());
     }
 
     public RazorSyntaxNode(RazorSyntaxTree tree)
     {
         _node = tree.Root;
-        Children = new RazorSyntaxNodeList(_node.ChildNodes());
+        Children = new RazorSyntaxNodeList(_node.ChildNodesAndTokens());
     }
 
     public IEnumerator<RazorSyntaxNode> GetEnumerator()

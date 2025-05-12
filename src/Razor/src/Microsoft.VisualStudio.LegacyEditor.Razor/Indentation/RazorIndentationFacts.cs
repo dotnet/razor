@@ -77,7 +77,7 @@ internal static class RazorIndentationFacts
         int? desiredIndentation = null;
         while (owner.Parent is not null)
         {
-            var children = owner.Parent.ChildNodes();
+            var children = owner.Parent.ChildNodesAndTokens();
             for (var i = 0; i < children.Count; i++)
             {
                 var currentChild = children[i];
@@ -142,7 +142,7 @@ internal static class RazorIndentationFacts
     // Internal for testing
     internal static bool IsCSharpOpenCurlyBrace(SyntaxNode node)
     {
-        var children = node.ChildNodes();
+        var children = node.ChildNodesAndTokens();
 
         return children.Count == 1 &&
             children[0].IsToken &&

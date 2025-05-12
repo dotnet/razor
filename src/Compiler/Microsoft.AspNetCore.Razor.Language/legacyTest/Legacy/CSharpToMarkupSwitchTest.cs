@@ -355,12 +355,12 @@ public class CSharpToMarkupSwitchTest() : ParserTestBase(layer: TestProject.Laye
             """,
             directives: [ComponentCodeDirective.Directive]);
 
-        var codeBlock = Assert.IsType<CSharpCodeBlockSyntax>(tree1.Root.ChildNodes()[0].ChildNodes()[1]);
+        var codeBlock = Assert.IsType<CSharpCodeBlockSyntax>(tree1.Root.ChildNodesAndTokens()[0].ChildNodesAndTokens()[1]);
         Assert.Equal(SyntaxKind.CSharpCodeBlock, codeBlock.Kind);
         Assert.Equal(0, codeBlock.Position);
         Assert.Equal(11, codeBlock.Width);
 
-        var children = codeBlock.ChildNodes();
+        var children = codeBlock.ChildNodesAndTokens();
         Assert.Equal(2, children.Count);
 
         var directive = Assert.IsType<RazorDirectiveSyntax>(children[0]);

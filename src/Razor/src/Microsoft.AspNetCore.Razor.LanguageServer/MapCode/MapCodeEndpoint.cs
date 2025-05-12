@@ -273,7 +273,7 @@ internal sealed class MapCodeEndpoint(
             }
 
             // Add child nodes to the stack in reverse order for depth-first search
-            foreach (var childNode in currentNode.ChildNodes().Reverse())
+            foreach (var childNode in currentNode.ChildNodesAndTokens().Reverse())
             {
                 stack.Push(childNode);
             }

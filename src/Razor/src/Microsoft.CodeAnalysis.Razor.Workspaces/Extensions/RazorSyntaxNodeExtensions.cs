@@ -138,7 +138,7 @@ internal static class RazorSyntaxNodeExtensions
             return false;
         }
 
-        foreach (var child in parent.ChildNodes())
+        foreach (var child in parent.ChildNodesAndTokens())
         {
             if (ReferenceEquals(child, node))
             {
@@ -332,7 +332,7 @@ internal static class RazorSyntaxNodeExtensions
         switch (node)
         {
             case CSharpCodeBlockSyntax outerCSharpCodeBlock:
-                var innerCSharpNode = outerCSharpCodeBlock.ChildNodes().FirstOrDefault(
+                var innerCSharpNode = outerCSharpCodeBlock.ChildNodesAndTokens().FirstOrDefault(
                     static n => n is CSharpStatementSyntax or
                                      RazorDirectiveSyntax or
                                      CSharpExplicitExpressionSyntax or
@@ -364,7 +364,7 @@ internal static class RazorSyntaxNodeExtensions
                 csharpCodeBlock = body.CSharpCode;
 
                 // var foo = "bar";
-                var innerCodeBlock = csharpCodeBlock.ChildNodes().FirstOrDefault(IsCSharpCodeBlockSyntax);
+                var innerCodeBlock = csharpCodeBlock.ChildNodesAndTokens().FirstOrDefault(IsCSharpCodeBlockSyntax);
                 if (innerCodeBlock is not null)
                 {
                     csharpCodeBlock = innerCodeBlock as CSharpCodeBlockSyntax;
@@ -395,7 +395,7 @@ internal static class RazorSyntaxNodeExtensions
                 var csharpStatementBody = csharpStatement.Body;
 
                 // var x = 1;
-                csharpCodeBlock = csharpStatementBody.ChildNodes().FirstOrDefault(IsCSharpCodeBlockSyntax) as CSharpCodeBlockSyntax;
+                csharpCodeBlock = csharpStatementBody.ChildNodesAndTokens().FirstOrDefault(IsCSharpCodeBlockSyntax) as CSharpCodeBlockSyntax;
                 break;
         }
 

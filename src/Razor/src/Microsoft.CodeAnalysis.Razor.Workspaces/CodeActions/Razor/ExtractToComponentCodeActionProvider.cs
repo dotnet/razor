@@ -227,7 +227,7 @@ internal class ExtractToComponentCodeActionProvider() : IRazorCodeActionProvider
             commonAncestor != endNode)
         {
             SyntaxNode? modifiedStart = null, modifiedEnd = null;
-            foreach (var child in commonAncestor.ChildNodes())
+            foreach (var child in commonAncestor.ChildNodesAndTokens())
             {
                 if (child.Span.Contains(startNode.Span))
                 {
