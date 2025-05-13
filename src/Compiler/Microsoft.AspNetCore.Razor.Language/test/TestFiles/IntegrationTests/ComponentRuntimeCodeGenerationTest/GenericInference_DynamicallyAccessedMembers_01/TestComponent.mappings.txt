@@ -29,16 +29,16 @@ Generated Location: (2082:59,0 [39] )
 
 Source Location: (71:2,23 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 |Value|
-Generated Location: (3045:79,0 [5] )
+Generated Location: (3218:79,0 [5] )
 |Value|
 
 Source Location: (104:3,16 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 |Value|
-Generated Location: (4038:96,0 [5] )
+Generated Location: (4384:96,0 [5] )
 |Value|
 
 Source Location: (143:4,16 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 |Value|
-Generated Location: (4654:110,0 [5] )
+Generated Location: (5173:110,0 [5] )
 |Value|
 

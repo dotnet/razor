@@ -24,16 +24,16 @@ Generated Location: (1343:48,0 [31] )
 
 Source Location: (13:0,13 [2] x:\dir\subdir\Test\TestComponent.cshtml)
 |P1|
-Generated Location: (2025:68,0 [2] )
+Generated Location: (2371:68,0 [2] )
 |P1|
 
 Source Location: (20:0,20 [2] x:\dir\subdir\Test\TestComponent.cshtml)
 |P2|
-Generated Location: (2276:77,0 [2] )
+Generated Location: (2622:77,0 [2] )
 |P2|
 
 Source Location: (27:0,27 [2] x:\dir\subdir\Test\TestComponent.cshtml)
 |P3|
-Generated Location: (2527:86,0 [2] )
+Generated Location: (2873:86,0 [2] )
 |P3|
 

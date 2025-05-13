@@ -130,7 +130,7 @@ namespace __Blazor.Test.TestComponent
     #line hidden
     internal static class TypeInference
     {
-        public static global::Microsoft.AspNetCore.Components.Forms.InputRadioGroup<TValue> CreateInputRadioGroup_0<TValue>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TValue __arg0, int __seq1, global::Microsoft.AspNetCore.Components.EventCallback<TValue> __arg1, int __seq2, global::System.Linq.Expressions.Expression<global::System.Func<TValue>> __arg2, int __seq3, global::Microsoft.AspNetCore.Components.RenderFragment __arg3)
+        public static global::Microsoft.AspNetCore.Components.Forms.InputRadioGroup<TValue> CreateInputRadioGroup_0<[global::System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute(unchecked((global::System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes)0xffffffff))] TValue>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TValue __arg0, int __seq1, global::Microsoft.AspNetCore.Components.EventCallback<TValue> __arg1, int __seq2, global::System.Linq.Expressions.Expression<global::System.Func<TValue>> __arg2, int __seq3, global::Microsoft.AspNetCore.Components.RenderFragment __arg3)
         {
         __builder.OpenComponent<global::Microsoft.AspNetCore.Components.Forms.InputRadioGroup<TValue>>(seq);
         __builder.AddAttribute(__seq0, "Value", (object)__arg0);
@@ -140,14 +140,14 @@ namespace __Blazor.Test.TestComponent
         __builder.CloseComponent();
         return default;
         }
-        public static global::Microsoft.AspNetCore.Components.Forms.InputRadio<TValue> CreateInputRadio_1<TValue>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TValue __arg0)
+        public static global::Microsoft.AspNetCore.Components.Forms.InputRadio<TValue> CreateInputRadio_1<[global::System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute(unchecked((global::System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes)0xffffffff))] TValue>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TValue __arg0)
         {
         __builder.OpenComponent<global::Microsoft.AspNetCore.Components.Forms.InputRadio<TValue>>(seq);
         __builder.AddAttribute(__seq0, "Value", (object)__arg0);
         __builder.CloseComponent();
         return default;
         }
-        public static global::Microsoft.AspNetCore.Components.Forms.InputRadio<TValue> CreateInputRadio_2<TValue>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TValue __arg0)
+        public static global::Microsoft.AspNetCore.Components.Forms.InputRadio<TValue> CreateInputRadio_2<[global::System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute(unchecked((global::System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes)0xffffffff))] TValue>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TValue __arg0)
         {
         __builder.OpenComponent<global::Microsoft.AspNetCore.Components.Forms.InputRadio<TValue>>(seq);
         __builder.AddAttribute(__seq0, "Value", (object)__arg0);

@@ -60,7 +60,7 @@ namespace __Blazor.Test.TestComponent
     #line hidden
     internal static class TypeInference
     {
-        public static void CreateMyComponent_0<T1, T2, T3>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, T1 __arg0, int __seq1, T2 __arg1, int __seq2, T3 __arg2)
+        public static void CreateMyComponent_0<T1, [global::System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute(unchecked((global::System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes)0x00000028))] T2, [global::System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute(unchecked((global::System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes)0x00000000))] T3>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, T1 __arg0, int __seq1, T2 __arg1, int __seq2, T3 __arg2)
         {
         __builder.OpenComponent<global::Test.MyComponent<T1, T2, T3>>(seq);
         __builder.AddComponentParameter(__seq0, nameof(global::Test.MyComponent<T1, T2, T3>.
