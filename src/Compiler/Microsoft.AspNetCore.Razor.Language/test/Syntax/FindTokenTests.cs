@@ -992,8 +992,10 @@ public class FindTokenTests
         var (tree, position) = ParseWithPosition(text);
 
         var token = tree.Root.DescendantTokens().Single(t => t.Kind == SyntaxKind.Whitespace);
-        Assert.ThrowsAny<ArgumentOutOfRangeException>(() => token.FindToken(position, includeWhitespace: false));
-        Assert.Same(token, token.FindToken(position, includeWhitespace: true));
+        var parent = token.Parent;
+        Assert.NotNull(parent);
+        Assert.ThrowsAny<ArgumentOutOfRangeException>(() => parent.FindToken(position, includeWhitespace: false));
+        Assert.Equal(token, parent.FindToken(position, includeWhitespace: true));
     }
 
     [Fact]
@@ -1006,7 +1008,9 @@ public class FindTokenTests
         var (tree, position) = ParseWithPosition(text);
 
         var token = tree.Root.DescendantTokens().Last(t => t.Kind == SyntaxKind.Whitespace);
-        Assert.ThrowsAny<ArgumentOutOfRangeException>(() => token.FindToken(position, includeWhitespace: false));
-        Assert.Same(token, token.FindToken(position, includeWhitespace: true));
+        var parent = token.Parent;
+        Assert.NotNull(parent);
+        Assert.ThrowsAny<ArgumentOutOfRangeException>(() => parent.FindToken(position, includeWhitespace: false));
+        Assert.Equal(token, parent.FindToken(position, includeWhitespace: true));
     }
 }
