@@ -2276,7 +2276,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         editHandlerBuilder.Tokenizer = LanguageTokenizeString;
     }
 
-    private Syntax.GreenNode? GetLastSpan(RazorSyntaxNode node)
+    private static Syntax.GreenNode? GetLastSpan(RazorSyntaxNode node)
     {
         if (node == null)
         {
@@ -2285,18 +2285,13 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
 
         // Find the last token of this node and return its immediate non-list parent.
         var red = node.CreateRed();
-        Syntax.SyntaxNode? last = red.GetLastToken();
-        if (last == null)
+        var last = red.GetLastToken();
+        if (last.Kind == SyntaxKind.None)
         {
             return null;
         }
 
-        while (last.Green.IsToken || last.Green.IsList)
-        {
-            last = last.Parent;
-        }
-
-        return last.Green;
+        return last.Parent?.Green;
     }
 
     private static bool IsVoidElement(string? tagName)

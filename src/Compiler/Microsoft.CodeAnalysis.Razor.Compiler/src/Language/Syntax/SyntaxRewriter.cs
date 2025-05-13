@@ -114,7 +114,7 @@ internal abstract partial class SyntaxRewriter : SyntaxVisitor<SyntaxNode>
                 isUpdating = true;
             }
 
-            if (isUpdating && visited != null && visited.Kind != SyntaxKind.None)
+            if (isUpdating && visited.Kind != SyntaxKind.None)
             {
                 builder.Add(visited);
             }

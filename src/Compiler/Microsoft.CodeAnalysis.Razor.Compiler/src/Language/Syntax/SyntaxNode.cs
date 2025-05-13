@@ -133,6 +133,29 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
         return result;
     }
 
+    internal int GetChildIndex(int slot)
+    {
+        var index = 0;
+
+        for (var i = 0; i < slot; i++)
+        {
+            var item = Green.GetSlot(i);
+            if (item != null)
+            {
+                if (item.IsList)
+                {
+                    index += item.SlotCount;
+                }
+                else
+                {
+                    index++;
+                }
+            }
+        }
+
+        return index;
+    }
+
     internal int GetChildPosition(int index)
     {
         var offset = 0;

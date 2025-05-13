@@ -19,7 +19,7 @@ internal static class TagHelperBlockRewriter
         MarkupEndTagSyntax endTag,
         TagHelperBinding bindingResult)
     {
-        var childSpan = startTag.GetLastToken()?.Parent;
+        var childSpan = startTag.GetLastToken().Parent;
 
         // Self-closing tags are always valid despite descriptors[X].TagStructure.
         if (childSpan?.GetContent().EndsWith("/>", StringComparison.Ordinal) ?? false)
@@ -622,7 +622,9 @@ internal static class TagHelperBlockRewriter
                 // token from the content that follows it.
                 var firstChild = rewrittenBody.Children[0];
                 var firstToken = firstChild.GetFirstToken();
-                var newFirstToken = SyntaxFactory.Token(firstToken.Kind, node.Transition.Transition.Content + firstToken.Content).WithAnnotations(firstToken.GetAnnotations());
+                var newFirstToken = SyntaxFactory.Token(firstToken.Kind, node.Transition.Transition.Content + firstToken.Content);
+
+                firstToken.CopyAnnotationsTo(newFirstToken);
 
                 var newFirstChild = firstChild.ReplaceToken(firstToken, newFirstToken);
                 builder.AddRange(rewrittenBody.Children.Replace(firstChild, newFirstChild));

@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -155,7 +154,7 @@ internal abstract partial class SyntaxSerializer(StringBuilder builder) : Syntax
         WriteIndent();
 
         var content = token.IsMissing ? "<Missing>" : token.Content;
-        var diagnostics = token.GetDiagnostics();
+        var diagnostics = token.GetDiagnostics().ToArray();
         var diagnosticsText = GetDiagnosticsText(diagnostics);
 
         WriteValue($"{token.Kind};[{content}];{diagnosticsText}");

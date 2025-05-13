@@ -39,6 +39,35 @@ internal static class SyntaxBuilderExtensions
 
     /// <summary>
     ///  Produces a <see cref="GreenNode"/> for a <see cref="InternalSyntax.SyntaxList"/> from the
+    ///  contents of <paramref name="builder"/>.
+    /// </summary>
+    public static GreenNode? ToGreenListNode(ref readonly this PooledArrayBuilder<SyntaxToken> builder)
+    {
+        switch (builder.Count)
+        {
+            case 0:
+                return null;
+            case 1:
+                return builder[0].Node;
+            case 2:
+                return InternalSyntax.SyntaxList.List(builder[0].Node, builder[1].Node);
+            case 3:
+                return InternalSyntax.SyntaxList.List(builder[0].Node, builder[1].Node, builder[2].Node);
+
+            case int count:
+                var copy = new ArrayElement<GreenNode>[count];
+
+                for (var i = 0; i < count; i++)
+                {
+                    copy[i].Value = builder[i].Node!;
+                }
+
+                return InternalSyntax.SyntaxList.List(copy);
+        }
+    }
+
+    /// <summary>
+    ///  Produces a <see cref="GreenNode"/> for a <see cref="InternalSyntax.SyntaxList"/> from the
     ///  contents of <paramref name="builder"/> and clears it.
     /// </summary>
     /// 
@@ -61,6 +90,36 @@ internal static class SyntaxBuilderExtensions
     /// </remarks>
     public static GreenNode? ToGreenListNodeAndClear<TNode>(ref this PooledArrayBuilder<TNode> builder)
         where TNode : SyntaxNode
+    {
+        var result = builder.ToGreenListNode();
+        builder.Clear();
+
+        return result;
+    }
+
+    /// <summary>
+    ///  Produces a <see cref="GreenNode"/> for a <see cref="InternalSyntax.SyntaxList"/> from the
+    ///  contents of <paramref name="builder"/> and clears it.
+    /// </summary>
+    /// 
+    /// <remarks>
+    ///  <para>
+    ///   Because this method mutates <paramref name="builder"/>, <c>builder.AsRef()</c> must be
+    ///   called if it is is declared in a <c>using</c> statement.
+    ///  </para>
+    ///
+    ///  <code>
+    ///  using PooledArrayBuilder&lt;SyntaxToken&gt; builder = [];
+    ///
+    ///  // Use AsRef() inline
+    ///  builder.AsRef().ToGreenListNodeAndClear();
+    ///
+    ///  // Declare a local ref variable with AsRef() to avoid taking a ref multiple times.
+    ///  ref PooledArrayBuilder&lt;SyntaxToken&gt; builderRef = ref builder.AsRef();
+    ///  builderRef.ToGreenListNodeAndClear();
+    ///  </code>
+    /// </remarks>
+    public static GreenNode? ToGreenListNodeAndClear(ref this PooledArrayBuilder<SyntaxToken> builder)
     {
         var result = builder.ToGreenListNode();
         builder.Clear();
@@ -339,7 +398,7 @@ internal static class SyntaxBuilderExtensions
     ///  Produces a <see cref="SyntaxTokenList"/> from the contents of <paramref name="builder"/>.
     /// </summary>
     public static SyntaxTokenList ToList(ref readonly this PooledArrayBuilder<SyntaxToken> builder)
-        => builder.ToList(parent: null, position: 0);
+        => builder.ToList(parent: null, position: 0, index: 0);
 
     /// <summary>
     ///  Produces a <see cref="SyntaxTokenList"/> with the given <paramref name="parent"/>
@@ -347,16 +406,16 @@ internal static class SyntaxBuilderExtensions
     /// </summary>
     public static SyntaxTokenList ToList(
         ref readonly this PooledArrayBuilder<SyntaxToken> builder, SyntaxNode parent)
-        => builder.ToList(parent, parent.Position);
+        => builder.ToList(parent, parent.Position, index: 0);
 
     /// <summary>
     ///  Produces a <see cref="SyntaxTokenList"/> with the given <paramref name="parent"/>
     ///  and <paramref name="position"/> from the contents of <paramref name="builder"/>.
     /// </summary>
     public static SyntaxTokenList ToList(
-        ref readonly this PooledArrayBuilder<SyntaxToken> builder, SyntaxNode? parent, int position)
+        ref readonly this PooledArrayBuilder<SyntaxToken> builder, SyntaxNode? parent, int position, int index)
         => builder.ToGreenListNode() is GreenNode listNode
-            ? new(listNode.CreateRed(parent, position))
+            ? new(parent, listNode, position, index)
             : default;
 
     /// <summary>
@@ -465,7 +524,7 @@ internal static class SyntaxBuilderExtensions
     ///  </code>
     /// </remarks>
     public static SyntaxTokenList ToListAndClear(ref this PooledArrayBuilder<SyntaxToken> builder)
-        => builder.ToListAndClear(parent: null, position: 0);
+        => builder.ToListAndClear(parent: null, position: 0, index: 0);
 
     /// <summary>
     ///  Produces a <see cref="SyntaxTokenList"/> with the given <paramref name="parent"/>
@@ -491,7 +550,7 @@ internal static class SyntaxBuilderExtensions
     /// </remarks>
     public static SyntaxTokenList ToListAndClear(
         ref this PooledArrayBuilder<SyntaxToken> builder, SyntaxNode parent)
-        => builder.ToListAndClear(parent, parent.Position);
+        => builder.ToListAndClear(parent, parent.Position, index: 0);
 
     /// <summary>
     ///  Produces a <see cref="SyntaxTokenList"/> with the given <paramref name="parent"/>
@@ -516,9 +575,9 @@ internal static class SyntaxBuilderExtensions
     ///  </code>
     /// </remarks>
     public static SyntaxTokenList ToListAndClear(
-        ref this PooledArrayBuilder<SyntaxToken> builder, SyntaxNode? parent, int position)
+        ref this PooledArrayBuilder<SyntaxToken> builder, SyntaxNode? parent, int position, int index)
     {
-        var result = builder.ToList(parent, position);
+        var result = builder.ToList(parent, position, index);
         builder.Clear();
 
         return result;

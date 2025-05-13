@@ -38,13 +38,13 @@ internal abstract class SyntaxWalker : SyntaxVisitor
 
         foreach (var child in node.ChildNodesAndTokens())
         {
-            if (child is SyntaxToken token)
+            if (child.IsToken)
             {
-                VisitToken(token);
+                VisitToken(child.AsToken());
             }
             else
             {
-                Visit(child);
+                Visit(child.AsNode());
             }
         }
     }

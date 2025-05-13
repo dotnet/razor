@@ -529,14 +529,14 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         {
             public int Count { get; } = Math.Max(list.Count - start, 0);
 
-            public SyntaxNode this[int index] => list[start + index];
+            public SyntaxNodeOrToken this[int index] => list[start + index];
 
             public ChildNodesHelper Skip(int count)
             {
                 return new ChildNodesHelper(list, start + count);
             }
 
-            public SyntaxNode FirstOrDefault() => Count > 0 ? this[0] : null;
+            public SyntaxNodeOrToken FirstOrDefault() => Count > 0 ? this[0] : default;
 
             public bool TryCast<TNode>(out ImmutableArray<TNode> result)
             {
@@ -550,7 +550,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
                 for (var i = start; i < list.Count; i++)
                 {
-                    if (list[i] is not TNode node)
+                    if (list[i].AsNode() is not TNode node)
                     {
                         result = default;
                         return false;
@@ -922,16 +922,10 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 return;
             }
 
-            if (node.LiteralTokens.Count == 1)
+            if (node.LiteralTokens is [{ Kind: SyntaxKind.Marker, Content.Length: 0 }])
             {
-                var token = node.LiteralTokens[0];
-                if (token != null &&
-                    token.Kind == SyntaxKind.Marker &&
-                    token.Content.Length == 0)
-                {
-                    // We don't want to create IR nodes for marker tokens.
-                    return;
-                }
+                // We don't want to create IR nodes for marker tokens.
+                return;
             }
 
             VisitHtmlContent(node);
@@ -967,7 +961,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
         private void VisitHtmlContent(SyntaxNode node)
         {
-            if (node == null || (node is SyntaxToken token && token.IsMissing))
+            if (node == null)
             {
                 return;
             }
@@ -998,6 +992,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 Source = source
             };
+
             _builder.Push(contentNode);
 
             _builder.Add(new LazyIntermediateToken()
@@ -1177,7 +1172,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
             var children = new ChildNodesHelper(node.ChildNodesAndTokens());
             var position = node.Position;
-            if (children.FirstOrDefault() is MarkupBlockSyntax { Children: [MarkupTextLiteralSyntax, MarkupEphemeralTextLiteralSyntax] } markupBlock)
+            if (children.FirstOrDefault().AsNode() is MarkupBlockSyntax { Children: [MarkupTextLiteralSyntax, MarkupEphemeralTextLiteralSyntax] } markupBlock)
             {
                 // This is a special case when we have an attribute like attr="@@foo".
                 // In this case, we want the foo to be written out as HtmlContent and not HtmlAttributeValue.
@@ -1292,7 +1287,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 Source = BuildSourceSpanFromNode(node),
 
                 // Could be empty while the tag is being typed in.
-                TagName = node.StartTag?.Name?.Content ?? node.EndTag?.Name?.Content ?? string.Empty,
+                TagName = node.StartTag?.Name.Content ?? node.EndTag?.Name.Content ?? string.Empty,
             };
 
             if (node.StartTag != null && node.EndTag != null && node.StartTag.IsVoidElement())
@@ -1519,16 +1514,10 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 return;
             }
 
-            if (node.LiteralTokens.Count == 1)
+            if (node.LiteralTokens is [{ Kind: SyntaxKind.Marker, Content.Length: 0 }])
             {
-                var token = node.LiteralTokens[0];
-                if (token != null &&
-                    token.Kind == SyntaxKind.Marker &&
-                    token.Content.Length == 0)
-                {
-                    // We don't want to create IR nodes for marker tokens.
-                    return;
-                }
+                // We don't want to create IR nodes for marker tokens.
+                return;
             }
 
             // Combine chunks of HTML literal text if possible.
@@ -1828,8 +1817,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
             if (node.StartTag != null && node.EndTag != null)
             {
-                var startTagName = node.StartTag.Name?.Content;
-                var endTagName = node.EndTag.Name?.Content;
+                var startTagName = node.StartTag.Name.Content;
+                var endTagName = node.EndTag.Name.Content;
                 if (!string.Equals(startTagName, endTagName, StringComparison.Ordinal))
                 {
                     // This is most likely a case mismatch in start and end tags. Otherwise the parser wouldn't have grouped them together.
@@ -2150,7 +2139,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
             var children = new ChildNodesHelper(node.ChildNodesAndTokens());
             var position = node.Position;
-            if (children.FirstOrDefault() is MarkupBlockSyntax { Children: [MarkupTextLiteralSyntax, MarkupEphemeralTextLiteralSyntax] } markupBlock)
+            if (children.FirstOrDefault().AsNode() is MarkupBlockSyntax { Children: [MarkupTextLiteralSyntax, MarkupEphemeralTextLiteralSyntax] } markupBlock)
             {
                 // This is a special case when we have an attribute like attr="@@foo".
                 // In this case, we want the foo to be written out as HtmlContent and not HtmlAttributeValue.

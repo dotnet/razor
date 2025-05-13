@@ -21,12 +21,12 @@ internal class WhitespaceRewriter : SyntaxRewriter
         for (var i = 0; i < children.Count; i++)
         {
             var child = children[i];
-            if (child is CSharpCodeBlockSyntax codeBlock &&
+            if (child.AsNode() is CSharpCodeBlockSyntax codeBlock &&
                 TryRewriteWhitespace(codeBlock, out var rewritten, out var whitespaceLiteral))
             {
                 // Replace the existing code block with the whitespace literal
                 // followed by the rewritten code block (with the code whitespace removed).
-                node = node.ReplaceNode(codeBlock, new SyntaxNode[] { whitespaceLiteral, rewritten });
+                node = node.ReplaceNode(codeBlock, [whitespaceLiteral, rewritten]);
 
                 // Since we replaced node, its children are different. Update our collection.
                 children = node.ChildNodesAndTokens();

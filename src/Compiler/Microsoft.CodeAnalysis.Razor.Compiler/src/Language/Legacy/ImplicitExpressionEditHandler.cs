@@ -166,7 +166,7 @@ internal class ImplicitExpressionEditHandler : SpanEditHandler
 
         foreach (var token in target.DescendantTokens())
         {
-            if (token == null)
+            if (token.Kind == SyntaxKind.None)
             {
                 break;
             }

@@ -5,38 +5,102 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
 /// <summary>
 /// Represents a read-only list of <see cref="SyntaxToken"/>.
 /// </summary>
-internal readonly partial struct SyntaxTokenList(SyntaxNode? node) : IEquatable<SyntaxTokenList>, IReadOnlyList<SyntaxToken>
+internal readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, IReadOnlyList<SyntaxToken>
 {
-    internal SyntaxNode? Node { get; } = node;
+    internal GreenNode? Node { get; }
+    internal int Position { get; }
 
-    /// <summary>
-    /// Creates a singleton list of syntax tokens.
-    /// </summary>
-    /// <param name="node">The single element node.</param>
-    public SyntaxTokenList(SyntaxToken? node)
-        : this((SyntaxNode?)node)
+    private readonly SyntaxNode? _parent;
+    private readonly int _index;
+
+    internal SyntaxTokenList(SyntaxNode? parent, GreenNode? tokenOrList, int position, int index)
+    {
+        Debug.Assert(tokenOrList != null || (position == 0 && index == 0 && parent == null));
+        Debug.Assert(position >= 0);
+        Debug.Assert(tokenOrList == null || tokenOrList.IsToken || tokenOrList.IsList);
+
+        _parent = parent;
+        Node = tokenOrList;
+        Position = position;
+        _index = index;
+    }
+
+    public SyntaxTokenList(SyntaxToken token)
+    {
+        _parent = token.Parent;
+        Node = token.Node;
+        Position = token.Position;
+        _index = 0;
+    }
+
+    public SyntaxTokenList(params SyntaxToken[] tokens)
+        : this(parent: null, CreateNodeFromSpan(tokens), position: 0, index: 0)
     {
     }
 
+    public SyntaxTokenList(IEnumerable<SyntaxToken> tokens)
+        : this(parent: null, CreateNode(tokens), position: 0, index: 0)
+    {
+    }
+
+    public static SyntaxTokenList Create(ReadOnlySpan<SyntaxToken> tokens)
+    {
+        return tokens.Length == 0
+            ? default
+            : new(parent: null, CreateNodeFromSpan(tokens), position: 0, index: 0);
+    }
+
+    private static GreenNode? CreateNodeFromSpan(ReadOnlySpan<SyntaxToken> tokens)
+    {
+        return tokens.Length switch
+        {
+            0 => null,
+            1 => tokens[0].Node,
+            2 => InternalSyntax.SyntaxList.List(tokens[0].Node, tokens[1].Node),
+            3 => InternalSyntax.SyntaxList.List(tokens[0].Node, tokens[1].Node, tokens[2].Node),
+            _ => BuildAsArray(tokens)
+        };
+
+        static GreenNode BuildAsArray(ReadOnlySpan<SyntaxToken> tokens)
+        {
+            var copy = new ArrayElement<GreenNode>[tokens.Length];
+
+            for (var i = 0; i < tokens.Length; i++)
+            {
+                copy[i].Value = tokens[i].RequiredNode;
+            }
+
+            return InternalSyntax.SyntaxList.List(copy);
+        }
+    }
+
+    private static GreenNode? CreateNode(IEnumerable<SyntaxToken> tokens)
+    {
+        if (tokens == null)
+        {
+            return null;
+        }
+
+        using var builder = new PooledArrayBuilder<SyntaxToken>();
+        builder.AddRange(tokens);
+
+        return builder.ToList().Node;
+    }
     /// <summary>
     /// The number of nodes in the list.
     /// </summary>
     public int Count
-    {
-        get
-        {
-            return Node == null ? 0 : (Node.IsList ? Node.SlotCount : 1);
-        }
-    }
+        => Node == null ? 0 : (Node.IsList ? Node.SlotCount : 1);
 
     /// <summary>
     /// Gets the node at the specified index.
@@ -53,12 +117,12 @@ internal readonly partial struct SyntaxTokenList(SyntaxNode? node) : IEquatable<
                 {
                     if (unchecked((uint)index < (uint)Node.SlotCount))
                     {
-                        return (SyntaxToken)Node.GetNodeSlot(index).AssumeNotNull();
+                        return new SyntaxToken(_parent, Node.GetSlot(index), Position + Node.GetSlotOffset(index), _index + index);
                     }
                 }
                 else if (index == 0)
                 {
-                    return (SyntaxToken)Node;
+                    return new SyntaxToken(_parent, Node, Position, _index);
                 }
             }
 
@@ -66,286 +130,31 @@ internal readonly partial struct SyntaxTokenList(SyntaxNode? node) : IEquatable<
         }
     }
 
-    internal SyntaxNode? ItemInternal(int index)
-    {
-        if (Node?.IsList is true)
-        {
-            return Node.GetNodeSlot(index);
-        }
-
-        Debug.Assert(index == 0);
-        return Node;
-    }
-
-    /// <summary>
-    /// The absolute span of the list elements in characters.
-    /// </summary>
     public TextSpan Span
-        => Count > 0
-            ? TextSpan.FromBounds(this[0].Span.Start, this[Count - 1].Span.End)
-            : default;
+       => Node == null ? default : TextSpan.FromBounds(Position, Position + Node.Width);
 
-    /// <summary>
-    /// Returns the string representation of the nodes in this list.
-    /// </summary>
-    /// <returns>
-    /// The string representation of the nodes in this list.
-    /// </returns>
     public override string ToString()
-        => Node?.ToString() ?? string.Empty;
+        => Node != null ? Node.ToString() : string.Empty;
 
-    /// <summary>
-    /// Creates a new list with the specified node added at the end.
-    /// </summary>
-    /// <param name="node">The node to add.</param>
-    public SyntaxTokenList Add(SyntaxToken node)
+    public bool Any() => Node != null;
+    public SyntaxToken First() => Any() ? this[0] : throw new InvalidOperationException();
+    public SyntaxToken Last() => Any() ? this[^1] : throw new InvalidOperationException();
+
+    private static GreenNode? GetGreenNodeAt(GreenNode node, int index)
     {
-        return Insert(Count, node);
+        Debug.Assert(node.IsList || index == 0);
+
+        return node.IsList ? node.GetSlot(index) : node;
     }
 
-    /// <summary>
-    /// Creates a new list with the specified nodes added at the end.
-    /// </summary>
-    /// <param name="nodes">The nodes to add.</param>
-    public SyntaxTokenList AddRange(IEnumerable<SyntaxToken> nodes)
+    public int IndexOf(SyntaxToken tokenInList)
     {
-        return InsertRange(Count, nodes);
-    }
-
-    /// <summary>
-    /// Creates a new list with the specified node inserted at the index.
-    /// </summary>
-    /// <param name="index">The index to insert at.</param>
-    /// <param name="node">The node to insert.</param>
-    public SyntaxTokenList Insert(int index, SyntaxToken node)
-    {
-        ArgHelper.ThrowIfNull(node);
-
-        return InsertRange(index, new[] { node });
-    }
-
-    /// <summary>
-    /// Creates a new list with the specified nodes inserted at the index.
-    /// </summary>
-    /// <param name="index">The index to insert at.</param>
-    /// <param name="nodes">The nodes to insert.</param>
-    public SyntaxTokenList InsertRange(int index, IEnumerable<SyntaxToken> nodes)
-    {
-        ArgHelper.ThrowIfNegative(index);
-        ArgHelper.ThrowIfGreaterThan(index, Count);
-        ArgHelper.ThrowIfNull(nodes);
-
-        var list = this.ToList();
-        list.InsertRange(index, nodes);
-
-        if (list.Count == 0)
+        for (int i = 0, count = Count; i < count; i++)
         {
-            return this;
-        }
-        else
-        {
-            return CreateList(list[0].Green, list);
-        }
-    }
-
-    /// <summary>
-    /// Creates a new list with the element at specified index removed.
-    /// </summary>
-    /// <param name="index">The index of the element to remove.</param>
-    public SyntaxTokenList RemoveAt(int index)
-    {
-        ArgHelper.ThrowIfNegative(index);
-        ArgHelper.ThrowIfGreaterThan(index, Count);
-
-        return Remove(this[index]);
-    }
-
-    /// <summary>
-    /// Creates a new list with the element removed.
-    /// </summary>
-    /// <param name="node">The element to remove.</param>
-    public SyntaxTokenList Remove(SyntaxToken node)
-    {
-        return CreateList(this.Where(x => x != node).ToList());
-    }
-
-    /// <summary>
-    /// Creates a new list with the specified element replaced with the new node.
-    /// </summary>
-    /// <param name="nodeInList">The element to replace.</param>
-    /// <param name="newNode">The new node.</param>
-    public SyntaxTokenList Replace(SyntaxToken nodeInList, SyntaxToken newNode)
-    {
-        return ReplaceRange(nodeInList, new[] { newNode });
-    }
-
-    /// <summary>
-    /// Creates a new list with the specified element replaced with new nodes.
-    /// </summary>
-    /// <param name="nodeInList">The element to replace.</param>
-    /// <param name="newNodes">The new nodes.</param>
-    public SyntaxTokenList ReplaceRange(SyntaxToken nodeInList, IEnumerable<SyntaxToken> newNodes)
-    {
-        ArgHelper.ThrowIfNull(nodeInList);
-        ArgHelper.ThrowIfNull(newNodes);
-
-        var index = IndexOf(nodeInList);
-        if (index >= 0 && index < Count)
-        {
-            var list = this.ToList();
-            list.RemoveAt(index);
-            list.InsertRange(index, newNodes);
-            return CreateList(list);
-        }
-        else
-        {
-            throw new ArgumentOutOfRangeException(nameof(nodeInList));
-        }
-    }
-
-    private static SyntaxTokenList CreateList(List<SyntaxToken> items)
-    {
-        return items.Count != 0
-            ? CreateList(items[0].Green, items)
-            : default;
-    }
-
-    private static SyntaxTokenList CreateList(GreenNode creator, List<SyntaxToken> items)
-    {
-        if (items.Count == 0)
-        {
-            return default;
-        }
-
-        var newGreen = creator.CreateList(items.Select(n => n.Green));
-        return new SyntaxTokenList(newGreen.CreateRed());
-    }
-
-    /// <summary>
-    /// The first node in the list.
-    /// </summary>
-    public SyntaxToken First() => this[0];
-
-    /// <summary>
-    /// The first node in the list or default if the list is empty.
-    /// </summary>
-    public SyntaxToken? FirstOrDefault() => Any() ? this[0] : null;
-
-    /// <summary>
-    /// The last node in the list.
-    /// </summary>
-    public SyntaxToken Last() => this[^1];
-
-    /// <summary>
-    /// The last node in the list or default if the list is empty.
-    /// </summary>
-    public SyntaxToken? LastOrDefault() => Any() ? this[^1] : null;
-
-    /// <summary>
-    /// True if the list has at least one node.
-    /// </summary>
-    public bool Any()
-    {
-        Debug.Assert(Node == null || Count != 0);
-        return Node != null;
-    }
-
-    public SyntaxTokenList Where(Func<SyntaxToken, bool> predicate)
-    {
-        using var builder = new PooledArrayBuilder<SyntaxToken>(Count);
-
-        foreach (var node in this)
-        {
-            if (predicate(node))
+            if (this[i] == tokenInList)
             {
-                builder.Add(node);
+                return i;
             }
-        }
-
-        return builder.ToList();
-    }
-
-    // for debugging
-#pragma warning disable IDE0051 // Remove unused private members
-    private SyntaxToken[] Tokens => [.. this];
-#pragma warning restore IDE0051 // Remove unused private members
-
-    /// <summary>
-    /// Get's the enumerator for this list.
-    /// </summary>
-    public Enumerator GetEnumerator()
-    {
-        return new Enumerator(in this);
-    }
-
-    IEnumerator<SyntaxToken> IEnumerable<SyntaxToken>.GetEnumerator()
-    {
-        if (Any())
-        {
-            return new EnumeratorImpl(this);
-        }
-
-        return SpecializedCollections.EmptyEnumerator<SyntaxToken>();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        if (Any())
-        {
-            return new EnumeratorImpl(this);
-        }
-
-        return SpecializedCollections.EmptyEnumerator<SyntaxToken>();
-    }
-
-    public static bool operator ==(SyntaxTokenList left, SyntaxTokenList right)
-        => left.Node == right.Node;
-
-    public static bool operator !=(SyntaxTokenList left, SyntaxTokenList right)
-        => left.Node != right.Node;
-
-    public bool Equals(SyntaxTokenList other)
-        => Node == other.Node;
-
-    public override bool Equals(object? obj)
-        => obj is SyntaxTokenList list &&
-           Equals(list);
-
-    public override int GetHashCode()
-    {
-        return Node?.GetHashCode() ?? 0;
-    }
-
-    /// <summary>
-    /// The index of the node in this list, or -1 if the node is not in the list.
-    /// </summary>
-    public int IndexOf(SyntaxToken node)
-    {
-        var index = 0;
-        foreach (var child in this)
-        {
-            if (object.Equals(child, node))
-            {
-                return index;
-            }
-
-            index++;
-        }
-
-        return -1;
-    }
-
-    public int IndexOf(Func<SyntaxToken, bool> predicate)
-    {
-        var index = 0;
-        foreach (var child in this)
-        {
-            if (predicate(child))
-            {
-                return index;
-            }
-
-            index++;
         }
 
         return -1;
@@ -353,25 +162,9 @@ internal readonly partial struct SyntaxTokenList(SyntaxNode? node) : IEquatable<
 
     internal int IndexOf(SyntaxKind kind)
     {
-        var index = 0;
-        foreach (var child in this)
+        for (int i = 0, count = Count; i < count; i++)
         {
-            if (child.Kind == kind)
-            {
-                return index;
-            }
-
-            index++;
-        }
-
-        return -1;
-    }
-
-    public int LastIndexOf(SyntaxToken node)
-    {
-        for (var i = Count - 1; i >= 0; i--)
-        {
-            if (object.Equals(this[i], node))
+            if (this[i].Kind == kind)
             {
                 return i;
             }
@@ -380,98 +173,325 @@ internal readonly partial struct SyntaxTokenList(SyntaxNode? node) : IEquatable<
         return -1;
     }
 
-    public int LastIndexOf(Func<SyntaxToken, bool> predicate)
+    public SyntaxTokenList Add(SyntaxToken token)
+        => Insert(Count, token);
+
+    public SyntaxTokenList AddRange(IEnumerable<SyntaxToken> tokens)
+        => InsertRange(Count, tokens);
+
+    public SyntaxTokenList Insert(int index, SyntaxToken token)
     {
-        for (var i = Count - 1; i >= 0; i--)
+        if (token == default)
         {
-            if (predicate(this[i]))
-            {
-                return i;
-            }
+            ThrowHelper.ThrowArgumentOutOfRangeException(nameof(token));
         }
 
-        return -1;
+        return InsertRange(index, [token]);
     }
 
-    public struct Enumerator
+    public SyntaxTokenList InsertRange(int index, ReadOnlySpan<SyntaxToken> tokens)
     {
-        private readonly SyntaxTokenList _list;
-        private int _index;
+        var count = Count;
 
-        internal Enumerator(in SyntaxTokenList list)
+        ArgHelper.ThrowIfNegative(index);
+        ArgHelper.ThrowIfGreaterThan(index, count);
+
+        if (tokens.Length == 0)
         {
-            _list = list;
-            _index = -1;
+            return this;
         }
 
-        public bool MoveNext()
-        {
-            var newIndex = _index + 1;
-            if (newIndex < _list.Count)
-            {
-                _index = newIndex;
-                return true;
-            }
+        var array = new ArrayElement<GreenNode>[count + tokens.Length];
 
-            return false;
+        // Add current tokens up to 'index'
+        int i;
+        for (i = 0; i < index; i++)
+        {
+            array[i].Value = this[i].RequiredNode;
         }
 
-        public readonly SyntaxToken Current
-            => (SyntaxToken)_list.ItemInternal(_index)!;
-
-        public void Reset()
+        // Add new tokens
+        for (var j = 0; j < tokens.Length; i++, j++)
         {
-            _index = -1;
+            array[i].Value = tokens[j].RequiredNode;
         }
 
-        public override bool Equals(object? obj)
+        // Add remaining tokens starting from 'index'
+        for (var j = index; j < count; i++, j++)
         {
-            throw new NotSupportedException();
+            array[i].Value = this[j].RequiredNode;
         }
 
-        public override int GetHashCode()
-        {
-            throw new NotSupportedException();
-        }
+        return new(parent: null, InternalSyntax.SyntaxList.List(array), position: 0, index: 0);
     }
 
-    private class EnumeratorImpl : IEnumerator<SyntaxToken>
+    public SyntaxTokenList InsertRange(int index, IEnumerable<SyntaxToken> tokens)
     {
-        private Enumerator _e;
+        var count = Count;
 
-        internal EnumeratorImpl(in SyntaxTokenList list)
+        ArgHelper.ThrowIfNegative(index);
+        ArgHelper.ThrowIfGreaterThan(index, count);
+        ArgHelper.ThrowIfNull(tokens);
+
+        if (tokens.TryGetCount(out var tokenCount))
         {
-            _e = new Enumerator(in list);
+            return InsertRangeWithCount(index, tokens, tokenCount);
         }
 
-        public bool MoveNext()
+        using var builder = new PooledArrayBuilder<SyntaxToken>(count);
+
+        // Add current tokens up to 'index'
+        for (var i = 0; i < index; i++)
         {
-            return _e.MoveNext();
+            builder.Add(this[i]);
         }
 
-        public SyntaxToken Current
+        var oldCount = builder.Count;
+
+        // Add new tokens
+        foreach (var token in tokens)
         {
-            get
-            {
-                return _e.Current;
-            }
+            builder.Add(token);
         }
 
-        void IDisposable.Dispose()
+        // If builder.Count == oldCount, there weren't any tokens added.
+        // So, there's no need to continue.
+        if (builder.Count == oldCount)
         {
+            return this;
         }
 
-        object IEnumerator.Current
+        // Add remaining tokens starting from 'index'
+        for (var i = index; i < count; i++)
         {
-            get
-            {
-                return _e.Current;
-            }
+            builder.Add(this[i]);
         }
 
-        void IEnumerator.Reset()
-        {
-            _e.Reset();
-        }
+        return new(parent: null, builder.ToGreenListNode(), position: 0, index: 0);
     }
+
+    private SyntaxTokenList InsertRangeWithCount(int index, IEnumerable<SyntaxToken> tokens, int tokenCount)
+    {
+        if (tokenCount == 0)
+        {
+            return this;
+        }
+
+        var count = Count;
+        var array = new ArrayElement<GreenNode>[count + tokenCount];
+
+        // Add current tokens up to 'index'
+        int i;
+        for (i = 0; i < index; i++)
+        {
+            array[i].Value = this[i].RequiredNode;
+        }
+
+        // Add new tokens
+        foreach (var token in tokens)
+        {
+            array[i++].Value = token.RequiredNode;
+        }
+
+        // Add remaining tokens starting from 'index'
+        for (var j = index; j < count; i++, j++)
+        {
+            array[i].Value = this[j].RequiredNode;
+        }
+
+        return new(parent: null, InternalSyntax.SyntaxList.List(array), position: 0, index: 0);
+    }
+
+    public SyntaxTokenList RemoveAt(int index)
+    {
+        var count = Count;
+
+        ArgHelper.ThrowIfNegative(index);
+        ArgHelper.ThrowIfGreaterThanOrEqual(index, count);
+
+        // count - 1 because we're removing an item.
+        var array = new ArrayElement<GreenNode>[count - 1];
+
+        // Add current tokens up to 'index'
+        int i;
+        for (i = 0; i < index; i++)
+        {
+            array[i].Value = this[i].RequiredNode;
+        }
+
+        // Add remaining tokens starting *after* 'index'
+        for (var j = index + 1; j < count; i++, j++)
+        {
+            array[i].Value = this[j].RequiredNode;
+        }
+
+        return new(parent: null, InternalSyntax.SyntaxList.List(array), position: 0, index: 0);
+    }
+
+    public SyntaxTokenList Remove(SyntaxToken tokenInList)
+    {
+        var index = IndexOf(tokenInList);
+        return index >= 0 ? RemoveAt(index) : this;
+    }
+
+    public SyntaxTokenList Replace(SyntaxToken tokenInList, SyntaxToken newToken)
+    {
+        if (newToken == default)
+        {
+            ThrowHelper.ThrowArgumentOutOfRangeException(nameof(newToken));
+        }
+
+        return ReplaceRange(tokenInList, [newToken]);
+    }
+
+    public SyntaxTokenList ReplaceRange(SyntaxToken tokenInList, ReadOnlySpan<SyntaxToken> tokens)
+    {
+        var index = IndexOf(tokenInList);
+
+        if (tokens.Length == 0)
+        {
+            return RemoveAt(index);
+        }
+
+        if (index < 0)
+        {
+            ThrowHelper.ThrowArgumentOutOfRangeException(nameof(tokenInList));
+        }
+
+        var count = Count;
+        var array = new ArrayElement<GreenNode>[count + tokens.Length - 1];
+
+        // Add current tokens up to 'index'
+        int i;
+        for (i = 0; i < index; i++)
+        {
+            array[i].Value = this[i].RequiredNode;
+        }
+
+        // Add new tokens
+        for (var j = 0; j < tokens.Length; i++, j++)
+        {
+            array[i].Value = tokens[j].RequiredNode;
+        }
+
+        // Add remaining tokens starting *after* 'index'
+        for (var j = index + 1; j < count; i++, j++)
+        {
+            array[i].Value = this[j].RequiredNode;
+        }
+
+        return new(parent: null, InternalSyntax.SyntaxList.List(array), position: 0, index: 0);
+    }
+
+    public SyntaxTokenList ReplaceRange(SyntaxToken tokenInList, IEnumerable<SyntaxToken> tokens)
+    {
+        var index = IndexOf(tokenInList);
+
+        if (index < 0)
+        {
+            ThrowHelper.ThrowArgumentOutOfRangeException(nameof(tokenInList));
+        }
+
+        ArgHelper.ThrowIfNull(tokens);
+
+        if (tokens.TryGetCount(out var tokenCount))
+        {
+            return ReplaceRangeWithCount(index, tokens, tokenCount);
+        }
+
+        var count = Count;
+        using var builder = new PooledArrayBuilder<SyntaxToken>(count);
+
+        // Add current tokens up to 'index'
+        for (var i = 0; i < index; i++)
+        {
+            builder.Add(this[i]);
+        }
+
+        // Add new tokens
+        foreach (var token in tokens)
+        {
+            builder.Add(token);
+        }
+
+        // Add remaining tokens starting *after* 'index'
+        for (var i = index + 1; i < count; i++)
+        {
+            builder.Add(this[i]);
+        }
+
+        return new(parent: null, builder.ToGreenListNode(), position: 0, index: 0);
+    }
+
+    private SyntaxTokenList ReplaceRangeWithCount(int index, IEnumerable<SyntaxToken> tokens, int tokenCount)
+    {
+        if (tokenCount == 0)
+        {
+            return RemoveAt(index);
+        }
+
+        var count = Count;
+        var array = new ArrayElement<GreenNode>[count + tokenCount];
+
+        // Add current tokens up to 'index'
+        int i;
+        for (i = 0; i < index; i++)
+        {
+            array[i].Value = this[i].RequiredNode;
+        }
+
+        // Add new tokens
+        foreach (var token in tokens)
+        {
+            array[i++].Value = token.RequiredNode;
+        }
+
+        // Add remaining tokens starting from 'index'
+        for (var j = index; j < count; i++, j++)
+        {
+            array[i].Value = this[j].RequiredNode;
+        }
+
+        return new(parent: null, InternalSyntax.SyntaxList.List(array), position: 0, index: 0);
+    }
+
+    public override bool Equals([NotNullWhen(true)] object? obj)
+        => obj is SyntaxTokenList list && Equals(list);
+
+    public bool Equals(SyntaxTokenList other)
+        => Node == other.Node &&
+           _parent == other._parent &&
+           _index == other._index;
+
+    public override int GetHashCode()
+    {
+        // Not call GHC on parent as it's expensive
+        var hash = HashCodeCombiner.Start();
+        hash.Add(Node);
+        hash.Add(_index);
+
+        return hash.CombinedHash;
+    }
+
+    public static bool operator ==(SyntaxTokenList left, SyntaxTokenList right)
+        => left.Equals(right);
+
+    public static bool operator !=(SyntaxTokenList left, SyntaxTokenList right)
+        => !left.Equals(right);
+
+    public Enumerator GetEnumerator()
+        => new(in this);
+
+    IEnumerator<SyntaxToken> IEnumerable<SyntaxToken>.GetEnumerator()
+        => Node == null
+            ? SpecializedCollections.EmptyEnumerator<SyntaxToken>()
+            : new EnumeratorImpl(in this);
+
+    IEnumerator IEnumerable.GetEnumerator()
+        => Node == null
+            ? SpecializedCollections.EmptyEnumerator<SyntaxToken>()
+            : (IEnumerator)new EnumeratorImpl(in this);
+
+    public Reversed Reverse()
+        => new(this);
 }
