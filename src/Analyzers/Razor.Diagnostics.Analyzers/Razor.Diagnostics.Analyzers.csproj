@@ -6,6 +6,7 @@
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <ExcludeFromSourceOnlyBuild>false</ExcludeFromSourceOnlyBuild>
     <IsShippingPackage>false</IsShippingPackage>
+    <IsRoslynComponent>true</IsRoslynComponent>
   </PropertyGroup>
 
   <ItemGroup>
