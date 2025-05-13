@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.ObjectPool;
@@ -37,7 +36,7 @@ internal abstract partial class SyntaxNode
         }
     }
 
-    private IEnumerable<SyntaxNode> DescendantNodesAndTokensImpl(TextSpan span, Func<SyntaxNode, bool>? descendIntoChildren, bool includeSelf)
+    private IEnumerable<SyntaxNodeOrToken> DescendantNodesAndTokensImpl(TextSpan span, Func<SyntaxNode, bool>? descendIntoChildren, bool includeSelf)
     {
         if (includeSelf && IsInSpan(in span, Span))
         {
@@ -50,12 +49,12 @@ internal abstract partial class SyntaxNode
         {
             if (stack.TryGetNextInSpan(in span, out var value))
             {
-                if (!value.IsToken)
+                if (value.IsNode)
                 {
                     // PERF: Push before yield return so that "value" is 'dead' after the yield
                     // and therefore doesn't need to be stored in the iterator state machine. This
                     // saves a field.
-                    stack.PushChildren(value, descendIntoChildren);
+                    stack.PushChildren(value.AsNode()!, descendIntoChildren);
                 }
 
                 yield return value;
@@ -117,7 +116,7 @@ internal abstract partial class SyntaxNode
 
         public bool IsNotEmpty { get { return _stackPtr >= 0; } }
 
-        public bool TryGetNextInSpan(in TextSpan span, [NotNullWhen(true)] out SyntaxNode? value)
+        public bool TryGetNextInSpan(in TextSpan span, out SyntaxNodeOrToken value)
         {
             Debug.Assert(_stack != null);
 

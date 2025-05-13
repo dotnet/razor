@@ -6,11 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
-internal abstract class SyntaxSerializer(StringBuilder builder) : SyntaxWalker
+internal abstract partial class SyntaxSerializer(StringBuilder builder) : SyntaxWalker
 {
     protected const int IndentSize = 4;
     protected const string Separator = " - ";
