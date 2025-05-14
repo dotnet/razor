@@ -449,31 +449,23 @@ public sealed partial class CodeWriter : IDisposable
                         }
                     }
 
-                    var endOfChunkWritten = true;
-
                     // Are we about to write past the end of the buffer? If so, adjust source.
                     // This will be the last chunk we write, so be sure to update charIndex.
                     if (source.Length > destination.Length)
                     {
                         source = source[..destination.Length];
                         charIndex += source.Length;
-
-                        // There's more to this chunk to write! Note this so that we don't update
-                        // chunkIndex later.
-                        endOfChunkWritten = false;
+                    }
+                    else
+                    {
+                        chunkIndex++;
+                        charIndex = 0;
                     }
 
                     source.CopyTo(destination);
                     destination = destination[source.Length..];
 
                     charsWritten += source.Length;
-
-                    // Be careful not to increment chunkIndex unless we actually wrote to the end of the chunk.
-                    if (endOfChunkWritten)
-                    {
-                        chunkIndex++;
-                        charIndex = 0;
-                    }
 
                     // Break if we are done writing. chunkIndex and charIndex should have their correct values at this point.
                     if (destination.IsEmpty)
