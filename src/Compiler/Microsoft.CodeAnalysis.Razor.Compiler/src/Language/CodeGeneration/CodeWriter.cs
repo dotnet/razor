@@ -466,6 +466,7 @@ public sealed partial class CodeWriter : IDisposable
                     if (endOfChunkWritten)
                     {
                         chunkIndex++;
+                        charIndex = 0;
                     }
 
                     // Break if we are done writing. chunkIndex and charIndex should have their correct values at this point.
@@ -473,8 +474,6 @@ public sealed partial class CodeWriter : IDisposable
                     {
                         break;
                     }
-
-                    charIndex = 0;
                 }
 
                 if (destination.IsEmpty)
