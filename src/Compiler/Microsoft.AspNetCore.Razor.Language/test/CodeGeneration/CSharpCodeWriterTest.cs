@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
@@ -438,5 +439,47 @@ public class CSharpCodeWriterTest
                 int f;
 
             """, output);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/core/issues/9885")]
+    public void AlignedPages_WritesCorrectlyWhenPageAndBufferAreAligned()
+    {
+        var pages = new LinkedList<ReadOnlyMemory<char>[]>();
+
+        const string FirstLine = "First Line";
+        pages.AddLast([(FirstLine + FirstLine).AsMemory(), "Second".AsMemory()]);
+
+        var testWriter = CodeWriter.GetTestTextReader(pages);
+        var output = new char[FirstLine.Length];
+
+        testWriter.Read(output, 0, output.Length);
+        Assert.Equal(output, FirstLine.AsSpan());
+        Array.Clear(output);
+
+        testWriter.Read(output, 0, output.Length);
+        Assert.Equal(output, FirstLine.AsSpan());
+        Array.Clear(output);
+
+        testWriter.Read(output, 0, output.Length);
+        Assert.Equal(output, "Second\0\0\0\0".AsSpan());
+    }
+
+    [Fact]
+    public void ReaderOnlyReadsAsMuchAsRequested()
+    {
+        var pages = new LinkedList<ReadOnlyMemory<char>[]>();
+
+        const string FirstLine = "First Line";
+        pages.AddLast([FirstLine.AsMemory()]);
+
+        var testWriter = CodeWriter.GetTestTextReader(pages);
+        var output = new char[FirstLine.Length];
+
+        testWriter.Read(output, 0, 2);
+        Assert.Equal(output, "Fi\0\0\0\0\0\0\0\0".AsSpan());
+        Array.Clear(output);
+
+        testWriter.Read(output, 0, output.Length);
+        Assert.Equal(output, "rst Line\0\0".AsSpan());
     }
 }

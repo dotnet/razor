@@ -323,14 +323,20 @@ public sealed partial class CodeWriter : IDisposable
 
     public SourceText GetText()
     {
-        using var reader = new Reader(this);
+        using var reader = new Reader(_pages, Length);
         return SourceText.From(reader, Length, Encoding.UTF8);
     }
 
-    private sealed class Reader(CodeWriter codeWriter) : TextReader
+    // Internal for testing
+    internal static TextReader GetTestTextReader(LinkedList<ReadOnlyMemory<char>[]> pages)
     {
-        private LinkedListNode<ReadOnlyMemory<char>[]>? _page = codeWriter._pages.First;
-        private int _remainingLength = codeWriter.Length;
+        return new Reader(pages, pages.Count);
+    }
+
+    private sealed class Reader(LinkedList<ReadOnlyMemory<char>[]> pages, int length) : TextReader
+    {
+        private LinkedListNode<ReadOnlyMemory<char>[]>? _page = pages.First;
+        private int _remainingLength = length;
         private int _chunkIndex;
         private int _charIndex;
 
