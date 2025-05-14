@@ -413,7 +413,7 @@ public sealed partial class CodeWriter : IDisposable
                 return -1;
             }
 
-            var destination = buffer.AsSpan(index);
+            var destination = buffer.AsSpan(index, count);
             var charsWritten = 0;
 
             var page = _page;
