@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using RazorRazorSyntaxNodeList = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxList<Microsoft.AspNetCore.Razor.Language.Syntax.RazorSyntaxNode>;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
+using RazorSyntaxNodeOrToken = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNodeOrToken;
 using RazorSyntaxNodeList = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxList<Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode>;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
@@ -359,9 +360,10 @@ internal sealed class RazorFormattingPass(LanguageServerFeatureOptions languageS
 
         static bool IsSingleLineDirective(RazorSyntaxNode node, out RazorSyntaxNodeList children)
         {
-            if (node is CSharpCodeBlockSyntax content &&
-                node.Parent?.Parent is RazorDirectiveSyntax directive &&
-                directive.DirectiveDescriptor?.Kind == DirectiveKind.SingleLine)
+            if (node is CSharpCodeBlockSyntax
+                {
+                    Parent.Parent: RazorDirectiveSyntax { DirectiveDescriptor.Kind: DirectiveKind.SingleLine }
+                } content)
             {
                 children = content.Children;
                 return true;
@@ -389,12 +391,12 @@ internal sealed class RazorFormattingPass(LanguageServerFeatureOptions languageS
         }
     }
 
-    private static void ShrinkToSingleSpace(RazorSyntaxNode node, ref PooledArrayBuilder<TextChange> changes)
+    private static void ShrinkToSingleSpace(RazorSyntaxNodeOrToken nodeOrToken, ref PooledArrayBuilder<TextChange> changes)
     {
         // If there is anything other than one single space then we replace with one space between directive and brace.
         //
         // ie, "@code     {" will become "@code {"
-        changes.Add(new TextChange(node.Span, " "));
+        changes.Add(new TextChange(nodeOrToken.Span, " "));
     }
 
     private bool FormatBlock(FormattingContext context, RazorSourceDocument source, RazorSyntaxNode? directiveNode, RazorSyntaxNode openBraceNode, RazorSyntaxNode codeNode, RazorSyntaxNode closeBraceNode, ref PooledArrayBuilder<TextChange> changes)

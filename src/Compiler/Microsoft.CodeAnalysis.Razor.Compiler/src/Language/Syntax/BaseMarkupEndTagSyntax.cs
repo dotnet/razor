@@ -126,4 +126,7 @@ internal abstract partial class BaseMarkupEndTagSyntax
             return node;
         }
     }
+
+
+    public abstract BaseMarkupStartTagSyntax? GetStartTag();
 }

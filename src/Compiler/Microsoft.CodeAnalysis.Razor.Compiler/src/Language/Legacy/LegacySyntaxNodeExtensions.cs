@@ -13,9 +13,9 @@ internal static partial class LegacySyntaxNodeExtensions
 {
     private class SpanData
     {
-        public SyntaxNodeOrToken Previous;
+        public SyntaxNodeOrToken? Previous;
         public bool PreviousComputed;
-        public SyntaxNodeOrToken Next;
+        public SyntaxNodeOrToken? Next;
         public bool NextComputed;
     }
 
@@ -210,6 +210,13 @@ internal static partial class LegacySyntaxNodeExtensions
         return s_transitionSpanKinds.Contains(node.Kind);
     }
 
+    public static bool IsMetaCodeSpanKind(this SyntaxNodeOrToken nodeOrToken)
+    {
+        ArgHelper.ThrowIfNull(nodeOrToken);
+
+        return s_metaCodeSpanKinds.Contains(nodeOrToken.Kind);
+    }
+
     public static bool IsMetaCodeSpanKind(this SyntaxNode node)
     {
         ArgHelper.ThrowIfNull(node);
@@ -323,7 +330,7 @@ internal static partial class LegacySyntaxNodeExtensions
         }
     }
 
-    public static SyntaxNodeOrToken PreviousSpan(this SyntaxNode node)
+    public static SyntaxNodeOrToken? PreviousSpan(this SyntaxNode node)
     {
         ArgHelper.ThrowIfNull(node);
 
@@ -354,13 +361,13 @@ internal static partial class LegacySyntaxNodeExtensions
             }
 
             spanData.PreviousComputed = true;
-            spanData.Previous = null;
+            spanData.Previous = default;
 
-            return null;
+            return default;
         }
     }
 
-    public static SyntaxNodeOrToken NextSpan(this SyntaxNode node)
+    public static SyntaxNodeOrToken? NextSpan(this SyntaxNode node)
     {
         ArgHelper.ThrowIfNull(node);
 
@@ -391,7 +398,7 @@ internal static partial class LegacySyntaxNodeExtensions
             }
 
             spanData.NextComputed = true;
-            spanData.Next = null;
+            spanData.Next = default;
 
             return null;
         }

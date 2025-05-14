@@ -16,7 +16,7 @@ internal class RazorCSharpStatementKeywordFoldingProvider : AbstractSyntaxNodeFo
         if (node.Children is [_, CSharpStatementLiteralSyntax literal, ..] &&
             literal.LiteralTokens is [var keyword, ..])
         {
-            return $"@{keyword.GetContent()}";
+            return $"@{keyword.Content}";
         }
 
         return "@{...}";
