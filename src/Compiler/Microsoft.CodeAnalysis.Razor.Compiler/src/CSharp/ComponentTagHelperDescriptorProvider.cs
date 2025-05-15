@@ -448,24 +448,24 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
                 }
 
                 // Collect attributes that should be propagated to the type inference method.
-                var withAttributes = StringBuilderPool.GetPooledObject();
+                using var _2 = StringBuilderPool.GetPooledObject(out var withAttributes);
                 foreach (var attribute in typeParameter.GetAttributes())
                 {
                     if (attribute.HasFullName("System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute"))
                     {
                         Debug.Assert(attribute.AttributeClass != null);
 
-                        if (withAttributes.Object.Length > 0)
+                        if (withAttributes.Length > 0)
                         {
-                            withAttributes.Object.Append(", ");
+                            withAttributes.Append(", ");
                         }
                         else
                         {
-                            withAttributes.Object.Append('[');
+                            withAttributes.Append('[');
                         }
 
-                        withAttributes.Object.Append(attribute.AttributeClass.ToDisplayString(GloballyQualifiedFullNameTypeDisplayFormat));
-                        withAttributes.Object.Append('(');
+                        withAttributes.Append(attribute.AttributeClass.ToDisplayString(GloballyQualifiedFullNameTypeDisplayFormat));
+                        withAttributes.Append('(');
 
                         var first = true;
                         foreach (var arg in attribute.ConstructorArguments)
@@ -476,34 +476,33 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
                             }
                             else
                             {
-                                withAttributes.Object.Append(", ");
+                                withAttributes.Append(", ");
                             }
 
                             if (arg.Kind == TypedConstantKind.Enum)
                             {
-                                withAttributes.Object.Append("unchecked((");
-                                withAttributes.Object.Append(arg.Type!.ToDisplayString(GloballyQualifiedFullNameTypeDisplayFormat));
-                                withAttributes.Object.Append(')');
-                                withAttributes.Object.Append(CSharp.SymbolDisplay.FormatPrimitive(arg.Value!, quoteStrings: true, useHexadecimalNumbers: true));
-                                withAttributes.Object.Append(')');
+                                withAttributes.Append("unchecked((");
+                                withAttributes.Append(arg.Type!.ToDisplayString(GloballyQualifiedFullNameTypeDisplayFormat));
+                                withAttributes.Append(')');
+                                withAttributes.Append(CSharp.SymbolDisplay.FormatPrimitive(arg.Value!, quoteStrings: true, useHexadecimalNumbers: true));
+                                withAttributes.Append(')');
                             }
                             else
                             {
                                 Debug.Assert(false, $"Need to add support for '{arg.Kind}' and make sure the output is 'global::' prefixed.");
-                                withAttributes.Object.Append(arg.ToCSharpString());
+                                withAttributes.Append(arg.ToCSharpString());
                             }
                         }
 
-                        withAttributes.Object.Append(')');
+                        withAttributes.Append(')');
                     }
                 }
-                if (withAttributes.Object.Length > 0)
+                if (withAttributes.Length > 0)
                 {
-                    withAttributes.Object.Append("] ");
-                    withAttributes.Object.Append(typeParameter.Name);
-                    metadataPairs.Add(new(ComponentMetadata.Component.TypeParameterWithAttributesKey, withAttributes.Object.ToString()));
+                    withAttributes.Append("] ");
+                    withAttributes.Append(typeParameter.Name);
+                    metadataPairs.Add(new(ComponentMetadata.Component.TypeParameterWithAttributesKey, withAttributes.ToString()));
                 }
-                withAttributes.Dispose();
 
                 pb.SetMetadata(MetadataCollection.Create(metadataPairs));
 
