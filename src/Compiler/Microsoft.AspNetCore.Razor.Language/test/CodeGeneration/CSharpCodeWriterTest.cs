@@ -449,18 +449,18 @@ public class CSharpCodeWriterTest
         const string FirstLine = "First Line";
         pages.AddLast([(FirstLine + FirstLine).AsMemory(), "Second".AsMemory()]);
 
-        var testWriter = CodeWriter.GetTestTextReader(pages);
+        var testReader = CodeWriter.GetTestTextReader(pages);
         var output = new char[FirstLine.Length];
 
-        testWriter.Read(output, 0, output.Length);
+        testReader.Read(output, 0, output.Length);
         Assert.Equal(FirstLine, string.Join("", output));
         Array.Clear(output, 0, output.Length);
 
-        testWriter.Read(output, 0, output.Length);
+        testReader.Read(output, 0, output.Length);
         Assert.Equal(FirstLine, string.Join("", output));
         Array.Clear(output, 0, output.Length);
 
-        testWriter.Read(output, 0, output.Length);
+        testReader.Read(output, 0, output.Length);
         Assert.Equal("Second\0\0\0\0", string.Join("", output));
     }
 
@@ -472,14 +472,14 @@ public class CSharpCodeWriterTest
         const string FirstLine = "First Line";
         pages.AddLast([FirstLine.AsMemory()]);
 
-        var testWriter = CodeWriter.GetTestTextReader(pages);
+        var testReader = CodeWriter.GetTestTextReader(pages);
         var output = new char[FirstLine.Length];
 
-        testWriter.Read(output, 0, 2);
+        testReader.Read(output, 0, 2);
         Assert.Equal("Fi\0\0\0\0\0\0\0\0", string.Join("", output));
         Array.Clear(output, 0, output.Length);
 
-        testWriter.Read(output, 0, output.Length);
+        testReader.Read(output, 0, output.Length);
         Assert.Equal("rst Line\0\0", string.Join("", output));
     }
 }
