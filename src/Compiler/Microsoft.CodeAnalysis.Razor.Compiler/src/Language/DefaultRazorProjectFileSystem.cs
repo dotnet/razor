@@ -103,6 +103,14 @@ internal class DefaultRazorProjectFileSystem : RazorProjectFileSystem
             return normalizedPath;
         }
 
+        // This might be an absolute path rooted outside of the project root. In that case,
+        // we just return it. This will mean that the GetItem(...) method will throw above,
+        // but it could be overridden by a descendant file system.
+        if (PathUtilities.IsPathFullyQualified(path))
+        {
+            return normalizedPath;
+        }
+
         // This is not an absolute path, so we combine it with Root to produce the final path.
 
         // If the root doesn't end in a '/', and the path doesn't start with a '/', we'll need to add one.
