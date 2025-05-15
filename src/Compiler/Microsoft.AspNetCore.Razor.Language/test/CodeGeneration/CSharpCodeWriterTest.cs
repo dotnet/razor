@@ -453,15 +453,15 @@ public class CSharpCodeWriterTest
         var output = new char[FirstLine.Length];
 
         testWriter.Read(output, 0, output.Length);
-        Assert.Equal(output, FirstLine);
+        Assert.Equal(FirstLine, string.Join("", output));
         Array.Clear(output, 0, output.Length);
 
         testWriter.Read(output, 0, output.Length);
-        Assert.Equal(output, FirstLine);
+        Assert.Equal(FirstLine, string.Join("", output));
         Array.Clear(output, 0, output.Length);
 
         testWriter.Read(output, 0, output.Length);
-        Assert.Equal(output, "Second\0\0\0\0");
+        Assert.Equal("Second\0\0\0\0", string.Join("", output));
     }
 
     [Fact]
@@ -476,10 +476,10 @@ public class CSharpCodeWriterTest
         var output = new char[FirstLine.Length];
 
         testWriter.Read(output, 0, 2);
-        Assert.Equal(output, "Fi\0\0\0\0\0\0\0\0");
+        Assert.Equal("Fi\0\0\0\0\0\0\0\0", string.Join("", output));
         Array.Clear(output, 0, output.Length);
 
         testWriter.Read(output, 0, output.Length);
-        Assert.Equal(output, "rst Line\0\0");
+        Assert.Equal("rst Line\0\0", string.Join("", output));
     }
 }
