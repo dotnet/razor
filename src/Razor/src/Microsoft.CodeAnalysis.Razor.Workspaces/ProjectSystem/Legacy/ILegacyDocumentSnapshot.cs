@@ -11,5 +11,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem.Legacy;
 /// </remarks>
 internal interface ILegacyDocumentSnapshot
 {
+    string TargetPath { get; }
     string FileKind { get; }
 }
