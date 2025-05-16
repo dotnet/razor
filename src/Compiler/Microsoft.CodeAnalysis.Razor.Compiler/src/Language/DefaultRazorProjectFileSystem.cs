@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -93,20 +94,29 @@ internal class DefaultRazorProjectFileSystem : RazorProjectFileSystem
 
         var normalizedPath = path.Replace('\\', '/');
 
+        // On Windows, check to see if this is a rooted file path. If it is, just return it.
+        // This covers the following cases:
+        //
+        // 1. It is rooted within the project root. That's valid and we would have checked
+        //    specifically for that case below.
+        // 2. It is rooted outside of the project root. That's invalid, and we don't want to
+        //    concatenate it with the project root. That would potentially produce an invalid
+        //    Windows path like 'C:/project/C:/other-project/some-file.cshtml'.
+        //
+        // Note that returning a path that is rooted outside of the project root will cause
+        // the GetItem(...) method to throw, but it could be overridden by a descendant file
+        // system.
+        if (PlatformInformation.IsWindows && PathUtilities.IsPathFullyQualified(path))
+        {
+            return normalizedPath;
+        }
+
         // Check if the given path is an absolute path. It is absolute if...
         //
         // 1. It is a network share path and starts with a '//' (e.g. //server/some/network/folder) or...
         // 2. It starts with Root
         if (normalizedPath is ['/', '/', ..] ||
             normalizedPath.StartsWith(Root, StringComparison.OrdinalIgnoreCase))
-        {
-            return normalizedPath;
-        }
-
-        // This might be an absolute path rooted outside of the project root. In that case,
-        // we just return it. This will mean that the GetItem(...) method will throw above,
-        // but it could be overridden by a descendant file system.
-        if (PathUtilities.IsPathFullyQualified(path))
         {
             return normalizedPath;
         }
