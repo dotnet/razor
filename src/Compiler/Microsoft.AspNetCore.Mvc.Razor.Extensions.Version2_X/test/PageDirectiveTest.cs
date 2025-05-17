@@ -31,10 +31,9 @@ public class PageDirectiveTest : RazorProjectEngineTestBase
         var documentNode = processor.GetDocumentNode();
 
         // Act
-        var result = PageDirective.TryGetPageDirective(documentNode, out var pageDirective);
+        Assert.True(PageDirective.TryGetPageDirective(documentNode, out var pageDirective));
 
         // Assert
-        Assert.True(result);
         Assert.Equal("some-route-template", pageDirective.RouteTemplate);
         Assert.NotNull(pageDirective.DirectiveNode);
     }
@@ -51,10 +50,9 @@ public class PageDirectiveTest : RazorProjectEngineTestBase
         var documentNode = processor.GetDocumentNode();
 
         // Act
-        var result = PageDirective.TryGetPageDirective(documentNode, out var pageDirective);
+        Assert.True(PageDirective.TryGetPageDirective(documentNode, out var pageDirective));
 
         // Assert
-        Assert.True(result);
         Assert.Null(pageDirective.RouteTemplate);
     }
 
@@ -87,10 +85,9 @@ public class PageDirectiveTest : RazorProjectEngineTestBase
         var documentNode = processor.GetDocumentNode();
 
         // Act
-        var result = PageDirective.TryGetPageDirective(documentNode, out var pageDirective);
+        Assert.True(PageDirective.TryGetPageDirective(documentNode, out var pageDirective));
 
         // Assert
-        Assert.True(result);
         Assert.Null(pageDirective.RouteTemplate);
         Assert.NotNull(pageDirective.DirectiveNode);
     }
@@ -106,10 +103,9 @@ public class PageDirectiveTest : RazorProjectEngineTestBase
         var documentNode = processor.GetDocumentNode();
 
         // Act
-        var result = PageDirective.TryGetPageDirective(documentNode, out var pageDirective);
+        Assert.True(PageDirective.TryGetPageDirective(documentNode, out var pageDirective));
 
         // Assert
-        Assert.True(result);
         Assert.Null(pageDirective.RouteTemplate);
     }
 
@@ -124,10 +120,9 @@ public class PageDirectiveTest : RazorProjectEngineTestBase
         var documentNode = processor.GetDocumentNode();
 
         // Act
-        var result = PageDirective.TryGetPageDirective(documentNode, out var pageDirective);
+        Assert.True(PageDirective.TryGetPageDirective(documentNode, out var pageDirective));
 
         // Assert
-        Assert.True(result);
         Assert.Equal("some-route-template", pageDirective.RouteTemplate);
     }
 }

@@ -1,1 +1,1 @@
-﻿TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MalformedPageDirective.cshtml(1,7): Error RZ1016: The 'page' directive expects a string surrounded by double quotes.
+﻿TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MalformedPageDirective.cshtml(1,7): Error RZ1046: The 'page' directive expects an identifier or explicit razor expression ("@()") or a string surrounded by double quotes.

@@ -396,6 +396,14 @@ internal static class RazorDiagnosticFactory
     public static RazorDiagnostic CreateParsing_DefineAndUndefNotAllowed(SourceSpan location)
         => RazorDiagnostic.Create(Parsing_DefineAndUndefNotAllowed, location);
 
+    internal static readonly RazorDiagnosticDescriptor Parsing_DirectiveExpectsIdentifierOrExpressionOrString =
+        new($"{DiagnosticPrefix}1046",
+            Resources.DirectiveExpectsIdentifierOrExpressionOrStringLiteral,
+            RazorDiagnosticSeverity.Error);
+
+    public static RazorDiagnostic CreateParsing_DirectiveExpectsIdentifierOrExpressionOrString(SourceSpan location, string directiveName)
+        => RazorDiagnostic.Create(Parsing_DirectiveExpectsIdentifierOrExpressionOrString, location, directiveName);
+
     #endregion
 
     #region Semantic Errors

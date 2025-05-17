@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -51,6 +52,17 @@ internal class DesignTimeDirectiveTargetExtension : IDesignTimeDirectiveTargetEx
             // We don't need to do anything special here.
             // We let the Roslyn take care of providing syntax errors for C# attributes.
             return;
+        }
+
+        if (tokenKind is DirectiveTokenKind.IdentifierOrExpressionOrString)
+        {
+            // We need to evaluate the kind of content that we have received,
+            // either an identifier or expression, or a simple string
+            // This does not support verbatim/interpolated/raw strings
+            // We simply check the expression's type and reuse the logic below
+            tokenKind = node.Content.StartsWith('"')
+                ? DirectiveTokenKind.String
+                : DirectiveTokenKind.IdentifierOrExpression;
         }
 
         // Wrap the directive token in a lambda to isolate variable names.
@@ -215,6 +227,9 @@ internal class DesignTimeDirectiveTargetExtension : IDesignTimeDirectiveTargetEx
                         context.CodeWriter.WriteLine(";");
                     }
                     break;
+
+                case DirectiveTokenKind.IdentifierOrExpressionOrString:
+                    throw new NotSupportedException("This directive token kind should have been handled");
             }
             context.CodeWriter.CurrentIndent = originalIndent;
         }

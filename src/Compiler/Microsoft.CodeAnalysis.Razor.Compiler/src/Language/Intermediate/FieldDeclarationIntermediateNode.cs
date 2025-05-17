@@ -20,6 +20,8 @@ public sealed class FieldDeclarationIntermediateNode : MemberDeclarationIntermed
 
     public string FieldType { get; set; }
 
+    public string Initializer { get; set; }
+
     public override void Accept(IntermediateNodeVisitor visitor)
     {
         if (visitor == null)
@@ -37,5 +39,6 @@ public sealed class FieldDeclarationIntermediateNode : MemberDeclarationIntermed
         formatter.WriteProperty(nameof(FieldName), FieldName);
         formatter.WriteProperty(nameof(FieldType), FieldType);
         formatter.WriteProperty(nameof(Modifiers), string.Join(" ", Modifiers));
+        formatter.WriteProperty(nameof(Initializer), Initializer);
     }
 }
