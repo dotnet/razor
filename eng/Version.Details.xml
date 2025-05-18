@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
-  <Source Uri="https://github.com/dotnet/dotnet" Mapping="razor" Sha="604dfc7f29729283704bee27b1e844c1fa044b9c" BarId="268651" />
+  <Source Uri="https://github.com/dotnet/dotnet" Mapping="razor" Sha="170498a9429a5553fe7ac0ec2341d19bbb97cbe8" BarId="268722" />
   <ProductDependencies>
     <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="5.0.0-1.25230.6">
       <Uri>https://github.com/dotnet/roslyn</Uri>
