@@ -25,6 +25,12 @@ for($i=0; $i -le 3; $i++)
     $success=$true
     break
   }
+  else if(Test-Path -Path $env:LocalAppData\Microsoft\VisualStudio\18.0*RoslynDev)
+  {
+    Write-Host "The hive 'RoslynDev' exists"
+    $success=$true
+    break
+  }
 }
 
 if($success -eq $false){
