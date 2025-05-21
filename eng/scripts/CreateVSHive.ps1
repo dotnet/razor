@@ -19,6 +19,8 @@ $success=$false
 for($i=0; $i -le 3; $i++)
 {
   & $devenvExePath /rootsuffix $rootSuffix /updateConfiguration
+  $path = "$env:LocalAppData\Microsoft\VisualStudio\18.0*RoslynDev"
+  Write-Host "Checking Path: $path"
   if(Test-Path -Path $env:LocalAppData\Microsoft\VisualStudio\18.0*RoslynDev)
   {
     Write-Host "The hive 'RoslynDev' exists"
