@@ -39,6 +39,11 @@ internal record DelegatedValidateBreakpointRangeParams(
     [property: JsonPropertyName("projectedRange")] LspRange ProjectedRange,
     [property: JsonPropertyName("projectedKind")] RazorLanguageKind ProjectedKind) : IDelegatedParams;
 
+internal record DelegatedDataTipRangeParams(
+    [property: JsonPropertyName("identifier")] TextDocumentIdentifierAndVersion Identifier,
+    [property: JsonPropertyName("projectedPosition")] Position ProjectedPosition,
+    [property: JsonPropertyName("projectedKind")] RazorLanguageKind ProjectedKind) : IDelegatedParams;
+
 internal record DelegatedOnAutoInsertParams(
     [property: JsonPropertyName("identifier")] TextDocumentIdentifierAndVersion Identifier,
     [property: JsonPropertyName("projectedPosition")] Position ProjectedPosition,
