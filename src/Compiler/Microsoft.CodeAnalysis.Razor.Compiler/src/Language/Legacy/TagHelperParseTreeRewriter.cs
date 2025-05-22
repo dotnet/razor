@@ -162,7 +162,7 @@ internal static class TagHelperParseTreeRewriter
             var body = VisitList(node.Body);
 
             // Visit end tag.
-            var endTag = (MarkupEndTagSyntax)Visit(node.EndTag);
+            var endTag = (MarkupEndTagSyntax?)Visit(node.EndTag);
             if (endTag != null)
             {
                 var tagName = endTag.GetTagNameWithOptionalBang();
