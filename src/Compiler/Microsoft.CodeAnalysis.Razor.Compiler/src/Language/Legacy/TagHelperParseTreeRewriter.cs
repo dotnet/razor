@@ -36,10 +36,7 @@ internal static class TagHelperParseTreeRewriter
 
         foreach (var descriptor in binder.Descriptors)
         {
-            foreach (var diagnostic in descriptor.GetAllDiagnostics())
-            {
-                builder.Add(diagnostic);
-            }
+            descriptor.AppendAllDiagnostics(ref builder.AsRef());
         }
 
         var diagnostics = builder.ToImmutableOrderedBy(static d => d.Span.AbsoluteIndex);
