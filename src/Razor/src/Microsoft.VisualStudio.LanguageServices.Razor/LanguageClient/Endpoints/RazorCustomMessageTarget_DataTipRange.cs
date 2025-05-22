@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Endpoints;
 internal partial class RazorCustomMessageTarget
 {
     [JsonRpcMethod(CustomMessageNames.RazorDataTipRangeName, UseSingleObjectParameterDeserialization = true)]
-    public async Task<VSInternalDataTip?> DataTipRangeAsync(DelegatedDataTipRangeParams request, CancellationToken cancellationToken)
+    public async Task<VSInternalDataTip?> DataTipRangeAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
     {
         var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
         if (delegationDetails is null)

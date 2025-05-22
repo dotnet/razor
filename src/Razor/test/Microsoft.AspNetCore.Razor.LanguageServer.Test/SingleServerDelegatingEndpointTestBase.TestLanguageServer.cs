@@ -387,7 +387,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
 
         private Task<VSInternalDataTip> HandleDataTipRangeAsync<T>(T @params, CancellationToken cancellationToken)
         {
-            var delegatedParams = Assert.IsType<DelegatedDataTipRangeParams>(@params);
+            var delegatedParams = Assert.IsType<DelegatedPositionParams>(@params);
             var delegatedRequest = new TextDocumentPositionParams()
             {
                 TextDocument = new VSTextDocumentIdentifier()

@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 
 [RazorLanguageServerEndpoint(VSInternalMethods.TextDocumentDataTipRangeName)]
-internal class DataTipRangeHandlerEndpoint(
+internal sealed class DataTipRangeHandlerEndpoint(
     IDocumentMappingService documentMappingService,
     LanguageServerFeatureOptions languageServerFeatureOptions,
     IClientConnection clientConnection,
@@ -49,7 +49,7 @@ internal class DataTipRangeHandlerEndpoint(
             return SpecializedTasks.Null<IDelegatedParams>();
         }
 
-        return Task.FromResult<IDelegatedParams?>(new DelegatedDataTipRangeParams(
+        return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
             documentContext.GetTextDocumentIdentifierAndVersion(),
             positionInfo.Position,
             positionInfo.LanguageKind));
