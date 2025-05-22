@@ -58,7 +58,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
         codeDocument.SetPreTagHelperSyntaxTree(syntaxTree);
     }
 
-    private static ReadOnlySpan<char> GetSpanWithoutGlobalPrefix(string s)
+    internal static ReadOnlySpan<char> GetSpanWithoutGlobalPrefix(string s)
     {
         const string globalPrefix = "global::";
 
@@ -334,7 +334,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
     internal sealed class ComponentDirectiveVisitor : DirectiveVisitor
     {
-        private readonly List<TagHelperDescriptor> _nonFullyQualifiedComponents = [];
+        private readonly List<(TagHelperDescriptor TagHelper, string TypeNamespace)> _nonFullyQualifiedComponents = [];
 
         private string? _filePath;
         private RazorSourceDocument? _source;
@@ -363,7 +363,8 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
                     continue;
                 }
 
-                _nonFullyQualifiedComponents.Add(tagHelper);
+                var tagHelperTypeNamespace = tagHelper.GetTypeNamespace();
+                _nonFullyQualifiedComponents.Add((tagHelper, tagHelperTypeNamespace));
 
                 if (currentNamespace is null)
                 {
@@ -374,12 +375,12 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
                 {
                     // If this is a child content tag helper, we want to add it if it's original type is in scope.
                     // E.g, if the type name is `Test.MyComponent.ChildContent`, we want to add it if `Test.MyComponent` is in scope.
-                    if (IsTypeInScope(tagHelper, currentNamespace))
+                    if (IsTypeNamespaceInScope(tagHelperTypeNamespace, currentNamespace))
                     {
                         AddMatch(tagHelper);
                     }
                 }
-                else if (IsTypeInScope(tagHelper, currentNamespace))
+                else if (IsTypeNamespaceInScope(tagHelperTypeNamespace, currentNamespace))
                 {
                     // Also, if the type is already in scope of the document's namespace, using isn't necessary.
                     AddMatch(tagHelper);
@@ -455,7 +456,15 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
                             continue;
                         }
 
-                        foreach (var tagHelper in _nonFullyQualifiedComponents)
+                        if (_nonFullyQualifiedComponents.Count == 0)
+                        {
+                            // There aren't any non qualified components to add
+                            continue;
+                        }
+
+                        // Remove global:: prefix from namespace.
+                        var normalizedNamespaceSpan = GetSpanWithoutGlobalPrefix(@namespace);
+                        foreach (var (tagHelper, tagHelperTypeNamespace) in _nonFullyQualifiedComponents)
                         {
                             Debug.Assert(!tagHelper.IsComponentFullyQualifiedNameMatch, "We've already processed these.");
 
@@ -463,12 +472,12 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
                             {
                                 // If this is a child content tag helper, we want to add it if it's original type is in scope of the given namespace.
                                 // E.g, if the type name is `Test.MyComponent.ChildContent`, we want to add it if `Test.MyComponent` is in this namespace.
-                                if (IsTypeInNamespace(tagHelper, @namespace))
+                                if (IsTypeNamespaceInNormalizedNamespace(tagHelperTypeNamespace, normalizedNamespaceSpan))
                                 {
                                     AddMatch(tagHelper);
                                 }
                             }
-                            else if (IsTypeInNamespace(tagHelper, @namespace))
+                            else if (IsTypeNamespaceInNormalizedNamespace(tagHelperTypeNamespace, normalizedNamespaceSpan))
                             {
                                 // If the type is at the top-level or if the type's namespace matches the using's namespace, add it.
                                 AddMatch(tagHelper);
@@ -480,31 +489,24 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
             }
         }
 
-        internal static bool IsTypeInNamespace(TagHelperDescriptor tagHelper, string @namespace)
+        internal static bool IsTypeNamespaceInNormalizedNamespace(string typeNamespace, ReadOnlySpan<char> namespaceWithoutGlobalPrefix)
         {
-            var typeNamespace = tagHelper.GetTypeNamespace();
-
             if (typeNamespace.IsNullOrEmpty())
             {
                 // Either the typeName is not the full type name or this type is at the top level.
                 return true;
             }
 
-            // Remove global:: prefix from namespace.
-            var normalizedNamespaceSpan = GetSpanWithoutGlobalPrefix(@namespace);
-
-            return normalizedNamespaceSpan.Equals(typeNamespace.AsSpan(), StringComparison.Ordinal);
+            return namespaceWithoutGlobalPrefix.Equals(typeNamespace.AsSpan(), StringComparison.Ordinal);
         }
 
-        // Check if the given type is already in scope given the namespace of the current document.
+        // Check if a type's namespace is already in scope given the namespace of the current document.
         // E.g,
         // If the namespace of the document is `MyComponents.Components.Shared`,
         // then the types `MyComponents.FooComponent`, `MyComponents.Components.BarComponent`, `MyComponents.Components.Shared.BazComponent` are all in scope.
         // Whereas `MyComponents.SomethingElse.OtherComponent` is not in scope.
-        internal static bool IsTypeInScope(TagHelperDescriptor tagHelper, string @namespace)
+        internal static bool IsTypeNamespaceInScope(string typeNamespace, string @namespace)
         {
-            var typeNamespace = tagHelper.GetTypeNamespace();
-
             if (typeNamespace.IsNullOrEmpty())
             {
                 // Either the typeName is not the full type name or this type is at the top level.
