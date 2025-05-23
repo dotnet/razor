@@ -20,6 +20,7 @@
                 CSharpCode - 
                     IntermediateToken -  - CSharp - EndContext();
                 MalformedDirective - (94:3,0 [8] IncompleteDirectives.cshtml) - page
+                    DirectiveToken - (100:3,6 [0] IncompleteDirectives.cshtml) - 
                 MalformedDirective - (102:4,0 [6] IncompleteDirectives.cshtml) - page
                 CSharpCode - 
                     IntermediateToken -  - CSharp - BeginContext(108, 5, true);

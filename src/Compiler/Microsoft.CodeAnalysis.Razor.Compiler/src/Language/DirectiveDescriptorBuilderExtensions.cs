@@ -284,4 +284,21 @@ public static class DirectiveDescriptorBuilderExtensions
 
         return builder;
     }
+
+    public static IDirectiveDescriptorBuilder AddOptionalIdentifierOrExpressionOrString(this IDirectiveDescriptorBuilder builder, string name, string description)
+    {
+        if (builder == null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.Tokens.Add(
+            DirectiveTokenDescriptor.CreateToken(
+                DirectiveTokenKind.IdentifierOrExpressionOrString,
+                optional: true,
+                name: name,
+                description: description));
+
+        return builder;
+    }
 }
