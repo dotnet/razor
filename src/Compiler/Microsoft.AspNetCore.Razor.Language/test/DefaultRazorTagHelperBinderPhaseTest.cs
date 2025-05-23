@@ -1255,11 +1255,17 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
     [InlineData("Project.Foo", "global::Project.Bar", false)]
     [InlineData("Project.Bar.Foo", "Project", false)]
     [InlineData("Bar.Foo", "Project", false)]
-    public void IsTypeInNamespace_WorksAsExpected(string typeName, string @namespace, bool expected)
+    public void IsTypeNamespaceInNormalizedNamespace_WorksAsExpected(string typeName, string @namespace, bool expected)
     {
         // Arrange & Act
         var descriptor = CreateComponentDescriptor(typeName, typeName, "Test.dll");
-        var result = DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor.IsTypeInNamespace(descriptor, @namespace);
+
+        // Remove global:: prefix from namespace.
+        var normalizedNamespaceSpan = DefaultRazorTagHelperContextDiscoveryPhase.GetSpanWithoutGlobalPrefix(@namespace);
+
+        var typeNamespace = descriptor.GetTypeNamespace();
+
+        var result = DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor.IsTypeNamespaceInNormalizedNamespace(typeNamespace, normalizedNamespaceSpan);
 
         // Assert
         Assert.Equal(expected, result);
@@ -1273,11 +1279,13 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
     [InlineData("Project.Foo", "Project.Bar", true)]
     [InlineData("Project.Bar.Foo", "Project", false)]
     [InlineData("Bar.Foo", "Project", false)]
-    public void IsTypeInScope_WorksAsExpected(string typeName, string currentNamespace, bool expected)
+    public void IsTypeNamespaceInScope_WorksAsExpected(string typeName, string currentNamespace, bool expected)
     {
         // Arrange & Act
         var descriptor = CreateComponentDescriptor(typeName, typeName, "Test.dll");
-        var result = DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor.IsTypeInScope(descriptor, currentNamespace);
+        var tagHelperTypeNamespace = descriptor.GetTypeNamespace();
+
+        var result = DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor.IsTypeNamespaceInScope(tagHelperTypeNamespace, currentNamespace);
 
         // Assert
         Assert.Equal(expected, result);
