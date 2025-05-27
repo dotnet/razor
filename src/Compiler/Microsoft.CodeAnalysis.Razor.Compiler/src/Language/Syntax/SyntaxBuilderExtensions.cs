@@ -142,9 +142,7 @@ internal static class SyntaxBuilderExtensions
     public static SyntaxNode? ToListNode<TNode>(
         ref readonly this PooledArrayBuilder<TNode> builder, SyntaxNode parent)
         where TNode : SyntaxNode
-        => builder.ToGreenListNode() is GreenNode listNode
-            ? listNode.CreateRed(parent, parent.Position)
-            : null;
+        => builder.ToListNode(parent, parent.Position);
 
     /// <summary>
     ///  Produces a <see cref="SyntaxNode"/> with the given <paramref name="parent"/>
@@ -171,9 +169,7 @@ internal static class SyntaxBuilderExtensions
     /// </summary>
     public static SyntaxNode? ToListNode(
         ref readonly this PooledArrayBuilder<SyntaxToken> builder, SyntaxNode parent)
-        => builder.ToGreenListNode() is GreenNode listNode
-            ? listNode.CreateRed(parent, parent.Position)
-            : null;
+        => builder.ToListNode(parent, parent.Position);
 
     /// <summary>
     ///  Produces a <see cref="SyntaxNode"/> with the given <paramref name="parent"/>

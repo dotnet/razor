@@ -267,9 +267,10 @@ internal class BraceSmartIndenter : IDisposable
     {
         // We only support whitespace based content. Any non-whitespace content is an unknown to us
         // in regards to indentation.
-        foreach (var token in owner.ChildTokens())
+        foreach (var child in owner.ChildNodesAndTokens())
         {
-            if (!string.IsNullOrWhiteSpace(token.Content))
+            if (!child.AsToken(out var token) ||
+                !string.IsNullOrWhiteSpace(token.Content))
             {
                 return true;
             }
