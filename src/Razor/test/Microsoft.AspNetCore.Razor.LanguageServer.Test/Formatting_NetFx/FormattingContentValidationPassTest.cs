@@ -6,10 +6,10 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using Xunit;
@@ -30,14 +30,13 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
             """;
         var context = CreateFormattingContext(source);
         var edits = ImmutableArray.Create(new TextChange(source.Span, "    "));
-        var input = edits;
         var pass = GetPass();
 
         // Act
-        var result = await pass.ExecuteAsync(context, edits, DisposalToken);
+        var result = await pass.IsValidAsync(context, edits, DisposalToken);
 
         // Assert
-        Assert.Equal(input, result);
+        Assert.True(result);
     }
 
     [Fact]
@@ -55,10 +54,10 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
         var pass = GetPass();
 
         // Act
-        var result = await pass.ExecuteAsync(context, input, DisposalToken);
+        var result = await pass.IsValidAsync(context, input, DisposalToken);
 
         // Assert
-        Assert.Empty(result);
+        Assert.False(result);
     }
 
     private FormattingContentValidationPass GetPass()
@@ -71,7 +70,11 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
         return pass;
     }
 
-    private static FormattingContext CreateFormattingContext(TestCode input, int tabSize = 4, bool insertSpaces = true, string? fileKind = null)
+    private static FormattingContext CreateFormattingContext
+        (TestCode input,
+        int tabSize = 4,
+        bool insertSpaces = true,
+        RazorFileKind? fileKind = null)
     {
         var source = SourceText.From(input.Text);
         var path = "file:///path/to/document.razor";
@@ -91,10 +94,15 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
         return context;
     }
 
-    private static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, ImmutableArray<TagHelperDescriptor> tagHelpers = default, string? fileKind = null)
+    private static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(
+        SourceText text,
+        string path,
+        ImmutableArray<TagHelperDescriptor> tagHelpers = default,
+        RazorFileKind? fileKind = null)
     {
-        fileKind ??= FileKinds.Component;
+        var fileKindValue = fileKind ?? RazorFileKind.Component;
         tagHelpers = tagHelpers.NullToEmpty();
+
         var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(path, path));
         var projectEngine = RazorProjectEngine.Create(builder =>
         {
@@ -105,7 +113,8 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
                 builder.UseRoslynTokenizer = true;
             });
         });
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, importSources: default, tagHelpers);
+
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKindValue, importSources: default, tagHelpers);
 
         var documentSnapshot = new StrictMock<IDocumentSnapshot>();
         documentSnapshot
@@ -119,7 +128,7 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
             .ReturnsAsync(tagHelpers);
         documentSnapshot
             .Setup(d => d.FileKind)
-            .Returns(fileKind);
+            .Returns(fileKindValue);
 
         return (codeDocument, documentSnapshot.Object);
     }

@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -31,7 +30,7 @@ internal class RazorFormattingService : IRazorFormattingService
     private static readonly FrozenSet<string> s_htmlTriggerCharacterSet = FrozenSet.ToFrozenSet(["\n", "{", "}", ";"], StringComparer.Ordinal);
 
     private readonly ImmutableArray<IFormattingPass> _documentFormattingPasses;
-    private readonly ImmutableArray<IFormattingPass> _validationPasses;
+    private readonly ImmutableArray<IFormattingValidationPass> _validationPasses;
     private readonly CSharpOnTypeFormattingPass _csharpOnTypeFormattingPass;
     private readonly HtmlOnTypeFormattingPass _htmlOnTypeFormattingPass;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
@@ -56,13 +55,11 @@ internal class RazorFormattingService : IRazorFormattingService
                 new New.HtmlFormattingPass(loggerFactory),
                 new RazorFormattingPass(languageServerFeatureOptions, loggerFactory),
                 new New.CSharpFormattingPass(hostServicesProvider, loggerFactory),
-                .. _validationPasses
             ]
             : [
                 new HtmlFormattingPass(loggerFactory),
                 new RazorFormattingPass(languageServerFeatureOptions, loggerFactory),
                 new CSharpFormattingPass(documentMappingService, hostServicesProvider, loggerFactory),
-                .. _validationPasses
             ];
     }
 
@@ -122,6 +119,16 @@ internal class RazorFormattingService : IRazorFormattingService
             : result.Where(e => linePositionSpan.LineOverlapsWith(sourceText.GetLinePositionSpan(e.Span))).ToImmutableArray();
 
         var normalizedChanges = NormalizeLineEndings(originalText, filteredChanges);
+
+        foreach (var validationPass in _validationPasses)
+        {
+            var isValid = await validationPass.IsValidAsync(context, normalizedChanges, cancellationToken).ConfigureAwait(false);
+            if (!isValid)
+            {
+                return [];
+            }
+        }
+
         return originalText.MinimizeTextChanges(normalizedChanges);
     }
 
@@ -140,9 +147,10 @@ internal class RazorFormattingService : IRazorFormattingService
                 options,
                 hostDocumentIndex,
                 triggerCharacter,
-                [_csharpOnTypeFormattingPass, .. _validationPasses],
+                _csharpOnTypeFormattingPass,
                 collapseChanges: false,
                 automaticallyAddUsings: false,
+                validate: true,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
@@ -160,9 +168,10 @@ internal class RazorFormattingService : IRazorFormattingService
                 options,
                 hostDocumentIndex,
                 triggerCharacter,
-                [_htmlOnTypeFormattingPass, .. _validationPasses],
+                _htmlOnTypeFormattingPass,
                 collapseChanges: false,
                 automaticallyAddUsings: false,
+                validate: true,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
@@ -179,9 +188,10 @@ internal class RazorFormattingService : IRazorFormattingService
             options,
             hostDocumentIndex: 0,
             triggerCharacter: '\0',
-            [_csharpOnTypeFormattingPass, .. _validationPasses],
+            _csharpOnTypeFormattingPass,
             collapseChanges: false,
             automaticallyAddUsings: false,
+            validate: true,
             cancellationToken: cancellationToken).ConfigureAwait(false);
         return razorChanges.SingleOrDefault();
     }
@@ -199,9 +209,10 @@ internal class RazorFormattingService : IRazorFormattingService
             options,
             hostDocumentIndex: 0,
             triggerCharacter: '\0',
-            [_csharpOnTypeFormattingPass],
+            _csharpOnTypeFormattingPass,
             collapseChanges: true,
             automaticallyAddUsings: true,
+            validate: false,
             cancellationToken: cancellationToken).ConfigureAwait(false);
         return razorChanges.SingleOrDefault();
     }
@@ -221,9 +232,10 @@ internal class RazorFormattingService : IRazorFormattingService
             options,
             hostDocumentIndex: 0,
             triggerCharacter: '\0',
-            [_csharpOnTypeFormattingPass],
+            _csharpOnTypeFormattingPass,
             collapseChanges: true,
             automaticallyAddUsings: false,
+            validate: false,
             cancellationToken: cancellationToken).ConfigureAwait(false);
 
         razorChanges = UnwrapCSharpSnippets(razorChanges);
@@ -250,9 +262,10 @@ internal class RazorFormattingService : IRazorFormattingService
         RazorFormattingOptions options,
         int hostDocumentIndex,
         char triggerCharacter,
-        ImmutableArray<IFormattingPass> formattingPasses,
+        IFormattingPass formattingPass,
         bool collapseChanges,
         bool automaticallyAddUsings,
+        bool validate,
         CancellationToken cancellationToken)
     {
         // If we only received a single edit, let's always return a single edit back.
@@ -266,16 +279,22 @@ internal class RazorFormattingService : IRazorFormattingService
             automaticallyAddUsings: automaticallyAddUsings,
             hostDocumentIndex,
             triggerCharacter);
-        var result = generatedDocumentChanges;
 
-        foreach (var pass in formattingPasses)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            result = await pass.ExecuteAsync(context, result, cancellationToken).ConfigureAwait(false);
-        }
-
+        var result = await formattingPass.ExecuteAsync(context, generatedDocumentChanges, cancellationToken).ConfigureAwait(false);
         var originalText = context.SourceText;
         var razorChanges = originalText.MinimizeTextChanges(result);
+
+        if (validate)
+        {
+            foreach (var validationPass in _validationPasses)
+            {
+                var isValid = await validationPass.IsValidAsync(context, razorChanges, cancellationToken).ConfigureAwait(false);
+                if (!isValid)
+                {
+                    return [];
+                }
+            }
+        }
 
         if (collapseChanges)
         {
@@ -356,9 +375,17 @@ internal class RazorFormattingService : IRazorFormattingService
         return changes.DrainToImmutable();
     }
 
-    internal static class TestAccessor
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal class TestAccessor(RazorFormattingService service)
     {
         public static FrozenSet<string> GetCSharpTriggerCharacterSet() => s_csharpTriggerCharacterSet;
         public static FrozenSet<string> GetHtmlTriggerCharacterSet() => s_htmlTriggerCharacterSet;
+
+        public void SetDebugAssertsEnabled(bool debugAssertsEnabled)
+        {
+            var contentValidationPass = service._validationPasses.OfType<FormattingContentValidationPass>().Single();
+            contentValidationPass.DebugAssertsEnabled = debugAssertsEnabled;
+        }
     }
 }

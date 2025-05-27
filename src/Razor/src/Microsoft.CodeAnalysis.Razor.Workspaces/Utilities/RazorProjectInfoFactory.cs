@@ -7,16 +7,18 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Serialization;
-using Microsoft.AspNetCore.Razor.Telemetry;
-using Microsoft.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
+using Microsoft.CodeAnalysis.Razor.ProjectEngineHost;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Serialization;
+using Microsoft.CodeAnalysis.Razor.Telemetry;
 
-namespace Microsoft.AspNetCore.Razor.Utilities;
+namespace Microsoft.CodeAnalysis.Razor.Utilities;
 
 internal static class RazorProjectInfoFactory
 {
@@ -148,7 +150,7 @@ internal static class RazorProjectInfoFactory
         foreach (var document in project.AdditionalDocuments)
         {
             if (document.FilePath is { } filePath &&
-                TryGetFileKind(filePath, out var kind))
+                FileKinds.TryGetFileKindFromPath(filePath, out var kind))
             {
                 documents.Add(new DocumentSnapshotHandle(filePath, GetTargetPath(filePath, normalizedProjectPath), kind));
             }
@@ -163,7 +165,7 @@ internal static class RazorProjectInfoFactory
             foreach (var document in project.Documents)
             {
                 if (TryGetRazorFileName(document.FilePath, out var razorFilePath) &&
-                    TryGetFileKind(razorFilePath, out var kind))
+                    FileKinds.TryGetFileKindFromPath(razorFilePath, out var kind))
                 {
                     documents.Add(new DocumentSnapshotHandle(razorFilePath, GetTargetPath(razorFilePath, normalizedProjectPath), kind));
                 }
@@ -186,25 +188,6 @@ internal static class RazorProjectInfoFactory
         var normalizedTargetFilePath = targetFilePath.Replace('/', '\\').TrimStart('\\');
 
         return normalizedTargetFilePath;
-    }
-
-    private static bool TryGetFileKind(string filePath, [NotNullWhen(true)] out string? fileKind)
-    {
-        var extension = Path.GetExtension(filePath);
-
-        if (extension.Equals(".cshtml", s_stringComparison))
-        {
-            fileKind = FileKinds.Legacy;
-            return true;
-        }
-        else if (extension.Equals(".razor", s_stringComparison))
-        {
-            fileKind = FileKinds.GetComponentFileKindFromFilePath(filePath);
-            return true;
-        }
-
-        fileKind = null;
-        return false;
     }
 
     private static bool TryGetRazorFileName(string? filePath, [NotNullWhen(true)] out string? razorFilePath)

@@ -22,26 +22,6 @@ public static class RazorCodeDocumentExtensions
     private static readonly object CssScopeKey = new();
     private static readonly object NamespaceKey = new();
 
-    internal static TagHelperDocumentContext GetTagHelperContext(this RazorCodeDocument document)
-    {
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        return (TagHelperDocumentContext)document.Items[typeof(TagHelperDocumentContext)];
-    }
-
-    internal static void SetTagHelperContext(this RazorCodeDocument document, TagHelperDocumentContext context)
-    {
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        document.Items[typeof(TagHelperDocumentContext)] = context;
-    }
-
     internal static IReadOnlyList<TagHelperDescriptor> GetTagHelpers(this RazorCodeDocument document)
     {
         if (document == null)
@@ -340,7 +320,7 @@ public static class RazorCodeDocumentExtensions
                 appendSuffix = true;
 
                 // Empty RootNamespace is allowed only in components.
-                if (!FileKinds.IsComponent(codeDocument.FileKind) && string.IsNullOrEmpty(baseNamespace))
+                if (!codeDocument.FileKind.IsComponent() && string.IsNullOrEmpty(baseNamespace))
                 {
                     @namespace = null;
                     return false;

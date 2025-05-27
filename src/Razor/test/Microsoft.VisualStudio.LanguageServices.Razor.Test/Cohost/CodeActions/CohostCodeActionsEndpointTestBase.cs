@@ -7,30 +7,36 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
+using Microsoft.CodeAnalysis.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.Settings;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LspDiagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 
 public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    private protected async Task VerifyCodeActionAsync(TestCode input, string? expected, string codeActionName, int childActionIndex = 0, string? fileKind = null, (string filePath, string contents)[]? additionalFiles = null, (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
+    private protected async Task VerifyCodeActionAsync(
+        TestCode input,
+        string? expected,
+        string codeActionName,
+        int childActionIndex = 0,
+        RazorFileKind? fileKind = null,
+        (string filePath, string contents)[]? additionalFiles = null,
+        (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
     {
         var document = CreateRazorDocument(input, fileKind, additionalFiles);
 
@@ -49,7 +55,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         await VerifyCodeActionResultAsync(document, workspaceEdit, expected, additionalExpectedFiles);
     }
 
-    private protected TextDocument CreateRazorDocument(TestCode input, string? fileKind = null, (string filePath, string contents)[]? additionalFiles = null)
+    private protected TextDocument CreateRazorDocument(TestCode input, RazorFileKind? fileKind = null, (string filePath, string contents)[]? additionalFiles = null)
     {
         var fileSystem = (RemoteFileSystem)OOPExportProvider.GetExportedValue<IFileSystem>();
         fileSystem.GetTestAccessor().SetFileSystem(new TestFileSystem(additionalFiles));
@@ -67,8 +73,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
             return options;
         });
 
-        var document = CreateProjectAndRazorDocument(input.Text, fileKind, createSeparateRemoteAndLocalWorkspaces: true, additionalFiles: additionalFiles);
-        return document;
+        return CreateProjectAndRazorDocument(input.Text, fileKind, createSeparateRemoteAndLocalWorkspaces: true, additionalFiles: additionalFiles);
     }
 
     private async Task<CodeAction?> VerifyCodeActionRequestAsync(TextDocument document, TestCode input, string codeActionName, int childActionIndex, bool expectOffer)
@@ -105,8 +110,8 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
 
     private protected async Task<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(TextDocument document, TestCode input)
     {
-        var requestInvoker = new TestLSPRequestInvoker();
-        var endpoint = new CohostCodeActionsEndpoint(RemoteServiceInvoker, ClientCapabilitiesService, TestHtmlDocumentSynchronizer.Instance, requestInvoker, NoOpTelemetryReporter.Instance);
+        var requestInvoker = new TestHtmlRequestInvoker();
+        var endpoint = new CohostCodeActionsEndpoint(RemoteServiceInvoker, ClientCapabilitiesService, requestInvoker, NoOpTelemetryReporter.Instance);
         var inputText = await document.GetTextAsync(DisposalToken);
 
         using var diagnostics = new PooledArrayBuilder<LspDiagnostic>();
@@ -184,11 +189,11 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
                 var text = await textDocument.GetTextAsync(DisposalToken).ConfigureAwait(false);
                 if (textDocument is Document)
                 {
-                    solution = solution.WithDocumentText(textDocument.Id, text.WithChanges(edit.Edits.Select(text.GetTextChange)));
+                    solution = solution.WithDocumentText(textDocument.Id, text.WithChanges(edit.Edits.Select(e => text.GetTextChange((TextEdit)e))));
                 }
                 else
                 {
-                    solution = solution.WithAdditionalDocumentText(textDocument.Id, text.WithChanges(edit.Edits.Select(text.GetTextChange)));
+                    solution = solution.WithAdditionalDocumentText(textDocument.Id, text.WithChanges(edit.Edits.Select(e => text.GetTextChange((TextEdit)e))));
                 }
             }
 
@@ -212,9 +217,9 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
 
     private async Task<WorkspaceEdit> ResolveCodeActionAsync(CodeAnalysis.TextDocument document, CodeAction codeAction)
     {
-        var requestInvoker = new TestLSPRequestInvoker();
+        var requestInvoker = new TestHtmlRequestInvoker();
         var clientSettingsManager = new ClientSettingsManager(changeTriggers: []);
-        var endpoint = new CohostCodeActionsResolveEndpoint(RemoteServiceInvoker, ClientCapabilitiesService, clientSettingsManager, TestHtmlDocumentSynchronizer.Instance, requestInvoker);
+        var endpoint = new CohostCodeActionsResolveEndpoint(RemoteServiceInvoker, ClientCapabilitiesService, clientSettingsManager, requestInvoker);
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, codeAction, DisposalToken);
 

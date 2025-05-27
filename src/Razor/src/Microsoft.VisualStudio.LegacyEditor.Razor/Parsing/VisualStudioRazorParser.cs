@@ -12,9 +12,8 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Logging;
-
+using Microsoft.CodeAnalysis.Razor.ProjectEngineHost;
 using Microsoft.Extensions.Internal;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Razor.Extensions;
@@ -231,7 +230,7 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
 
         // We might not have a document snapshot in the case of an ephemeral project.
         // If we don't have a document then infer the FileKind from the FilePath.
-        var fileKind = projectSnapshot.GetDocument(_documentTracker.FilePath)?.FileKind ?? FileKinds.GetFileKindFromFilePath(_documentTracker.FilePath);
+        var fileKind = projectSnapshot.GetDocument(_documentTracker.FilePath)?.FileKind ?? FileKinds.GetFileKindFromPath(_documentTracker.FilePath);
 
         var projectDirectory = Path.GetDirectoryName(_documentTracker.ProjectPath);
         _parser = new BackgroundParser(_projectEngine, FilePath, projectDirectory, fileKind);
@@ -339,6 +338,11 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
             foreach (var item in currentCodeDocument.Items)
             {
                 codeDocument.Items[item.Key] = item.Value;
+            }
+
+            if (currentCodeDocument.TryGetTagHelperContext(out var tagHelperContext))
+            {
+                codeDocument.SetTagHelperContext(tagHelperContext);
             }
 
             codeDocument.SetSyntaxTree(partialParseSyntaxTree);

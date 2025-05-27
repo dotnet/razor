@@ -9,12 +9,10 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Diagnostics;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Telemetry;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.Telemetry;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hosting.Diagnostics;
 
@@ -38,7 +36,7 @@ internal sealed class DocumentDiagnosticsEndpoint(
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
         serverCapabilities.SupportsDiagnosticRequests = true;
-        serverCapabilities.DiagnosticOptions = new()
+        serverCapabilities.DiagnosticOptions = new DiagnosticOptions()
         {
             InterFileDependencies = false,
             WorkspaceDiagnostics = false,

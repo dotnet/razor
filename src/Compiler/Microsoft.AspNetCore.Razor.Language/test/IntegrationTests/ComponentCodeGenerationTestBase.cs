@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -17,11 +16,11 @@ using Xunit;
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
 public class ComponentCodeGenerationTestBase(bool designTime = false)
-        : RazorBaselineIntegrationTestBase(layer: TestProject.Layer.Compiler)
+    : RazorBaselineIntegrationTestBase(layer: TestProject.Layer.Compiler)
 {
     private RazorConfiguration _configuration;
 
-    internal override string FileKind => FileKinds.Component;
+    internal override RazorFileKind? FileKind => RazorFileKind.Component;
 
     internal override bool UseTwoPhaseCompilation => true;
 
@@ -2318,14 +2317,14 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, DesignTime?[
+        CompileToAssembly(generated, DesignTime ? [
             // x:\dir\subdir\Test\TestComponent.cshtml(3,7): error CS1525: Invalid expression term ';'
             // __o = ;
             Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(3, 7)
             ] : [
-            // (24,36): error CS1525: Invalid expression term ')'
-            //             __builder.AddContent(3, 
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments(")").WithLocation(24, 36)
+            // x:\dir\subdir\Test\TestComponent.cshtml(3,2): error CS1525: Invalid expression term ')'
+            // __builder.AddContent(3, 
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments(")").WithLocation(3, 2)
             ]);
     }
 
@@ -2372,6 +2371,25 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
+    public void Component_AddContent_Multiline()
+    {
+        // Act
+        var generated = CompileToCSharp(""""
+            @(@"This
+            is
+            a
+            multiline
+            string")
+            """");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        var result = CompileToAssembly(generated);
+        AssertSequencePointsMatchBaseline(result, generated.CodeDocument);
     }
 
     #endregion
@@ -5069,7 +5087,8 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated);
+        var result = CompileToAssembly(generated);
+        AssertSequencePointsMatchBaseline(result, generated.CodeDocument);
     }
 
     [IntegrationTestFact]
@@ -5099,9 +5118,9 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated);
+        var result = CompileToAssembly(generated);
+        AssertSequencePointsMatchBaseline(result, generated.CodeDocument);
     }
-
 
     [IntegrationTestFact]
     public void ChildComponent_WithGenericChildContent_SetsParameterName()
@@ -5318,7 +5337,8 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated);
+        var result = CompileToAssembly(generated);
+        AssertSequencePointsMatchBaseline(result, generated.CodeDocument);
     }
 
     [IntegrationTestFact]
@@ -5355,7 +5375,8 @@ namespace Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated);
+        var result = CompileToAssembly(generated);
+        AssertSequencePointsMatchBaseline(result, generated.CodeDocument);
     }
 
     [IntegrationTestFact]
@@ -9318,6 +9339,214 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11552")]
+    public void GenericComponentTypeUsage()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @typeparam TItem
+            @code {
+                [Parameter]
+                public TItem MyItem { get; set; }
+            }
+
+            <TestComponent TItem="string" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11552")]
+    public void GenericComponentTypeUsageWithInference()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @typeparam TItem
+            @code {
+                [Parameter]
+                public TItem MyItem { get; set; }
+            }
+
+            <TestComponent MyItem="1" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11552")]
+    public void GenericComponentMultipleTypeParamUsage()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @typeparam TItem
+            @typeparam TItem2
+            @code {
+                [Parameter]
+                public TItem MyItem { get; set; }
+
+                [Parameter]
+                public TItem2 MyItem2 { get; set; }
+            }
+
+            <TestComponent TItem2="int" TItem="string" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11552")]
+    public void GenericComponentTypeParamUsageWithImplicitExpression()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @typeparam TItem
+            @code {
+                [Parameter]
+                public TItem MyItem { get; set; }
+            }
+
+            <TestComponent TItem="@string" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11552")]
+    public void GenericComponentTypeParamUsageWithImplicitExpression2()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @typeparam TItem
+            @code {
+                [Parameter]
+                public TItem MyItem { get; set; }
+            }
+
+            <TestComponent TItem="@(string)" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11552")]
+    public void GenericComponentTypeUsageWhitespace()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @typeparam TItem
+            @code {
+                [Parameter]
+                public TItem MyItem { get; set; }
+            }
+
+            <TestComponent TItem="  string  " />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11552")]
+    public void GenericComponentTypeUsageWithGenericType()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @typeparam TItem
+            @code {
+                [Parameter]
+                public TItem MyItem { get; set; }
+            }
+
+            <TestComponent TItem="TestComponent<string>" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11718")]
+    public void GenericInference_DynamicallyAccessedMembers_01()
+    {
+        var generated = CompileToCSharp("""
+            @using Microsoft.AspNetCore.Components.Forms
+
+            <InputRadioGroup @bind-Value="value1">
+                <InputRadio Value="@("false")" />
+                <InputRadio Value="@("true")" />
+            </InputRadioGroup>
+
+            @code {
+                private string value1 = "true";
+            }
+            """);
+
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+
+        Assert.Contains("DynamicallyAccessedMembers", generated.Code);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11718")]
+    public void GenericInference_DynamicallyAccessedMembers_02()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+            using System;
+            using System.Diagnostics.CodeAnalysis;
+            using DAM = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute;
+            using DAMT = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
+            namespace Test;
+            public class MyComponent<T1,
+                [Attr, DAM(DAMT.PublicMethods | DAMT.PublicFields)] T2,
+                [DAM(DAMT.None)] [x: DAM(DAMT.All)] T3>
+                : ComponentBase
+            {
+                [Parameter] public required T1 P1 { get; set; }
+                [Parameter] public required T2 P2 { get; set; }
+                [Parameter] public required T3 P3 { get; set; }
+            }
+            class Attr : Attribute;
+            """));
+
+        var expectedDiagnostics = new[]
+        {
+            // (9,23): warning CS0658: 'x' is not a recognized attribute location. Valid attribute locations for this declaration are 'typevar'. All attributes in this block will be ignored.
+            //     [DAM(DAMT.None)] [x: DAM(DAMT.All)] T3>
+            Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "x").WithArguments("x", "typevar").WithLocation(9, 23)
+        };
+
+        var generated = CompileToCSharp("""
+            <MyComponent P1="s" P2="2" P3="s" />
+            @code {
+                private string s = "x";
+            }
+            """, expectedDiagnostics);
+
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, expectedDiagnostics);
+
+        Assert.Contains("DynamicallyAccessedMembers", generated.Code);
+    }
+
     #endregion
 
     #region Key
@@ -10519,7 +10748,7 @@ namespace Test
 @using System.Reflection
 @attribute [Serializable]
 ";
-        var importItem = CreateProjectItem("_Imports.razor", importContent, FileKinds.ComponentImport);
+        var importItem = CreateProjectItem("_Imports.razor", importContent, RazorFileKind.ComponentImport);
         ImportItems.Add(importItem);
         AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Components;
@@ -10566,7 +10795,7 @@ namespace Test
 @layout MainLayout
 @Foo
 <div>Hello</div>
-", fileKind: FileKinds.ComponentImport, expectedCSharpDiagnostics: [
+", fileKind: RazorFileKind.ComponentImport, expectedCSharpDiagnostics: [
             // (4,31): error CS0246: The type or namespace name 'ComponentBase' could not be found (are you missing a using directive or an assembly reference?)
             //     public class MainLayout : ComponentBase, ILayoutComponent
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ComponentBase").WithArguments("ComponentBase").WithLocation(4, 31),
@@ -10605,9 +10834,9 @@ namespace Test
                // x:\dir\subdir\Test\_Imports.razor(5,2): error CS0103: The name 'Foo' does not exist in the current context
                // Foo
                Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(5, 2),
-               // (33,13): error CS0103: The name '__builder' does not exist in the current context
-               //             __builder.AddContent(0,
-               Diagnostic(ErrorCode.ERR_NameNotInContext, "__builder").WithArguments("__builder").WithLocation(41, 13)]);
+               // x:\dir\subdir\Test\_Imports.razor(5,2): error CS0103: The name '__builder' does not exist in the current context
+               // __builder.AddContent(0, Foo
+               Diagnostic(ErrorCode.ERR_NameNotInContext, "__builder").WithArguments("__builder").WithLocation(5, 2)]);
     }
 
     [IntegrationTestFact]
@@ -10647,7 +10876,7 @@ namespace Test
 @using System.Reflection
 @namespace New.Test
 ";
-        var importItem = CreateProjectItem("_Imports.razor", importContent, FileKinds.ComponentImport);
+        var importItem = CreateProjectItem("_Imports.razor", importContent, RazorFileKind.ComponentImport);
         ImportItems.Add(importItem);
         AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Components;
@@ -10681,7 +10910,7 @@ namespace New.Test
 @using System.Reflection
 @namespace Import.Test
 ";
-        var importItem = CreateProjectItem("_Imports.razor", importContent, FileKinds.ComponentImport);
+        var importItem = CreateProjectItem("_Imports.razor", importContent, RazorFileKind.ComponentImport);
         ImportItems.Add(importItem);
         AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Components;
@@ -10726,7 +10955,7 @@ namespace New.Test
         var importContent = @"
 @preservewhitespace true
 ";
-        var importItem = CreateProjectItem("_Imports.razor", importContent, FileKinds.ComponentImport);
+        var importItem = CreateProjectItem("_Imports.razor", importContent, RazorFileKind.ComponentImport);
         ImportItems.Add(importItem);
 
         // Act
@@ -10751,7 +10980,7 @@ namespace New.Test
         var importContent = @"
 @preservewhitespace true
 ";
-        var importItem = CreateProjectItem("_Imports.razor", importContent, FileKinds.ComponentImport);
+        var importItem = CreateProjectItem("_Imports.razor", importContent, RazorFileKind.ComponentImport);
         ImportItems.Add(importItem);
 
         // Act

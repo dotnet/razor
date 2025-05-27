@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem.Legacy;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem.Sources;
 using Microsoft.CodeAnalysis.Text;
@@ -30,7 +29,7 @@ internal sealed class DocumentSnapshot : IDocumentSnapshot, ILegacyDocumentSnaps
     public HostDocument HostDocument => _state.HostDocument;
 
     public DocumentKey Key => new(Project.Key, FilePath);
-    public string FileKind => _state.HostDocument.FileKind;
+    public RazorFileKind FileKind => _state.HostDocument.FileKind;
     public string FilePath => _state.HostDocument.FilePath;
     public string TargetPath => _state.HostDocument.TargetPath;
     public int Version => _state.Version;
@@ -78,7 +77,7 @@ internal sealed class DocumentSnapshot : IDocumentSnapshot, ILegacyDocumentSnaps
 
     #region ILegacyDocumentSnapshot support
 
-    string ILegacyDocumentSnapshot.FileKind => FileKind;
+    RazorFileKind ILegacyDocumentSnapshot.FileKind => FileKind;
 
     #endregion
 }

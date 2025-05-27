@@ -2,25 +2,21 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Nerdbank.Streams;
 using StreamJsonRpc;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
+using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 
-public sealed class CSharpTestLspServer : IAsyncDisposable
+internal sealed class CSharpTestLspServer : IAsyncDisposable
 {
     private readonly AdhocWorkspace _testWorkspace;
     private readonly ExportProvider _exportProvider;
@@ -28,22 +24,24 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
     private readonly JsonRpc _clientRpc;
     private readonly JsonRpc _serverRpc;
 
+    private readonly object _roslynLanguageServer;
+
     private readonly SystemTextJsonFormatter _clientMessageFormatter;
     private readonly SystemTextJsonFormatter _serverMessageFormatter;
     private readonly HeaderDelimitedMessageHandler _clientMessageHandler;
     private readonly HeaderDelimitedMessageHandler _serverMessageHandler;
 
-    private readonly CancellationToken _cancellationToken;
+    private readonly CancellationTokenSource _disposeTokenSource;
 
     private CSharpTestLspServer(
         AdhocWorkspace testWorkspace,
         ExportProvider exportProvider,
-        VSInternalServerCapabilities serverCapabilities,
-        CancellationToken cancellationToken)
+        VSInternalServerCapabilities serverCapabilities)
     {
         _testWorkspace = testWorkspace;
         _exportProvider = exportProvider;
-        _cancellationToken = cancellationToken;
+
+        _disposeTokenSource = new();
 
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
@@ -69,7 +67,17 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
 
         _clientRpc.StartListening();
 
-        _ = CreateLanguageServer(_serverRpc, _serverMessageFormatter.JsonSerializerOptions, testWorkspace, languageServerFactory, exportProvider, serverCapabilities);
+        var languageServerTarget = CreateLanguageServer(_serverRpc, _serverMessageFormatter.JsonSerializerOptions, testWorkspace, languageServerFactory, exportProvider, serverCapabilities);
+
+        // This isn't ideal, but we need to pull the actual RoslynLanguageServer out of languageServerTarget
+        // so that we can call ShutdownAsync and ExitAsync on it when dispos
+        var languageServerField = languageServerTarget.GetType().GetField("_languageServer", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(languageServerField);
+
+        var roslynLanguageServer = languageServerField.GetValue(languageServerTarget);
+        Assert.NotNull(roslynLanguageServer);
+
+        _roslynLanguageServer = roslynLanguageServer;
 
         static SystemTextJsonFormatter CreateSystemTextJsonMessageFormatter(AbstractRazorLanguageServerFactoryWrapper languageServerFactory)
         {
@@ -77,8 +85,6 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
 
             // Roslyn has its own converters since it doesn't use MS.VS.LS.Protocol
             languageServerFactory.AddJsonConverters(messageFormatter.JsonSerializerOptions);
-
-            JsonHelpers.AddVSInternalExtensionConverters(messageFormatter.JsonSerializerOptions);
 
             return messageFormatter;
         }
@@ -111,7 +117,7 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
         VSInternalServerCapabilities serverCapabilities,
         CancellationToken cancellationToken)
     {
-        var server = new CSharpTestLspServer(testWorkspace, exportProvider, serverCapabilities, cancellationToken);
+        var server = new CSharpTestLspServer(testWorkspace, exportProvider, serverCapabilities);
 
         await server.ExecuteRequestAsync<InitializeParams, InitializeResult>(
             Methods.InitializeName,
@@ -126,26 +132,46 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
         return server;
     }
 
-    internal Task ExecuteRequestAsync<RequestType>(
-        string methodName,
-        RequestType request,
-        CancellationToken cancellationToken) where RequestType : class
-        => _clientRpc.InvokeWithParameterObjectAsync(
-            methodName,
-            request,
-            cancellationToken);
+    internal Task ExecuteRequestAsync<TRequest>(string methodName, TRequest request, CancellationToken cancellationToken)
+        where TRequest : class
+    {
+        _disposeTokenSource.Token.ThrowIfCancellationRequested();
 
-    internal Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(
-        string methodName,
-        RequestType request,
-        CancellationToken cancellationToken)
-        => _clientRpc.InvokeWithParameterObjectAsync<ResponseType>(
-            methodName,
-            request,
-            cancellationToken);
+        return _clientRpc.InvokeWithParameterObjectAsync(methodName, request, cancellationToken);
+    }
+
+    internal Task<TResponse> ExecuteRequestAsync<TRequest, TResponse>(string methodName, TRequest request, CancellationToken cancellationToken)
+    {
+        _disposeTokenSource.Token.ThrowIfCancellationRequested();
+
+        return _clientRpc.InvokeWithParameterObjectAsync<TResponse>(methodName, request, cancellationToken);
+    }
 
     public async ValueTask DisposeAsync()
     {
+        if (_disposeTokenSource.IsCancellationRequested)
+        {
+            return;
+        }
+
+        _disposeTokenSource.Cancel();
+        _disposeTokenSource.Dispose();
+
+        // This is a bit of a hack, but we need to call ShutdownAsync and ExitAsync on the RoslynLanguageServer
+        // so that it disconnects gracefully from _serverRpc. Otherwise, it'll fail if we dispose _serverRpc
+        // which forcibly disconnects the JsonRpc from the RoslynLanguageServer.
+        var shutdownAsyncMethod = _roslynLanguageServer.GetType()
+            .GetMethod("ShutdownAsync", BindingFlags.Instance | BindingFlags.Public);
+        Assert.NotNull(shutdownAsyncMethod);
+
+        await (Task)shutdownAsyncMethod.Invoke(_roslynLanguageServer, parameters: [$"{nameof(CSharpTestLspServer)} shutting down"]).AssumeNotNull();
+
+        var exitAsyncMethod = _roslynLanguageServer.GetType()
+            .GetMethod("ExitAsync", BindingFlags.Instance | BindingFlags.Public);
+        Assert.NotNull(exitAsyncMethod);
+
+        await (Task)exitAsyncMethod.Invoke(_roslynLanguageServer, parameters: null).AssumeNotNull();
+
         _testWorkspace.Dispose();
         _exportProvider.Dispose();
 
@@ -160,45 +186,32 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
 
     #region Document Change Methods
 
-    public async Task OpenDocumentAsync(Uri documentUri, string documentText)
+    public Task OpenDocumentAsync(Uri documentUri, string documentText, CancellationToken cancellationToken)
     {
-        var didOpenParams = CreateDidOpenTextDocumentParams(documentUri, documentText);
-        await ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, _cancellationToken);
+        var didOpenParams = new DidOpenTextDocumentParams
+        {
+            TextDocument = new() { Uri = documentUri, Text = documentText }
+        };
 
-        static DidOpenTextDocumentParams CreateDidOpenTextDocumentParams(Uri uri, string source)
-            => new()
-            {
-                TextDocument = new TextDocumentItem
-                {
-                    Text = source,
-                    Uri = uri
-                }
-            };
+        return ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, cancellationToken);
     }
 
-    public async Task ReplaceTextAsync(Uri documentUri, params (Range Range, string Text)[] changes)
+    internal Task ReplaceTextAsync(Uri documentUri, (LspRange Range, string Text)[] changes, CancellationToken cancellationToken)
     {
-        var didChangeParams = CreateDidChangeTextDocumentParams(
-            documentUri,
-            changes.Select(change => (change.Range, change.Text)).ToImmutableArray());
-
-        await ExecuteRequestAsync<DidChangeTextDocumentParams, object>(Methods.TextDocumentDidChangeName, didChangeParams, _cancellationToken);
-
-        static DidChangeTextDocumentParams CreateDidChangeTextDocumentParams(Uri documentUri, ImmutableArray<(Range Range, string Text)> changes)
+        var didChangeParams = new DidChangeTextDocumentParams()
         {
-            var changeEvents = changes.Select(change => new TextDocumentContentChangeEvent
+            TextDocument = new() { Uri = documentUri },
+            ContentChanges = Array.ConvertAll(changes, ConvertToEvent)
+        };
+
+        return ExecuteRequestAsync<DidChangeTextDocumentParams, object>(Methods.TextDocumentDidChangeName, didChangeParams, cancellationToken);
+
+        static TextDocumentContentChangeEvent ConvertToEvent((LspRange Range, string Text) change)
+        {
+            return new TextDocumentContentChangeEvent
             {
                 Text = change.Text,
                 Range = change.Range,
-            }).ToArray();
-
-            return new DidChangeTextDocumentParams()
-            {
-                TextDocument = new VersionedTextDocumentIdentifier
-                {
-                    Uri = documentUri
-                },
-                ContentChanges = changeEvents
             };
         }
     }

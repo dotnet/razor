@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -57,7 +58,7 @@ internal class DefaultRazorProjectFileSystem : RazorProjectFileSystem
         }
     }
 
-    public override RazorProjectItem GetItem(string path, string? fileKind)
+    public override RazorProjectItem GetItem(string path, RazorFileKind? fileKind)
     {
         var absoluteBasePath = Root;
         var absolutePath = NormalizeAndEnsureValidPath(path);
@@ -70,7 +71,7 @@ internal class DefaultRazorProjectFileSystem : RazorProjectFileSystem
         return CreateItem(absolutePath, fileKind, DefaultBasePath, absoluteBasePath);
     }
 
-    private static DefaultRazorProjectItem CreateItem(string path, string? fileKind, string basePath, string absoluteBasePath)
+    private static DefaultRazorProjectItem CreateItem(string path, RazorFileKind? fileKind, string basePath, string absoluteBasePath)
     {
         var physicalPath = Path.GetFullPath(path);
         var relativePhysicalPath = physicalPath[(absoluteBasePath.Length + 1)..]; // Don't include leading separator
@@ -92,6 +93,23 @@ internal class DefaultRazorProjectFileSystem : RazorProjectFileSystem
         ArgHelper.ThrowIfNullOrEmpty(path);
 
         var normalizedPath = path.Replace('\\', '/');
+
+        // On Windows, check to see if this is a rooted file path. If it is, just return it.
+        // This covers the following cases:
+        //
+        // 1. It is rooted within the project root. That's valid and we would have checked
+        //    specifically for that case below.
+        // 2. It is rooted outside of the project root. That's invalid, and we don't want to
+        //    concatenate it with the project root. That would potentially produce an invalid
+        //    Windows path like 'C:/project/C:/other-project/some-file.cshtml'.
+        //
+        // Note that returning a path that is rooted outside of the project root will cause
+        // the GetItem(...) method to throw, but it could be overridden by a descendant file
+        // system.
+        if (PlatformInformation.IsWindows && PathUtilities.IsPathFullyQualified(path))
+        {
+            return normalizedPath;
+        }
 
         // Check if the given path is an absolute path. It is absolute if...
         //

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
@@ -27,10 +28,9 @@ internal static class TagHelperBlockRewriter
         }
 
         var hasDirectiveAttribute = false;
-        foreach (var descriptor in bindingResult.Descriptors)
+        foreach (var boundRulesInfo in bindingResult.AllBoundRules)
         {
-            var boundRules = bindingResult.Mappings[descriptor];
-            var nonDefaultRule = boundRules.FirstOrDefault(static rule => rule.TagStructure != TagStructure.Unspecified);
+            var nonDefaultRule = boundRulesInfo.Rules.FirstOrDefault(static rule => rule.TagStructure != TagStructure.Unspecified);
 
             if (nonDefaultRule?.TagStructure == TagStructure.WithoutEndTag)
             {
@@ -42,6 +42,7 @@ internal static class TagHelperBlockRewriter
             // <input @onclick="..."> vs <input onclick="..." />
             //
             // We don't want this to become an error just because you added a directive attribute.
+            var descriptor = boundRulesInfo.Descriptor;
             if (descriptor.IsAnyComponentDocumentTagHelper() && !descriptor.IsComponentOrChildContentTagHelper)
             {
                 hasDirectiveAttribute = true;
@@ -66,8 +67,9 @@ internal static class TagHelperBlockRewriter
     {
         var processedBoundAttributeNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
+        using PooledArrayBuilder<RazorSyntaxNode> attributeBuilder = [];
+
         var attributes = startTag.Attributes;
-        using var _ = SyntaxListBuilderPool.GetPooledBuilder<RazorSyntaxNode>(out var attributeBuilder);
 
         for (var i = 0; i < startTag.Attributes.Count; i++)
         {
@@ -108,7 +110,7 @@ internal static class TagHelperBlockRewriter
                         // TODO: Accept more than just Markup attributes: https://github.com/aspnet/Razor/issues/96.
                         // Something like:
                         // <input @checked />
-                        var location = new SourceSpan(codeBlock.GetSourceLocation(source), codeBlock.FullWidth);
+                        var location = new SourceSpan(codeBlock.GetSourceLocation(source), codeBlock.Width);
                         var diagnostic = RazorDiagnosticFactory.CreateParsing_TagHelpersCannotHaveCSharpInTagDeclaration(location, tagName);
                         errorSink.OnError(diagnostic);
                         break;
@@ -262,10 +264,10 @@ internal static class TagHelperBlockRewriter
         var attributeValue = attributeBlock.Value;
         if (attributeValue == null)
         {
-            using var _ = SyntaxListBuilderPool.GetPooledBuilder<RazorSyntaxNode>(out var builder);
+            using PooledArrayBuilder<RazorSyntaxNode> builder = [];
 
             // Add a marker for attribute value when there are no quotes like, <p class= >
-            builder.Add(SyntaxFactory.MarkupTextLiteral(new SyntaxList<SyntaxToken>(), chunkGenerator: null));
+            builder.Add(SyntaxFactory.MarkupTextLiteral(literalTokens: default, chunkGenerator: null));
 
             attributeValue = SyntaxFactory.GenericBlock(builder.ToList());
         }
@@ -608,7 +610,7 @@ internal static class TagHelperBlockRewriter
         {
             if (_rewriteAsMarkup)
             {
-                using var _ = SyntaxListBuilderPool.GetPooledBuilder<RazorSyntaxNode>(out var builder);
+                using PooledArrayBuilder<RazorSyntaxNode> builder = [];
 
                 var rewrittenBody = (CSharpCodeBlockSyntax)VisitCSharpCodeBlock(((CSharpImplicitExpressionBodySyntax)node.Body).CSharpCode);
 
@@ -634,8 +636,8 @@ internal static class TagHelperBlockRewriter
 
         public override SyntaxNode VisitCSharpExplicitExpression(CSharpExplicitExpressionSyntax node)
         {
-            CSharpTransitionSyntax transition = null;
-            using var _ = SyntaxListBuilderPool.GetPooledBuilder<RazorSyntaxNode>(out var builder);
+            CSharpTransitionSyntax transition;
+            using PooledArrayBuilder<RazorSyntaxNode> builder = [];
 
             if (_rewriteAsMarkup)
             {
@@ -643,7 +645,7 @@ internal static class TagHelperBlockRewriter
                 // Change to a MarkupChunkGenerator so that the '@' \ parenthesis is generated as part of the output.
                 // This is bad code, since @( is never valid C#, so we don't worry about trying to stitch the @ and the ( together.
                 var editHandler = _options.EnableSpanEditHandlers
-                    ? node.GetEditHandler() ?? SpanEditHandler.CreateDefault((content) => Enumerable.Empty<Syntax.InternalSyntax.SyntaxToken>(), AcceptedCharactersInternal.Any)
+                    ? node.GetEditHandler() ?? SpanEditHandler.GetDefault(AcceptedCharactersInternal.Any)
                     : null;
 
                 var expression = SyntaxFactory.CSharpExpressionLiteral(new SyntaxList<SyntaxToken>(node.Transition.Transition), MarkupChunkGenerator.Instance).WithEditHandler(editHandler);
@@ -736,7 +738,7 @@ internal static class TagHelperBlockRewriter
 
         public override SyntaxNode VisitMarkupLiteralAttributeValue(MarkupLiteralAttributeValueSyntax node)
         {
-            using var _ = SyntaxListBuilderPool.GetPooledBuilder<SyntaxToken>(out var builder);
+            using PooledArrayBuilder<SyntaxToken> builder = [];
 
             if (node.Prefix != null)
             {
@@ -768,7 +770,7 @@ internal static class TagHelperBlockRewriter
         public override SyntaxNode VisitMarkupDynamicAttributeValue(MarkupDynamicAttributeValueSyntax node)
         {
             // Move the prefix to be part of the actual value.
-            using var _ = SyntaxListBuilderPool.GetPooledBuilder<RazorSyntaxNode>(out var builder);
+            using PooledArrayBuilder<RazorSyntaxNode> builder = [];
 
             if (node.Prefix != null)
             {
@@ -847,7 +849,7 @@ internal static class TagHelperBlockRewriter
                 if (kind != SyntaxKind.MarkupLiteralAttributeValue &&
                     // We only want to collapse dynamic values if we're in a legacy file.
                     // Mixed C#/HTML content is not allowed in components.
-                    (kind != SyntaxKind.MarkupDynamicAttributeValue || !FileKinds.IsLegacy(_options.FileKind)))
+                    (kind != SyntaxKind.MarkupDynamicAttributeValue || !_options.FileKind.IsLegacy()))
                 {
                     return false;
                 }
