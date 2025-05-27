@@ -16,13 +16,13 @@ internal sealed class SemanticTokensVisitor : SyntaxWalker
 {
     private readonly ImmutableArray<SemanticRange>.Builder _semanticRanges;
     private readonly RazorCodeDocument _razorCodeDocument;
-    private readonly TextSpan? _range;
+    private readonly TextSpan _range;
     private readonly ISemanticTokensLegendService _semanticTokensLegend;
     private readonly bool _colorCodeBackground;
 
     private bool _addRazorCodeModifier;
 
-    private SemanticTokensVisitor(ImmutableArray<SemanticRange>.Builder semanticRanges, RazorCodeDocument razorCodeDocument, TextSpan? range, ISemanticTokensLegendService semanticTokensLegend, bool colorCodeBackground)
+    private SemanticTokensVisitor(ImmutableArray<SemanticRange>.Builder semanticRanges, RazorCodeDocument razorCodeDocument, TextSpan range, ISemanticTokensLegendService semanticTokensLegend, bool colorCodeBackground)
     {
         _semanticRanges = semanticRanges;
         _razorCodeDocument = razorCodeDocument;
@@ -52,7 +52,7 @@ internal sealed class SemanticTokensVisitor : SyntaxWalker
 
     private bool IsInRange(TextSpan span)
     {
-        return _range is TextSpan range && range.OverlapsWith(span);
+        return _range.OverlapsWith(span);
     }
 
     public override void Visit(SyntaxNode? node)
