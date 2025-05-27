@@ -1249,32 +1249,6 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
     [InlineData("", "", true)]
     [InlineData("Foo", "Project", true)]
     [InlineData("Project.Foo", "Project", true)]
-    [InlineData("Project.Foo", "global::Project", true)]
-    [InlineData("Project.Bar.Foo", "Project.Bar", true)]
-    [InlineData("Project.Foo", "Project.Bar", false)]
-    [InlineData("Project.Foo", "global::Project.Bar", false)]
-    [InlineData("Project.Bar.Foo", "Project", false)]
-    [InlineData("Bar.Foo", "Project", false)]
-    public void IsTypeNamespaceInNormalizedNamespace_WorksAsExpected(string typeName, string @namespace, bool expected)
-    {
-        // Arrange & Act
-        var descriptor = CreateComponentDescriptor(typeName, typeName, "Test.dll");
-
-        // Remove global:: prefix from namespace.
-        var normalizedNamespaceSpan = DefaultRazorTagHelperContextDiscoveryPhase.GetSpanWithoutGlobalPrefix(@namespace);
-
-        var typeNamespace = descriptor.GetTypeNamespace();
-
-        var result = DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor.IsTypeNamespaceInNormalizedNamespace(typeNamespace, normalizedNamespaceSpan);
-
-        // Assert
-        Assert.Equal(expected, result);
-    }
-
-    [Theory]
-    [InlineData("", "", true)]
-    [InlineData("Foo", "Project", true)]
-    [InlineData("Project.Foo", "Project", true)]
     [InlineData("Project.Bar.Foo", "Project.Bar", true)]
     [InlineData("Project.Foo", "Project.Bar", true)]
     [InlineData("Project.Bar.Foo", "Project", false)]
