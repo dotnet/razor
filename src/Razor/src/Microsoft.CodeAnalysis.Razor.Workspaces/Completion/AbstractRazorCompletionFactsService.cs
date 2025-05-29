@@ -81,6 +81,16 @@ internal abstract class AbstractRazorCompletionFactsService(ImmutableArray<IRazo
             return previousToken2.Parent.AssumeNotNull();
         }
 
+        // If we have @ transition right in front of an existing equals and caret is after @, e.g.
+        // <button @|="OnClick"></button>
+        // we get entire attribute from FindInnermostNode. We always want the attribute name as the context in such cases,
+        // so we adjust it to be the attrbute name node.
+        if (originalNode is MarkupAttributeBlockSyntax markupAttribute
+            && markupAttribute.EqualsToken.SpanStart == requestIndex)
+        {
+            return markupAttribute.Name;
+        }
+
         return originalNode;
     }
 }
