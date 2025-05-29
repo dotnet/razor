@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Internal;
@@ -15,8 +16,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 /// <summary>
 /// Represents a read-only list of <see cref="SyntaxToken"/>.
 /// </summary>
+[CollectionBuilder(typeof(SyntaxTokenList), methodName: "Create")]
 internal readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, IReadOnlyList<SyntaxToken>
 {
+    public static SyntaxTokenList Empty => default;
+
     internal GreenNode? Node { get; }
     internal int Position { get; }
 
@@ -43,7 +47,7 @@ internal readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, 
         _index = 0;
     }
 
-    public SyntaxTokenList(params SyntaxToken[] tokens)
+    public SyntaxTokenList(params ReadOnlySpan<SyntaxToken> tokens)
         : this(parent: null, CreateNodeFromSpan(tokens), position: 0, index: 0)
     {
     }
@@ -176,6 +180,9 @@ internal readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, 
     public SyntaxTokenList Add(SyntaxToken token)
         => Insert(Count, token);
 
+    public SyntaxTokenList AddRange(ReadOnlySpan<SyntaxToken> tokens)
+        => InsertRange(Count, tokens);
+
     public SyntaxTokenList AddRange(IEnumerable<SyntaxToken> tokens)
         => InsertRange(Count, tokens);
 
@@ -221,6 +228,8 @@ internal readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, 
         {
             array[i].Value = this[j].RequiredNode;
         }
+
+        Debug.Assert(i == array.Length);
 
         return new(parent: null, InternalSyntax.SyntaxList.List(array), position: 0, index: 0);
     }
@@ -293,11 +302,15 @@ internal readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, 
             array[i++].Value = token.RequiredNode;
         }
 
+        Debug.Assert(i == index + tokenCount);
+
         // Add remaining tokens starting from 'index'
         for (var j = index; j < count; i++, j++)
         {
             array[i].Value = this[j].RequiredNode;
         }
+
+        Debug.Assert(i == array.Length);
 
         return new(parent: null, InternalSyntax.SyntaxList.List(array), position: 0, index: 0);
     }
@@ -348,17 +361,19 @@ internal readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, 
     {
         var index = IndexOf(tokenInList);
 
-        if (tokens.Length == 0)
-        {
-            return RemoveAt(index);
-        }
-
         if (index < 0)
         {
             ThrowHelper.ThrowArgumentOutOfRangeException(nameof(tokenInList));
         }
 
+        if (tokens.Length == 0)
+        {
+            return RemoveAt(index);
+        }
+
         var count = Count;
+
+        // The length of the new array is -1 because an element will be replaced.
         var array = new ArrayElement<GreenNode>[count + tokens.Length - 1];
 
         // Add current tokens up to 'index'
@@ -379,6 +394,8 @@ internal readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, 
         {
             array[i].Value = this[j].RequiredNode;
         }
+
+        Debug.Assert(i == array.Length);
 
         return new(parent: null, InternalSyntax.SyntaxList.List(array), position: 0, index: 0);
     }
@@ -431,7 +448,9 @@ internal readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, 
         }
 
         var count = Count;
-        var array = new ArrayElement<GreenNode>[count + tokenCount];
+
+        // The length of the new array is -1 because an element will be replaced.
+        var array = new ArrayElement<GreenNode>[count + tokenCount - 1];
 
         // Add current tokens up to 'index'
         int i;
@@ -446,11 +465,15 @@ internal readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, 
             array[i++].Value = token.RequiredNode;
         }
 
-        // Add remaining tokens starting from 'index'
-        for (var j = index; j < count; i++, j++)
+        Debug.Assert(i == index + tokenCount);
+
+        // Add remaining tokens starting *after* 'index'
+        for (var j = index + 1; j < count; i++, j++)
         {
             array[i].Value = this[j].RequiredNode;
         }
+
+        Debug.Assert(i == array.Length);
 
         return new(parent: null, InternalSyntax.SyntaxList.List(array), position: 0, index: 0);
     }
