@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
@@ -39,7 +39,7 @@ internal static class CompilationHelpers
         return generator.GenerateDesignTime(source, document.FileKind, importSources, tagHelpers, cancellationToken);
     }
 
-    private static async Task<ImmutableArray<RazorSourceDocument>> GetImportSourcesAsync(IDocumentSnapshot document, RazorProjectEngine projectEngine, CancellationToken cancellationToken)
+    internal static async Task<ImmutableArray<RazorSourceDocument>> GetImportSourcesAsync(IDocumentSnapshot document, RazorProjectEngine projectEngine, CancellationToken cancellationToken)
     {
         // We don't use document.FilePath when calling into GetItem(...) because
         // it could be rooted outside of the project root. document.TargetPath should
