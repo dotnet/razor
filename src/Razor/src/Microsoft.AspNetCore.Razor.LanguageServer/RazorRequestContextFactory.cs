@@ -1,14 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
@@ -38,9 +36,9 @@ internal sealed class RazorRequestContextFactory(
 
                 _documentContextFactory.TryCreate(textDocumentIdentifier, out documentContext);
             }
-            else if (textDocumentHandler is ITextDocumentIdentifierHandler<TRequestParams, Uri> uriHandler)
+            else if (textDocumentHandler is ITextDocumentIdentifierHandler<TRequestParams, DocumentUri> uriHandler)
             {
-                uri = new DocumentUri(uriHandler.GetTextDocumentIdentifier(@params));
+                uri = uriHandler.GetTextDocumentIdentifier(@params);
 
                 _logger.LogDebug($"Trying to create DocumentContext for {queueItem.MethodName}, with no project context, for {uri}");
 
@@ -57,7 +55,7 @@ internal sealed class RazorRequestContextFactory(
             }
         }
 
-        var requestContext = new RazorRequestContext(documentContext, _lspServices, queueItem.MethodName, uri?.ParsedUri);
+        var requestContext = new RazorRequestContext(documentContext, _lspServices, queueItem.MethodName, uri);
 
         return Task.FromResult(requestContext);
     }
