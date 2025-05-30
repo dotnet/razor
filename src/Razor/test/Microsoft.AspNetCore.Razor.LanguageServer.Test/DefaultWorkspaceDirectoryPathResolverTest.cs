@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
@@ -19,15 +18,18 @@ public class DefaultWorkspaceDirectoryPathResolverTest(ITestOutputHelper testOut
 #pragma warning disable CS0618 // Type or member is obsolete
         var initializeParams = new InitializeParams()
         {
-            RootDocumentUri = new DocumentUri(expectedWorkspaceDirectory)
+            RootPath = expectedWorkspaceDirectory
         };
 #pragma warning restore CS0618 // Type or member is obsolete
 
         var capabilitiesManager = new CapabilitiesManager(LspServices.Empty);
         capabilitiesManager.SetInitializeParams(initializeParams);
 
-        // Act / Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await capabilitiesManager.GetRootPathAsync(DisposalToken));
+        // Act
+        var workspaceDirectoryPath = await capabilitiesManager.GetRootPathAsync(DisposalToken);
+
+        // Assert
+        Assert.Equal(expectedWorkspaceDirectory, workspaceDirectoryPath);
     }
 
     [Fact]

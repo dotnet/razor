@@ -102,7 +102,8 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                 referenceItem.Origin = VSInternalItemOrigin.Exact;
 
                 // If we're going to change the Uri, then also override the file paths
-                if (mappedUri != location.DocumentUri)
+                // TODO(toddgrun): switch back to == when roslyn implementation of DocumentUri.operator== is available on ci
+                if (!location.DocumentUri.Equals(mappedUri))
                 {
                     var absolutePath = mappedUri.ParsedUri?.AbsolutePath;
 
