@@ -60,7 +60,7 @@ internal class TextDocumentUriPresentationEndpoint(
             return null;
         }
 
-        var componentTagText = await TryGetComponentTagAsync(new DocumentUri(razorFileUri), cancellationToken).ConfigureAwait(false);
+        var componentTagText = await TryGetComponentTagAsync(razorFileUri, cancellationToken).ConfigureAwait(false);
         if (componentTagText is null)
         {
             return null;

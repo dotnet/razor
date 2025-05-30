@@ -4,7 +4,6 @@
 using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -29,7 +28,7 @@ internal sealed class RemoteEditMappingService(
         }
 
         var solution = originSnapshot.TextDocument.Project.Solution;
-        if (!solution.TryGetRazorDocument(razorDocumentUri.GetRequiredParsedUri(), out var razorDocument))
+        if (!solution.TryGetRazorDocument(razorDocumentUri, out var razorDocument))
         {
             documentContext = null;
             return false;

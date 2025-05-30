@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -64,7 +65,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
     public event EventHandler<string>? Updated;
 
     // Called by us to update LSP document entries
-    public void UpdateLSPFileInfo(Uri documentUri, IDynamicDocumentContainer documentContainer)
+    public void UpdateLSPFileInfo(DocumentUri documentUri, IDynamicDocumentContainer documentContainer)
     {
         Debug.Assert(!_languageServerFeatureOptions.UseRazorCohostServer, "Should never be called in cohosting");
 
@@ -132,7 +133,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
 
     // Called by us to promote a background document (i.e. assign to a client name). Promoting a background
     // document will allow it to be recognized by the C# server.
-    public void PromoteBackgroundDocument(Uri documentUri, IRazorDocumentPropertiesService propertiesService)
+    public void PromoteBackgroundDocument(DocumentUri documentUri, IRazorDocumentPropertiesService propertiesService)
     {
         Debug.Assert(!_languageServerFeatureOptions.UseRazorCohostServer, "Should never be called in cohosting");
 
@@ -274,7 +275,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         return Task.CompletedTask;
     }
 
-    public static string GetProjectSystemFilePath(Uri uri)
+    public static string GetProjectSystemFilePath(DocumentUri uri)
     {
         // In VS Windows project system file paths always utilize `\`. In VSMac they don't. This is a bit of a hack
         // however, it's the only way to get the correct file path for a document to map to a corresponding project
@@ -287,7 +288,7 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
         }
 
         // VSMac
-        return uri.AbsolutePath;
+        return uri.GetRequiredParsedUri().AbsolutePath;
     }
 
     private void ProjectManager_Changed(object? sender, ProjectChangeEventArgs args)
@@ -426,19 +427,19 @@ internal class RazorDynamicFileInfoProvider : IRazorDynamicFileInfoProviderInter
     }
 
     private sealed class PromotedDynamicDocumentContainer(
-        Uri documentUri,
+        DocumentUri documentUri,
         IRazorDocumentPropertiesService documentPropertiesService,
         IRazorDocumentExcerptServiceImplementation? documentExcerptService,
         IRazorMappingService? mappingService,
         TextLoader textLoader) : IDynamicDocumentContainer
     {
-        private readonly Uri _documentUri = documentUri;
+        private readonly DocumentUri _documentUri = documentUri;
         private readonly IRazorDocumentPropertiesService _documentPropertiesService = documentPropertiesService;
         private readonly IRazorDocumentExcerptServiceImplementation? _documentExcerptService = documentExcerptService;
         private readonly IRazorMappingService? _mappingService = mappingService;
         private readonly TextLoader _textLoader = textLoader;
 
-        public string FilePath => _documentUri.LocalPath;
+        public string FilePath => _documentUri.GetRequiredParsedUri().LocalPath;
 
         public bool SupportsDiagnostics { get; private set; }
 

@@ -4,7 +4,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -26,7 +25,7 @@ internal class DocumentDidSaveEndpoint(ILoggerFactory loggerFactory)
 
     public Task HandleNotificationAsync(DidSaveTextDocumentParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        _logger.LogInformation($"Saved Document {request.TextDocument.DocumentUri.GetRequiredParsedUri().GetAbsoluteOrUNCPath()}");
+        _logger.LogInformation($"Saved Document {request.TextDocument.DocumentUri.GetAbsoluteOrUNCPath()}");
 
         return Task.CompletedTask;
     }

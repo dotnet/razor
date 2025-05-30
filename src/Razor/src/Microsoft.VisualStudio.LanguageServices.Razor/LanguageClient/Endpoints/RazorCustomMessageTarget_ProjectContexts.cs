@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Threading;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.Razor.DynamicFiles;
@@ -27,7 +26,7 @@ internal partial class RazorCustomMessageTarget
 
         using var projectContexts = new PooledArrayBuilder<VSProjectContext>(capacity: projects.Length);
 
-        var documentFilePath = RazorDynamicFileInfoProvider.GetProjectSystemFilePath(request.Uri.GetRequiredParsedUri());
+        var documentFilePath = RazorDynamicFileInfoProvider.GetProjectSystemFilePath(request.Uri);
 
         foreach (var project in projects)
         {

@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 
@@ -23,6 +22,6 @@ internal class DocumentDidOpenEndpoint(IRazorProjectService razorProjectService)
         var sourceText = SourceText.From(request.TextDocument.Text);
 
         return _projectService.OpenDocumentAsync(
-            request.TextDocument.DocumentUri.GetRequiredParsedUri().GetAbsoluteOrUNCPath(), sourceText, cancellationToken);
+            request.TextDocument.DocumentUri.GetAbsoluteOrUNCPath(), sourceText, cancellationToken);
     }
 }

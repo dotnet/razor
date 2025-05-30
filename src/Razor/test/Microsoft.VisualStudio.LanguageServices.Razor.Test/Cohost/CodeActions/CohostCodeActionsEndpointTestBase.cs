@@ -176,7 +176,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
                     // TODO(toddgrun): switch back to == when roslyn implementation of DocumentUri.operator== is available on ci
                     Assert.Single(additionalExpectedFiles.AssumeNotNull(), f => f.fileUri.Equals(createFile.DocumentUri));
                     var documentId = DocumentId.CreateNewId(document.Project.Id);
-                    var filePath = createFile.DocumentUri.GetRequiredParsedUri().GetDocumentFilePath();
+                    var filePath = createFile.DocumentUri.GetDocumentFilePath();
                     var documentInfo = DocumentInfo.Create(documentId, filePath, filePath: filePath);
                     solution = solution.AddDocument(documentInfo);
                 }

@@ -17,7 +17,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -104,7 +103,7 @@ public abstract class LanguageServerTestBase(ITestOutputHelper testOutput) : Too
 
     private protected static DocumentContext CreateDocumentContext(DocumentUri documentPath, RazorCodeDocument codeDocument)
     {
-        return TestDocumentContext.Create(documentPath.GetRequiredParsedUri().GetAbsoluteOrUNCPath(), codeDocument);
+        return TestDocumentContext.Create(documentPath.GetAbsoluteOrUNCPath(), codeDocument);
     }
 
     private protected static IDocumentContextFactory CreateDocumentContextFactory(
@@ -113,7 +112,7 @@ public abstract class LanguageServerTestBase(ITestOutputHelper testOutput) : Too
         bool documentFound = true)
     {
         var documentContextFactory = documentFound
-            ? new TestDocumentContextFactory(documentPath.GetRequiredParsedUri().GetAbsoluteOrUNCPath(), codeDocument)
+            ? new TestDocumentContextFactory(documentPath.GetAbsoluteOrUNCPath(), codeDocument)
             : new TestDocumentContextFactory();
 
         return documentContextFactory;

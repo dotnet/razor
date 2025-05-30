@@ -92,7 +92,7 @@ public abstract class CodeActionEndToEndTestBase(ITestOutputHelper testOutput) :
             var codeBehindSourceText = SourceText.From(initialCodeBehindContent);
             foreach (var change in changes)
             {
-                if (FilePathNormalizer.Normalize(change.TextDocument.DocumentUri.ParsedUri?.GetAbsoluteOrUNCPath()) == codeBehindFilePath)
+                if (FilePathNormalizer.Normalize(change.TextDocument.DocumentUri.GetAbsoluteOrUNCPath()) == codeBehindFilePath)
                 {
                     codeBehindEdits.AddRange(change.Edits.Select(e => codeBehindSourceText.GetTextChange((TextEdit)e)));
                 }

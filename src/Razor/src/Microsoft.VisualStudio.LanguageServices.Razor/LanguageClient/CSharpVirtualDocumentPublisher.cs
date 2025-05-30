@@ -61,7 +61,7 @@ internal class CSharpVirtualDocumentPublisher : LSPDocumentChangeListener
         // workaround until a longer-term solution is implemented in the future.
         if (kind == LSPDocumentChangeKind.Added && _dynamicFileInfoProvider is RazorDynamicFileInfoProvider defaultProvider)
         {
-            defaultProvider.PromoteBackgroundDocument(@new.AssumeNotNull().Uri, CSharpDocumentPropertiesService.Instance);
+            defaultProvider.PromoteBackgroundDocument(new DocumentUri(@new.AssumeNotNull().Uri), CSharpDocumentPropertiesService.Instance);
         }
 
         if (kind != LSPDocumentChangeKind.VirtualDocumentChanged)
@@ -73,7 +73,7 @@ internal class CSharpVirtualDocumentPublisher : LSPDocumentChangeListener
         {
             Assumes.NotNull(@new);
             var csharpContainer = new CSharpVirtualDocumentContainer(_lspDocumentMappingProvider, @new, virtualNew.Snapshot);
-            _dynamicFileInfoProvider.UpdateLSPFileInfo(@new.Uri, csharpContainer);
+            _dynamicFileInfoProvider.UpdateLSPFileInfo(new DocumentUri(@new.Uri), csharpContainer);
         }
     }
 

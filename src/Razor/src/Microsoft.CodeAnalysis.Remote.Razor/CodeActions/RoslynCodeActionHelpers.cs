@@ -43,7 +43,7 @@ internal sealed class RoslynCodeActionHelpers : IRoslynCodeActionHelpers
         {
             // Edit is for inserting into a C# document
             var solution = context.TextDocument.Project.Solution;
-            var documentIds = solution.GetDocumentIdsWithUri(codeBehindUri.GetRequiredParsedUri());
+            var documentIds = solution.GetDocumentIdsWithUri(codeBehindUri);
             if (documentIds.Length == 0)
             {
                 return null;

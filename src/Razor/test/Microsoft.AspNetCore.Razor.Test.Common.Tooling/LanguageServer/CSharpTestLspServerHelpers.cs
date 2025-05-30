@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -146,7 +145,7 @@ internal static class CSharpTestLspServerHelpers
         var documentCount = 0;
         foreach (var (documentUri, csharpSourceText) in files)
         {
-            var documentFilePath = documentUri.GetRequiredParsedUri().GetDocumentFilePath();
+            var documentFilePath = documentUri.GetDocumentFilePath();
             var textAndVersion = TextAndVersion.Create(csharpSourceText, VersionStamp.Default, documentFilePath);
 
             foreach (var projectInfo in projectInfos)

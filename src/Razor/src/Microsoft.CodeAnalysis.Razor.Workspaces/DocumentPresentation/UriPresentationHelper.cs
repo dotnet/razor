@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -10,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor.DocumentPresentation;
 
 internal static class UriPresentationHelper
 {
-    public static Uri? GetComponentFileNameFromUriPresentationRequest(Uri[]? uris, ILogger logger)
+    public static DocumentUri? GetComponentFileNameFromUriPresentationRequest(Uri[]? uris, ILogger logger)
     {
         if (uris is null || uris.Length == 0)
         {
@@ -18,7 +19,8 @@ internal static class UriPresentationHelper
             return null;
         }
 
-        var razorFileUri = uris.Where(
+        var documentUris = uris.SelectAsArray(static uri => new DocumentUri(uri));
+        var razorFileUri = documentUris.Where(
             x => Path.GetFileName(x.GetAbsoluteOrUNCPath()).EndsWith(".razor", FilePathComparison.Instance)).FirstOrDefault();
 
         // We only want to handle requests for a single .razor file, but when there are files nested under a .razor
@@ -31,7 +33,7 @@ internal static class UriPresentationHelper
         }
 
         var fileName = Path.GetFileName(razorFileUri.GetAbsoluteOrUNCPath());
-        if (uris.Any(uri => !Path.GetFileName(uri.GetAbsoluteOrUNCPath()).StartsWith(fileName, FilePathComparison.Instance)))
+        if (documentUris.Any(uri => !Path.GetFileName(uri.GetAbsoluteOrUNCPath()).StartsWith(fileName, FilePathComparison.Instance)))
         {
             logger.LogDebug($"One or more URIs were not a child file of the main .razor file.");
             return null;

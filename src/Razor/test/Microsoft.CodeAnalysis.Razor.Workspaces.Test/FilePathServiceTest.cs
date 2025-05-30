@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
 
@@ -71,7 +70,7 @@ public class FilePathServiceTest
         var result = filePathService.GetRazorDocumentUri(new DocumentUri(input));
 
         // Assert
-        Assert.Equal(@"C:/path/to/file.razor", result.GetRequiredParsedUri().GetAbsoluteOrUNCPath());
+        Assert.Equal(@"C:/path/to/file.razor", result.GetAbsoluteOrUNCPath());
     }
 
     [Fact]
@@ -83,7 +82,7 @@ public class FilePathServiceTest
         var result = filePathService.GetRazorDocumentUri(new DocumentUri(@"C:\path\to\file.razor__virtual.html"));
 
         // Assert
-        Assert.Equal(@"C:/path/to/file.razor", result.GetRequiredParsedUri().GetAbsoluteOrUNCPath());
+        Assert.Equal(@"C:/path/to/file.razor", result.GetAbsoluteOrUNCPath());
     }
 
     [Fact]
@@ -95,7 +94,7 @@ public class FilePathServiceTest
         var result = filePathService.GetRazorDocumentUri(new DocumentUri(@"C:\path\to\file.razor"));
 
         // Assert
-        Assert.Equal(@"C:/path/to/file.razor", result.GetRequiredParsedUri().GetAbsoluteOrUNCPath());
+        Assert.Equal(@"C:/path/to/file.razor", result.GetAbsoluteOrUNCPath());
     }
 
     private class TestFilePathService(TestLanguageServerFeatureOptions options) : AbstractFilePathService(options)

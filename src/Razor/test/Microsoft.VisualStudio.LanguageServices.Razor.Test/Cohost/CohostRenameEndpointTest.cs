@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -209,8 +208,8 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 if (change.TryGetThird(out var renameEdit))
                 {
                     Assert.Contains(renames,
-                        r => renameEdit.OldDocumentUri.GetRequiredParsedUri().GetDocumentFilePath().EndsWith(r.oldName) &&
-                             renameEdit.NewDocumentUri.GetRequiredParsedUri().GetDocumentFilePath().EndsWith(r.newName));
+                        r => renameEdit.OldDocumentUri.GetDocumentFilePath().EndsWith(r.oldName) &&
+                             renameEdit.NewDocumentUri.GetDocumentFilePath().EndsWith(r.newName));
                 }
             }
         }

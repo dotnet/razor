@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -98,7 +97,7 @@ internal class ComponentAccessibilityCodeActionProvider(IFileSystem fileSystem) 
             return;
         }
 
-        var path = context.Request.TextDocument.DocumentUri.GetRequiredParsedUri().GetAbsoluteOrUNCPath();
+        var path = context.Request.TextDocument.DocumentUri.GetAbsoluteOrUNCPath();
         path = FilePathNormalizer.Normalize(path);
 
         var directoryName = Path.GetDirectoryName(path);

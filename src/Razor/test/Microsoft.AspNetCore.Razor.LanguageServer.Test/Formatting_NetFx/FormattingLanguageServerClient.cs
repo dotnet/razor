@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -58,7 +57,7 @@ internal class FormattingLanguageServerClient(HtmlFormattingService htmlFormatti
 
     private string GetGeneratedHtml(DocumentUri uri)
     {
-        var codeDocument = _documents[uri.GetRequiredParsedUri().GetAbsoluteOrUNCPath()];
+        var codeDocument = _documents[uri.GetAbsoluteOrUNCPath()];
         var generatedHtml = codeDocument.GetHtmlDocument().Text.ToString();
         return generatedHtml.Replace("\r", "").Replace("\n", "\r\n");
     }

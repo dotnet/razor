@@ -34,7 +34,7 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
         => IsVirtualCSharpFile(uri) || IsVirtualHtmlFile(uri);
 
     private static bool CheckIfFileUriAndExtensionMatch(DocumentUri uri, string extension)
-        => uri.ParsedUri?.GetAbsoluteOrUNCPath()?.EndsWith(extension, StringComparison.Ordinal) ?? false;
+        => uri.GetAbsoluteOrUNCPath()?.EndsWith(extension, StringComparison.Ordinal) ?? false;
 
     private string GetRazorFilePath(string filePath)
     {

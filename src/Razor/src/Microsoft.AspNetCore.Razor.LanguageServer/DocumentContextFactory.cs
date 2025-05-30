@@ -1,10 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -25,7 +23,7 @@ internal sealed class DocumentContextFactory(
         VSProjectContext? projectContext,
         [NotNullWhen(true)] out DocumentContext? context)
     {
-        var filePath = documentUri.GetRequiredParsedUri().GetAbsoluteOrUNCPath();
+        var filePath = documentUri.GetAbsoluteOrUNCPath();
 
         if (!TryResolveDocument(filePath, projectContext, out var documentSnapshot))
         {

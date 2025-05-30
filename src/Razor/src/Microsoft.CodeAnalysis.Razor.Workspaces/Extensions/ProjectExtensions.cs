@@ -107,20 +107,20 @@ internal static class ProjectExtensions
     /// </summary>
     public static bool TryGetHintNameFromGeneratedDocumentUri(this Project project, DocumentUri generatedDocumentUri, [NotNullWhen(true)] out string? hintName)
     {
-        var generatedDocumentParredUri = generatedDocumentUri.ParsedUri;
-        if (generatedDocumentParredUri is null)
+        var generatedDocumentParsedUri = generatedDocumentUri.ParsedUri;
+        if (generatedDocumentParsedUri is null)
         {
             hintName = null;
             return false;
         }
 
-        if (!RazorUri.IsGeneratedDocumentUri(generatedDocumentParredUri))
+        if (!RazorUri.IsGeneratedDocumentUri(generatedDocumentParsedUri))
         {
             hintName = null;
             return false;
         }
 
-        hintName = RazorUri.GetHintNameFromGeneratedDocumentUri(project.Solution, generatedDocumentParredUri);
+        hintName = RazorUri.GetHintNameFromGeneratedDocumentUri(project.Solution, generatedDocumentParsedUri);
         return true;
     }
 }

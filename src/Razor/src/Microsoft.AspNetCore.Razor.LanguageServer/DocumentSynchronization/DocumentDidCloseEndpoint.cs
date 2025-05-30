@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -26,6 +25,6 @@ internal class DocumentDidCloseEndpoint(IRazorProjectService projectService) : I
 
     public Task HandleNotificationAsync(DidCloseTextDocumentParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        return _projectService.CloseDocumentAsync(request.TextDocument.DocumentUri.GetRequiredParsedUri().GetAbsoluteOrUNCPath(), cancellationToken);
+        return _projectService.CloseDocumentAsync(request.TextDocument.DocumentUri.GetAbsoluteOrUNCPath(), cancellationToken);
     }
 }

@@ -3,7 +3,6 @@
 
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -15,7 +14,7 @@ internal static class TestDocumentContext
 
     public static DocumentContext Create(DocumentUri uri, string text)
     {
-        var snapshot = TestDocumentSnapshot.Create(uri.GetRequiredParsedUri().GetAbsoluteOrUNCPath(), text);
+        var snapshot = TestDocumentSnapshot.Create(uri.GetAbsoluteOrUNCPath(), text);
         return new DocumentContext(uri, snapshot, projectContext: null);
     }
 
