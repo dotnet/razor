@@ -44,7 +44,7 @@ internal class LSPDocumentMappingProvider(
         var mapToDocumentRangeParams = new RazorMapToDocumentRangesParams()
         {
             Kind = languageKind,
-            RazorDocumentUri = razorDocumentUri,
+            RazorDocumentUri = new DocumentUri(razorDocumentUri),
             ProjectedRanges = projectedRanges,
             MappingBehavior = MappingBehavior.Strict,
         };

@@ -37,7 +37,7 @@ internal class CodeActionsService(
     private readonly IEnumerable<IHtmlCodeActionProvider> _htmlCodeActionProviders = htmlCodeActionProviders;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
-    public async Task<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(VSCodeActionParams request, IDocumentSnapshot documentSnapshot, RazorVSInternalCodeAction[] delegatedCodeActions, Uri? delegatedDocumentUri, bool supportsCodeActionResolve, CancellationToken cancellationToken)
+    public async Task<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(VSCodeActionParams request, IDocumentSnapshot documentSnapshot, RazorVSInternalCodeAction[] delegatedCodeActions, DocumentUri? delegatedDocumentUri, bool supportsCodeActionResolve, CancellationToken cancellationToken)
     {
         var razorCodeActionContext = await GenerateRazorCodeActionContextAsync(request, documentSnapshot, delegatedDocumentUri, supportsCodeActionResolve, cancellationToken).ConfigureAwait(false);
         if (razorCodeActionContext is null)
@@ -96,7 +96,7 @@ internal class CodeActionsService(
     private async Task<RazorCodeActionContext?> GenerateRazorCodeActionContextAsync(
         VSCodeActionParams request,
         IDocumentSnapshot documentSnapshot,
-        Uri? delegatedDocumentUri,
+        DocumentUri? delegatedDocumentUri,
         bool supportsCodeActionResolve,
         CancellationToken cancellationToken)
     {
@@ -151,7 +151,7 @@ internal class CodeActionsService(
         {
             TextDocument = new VSTextDocumentIdentifier()
             {
-                Uri = request.TextDocument.Uri,
+                DocumentUri = request.TextDocument.DocumentUri,
                 ProjectContext = request.TextDocument.ProjectContext
             },
             Context = newContext,

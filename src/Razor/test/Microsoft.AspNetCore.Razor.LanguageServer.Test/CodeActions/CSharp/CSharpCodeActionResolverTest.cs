@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
@@ -10,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -130,7 +130,7 @@ public class CSharpCodeActionResolverTest(ITestOutputHelper testOutput) : Langua
                 DocumentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] {
                         new CreateFile()
                         {
-                            Uri = new Uri("c:/some/uri.razor")
+                            DocumentUri = new DocumentUri("c:/some/uri.razor")
                         }
                     }
             }
@@ -151,7 +151,7 @@ public class CSharpCodeActionResolverTest(ITestOutputHelper testOutput) : Langua
         IRazorFormattingService? razorFormattingService = null)
     {
         var documentPath = "c:/Test.razor";
-        var documentUri = new Uri(documentPath);
+        var documentUri = new DocumentUri(documentPath);
         var contents = string.Empty;
         var codeDocument = CreateCodeDocument(contents, documentPath);
 
@@ -163,11 +163,11 @@ public class CSharpCodeActionResolverTest(ITestOutputHelper testOutput) : Langua
         documentContext = CreateDocumentContext(documentUri, codeDocument);
     }
 
-    private static IRazorFormattingService CreateRazorFormattingService(Uri documentUri)
+    private static IRazorFormattingService CreateRazorFormattingService(DocumentUri documentUri)
     {
         var razorFormattingService = Mock.Of<IRazorFormattingService>(
                         rfs => rfs.TryGetCSharpCodeActionEditAsync(
-                            It.Is<DocumentContext>(c => c.Uri == documentUri),
+                            It.Is<DocumentContext>(c => c.DocumentUri.GetRequiredParsedUri() == documentUri.GetRequiredParsedUri()),
                             It.IsAny<ImmutableArray<TextChange>>(),
                             It.IsAny<RazorFormattingOptions>(),
                             It.IsAny<CancellationToken>()) == Task.FromResult<TextChange?>(s_defaultFormattedChange), MockBehavior.Strict);

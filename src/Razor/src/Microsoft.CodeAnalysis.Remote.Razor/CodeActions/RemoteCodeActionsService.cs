@@ -51,7 +51,7 @@ internal sealed partial class RemoteCodeActionsService(in ServiceArgs args) : Ra
             {
                 // Since we're here, we may as well fill in the generated document Uri so the other caller won't have to calculate it
                 var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
-                csharpRequest.TextDocument.Uri = generatedDocument.CreateUri();
+                csharpRequest.TextDocument.DocumentUri = generatedDocument.CreateDocumentUri();
             }
         }
 
@@ -68,7 +68,7 @@ internal sealed partial class RemoteCodeActionsService(in ServiceArgs args) : Ra
     private async ValueTask<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(RemoteDocumentContext context, VSCodeActionParams request, RazorVSInternalCodeAction[] delegatedCodeActions, CancellationToken cancellationToken)
     {
         var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var generatedDocumentUri = generatedDocument.CreateUri();
+        var generatedDocumentUri = generatedDocument.CreateDocumentUri();
 
         var supportsCodeActionResolve = _clientCapabilitiesService.ClientCapabilities.TextDocument?.CodeAction?.ResolveSupport is not null;
         return await _codeActionsService.GetCodeActionsAsync(request, context.Snapshot, delegatedCodeActions, generatedDocumentUri, supportsCodeActionResolve, cancellationToken).ConfigureAwait(false);

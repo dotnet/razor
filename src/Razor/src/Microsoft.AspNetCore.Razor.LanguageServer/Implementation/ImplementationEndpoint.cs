@@ -66,7 +66,7 @@ internal sealed class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<T
         {
             foreach (var loc in locations)
             {
-                (loc.Uri, loc.Range) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(loc.Uri, loc.Range, cancellationToken).ConfigureAwait(false);
+                (loc.DocumentUri, loc.Range) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(loc.DocumentUri, loc.Range, cancellationToken).ConfigureAwait(false);
             }
 
             return locations;
@@ -75,7 +75,7 @@ internal sealed class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<T
         {
             foreach (var item in referenceItems)
             {
-                (item.Location!.Uri, item.Location.Range) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(item.Location.Uri, item.Location.Range, cancellationToken).ConfigureAwait(false);
+                (item.Location!.DocumentUri, item.Location.Range) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(item.Location.DocumentUri, item.Location.Range, cancellationToken).ConfigureAwait(false);
             }
 
             return referenceItems;

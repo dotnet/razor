@@ -54,7 +54,7 @@ public abstract class CodeActionEndToEndTestBase(ITestOutputHelper testOutput) :
 
         var codeDocument = CreateCodeDocument(input.Text, filePath: razorFilePath, rootNamespace: "Test", tagHelpers: CreateTagHelperDescriptors());
         var razorSourceText = codeDocument.Source.Text;
-        var uri = new Uri(razorFilePath);
+        var uri = new DocumentUri(razorFilePath);
         await using var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var requestContext = new RazorRequestContext(documentContext, null!, "lsp/method", uri: null);
@@ -92,7 +92,7 @@ public abstract class CodeActionEndToEndTestBase(ITestOutputHelper testOutput) :
             var codeBehindSourceText = SourceText.From(initialCodeBehindContent);
             foreach (var change in changes)
             {
-                if (FilePathNormalizer.Normalize(change.TextDocument.Uri.GetAbsoluteOrUNCPath()) == codeBehindFilePath)
+                if (FilePathNormalizer.Normalize(change.TextDocument.DocumentUri.ParsedUri?.GetAbsoluteOrUNCPath()) == codeBehindFilePath)
                 {
                     codeBehindEdits.AddRange(change.Edits.Select(e => codeBehindSourceText.GetTextChange((TextEdit)e)));
                 }
@@ -144,7 +144,7 @@ public abstract class CodeActionEndToEndTestBase(ITestOutputHelper testOutput) :
         var razorFilePath = "C:/path/test.razor";
         var codeDocument = CreateCodeDocument(input.Text, filePath: razorFilePath, tagHelpers: CreateTagHelperDescriptors());
         var sourceText = codeDocument.Source.Text;
-        var uri = new Uri(razorFilePath);
+        var uri = new DocumentUri(razorFilePath);
         await using var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var requestContext = new RazorRequestContext(documentContext, null!, "lsp/method", uri: null);
@@ -200,7 +200,7 @@ public abstract class CodeActionEndToEndTestBase(ITestOutputHelper testOutput) :
     }
 
     internal async Task<SumType<Command, CodeAction>[]> GetCodeActionsAsync(
-        Uri uri,
+        DocumentUri uri,
         TextSpan textSpan,
         SourceText sourceText,
         RazorRequestContext requestContext,
@@ -241,7 +241,7 @@ public abstract class CodeActionEndToEndTestBase(ITestOutputHelper testOutput) :
 
         var @params = new VSCodeActionParams
         {
-            TextDocument = new VSTextDocumentIdentifier { Uri = uri },
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = uri },
             Range = sourceText.GetRange(textSpan),
             Context = new VSInternalCodeActionContext() { Diagnostics = diagnostics ?? [] }
         };

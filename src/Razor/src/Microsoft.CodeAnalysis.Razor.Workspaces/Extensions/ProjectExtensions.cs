@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -78,7 +77,7 @@ internal static class ProjectExtensions
     private static ImmutableArray<ITagHelperDescriptorProvider> GetTagHelperDescriptorProviders(RazorProjectEngine projectEngine)
         => projectEngine.Engine.GetFeatures<ITagHelperDescriptorProvider>().OrderByAsArray(static x => x.Order);
 
-    public static Task<SourceGeneratedDocument?> TryGetCSharpDocumentFromGeneratedDocumentUriAsync(this Project project, Uri generatedDocumentUri, CancellationToken cancellationToken)
+    public static Task<SourceGeneratedDocument?> TryGetCSharpDocumentFromGeneratedDocumentUriAsync(this Project project, DocumentUri generatedDocumentUri, CancellationToken cancellationToken)
     {
         if (!TryGetHintNameFromGeneratedDocumentUri(project, generatedDocumentUri, out var hintName))
         {
@@ -106,15 +105,22 @@ internal static class ProjectExtensions
     /// <summary>
     /// Finds source generated documents by iterating through all of them. In OOP there are better options!
     /// </summary>
-    public static bool TryGetHintNameFromGeneratedDocumentUri(this Project project, Uri generatedDocumentUri, [NotNullWhen(true)] out string? hintName)
+    public static bool TryGetHintNameFromGeneratedDocumentUri(this Project project, DocumentUri generatedDocumentUri, [NotNullWhen(true)] out string? hintName)
     {
-        if (!RazorUri.IsGeneratedDocumentUri(generatedDocumentUri))
+        var generatedDocumentParredUri = generatedDocumentUri.ParsedUri;
+        if (generatedDocumentParredUri is null)
         {
             hintName = null;
             return false;
         }
 
-        hintName = RazorUri.GetHintNameFromGeneratedDocumentUri(project.Solution, generatedDocumentUri);
+        if (!RazorUri.IsGeneratedDocumentUri(generatedDocumentParredUri))
+        {
+            hintName = null;
+            return false;
+        }
+
+        hintName = RazorUri.GetHintNameFromGeneratedDocumentUri(project.Solution, generatedDocumentParredUri);
         return true;
     }
 }

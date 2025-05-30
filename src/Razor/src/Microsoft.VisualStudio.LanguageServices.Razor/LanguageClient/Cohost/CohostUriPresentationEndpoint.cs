@@ -75,7 +75,7 @@ internal sealed class CohostUriPresentationEndpoint(
                     {
                         TextDocument = new()
                         {
-                            Uri = request.TextDocument.Uri
+                            DocumentUri = request.TextDocument.DocumentUri
                         },
                         Edits = [sourceText.GetTextEdit(textChange)]
                     }
@@ -112,9 +112,9 @@ internal sealed class CohostUriPresentationEndpoint(
         //       but if we move this all to OOP, per the above TODO, then that point is moot.
         foreach (var edit in edits)
         {
-            if (_filePathService.IsVirtualHtmlFile(edit.TextDocument.Uri))
+            if (_filePathService.IsVirtualHtmlFile(edit.TextDocument.DocumentUri))
             {
-                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = _filePathService.GetRazorDocumentUri(edit.TextDocument.Uri) };
+                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = _filePathService.GetRazorDocumentUri(edit.TextDocument.DocumentUri) };
             }
         }
 

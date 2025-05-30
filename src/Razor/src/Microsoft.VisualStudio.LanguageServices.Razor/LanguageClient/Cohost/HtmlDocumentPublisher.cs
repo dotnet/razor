@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Threading;
@@ -30,7 +31,8 @@ internal sealed class HtmlDocumentPublisher(
     {
         Assumed.True(synchronizationResult.Synchronized);
 
-        var uri = document.CreateUri();
+        var documentUri = document.CreateDocumentUri();
+        var uri = documentUri.GetRequiredParsedUri();
         if (!_documentManager.TryGetDocument(uri, out var documentSnapshot) ||
             !documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocument))
         {
@@ -44,7 +46,7 @@ internal sealed class HtmlDocumentPublisher(
             return;
         }
 
-        _logger.LogDebug($"The html document for {document.FilePath} is {uri}");
+        _logger.LogDebug($"The html document for {document.FilePath} is {documentUri}");
 
         await _joinableTaskContext.Factory.SwitchToMainThreadAsync(cancellationToken);
 

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -53,7 +52,7 @@ public class CSharpCodeActionProviderTest : LanguageServerTestBase
 
         var request = new VSCodeActionParams()
         {
-            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new DocumentUri(documentPath) },
             Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
@@ -82,7 +81,7 @@ public class CSharpCodeActionProviderTest : LanguageServerTestBase
 
         var request = new VSCodeActionParams()
         {
-            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new DocumentUri(documentPath) },
             Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
@@ -108,7 +107,7 @@ public class CSharpCodeActionProviderTest : LanguageServerTestBase
 
         var request = new VSCodeActionParams()
         {
-            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new DocumentUri(documentPath) },
             Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
@@ -139,7 +138,7 @@ $$Path;
 
         var request = new VSCodeActionParams()
         {
-            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new DocumentUri(documentPath) },
             Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
@@ -171,7 +170,7 @@ $$Path;
 
         var request = new VSCodeActionParams()
         {
-            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new DocumentUri(documentPath) },
             Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
@@ -200,7 +199,7 @@ $$Path;
 
         var request = new VSCodeActionParams()
         {
-            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new DocumentUri(documentPath) },
             Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
@@ -235,7 +234,7 @@ $$Path;
 
         var request = new VSCodeActionParams()
         {
-            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new DocumentUri(documentPath) },
             Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
@@ -279,7 +278,7 @@ $$Path;
 
         var request = new VSCodeActionParams()
         {
-            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new DocumentUri(documentPath) },
             Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };

@@ -60,7 +60,7 @@ internal partial class RazorCustomMessageTarget
 
         presentationParams.TextDocument = new TextDocumentIdentifier
         {
-            Uri = document.Uri,
+            DocumentUri = new DocumentUri(document.Uri),
         };
 
         var textBuffer = document.Snapshot.TextBuffer;

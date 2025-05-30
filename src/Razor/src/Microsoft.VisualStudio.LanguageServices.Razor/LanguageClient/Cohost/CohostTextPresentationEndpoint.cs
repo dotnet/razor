@@ -71,9 +71,9 @@ internal sealed class CohostTextPresentationEndpoint(
 
         foreach (var edit in edits)
         {
-            if (_filePathService.IsVirtualHtmlFile(edit.TextDocument.Uri))
+            if (_filePathService.IsVirtualHtmlFile(edit.TextDocument.DocumentUri))
             {
-                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = _filePathService.GetRazorDocumentUri(edit.TextDocument.Uri) };
+                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = _filePathService.GetRazorDocumentUri(edit.TextDocument.DocumentUri) };
             }
         }
 

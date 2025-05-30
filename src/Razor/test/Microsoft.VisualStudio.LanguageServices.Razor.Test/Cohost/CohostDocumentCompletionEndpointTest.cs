@@ -643,7 +643,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                Uri = document.CreateUri()
+                DocumentUri = document.CreateDocumentUri()
             },
             Position = sourceText.GetPosition(input.Position),
             Context = completionContext
@@ -712,7 +712,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
 
         var tdi = endpoint.GetTestAccessor().GetRazorTextDocumentIdentifier(item);
         Assert.NotNull(tdi);
-        Assert.Equal(document.CreateUri(), tdi.Value.Uri);
+        Assert.Equal(document.CreateDocumentUri()?.ParsedUri, tdi.Value.Uri);
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(item, document, DisposalToken);
 

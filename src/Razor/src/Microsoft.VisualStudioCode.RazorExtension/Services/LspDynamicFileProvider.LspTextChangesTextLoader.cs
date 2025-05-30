@@ -23,7 +23,7 @@ internal sealed partial class LspDynamicFileProvider
         byte[] checksum,
         SourceHashAlgorithm checksumAlgorithm,
         int? codePage,
-        Uri razorUri,
+        DocumentUri razorUri,
         IRazorClientLanguageServerManager razorClientLanguageServerManager) : TextLoader
     {
         private readonly TextDocument? _document = document;
@@ -31,7 +31,7 @@ internal sealed partial class LspDynamicFileProvider
         private readonly byte[] _checksum = checksum;
         private readonly SourceHashAlgorithm _checksumAlgorithm = checksumAlgorithm;
         private readonly int? _codePage = codePage;
-        private readonly Uri _razorUri = razorUri;
+        private readonly DocumentUri _razorUri = razorUri;
         private readonly IRazorClientLanguageServerManager _razorClientLanguageServerManager = razorClientLanguageServerManager;
         private readonly Lazy<SourceText> _emptySourceText = new(() =>
         {
@@ -100,7 +100,7 @@ internal sealed partial class LspDynamicFileProvider
                 {
                     RazorDocument = new()
                     {
-                        Uri = _razorUri,
+                        DocumentUri = _razorUri,
                     },
                     FullText = true
                 },

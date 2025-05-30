@@ -27,11 +27,11 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
 {
     private protected class TestLanguageServer(
         CSharpTestLspServer csharpServer,
-        Uri csharpDocumentUri)
+        DocumentUri csharpDocumentUri)
         : IClientConnection, IAsyncDisposable
     {
         private readonly CSharpTestLspServer _csharpServer = csharpServer;
-        private readonly Uri _csharpDocumentUri = csharpDocumentUri;
+        private readonly DocumentUri _csharpDocumentUri = csharpDocumentUri;
         private readonly CancellationTokenSource _disposeTokenSource = new();
 
         private int _requestCount;
@@ -88,7 +88,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
             Assert.IsType<DelegatedDiagnosticParams>(@params);
             var actualParams = new DocumentDiagnosticParams()
             {
-                TextDocument = new TextDocumentIdentifier { Uri = _csharpDocumentUri }
+                TextDocument = new TextDocumentIdentifier { DocumentUri = _csharpDocumentUri }
             };
 
             return _csharpServer.ExecuteRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
@@ -111,7 +111,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
             {
                 TextDocument = new TextDocumentItem
                 {
-                    Uri = _csharpDocumentUri,
+                    DocumentUri = _csharpDocumentUri,
                 },
             };
 
@@ -129,7 +129,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
             {
                 TextDocument = new TextDocumentIdentifier
                 {
-                    Uri = _csharpDocumentUri,
+                    DocumentUri = _csharpDocumentUri,
                 },
                 Range = delegatedParams.ProjectedRange
             };
@@ -160,7 +160,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
             {
                 TextDocument = new TextDocumentIdentifier
                 {
-                    Uri = _csharpDocumentUri,
+                    DocumentUri = _csharpDocumentUri,
                 },
             };
 
@@ -178,7 +178,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
             {
                 TextDocument = new VSTextDocumentIdentifier
                 {
-                    Uri = _csharpDocumentUri,
+                    DocumentUri = _csharpDocumentUri,
                     ProjectContext = delegatedParams.Identifier.TextDocumentIdentifier.GetProjectContext(),
                 },
             };
@@ -197,7 +197,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
             {
                 TextDocument = new VSTextDocumentIdentifier
                 {
-                    Uri = _csharpDocumentUri,
+                    DocumentUri = _csharpDocumentUri,
                     ProjectContext = delegatedParams.Identifier.TextDocumentIdentifier.GetProjectContext(),
                 },
             };
@@ -232,7 +232,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
             var delegatedParams = Assert.IsType<DelegatedCodeActionParams>(@params);
 
             var delegatedRequest = delegatedParams.CodeActionParams;
-            delegatedRequest.TextDocument.Uri = _csharpDocumentUri;
+            delegatedRequest.TextDocument.DocumentUri = _csharpDocumentUri;
 
             return _csharpServer.ExecuteRequestAsync<VSCodeActionParams, RazorVSInternalCodeAction[]>(
                 Methods.TextDocumentCodeActionName,
@@ -247,7 +247,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
             {
                 TextDocument = new VSTextDocumentIdentifier()
                 {
-                    Uri = _csharpDocumentUri,
+                    DocumentUri = _csharpDocumentUri,
                     ProjectContext = delegatedParams.Identifier.TextDocumentIdentifier.GetProjectContext(),
                 },
                 Position = delegatedParams.ProjectedPosition,
@@ -267,7 +267,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
             {
                 TextDocument = new VSTextDocumentIdentifier()
                 {
-                    Uri = _csharpDocumentUri,
+                    DocumentUri = _csharpDocumentUri,
                     ProjectContext = delegatedParams.Identifier.TextDocumentIdentifier.GetProjectContext(),
                 },
                 Position = delegatedParams.ProjectedPosition
@@ -286,7 +286,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
             {
                 TextDocument = new VSTextDocumentIdentifier()
                 {
-                    Uri = _csharpDocumentUri,
+                    DocumentUri = _csharpDocumentUri,
                     ProjectContext = delegatedParams.Identifier.TextDocumentIdentifier.GetProjectContext(),
                 },
                 Position = delegatedParams.ProjectedPosition
@@ -305,7 +305,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
             {
                 TextDocument = new VSTextDocumentIdentifier()
                 {
-                    Uri = _csharpDocumentUri,
+                    DocumentUri = _csharpDocumentUri,
                     ProjectContext = delegatedParams.Identifier.TextDocumentIdentifier.GetProjectContext(),
                 },
                 Position = delegatedParams.ProjectedPosition,
@@ -324,7 +324,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
             {
                 TextDocument = new VSTextDocumentIdentifier()
                 {
-                    Uri = _csharpDocumentUri,
+                    DocumentUri = _csharpDocumentUri,
                     ProjectContext = delegatedParams.Identifier.TextDocumentIdentifier.GetProjectContext(),
                 },
                 Position = delegatedParams.ProjectedPosition,
@@ -344,7 +344,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
             {
                 TextDocument = new VSTextDocumentIdentifier()
                 {
-                    Uri = _csharpDocumentUri,
+                    DocumentUri = _csharpDocumentUri,
                     ProjectContext = delegatedParams.Identifier.TextDocumentIdentifier.GetProjectContext()
                 },
                 Position = delegatedParams.ProjectedPosition,
@@ -375,7 +375,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
             {
                 TextDocument = new VSTextDocumentIdentifier()
                 {
-                    Uri = _csharpDocumentUri,
+                    DocumentUri = _csharpDocumentUri,
                     ProjectContext = delegatedParams.Identifier.TextDocumentIdentifier.GetProjectContext(),
                 },
                 Range = delegatedParams.ProjectedRange,
@@ -392,7 +392,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
             {
                 TextDocument = new VSTextDocumentIdentifier()
                 {
-                    Uri = _csharpDocumentUri,
+                    DocumentUri = _csharpDocumentUri,
                     ProjectContext = delegatedParams.Identifier.TextDocumentIdentifier.GetProjectContext(),
                 },
                 Position = delegatedParams.ProjectedPosition,

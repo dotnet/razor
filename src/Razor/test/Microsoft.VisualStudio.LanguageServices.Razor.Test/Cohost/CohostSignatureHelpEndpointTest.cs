@@ -109,7 +109,7 @@ public class CohostSignatureHelpEndpointTest(ITestOutputHelper testOutputHelper)
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                Uri = document.CreateUri()
+                DocumentUri = document.CreateDocumentUri()
             },
             Position = sourceText.GetPosition(cursorPosition),
             Context = signatureHelpContext

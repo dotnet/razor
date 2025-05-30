@@ -22,7 +22,7 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
 
     private DocumentContext DocumentContext { get; set; }
 
-    private Uri DocumentUri => DocumentContext.Uri;
+    private DocumentUri DocumentUri => DocumentContext.DocumentUri;
 
     private IDocumentSnapshot DocumentSnapshot => DocumentContext.Snapshot;
 
@@ -45,7 +45,7 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
         var filePath = Path.Combine(PagesDirectory, "FormattingTest.razor");
         TargetPath = "/Components/Pages/FormattingTest.razor";
 
-        var documentUri = new Uri(filePath);
+        var documentUri = new DocumentUri(filePath);
         var documentSnapshot = await GetDocumentSnapshotAsync(ProjectFilePath, filePath, TargetPath);
         DocumentContext = new DocumentContext(documentUri, documentSnapshot, projectContext: null);
 

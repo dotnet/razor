@@ -981,7 +981,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
             .Returns(version);
 
         return new DocumentContext(
-            uri: new Uri($@"c:\${GetFileName(isRazorFile)}"),
+            uri: new DocumentUri($@"c:\${GetFileName(isRazorFile)}"),
             snapshot: documentSnapshotMock.Object,
             projectContext: null);
     }
@@ -1047,7 +1047,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
     private async Task<ProvideSemanticTokensResponse> GetCSharpSemanticTokensResponseAsync(string documentText, bool precise, bool isRazorFile = false, bool supportsVSExtensions = true)
     {
         var codeDocument = CreateCodeDocument(documentText, isRazorFile, DefaultTagHelpers);
-        var csharpDocumentUri = new Uri("C:\\TestSolution\\TestProject\\TestDocument.cs");
+        var csharpDocumentUri = new DocumentUri("C:\\TestSolution\\TestProject\\TestDocument.cs");
         var csharpSourceText = codeDocument.GetCSharpSourceText();
 
         await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
@@ -1178,17 +1178,17 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
         return [range];
     }
 
-    private static SemanticTokensRangesParams CreateVSSemanticTokensRangesParams(ImmutableArray<LinePositionSpan> ranges, Uri uri)
+    private static SemanticTokensRangesParams CreateVSSemanticTokensRangesParams(ImmutableArray<LinePositionSpan> ranges, DocumentUri uri)
         => new()
         {
-            TextDocument = new TextDocumentIdentifier { Uri = uri },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
             Ranges = ranges.Select(s => s.ToRange()).ToArray()
         };
 
-    private static SemanticTokensRangeParams CreateVSSemanticTokensRangeParams(LinePositionSpan range, Uri uri)
+    private static SemanticTokensRangeParams CreateVSSemanticTokensRangeParams(LinePositionSpan range, DocumentUri uri)
         => new()
         {
-            TextDocument = new TextDocumentIdentifier { Uri = uri },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
             Range = range.ToRange()
         };
 
@@ -1246,7 +1246,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
     private class TestDocumentContextFactory(DocumentContext? documentContext = null) : IDocumentContextFactory
     {
         public bool TryCreate(
-            Uri documentUri,
+            DocumentUri documentUri,
             VSProjectContext? projectContext,
             [NotNullWhen(true)] out DocumentContext? context)
         {

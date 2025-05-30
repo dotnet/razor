@@ -54,7 +54,7 @@ internal static class AddUsingsHelper
         {
             // This identifier will be eventually thrown away.
             Debug.Assert(codeDocument.Source.FilePath != null);
-            var identifier = new OptionalVersionedTextDocumentIdentifier { Uri = new Uri(codeDocument.Source.FilePath, UriKind.Relative) };
+            var identifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new DocumentUri(codeDocument.Source.FilePath) };
             var workspaceEdit = CreateAddUsingWorkspaceEdit(usingStatement, additionalEdit: null, codeDocument, codeDocumentIdentifier: identifier);
             edits.AddRange(workspaceEdit.DocumentChanges!.Value.First.First().Edits.Select(e => (TextEdit)e));
         }

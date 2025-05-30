@@ -362,7 +362,7 @@ public class DelegatedCompletionListProviderTest : CompletionTestBase
         TestFileMarkupParser.GetPosition(content, out var output, out var cursorPosition);
         var codeDocument = CreateCodeDocument(output);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
-        var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.g.cs");
+        var csharpDocumentUri = new DocumentUri("C:/path/to/file.razor__virtual.g.cs");
         var serverCapabilities = new VSInternalServerCapabilities()
         {
             CompletionProvider = new CompletionOptions

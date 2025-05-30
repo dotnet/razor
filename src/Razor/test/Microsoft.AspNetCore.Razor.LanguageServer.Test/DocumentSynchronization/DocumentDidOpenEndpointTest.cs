@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -37,7 +36,7 @@ public class DocumentDidOpenEndpointTest(ITestOutputHelper testOutput) : Languag
             TextDocument = new TextDocumentItem()
             {
                 Text = "hello",
-                Uri = new Uri(documentPath),
+                DocumentUri = new DocumentUri(documentPath),
                 Version = 1337,
             }
         };

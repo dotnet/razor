@@ -22,7 +22,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
     {
         // Arrange
         var codeDocument = CreateCodeDocument("<div></div>");
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
 
         var clientConnection = TestMocks.CreateClientConnection(builder =>
@@ -32,7 +32,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var endpoint = new WrapWithTagEndpoint(clientConnection, LoggerFactory);
 
-        var wrapWithDivParams = new WrapWithTagParams(new() { Uri = uri })
+        var wrapWithDivParams = new WrapWithTagParams(new() { DocumentUri = uri })
         {
             Range = LspFactory.CreateSingleLineRange(start: (0, 0), length: 2),
         };
@@ -52,7 +52,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
     {
         // Arrange
         var codeDocument = CreateCodeDocument("@(counter)");
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
 
         var clientConnection = TestMocks.CreateClientConnection(builder =>
@@ -62,7 +62,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var endpoint = new WrapWithTagEndpoint(clientConnection, LoggerFactory);
 
-        var wrapWithDivParams = new WrapWithTagParams(new() { Uri = uri })
+        var wrapWithDivParams = new WrapWithTagParams(new() { DocumentUri = uri })
         {
             Range = LspFactory.CreateSingleLineRange(start: (0, 1), length: 2),
         };
@@ -83,7 +83,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
     {
         // Arrange
         var codeDocument = CreateCodeDocument("@counter");
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
 
         var clientConnection = TestMocks.CreateClientConnection(builder =>
@@ -93,7 +93,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var endpoint = new WrapWithTagEndpoint(clientConnection, LoggerFactory);
 
-        var wrapWithDivParams = new WrapWithTagParams(new() { Uri = uri })
+        var wrapWithDivParams = new WrapWithTagParams(new() { DocumentUri = uri })
         {
             Range = LspFactory.CreateSingleLineRange(start: (0, 0), length: 8),
         };
@@ -118,7 +118,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
             </div>|]
             """);
         var codeDocument = CreateCodeDocument(input.Text);
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var response = new WrapWithTagResponse();
 
@@ -130,7 +130,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
         var endpoint = new WrapWithTagEndpoint(clientConnection, LoggerFactory);
 
         var range = codeDocument.Source.Text.GetRange(input.Span);
-        var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
+        var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { DocumentUri = uri })
         {
             Range = range
         };
@@ -155,7 +155,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
             }
             """);
         var codeDocument = CreateCodeDocument(input.Text);
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var response = new WrapWithTagResponse();
 
@@ -167,7 +167,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
         var endpoint = new WrapWithTagEndpoint(clientConnection, LoggerFactory);
 
         var range = codeDocument.Source.Text.GetRange(input.Span);
-        var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
+        var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { DocumentUri = uri })
         {
             Range = range
         };
@@ -192,7 +192,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
             }
             """);
         var codeDocument = CreateCodeDocument(input.Text);
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var response = new WrapWithTagResponse();
 
@@ -204,7 +204,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
         var endpoint = new WrapWithTagEndpoint(clientConnection, LoggerFactory);
 
         var range = codeDocument.Source.Text.GetRange(input.Span);
-        var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
+        var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { DocumentUri = uri })
         {
             Range = range
         };
@@ -229,7 +229,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
             }
             """);
         var codeDocument = CreateCodeDocument(input.Text);
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var response = new WrapWithTagResponse();
 
@@ -238,7 +238,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
         var endpoint = new WrapWithTagEndpoint(clientConnection, LoggerFactory);
 
         var range = codeDocument.Source.Text.GetRange(input.Span);
-        var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
+        var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { DocumentUri = uri })
         {
             Range = range
         };
@@ -257,7 +257,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
     {
         // Arrange
         var codeDocument = CreateCodeDocument("@counter");
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
 
         var clientConnection = TestMocks.CreateClientConnection(builder =>
@@ -267,7 +267,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var endpoint = new WrapWithTagEndpoint(clientConnection, LoggerFactory);
 
-        var wrapWithDivParams = new WrapWithTagParams(new() { Uri = uri })
+        var wrapWithDivParams = new WrapWithTagParams(new() { DocumentUri = uri })
         {
             Range = LspFactory.CreateSingleLineRange(line: 0, character: 2, length: 2),
         };
@@ -288,7 +288,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
     {
         // Arrange
         var codeDocument = CreateCodeDocument("@counter");
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
 
         var clientConnection = TestMocks.CreateClientConnection(builder =>
@@ -298,7 +298,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var endpoint = new WrapWithTagEndpoint(clientConnection, LoggerFactory);
 
-        var wrapWithDivParams = new WrapWithTagParams(new() { Uri = uri })
+        var wrapWithDivParams = new WrapWithTagParams(new() { DocumentUri = uri })
         {
             Range = LspFactory.CreateZeroWidthRange(0, 4),
         };
@@ -317,7 +317,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
     public async Task Handle_DocumentNotFound_ReturnsNull()
     {
         // Arrange
-        var missingUri = new Uri("file://path/nottest.razor");
+        var missingUri = new DocumentUri("file://path/nottest.razor");
 
         var clientConnection = TestMocks.CreateClientConnection(builder =>
         {
@@ -326,7 +326,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
 
         var endpoint = new WrapWithTagEndpoint(clientConnection, LoggerFactory);
 
-        var wrapWithDivParams = new WrapWithTagParams(new() { Uri = missingUri })
+        var wrapWithDivParams = new WrapWithTagParams(new() { DocumentUri = missingUri })
         {
             Range = LspFactory.CreateSingleLineRange(start: (0, 0), length: 2),
         };
@@ -359,7 +359,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
             </div>
             """;
 
-        var uri = new Uri("file://path.razor");
+        var uri = new DocumentUri("file://path.razor");
         var factory = CreateDocumentContextFactory(uri, input);
         Assert.True(factory.TryCreate(uri, out var context));
         var inputSourceText = await context.GetSourceTextAsync(DisposalToken);
@@ -398,7 +398,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
             </div>
             """;
 
-        var uri = new Uri("file://path.razor");
+        var uri = new DocumentUri("file://path.razor");
         var factory = CreateDocumentContextFactory(uri, input);
         Assert.True(factory.TryCreate(uri, out var context));
         var inputSourceText = await context.GetSourceTextAsync(DisposalToken);
@@ -438,7 +438,7 @@ public class WrapWithTagEndpointTest(ITestOutputHelper testOutput) : LanguageSer
             </div>
             """;
 
-        var uri = new Uri("file://path.razor");
+        var uri = new DocumentUri("file://path.razor");
         var factory = CreateDocumentContextFactory(uri, input);
         Assert.True(factory.TryCreate(uri, out var context));
         var inputSourceText = await context.GetSourceTextAsync(DisposalToken);

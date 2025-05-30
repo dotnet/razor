@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -22,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
 {
     private string? _filePath;
-    private Uri? DocumentUri { get; set; }
+    private DocumentUri? DocumentUri { get; set; }
     private CodeActionEndpoint? CodeActionEndpoint { get; set; }
     private IDocumentSnapshot? DocumentSnapshot { get; set; }
     private SourceText? DocumentText { get; set; }
@@ -65,7 +64,7 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
 
         var targetPath = "/Components/Pages/Generated.razor";
 
-        DocumentUri = new Uri(_filePath);
+        DocumentUri = new DocumentUri(_filePath);
         DocumentSnapshot = await GetDocumentSnapshotAsync(projectFilePath, _filePath, targetPath, "Root.Namespace");
         DocumentText = await DocumentSnapshot.GetTextAsync(CancellationToken.None);
 
@@ -131,7 +130,7 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
             Context = new VSInternalCodeActionContext(),
             TextDocument = new VSTextDocumentIdentifier
             {
-                Uri = DocumentUri!
+                DocumentUri = DocumentUri!
             },
         };
 

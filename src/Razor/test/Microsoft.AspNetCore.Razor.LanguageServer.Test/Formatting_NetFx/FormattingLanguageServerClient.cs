@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -33,9 +34,9 @@ internal class FormattingLanguageServerClient(HtmlFormattingService htmlFormatti
 
     private async Task<RazorDocumentFormattingResponse> FormatAsync(DocumentOnTypeFormattingParams @params)
     {
-        var generatedHtml = GetGeneratedHtml(@params.TextDocument.Uri);
+        var generatedHtml = GetGeneratedHtml(@params.TextDocument.DocumentUri);
 
-        var edits = await _htmlFormattingService.GetOnTypeFormattingEditsAsync(_loggerFactory, @params.TextDocument.Uri, generatedHtml, @params.Position, @params.Options.InsertSpaces, @params.Options.TabSize);
+        var edits = await _htmlFormattingService.GetOnTypeFormattingEditsAsync(_loggerFactory, @params.TextDocument.DocumentUri, generatedHtml, @params.Position, @params.Options.InsertSpaces, @params.Options.TabSize);
 
         return new()
         {
@@ -45,9 +46,9 @@ internal class FormattingLanguageServerClient(HtmlFormattingService htmlFormatti
 
     private async Task<RazorDocumentFormattingResponse> FormatAsync(DocumentFormattingParams @params)
     {
-        var generatedHtml = GetGeneratedHtml(@params.TextDocument.Uri);
+        var generatedHtml = GetGeneratedHtml(@params.TextDocument.DocumentUri);
 
-        var edits = await _htmlFormattingService.GetDocumentFormattingEditsAsync(_loggerFactory, @params.TextDocument.Uri, generatedHtml, @params.Options.InsertSpaces, @params.Options.TabSize);
+        var edits = await _htmlFormattingService.GetDocumentFormattingEditsAsync(_loggerFactory, @params.TextDocument.DocumentUri, generatedHtml, @params.Options.InsertSpaces, @params.Options.TabSize);
 
         return new()
         {
@@ -55,9 +56,9 @@ internal class FormattingLanguageServerClient(HtmlFormattingService htmlFormatti
         };
     }
 
-    private string GetGeneratedHtml(Uri uri)
+    private string GetGeneratedHtml(DocumentUri uri)
     {
-        var codeDocument = _documents[uri.GetAbsoluteOrUNCPath()];
+        var codeDocument = _documents[uri.GetRequiredParsedUri().GetAbsoluteOrUNCPath()];
         var generatedHtml = codeDocument.GetHtmlDocument().Text.ToString();
         return generatedHtml.Replace("\r", "").Replace("\n", "\r\n");
     }

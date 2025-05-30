@@ -4,6 +4,7 @@
 using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -20,7 +21,7 @@ internal sealed class RemoteEditMappingService(
 {
     private readonly RemoteSnapshotManager _snapshotManager = snapshotManager;
 
-    protected override bool TryGetDocumentContext(IDocumentSnapshot contextDocumentSnapshot, Uri razorDocumentUri, VSProjectContext? projectContext, [NotNullWhen(true)] out DocumentContext? documentContext)
+    protected override bool TryGetDocumentContext(IDocumentSnapshot contextDocumentSnapshot, DocumentUri razorDocumentUri, VSProjectContext? projectContext, [NotNullWhen(true)] out DocumentContext? documentContext)
     {
         if (contextDocumentSnapshot is not RemoteDocumentSnapshot originSnapshot)
         {
@@ -28,7 +29,7 @@ internal sealed class RemoteEditMappingService(
         }
 
         var solution = originSnapshot.TextDocument.Project.Solution;
-        if (!solution.TryGetRazorDocument(razorDocumentUri, out var razorDocument))
+        if (!solution.TryGetRazorDocument(razorDocumentUri.GetRequiredParsedUri(), out var razorDocument))
         {
             documentContext = null;
             return false;

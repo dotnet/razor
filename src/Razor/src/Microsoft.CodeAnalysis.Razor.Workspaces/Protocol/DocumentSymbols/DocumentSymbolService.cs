@@ -13,7 +13,7 @@ internal class DocumentSymbolService(IDocumentMappingService documentMappingServ
 {
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
-    public SumType<DocumentSymbol[], SymbolInformation[]>? GetDocumentSymbols(Uri razorDocumentUri, RazorCSharpDocument csharpDocument, SumType<DocumentSymbol[], SymbolInformation[]> csharpSymbols)
+    public SumType<DocumentSymbol[], SymbolInformation[]>? GetDocumentSymbols(DocumentUri razorDocumentUri, RazorCSharpDocument csharpDocument, SumType<DocumentSymbol[], SymbolInformation[]> csharpSymbols)
     {
         if (csharpSymbols.TryGetFirst(out var documentSymbols))
         {
@@ -30,7 +30,7 @@ internal class DocumentSymbolService(IDocumentMappingService documentMappingServ
                 if (_documentMappingService.TryMapToHostDocumentRange(csharpDocument, symbolInformation.Location.Range, out var newRange))
                 {
                     symbolInformation.Location.Range = newRange;
-                    symbolInformation.Location.Uri = razorDocumentUri;
+                    symbolInformation.Location.DocumentUri = razorDocumentUri;
                     mappedSymbols.Add(symbolInformation);
                 }
 #pragma warning restore CS0618 // Type or member is obsolete

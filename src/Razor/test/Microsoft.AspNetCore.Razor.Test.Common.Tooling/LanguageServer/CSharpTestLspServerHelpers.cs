@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -27,14 +28,14 @@ internal static class CSharpTestLspServerHelpers
 
     public static Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
         SourceText csharpSourceText,
-        Uri csharpDocumentUri,
+        DocumentUri csharpDocumentUri,
         VSInternalServerCapabilities serverCapabilities,
         CancellationToken cancellationToken) =>
         CreateCSharpLspServerAsync(csharpSourceText, csharpDocumentUri, serverCapabilities, new EmptyMappingService(), capabilitiesUpdater: null, cancellationToken);
 
     public static Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
         SourceText csharpSourceText,
-        Uri csharpDocumentUri,
+        DocumentUri csharpDocumentUri,
         VSInternalServerCapabilities serverCapabilities,
         IRazorMappingService razorMappingService,
         Action<VSInternalClientCapabilities> capabilitiesUpdater,
@@ -49,7 +50,7 @@ internal static class CSharpTestLspServerHelpers
     }
 
     public static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
-        IEnumerable<(Uri Uri, SourceText SourceText)> files,
+        IEnumerable<(DocumentUri Uri, SourceText SourceText)> files,
         VSInternalServerCapabilities serverCapabilities,
         IRazorMappingService razorMappingService,
         bool multiTargetProject,
@@ -58,7 +59,7 @@ internal static class CSharpTestLspServerHelpers
     {
         var csharpFiles = files.Select(f => new CSharpFile(f.Uri, f.SourceText));
 
-        var exportProvider = TestComposition.Roslyn
+        var exportProvider = TestComposition.RoslynFeatures
             .AddParts(typeof(RazorTestLanguageServerFactory))
             .ExportProviderFactory.CreateExportProvider();
 
@@ -145,7 +146,7 @@ internal static class CSharpTestLspServerHelpers
         var documentCount = 0;
         foreach (var (documentUri, csharpSourceText) in files)
         {
-            var documentFilePath = documentUri.GetDocumentFilePath();
+            var documentFilePath = documentUri.GetRequiredParsedUri().GetDocumentFilePath();
             var textAndVersion = TextAndVersion.Create(csharpSourceText, VersionStamp.Default, documentFilePath);
 
             foreach (var projectInfo in projectInfos)
@@ -166,7 +167,7 @@ internal static class CSharpTestLspServerHelpers
         return workspace;
     }
 
-    private record CSharpFile(Uri DocumentUri, SourceText CSharpSourceText);
+    private record CSharpFile(DocumentUri DocumentUri, SourceText CSharpSourceText);
 
     private class EmptyMappingService : IRazorMappingService
     {

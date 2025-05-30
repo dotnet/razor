@@ -99,7 +99,7 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
         TestFileMarkupParser.GetPositionAndSpans(input, out var output, out int cursorPosition, out ImmutableArray<TextSpan> spans);
         var codeDocument = CreateCodeDocument(output);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
-        var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.g.cs");
+        var csharpDocumentUri = new DocumentUri("C:/path/to/file.razor__virtual.g.cs");
         var serverCapabilities = new VSInternalServerCapabilities()
         {
             DocumentHighlightProvider = true
@@ -127,12 +127,12 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
         {
             TextDocument = new TextDocumentIdentifier
             {
-                Uri = new Uri(razorFilePath)
+                DocumentUri = new DocumentUri(razorFilePath)
             },
             Position = codeDocument.Source.Text.GetPosition(cursorPosition)
         };
 
-        var documentContext = CreateDocumentContext(request.TextDocument.Uri, codeDocument);
+        var documentContext = CreateDocumentContext(request.TextDocument.DocumentUri, codeDocument);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -153,7 +153,7 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
         Assert.Equal(actual, expected);
     }
 
-    private sealed class DocumentHighlightServer(CSharpTestLspServer csharpServer, Uri csharpDocumentUri) : IClientConnection
+    private sealed class DocumentHighlightServer(CSharpTestLspServer csharpServer, DocumentUri csharpDocumentUri) : IClientConnection
     {
         public Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
             => throw new NotImplementedException();
@@ -170,7 +170,7 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
-                    Uri = csharpDocumentUri
+                    DocumentUri = csharpDocumentUri
                 },
                 Position = highlightParams.ProjectedPosition,
             };

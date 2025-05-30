@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -97,7 +98,7 @@ internal class ComponentAccessibilityCodeActionProvider(IFileSystem fileSystem) 
             return;
         }
 
-        var path = context.Request.TextDocument.Uri.GetAbsoluteOrUNCPath();
+        var path = context.Request.TextDocument.DocumentUri.GetRequiredParsedUri().GetAbsoluteOrUNCPath();
         path = FilePathNormalizer.Normalize(path);
 
         var directoryName = Path.GetDirectoryName(path);
@@ -291,7 +292,7 @@ internal class ComponentAccessibilityCodeActionProvider(IFileSystem fileSystem) 
         RazorCodeActionContext context, BaseMarkupStartTagSyntax startTag, string newTagName)
     {
         using var textEdits = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>();
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = context.Request.TextDocument.DocumentUri };
 
         var startTagTextEdit = LspFactory.CreateTextEdit(startTag.Name.GetRange(context.CodeDocument.Source), newTagName);
 

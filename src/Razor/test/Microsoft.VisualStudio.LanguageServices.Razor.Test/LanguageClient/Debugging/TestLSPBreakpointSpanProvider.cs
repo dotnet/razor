@@ -9,16 +9,17 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Threading;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Debugging;
 
 internal class TestLSPBreakpointSpanProvider : ILSPBreakpointSpanProvider
 {
-    private readonly Uri _documentUri;
+    private readonly DocumentUri _documentUri;
     private readonly IReadOnlyDictionary<Position, LspRange> _mappings;
 
-    public TestLSPBreakpointSpanProvider(Uri documentUri, IReadOnlyDictionary<Position, LspRange> mappings)
+    public TestLSPBreakpointSpanProvider(DocumentUri documentUri, IReadOnlyDictionary<Position, LspRange> mappings)
     {
         if (documentUri is null)
         {
@@ -36,7 +37,7 @@ internal class TestLSPBreakpointSpanProvider : ILSPBreakpointSpanProvider
 
     public Task<LspRange> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, long hostDocumentSyncVersion, Position position, CancellationToken cancellationToken)
     {
-        if (documentSnapshot.Uri != _documentUri)
+        if (documentSnapshot.Uri != _documentUri.GetRequiredParsedUri())
         {
             return SpecializedTasks.Null<LspRange>();
         }

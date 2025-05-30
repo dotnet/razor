@@ -65,7 +65,7 @@ public class RazorLSPMappingServiceTest(ITestOutputHelper testOutput) : ToolingT
         var lazyManager = new Lazy<LSPDocumentManager>(() =>
         {
             var manager = new TestDocumentManager();
-            manager.AddDocument(_mockDocumentUri, documentSnapshot.Object);
+            manager.AddDocument(new DocumentUri(_mockDocumentUri), documentSnapshot.Object);
 
             return manager;
         });
@@ -109,7 +109,7 @@ public class RazorLSPMappingServiceTest(ITestOutputHelper testOutput) : ToolingT
         var lazyManager = new Lazy<LSPDocumentManager>(() =>
         {
             var manager = new TestDocumentManager();
-            manager.AddDocument(_mockDocumentUri, documentSnapshot.Object);
+            manager.AddDocument(new DocumentUri(_mockDocumentUri), documentSnapshot.Object);
 
             return manager;
         });

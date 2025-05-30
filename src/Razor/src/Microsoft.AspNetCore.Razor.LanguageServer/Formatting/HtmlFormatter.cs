@@ -22,7 +22,7 @@ internal sealed class HtmlFormatter(
 
     public async Task<ImmutableArray<TextChange>?> GetDocumentFormattingEditsAsync(
         IDocumentSnapshot documentSnapshot,
-        Uri uri,
+        DocumentUri uri,
         FormattingOptions options,
         CancellationToken cancellationToken)
     {
@@ -30,7 +30,7 @@ internal sealed class HtmlFormatter(
         {
             TextDocument = new TextDocumentIdentifier
             {
-                Uri = uri,
+                DocumentUri = uri,
             },
             HostDocumentVersion = documentSnapshot.Version,
             Options = options
@@ -52,7 +52,7 @@ internal sealed class HtmlFormatter(
 
     public async Task<ImmutableArray<TextChange>?> GetOnTypeFormattingEditsAsync(
         IDocumentSnapshot documentSnapshot,
-        Uri uri,
+        DocumentUri uri,
         Position position,
         string triggerCharacter,
         FormattingOptions options,
@@ -62,7 +62,7 @@ internal sealed class HtmlFormatter(
         {
             Position = position,
             Character = triggerCharacter.ToString(),
-            TextDocument = new TextDocumentIdentifier { Uri = uri },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
             Options = options,
             HostDocumentVersion = documentSnapshot.Version,
         };

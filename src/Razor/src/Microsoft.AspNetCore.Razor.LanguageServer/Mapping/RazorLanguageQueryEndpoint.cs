@@ -26,7 +26,7 @@ internal sealed class RazorLanguageQueryEndpoint(IDocumentMappingService documen
     {
         return new TextDocumentIdentifier
         {
-            Uri = request.Uri
+            DocumentUri = request.Uri
         };
     }
 

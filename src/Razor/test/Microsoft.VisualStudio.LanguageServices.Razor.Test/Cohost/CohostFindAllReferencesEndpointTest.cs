@@ -106,7 +106,7 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
         var textDocumentPositionParams = new TextDocumentPositionParams
         {
             Position = position,
-            TextDocument = new TextDocumentIdentifier { Uri = document.CreateUri() },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() },
         };
 
         var results = await endpoint.GetTestAccessor().HandleRequestAsync(document, position, DisposalToken);
@@ -116,7 +116,7 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
         var totalSpans = input.Spans.Length + additionalFiles.Sum(f => f.testCode.TryGetNamedSpans("", out var spans) ? spans.Length : 0);
         Assert.Equal(totalSpans, results.Length);
 
-        var razorDocumentUri = document.CreateUri();
+        var razorDocumentUri = document.CreateDocumentUri();
 
         foreach (var result in results)
         {
@@ -143,14 +143,14 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
         {
             var location = GetLocation(result);
             string matchedText;
-            if (razorDocumentUri.Equals(location.Uri))
+            if (razorDocumentUri.Equals(location.DocumentUri))
             {
                 matchedText = inputText.Lines[location.Range.Start.Line].ToString();
                 Assert.Single(input.Spans.Where(s => inputText.GetRange(s).Equals(location.Range)));
             }
             else
             {
-                var (fileName, testCode) = Assert.Single(additionalFiles.Where(f => FilePathNormalizingComparer.Instance.Equals(f.fileName, location.Uri.AbsolutePath)));
+                var (fileName, testCode) = Assert.Single(additionalFiles.Where(f => FilePathNormalizingComparer.Instance.Equals(f.fileName, location.DocumentUri.ParsedUri?.AbsolutePath)));
                 var text = SourceText.From(testCode.Text);
                 matchedText = text.Lines[location.Range.Start.Line].ToString();
                 Assert.Single(testCode.Spans.Where(s => text.GetRange(s).Equals(location.Range)));

@@ -33,7 +33,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
     public async Task Handle_InvalidFileKind()
     {
         // Arrange
-        var documentPath = new Uri("c:\\Test.razor");
+        var documentPath = new DocumentUri("c:\\Test.razor");
         var contents = """
             @page "/test"
             @code { private int x = 1; }
@@ -56,7 +56,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
     public async Task Handle_ExtractCodeBlock()
     {
         // Arrange
-        var documentPath = new Uri("c:/Test.razor");
+        var documentPath = new DocumentUri("c:/Test.razor");
         var contents = """
             @page "/test"
 
@@ -120,7 +120,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
     public async Task Handle_ExtractCodeBlock2()
     {
         // Arrange
-        var documentPath = new Uri("c:/Test.razor");
+        var documentPath = new DocumentUri("c:/Test.razor");
         var contents = """
             @page "/test"
 
@@ -185,7 +185,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
     public async Task Handle_ExtractCodeBlock_MultipleMembers()
     {
         // Arrange
-        var documentPath = new Uri("c:/Test.razor");
+        var documentPath = new DocumentUri("c:/Test.razor");
         var contents = """
             @page "/test"
 
@@ -267,7 +267,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
     public async Task Handle_ExtractCodeBlock_MultipleMembers2()
     {
         // Arrange
-        var documentPath = new Uri("c:/Test.razor");
+        var documentPath = new DocumentUri("c:/Test.razor");
         var contents = """
             @page "/test"
 
@@ -350,7 +350,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
     public async Task Handle_ExtractCodeBlock_MultipleMembers3()
     {
         // Arrange
-        var documentPath = new Uri("c:/Test.razor");
+        var documentPath = new DocumentUri("c:/Test.razor");
         var contents = """
             @page "/test"
 
@@ -435,7 +435,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
     public async Task Handle_ExtractFunctionsBlock()
     {
         // Arrange
-        var documentPath = new Uri("c:/Test.razor");
+        var documentPath = new DocumentUri("c:/Test.razor");
         var contents = """
             @page "/test"
 
@@ -499,7 +499,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
     public async Task Handle_ExtractCodeBlockWithUsing()
     {
         // Arrange
-        var documentPath = new Uri("c:/Test.razor");
+        var documentPath = new DocumentUri("c:/Test.razor");
         var contents = """
             @page "/test"
             @using System.Diagnostics
@@ -565,7 +565,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
     public async Task Handle_ExtractCodeBlockWithDirectives()
     {
         // Arrange
-        var documentPath = new Uri("c:/Test.razor");
+        var documentPath = new DocumentUri("c:/Test.razor");
         var contents = """
             @page "/test"
 
@@ -633,7 +633,7 @@ public class ExtractToCodeBehindCodeActionResolverTest(ITestOutputHelper testOut
     public async Task Handle_ExtractCodeBlock_CallsRoslyn()
     {
         // Arrange
-        var documentPath = new Uri("c:/Test.razor");
+        var documentPath = new DocumentUri("c:/Test.razor");
         var contents = """
             @page "/test"
 

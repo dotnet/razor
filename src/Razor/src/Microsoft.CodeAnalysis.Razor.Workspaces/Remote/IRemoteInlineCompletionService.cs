@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,7 +29,7 @@ internal interface IRemoteInlineCompletionService
 
 [DataContract]
 internal record struct InlineCompletionRequestInfo(
-    [property: DataMember(Order = 0)] Uri GeneratedDocumentUri,
+    [property: DataMember(Order = 0)] DocumentUri GeneratedDocumentUri,
     [property: DataMember(Order = 1)] LinePosition Position);
 
 [DataContract]

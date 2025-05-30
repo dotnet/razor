@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -79,7 +78,7 @@ public class RenameEndpointDelegationTest(ITestOutputHelper testOutput) : Single
         {
             TextDocument = new TextDocumentIdentifier
             {
-                Uri = new Uri(razorFilePath)
+                DocumentUri = new DocumentUri(razorFilePath)
             },
             Position = codeDocument.Source.Text.GetPosition(cursorPosition),
             NewName = newName

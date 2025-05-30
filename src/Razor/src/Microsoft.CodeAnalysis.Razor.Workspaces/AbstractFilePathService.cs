@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -15,25 +16,25 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
     public string GetRazorCSharpFilePath(ProjectKey projectKey, string razorFilePath)
         => GetGeneratedFilePath(projectKey, razorFilePath, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
 
-    public virtual Uri GetRazorDocumentUri(Uri virtualDocumentUri)
+    public virtual DocumentUri GetRazorDocumentUri(DocumentUri virtualDocumentUri)
     {
-        var uriPath = virtualDocumentUri.AbsoluteUri;
+        var uriPath = virtualDocumentUri.GetRequiredParsedUri().AbsoluteUri;
         var razorFilePath = GetRazorFilePath(uriPath);
-        var uri = new Uri(razorFilePath, UriKind.Absolute);
+        var uri = new DocumentUri(razorFilePath);
         return uri;
     }
 
-    public virtual bool IsVirtualCSharpFile(Uri uri)
+    public virtual bool IsVirtualCSharpFile(DocumentUri uri)
         => CheckIfFileUriAndExtensionMatch(uri, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
 
-    public bool IsVirtualHtmlFile(Uri uri)
+    public bool IsVirtualHtmlFile(DocumentUri uri)
         => CheckIfFileUriAndExtensionMatch(uri, _languageServerFeatureOptions.HtmlVirtualDocumentSuffix);
 
-    public bool IsVirtualDocumentUri(Uri uri)
+    public bool IsVirtualDocumentUri(DocumentUri uri)
         => IsVirtualCSharpFile(uri) || IsVirtualHtmlFile(uri);
 
-    private static bool CheckIfFileUriAndExtensionMatch(Uri uri, string extension)
-        => uri.GetAbsoluteOrUNCPath()?.EndsWith(extension, StringComparison.Ordinal) ?? false;
+    private static bool CheckIfFileUriAndExtensionMatch(DocumentUri uri, string extension)
+        => uri.ParsedUri?.GetAbsoluteOrUNCPath()?.EndsWith(extension, StringComparison.Ordinal) ?? false;
 
     private string GetRazorFilePath(string filePath)
     {

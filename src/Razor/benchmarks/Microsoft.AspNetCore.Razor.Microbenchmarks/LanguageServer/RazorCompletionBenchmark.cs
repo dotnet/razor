@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
 {
     private string? _filePath;
-    private Uri? DocumentUri { get; set; }
+    private DocumentUri? DocumentUri { get; set; }
     private RazorCompletionEndpoint? CompletionEndpoint { get; set; }
     private IDocumentSnapshot? DocumentSnapshot { get; set; }
     private SourceText? DocumentText { get; set; }
@@ -71,7 +71,7 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
 
         var targetPath = "/Components/Pages/Generated.razor";
 
-        DocumentUri = new Uri(_filePath);
+        DocumentUri = new DocumentUri(_filePath);
         DocumentSnapshot = await GetDocumentSnapshotAsync(projectFilePath, _filePath, targetPath);
         DocumentText = await DocumentSnapshot.GetTextAsync(CancellationToken.None);
 
@@ -134,7 +134,7 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
             Context = new VSInternalCompletionContext { },
             TextDocument = new TextDocumentIdentifier
             {
-                Uri = DocumentUri!,
+                DocumentUri = DocumentUri!,
             },
         };
 

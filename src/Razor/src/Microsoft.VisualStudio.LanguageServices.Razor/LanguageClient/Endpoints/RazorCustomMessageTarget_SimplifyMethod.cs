@@ -26,7 +26,7 @@ internal partial class RazorCustomMessageTarget
                 return null;
             }
 
-            identifier = identifier.WithUri(virtualDocument.Uri);
+            identifier = identifier.WithUri(new DocumentUri(virtualDocument.Uri));
         }
 
         var simplifyTypeNamesParams = new SimplifyMethodParams()

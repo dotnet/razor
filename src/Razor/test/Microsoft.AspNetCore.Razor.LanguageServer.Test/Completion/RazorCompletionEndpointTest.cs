@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
@@ -26,7 +25,7 @@ public class RazorCompletionEndpointTest(ITestOutputHelper testOutput) : Languag
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                Uri = new Uri(documentPath)
+                DocumentUri = new DocumentUri(documentPath)
             },
             Position = LspFactory.CreatePosition(0, 1),
             Context = new VSInternalCompletionContext(),
@@ -46,7 +45,7 @@ public class RazorCompletionEndpointTest(ITestOutputHelper testOutput) : Languag
         // Arrange
         var codeDocument = CreateCodeDocument();
         var documentPath = "C:/path/to/document.cshtml";
-        var uri = new Uri(documentPath);
+        var uri = new DocumentUri(documentPath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var optionsMonitor = GetOptionsMonitor(autoShowCompletion: false);
         var completionEndpoint = new RazorCompletionEndpoint(completionListProvider: null, triggerAndCommitCharacters: null, NoOpTelemetryReporter.Instance, optionsMonitor);
@@ -54,7 +53,7 @@ public class RazorCompletionEndpointTest(ITestOutputHelper testOutput) : Languag
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                Uri = uri
+                DocumentUri = uri
             },
             Position = LspFactory.CreatePosition(0, 1),
             Context = new VSInternalCompletionContext() { InvokeKind = VSInternalCompletionInvokeKind.Typing },

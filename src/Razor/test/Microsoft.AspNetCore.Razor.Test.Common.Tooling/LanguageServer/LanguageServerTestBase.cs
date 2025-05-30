@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -26,6 +27,8 @@ using Microsoft.CodeAnalysis.Text;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+
+using LspServices = Razor.LanguageServer.LspServices;
 
 public abstract class LanguageServerTestBase(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
@@ -93,30 +96,30 @@ public abstract class LanguageServerTestBase(ITestOutputHelper testOutput) : Too
         return projectEngine.ProcessDesignTime(sourceDocument, fileKind, [defaultImportDocument], tagHelpers);
     }
 
-    private protected static IDocumentContextFactory CreateDocumentContextFactory(Uri documentPath, string sourceText)
+    private protected static IDocumentContextFactory CreateDocumentContextFactory(DocumentUri documentPath, string sourceText)
     {
         var codeDocument = CreateCodeDocument(sourceText);
         return CreateDocumentContextFactory(documentPath, codeDocument);
     }
 
-    private protected static DocumentContext CreateDocumentContext(Uri documentPath, RazorCodeDocument codeDocument)
+    private protected static DocumentContext CreateDocumentContext(DocumentUri documentPath, RazorCodeDocument codeDocument)
     {
-        return TestDocumentContext.Create(documentPath.GetAbsoluteOrUNCPath(), codeDocument);
+        return TestDocumentContext.Create(documentPath.GetRequiredParsedUri().GetAbsoluteOrUNCPath(), codeDocument);
     }
 
     private protected static IDocumentContextFactory CreateDocumentContextFactory(
-        Uri documentPath,
+        DocumentUri documentPath,
         RazorCodeDocument codeDocument,
         bool documentFound = true)
     {
         var documentContextFactory = documentFound
-            ? new TestDocumentContextFactory(documentPath.GetAbsoluteOrUNCPath(), codeDocument)
+            ? new TestDocumentContextFactory(documentPath.GetRequiredParsedUri().GetAbsoluteOrUNCPath(), codeDocument)
             : new TestDocumentContextFactory();
 
         return documentContextFactory;
     }
 
-    private protected static DocumentContext CreateDocumentContext(Uri uri, IDocumentSnapshot snapshot)
+    private protected static DocumentContext CreateDocumentContext(DocumentUri uri, IDocumentSnapshot snapshot)
     {
         return new DocumentContext(uri, snapshot, projectContext: null);
     }

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Moq;
@@ -28,7 +29,7 @@ public class WorkspaceRootPathWatcherTest(ITestOutputHelper testOutput) : Toolin
 #pragma warning disable CS0618 // Type or member is obsolete
         var initializeParams = new InitializeParams()
         {
-            RootUri = LspFactory.CreateFilePathUri(initialWorkspaceDirectory),
+            RootDocumentUri = LspFactory.CreateFilePathUri(initialWorkspaceDirectory),
         };
 #pragma warning restore CS0618 // Type or member is obsolete
 

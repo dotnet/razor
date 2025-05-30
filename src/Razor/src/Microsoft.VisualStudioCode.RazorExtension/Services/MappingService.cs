@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
@@ -38,7 +39,7 @@ internal sealed class MappingService(IRazorClientLanguageServerManager razorClie
         {
             CSharpDocument = new()
             {
-                Uri = new(document.FilePath)
+                DocumentUri = new(document.FilePath)
             },
             Ranges = [.. spans.Select(sourceText.GetRange)]
         };
@@ -57,7 +58,7 @@ internal sealed class MappingService(IRazorClientLanguageServerManager razorClie
         Debug.Assert(response.Ranges.Length == spans.Count(), "The number of mapped ranges should match the number of input spans.");
 
         using var builder = new PooledArrayBuilder<RazorMappedSpanResult>(response.Spans.Length);
-        var filePath = response.RazorDocument.Uri.GetDocumentFilePath();
+        var filePath = response.RazorDocument.DocumentUri.GetRequiredParsedUri().GetDocumentFilePath();
 
         for (var i = 0; i < response.Spans.Length; i++)
         {
@@ -94,7 +95,7 @@ internal sealed class MappingService(IRazorClientLanguageServerManager razorClie
         {
             CSharpDocument = new()
             {
-                Uri = new(newDocument.FilePath)
+                DocumentUri = new(newDocument.FilePath)
             },
             TextChanges = textChanges
         };
@@ -110,7 +111,7 @@ internal sealed class MappingService(IRazorClientLanguageServerManager razorClie
         }
 
         Debug.Assert(response.MappedTextChanges.Length == changes.Count(), "The number of mapped text changes should match the number of input text changes.");
-        var filePath = response.RazorDocument.Uri.GetDocumentFilePath();
+        var filePath = response.RazorDocument.DocumentUri.GetRequiredParsedUri().GetDocumentFilePath();
         var convertedChanges = Array.ConvertAll(response.MappedTextChanges, mappedChange => mappedChange.ToTextChange());
         var result = new RazorMappedEditResult(filePath, convertedChanges);
         return [result];

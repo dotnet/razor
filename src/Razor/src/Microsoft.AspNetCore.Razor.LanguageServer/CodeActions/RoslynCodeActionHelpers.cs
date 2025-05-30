@@ -21,17 +21,17 @@ internal sealed class RoslynCodeActionHelpers(IClientConnection clientConnection
 
     private readonly IClientConnection _clientConnection = clientConnection;
 
-    public async Task<string> GetFormattedNewFileContentsAsync(IProjectSnapshot projectSnapshot, Uri csharpFileUri, string newFileContent, CancellationToken cancellationToken)
+    public async Task<string> GetFormattedNewFileContentsAsync(IProjectSnapshot projectSnapshot, DocumentUri csharpFileUri, string newFileContent, CancellationToken cancellationToken)
     {
         var parameters = new FormatNewFileParams()
         {
             Project = new TextDocumentIdentifier
             {
-                Uri = new Uri(projectSnapshot.FilePath, UriKind.Absolute)
+                DocumentUri = new DocumentUri(new Uri(projectSnapshot.FilePath, UriKind.Absolute))
             },
             Document = new TextDocumentIdentifier
             {
-                Uri = csharpFileUri
+                DocumentUri = csharpFileUri
             },
             Contents = newFileContent
         };
@@ -51,11 +51,11 @@ internal sealed class RoslynCodeActionHelpers(IClientConnection clientConnection
         return node.ToFullString();
     }
 
-    public Task<TextEdit[]?> GetSimplifiedTextEditsAsync(DocumentContext documentContext, Uri? codeBehindUri, TextEdit edit, CancellationToken cancellationToken)
+    public Task<TextEdit[]?> GetSimplifiedTextEditsAsync(DocumentContext documentContext, DocumentUri? codeBehindUri, TextEdit edit, CancellationToken cancellationToken)
     {
         var tdi = codeBehindUri is null
             ? documentContext.GetTextDocumentIdentifierAndVersion()
-            : new TextDocumentIdentifierAndVersion(new TextDocumentIdentifier() { Uri = codeBehindUri }, 1);
+            : new TextDocumentIdentifierAndVersion(new TextDocumentIdentifier() { DocumentUri = codeBehindUri }, 1);
         var delegatedParams = new DelegatedSimplifyMethodParams(
             tdi,
             RequiresVirtualDocument: codeBehindUri == null,

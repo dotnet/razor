@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -106,7 +105,7 @@ public class InlayHintEndpointTest(ITestOutputHelper testOutput) : SingleServerD
         {
             TextDocument = new VSTextDocumentIdentifier
             {
-                Uri = new Uri(razorFilePath)
+                DocumentUri = new DocumentUri(razorFilePath)
             },
             Range = LspFactory.CreateRange(startLine, starChar, endLine, endChar)
         };
@@ -137,7 +136,7 @@ public class InlayHintEndpointTest(ITestOutputHelper testOutput) : SingleServerD
         {
             TextDocument = new VSTextDocumentIdentifier
             {
-                Uri = new Uri(razorFilePath)
+                DocumentUri = new DocumentUri(razorFilePath)
             },
             Range = LspFactory.CreateRange(0, 0, codeDocument.Source.Text.Lines.Count, 0)
         };

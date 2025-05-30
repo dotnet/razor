@@ -60,7 +60,7 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
 
         var request = new TextDocumentPositionParams
         {
-            TextDocument = new() { Uri = new Uri("C:/text.razor") },
+            TextDocument = new() { DocumentUri = new DocumentUri("C:/text.razor") },
             Position = position,
         };
 
@@ -175,7 +175,7 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
     {
         var codeDocument = CreateCodeDocument(code.Text, DefaultTagHelpers);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
-        var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.g.cs");
+        var csharpDocumentUri = new DocumentUri("C:/path/to/file.razor__virtual.g.cs");
         var serverCapabilities = new VSInternalServerCapabilities()
         {
             HoverProvider = true
@@ -214,10 +214,10 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
             languageServer,
             LoggerFactory);
 
-        var razorFileUri = new Uri(razorFilePath);
+        var razorFileUri = new DocumentUri(razorFilePath);
         var request = new TextDocumentPositionParams
         {
-            TextDocument = new() { Uri = razorFileUri, },
+            TextDocument = new() { DocumentUri = razorFileUri, },
             Position = codeDocument.Source.Text.GetPosition(code.Position)
         };
 
@@ -269,7 +269,7 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
             .SetupGet(x => x.Project)
             .Returns(projectSnapshot);
 
-        var documentContext = new DocumentContext(new Uri(path), documentSnapshotMock.Object, projectContext: null);
+        var documentContext = new DocumentContext(new DocumentUri(path), documentSnapshotMock.Object, projectContext: null);
         var position = codeDocument.Source.Text.GetPosition(code.Position);
 
         return (documentContext, position);
@@ -310,7 +310,7 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
         return endpoint;
     }
 
-    private sealed class HoverLanguageServer(CSharpTestLspServer csharpServer, Uri csharpDocumentUri) : IClientConnection
+    private sealed class HoverLanguageServer(CSharpTestLspServer csharpServer, DocumentUri csharpDocumentUri) : IClientConnection
     {
         public Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
             => throw new NotImplementedException();
@@ -325,7 +325,7 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
 
             var hoverRequest = new TextDocumentPositionParams()
             {
-                TextDocument = new() { Uri = csharpDocumentUri, },
+                TextDocument = new() { DocumentUri = csharpDocumentUri, },
                 Position = hoverParams.ProjectedPosition
             };
 

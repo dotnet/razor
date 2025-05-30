@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
@@ -36,7 +37,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         int childActionIndex = 0,
         RazorFileKind? fileKind = null,
         (string filePath, string contents)[]? additionalFiles = null,
-        (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
+        (DocumentUri fileUri, string contents)[]? additionalExpectedFiles = null)
     {
         var document = CreateRazorDocument(input, fileKind, additionalFiles);
 
@@ -138,7 +139,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
 
         var request = new VSCodeActionParams
         {
-            TextDocument = new VSTextDocumentIdentifier { Uri = document.CreateUri() },
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() },
             Range = range,
             Context = new VSInternalCodeActionContext() { Diagnostics = diagnostics.ToArray() }
         };
@@ -159,7 +160,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         return result;
     }
 
-    private async Task VerifyCodeActionResultAsync(TextDocument document, WorkspaceEdit workspaceEdit, string? expected, (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
+    private async Task VerifyCodeActionResultAsync(TextDocument document, WorkspaceEdit workspaceEdit, string? expected, (DocumentUri fileUri, string contents)[]? additionalExpectedFiles = null)
     {
         var solution = document.Project.Solution;
         var validated = false;
@@ -172,9 +173,10 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
                 if (sumType.Value is CreateFile createFile)
                 {
                     validated = true;
-                    Assert.Single(additionalExpectedFiles.AssumeNotNull(), f => f.fileUri == createFile.Uri);
+                    // TODO(toddgrun): switch back to == when roslyn implementation of DocumentUri.operator== is available on ci
+                    Assert.Single(additionalExpectedFiles.AssumeNotNull(), f => f.fileUri.Equals(createFile.DocumentUri));
                     var documentId = DocumentId.CreateNewId(document.Project.Id);
-                    var filePath = createFile.Uri.GetDocumentFilePath();
+                    var filePath = createFile.DocumentUri.GetRequiredParsedUri().GetDocumentFilePath();
                     var documentInfo = DocumentInfo.Create(documentId, filePath, filePath: filePath);
                     solution = solution.AddDocument(documentInfo);
                 }
@@ -185,7 +187,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         {
             foreach (var edit in documentEdits)
             {
-                var textDocument = solution.GetTextDocuments(edit.TextDocument.Uri).First();
+                var textDocument = solution.GetTextDocuments(edit.TextDocument.DocumentUri.GetRequiredParsedUri()).First();
                 var text = await textDocument.GetTextAsync(DisposalToken).ConfigureAwait(false);
                 if (textDocument is Document)
                 {

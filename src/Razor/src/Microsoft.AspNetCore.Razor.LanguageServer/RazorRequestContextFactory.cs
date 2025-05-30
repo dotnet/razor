@@ -25,14 +25,14 @@ internal sealed class RazorRequestContextFactory(
     public override Task<RazorRequestContext> CreateRequestContextAsync<TRequestParams>(IQueueItem<RazorRequestContext> queueItem, IMethodHandler methodHandler, TRequestParams @params, CancellationToken cancellationToken)
     {
         DocumentContext? documentContext = null;
-        Uri? uri = null;
+        DocumentUri? uri = null;
 
         if (methodHandler is ITextDocumentIdentifierHandler textDocumentHandler)
         {
             if (textDocumentHandler is ITextDocumentIdentifierHandler<TRequestParams, TextDocumentIdentifier> tdiHandler)
             {
                 var textDocumentIdentifier = tdiHandler.GetTextDocumentIdentifier(@params);
-                uri = textDocumentIdentifier.Uri;
+                uri = textDocumentIdentifier.DocumentUri;
 
                 _logger.LogDebug($"Trying to create DocumentContext for {queueItem.MethodName} for {textDocumentIdentifier.GetProjectContext()?.Id ?? "(no project context)"} for {uri}");
 
@@ -40,7 +40,7 @@ internal sealed class RazorRequestContextFactory(
             }
             else if (textDocumentHandler is ITextDocumentIdentifierHandler<TRequestParams, Uri> uriHandler)
             {
-                uri = uriHandler.GetTextDocumentIdentifier(@params);
+                uri = new DocumentUri(uriHandler.GetTextDocumentIdentifier(@params));
 
                 _logger.LogDebug($"Trying to create DocumentContext for {queueItem.MethodName}, with no project context, for {uri}");
 
@@ -57,7 +57,7 @@ internal sealed class RazorRequestContextFactory(
             }
         }
 
-        var requestContext = new RazorRequestContext(documentContext, _lspServices, queueItem.MethodName, uri);
+        var requestContext = new RazorRequestContext(documentContext, _lspServices, queueItem.MethodName, uri?.ParsedUri);
 
         return Task.FromResult(requestContext);
     }

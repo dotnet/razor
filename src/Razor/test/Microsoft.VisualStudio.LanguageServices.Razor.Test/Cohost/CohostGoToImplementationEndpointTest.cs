@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -104,7 +103,7 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
         {
             new LspLocation
             {
-                Uri = new Uri(document.CreateUri(), document.Name + FeatureOptions.HtmlVirtualDocumentSuffix),
+                DocumentUri = new DocumentUri(document.Name + FeatureOptions.HtmlVirtualDocumentSuffix),
                 Range = inputText.GetRange(input.Span),
             },
         });
@@ -139,7 +138,7 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
         var textDocumentPositionParams = new TextDocumentPositionParams
         {
             Position = position,
-            TextDocument = new TextDocumentIdentifier { Uri = document.CreateUri() },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() },
         };
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(textDocumentPositionParams, document, DisposalToken);
@@ -150,7 +149,7 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
             var actual = roslynLocations.Select(l => l.Range.ToLinePositionSpan()).OrderBy(r => r.Start.Line).ToArray();
             Assert.Equal(expected, actual);
 
-            Assert.All(roslynLocations, l => l.Uri.Equals(document.CreateUri()));
+            Assert.All(roslynLocations, l => l.DocumentUri.Equals(document.CreateDocumentUri()));
         }
         else
         {

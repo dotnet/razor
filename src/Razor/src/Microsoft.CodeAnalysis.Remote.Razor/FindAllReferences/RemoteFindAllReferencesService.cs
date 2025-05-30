@@ -4,6 +4,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.FindAllReferences;
@@ -94,7 +95,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                 continue;
             }
 
-            var (mappedUri, mappedRange) = await DocumentMappingService.MapToHostDocumentUriAndRangeAsync(context.Snapshot, location.Uri, location.Range.ToLinePositionSpan(), cancellationToken).ConfigureAwait(false);
+            var (mappedUri, mappedRange) = await DocumentMappingService.MapToHostDocumentUriAndRangeAsync(context.Snapshot, location.DocumentUri, location.Range.ToLinePositionSpan(), cancellationToken).ConfigureAwait(false);
 
             if (referenceItem is not null)
             {
@@ -102,17 +103,19 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                 referenceItem.Origin = VSInternalItemOrigin.Exact;
 
                 // If we're going to change the Uri, then also override the file paths
-                if (mappedUri != location.Uri)
+                if (mappedUri != location.DocumentUri)
                 {
-                    referenceItem.DisplayPath = mappedUri.AbsolutePath;
-                    referenceItem.DocumentName = mappedUri.AbsolutePath;
+                    var absolutePath = mappedUri.ParsedUri?.AbsolutePath;
 
-                    var fixedResultText = await FindAllReferencesHelper.GetResultTextAsync(DocumentMappingService, context.GetSolutionQueryOperations(), mappedRange.Start.Line, mappedUri.GetDocumentFilePath(), cancellationToken).ConfigureAwait(false);
+                    referenceItem.DisplayPath = absolutePath;
+                    referenceItem.DocumentName = absolutePath;
+
+                    var fixedResultText = await FindAllReferencesHelper.GetResultTextAsync(DocumentMappingService, context.GetSolutionQueryOperations(), mappedRange.Start.Line, mappedUri.GetRequiredParsedUri().GetDocumentFilePath(), cancellationToken).ConfigureAwait(false);
                     referenceItem.Text = fixedResultText ?? referenceItem.Text;
                 }
             }
 
-            location.Uri = mappedUri;
+            location.DocumentUri = mappedUri;
             location.Range = mappedRange.ToRange();
         }
 

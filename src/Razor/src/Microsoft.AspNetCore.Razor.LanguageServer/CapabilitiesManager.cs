@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Threading;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -80,15 +81,15 @@ internal sealed class CapabilitiesManager : IInitializeManager<InitializeParams,
 
         if (initializeParams.WorkspaceFolders is [var firstFolder, ..])
         {
-            return firstFolder.Uri.GetAbsoluteOrUNCPath();
+            return firstFolder.DocumentUri.GetRequiredParsedUri().GetAbsoluteOrUNCPath();
         }
 
         // WorkspaceFolders was added in LSP3.6, fall back to RootUri
 
 #pragma warning disable CS0618 // Type or member is obsolete
-        if (initializeParams.RootUri is Uri rootUri)
+        if (initializeParams.RootDocumentUri is DocumentUri rootUri)
         {
-            return rootUri.GetAbsoluteOrUNCPath();
+            return rootUri.GetRequiredParsedUri().GetAbsoluteOrUNCPath();
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 

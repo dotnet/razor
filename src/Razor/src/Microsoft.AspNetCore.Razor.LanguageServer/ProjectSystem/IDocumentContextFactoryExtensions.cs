@@ -13,11 +13,11 @@ internal static class IDocumentContextFactoryExtensions
         this IDocumentContextFactory service,
         TextDocumentIdentifier documentIdentifier,
         [NotNullWhen(true)] out DocumentContext? context)
-            => service.TryCreate(documentIdentifier.Uri, documentIdentifier.GetProjectContext(), out context);
+            => service.TryCreate(documentIdentifier.DocumentUri, documentIdentifier.GetProjectContext(), out context);
 
     public static bool TryCreate(
         this IDocumentContextFactory service,
-        Uri documentUri,
+        DocumentUri documentUri,
         [NotNullWhen(true)] out DocumentContext? context)
             => service.TryCreate(documentUri, projectContext: null, out context);
 }

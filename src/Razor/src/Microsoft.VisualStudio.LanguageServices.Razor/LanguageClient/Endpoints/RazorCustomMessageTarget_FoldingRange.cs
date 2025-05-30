@@ -31,7 +31,7 @@ internal partial class RazorCustomMessageTarget
         var hostDocument = new VSTextDocumentIdentifier
         {
             ProjectContext = foldingRangeParams.TextDocument.GetProjectContext(),
-            Uri = foldingRangeParams.TextDocument.Uri,
+            DocumentUri = foldingRangeParams.TextDocument.DocumentUri,
         };
 
         var csharpRanges = new List<FoldingRange>();
@@ -43,7 +43,7 @@ internal partial class RazorCustomMessageTarget
             {
                 var csharpRequestParams = new FoldingRangeParams()
                 {
-                    TextDocument = foldingRangeParams.TextDocument.WithUri(csharpSnapshot.Uri),
+                    TextDocument = foldingRangeParams.TextDocument.WithUri(new DocumentUri(csharpSnapshot.Uri)),
                 };
 
                 var request = await _requestInvoker.ReinvokeRequestOnServerAsync<FoldingRangeParams, IEnumerable<FoldingRange>?>(
@@ -77,7 +77,7 @@ internal partial class RazorCustomMessageTarget
                 {
                     TextDocument = new()
                     {
-                        Uri = htmlDocument.Uri
+                        DocumentUri = new DocumentUri(htmlDocument.Uri)
                     }
                 };
 

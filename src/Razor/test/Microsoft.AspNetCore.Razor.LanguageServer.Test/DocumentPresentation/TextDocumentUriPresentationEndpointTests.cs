@@ -48,7 +48,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             updater.UpdateProjectWorkspaceState(hostProject.Key, ProjectWorkspaceState.Create([builder.Build()]));
         });
 
-        var uri = new Uri(hostDocument1.FilePath);
+        var uri = new DocumentUri(hostDocument1.FilePath);
 
         await projectManager.UpdateAsync(updater =>
         {
@@ -62,7 +62,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
 
         var parameters = new UriPresentationParams()
         {
-            TextDocument = new() { Uri = uri },
+            TextDocument = new() { DocumentUri = uri },
             Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Uris = [droppedUri]
         };
@@ -108,7 +108,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             updater.UpdateProjectWorkspaceState(hostProject.Key, ProjectWorkspaceState.Create([builder.Build()]));
         });
 
-        var uri = new Uri(hostDocument1.FilePath);
+        var uri = new DocumentUri(hostDocument1.FilePath);
 
         await projectManager.UpdateAsync(updater =>
         {
@@ -122,7 +122,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
 
         var parameters = new UriPresentationParams()
         {
-            TextDocument = new() { Uri = uri },
+            TextDocument = new() { DocumentUri = uri },
             Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Uris =
             [
@@ -179,7 +179,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             updater.UpdateProjectWorkspaceState(hostProject.Key, ProjectWorkspaceState.Create([builder.Build()]));
         });
 
-        var uri = new Uri(hostDocument1.FilePath);
+        var uri = new DocumentUri(hostDocument1.FilePath);
 
         await projectManager.UpdateAsync(updater =>
         {
@@ -193,7 +193,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
 
         var parameters = new UriPresentationParams()
         {
-            TextDocument = new() { Uri = uri },
+            TextDocument = new() { DocumentUri = uri },
             Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Uris = [droppedUri]
         };
@@ -218,7 +218,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
     {
         // Arrange
         var codeDocument = CreateCodeDocument("<div></div>");
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var droppedUri = new Uri("file:///c:/path/MyTagHelper.razor");
 
         var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
@@ -229,7 +229,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
 
         var parameters = new UriPresentationParams()
         {
-            TextDocument = new() { Uri = uri },
+            TextDocument = new() { DocumentUri = uri },
             Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Uris = [droppedUri]
         };
@@ -249,7 +249,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         // Arrange
         var codeDocument = CreateCodeDocument("<div></div>");
 
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
         var documentContext = CreateDocumentContext(uri, codeDocument);
 
@@ -258,7 +258,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
 
         var parameters = new UriPresentationParams()
         {
-            TextDocument = new() { Uri = uri },
+            TextDocument = new() { DocumentUri = uri },
             Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Uris =
             [
@@ -284,7 +284,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         var codeDocument = CreateCodeDocument("<div></div>");
 
         var droppedUri = new Uri("file:///c:/path/MyTagHelper.cshtml");
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
         var documentContext = CreateDocumentContext(uri, codeDocument);
 
@@ -293,7 +293,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
 
         var parameters = new UriPresentationParams()
         {
-            TextDocument = new() { Uri = uri },
+            TextDocument = new() { DocumentUri = uri },
             Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Uris = [droppedUri]
         };
@@ -334,7 +334,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
             updater.UpdateProjectWorkspaceState(hostProject.Key, ProjectWorkspaceState.Create([builder.Build()]));
         });
 
-        var uri = new Uri(hostDocument1.FilePath);
+        var uri = new DocumentUri(hostDocument1.FilePath);
 
         await projectManager.UpdateAsync(updater =>
         {
@@ -348,7 +348,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
 
         var parameters = new UriPresentationParams()
         {
-            TextDocument = new() { Uri = uri },
+            TextDocument = new() { DocumentUri = uri },
             Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1),
             Uris = [droppedUri1, droppedUri2]
         };
@@ -373,7 +373,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
     {
         // Arrange
         var codeDocument = CreateCodeDocument("@counter");
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
 
@@ -382,7 +382,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
 
         var parameters = new UriPresentationParams()
         {
-            TextDocument = new() { Uri = uri },
+            TextDocument = new() { DocumentUri = uri },
             Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1)
         };
 
@@ -400,7 +400,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
     {
         // Arrange
         var codeDocument = CreateCodeDocument("<div></div>");
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
 
         var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
@@ -410,7 +410,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
 
         var parameters = new UriPresentationParams()
         {
-            TextDocument = new() { Uri = uri },
+            TextDocument = new() { DocumentUri = uri },
             Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1)
         };
 
@@ -428,7 +428,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
     {
         // Arrange
         var codeDocument = CreateCodeDocument("<div></div>");
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
 
         var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
@@ -438,7 +438,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
 
         var parameters = new UriPresentationParams()
         {
-            TextDocument = new() { Uri = uri },
+            TextDocument = new() { DocumentUri = uri },
             Range = LspFactory.CreateSingleLineRange(line: 0, character: 1, length: 1)
         };
 

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Text.Json;
 using System.Threading;
@@ -34,7 +33,7 @@ public class HtmlCodeActionProviderTest(ITestOutputHelper testOutput) : Language
         var documentPath = "c:/Test.razor";
         var request = new VSCodeActionParams()
         {
-            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new DocumentUri(documentPath) },
             Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
@@ -65,7 +64,7 @@ public class HtmlCodeActionProviderTest(ITestOutputHelper testOutput) : Language
         var documentPath = "c:/Test.razor";
         var request = new VSCodeActionParams()
         {
-            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new DocumentUri(documentPath) },
             Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
@@ -79,7 +78,7 @@ public class HtmlCodeActionProviderTest(ITestOutputHelper testOutput) : Language
                 new() {
                     TextDocument = new OptionalVersionedTextDocumentIdentifier
                     {
-                        Uri = new Uri(documentPath),
+                        DocumentUri = new DocumentUri(documentPath),
                     },
                     Edits = [LspFactory.CreateTextEdit(context.SourceText.GetRange(span), "Goo /*~~~~~~~~~~~*/ Bar")]
                 }
@@ -105,7 +104,7 @@ public class HtmlCodeActionProviderTest(ITestOutputHelper testOutput) : Language
                         new() {
                             TextDocument = new OptionalVersionedTextDocumentIdentifier
                             {
-                                Uri = new Uri("c:/Test.razor.html"),
+                                DocumentUri = new DocumentUri("c:/Test.razor.html"),
                             },
                             Edits = [LspFactory.CreateTextEdit(position: (0, 0), "Goo")]
                         }
@@ -121,7 +120,7 @@ public class HtmlCodeActionProviderTest(ITestOutputHelper testOutput) : Language
         var action = Assert.Single(providedCodeActions);
         Assert.NotNull(action.Edit);
         Assert.True(action.Edit.TryGetTextDocumentEdits(out var documentEdits));
-        Assert.Equal(documentPath, documentEdits[0].TextDocument.Uri.AbsolutePath);
+        Assert.Equal(documentPath, documentEdits[0].TextDocument.DocumentUri.ParsedUri?.AbsolutePath);
         // Edit should be converted to 2 edits, to remove the tags
         Assert.Collection(documentEdits[0].Edits,
             e =>

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Threading;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
@@ -28,8 +29,9 @@ internal partial class RazorCustomMessageTarget
             throw new ArgumentNullException(nameof(inlineCompletionParams));
         }
 
-        var hostDocumentUri = inlineCompletionParams.TextDocument.Uri;
-        if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
+        var hostDocumentUri = inlineCompletionParams.TextDocument.DocumentUri;
+        var hostUri = hostDocumentUri.GetRequiredParsedUri();
+        if (!_documentManager.TryGetDocument(hostUri, out var documentSnapshot))
         {
             return null;
         }
@@ -44,7 +46,7 @@ internal partial class RazorCustomMessageTarget
         {
             Context = inlineCompletionParams.Context,
             Position = inlineCompletionParams.Position,
-            TextDocument = inlineCompletionParams.TextDocument.WithUri(csharpDoc.Uri),
+            TextDocument = inlineCompletionParams.TextDocument.WithUri(new DocumentUri(csharpDoc.Uri)),
             Options = inlineCompletionParams.Options,
         };
 
@@ -64,7 +66,7 @@ internal partial class RazorCustomMessageTarget
         DelegatedCompletionParams request,
         CancellationToken cancellationToken)
     {
-        var hostDocumentUri = request.Identifier.TextDocumentIdentifier.Uri;
+        var hostDocumentUri = request.Identifier.TextDocumentIdentifier.DocumentUri;
 
         string languageServerName;
         bool synchronized;
@@ -96,11 +98,12 @@ internal partial class RazorCustomMessageTarget
             return null;
         }
 
+        var virtualDocumentUri = new DocumentUri(virtualDocumentSnapshot.Uri);
         var completionParams = new CompletionParams()
         {
             Context = request.Context,
             Position = request.ProjectedPosition,
-            TextDocument = request.Identifier.TextDocumentIdentifier.WithUri(virtualDocumentSnapshot.Uri),
+            TextDocument = request.Identifier.TextDocumentIdentifier.WithUri(virtualDocumentUri),
         };
 
         var continueOnCapturedContext = false;
@@ -118,7 +121,7 @@ internal partial class RazorCustomMessageTarget
                 provisionalTextEdit.NewText);
             // We update to a negative version number so that if a request comes in for v6, it won't see our modified document. We revert the version back
             // later, don't worry.
-            UpdateVirtualDocument(provisionalChange, request.ProjectedKind, -1 * request.Identifier.Version, hostDocumentUri, virtualDocumentSnapshot.Uri);
+            UpdateVirtualDocument(provisionalChange, request.ProjectedKind, -1 * request.Identifier.Version, hostDocumentUri, virtualDocumentUri);
 
             _logger.LogDebug($"Updated for provisional completion to version -{request.Identifier.Version} of {virtualDocumentSnapshot!.Uri}.");
 
@@ -185,7 +188,7 @@ internal partial class RazorCustomMessageTarget
                     revertedProvisionalTextEdit.Range.End.Character,
                     virtualDocumentSnapshot.Snapshot,
                     revertedProvisionalTextEdit.NewText);
-                UpdateVirtualDocument(revertedProvisionalChange, request.ProjectedKind, request.Identifier.Version, hostDocumentUri, virtualDocumentSnapshot.Uri);
+                UpdateVirtualDocument(revertedProvisionalChange, request.ProjectedKind, request.Identifier.Version, hostDocumentUri, virtualDocumentUri);
             }
         }
     }
@@ -218,8 +221,8 @@ internal partial class RazorCustomMessageTarget
         VisualStudioTextChange textChange,
         RazorLanguageKind virtualDocumentKind,
         int hostDocumentVersion,
-        Uri documentSnapshotUri,
-        Uri virtualDocumentUri)
+        DocumentUri documentSnapshotUri,
+        DocumentUri virtualDocumentUri)
     {
         if (_documentManager is not TrackingLSPDocumentManager trackingDocumentManager)
         {
@@ -229,8 +232,8 @@ internal partial class RazorCustomMessageTarget
         if (virtualDocumentKind == RazorLanguageKind.CSharp)
         {
             trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
-                documentSnapshotUri,
-                virtualDocumentUri,
+                documentSnapshotUri.GetRequiredParsedUri(),
+                virtualDocumentUri.GetRequiredParsedUri(),
                 [textChange],
                 hostDocumentVersion,
                 state: null);
@@ -238,8 +241,8 @@ internal partial class RazorCustomMessageTarget
         else if (virtualDocumentKind == RazorLanguageKind.Html)
         {
             trackingDocumentManager.UpdateVirtualDocument<HtmlVirtualDocument>(
-                documentSnapshotUri,
-                virtualDocumentUri,
+                documentSnapshotUri.GetRequiredParsedUri(),
+                virtualDocumentUri.GetRequiredParsedUri(),
                 [textChange],
                 hostDocumentVersion,
                 state: null);
@@ -312,7 +315,7 @@ internal partial class RazorCustomMessageTarget
     [JsonRpcMethod(LanguageServerConstants.RazorGetFormattingOptionsEndpointName, UseSingleObjectParameterDeserialization = true)]
     public Task<FormattingOptions?> GetFormattingOptionsAsync(TextDocumentIdentifierAndVersion document, CancellationToken _)
     {
-        var formattingOptions = _formattingOptionsProvider.GetOptions(document.TextDocumentIdentifier.Uri);
+        var formattingOptions = _formattingOptionsProvider.GetOptions(document.TextDocumentIdentifier.DocumentUri.GetRequiredParsedUri());
 
         if (formattingOptions is null)
         {

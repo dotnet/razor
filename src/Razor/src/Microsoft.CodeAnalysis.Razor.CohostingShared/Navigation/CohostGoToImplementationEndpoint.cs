@@ -123,9 +123,9 @@ internal sealed class CohostGoToImplementationEndpoint(
     private void RemapVirtualHtmlUri(LspLocation? location)
     {
         if (location is not null &&
-            _filePathService.IsVirtualHtmlFile(location.Uri))
+            _filePathService.IsVirtualHtmlFile(location.DocumentUri))
         {
-            location.Uri = _filePathService.GetRazorDocumentUri(location.Uri);
+            location.DocumentUri = _filePathService.GetRazorDocumentUri(location.DocumentUri);
         }
     }
 

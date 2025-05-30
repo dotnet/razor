@@ -1,11 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -185,7 +185,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
         var renameParams = new RenameParams
         {
             Position = position,
-            TextDocument = new TextDocumentIdentifier { Uri = document.CreateUri() },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() },
             NewName = newName,
         };
 
@@ -209,23 +209,24 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 if (change.TryGetThird(out var renameEdit))
                 {
                     Assert.Contains(renames,
-                        r => renameEdit.OldUri.GetDocumentFilePath().EndsWith(r.oldName) &&
-                             renameEdit.NewUri.GetDocumentFilePath().EndsWith(r.newName));
+                        r => renameEdit.OldDocumentUri.GetRequiredParsedUri().GetDocumentFilePath().EndsWith(r.oldName) &&
+                             renameEdit.NewDocumentUri.GetRequiredParsedUri().GetDocumentFilePath().EndsWith(r.newName));
                 }
             }
         }
 
-        var actual = ProcessRazorDocumentEdits(inputText, document.CreateUri(), result);
+        var actual = ProcessRazorDocumentEdits(inputText, document.CreateDocumentUri(), result);
 
         AssertEx.EqualOrDiff(expected, actual);
     }
 
-    private static string ProcessRazorDocumentEdits(SourceText inputText, Uri razorDocumentUri, WorkspaceEdit result)
+    private static string ProcessRazorDocumentEdits(SourceText inputText, DocumentUri razorDocumentUri, WorkspaceEdit result)
     {
         Assert.True(result.TryGetTextDocumentEdits(out var textDocumentEdits));
         foreach (var textDocumentEdit in textDocumentEdits)
         {
-            if (textDocumentEdit.TextDocument.Uri == razorDocumentUri)
+            // TODO(toddgrun): switch back to == when roslyn implementation of DocumentUri.operator== is available on ci
+            if (textDocumentEdit.TextDocument.DocumentUri.Equals(razorDocumentUri))
             {
                 foreach (var edit in textDocumentEdit.Edits)
                 {

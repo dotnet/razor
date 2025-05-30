@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Roslyn.LanguageServer.Protocol;
 
@@ -16,23 +17,23 @@ internal static partial class LspExtensions
     /// <summary>
     /// Returns a copy of the passed in <see cref="TextDocumentIdentifier"/> with the passed in <see cref="Uri"/>.
     /// </summary>
-    public static TextDocumentIdentifier WithUri(this TextDocumentIdentifier textDocumentIdentifier, Uri uri)
+    public static TextDocumentIdentifier WithUri(this TextDocumentIdentifier textDocumentIdentifier, DocumentUri uri)
     {
         if (textDocumentIdentifier is VSTextDocumentIdentifier vsTdi)
         {
             return new VSTextDocumentIdentifier
             {
-                Uri = uri,
+                DocumentUri = uri,
                 ProjectContext = vsTdi.ProjectContext
             };
         }
 
         return new TextDocumentIdentifier
         {
-            Uri = uri
+            DocumentUri = uri
         };
     }
 
     public static RazorTextDocumentIdentifier ToRazorTextDocumentIdentifier(this TextDocumentIdentifier textDocumentIdentifier)
-        => new RazorTextDocumentIdentifier(textDocumentIdentifier.Uri, (textDocumentIdentifier as VSTextDocumentIdentifier)?.ProjectContext?.Id);
+        => new RazorTextDocumentIdentifier(textDocumentIdentifier.DocumentUri.GetRequiredParsedUri(), (textDocumentIdentifier as VSTextDocumentIdentifier)?.ProjectContext?.Id);
 }

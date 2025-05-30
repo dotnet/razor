@@ -27,13 +27,13 @@ internal sealed partial class HtmlDocumentSynchronizer(
     private readonly IHtmlDocumentPublisher _htmlDocumentPublisher = htmlDocumentPublisher;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<HtmlDocumentSynchronizer>();
 
-    private readonly Dictionary<Uri, SynchronizationRequest> _synchronizationRequests = [];
+    private readonly Dictionary<DocumentUri, SynchronizationRequest> _synchronizationRequests = [];
     // Semaphore to lock access to the dictionary above
 #pragma warning disable RS0030 // Do not use banned APIs
     private readonly SemaphoreSlim _semaphore = new(initialCount: 1);
 #pragma warning restore RS0030 // Do not use banned APIs
 
-    public void DocumentRemoved(Uri razorFileUri, CancellationToken cancellationToken)
+    public void DocumentRemoved(DocumentUri razorFileUri, CancellationToken cancellationToken)
     {
         using var _ = _semaphore.DisposableWait(cancellationToken);
 
@@ -85,7 +85,7 @@ internal sealed partial class HtmlDocumentSynchronizer(
 
         Task<SynchronizationResult> GetOrAddResultTask_CallUnderLockAsync()
         {
-            var documentUri = document.CreateUri();
+            var documentUri = document.CreateDocumentUri();
             if (_synchronizationRequests.TryGetValue(documentUri, out var request))
             {
                 if (requestedVersion.Checksum.Equals(request.RequestedVersion.Checksum))

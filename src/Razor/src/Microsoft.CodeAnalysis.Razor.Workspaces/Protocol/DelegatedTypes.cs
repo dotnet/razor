@@ -79,7 +79,7 @@ internal record DelegatedCompletionItemResolveParams(
     [property: JsonPropertyName("originatingKind")] RazorLanguageKind OriginatingKind);
 
 internal record DelegatedProjectContextsParams(
-    [property: JsonPropertyName("uri")] Uri Uri);
+    [property: JsonPropertyName("uri"), JsonConverter(typeof(DocumentUriConverter))] DocumentUri Uri);
 
 internal record DelegatedDocumentSymbolParams(
     [property: JsonPropertyName("identifier")] TextDocumentIdentifierAndVersion Identifier);

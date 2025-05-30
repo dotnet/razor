@@ -82,7 +82,7 @@ internal sealed class MapCodeEndpoint(
                 continue;
             }
 
-            if (!_documentContextFactory.TryCreate(mapping.TextDocument.Uri, out var documentContext))
+            if (!_documentContextFactory.TryCreate(mapping.TextDocument.DocumentUri, out var documentContext))
             {
                 continue;
             }
@@ -174,7 +174,8 @@ internal sealed class MapCodeEndpoint(
                 // as the code to map. The client is currently implemented using this behavior, but if it
                 // ever changes, we'll need to update this code to account for it (i.e., take into account
                 // focus location URIs).
-                Debug.Assert(location.Uri == documentContext.Uri);
+                // TODO(toddgrun): switch back to == when roslyn implementation of DocumentUri.operator== is available on ci
+                Debug.Assert(location.DocumentUri.Equals(documentContext.DocumentUri));
 
                 var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 if (syntaxTree is null)
@@ -235,7 +236,7 @@ internal sealed class MapCodeEndpoint(
                         {
                             TextDocument = new OptionalVersionedTextDocumentIdentifier
                             {
-                                Uri = documentContext.Uri
+                                DocumentUri = documentContext.DocumentUri
                             },
                             Edits = [edit],
                         };
@@ -350,7 +351,7 @@ internal sealed class MapCodeEndpoint(
                     continue;
                 }
 
-                if (!_documentContextFactory.TryCreate(potentialLocation.Uri, out var documentContext))
+                if (!_documentContextFactory.TryCreate(potentialLocation.DocumentUri, out var documentContext))
                 {
                     continue;
                 }
@@ -366,7 +367,7 @@ internal sealed class MapCodeEndpoint(
                     {
                         // We convert the URI to the C# generated document URI later on in
                         // LanguageServer.Client since we're unable to retrieve it here.
-                        Uri = potentialLocation.Uri,
+                        DocumentUri = potentialLocation.DocumentUri,
                         Range = generatedDocumentRange.ToRange()
                     };
 
@@ -393,7 +394,7 @@ internal sealed class MapCodeEndpoint(
             // into also supporting file creation/deletion/rename.
             foreach (var edit in documentEdits)
             {
-                var success = await TryProcessEditAsync(edit.TextDocument.Uri, edit.Edits, csharpChanges, cancellationToken).ConfigureAwait(false);
+                var success = await TryProcessEditAsync(edit.TextDocument.DocumentUri, edit.Edits, csharpChanges, cancellationToken).ConfigureAwait(false);
                 if (!success)
                 {
                     return false;
@@ -405,7 +406,7 @@ internal sealed class MapCodeEndpoint(
         {
             foreach (var edit in edits.Changes)
             {
-                var generatedUri = new Uri(edit.Key);
+                var generatedUri = new DocumentUri(edit.Key);
                 var success = await TryProcessEditAsync(generatedUri, edit.Value.Select(e => (SumType<TextEdit, AnnotatedTextEdit>)e), csharpChanges, cancellationToken).ConfigureAwait(false);
                 if (!success)
                 {
@@ -418,7 +419,7 @@ internal sealed class MapCodeEndpoint(
         return true;
 
         async Task<bool> TryProcessEditAsync(
-            Uri generatedUri,
+            DocumentUri generatedUri,
             IEnumerable<SumType<TextEdit, AnnotatedTextEdit>> textEdits,
             List<TextDocumentEdit> csharpChanges,
             CancellationToken cancellationToken)
@@ -437,7 +438,7 @@ internal sealed class MapCodeEndpoint(
 
                 var textDocumentEdit = new TextDocumentEdit
                 {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = hostDocumentUri },
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = hostDocumentUri },
                     Edits = [textEdit]
                 };
 
@@ -451,7 +452,7 @@ internal sealed class MapCodeEndpoint(
     // Resolve edits that are at the same start location by merging them together.
     private static void MergeEdits(List<TextDocumentEdit> changes)
     {
-        var groupedChanges = changes.GroupBy(c => c.TextDocument.Uri).ToImmutableArray();
+        var groupedChanges = changes.GroupBy(c => c.TextDocument.DocumentUri).ToImmutableArray();
         changes.Clear();
         foreach (var documentChanges in groupedChanges)
         {
@@ -475,7 +476,7 @@ internal sealed class MapCodeEndpoint(
             {
                 TextDocument = new OptionalVersionedTextDocumentIdentifier
                 {
-                    Uri = documentChanges.Key,
+                    DocumentUri = documentChanges.Key,
                 },
                 Edits = edits.SelectMany(e => e.Edits).ToArray()
             };

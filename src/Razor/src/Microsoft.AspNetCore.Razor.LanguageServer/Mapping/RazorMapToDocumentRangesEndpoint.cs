@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
@@ -29,7 +30,7 @@ internal sealed class RazorMapToDocumentRangesEndpoint :
 
     public Uri GetTextDocumentIdentifier(RazorMapToDocumentRangesParams request)
     {
-        return request.RazorDocumentUri;
+        return request.RazorDocumentUri.GetRequiredParsedUri();
     }
 
     public async Task<RazorMapToDocumentRangesResponse?> HandleRequestAsync(RazorMapToDocumentRangesParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)

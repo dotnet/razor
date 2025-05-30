@@ -23,6 +23,7 @@ public sealed partial class TestComposition
         ImmutableHashSet<Type>.Empty,
         ImmutableHashSet<Type>.Empty);
 
+#if NETFRAMEWORK
     public static readonly TestComposition Roslyn = Empty
         .AddAssemblies(MefHostServices.DefaultAssemblies)
         .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.dll"))
@@ -31,6 +32,7 @@ public sealed partial class TestComposition
         .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.dll"))
         .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.LanguageServer.Protocol.dll"))
         .AddParts(typeof(RazorTestWorkspaceRegistrationService));
+#endif
 
     public static readonly TestComposition RoslynFeatures = Empty
         .AddAssemblies(MefHostServices.DefaultAssemblies)

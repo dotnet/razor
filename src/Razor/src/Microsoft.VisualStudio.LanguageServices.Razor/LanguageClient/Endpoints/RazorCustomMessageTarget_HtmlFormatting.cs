@@ -38,7 +38,7 @@ internal partial class RazorCustomMessageTarget
 
         var formattingParams = new DocumentFormattingParams()
         {
-            TextDocument = request.TextDocument.WithUri(projectedUri),
+            TextDocument = request.TextDocument.WithUri(new DocumentUri(projectedUri)),
             Options = request.Options
         };
 
@@ -80,7 +80,7 @@ internal partial class RazorCustomMessageTarget
         {
             Character = request.Character,
             Position = request.Position,
-            TextDocument = request.TextDocument.WithUri(htmlDocument.Uri),
+            TextDocument = request.TextDocument.WithUri(new DocumentUri(htmlDocument.Uri)),
             Options = request.Options
         };
 

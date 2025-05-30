@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 internal interface IDocumentContextFactory
 {
     bool TryCreate(
-        Uri documentUri,
+        DocumentUri documentUri,
         VSProjectContext? projectContext,
         [NotNullWhen(true)] out DocumentContext? context);
 }

@@ -69,6 +69,6 @@ internal class DocumentSymbolEndpoint(
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var csharpDocument = codeDocument.GetCSharpDocument();
-        return _documentSymbolService.GetDocumentSymbols(documentContext.Uri, csharpDocument, symbols);
+        return _documentSymbolService.GetDocumentSymbols(documentContext.DocumentUri, csharpDocument, symbols);
     }
 }

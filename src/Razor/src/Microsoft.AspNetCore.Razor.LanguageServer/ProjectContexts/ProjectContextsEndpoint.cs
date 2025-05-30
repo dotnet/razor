@@ -40,7 +40,7 @@ internal class ProjectContextsEndpoint : IRazorDocumentlessRequestHandler<VSGetP
             throw new ArgumentNullException(nameof(request));
         }
 
-        var delegatedParams = new DelegatedProjectContextsParams(request.TextDocument.Uri);
+        var delegatedParams = new DelegatedProjectContextsParams(request.TextDocument.DocumentUri);
 
         var response = await _clientConnection.SendRequestAsync<DelegatedProjectContextsParams, VSProjectContextList>(
             CustomMessageNames.RazorProjectContextsEndpoint,

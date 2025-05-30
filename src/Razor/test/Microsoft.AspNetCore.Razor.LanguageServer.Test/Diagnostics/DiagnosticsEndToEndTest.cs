@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 #if !NET
 using System.Collections.Generic;
 #endif
@@ -79,7 +78,7 @@ public sealed class DiagnosticsEndToEndTest(ITestOutputHelper testOutput) : Sing
         var codeDocument = CreateCodeDocument(input, filePath: filePath);
         var sourceText = codeDocument.Source.Text;
         var razorFilePath = "file://C:/path/test.razor";
-        var uri = new Uri(razorFilePath);
+        var uri = new DocumentUri(razorFilePath);
         await using var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var requestContext = new RazorRequestContext(documentContext, null!, "lsp/method", uri: null);
@@ -90,7 +89,7 @@ public sealed class DiagnosticsEndToEndTest(ITestOutputHelper testOutput) : Sing
 
         var diagnosticsRequest = new DocumentDiagnosticParams
         {
-            TextDocument = new TextDocumentIdentifier { Uri = uri }
+            TextDocument = new TextDocumentIdentifier { DocumentUri = uri }
         };
 
         var report = await diagnosticsEndPoint.HandleRequestAsync(diagnosticsRequest, requestContext, DisposalToken);
