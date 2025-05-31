@@ -61,7 +61,6 @@
     <MicrosoftCodeAnalysisEditorFeaturesPackageVersion>5.0.0-1.25274.2</MicrosoftCodeAnalysisEditorFeaturesPackageVersion>
     <MicrosoftCodeAnalysisEditorFeaturesCommonPackageVersion>5.0.0-1.25274.2</MicrosoftCodeAnalysisEditorFeaturesCommonPackageVersion>
     <MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>5.0.0-1.25274.2</MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>
-    <MicrosoftCodeAnalysisEditorFeaturesWpfPackageVersion>5.0.0-1.25274.2</MicrosoftCodeAnalysisEditorFeaturesWpfPackageVersion>
     <MicrosoftCodeAnalysisLanguageServerProtocolPackageVersion>5.0.0-1.25274.2</MicrosoftCodeAnalysisLanguageServerProtocolPackageVersion>
     <MicrosoftCodeAnalysisRemoteServiceHubPackageVersion>5.0.0-1.25274.2</MicrosoftCodeAnalysisRemoteServiceHubPackageVersion>
     <MicrosoftCodeAnalysisTestUtilitiesPackageVersion>5.0.0-1.25274.2</MicrosoftCodeAnalysisTestUtilitiesPackageVersion>
