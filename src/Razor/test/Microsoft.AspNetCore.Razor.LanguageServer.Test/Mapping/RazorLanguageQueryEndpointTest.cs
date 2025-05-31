@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -30,7 +29,7 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
     public async Task Handle_ResolvesLanguageRequest_Razor()
     {
         // Arrange
-        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument("@{}");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var languageEndpoint = new RazorLanguageQueryEndpoint(_documentMappingService, LoggerFactory);
@@ -56,7 +55,7 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
     public async Task Handle_ResolvesLanguageRequest_Html()
     {
         // Arrange
-        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument("<s");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var languageEndpoint = new RazorLanguageQueryEndpoint(_documentMappingService, LoggerFactory);
@@ -82,7 +81,7 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
     public async Task Handle_ResolvesLanguageRequest_CSharp()
     {
         // Arrange
-        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
             razorSource: "@",
             projectedCSharpSource: "/* CSharp */",
@@ -110,7 +109,7 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
     public async Task Handle_AfterLastLineCharacterZero()
     {
         // Arrange
-        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
             razorSource: "@",
             projectedCSharpSource: "/* CSharp */",

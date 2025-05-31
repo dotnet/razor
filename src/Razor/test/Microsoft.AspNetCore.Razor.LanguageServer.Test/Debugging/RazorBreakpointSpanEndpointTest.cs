@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
@@ -29,7 +28,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
     public async Task Handle_StartsInHtml_BreakpointMoved()
     {
         // Arrange
-        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument(@"
 <p>@{var abc = 123;}</p>");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
@@ -55,7 +54,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
     public async Task Handle_ImplicitExpression_StartsInHtml_BreakpointMoved()
     {
         // Arrange
-        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument(@"
 <p>@currentCount</p>");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
@@ -81,7 +80,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
     public async Task Handle_StartsInHtml_BreakpointMoved_Razor()
     {
         // Arrange
-        var documentPath = new Uri("C:/path/to/document.razor");
+        var documentPath = new DocumentUri("C:/path/to/document.razor");
         var codeDocument = CreateCodeDocument(@"
 <p>@{var abc = 123;}</p>", RazorFileKind.Component);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
@@ -107,7 +106,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
     public async Task Handle_ImplicitExpression_StartsInHtml_BreakpointMoved_Razor()
     {
         // Arrange
-        var documentPath = new Uri("C:/path/to/document.razor");
+        var documentPath = new DocumentUri("C:/path/to/document.razor");
         var codeDocument = CreateCodeDocument(@"
 <p>@currentCount</p>", RazorFileKind.Component);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
@@ -133,7 +132,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
     public async Task Handle_StartsInHtml_InvalidBreakpointSpan_ReturnsNull()
     {
         // Arrange
-        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
 
         var codeDocument = CreateCodeDocument(@"
 <p>@{var abc;}</p>");
@@ -159,7 +158,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
     public async Task Handle_StartInHtml_NoCSharpOnLine_ReturnsNull()
     {
         // Arrange
-        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument(@"
 <p></p>");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
@@ -184,7 +183,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
     public async Task Handle_StartInHtml_NoActualCSharp_ReturnsNull()
     {
         // Arrange
-        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument(
             @"
 <p>@{
@@ -212,7 +211,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
     public async Task Handle_InvalidBreakpointSpan_ReturnsNull()
     {
         // Arrange
-        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument(@"
 <p>@{
 

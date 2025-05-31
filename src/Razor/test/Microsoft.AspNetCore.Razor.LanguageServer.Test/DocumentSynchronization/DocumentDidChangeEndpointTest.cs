@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using Xunit;
@@ -91,7 +92,7 @@ public class DocumentDidChangeEndpointTest(ITestOutputHelper testOutput) : Langu
     public async Task Handle_DidChangeTextDocument_UpdatesDocument()
     {
         // Arrange
-        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
         var sourceText = "<p>";
         var codeDocument = CreateCodeDocument(sourceText);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
@@ -102,7 +103,7 @@ public class DocumentDidChangeEndpointTest(ITestOutputHelper testOutput) : Langu
             .Callback((string path, SourceText text, CancellationToken cancellationToken) =>
             {
                 Assert.Equal("<p></p>", text.ToString());
-                Assert.Equal(documentPath.OriginalString, path);
+                Assert.Equal(documentPath.GetRequiredParsedUri().OriginalString, path);
             });
         var endpoint = new DocumentDidChangeEndpoint(projectService.Object, LoggerFactory);
         var change = new TextDocumentContentChangeEvent()
@@ -116,7 +117,7 @@ public class DocumentDidChangeEndpointTest(ITestOutputHelper testOutput) : Langu
             ContentChanges = [change],
             TextDocument = new VersionedTextDocumentIdentifier()
             {
-                Uri = documentPath,
+                DocumentUri = documentPath,
                 Version = 1337,
             }
         };

@@ -25,7 +25,7 @@ internal class LSPBreakpointSpanProvider(
         var languageQueryParams = new RazorBreakpointSpanParams()
         {
             Position = position,
-            Uri = documentSnapshot.Uri,
+            Uri = new DocumentUri(documentSnapshot.Uri),
             HostDocumentSyncVersion = hostDocumentSyncVersion
         };
 

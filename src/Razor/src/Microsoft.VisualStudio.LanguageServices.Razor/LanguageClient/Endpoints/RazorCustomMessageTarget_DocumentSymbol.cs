@@ -26,7 +26,7 @@ internal partial class RazorCustomMessageTarget
 
         var documentSymbolParams = new DocumentSymbolParams()
         {
-            TextDocument = hostDocument.WithUri(virtualDocument.Uri)
+            TextDocument = hostDocument.WithUri(new DocumentUri(virtualDocument.Uri))
         };
 
         var response = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>?>(

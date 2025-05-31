@@ -26,7 +26,7 @@ internal class LSPProximityExpressionsProvider(
         var proximityExpressionsParams = new RazorProximityExpressionsParams()
         {
             Position = position,
-            Uri = documentSnapshot.Uri,
+            Uri = new DocumentUri(documentSnapshot.Uri),
             HostDocumentSyncVersion = hostDocumentSyncVersion
         };
 

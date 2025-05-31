@@ -65,7 +65,7 @@ internal class DocumentRangeFormattingEndpoint(
 
         if (await _htmlFormatter.GetDocumentFormattingEditsAsync(
             documentContext.Snapshot,
-            documentContext.Uri,
+            documentContext.DocumentUri,
             request.Options,
             cancellationToken).ConfigureAwait(false) is not { } htmlChanges)
         {

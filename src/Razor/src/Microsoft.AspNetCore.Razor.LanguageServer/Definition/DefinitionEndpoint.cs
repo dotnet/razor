@@ -107,22 +107,22 @@ internal sealed class DefinitionEndpoint(
         // Not using .TryGetXXX because this does the null check for us too
         if (result is LspLocation location)
         {
-            (location.Uri, location.Range) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(location.Uri, location.Range, cancellationToken).ConfigureAwait(false);
+            (location.DocumentUri, location.Range) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(location.DocumentUri, location.Range, cancellationToken).ConfigureAwait(false);
         }
         else if (result is LspLocation[] locations)
         {
             foreach (var loc in locations)
             {
-                (loc.Uri, loc.Range) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(loc.Uri, loc.Range, cancellationToken).ConfigureAwait(false);
+                (loc.DocumentUri, loc.Range) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(loc.DocumentUri, loc.Range, cancellationToken).ConfigureAwait(false);
             }
         }
         else if (result is DocumentLink[] links)
         {
             foreach (var link in links)
             {
-                if (link.Target is not null)
+                if (link.DocumentTarget is not null)
                 {
-                    (link.Target, link.Range) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(link.Target, link.Range, cancellationToken).ConfigureAwait(false);
+                    (link.DocumentTarget, link.Range) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(link.DocumentTarget, link.Range, cancellationToken).ConfigureAwait(false);
                 }
             }
         }

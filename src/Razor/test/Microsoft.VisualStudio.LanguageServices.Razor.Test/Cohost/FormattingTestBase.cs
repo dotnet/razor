@@ -69,7 +69,7 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
             DisposalToken).ConfigureAwait(false);
         Assert.NotNull(generatedHtml);
 
-        var uri = new Uri(document.CreateUri(), $"{document.FilePath}{FeatureOptions.HtmlVirtualDocumentSuffix}");
+        var uri = new DocumentUri($"{document.FilePath}{FeatureOptions.HtmlVirtualDocumentSuffix}");
         var htmlEdits = await _htmlFormattingService.GetDocumentFormattingEditsAsync(LoggerFactory, uri, generatedHtml, insertSpaces, tabSize);
 
         var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentFormattingName, htmlEdits)]);
@@ -116,7 +116,7 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
             DisposalToken).ConfigureAwait(false);
         Assert.NotNull(generatedHtml);
 
-        var uri = new Uri(document.CreateUri(), $"{document.FilePath}{FeatureOptions.HtmlVirtualDocumentSuffix}");
+        var uri = new DocumentUri($"{document.FilePath}{FeatureOptions.HtmlVirtualDocumentSuffix}");
         var htmlEdits = await _htmlFormattingService.GetOnTypeFormattingEditsAsync(LoggerFactory, uri, generatedHtml, position, insertSpaces: true, tabSize: 4);
 
         var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentOnTypeFormattingName, htmlEdits)]);
@@ -127,7 +127,7 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
 
         var request = new DocumentOnTypeFormattingParams()
         {
-            TextDocument = new TextDocumentIdentifier() { Uri = document.CreateUri() },
+            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.CreateDocumentUri() },
             Options = new FormattingOptions()
             {
                 TabSize = tabSize,
@@ -180,7 +180,7 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
             var endpoint = new CohostDocumentFormattingEndpoint(RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
             var request = new DocumentFormattingParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = document.CreateUri() },
+                TextDocument = new TextDocumentIdentifier() { DocumentUri = document.CreateDocumentUri() },
                 Options = new FormattingOptions()
                 {
                     TabSize = tabSize,
@@ -195,7 +195,7 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
         var rangeEndpoint = new CohostRangeFormattingEndpoint(RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
         var rangeRequest = new DocumentRangeFormattingParams()
         {
-            TextDocument = new TextDocumentIdentifier() { Uri = document.CreateUri() },
+            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.CreateDocumentUri() },
             Options = new FormattingOptions()
             {
                 TabSize = 4,

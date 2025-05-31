@@ -2,8 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
@@ -11,6 +9,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Threading;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.FindAllReferences;
@@ -18,7 +17,6 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Roslyn.Text.Adornments;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences;
 
@@ -102,25 +100,26 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
             // Indicates the reference item is directly available in the code
             referenceItem.Origin = VSInternalItemOrigin.Exact;
 
-            if (!_filePathService.IsVirtualCSharpFile(referenceItem.Location.Uri) &&
-                !_filePathService.IsVirtualHtmlFile(referenceItem.Location.Uri))
+            if (!_filePathService.IsVirtualCSharpFile(referenceItem.Location.DocumentUri) &&
+                !_filePathService.IsVirtualHtmlFile(referenceItem.Location.DocumentUri))
             {
                 // This location doesn't point to a virtual file. No need to remap, but we might still want to fix the text,
                 // because Roslyn may have done the remapping for us
-                var resultText = await FindAllReferencesHelper.GetResultTextAsync(_documentMappingService, _projectSnapshotManager.GetQueryOperations(), referenceItem.Location.Range.Start.Line, referenceItem.Location.Uri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
+                var resultText = await FindAllReferencesHelper.GetResultTextAsync(_documentMappingService, _projectSnapshotManager.GetQueryOperations(), referenceItem.Location.Range.Start.Line, referenceItem.Location.DocumentUri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
                 referenceItem.Text = resultText ?? referenceItem.Text;
 
                 remappedLocations.Add(referenceItem);
                 continue;
             }
 
-            var (itemUri, mappedRange) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(referenceItem.Location.Uri, referenceItem.Location.Range, cancellationToken).ConfigureAwait(false);
+            var (itemDocumentUri, mappedRange) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(referenceItem.Location.DocumentUri, referenceItem.Location.Range, cancellationToken).ConfigureAwait(false);
+            var itemUri = itemDocumentUri.GetRequiredParsedUri();
 
-            referenceItem.Location.Uri = itemUri;
+            referenceItem.Location.DocumentUri = itemDocumentUri;
             referenceItem.DisplayPath = itemUri.AbsolutePath;
             referenceItem.Location.Range = mappedRange;
 
-            var fixedResultText = await FindAllReferencesHelper.GetResultTextAsync(_documentMappingService, _projectSnapshotManager.GetQueryOperations(), mappedRange.Start.Line, itemUri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
+            var fixedResultText = await FindAllReferencesHelper.GetResultTextAsync(_documentMappingService, _projectSnapshotManager.GetQueryOperations(), mappedRange.Start.Line, itemDocumentUri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
             referenceItem.Text = fixedResultText ?? referenceItem.Text;
 
             remappedLocations.Add(referenceItem);

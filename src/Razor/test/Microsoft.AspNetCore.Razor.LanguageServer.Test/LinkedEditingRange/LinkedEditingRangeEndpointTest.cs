@@ -19,11 +19,11 @@ public class LinkedEditingRangeEndpointTest(ITestOutputHelper testOutput) : TagH
     public async Task Handle_DocumentNotFound_ReturnsNull()
     {
         // Arrange
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
         var request = new LinkedEditingRangeParams
         {
-            TextDocument = new TextDocumentIdentifier { Uri = uri },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
             Position = LspFactory.CreatePosition(1, 3) // <te[||]st1></test1>
         };
         var requestContext = CreateRazorRequestContext(documentContext: null);
@@ -44,12 +44,12 @@ public class LinkedEditingRangeEndpointTest(ITestOutputHelper testOutput) : TagH
             <test1></test1>
             """;
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
         var request = new LinkedEditingRangeParams
         {
-            TextDocument = new TextDocumentIdentifier { Uri = uri },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
             Position = LspFactory.CreatePosition(1, 3) // <te[||]st1></test1>
         };
 
@@ -77,12 +77,12 @@ public class LinkedEditingRangeEndpointTest(ITestOutputHelper testOutput) : TagH
             <test1></test1>
             """;
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
         var request = new LinkedEditingRangeParams
         {
-            TextDocument = new TextDocumentIdentifier { Uri = uri },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
             Position = LspFactory.CreatePosition(1, 6) // <test1[||]></test1>
         };
 
@@ -110,12 +110,12 @@ public class LinkedEditingRangeEndpointTest(ITestOutputHelper testOutput) : TagH
             <test1></test1>
             """;
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
         var request = new LinkedEditingRangeParams
         {
-            TextDocument = new TextDocumentIdentifier { Uri = uri },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
             Position = LspFactory.CreatePosition(1, 9) // <test1></[||]test1>
         };
 
@@ -143,12 +143,12 @@ public class LinkedEditingRangeEndpointTest(ITestOutputHelper testOutput) : TagH
             <test1></test1>
             """;
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
         var request = new LinkedEditingRangeParams
         {
-            TextDocument = new TextDocumentIdentifier { Uri = uri },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
             Position = LspFactory.CreatePosition(0, 1) // @[||]addTagHelper *
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -169,12 +169,12 @@ public class LinkedEditingRangeEndpointTest(ITestOutputHelper testOutput) : TagH
             <test1 />
             """;
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
         var request = new LinkedEditingRangeParams
         {
-            TextDocument = new TextDocumentIdentifier { Uri = uri },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
             Position = LspFactory.CreatePosition(1, 3) // <te[||]st1 />
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -195,12 +195,12 @@ public class LinkedEditingRangeEndpointTest(ITestOutputHelper testOutput) : TagH
             <test1><test1></test1></test1>
             """;
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
         var request = new LinkedEditingRangeParams
         {
-            TextDocument = new TextDocumentIdentifier { Uri = uri },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
             Position = LspFactory.CreatePosition(1, 1) // <[||]test1><test1></test1></test1>
         };
 
@@ -228,12 +228,12 @@ public class LinkedEditingRangeEndpointTest(ITestOutputHelper testOutput) : TagH
             <body></body>
             """;
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
         var request = new LinkedEditingRangeParams
         {
-            TextDocument = new TextDocumentIdentifier { Uri = uri },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
             Position = LspFactory.CreatePosition(1, 3) // <bo[||]dy></body>
         };
 
@@ -261,12 +261,12 @@ public class LinkedEditingRangeEndpointTest(ITestOutputHelper testOutput) : TagH
             <body></body>
             """;
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
         var request = new LinkedEditingRangeParams
         {
-            TextDocument = new TextDocumentIdentifier { Uri = uri },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
             Position = LspFactory.CreatePosition(1, 8) // <body></[||]body>
         };
 
@@ -294,12 +294,12 @@ public class LinkedEditingRangeEndpointTest(ITestOutputHelper testOutput) : TagH
             <body />
             """;
         var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-        var uri = new Uri("file://path/test.razor");
+        var uri = new DocumentUri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var endpoint = new LinkedEditingRangeEndpoint(LoggerFactory);
         var request = new LinkedEditingRangeParams
         {
-            TextDocument = new TextDocumentIdentifier { Uri = uri },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
             Position = LspFactory.CreatePosition(1, 3) // <bo[||]dy />
         };
         var requestContext = CreateRazorRequestContext(documentContext);

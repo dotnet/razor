@@ -90,7 +90,7 @@ public class RazorBreakpointResolverTest : ToolingTestBase
         var documentManager = new TestDocumentManager();
         var testCSharpDocument = new CSharpVirtualDocumentSnapshot(projectKey: default, _csharpDocumentUri, _csharpTextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 1);
         var document = new TestLSPDocumentSnapshot(_documentUri, version: (int)(testCSharpDocument.HostDocumentSyncVersion.Value + 1), testCSharpDocument);
-        documentManager.AddDocument(document.Uri, document);
+        documentManager.AddDocument(document.DocumentUri, document);
         var resolver = CreateResolverWith(documentManager: documentManager);
 
         // Act
@@ -134,7 +134,7 @@ public class RazorBreakpointResolverTest : ToolingTestBase
         var hostDocumentPosition = GetPosition(ValidBreakpointCSharp, _hostTextBuffer);
         var hostBreakpointRange = LspFactory.CreateSingleLineRange(start: hostDocumentPosition, length: ValidBreakpointCSharp.Length);
         var projectionProvider = new TestLSPBreakpointSpanProvider(
-            _documentUri,
+            new DocumentUri(_documentUri),
             new Dictionary<Position, LspRange>()
             {
                 [hostDocumentPosition] = hostBreakpointRange
@@ -169,6 +169,7 @@ public class RazorBreakpointResolverTest : ToolingTestBase
                     DisposalToken))
                 .ReturnsAsync(value: null);
         }
+
         var remoteServiceInvoker = StrictMock.Of<IRemoteServiceInvoker>();
 
         var razorBreakpointResolver = new RazorBreakpointResolver(uriProvider, documentManager, projectionProvider, TestLanguageServerFeatureOptions.Instance, remoteServiceInvoker);

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -33,7 +32,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
     public async Task Handle_MapToDocumentRanges_CSharp()
     {
         // Arrange
-        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
             razorSource: "<p>@DateTime.Now</p>",
             projectedCSharpSource: "var __o = DateTime.Now",
@@ -62,7 +61,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
     public async Task Handle_MapToDocumentRanges_CSharp_Unmapped()
     {
         // Arrange
-        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
             razorSource: "<p>@DateTime.Now</p>",
             projectedCSharpSource: "var __o = DateTime.Now",
@@ -90,7 +89,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
     public async Task Handle_MapToDocumentRanges_CSharp_LeadingOverlapsUnmapped()
     {
         // Arrange
-        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
             razorSource: "<p>@DateTime.Now</p>",
             projectedCSharpSource: "var __o = DateTime.Now",
@@ -118,7 +117,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
     public async Task Handle_MapToDocumentRanges_CSharp_TrailingOverlapsUnmapped()
     {
         // Arrange
-        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
             razorSource: "<p>@DateTime.Now</p>",
             projectedCSharpSource: "var __o = DateTime.Now",
@@ -146,7 +145,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
     public async Task Handle_MapToDocumentRanges_Html()
     {
         // Arrange
-        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument("<p>@DateTime.Now</p>");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_documentMappingService);
@@ -171,7 +170,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
     public async Task Handle_MapToDocumentRanges_Razor()
     {
         // Arrange
-        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument("<p>@DateTime.Now</p>");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_documentMappingService);
@@ -206,7 +205,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
             """;
 
         TestFileMarkupParser.GetSpan(chsarpAnnotatedSource, out var csharpSource, out var projectedRange);
-        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
             razorSource: "<p>@DateTime.Now</p>",
             projectedCSharpSource: csharpSource,

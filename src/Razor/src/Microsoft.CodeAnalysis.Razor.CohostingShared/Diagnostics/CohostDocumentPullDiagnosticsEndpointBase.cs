@@ -46,7 +46,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
         throw new NotSupportedException("If SupportsHtmlDiagnostics is true, you must implement GetHtmlDiagnostics");
     }
 
-    protected virtual TRequest CreateHtmlParams(Uri uri)
+    protected virtual TRequest CreateHtmlParams(DocumentUri uri)
     {
         throw new NotSupportedException("If SupportsHtmlDiagnostics is true, you must implement CreateHtmlParams");
     }
@@ -118,7 +118,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
 
     private async Task<LspDiagnostic[]> GetHtmlDiagnosticsAsync(TextDocument razorDocument, Guid correletionId, CancellationToken cancellationToken)
     {
-        var diagnosticsParams = CreateHtmlParams(razorDocument.CreateUri());
+        var diagnosticsParams = CreateHtmlParams(razorDocument.CreateDocumentUri());
 
         var result = await _requestInvoker.MakeHtmlLspRequestAsync<TRequest, TResponse>(
             razorDocument,

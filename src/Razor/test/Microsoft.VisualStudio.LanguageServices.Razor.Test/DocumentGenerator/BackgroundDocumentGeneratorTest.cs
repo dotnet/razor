@@ -437,7 +437,7 @@ public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : Vis
             _dynamicDocuments[documentContainer.FilePath] = documentContainer;
         }
 
-        public void UpdateLSPFileInfo(Uri documentUri, IDynamicDocumentContainer documentContainer)
+        public void UpdateLSPFileInfo(DocumentUri documentUri, IDynamicDocumentContainer documentContainer)
         {
             _dynamicDocuments[documentContainer.FilePath] = documentContainer;
         }

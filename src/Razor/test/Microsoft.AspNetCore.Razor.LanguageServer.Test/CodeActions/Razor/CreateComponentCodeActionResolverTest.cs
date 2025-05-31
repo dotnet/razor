@@ -23,7 +23,7 @@ public class CreateComponentCodeActionResolverTest(ITestOutputHelper testOutput)
     public async Task Handle_InvalidFileKind()
     {
         // Arrange
-        var documentPath = new Uri("c:/Test.razor");
+        var documentPath = new DocumentUri("c:/Test.razor");
         var contents = $"@page \"/test\"";
         var codeDocument = CreateCodeDocument(contents, fileKind: RazorFileKind.Legacy);
 
@@ -45,7 +45,7 @@ public class CreateComponentCodeActionResolverTest(ITestOutputHelper testOutput)
     public async Task Handle_CreateComponent()
     {
         // Arrange
-        var documentPath = new Uri("c:/Test.razor");
+        var documentPath = new DocumentUri("c:/Test.razor");
         var contents = $"@page \"/test\"";
         var codeDocument = CreateCodeDocument(contents);
 
@@ -73,7 +73,7 @@ public class CreateComponentCodeActionResolverTest(ITestOutputHelper testOutput)
     public async Task Handle_CreateComponentWithNamespace()
     {
         // Arrange
-        var documentPath = new Uri("c:/Test.razor");
+        var documentPath = new DocumentUri("c:/Test.razor");
         var contents = $"""
             @page "/test"
             @namespace Another.Namespace

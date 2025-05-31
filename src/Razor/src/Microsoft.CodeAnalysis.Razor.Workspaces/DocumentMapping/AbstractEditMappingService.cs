@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -9,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
@@ -53,7 +53,7 @@ internal abstract class AbstractEditMappingService(
 
         foreach (var (uriString, edits) in changes)
         {
-            var uri = new Uri(uriString);
+            var uri = new DocumentUri(uriString);
 
             // Check if the edit is actually for a generated document, because if not we don't need to do anything
             if (!_filePathService.IsVirtualDocumentUri(uri))
@@ -76,13 +76,13 @@ internal abstract class AbstractEditMappingService(
             }
 
             var razorDocumentUri = _filePathService.GetRazorDocumentUri(uri);
-            remappedChanges[razorDocumentUri.AbsoluteUri] = remappedEdits;
+            remappedChanges[razorDocumentUri.GetRequiredParsedUri().AbsoluteUri] = remappedEdits;
         }
 
         return remappedChanges;
     }
 
-    private TextEdit[] RemapTextEditsCore(Uri generatedDocumentUri, RazorCodeDocument codeDocument, TextEdit[] edits)
+    private TextEdit[] RemapTextEditsCore(DocumentUri generatedDocumentUri, RazorCodeDocument codeDocument, TextEdit[] edits)
     {
         if (!codeDocument.TryGetGeneratedDocument(generatedDocumentUri, _filePathService, out var generatedDocument))
         {
@@ -113,7 +113,7 @@ internal abstract class AbstractEditMappingService(
 
         foreach (var entry in documentEdits)
         {
-            var generatedDocumentUri = entry.TextDocument.Uri;
+            var generatedDocumentUri = entry.TextDocument.DocumentUri;
 
             // Check if the edit is actually for a generated document, because if not we don't need to do anything
             if (!_filePathService.IsVirtualDocumentUri(generatedDocumentUri))
@@ -144,7 +144,7 @@ internal abstract class AbstractEditMappingService(
             {
                 TextDocument = new OptionalVersionedTextDocumentIdentifier()
                 {
-                    Uri = razorDocumentUri,
+                    DocumentUri = razorDocumentUri,
                 },
                 Edits = remappedEdits.Select(e => new SumType<TextEdit, AnnotatedTextEdit>(e)).ToArray()
             });
@@ -153,5 +153,5 @@ internal abstract class AbstractEditMappingService(
         return remappedDocumentEdits.ToArray();
     }
 
-    protected abstract bool TryGetDocumentContext(IDocumentSnapshot contextDocumentSnapshot, Uri razorDocumentUri, VSProjectContext? projectContext, [NotNullWhen(true)] out DocumentContext? documentContext);
+    protected abstract bool TryGetDocumentContext(IDocumentSnapshot contextDocumentSnapshot, DocumentUri razorDocumentUri, VSProjectContext? projectContext, [NotNullWhen(true)] out DocumentContext? documentContext);
 }

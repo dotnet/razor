@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -106,7 +105,7 @@ public class SignatureHelpEndpointTest(ITestOutputHelper testOutput) : SingleSer
         {
             TextDocument = new TextDocumentIdentifier
             {
-                Uri = new Uri(razorFilePath)
+                DocumentUri = new DocumentUri(razorFilePath)
             },
             Position = codeDocument.Source.Text.GetPosition(cursorPosition),
             Context = signatureHelpContext

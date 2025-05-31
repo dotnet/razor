@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -19,14 +18,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 [RazorLanguageServerEndpoint(LanguageServerConstants.RazorBreakpointSpanEndpoint)]
 internal class RazorBreakpointSpanEndpoint(
     IDocumentMappingService documentMappingService,
-    ILoggerFactory loggerFactory) : IRazorDocumentlessRequestHandler<RazorBreakpointSpanParams, RazorBreakpointSpanResponse?>, ITextDocumentIdentifierHandler<RazorBreakpointSpanParams, Uri>
+    ILoggerFactory loggerFactory) : IRazorDocumentlessRequestHandler<RazorBreakpointSpanParams, RazorBreakpointSpanResponse?>, ITextDocumentIdentifierHandler<RazorBreakpointSpanParams, DocumentUri>
 {
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorBreakpointSpanEndpoint>();
 
     public bool MutatesSolutionState => false;
 
-    public Uri GetTextDocumentIdentifier(RazorBreakpointSpanParams request)
+    public DocumentUri GetTextDocumentIdentifier(RazorBreakpointSpanParams request)
         => request.Uri;
 
     public async Task<RazorBreakpointSpanResponse?> HandleRequestAsync(RazorBreakpointSpanParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)

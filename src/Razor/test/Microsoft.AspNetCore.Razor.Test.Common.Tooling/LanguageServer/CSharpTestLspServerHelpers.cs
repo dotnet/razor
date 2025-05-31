@@ -27,14 +27,14 @@ internal static class CSharpTestLspServerHelpers
 
     public static Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
         SourceText csharpSourceText,
-        Uri csharpDocumentUri,
+        DocumentUri csharpDocumentUri,
         VSInternalServerCapabilities serverCapabilities,
         CancellationToken cancellationToken) =>
         CreateCSharpLspServerAsync(csharpSourceText, csharpDocumentUri, serverCapabilities, new EmptyMappingService(), capabilitiesUpdater: null, cancellationToken);
 
     public static Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
         SourceText csharpSourceText,
-        Uri csharpDocumentUri,
+        DocumentUri csharpDocumentUri,
         VSInternalServerCapabilities serverCapabilities,
         IRazorMappingService razorMappingService,
         Action<VSInternalClientCapabilities> capabilitiesUpdater,
@@ -49,7 +49,7 @@ internal static class CSharpTestLspServerHelpers
     }
 
     public static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
-        IEnumerable<(Uri Uri, SourceText SourceText)> files,
+        IEnumerable<(DocumentUri Uri, SourceText SourceText)> files,
         VSInternalServerCapabilities serverCapabilities,
         IRazorMappingService razorMappingService,
         bool multiTargetProject,
@@ -58,7 +58,7 @@ internal static class CSharpTestLspServerHelpers
     {
         var csharpFiles = files.Select(f => new CSharpFile(f.Uri, f.SourceText));
 
-        var exportProvider = TestComposition.Roslyn
+        var exportProvider = TestComposition.RoslynFeatures
             .AddParts(typeof(RazorTestLanguageServerFactory))
             .ExportProviderFactory.CreateExportProvider();
 
@@ -166,7 +166,7 @@ internal static class CSharpTestLspServerHelpers
         return workspace;
     }
 
-    private record CSharpFile(Uri DocumentUri, SourceText CSharpSourceText);
+    private record CSharpFile(DocumentUri DocumentUri, SourceText CSharpSourceText);
 
     private class EmptyMappingService : IRazorMappingService
     {

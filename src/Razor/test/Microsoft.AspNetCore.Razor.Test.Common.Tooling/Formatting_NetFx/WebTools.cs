@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.Settings.Internal;
 using Microsoft.VisualStudio.Text;
@@ -79,13 +80,13 @@ internal static class WebTools
                 GetMethod(Type, nameof(CreateBuffer)));
 
         public ITextSnapshot CreateBuffer(
-            Uri documentUri,
+            DocumentUri documentUri,
             string contentTypeName,
             string initialContent,
             int snapshotVersionFromLSP)
         {
             return (ITextSnapshot)CreateBufferMethod
-                .Invoke(Instance, [documentUri, contentTypeName, initialContent, snapshotVersionFromLSP])
+                .Invoke(Instance, [documentUri.GetRequiredParsedUri(), contentTypeName, initialContent, snapshotVersionFromLSP])
                 .AssumeNotNull();
         }
 

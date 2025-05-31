@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -110,7 +109,7 @@ public class DocumentSymbolEndpointTest(ITestOutputHelper testOutput) : SingleSe
         {
             TextDocument = new VSTextDocumentIdentifier
             {
-                Uri = new Uri(razorFilePath),
+                DocumentUri = new DocumentUri(razorFilePath),
                 ProjectContext = new VSProjectContext()
                 {
                     Label = "test",

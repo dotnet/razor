@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -118,7 +119,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
         var remappedChanges = new Dictionary<string, TextEdit[]>();
         foreach (var entry in changes)
         {
-            var uri = new Uri(entry.Key);
+            var uri = new DocumentUri(entry.Key);
             var edits = entry.Value;
 
             if (!_filePathService.IsVirtualDocumentUri(uri))
@@ -136,7 +137,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
             }
 
             var razorDocumentUri = _filePathService.GetRazorDocumentUri(uri);
-            remappedChanges[razorDocumentUri.AbsoluteUri] = remappedEdits;
+            remappedChanges[razorDocumentUri.GetRequiredParsedUri().AbsoluteUri] = remappedEdits;
         }
 
         return remappedChanges;
@@ -147,7 +148,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
         using var remappedDocumentEdits = new PooledArrayBuilder<TextDocumentEdit>(documentEdits.Length);
         foreach (var entry in documentEdits)
         {
-            var uri = entry.TextDocument.Uri;
+            var uri = entry.TextDocument.DocumentUri;
             if (!_filePathService.IsVirtualDocumentUri(uri))
             {
                 // This location doesn't point to a background razor file. No need to remap.
@@ -168,7 +169,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
             {
                 TextDocument = new OptionalVersionedTextDocumentIdentifier()
                 {
-                    Uri = razorDocumentUri,
+                    DocumentUri = razorDocumentUri,
                 },
                 Edits = [.. remappedEdits]
             });

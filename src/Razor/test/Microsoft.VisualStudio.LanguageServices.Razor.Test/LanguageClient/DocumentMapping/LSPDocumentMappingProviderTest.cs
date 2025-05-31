@@ -20,9 +20,9 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.DocumentMapping;
 
 public class LSPDocumentMappingProviderTest : ToolingTestBase
 {
-    private static readonly Uri s_razorFile = new("file:///some/folder/to/file.razor");
+    private static readonly DocumentUri s_razorFile = new("file:///some/folder/to/file.razor");
     private static readonly Uri s_razorVirtualCSharpFile = new("file:///some/folder/to/file.razor.ide.g.cs");
-    private static readonly Uri s_anotherRazorFile = new("file:///some/folder/to/anotherfile.razor");
+    private static readonly DocumentUri s_anotherRazorFile = new("file:///some/folder/to/anotherfile.razor");
 
     private readonly Lazy<LSPDocumentManager> _documentManager;
 

@@ -46,7 +46,7 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
 
         var amount = semanticTokens is null ? "no" : (semanticTokens.Length / TokenSize).ToString(Thread.CurrentThread.CurrentCulture);
 
-        _logger.LogInformation($"Returned {amount} semantic tokens for span {span} in {documentContext.Uri}.");
+        _logger.LogInformation($"Returned {amount} semantic tokens for span {span} in {documentContext.DocumentUri}.");
 
         if (semanticTokens is not null)
         {
@@ -89,7 +89,7 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
         // We return null (which to the LSP is a no-op) to prevent flashing of CSharp elements.
         if (csharpSemanticRangesResult is not { } csharpSemanticRanges)
         {
-            _logger.LogDebug($"Couldn't get C# tokens for version {documentContext.Snapshot.Version} of {documentContext.Uri}. Returning null");
+            _logger.LogDebug($"Couldn't get C# tokens for version {documentContext.Snapshot.Version} of {documentContext.DocumentUri}. Returning null");
             return null;
         }
 

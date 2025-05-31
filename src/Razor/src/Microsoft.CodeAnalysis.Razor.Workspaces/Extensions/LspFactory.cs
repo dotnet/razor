@@ -163,20 +163,20 @@ internal static class LspFactory
     public static LspLocation CreateLocation(string filePath, LinePositionSpan span)
         => CreateLocation(CreateFilePathUri(filePath), CreateRange(span));
 
-    public static LspLocation CreateLocation(Uri uri, LinePositionSpan span)
+    public static LspLocation CreateLocation(DocumentUri uri, LinePositionSpan span)
         => CreateLocation(uri, CreateRange(span));
 
     public static LspLocation CreateLocation(string filePath, LspRange range)
         => CreateLocation(CreateFilePathUri(filePath), range);
 
-    public static LspLocation CreateLocation(Uri uri, LspRange range)
-        => new() { Uri = uri, Range = range };
+    public static LspLocation CreateLocation(DocumentUri uri, LspRange range)
+        => new() { DocumentUri = uri, Range = range };
 
-    public static DocumentLink CreateDocumentLink(Uri target, LspRange range)
-        => new() { Target = target, Range = range };
+    public static DocumentLink CreateDocumentLink(DocumentUri target, LspRange range)
+        => new() { DocumentTarget = target, Range = range };
 
-    public static DocumentLink CreateDocumentLink(Uri target, LinePositionSpan span)
-        => new() { Target = target, Range = CreateRange(span) };
+    public static DocumentLink CreateDocumentLink(DocumentUri target, LinePositionSpan span)
+        => new() { DocumentTarget = target, Range = CreateRange(span) };
 
     public static TextEdit CreateTextEdit(Range range, string newText)
         => new() { Range = range, NewText = newText };
@@ -205,7 +205,7 @@ internal static class LspFactory
     public static TextEdit CreateTextEdit((int line, int character) position, string newText)
         => CreateTextEdit(CreateZeroWidthRange(position), newText);
 
-    public static Uri CreateFilePathUri(string filePath)
+    public static DocumentUri CreateFilePathUri(string filePath)
     {
         var builder = new UriBuilder
         {
@@ -214,6 +214,6 @@ internal static class LspFactory
             Host = string.Empty,
         };
 
-        return builder.Uri;
+        return new DocumentUri(builder.Uri);
     }
 }

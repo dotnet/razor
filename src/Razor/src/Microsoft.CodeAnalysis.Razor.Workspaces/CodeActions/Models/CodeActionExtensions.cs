@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -12,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 
 internal static class CodeActionExtensions
 {
-    public static SumType<Command, CodeAction> AsVSCodeCommandOrCodeAction(this VSInternalCodeAction razorCodeAction, VSTextDocumentIdentifier textDocument, Uri? delegatedDocumentUri)
+    public static SumType<Command, CodeAction> AsVSCodeCommandOrCodeAction(this VSInternalCodeAction razorCodeAction, VSTextDocumentIdentifier textDocument, DocumentUri? delegatedDocumentUri)
     {
         if (razorCodeAction.Data is null)
         {

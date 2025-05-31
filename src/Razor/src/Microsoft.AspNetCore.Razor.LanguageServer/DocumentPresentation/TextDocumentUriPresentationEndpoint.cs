@@ -74,7 +74,7 @@ internal class TextDocumentUriPresentationEndpoint(
                 {
                     TextDocument = new()
                     {
-                        Uri = request.TextDocument.Uri
+                        DocumentUri = request.TextDocument.DocumentUri
                     },
                     Edits = [LspFactory.CreateTextEdit(request.Range, componentTagText)]
                 }
@@ -82,7 +82,7 @@ internal class TextDocumentUriPresentationEndpoint(
         };
     }
 
-    private async Task<string?> TryGetComponentTagAsync(Uri uri, CancellationToken cancellationToken)
+    private async Task<string?> TryGetComponentTagAsync(DocumentUri uri, CancellationToken cancellationToken)
     {
         Logger.LogInformation($"Trying to find document info for dropped uri {uri}.");
 

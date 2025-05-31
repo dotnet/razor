@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -286,7 +285,7 @@ public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutp
         var componentFilePath = "C:/path/to/Component.razor";
         var codeDocument = CreateCodeDocument(input, filePath: razorFilePath);
         var sourceText = codeDocument.Source.Text;
-        var uri = new Uri(razorFilePath);
+        var uri = new DocumentUri(razorFilePath);
         await using var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var requestContext = new RazorRequestContext(documentContext, null!, "lsp/method", uri: null);
@@ -323,13 +322,13 @@ public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutp
             [resolver]
             );
 
-        var edits = changes.Where(change => change.TextDocument.Uri.AbsolutePath == componentFilePath).Single();
+        var edits = changes.Where(change => change.TextDocument.DocumentUri.ParsedUri?.AbsolutePath == componentFilePath).Single();
         var actual = edits.Edits.Select(edit => ((TextEdit)edit).NewText).Single();
 
         AssertEx.EqualOrDiff(expectedNewComponent, actual);
 
         var originalDocumentEdits = changes
-            .Where(change => change.TextDocument.Uri.AbsolutePath == razorFilePath)
+            .Where(change => change.TextDocument.DocumentUri.ParsedUri?.AbsolutePath == razorFilePath)
             .SelectMany(change => change.Edits.Select(e => sourceText.GetTextChange(((TextEdit)e))));
         var documentText = sourceText.WithChanges(originalDocumentEdits).ToString();
         AssertEx.EqualOrDiff(expectedOriginalDocument, documentText);

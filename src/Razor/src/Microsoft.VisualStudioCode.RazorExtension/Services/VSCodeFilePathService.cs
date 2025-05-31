@@ -4,6 +4,7 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -14,28 +15,29 @@ internal sealed class VSCodeFilePathService(LanguageServerFeatureOptions options
 {
     private readonly LanguageServerFeatureOptions _options = options;
 
-    public override Uri GetRazorDocumentUri(Uri virtualDocumentUri)
+    public override DocumentUri GetRazorDocumentUri(DocumentUri virtualDocumentUri)
     {
         if (_options.UseRazorCohostServer && IsVirtualCSharpFile(virtualDocumentUri))
         {
             throw new InvalidOperationException("Can not get a Razor document from a generated document Uri in cohosting");
         }
 
-        if (virtualDocumentUri.Scheme == "razor-html")
+        var virtualUri = virtualDocumentUri.GetRequiredParsedUri();
+        if (virtualUri.Scheme == "razor-html")
         {
-            var builder = new UriBuilder(virtualDocumentUri);
+            var builder = new UriBuilder(virtualUri);
             builder.Scheme = Uri.UriSchemeFile;
-            return base.GetRazorDocumentUri(builder.Uri);
+            return base.GetRazorDocumentUri(new DocumentUri(builder.Uri));
         }
 
         return base.GetRazorDocumentUri(virtualDocumentUri);
     }
 
-    public override bool IsVirtualCSharpFile(Uri uri)
+    public override bool IsVirtualCSharpFile(DocumentUri uri)
     {
         if (_options.UseRazorCohostServer)
         {
-            return RazorUri.IsGeneratedDocumentUri(uri);
+            return RazorUri.IsGeneratedDocumentUri(uri.GetRequiredParsedUri());
         }
 
         return base.IsVirtualCSharpFile(uri);

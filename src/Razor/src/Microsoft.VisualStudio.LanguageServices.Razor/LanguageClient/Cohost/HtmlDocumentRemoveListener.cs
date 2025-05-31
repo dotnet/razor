@@ -21,7 +21,7 @@ internal sealed partial class HtmlDocumentRemoveListener(
     {
         if (kind == LSPDocumentChangeKind.Removed && old is not null)
         {
-            _htmlDocumentSynchronizer.DocumentRemoved(old.Uri, CancellationToken.None);
+            _htmlDocumentSynchronizer.DocumentRemoved(new DocumentUri(old.Uri), CancellationToken.None);
         }
     }
 }

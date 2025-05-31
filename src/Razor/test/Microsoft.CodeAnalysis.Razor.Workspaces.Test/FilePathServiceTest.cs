@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
@@ -68,7 +67,7 @@ public class FilePathServiceTest
         var filePathService = new TestFilePathService(new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: includeProjectKey));
 
         // Act
-        var result = filePathService.GetRazorDocumentUri(new Uri(input));
+        var result = filePathService.GetRazorDocumentUri(new DocumentUri(input));
 
         // Assert
         Assert.Equal(@"C:/path/to/file.razor", result.GetAbsoluteOrUNCPath());
@@ -80,7 +79,7 @@ public class FilePathServiceTest
         // Arrange
         var filePathService = new TestFilePathService(new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true));
         // Act
-        var result = filePathService.GetRazorDocumentUri(new Uri(@"C:\path\to\file.razor__virtual.html"));
+        var result = filePathService.GetRazorDocumentUri(new DocumentUri(@"C:\path\to\file.razor__virtual.html"));
 
         // Assert
         Assert.Equal(@"C:/path/to/file.razor", result.GetAbsoluteOrUNCPath());
@@ -92,7 +91,7 @@ public class FilePathServiceTest
         // Arrange
         var filePathService = new TestFilePathService(new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true));
         // Act
-        var result = filePathService.GetRazorDocumentUri(new Uri(@"C:\path\to\file.razor"));
+        var result = filePathService.GetRazorDocumentUri(new DocumentUri(@"C:\path\to\file.razor"));
 
         // Assert
         Assert.Equal(@"C:/path/to/file.razor", result.GetAbsoluteOrUNCPath());

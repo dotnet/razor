@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -100,7 +99,7 @@ public class ImplementationEndpointTest(ITestOutputHelper testOutput) : SingleSe
         {
             TextDocument = new TextDocumentIdentifier
             {
-                Uri = new Uri(razorFilePath)
+                DocumentUri = new DocumentUri(razorFilePath)
             },
             Position = codeDocument.Source.Text.GetPosition(cursorPosition)
         };
@@ -119,7 +118,7 @@ public class ImplementationEndpointTest(ITestOutputHelper testOutput) : SingleSe
         var i = 0;
         foreach (var location in locations.OrderBy(l => l.Range.Start.Line))
         {
-            Assert.Equal(new Uri(razorFilePath), location.Uri);
+            Assert.Equal(new DocumentUri(razorFilePath), location.DocumentUri);
 
             var expectedRange = codeDocument.Source.Text.GetRange(expectedSpans[i]);
             Assert.Equal(expectedRange, location.Range);

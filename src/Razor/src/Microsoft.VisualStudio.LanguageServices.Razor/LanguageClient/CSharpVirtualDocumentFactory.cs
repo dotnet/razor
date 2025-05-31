@@ -116,7 +116,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
 
         var newVirtualDocuments = new List<VirtualDocument>();
 
-        var hostDocumentUri = _fileUriProvider.GetOrCreate(hostDocumentBuffer);
+        var hostDocumentUri = new DocumentUri(_fileUriProvider.GetOrCreate(hostDocumentBuffer));
 
         foreach (var projectKey in GetProjectKeys(hostDocumentUri))
         {
@@ -139,14 +139,15 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
             return false;
         }
 
-        var projectKeys = GetProjectKeys(document.Uri).ToList();
+        var documentUri = new DocumentUri(document.Uri);
+        var projectKeys = GetProjectKeys(documentUri).ToList();
 
         // If the document is in no projects, we don't do anything, as it means we probably got a notification about the project being added
         // before the document was added. If we didn't know about any projects, we would have gotten one project key back, and if the
         // host document has been removed completely from all projects, we assume the document manager will clean it up soon anyway.
         if (projectKeys.Count == 0)
         {
-            _logger.LogWarning($"Can't refresh C# virtual documents because no projects found for {document.Uri}");
+            _logger.LogWarning($"Can't refresh C# virtual documents because no projects found for {documentUri}");
             return false;
         }
 
@@ -183,8 +184,8 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         {
             // We just call the base class here, it will call back into us to produce the virtual document uri
             didWork = true;
-            _logger.LogDebug($"Creating C# virtual document for {key} for {document.Uri}");
-            virtualDocuments.Add(CreateVirtualDocument(key, document.Uri));
+            _logger.LogDebug($"Creating C# virtual document for {key} for {documentUri}");
+            virtualDocuments.Add(CreateVirtualDocument(key, documentUri));
         }
 
         if (didWork)
@@ -195,7 +196,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         return didWork;
     }
 
-    private IEnumerable<ProjectKey> GetProjectKeys(Uri hostDocumentUri)
+    private IEnumerable<ProjectKey> GetProjectKeys(DocumentUri hostDocumentUri)
     {
         // If generated file paths are not unique, then we just act as though we're in one unknown project
         if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
@@ -228,7 +229,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         }
     }
 
-    private CSharpVirtualDocument CreateVirtualDocument(ProjectKey projectKey, Uri hostDocumentUri)
+    private CSharpVirtualDocument CreateVirtualDocument(ProjectKey projectKey, DocumentUri hostDocumentUri)
     {
         var virtualLanguageFilePath = _filePathService.GetRazorCSharpFilePath(projectKey, hostDocumentUri.GetAbsoluteOrUNCPath());
         var virtualLanguageUri = new Uri(virtualLanguageFilePath);
