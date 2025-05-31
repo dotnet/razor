@@ -167,7 +167,8 @@ public class CSharpCodeActionResolverTest(ITestOutputHelper testOutput) : Langua
     {
         var razorFormattingService = Mock.Of<IRazorFormattingService>(
                         rfs => rfs.TryGetCSharpCodeActionEditAsync(
-                            It.Is<DocumentContext>(c => c.DocumentUri.GetRequiredParsedUri() == documentUri.GetRequiredParsedUri()),
+                            // TODO(toddgrun): switch back to == when roslyn implementation of DocumentUri.operator== is available on ci
+                            It.Is<DocumentContext>(c => c.DocumentUri.Equals(documentUri)),
                             It.IsAny<ImmutableArray<TextChange>>(),
                             It.IsAny<RazorFormattingOptions>(),
                             It.IsAny<CancellationToken>()) == Task.FromResult<TextChange?>(s_defaultFormattedChange), MockBehavior.Strict);

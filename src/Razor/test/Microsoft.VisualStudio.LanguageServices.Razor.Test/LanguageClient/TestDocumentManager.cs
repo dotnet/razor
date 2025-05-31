@@ -20,9 +20,7 @@ internal sealed class TestDocumentManager : TrackingLSPDocumentManager
         => TryGetDocument(new DocumentUri(uri), out lspDocumentSnapshot);
 
     public bool TryGetDocument(DocumentUri uri, out LSPDocumentSnapshot lspDocumentSnapshot)
-    {
-        return _documents.TryGetValue(uri, out lspDocumentSnapshot);
-    }
+        => _documents.TryGetValue(uri, out lspDocumentSnapshot);
 
     public void AddDocument(DocumentUri uri, LSPDocumentSnapshot documentSnapshot)
     {

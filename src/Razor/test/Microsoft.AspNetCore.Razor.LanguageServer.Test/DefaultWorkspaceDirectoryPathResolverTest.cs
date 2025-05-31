@@ -33,7 +33,7 @@ public class DefaultWorkspaceDirectoryPathResolverTest(ITestOutputHelper testOut
     }
 
     [Fact]
-    public async Task Resolve_RootUriPrefered()
+    public async Task Resolve_RootUriPreferred()
     {
         // Arrange
         var initialWorkspaceDirectory = "C:\\testpath";
@@ -41,7 +41,7 @@ public class DefaultWorkspaceDirectoryPathResolverTest(ITestOutputHelper testOut
 #pragma warning disable CS0618 // Type or member is obsolete
         var initializeParams = new InitializeParams()
         {
-            //RootPath = "/somethingelse",
+            RootPath = "/somethingelse",
             RootDocumentUri = LspFactory.CreateFilePathUri(initialWorkspaceDirectory),
         };
 #pragma warning restore CS0618 // Type or member is obsolete

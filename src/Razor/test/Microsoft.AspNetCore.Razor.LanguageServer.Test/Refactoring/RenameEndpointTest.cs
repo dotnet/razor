@@ -338,8 +338,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         Assert.Equal(TestPathUtilities.GetUri(s_componentFilePath3), renameFile.OldDocumentUri);
         Assert.Equal(TestPathUtilities.GetUri(s_componentFilePath5), renameFile.NewDocumentUri);
 
-        var edits = GetTextDocumentEdits(result, startIndex: 1, endIndex: 4);
-        Assert.Collection(edits,
+        Assert.Collection(GetTextDocumentEdits(result, startIndex: 1, endIndex: 4),
             textDocumentEdit =>
             {
                 Assert.Equal(TestPathUtilities.GetUri(s_componentFilePath4), textDocumentEdit.TextDocument.DocumentUri);
