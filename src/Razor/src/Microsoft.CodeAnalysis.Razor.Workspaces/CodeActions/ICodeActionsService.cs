@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
@@ -15,7 +16,7 @@ internal interface ICodeActionsService
         VSCodeActionParams request,
         IDocumentSnapshot documentSnapshot,
         RazorVSInternalCodeAction[] delegatedCodeActions,
-        DocumentUri? delegatedDocumentUri,
+        Uri? delegatedDocumentUri,
         bool supportsCodeActionResolve,
         CancellationToken cancellationToken);
 

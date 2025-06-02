@@ -106,14 +106,14 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
             {
                 // This location doesn't point to a virtual file. No need to remap, but we might still want to fix the text,
                 // because Roslyn may have done the remapping for us
-                var resultText = await FindAllReferencesHelper.GetResultTextAsync(_documentMappingService, _projectSnapshotManager.GetQueryOperations(), referenceItem.Location.Range.Start.Line, referenceItem.Location.DocumentUri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
+                var resultText = await FindAllReferencesHelper.GetResultTextAsync(_documentMappingService, _projectSnapshotManager.GetQueryOperations(), referenceItem.Location.Range.Start.Line, referenceItemDocumentUri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
                 referenceItem.Text = resultText ?? referenceItem.Text;
 
                 remappedLocations.Add(referenceItem);
                 continue;
             }
 
-            var (itemUri, mappedRange) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(referenceItem.Location.DocumentUri.GetRequiredParsedUri(), referenceItem.Location.Range, cancellationToken).ConfigureAwait(false);
+            var (itemUri, mappedRange) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(referenceItemDocumentUri, referenceItem.Location.Range, cancellationToken).ConfigureAwait(false);
 
             referenceItem.Location.DocumentUri = new DocumentUri(itemUri);
             referenceItem.DisplayPath = itemUri.AbsolutePath;

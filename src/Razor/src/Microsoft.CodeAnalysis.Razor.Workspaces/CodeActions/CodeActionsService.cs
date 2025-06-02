@@ -37,8 +37,9 @@ internal class CodeActionsService(
     private readonly IEnumerable<IHtmlCodeActionProvider> _htmlCodeActionProviders = htmlCodeActionProviders;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
-    public async Task<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(VSCodeActionParams request, IDocumentSnapshot documentSnapshot, RazorVSInternalCodeAction[] delegatedCodeActions, DocumentUri? delegatedDocumentUri, bool supportsCodeActionResolve, CancellationToken cancellationToken)
+    public async Task<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(VSCodeActionParams request, IDocumentSnapshot documentSnapshot, RazorVSInternalCodeAction[] delegatedCodeActions, Uri? delegatedUri, bool supportsCodeActionResolve, CancellationToken cancellationToken)
     {
+        var delegatedDocumentUri = delegatedUri != null ? new DocumentUri(delegatedUri) : null;
         var razorCodeActionContext = await GenerateRazorCodeActionContextAsync(request, documentSnapshot, delegatedDocumentUri, supportsCodeActionResolve, cancellationToken).ConfigureAwait(false);
         if (razorCodeActionContext is null)
         {
@@ -87,7 +88,7 @@ internal class CodeActionsService(
             {
                 foreach (var action in codeActions)
                 {
-                    commandsOrCodeActions.Add(action.AsVSCodeCommandOrCodeAction(request.TextDocument, delegatedDocumentUri));
+                    commandsOrCodeActions.Add(action.AsVSCodeCommandOrCodeAction(request.TextDocument, delegatedUri));
                 }
             }
         }

@@ -84,11 +84,11 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
         }];
     }
 
-    protected override VSInternalDocumentDiagnosticsParams CreateHtmlParams(DocumentUri uri)
+    protected override VSInternalDocumentDiagnosticsParams CreateHtmlParams(Uri uri)
     {
         return new VSInternalDocumentDiagnosticsParams
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = uri }
+            TextDocument = new TextDocumentIdentifier { DocumentUri = new DocumentUri(uri) }
         };
     }
 

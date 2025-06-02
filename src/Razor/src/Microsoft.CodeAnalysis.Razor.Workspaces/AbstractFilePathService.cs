@@ -19,7 +19,7 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
     {
         var uriPath = virtualDocumentUri.AbsoluteUri;
         var razorFilePath = GetRazorFilePath(uriPath);
-        var uri = new Uri(razorFilePath);
+        var uri = new Uri(razorFilePath, UriKind.Absolute);
         return uri;
     }
 

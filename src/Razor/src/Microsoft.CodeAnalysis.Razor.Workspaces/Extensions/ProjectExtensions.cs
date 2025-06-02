@@ -108,12 +108,6 @@ internal static class ProjectExtensions
     /// </summary>
     public static bool TryGetHintNameFromGeneratedDocumentUri(this Project project, Uri generatedDocumentUri, [NotNullWhen(true)] out string? hintName)
     {
-        if (generatedDocumentUri is null)
-        {
-            hintName = null;
-            return false;
-        }
-
         if (!RazorUri.IsGeneratedDocumentUri(generatedDocumentUri))
         {
             hintName = null;

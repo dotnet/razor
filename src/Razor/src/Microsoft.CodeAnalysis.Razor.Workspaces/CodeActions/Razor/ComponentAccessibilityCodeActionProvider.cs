@@ -185,7 +185,7 @@ internal class ComponentAccessibilityCodeActionProvider(IFileSystem fileSystem) 
                 // name to give the tag.
                 if (!tagHelperPair.CaseInsensitiveMatch || newTagName is not null)
                 {
-                    if (AddUsingsCodeActionResolver.TryCreateAddUsingResolutionParams(fullyQualifiedName, context.Request.TextDocument, additionalEdit, context.DelegatedDocumentUri, out var @namespace, out var resolutionParams))
+                    if (AddUsingsCodeActionResolver.TryCreateAddUsingResolutionParams(fullyQualifiedName, context.Request.TextDocument, additionalEdit, context.DelegatedDocumentUri?.ParsedUri, out var @namespace, out var resolutionParams))
                     {
                         var addUsingCodeAction = RazorCodeActionFactory.CreateAddComponentUsing(@namespace, newTagName, resolutionParams);
                         container.Add(addUsingCodeAction);
