@@ -27,11 +27,11 @@ public abstract partial class SingleServerDelegatingEndpointTestBase
 {
     private protected class TestLanguageServer(
         CSharpTestLspServer csharpServer,
-        DocumentUri csharpDocumentUri)
+        Uri csharpDocumentUri)
         : IClientConnection, IAsyncDisposable
     {
         private readonly CSharpTestLspServer _csharpServer = csharpServer;
-        private readonly DocumentUri _csharpDocumentUri = csharpDocumentUri;
+        private readonly DocumentUri _csharpDocumentUri = new DocumentUri(csharpDocumentUri);
         private readonly CancellationTokenSource _disposeTokenSource = new();
 
         private int _requestCount;

@@ -1047,7 +1047,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
     private async Task<ProvideSemanticTokensResponse> GetCSharpSemanticTokensResponseAsync(string documentText, bool precise, bool isRazorFile = false, bool supportsVSExtensions = true)
     {
         var codeDocument = CreateCodeDocument(documentText, isRazorFile, DefaultTagHelpers);
-        var csharpDocumentUri = new DocumentUri("C:\\TestSolution\\TestProject\\TestDocument.cs");
+        var csharpDocumentUri = new Uri("C:\\TestSolution\\TestProject\\TestDocument.cs");
         var csharpSourceText = codeDocument.GetCSharpSourceText();
 
         await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
@@ -1178,17 +1178,17 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
         return [range];
     }
 
-    private static SemanticTokensRangesParams CreateVSSemanticTokensRangesParams(ImmutableArray<LinePositionSpan> ranges, DocumentUri uri)
+    private static SemanticTokensRangesParams CreateVSSemanticTokensRangesParams(ImmutableArray<LinePositionSpan> ranges, Uri uri)
         => new()
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = new DocumentUri(uri) },
             Ranges = ranges.Select(s => s.ToRange()).ToArray()
         };
 
-    private static SemanticTokensRangeParams CreateVSSemanticTokensRangeParams(LinePositionSpan range, DocumentUri uri)
+    private static SemanticTokensRangeParams CreateVSSemanticTokensRangeParams(LinePositionSpan range, Uri uri)
         => new()
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = new DocumentUri(uri) },
             Range = range.ToRange()
         };
 

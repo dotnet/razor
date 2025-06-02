@@ -273,7 +273,7 @@ public class DelegatedCompletionItemResolverTest : CompletionTestBase
     private async Task<CSharpTestLspServer> CreateCSharpServerAsync(RazorCodeDocument codeDocument)
     {
         var csharpSourceText = codeDocument.GetCSharpSourceText();
-        var csharpDocumentUri = new DocumentUri("C:/path/to/file.razor__virtual.g.cs");
+        var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.g.cs");
         var serverCapabilities = new VSInternalServerCapabilities()
         {
             CompletionProvider = new CompletionOptions

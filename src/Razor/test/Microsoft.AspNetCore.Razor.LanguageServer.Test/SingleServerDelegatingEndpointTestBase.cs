@@ -34,9 +34,9 @@ public abstract partial class SingleServerDelegatingEndpointTestBase(ITestOutput
     {
         var projectKey = new ProjectKey("C:/path/to/obj");
         var csharpSourceText = codeDocument.GetCSharpSourceText();
-        var csharpDocumentUri = new DocumentUri(FilePathService.GetRazorCSharpFilePath(projectKey, razorFilePath));
+        var csharpDocumentUri = new Uri(FilePathService.GetRazorCSharpFilePath(projectKey, razorFilePath));
 
-        var csharpFiles = new List<(DocumentUri, SourceText)>
+        var csharpFiles = new List<(Uri, SourceText)>
         {
             (csharpDocumentUri, csharpSourceText)
         };
@@ -47,7 +47,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase(ITestOutput
             {
                 var additionalDocument = CreateCodeDocument(contents, filePath: filePath);
                 var additionalDocumentSourceText = additionalDocument.GetCSharpSourceText();
-                var additionalDocumentUri = new DocumentUri(FilePathService.GetRazorCSharpFilePath(projectKey, "C:/path/to/" + filePath));
+                var additionalDocumentUri = new Uri(FilePathService.GetRazorCSharpFilePath(projectKey, "C:/path/to/" + filePath));
 
                 csharpFiles.Add((additionalDocumentUri, additionalDocumentSourceText));
             }

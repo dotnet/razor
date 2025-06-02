@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.MapCode;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Testing;
@@ -280,7 +281,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
         TestFileMarkupParser.GetPositionAndSpans(originalCode, out var output, out int cursorPosition, out ImmutableArray<TextSpan> spans);
         var codeDocument = CreateCodeDocument(output, filePath: razorFilePath);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
-        var csharpDocumentUri = new DocumentUri(razorFilePath + "__virtual.g.cs");
+        var csharpDocumentUri = new Uri(razorFilePath + "__virtual.g.cs");
         await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
             csharpSourceText, csharpDocumentUri, new VSInternalServerCapabilities(), razorMappingService: null, capabilitiesUpdater: null, DisposalToken);
         await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString(), DisposalToken);
@@ -334,11 +335,11 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
         // Assert
         Assert.NotNull(result);
 
-        var actualCode = ApplyWorkspaceEdit(result, new DocumentUri(razorFilePath), sourceText);
+        var actualCode = ApplyWorkspaceEdit(result, new Uri(razorFilePath), sourceText);
         AssertEx.EqualOrDiff(expectedCode, actualCode.ToString());
     }
 
-    private sealed class MapCodeServer(CSharpTestLspServer csharpServer, DocumentUri csharpDocumentUri) : IClientConnection
+    private sealed class MapCodeServer(CSharpTestLspServer csharpServer, Uri csharpDocumentUri) : IClientConnection
     {
         public Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
             => throw new NotImplementedException();
@@ -356,7 +357,7 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
                 new() {
                     TextDocument = new TextDocumentIdentifier()
                     {
-                        DocumentUri = csharpDocumentUri
+                        DocumentUri = new DocumentUri(csharpDocumentUri)
                     },
                     Contents = delegatedMapCodeParams.Contents,
                     FocusLocations = delegatedMapCodeParams.FocusLocations
@@ -372,14 +373,14 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
         }
     }
 
-    private static SourceText ApplyWorkspaceEdit(WorkspaceEdit workspaceEdit, DocumentUri documentUri, SourceText sourceText)
+    private static SourceText ApplyWorkspaceEdit(WorkspaceEdit workspaceEdit, Uri documentUri, SourceText sourceText)
     {
         Assert.NotNull(workspaceEdit.DocumentChanges);
         var edits = workspaceEdit.DocumentChanges.Value.First;
 
         foreach (var edit in edits)
         {
-            Assert.Equal(documentUri, edit.TextDocument.DocumentUri);
+            Assert.Equal(documentUri, edit.TextDocument.DocumentUri.GetRequiredParsedUri());
 
             foreach (var currentEdit in edit.Edits)
             {
