@@ -103,7 +103,7 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
         // Act & Assert
         var documentContainer = new Mock<IDynamicDocumentContainer>(MockBehavior.Strict);
         documentContainer.Setup(c => c.SetSupportsDiagnostics(true)).Verifiable();
-        _provider.UpdateLSPFileInfo(new DocumentUri("C:/this/does/not/exist.razor"), documentContainer.Object);
+        _provider.UpdateLSPFileInfo(new Uri("C:/this/does/not/exist.razor"), documentContainer.Object);
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
         _provider.Updated += (sender, args) => called = true;
 
         // Act
-        _provider.UpdateLSPFileInfo(new DocumentUri(_document1.FilePath), _lspDocumentContainer);
+        _provider.UpdateLSPFileInfo(new Uri(_document1.FilePath), _lspDocumentContainer);
 
         // Assert
         Assert.True(called);
@@ -145,7 +145,7 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
         });
 
         // Act
-        _provider.UpdateLSPFileInfo(new DocumentUri(_document1.FilePath), _lspDocumentContainer);
+        _provider.UpdateLSPFileInfo(new Uri(_document1.FilePath), _lspDocumentContainer);
 
         // Assert
         Assert.False(called);
@@ -166,7 +166,7 @@ public class RazorDynamicFileInfoProviderTest(ITestOutputHelper testOutput) : Vi
         });
 
         // Act & Assert
-        _provider.UpdateLSPFileInfo(new DocumentUri(_document2.FilePath), _lspDocumentContainer);
-        _provider.UpdateLSPFileInfo(new DocumentUri(_document1.FilePath), _lspDocumentContainer);
+        _provider.UpdateLSPFileInfo(new Uri(_document2.FilePath), _lspDocumentContainer);
+        _provider.UpdateLSPFileInfo(new Uri(_document1.FilePath), _lspDocumentContainer);
     }
 }

@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
@@ -230,7 +229,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
     public async Task ProvideCodeActionsAsync_ReturnsCodeActionsAsync()
     {
         // Arrange
-        var testDocUri = new DocumentUri("C:/path/to/file.razor");
+        var testDocUri = new Uri("C:/path/to/file.razor");
         var testVirtualDocUri = new Uri("C:/path/to/file2.razor.g");
         var testCSharpDocUri = new Uri("C:/path/to/file.razor.g.cs");
 
@@ -293,7 +292,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
             {
                 TextDocument = new VSTextDocumentIdentifier()
                 {
-                    DocumentUri = testDocUri
+                    DocumentUri = new DocumentUri(testDocUri)
                 },
                 Range = LspFactory.DefaultRange,
                 Context = new VSInternalCodeActionContext()
@@ -316,7 +315,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
         var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
         var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(projectKey: default, new Uri("C:/path/to/file.razor.g.cs"), _textBuffer.CurrentSnapshot, hostDocumentSyncVersion: 0);
         var documentManager = new TestDocumentManager();
-        var razorUri = new DocumentUri("C:/path/to/file.razor");
+        var razorUri = new Uri("C:/path/to/file.razor");
         documentManager.AddDocument(razorUri, new TestLSPDocumentSnapshot(razorUri, version: 0, "Some Content", csharpVirtualDocument));
         var expectedCodeAction = new VSInternalCodeAction()
         {
@@ -374,7 +373,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
         {
             Title = "Something",
         };
-        var request = new RazorResolveCodeActionParams(new TextDocumentIdentifier { DocumentUri = razorUri }, HostDocumentVersion: 1, RazorLanguageKind.CSharp, codeAction);
+        var request = new RazorResolveCodeActionParams(new TextDocumentIdentifier { DocumentUri = new DocumentUri(razorUri) }, HostDocumentVersion: 1, RazorLanguageKind.CSharp, codeAction);
 
         // Act
         var result = await target.ResolveCodeActionsAsync(request, DisposalToken);
@@ -434,7 +433,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
     public async Task ProvideSemanticTokensAsync_CannotLookupVirtualDocument_ReturnsNullAsync(bool isPreciseRange)
     {
         // Arrange
-        var testDocUri = new DocumentUri("C:/path/to/file.razor");
+        var testDocUri = new Uri("C:/path/to/file.razor");
         LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(testDocUri, 0);
 
         var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
@@ -481,7 +480,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
     public async Task ProvideSemanticTokensAsync_ContainsRange_ReturnsSemanticTokens(bool isPreciseRange)
     {
         // Arrange
-        var testDocUri = new DocumentUri("C:/path/to%20-%20project/file.razor");
+        var testDocUri = new Uri("C:/path/to%20-%20project/file.razor");
         var testVirtualDocUri = new Uri("C:/path/to - project/file2.razor.g");
         var testCSharpDocUri = new Uri("C:/path/to - project/file.razor.g.cs");
 
@@ -492,7 +491,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
 
         var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
         documentManager
-            .Setup(manager => manager.TryGetDocument(testDocUri.GetRequiredParsedUri(), out testDocument))
+            .Setup(manager => manager.TryGetDocument(testDocUri, out testDocument))
             .Returns(true);
 
         var expectedCSharpResults = new SemanticTokens() { Data = new int[] { It.IsAny<int>() } };
@@ -562,7 +561,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
     public async Task ProvideSemanticTokensAsync_EmptyRange_ReturnsNoSemanticTokens(bool isPreciseRange)
     {
         // Arrange
-        var testDocUri = new DocumentUri("C:/path/to%20-%20project/file.razor");
+        var testDocUri = new Uri("C:/path/to%20-%20project/file.razor");
         var testVirtualDocUri = new Uri("C:/path/to - project/file2.razor.g");
         var testCSharpDocUri = new Uri("C:/path/to - project/file.razor.g.cs");
 
@@ -573,7 +572,7 @@ public class RazorCustomMessageTargetTest : ToolingTestBase
 
         var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
         documentManager
-            .Setup(manager => manager.TryGetDocument(testDocUri.GetRequiredParsedUri(), out testDocument))
+            .Setup(manager => manager.TryGetDocument(testDocUri, out testDocument))
             .Returns(true);
 
         var expectedCSharpResults = new SemanticTokens();

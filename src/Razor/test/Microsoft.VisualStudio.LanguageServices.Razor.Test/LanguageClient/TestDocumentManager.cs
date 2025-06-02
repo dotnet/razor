@@ -12,17 +12,14 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
 internal sealed class TestDocumentManager : TrackingLSPDocumentManager
 {
-    private readonly Dictionary<DocumentUri, LSPDocumentSnapshot> _documents = [];
+    private readonly Dictionary<Uri, LSPDocumentSnapshot> _documents = [];
 
     public int UpdateVirtualDocumentCallCount { get; private set; }
 
     public override bool TryGetDocument(Uri uri, out LSPDocumentSnapshot lspDocumentSnapshot)
-        => TryGetDocument(new DocumentUri(uri), out lspDocumentSnapshot);
-
-    public bool TryGetDocument(DocumentUri uri, out LSPDocumentSnapshot lspDocumentSnapshot)
         => _documents.TryGetValue(uri, out lspDocumentSnapshot);
 
-    public void AddDocument(DocumentUri uri, LSPDocumentSnapshot documentSnapshot)
+    public void AddDocument(Uri uri, LSPDocumentSnapshot documentSnapshot)
     {
         _documents.Add(uri, documentSnapshot);
     }
@@ -37,9 +34,8 @@ internal sealed class TestDocumentManager : TrackingLSPDocumentManager
         throw new NotImplementedException();
     }
 
-    public override void UpdateVirtualDocument<TVirtualDocument>(Uri hostUri, IReadOnlyList<ITextChange> changes, int hostDocumentVersion, object? state)
+    public override void UpdateVirtualDocument<TVirtualDocument>(Uri hostDocumentUri, IReadOnlyList<ITextChange> changes, int hostDocumentVersion, object? state)
     {
-        var hostDocumentUri = new DocumentUri(hostUri);
         if (!_documents.TryGetValue(hostDocumentUri, out var documentSnapshot))
         {
             return;

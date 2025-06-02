@@ -93,7 +93,7 @@ public class RazorProximityExpressionResolverTest : ToolingTestBase
         var documentManager = new TestDocumentManager();
         var testCSharpDocument = new CSharpVirtualDocumentSnapshot(projectKey: default, _csharpDocumentUri, _csharpTextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 1);
         var document = new TestLSPDocumentSnapshot(_documentUri, version: (int)(testCSharpDocument.HostDocumentSyncVersion.Value + 1), testCSharpDocument);
-        documentManager.AddDocument(document.DocumentUri, document);
+        documentManager.AddDocument(document.Uri, document);
         var resolver = CreateResolverWith(documentManager: documentManager);
 
         // Act

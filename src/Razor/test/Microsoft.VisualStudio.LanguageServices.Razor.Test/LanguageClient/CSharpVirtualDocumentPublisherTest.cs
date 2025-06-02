@@ -71,9 +71,9 @@ public class CSharpVirtualDocumentPublisherTest : ToolingTestBase
     {
         // Arrange
         var csharpSnapshot = new CSharpVirtualDocumentSnapshot(projectKey: default, new Uri("C:/path/to/something.razor.g.cs"), Mock.Of<ITextSnapshot>(MockBehavior.Strict), hostDocumentSyncVersion: 1337);
-        var lspDocument = new TestLSPDocumentSnapshot(new DocumentUri("C:/path/to/something.razor"), 1337, csharpSnapshot);
+        var lspDocument = new TestLSPDocumentSnapshot(new Uri("C:/path/to/something.razor"), 1337, csharpSnapshot);
         var fileInfoProvider = new Mock<IRazorDynamicFileInfoProviderInternal>(MockBehavior.Strict);
-        fileInfoProvider.Setup(provider => provider.UpdateLSPFileInfo(new DocumentUri(lspDocument.Uri), It.IsAny<IDynamicDocumentContainer>()))
+        fileInfoProvider.Setup(provider => provider.UpdateLSPFileInfo(lspDocument.Uri, It.IsAny<IDynamicDocumentContainer>()))
             .Verifiable();
         var publisher = new CSharpVirtualDocumentPublisher(fileInfoProvider.Object, _documentMappingProvider, TestLanguageServerFeatureOptions.Instance);
 
