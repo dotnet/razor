@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
@@ -411,6 +411,115 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
     public readonly Enumerator GetEnumerator()
         => new(in this);
+
+    public void Insert(int index, T item)
+    {
+        Debug.Assert(index >= 0 && index <= Count);
+
+        if (TryGetBuilderAndEnsureCapacity(out var builder))
+        {
+            builder.Insert(index, item);
+        }
+        else if (_inlineCount < InlineCapacity)
+        {
+            // Shift elements if not inserting at the end.
+            if (index < _inlineCount)
+            {
+                ShiftInlineItemsByOffset(index, offset: 1);
+            }
+
+            SetInlineElement(index, item);
+            _inlineCount++;
+        }
+        else
+        {
+            Debug.Assert(_inlineCount == InlineCapacity);
+            MoveInlineItemsToBuilder();
+            _builder.Insert(index, item);
+        }
+    }
+
+    public void InsertRange(int index, ImmutableArray<T> items)
+    {
+        Debug.Assert(index >= 0 && index <= Count);
+
+        if (items.IsEmpty)
+        {
+            return;
+        }
+
+        if (TryGetBuilderAndEnsureCapacity(out var builder))
+        {
+            builder.InsertRange(index, items);
+        }
+        else if (_inlineCount + items.Length <= InlineCapacity)
+        {
+            // Shift elements if not inserting at the end.
+            if (index < _inlineCount)
+            {
+                ShiftInlineItemsByOffset(index, offset: items.Length);
+            }
+
+            foreach (var item in items)
+            {
+                SetInlineElement(index++, item);
+                _inlineCount++;
+            }
+        }
+        else
+        {
+            MoveInlineItemsToBuilder();
+            _builder.InsertRange(index, items);
+        }
+    }
+
+    public void InsertRange(int index, IEnumerable<T> items)
+    {
+        if (TryGetBuilderAndEnsureCapacity(out var builder))
+        {
+            builder.InsertRange(index, items);
+            return;
+        }
+
+        if (!items.TryGetCount(out var itemCount))
+        {
+            // We couldn't retrieve a count, so we have to enumerate the elements.
+            foreach (var item in items)
+            {
+                Insert(index++, item);
+            }
+
+            return;
+        }
+
+        if (itemCount == 0)
+        {
+            // No items, so there's nothing to do.
+            return;
+        }
+
+        if (_inlineCount + itemCount <= InlineCapacity)
+        {
+            // Shift elements if not inserting at the end.
+            if (index < _inlineCount)
+            {
+                ShiftInlineItemsByOffset(index, offset: itemCount);
+            }
+
+            // The items can fit into our inline elements.
+            foreach (var item in items)
+            {
+                SetInlineElement(index++, item);
+                _inlineCount++;
+            }
+        }
+        else
+        {
+            // The items can't fit into our inline elements, so we switch to a builder.
+            MoveInlineItemsToBuilder();
+            _builder.InsertRange(index, items);
+        }
+    }
 
     public void RemoveAt(int index)
     {
@@ -1445,6 +1554,19 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
         // Since _inlineCount tracks the number of inline items used, we zero it out here.
         _inlineCount = 0;
+    }
+
+    private void ShiftInlineItemsByOffset(int index, int offset)
+    {
+        Debug.Assert(_builder is null);
+        Debug.Assert(index >= 0 && index < _inlineCount);
+        Debug.Assert(offset > 0);
+        Debug.Assert(offset + _inlineCount <= InlineCapacity);
+
+        for (var i = _inlineCount - 1; i >= index; i--)
+        {
+            SetInlineElement(i + offset, GetInlineElement(i));
+        }
     }
 
     public readonly ImmutableArray<T> ToImmutableOrdered()

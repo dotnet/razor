@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Xunit;
 using SR = Microsoft.AspNetCore.Razor.Utilities.Shared.Resources.SR;
@@ -307,5 +309,398 @@ public class PooledArrayBuilderTests
 
         Assert.Equal(42, builder.Single(IsEven));
         Assert.Equal(42, builder.SingleOrDefault(IsEven));
+    }
+
+    [Fact]
+    public void Insert_EmptyBuilder()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+
+        builder.Insert(0, 42);
+
+        Assert.Equal(1, builder.Count);
+        Assert.Equal(42, builder[0]);
+    }
+
+    [Fact]
+    public void Insert_AtBeginning()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+
+        builder.Add(1);
+        builder.Add(2);
+        builder.Insert(0, 42);
+
+        Assert.Equal(3, builder.Count);
+        Assert.Equal(42, builder[0]);
+        Assert.Equal(1, builder[1]);
+        Assert.Equal(2, builder[2]);
+    }
+
+    [Fact]
+    public void Insert_AtMiddle()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+
+        builder.Add(1);
+        builder.Add(2);
+        builder.Insert(1, 42);
+
+        Assert.Equal(3, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(42, builder[1]);
+        Assert.Equal(2, builder[2]);
+    }
+
+    [Fact]
+    public void Insert_AtEnd()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+
+        builder.Add(1);
+        builder.Add(2);
+        builder.Insert(2, 42);
+
+        Assert.Equal(3, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(42, builder[2]);
+    }
+
+    [Fact]
+    public void Insert_TransitionFromInlineToBuilder()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+
+        // Add up to InlineCapacity (which is 4)
+        builder.Add(1);
+        builder.Add(2);
+        builder.Add(3);
+        builder.Add(4);
+
+        // Verify we have exactly 4 items
+        Assert.Equal(4, builder.Count);
+
+        // Insert a 5th item, which should trigger conversion to builder
+        builder.Insert(2, 42);
+
+        Assert.Equal(5, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(42, builder[2]);
+        Assert.Equal(3, builder[3]);
+        Assert.Equal(4, builder[4]);
+
+        // Verify the builder is now being used
+        builder.Validate(t =>
+        {
+            Assert.Equal(0, t.InlineItemCount);
+            Assert.NotNull(t.InnerArrayBuilder);
+        });
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    public void Insert_WithInlineStorage(int insertIndex)
+    {
+        using var builder = new PooledArrayBuilder<int>();
+
+        // Add 3 items (less than InlineCapacity)
+        builder.Add(1);
+        builder.Add(2);
+        builder.Add(3);
+
+        // Insert at the specified index
+        builder.Insert(insertIndex, 42);
+
+        // Verify the item was inserted correctly
+        Assert.Equal(4, builder.Count);
+
+        for (var i = 0; i < 4; i++)
+        {
+            if (i < insertIndex)
+            {
+                Assert.Equal(i + 1, builder[i]);
+            }
+            else if (i == insertIndex)
+            {
+                Assert.Equal(42, builder[i]);
+            }
+            else
+            {
+                Assert.Equal(i, builder[i]);
+            }
+        }
+
+        // Verify we're still using inline storage
+        builder.Validate(t =>
+        {
+            Assert.Equal(4, t.InlineItemCount);
+            Assert.Null(t.InnerArrayBuilder);
+        });
+    }
+
+    [Fact]
+    public void Insert_UsingBuilder()
+    {
+        var builderPool = TestArrayBuilderPool<int>.Create();
+        using var builder = new PooledArrayBuilder<int>(capacity: 10, builderPool);
+
+        // Add enough items to ensure builder is used
+        for (var i = 0; i < 5; i++)
+        {
+            builder.Add(i);
+        }
+
+        // Verify builder is being used
+        builder.Validate(t =>
+        {
+            Assert.NotNull(t.InnerArrayBuilder);
+        });
+
+        // Insert in the middle
+        builder.Insert(2, 42);
+
+        Assert.Equal(6, builder.Count);
+        Assert.Equal(0, builder[0]);
+        Assert.Equal(1, builder[1]);
+        Assert.Equal(42, builder[2]);
+        Assert.Equal(2, builder[3]);
+        Assert.Equal(3, builder[4]);
+        Assert.Equal(4, builder[5]);
+    }
+
+    [Fact]
+    public void InsertRange_EmptyCollection()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(1);
+        builder.Add(2);
+
+        // Insert empty array
+        builder.InsertRange(1, Array.Empty<int>());
+
+        Assert.Equal(2, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+
+        // Insert empty immutable array
+        builder.InsertRange(1, []);
+
+        Assert.Equal(2, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+    }
+
+    [Fact]
+    public void InsertRange_AtBeginning()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(3);
+        builder.Add(4);
+
+        var array = new[] { 1, 2 };
+        builder.InsertRange(0, array);
+
+        Assert.Equal(4, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(4, builder[3]);
+    }
+
+    [Fact]
+    public void InsertRange_AtMiddle()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(1);
+        builder.Add(4);
+
+        var array = new[] { 2, 3 };
+        builder.InsertRange(1, array);
+
+        Assert.Equal(4, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(4, builder[3]);
+    }
+
+    [Fact]
+    public void InsertRange_AtEnd()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(1);
+        builder.Add(2);
+
+        var array = new[] { 3, 4 };
+        builder.InsertRange(2, array);
+
+        Assert.Equal(4, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(4, builder[3]);
+    }
+
+    [Fact]
+    public void InsertRange_ImmutableArray()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(1);
+        builder.Add(4);
+
+        var items = ImmutableArray.Create(2, 3);
+        builder.InsertRange(1, items);
+
+        Assert.Equal(4, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(4, builder[3]);
+    }
+
+    [Fact]
+    public void InsertRange_WithInlineStorage()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+
+        // Add 2 items (less than InlineCapacity)
+        builder.Add(1);
+        builder.Add(4);
+
+        // Insert 2 more items (total still within InlineCapacity)
+        var array = new[] { 2, 3 };
+        builder.InsertRange(1, array);
+
+        Assert.Equal(4, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(4, builder[3]);
+
+        // Verify still using inline storage
+        builder.Validate(t =>
+        {
+            Assert.Equal(4, t.InlineItemCount);
+            Assert.Null(t.InnerArrayBuilder);
+        });
+    }
+
+    [Fact]
+    public void InsertRange_TransitionFromInlineToBuilder()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+
+        // Add items up to InlineCapacity (which is 4)
+        builder.Add(1);
+        builder.Add(3);
+        builder.Add(4);
+        builder.Add(5);
+
+        // Insert items that cause transition to builder
+        var array = new[] { 2, 2 };
+        builder.InsertRange(1, array);
+
+        Assert.Equal(6, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(2, builder[2]);
+        Assert.Equal(3, builder[3]);
+        Assert.Equal(4, builder[4]);
+        Assert.Equal(5, builder[5]);
+
+        // Verify builder is now being used
+        builder.Validate(t =>
+        {
+            Assert.Equal(0, t.InlineItemCount);
+            Assert.NotNull(t.InnerArrayBuilder);
+        });
+    }
+
+    [Fact]
+    public void InsertRange_UsingBuilder()
+    {
+        var builderPool = TestArrayBuilderPool<int>.Create();
+        using var builder = new PooledArrayBuilder<int>(capacity: 10, builderPool);
+
+        // Add enough items to ensure builder is used
+        for (var i = 0; i < 5; i++)
+        {
+            builder.Add(i * 2);
+        }
+
+        // Verify builder is being used
+        builder.Validate(t =>
+        {
+            Assert.NotNull(t.InnerArrayBuilder);
+        });
+
+        // Insert in the middle
+        var array = new[] { 3, 5 };
+        builder.InsertRange(2, array);
+
+        Assert.Equal(7, builder.Count);
+        Assert.Equal(0, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(5, builder[3]);
+        Assert.Equal(4, builder[4]);
+        Assert.Equal(6, builder[5]);
+        Assert.Equal(8, builder[6]);
+    }
+
+    [Fact]
+    public void InsertRange_EmptyBuilder()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+
+        var array = new[] { 1, 2, 3 };
+        builder.InsertRange(0, array);
+
+        Assert.Equal(3, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+    }
+
+    [Fact]
+    public void InsertRange_EmptyBuilder_ImmutableArray()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+
+        var items = ImmutableArray.Create(1, 2, 3);
+        builder.InsertRange(0, items);
+
+        Assert.Equal(3, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+    }
+
+    [Fact]
+    public void InsertRange_LargeCollection()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+
+        // Create a large collection that exceeds inline capacity
+        builder.InsertRange(0, Enumerable.Range(1, 100));
+
+        Assert.Equal(100, builder.Count);
+
+        for (var i = 0; i < 100; i++)
+        {
+            Assert.Equal(i + 1, builder[i]);
+        }
+
+        // Verify builder is being used
+        builder.Validate(t =>
+        {
+            Assert.Equal(0, t.InlineItemCount);
+            Assert.NotNull(t.InnerArrayBuilder);
+        });
     }
 }
