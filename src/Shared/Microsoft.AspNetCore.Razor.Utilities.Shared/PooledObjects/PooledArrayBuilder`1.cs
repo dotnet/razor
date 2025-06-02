@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.Extensions.ObjectPool;
@@ -259,14 +260,13 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     public void AddRange(ImmutableArray<T> items)
         => InsertRange(Count, items);
 
-    // Necessary to avoid conflict with AddRange(IEnumerable<T>) and AddRange(ReadOnlySpan<T>).
-    public void AddRange(T[] items)
-    {
-        AddRange(items.AsSpan());
-    }
-
     public void AddRange(ReadOnlySpan<T> items)
     {
+        // Note: We don't delegate this overload to InsertRange(ReadOnlySpan<T>) because
+        // ImmutableArray<T>.Builder supports an AddRange overload that takes a ReadOnlySpan<T>.
+        // Delegating to InsertRange(ReadOnlySpan<T>) could unnecessarily introduce an
+        // array allocation and copy.
+
         if (items.IsEmpty)
         {
             return;
@@ -293,19 +293,20 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
     public void AddRange<TList>(TList list)
         where TList : struct, IReadOnlyList<T>
-    {
-        AddRange(list, 0, list.Count);
-    }
+        => AddRange(list, startIndex: 0, list.Count);
 
-    public void AddRange<TList>(TList list, int index, int count)
+    public void AddRange<TList>(TList list, int startIndex, int count)
         where TList : struct, IReadOnlyList<T>
     {
+        // Note: We don't delegate this overload to InsertRange<TList>(TList, int, int) because
+        // it requires extra allocations that aren't necessary for AddRange(...).
+
         if (count == 0)
         {
             return;
         }
 
-        var (start, end) = (index, index + count - 1);
+        var (start, end) = (startIndex, startIndex + count - 1);
 
         if (TryGetBuilderAndEnsureCapacity(out var builder))
         {
@@ -378,7 +379,6 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         }
         else
         {
-            Debug.Assert(_inlineCount == InlineCapacity);
             MoveInlineItemsToBuilder();
             _builder.Insert(index, item);
         }
@@ -415,6 +415,103 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         {
             MoveInlineItemsToBuilder();
             _builder.InsertRange(index, items);
+        }
+    }
+
+    public void InsertRange(int index, ReadOnlySpan<T> items)
+    {
+        Debug.Assert(index >= 0 && index <= Count);
+
+        if (items.IsEmpty)
+        {
+            return;
+        }
+
+        if (TryGetBuilderAndEnsureCapacity(out var builder))
+        {
+            builder.InsertRange(index, items);
+        }
+        else if (_inlineCount + items.Length <= InlineCapacity)
+        {
+            // Shift elements if not inserting at the end.
+            if (index < _inlineCount)
+            {
+                ShiftInlineItemsByOffset(index, offset: items.Length);
+            }
+
+            foreach (var item in items)
+            {
+                SetInlineElement(index++, item);
+                _inlineCount++;
+            }
+        }
+        else
+        {
+            MoveInlineItemsToBuilder();
+            _builder.InsertRange(index, items);
+        }
+    }
+
+    public void InsertRange<TList>(int index, TList list)
+        where TList : struct, IReadOnlyList<T>
+        => InsertRange(index, list, startIndex: 0, list.Count);
+
+    public void InsertRange<TList>(int index, TList list, int startIndex, int count)
+        where TList : struct, IReadOnlyList<T>
+    {
+        if (index == Count)
+        {
+            // AddRange doesn't delegate to this method. Instead, this delegates to AddRange for
+            // insertions at the end.
+            AddRange(list, startIndex, count);
+            return;
+        }
+
+        if (count == 0)
+        {
+            return;
+        }
+
+        var (start, end) = (startIndex, startIndex + count - 1);
+
+        if (TryGetBuilderAndEnsureCapacity(out var builder))
+        {
+            var spacer = ImmutableCollectionsMarshal.AsImmutableArray(new T[count]);
+            builder.InsertRange(index, spacer);
+
+            for (var i = start; i <= end; i++)
+            {
+                builder[index++] = list[i];
+            }
+
+            return;
+        }
+
+        if (_inlineCount + count <= InlineCapacity)
+        {
+            // Shift elements if not inserting at the end.
+            if (index < _inlineCount)
+            {
+                ShiftInlineItemsByOffset(index, offset: count);
+            }
+
+            for (var i = start; i <= end; i++)
+            {
+                SetInlineElement(index++, list[i]);
+                _inlineCount++;
+            }
+        }
+        else
+        {
+            MoveInlineItemsToBuilder();
+
+            var spacer = ImmutableCollectionsMarshal.AsImmutableArray(new T[count]);
+            _builder.InsertRange(index, spacer);
+
+            for (var i = start; i <= end; i++)
+            {
+                _builder[index++] = list[i];
+            }
         }
     }
 

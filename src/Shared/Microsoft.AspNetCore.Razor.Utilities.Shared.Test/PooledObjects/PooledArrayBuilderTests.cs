@@ -1023,7 +1023,7 @@ public class PooledArrayBuilderTests
         Assert.Equal(2, builder[1]);
 
         // Insert empty immutable array
-        builder.InsertRange(1, []);
+        builder.InsertRange(1, ImmutableArray<int>.Empty);
 
         Assert.Equal(2, builder.Count);
         Assert.Equal(1, builder[0]);
@@ -1232,6 +1232,681 @@ public class PooledArrayBuilderTests
         }
 
         // Verify builder is being used
+        builder.Validate(t =>
+        {
+            Assert.Equal(0, t.InlineItemCount);
+            Assert.NotNull(t.InnerArrayBuilder);
+        });
+    }
+
+    [Fact]
+    public void InsertRange_ReadOnlySpan_EmptySpan()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(1);
+        builder.Add(3);
+
+        // Insert empty span
+        ReadOnlySpan<int> emptySpan = [];
+        builder.InsertRange(1, emptySpan);
+
+        // Should not change the builder
+        Assert.Equal(2, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(3, builder[1]);
+    }
+
+    [Fact]
+    public void InsertRange_ReadOnlySpan_AtBeginning()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(3);
+        builder.Add(4);
+
+        // Insert at beginning
+        ReadOnlySpan<int> itemsToInsert = [1, 2];
+        builder.InsertRange(0, itemsToInsert);
+
+        Assert.Equal(4, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(4, builder[3]);
+    }
+
+    [Fact]
+    public void InsertRange_ReadOnlySpan_AtMiddle()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(1);
+        builder.Add(4);
+
+        // Insert in middle
+        ReadOnlySpan<int> itemsToInsert = [2, 3];
+        builder.InsertRange(1, itemsToInsert);
+
+        Assert.Equal(4, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(4, builder[3]);
+    }
+
+    [Fact]
+    public void InsertRange_ReadOnlySpan_AtEnd()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(1);
+        builder.Add(2);
+
+        // Insert at end
+        ReadOnlySpan<int> itemsToInsert = [3, 4];
+        builder.InsertRange(2, itemsToInsert);
+
+        Assert.Equal(4, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(4, builder[3]);
+    }
+
+    [Fact]
+    public void InsertRange_ReadOnlySpan_SingleItem()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(1);
+        builder.Add(3);
+
+        // Insert single item
+        ReadOnlySpan<int> itemToInsert = [2];
+        builder.InsertRange(1, itemToInsert);
+
+        Assert.Equal(3, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+    }
+
+    [Fact]
+    public void InsertRange_ReadOnlySpan_WithinInlineCapacity()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+
+        // Add 2 items (less than inline capacity)
+        builder.Add(1);
+        builder.Add(4);
+
+        // Insert 2 more (still within inline capacity)
+        ReadOnlySpan<int> itemsToInsert = [2, 3];
+        builder.InsertRange(1, itemsToInsert);
+
+        Assert.Equal(4, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(4, builder[3]);
+
+        // Verify still using inline storage
+        builder.Validate(t =>
+        {
+            Assert.Equal(4, t.InlineItemCount);
+            Assert.Null(t.InnerArrayBuilder);
+        });
+    }
+
+    [Fact]
+    public void InsertRange_ReadOnlySpan_TransitionToBuilder()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+
+        // Add items to reach inline capacity (which is 4)
+        builder.Add(1);
+        builder.Add(4);
+        builder.Add(5);
+        builder.Add(6);
+
+        // Verify using inline storage
+        builder.Validate(t =>
+        {
+            Assert.Equal(4, t.InlineItemCount);
+            Assert.Null(t.InnerArrayBuilder);
+        });
+
+        // Insert items that will cause transition to builder
+        ReadOnlySpan<int> itemsToInsert = [2, 3];
+        builder.InsertRange(1, itemsToInsert);
+
+        Assert.Equal(6, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(4, builder[3]);
+        Assert.Equal(5, builder[4]);
+        Assert.Equal(6, builder[5]);
+
+        // Verify now using builder
+        builder.Validate(t =>
+        {
+            Assert.Equal(0, t.InlineItemCount);
+            Assert.NotNull(t.InnerArrayBuilder);
+        });
+    }
+
+    [Fact]
+    public void InsertRange_ReadOnlySpan_AlreadyUsingBuilder()
+    {
+        var builderPool = TestArrayBuilderPool<int>.Create();
+        using var builder = new PooledArrayBuilder<int>(capacity: 10, builderPool);
+
+        // Add enough items to ensure builder is used
+        for (var i = 0; i < 5; i++)
+        {
+            builder.Add(i * 2);
+        }
+
+        // Verify already using builder
+        builder.Validate(t =>
+        {
+            Assert.Equal(0, t.InlineItemCount);
+            Assert.NotNull(t.InnerArrayBuilder);
+        });
+
+        // Insert into builder
+        ReadOnlySpan<int> itemsToInsert = [3, 5];
+        builder.InsertRange(2, itemsToInsert);
+
+        Assert.Equal(7, builder.Count);
+        Assert.Equal(0, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(5, builder[3]);
+        Assert.Equal(4, builder[4]);
+        Assert.Equal(6, builder[5]);
+        Assert.Equal(8, builder[6]);
+    }
+
+    [Fact]
+    public void InsertRange_ReadOnlySpan_EmptyBuilder()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+
+        ReadOnlySpan<int> itemsToInsert = [1, 2, 3];
+        builder.InsertRange(0, itemsToInsert);
+
+        Assert.Equal(3, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+
+        // Should use inline storage
+        builder.Validate(t =>
+        {
+            Assert.Equal(3, t.InlineItemCount);
+            Assert.Null(t.InnerArrayBuilder);
+        });
+    }
+
+    [Fact]
+    public void InsertRange_ReadOnlySpan_LargeSpan()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(0);
+
+        // Create array with more elements than inline capacity
+        var largeArray = new int[10];
+        for (var i = 0; i < largeArray.Length; i++)
+        {
+            largeArray[i] = i + 1;
+        }
+
+        ReadOnlySpan<int> largeSpan = largeArray;
+        builder.InsertRange(1, largeSpan);
+
+        Assert.Equal(11, builder.Count);
+        Assert.Equal(0, builder[0]);
+        for (var i = 0; i < 10; i++)
+        {
+            Assert.Equal(i + 1, builder[i + 1]);
+        }
+
+        // Should be using builder
+        builder.Validate(t =>
+        {
+            Assert.Equal(0, t.InlineItemCount);
+            Assert.NotNull(t.InnerArrayBuilder);
+        });
+    }
+
+    [Fact]
+    public void InsertRange_StructList_SimpleOverload()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(1);
+        builder.Add(4);
+
+        // Create a struct that implements IReadOnlyList<int>
+        var array = new[] { 2, 3 };
+        var list = new StructList<int>(array);
+
+        // Use the simpler overload that inserts the entire list
+        builder.InsertRange(1, list);
+
+        Assert.Equal(4, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(4, builder[3]);
+    }
+
+    [Fact]
+    public void InsertRange_StructList_SimpleOverload_AtBeginning()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(3);
+        builder.Add(4);
+
+        var array = new[] { 1, 2 };
+        var list = new StructList<int>(array);
+
+        // Insert at beginning
+        builder.InsertRange(0, list);
+
+        Assert.Equal(4, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(4, builder[3]);
+    }
+
+    [Fact]
+    public void InsertRange_StructList_SimpleOverload_AtEnd()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(1);
+        builder.Add(2);
+
+        var array = new[] { 3, 4 };
+        var list = new StructList<int>(array);
+
+        // Insert at end
+        builder.InsertRange(2, list);
+
+        Assert.Equal(4, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(4, builder[3]);
+    }
+
+    [Fact]
+    public void InsertRange_StructList_SimpleOverload_EmptyList()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(1);
+        builder.Add(2);
+
+        // Create empty struct list
+        var array = Array.Empty<int>();
+        var list = new StructList<int>(array);
+
+        // Insert empty list
+        builder.InsertRange(1, list);
+
+        // Should not change the builder
+        Assert.Equal(2, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+    }
+
+    [Fact]
+    public void InsertRange_StructList_SimpleOverload_TransitionToBuilder()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+
+        // Add items to reach inline capacity (which is 4)
+        builder.Add(1);
+        builder.Add(4);
+        builder.Add(5);
+        builder.Add(6);
+
+        // Verify using inline storage
+        builder.Validate(t =>
+        {
+            Assert.Equal(4, t.InlineItemCount);
+            Assert.Null(t.InnerArrayBuilder);
+        });
+
+        // Insert items that will cause transition to builder
+        var array = new[] { 2, 3 };
+        var list = new StructList<int>(array);
+        builder.InsertRange(1, list);
+
+        Assert.Equal(6, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(4, builder[3]);
+        Assert.Equal(5, builder[4]);
+        Assert.Equal(6, builder[5]);
+
+        // Verify now using builder
+        builder.Validate(t =>
+        {
+            Assert.Equal(0, t.InlineItemCount);
+            Assert.NotNull(t.InnerArrayBuilder);
+        });
+    }
+
+    [Fact]
+    public void InsertRange_StructList_SimpleOverload_EmptyBuilder()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+
+        var array = new[] { 1, 2, 3 };
+        var list = new StructList<int>(array);
+
+        // Insert into empty builder
+        builder.InsertRange(0, list);
+
+        Assert.Equal(3, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+    }
+
+    [Fact]
+    public void InsertRange_StructList_SimpleOverload_LargeCollection()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(0);
+
+        // Create a large array with more elements than inline capacity
+        var largeArray = new int[10];
+        for (var i = 0; i < largeArray.Length; i++)
+        {
+            largeArray[i] = i + 1;
+        }
+
+        var list = new StructList<int>(largeArray);
+        builder.InsertRange(1, list);
+
+        Assert.Equal(11, builder.Count);
+        Assert.Equal(0, builder[0]);
+        for (var i = 0; i < 10; i++)
+        {
+            Assert.Equal(i + 1, builder[i + 1]);
+        }
+
+        // Should be using builder
+        builder.Validate(t =>
+        {
+            Assert.Equal(0, t.InlineItemCount);
+            Assert.NotNull(t.InnerArrayBuilder);
+        });
+    }
+
+    [Fact]
+    public void InsertRange_StructList_EmptyCount()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(1);
+        builder.Add(2);
+
+        // Create a list with items
+        var array = new[] { 10, 20, 30 };
+        var list = new StructList<int>(array);
+
+        // Insert with count = 0
+        builder.InsertRange(1, list, 0, 0);
+
+        // Should not change the builder
+        Assert.Equal(2, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+    }
+
+    [Fact]
+    public void InsertRange_StructList_AtBeginning()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(3);
+        builder.Add(4);
+
+        // Insert at beginning
+        var array = new[] { 1, 2, 3 };
+        var list = new StructList<int>(array);
+        builder.InsertRange(0, list, 0, 2); // Insert first 2 items
+
+        Assert.Equal(4, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(4, builder[3]);
+    }
+
+    [Fact]
+    public void InsertRange_StructList_AtMiddle()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(1);
+        builder.Add(4);
+
+        // Insert in middle
+        var array = new[] { 10, 2, 3, 20 };
+        var list = new StructList<int>(array);
+        builder.InsertRange(1, list, 1, 2); // Insert items at index 1,2 (values 2,3)
+
+        Assert.Equal(4, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(4, builder[3]);
+    }
+
+    [Fact]
+    public void InsertRange_StructList_AtEnd()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(1);
+        builder.Add(2);
+
+        // Insert at end
+        var array = new[] { 0, 3, 4, 5 };
+        var list = new StructList<int>(array);
+        builder.InsertRange(2, list, 1, 2); // Insert items at index 1,2 (values 3,4)
+
+        Assert.Equal(4, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(4, builder[3]);
+    }
+
+    [Fact]
+    public void InsertRange_StructList_SingleItem()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(1);
+        builder.Add(3);
+
+        // Insert single item
+        var array = new[] { 0, 2, 4 };
+        var list = new StructList<int>(array);
+        builder.InsertRange(1, list, 1, 1); // Insert item at index 1 (value 2)
+
+        Assert.Equal(3, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+    }
+
+    [Fact]
+    public void InsertRange_StructList_WithinInlineCapacity()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+
+        // Add 2 items (less than inline capacity)
+        builder.Add(1);
+        builder.Add(4);
+
+        // Insert 2 more (still within inline capacity)
+        var array = new[] { 0, 2, 3, 5 };
+        var list = new StructList<int>(array);
+        builder.InsertRange(1, list, 1, 2); // Insert items at index 1,2 (values 2,3)
+
+        Assert.Equal(4, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(4, builder[3]);
+
+        // Verify still using inline storage
+        builder.Validate(t =>
+        {
+            Assert.Equal(4, t.InlineItemCount);
+            Assert.Null(t.InnerArrayBuilder);
+        });
+    }
+
+    [Fact]
+    public void InsertRange_StructList_TransitionToBuilder()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+
+        // Add items to reach inline capacity (which is 4)
+        builder.Add(1);
+        builder.Add(4);
+        builder.Add(5);
+        builder.Add(6);
+
+        // Verify using inline storage
+        builder.Validate(t =>
+        {
+            Assert.Equal(4, t.InlineItemCount);
+            Assert.Null(t.InnerArrayBuilder);
+        });
+
+        // Insert items that will cause transition to builder
+        var array = new[] { 0, 2, 3, 7 };
+        var list = new StructList<int>(array);
+        builder.InsertRange(1, list, 1, 2); // Insert items at index 1,2 (values 2,3)
+
+        Assert.Equal(6, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(4, builder[3]);
+        Assert.Equal(5, builder[4]);
+        Assert.Equal(6, builder[5]);
+
+        // Verify now using builder
+        builder.Validate(t =>
+        {
+            Assert.Equal(0, t.InlineItemCount);
+            Assert.NotNull(t.InnerArrayBuilder);
+        });
+    }
+
+    [Fact]
+    public void InsertRange_StructList_AlreadyUsingBuilder()
+    {
+        var builderPool = TestArrayBuilderPool<int>.Create();
+        using var builder = new PooledArrayBuilder<int>(capacity: 10, builderPool);
+
+        // Add enough items to ensure builder is used
+        for (var i = 0; i < 5; i++)
+        {
+            builder.Add(i * 2);
+        }
+
+        // Verify already using builder
+        builder.Validate(t =>
+        {
+            Assert.Equal(0, t.InlineItemCount);
+            Assert.NotNull(t.InnerArrayBuilder);
+        });
+
+        // Insert into builder
+        var array = new[] { 0, 3, 5, 7 };
+        var list = new StructList<int>(array);
+        builder.InsertRange(2, list, 1, 2); // Insert items at index 1,2 (values 3,5)
+
+        Assert.Equal(7, builder.Count);
+        Assert.Equal(0, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(5, builder[3]);
+        Assert.Equal(4, builder[4]);
+        Assert.Equal(6, builder[5]);
+        Assert.Equal(8, builder[6]);
+    }
+
+    [Fact]
+    public void InsertRange_StructList_EmptyBuilder()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+
+        var array = new[] { 1, 2, 3, 4 };
+        var list = new StructList<int>(array);
+        builder.InsertRange(0, list, 0, 3); // Insert first 3 items
+
+        Assert.Equal(3, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+
+        // Should use inline storage
+        builder.Validate(t =>
+        {
+            Assert.Equal(3, t.InlineItemCount);
+            Assert.Null(t.InnerArrayBuilder);
+        });
+    }
+
+    [Fact]
+    public void InsertRange_StructList_PartialRange()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(1);
+        builder.Add(5);
+
+        // Insert from middle of source
+        var array = new[] { 10, 20, 2, 3, 4, 30, 40 };
+        var list = new StructList<int>(array);
+        builder.InsertRange(1, list, 2, 3); // Insert 3 items starting at index 2 (values 2,3,4)
+
+        Assert.Equal(5, builder.Count);
+        Assert.Equal(1, builder[0]);
+        Assert.Equal(2, builder[1]);
+        Assert.Equal(3, builder[2]);
+        Assert.Equal(4, builder[3]);
+        Assert.Equal(5, builder[4]);
+    }
+
+    [Fact]
+    public void InsertRange_StructList_LargeCollection()
+    {
+        using var builder = new PooledArrayBuilder<int>();
+        builder.Add(0);
+
+        // Create a large array with more elements than inline capacity
+        var largeArray = new int[12];
+        for (var i = 0; i < largeArray.Length; i++)
+        {
+            largeArray[i] = i + 1;
+        }
+
+        var list = new StructList<int>(largeArray);
+        builder.InsertRange(1, list, 0, 10);
+
+        Assert.Equal(11, builder.Count);
+        Assert.Equal(0, builder[0]);
+        for (var i = 0; i < 10; i++)
+        {
+            Assert.Equal(i + 1, builder[i + 1]);
+        }
+
+        // Should be using builder
         builder.Validate(t =>
         {
             Assert.Equal(0, t.InlineItemCount);
