@@ -1,14 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Threading;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.GoToDefinition;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -107,13 +106,15 @@ internal sealed class DefinitionEndpoint(
         // Not using .TryGetXXX because this does the null check for us too
         if (result is LspLocation location)
         {
-            (location.DocumentUri, location.Range) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(location.DocumentUri, location.Range, cancellationToken).ConfigureAwait(false);
+            (var documentUri, location.Range) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(location.DocumentUri.GetRequiredParsedUri(), location.Range, cancellationToken).ConfigureAwait(false);
+            location.DocumentUri = new DocumentUri(documentUri);
         }
         else if (result is LspLocation[] locations)
         {
             foreach (var loc in locations)
             {
-                (loc.DocumentUri, loc.Range) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(loc.DocumentUri, loc.Range, cancellationToken).ConfigureAwait(false);
+                (var documentUri, loc.Range) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(loc.DocumentUri.GetRequiredParsedUri(), loc.Range, cancellationToken).ConfigureAwait(false);
+                loc.DocumentUri = new DocumentUri(documentUri);
             }
         }
         else if (result is DocumentLink[] links)
@@ -122,7 +123,8 @@ internal sealed class DefinitionEndpoint(
             {
                 if (link.DocumentTarget is not null)
                 {
-                    (link.DocumentTarget, link.Range) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(link.DocumentTarget, link.Range, cancellationToken).ConfigureAwait(false);
+                    (var documentTarget, link.Range) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(link.DocumentTarget.GetRequiredParsedUri(), link.Range, cancellationToken).ConfigureAwait(false);
+                    link.DocumentTarget = new DocumentUri(documentTarget);
                 }
             }
         }

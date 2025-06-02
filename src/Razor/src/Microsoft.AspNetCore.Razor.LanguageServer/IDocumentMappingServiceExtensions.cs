@@ -16,9 +16,9 @@ internal static class IDocumentMappingServiceExtensions
     /// generated document. If the uri passed in is not for a generated document, or the range cannot be mapped
     /// for some other reason, the original passed in range is returned unchanged.
     /// </summary>
-    public static Task<(DocumentUri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(
+    public static Task<(Uri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(
         this IDocumentMappingService service,
-        DocumentUri generatedDocumentUri,
+        Uri generatedDocumentUri,
         LinePositionSpan generatedDocumentRange,
         CancellationToken cancellationToken)
     {
@@ -27,7 +27,7 @@ internal static class IDocumentMappingServiceExtensions
             return lspService.MapToHostDocumentUriAndRangeAsync(generatedDocumentUri, generatedDocumentRange, cancellationToken);
         }
 
-        return Assumed.Unreachable<Task<(DocumentUri, LinePositionSpan)>>();
+        return Assumed.Unreachable<Task<(Uri, LinePositionSpan)>>();
     }
 
     /// <summary>
@@ -35,9 +35,9 @@ internal static class IDocumentMappingServiceExtensions
     /// generated document. If the uri passed in is not for a generated document, or the range cannot be mapped
     /// for some other reason, the original passed in range is returned unchanged.
     /// </summary>
-    public static async Task<(DocumentUri MappedDocumentUri, LspRange MappedRange)> MapToHostDocumentUriAndRangeAsync(
+    public static async Task<(Uri MappedDocumentUri, LspRange MappedRange)> MapToHostDocumentUriAndRangeAsync(
         this IDocumentMappingService service,
-        DocumentUri generatedDocumentUri,
+        Uri generatedDocumentUri,
         LspRange generatedDocumentRange,
         CancellationToken cancellationToken)
     {

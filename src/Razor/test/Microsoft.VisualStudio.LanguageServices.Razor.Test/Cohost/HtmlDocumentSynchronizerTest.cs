@@ -64,7 +64,7 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
         Assert.True(syncResult.Synchronized);
 
         // "Close" the document
-        synchronizer.DocumentRemoved(document.CreateDocumentUri(), DisposalToken);
+        synchronizer.DocumentRemoved(document.CreateUri(), DisposalToken);
 
         Assert.True((await synchronizer.TrySynchronizeAsync(document, DisposalToken)).Synchronized);
 

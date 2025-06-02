@@ -419,11 +419,12 @@ internal sealed class MapCodeEndpoint(
         return true;
 
         async Task<bool> TryProcessEditAsync(
-            DocumentUri generatedUri,
+            DocumentUri generatedDocumentUri,
             IEnumerable<SumType<TextEdit, AnnotatedTextEdit>> textEdits,
             List<TextDocumentEdit> csharpChanges,
             CancellationToken cancellationToken)
         {
+            var generatedUri = generatedDocumentUri.GetRequiredParsedUri();
             foreach (var documentEdit in textEdits.Select(e => (TextEdit)e))
             {
                 var (hostDocumentUri, hostDocumentRange) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(
@@ -438,7 +439,7 @@ internal sealed class MapCodeEndpoint(
 
                 var textDocumentEdit = new TextDocumentEdit
                 {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = hostDocumentUri },
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new DocumentUri(hostDocumentUri) },
                     Edits = [textEdit]
                 };
 

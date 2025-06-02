@@ -113,14 +113,13 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
                 continue;
             }
 
-            var (itemDocumentUri, mappedRange) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(referenceItem.Location.DocumentUri, referenceItem.Location.Range, cancellationToken).ConfigureAwait(false);
-            var itemUri = itemDocumentUri.GetRequiredParsedUri();
+            var (itemUri, mappedRange) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(referenceItem.Location.DocumentUri.GetRequiredParsedUri(), referenceItem.Location.Range, cancellationToken).ConfigureAwait(false);
 
-            referenceItem.Location.DocumentUri = itemDocumentUri;
+            referenceItem.Location.DocumentUri = new DocumentUri(itemUri);
             referenceItem.DisplayPath = itemUri.AbsolutePath;
             referenceItem.Location.Range = mappedRange;
 
-            var fixedResultText = await FindAllReferencesHelper.GetResultTextAsync(_documentMappingService, _projectSnapshotManager.GetQueryOperations(), mappedRange.Start.Line, itemDocumentUri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
+            var fixedResultText = await FindAllReferencesHelper.GetResultTextAsync(_documentMappingService, _projectSnapshotManager.GetQueryOperations(), mappedRange.Start.Line, itemUri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
             referenceItem.Text = fixedResultText ?? referenceItem.Text;
 
             remappedLocations.Add(referenceItem);
