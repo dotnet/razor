@@ -21,10 +21,9 @@ internal sealed class VSCodeFilePathService(LanguageServerFeatureOptions options
             throw new InvalidOperationException("Can not get a Razor document from a generated document Uri in cohosting");
         }
 
-        var virtualUri = virtualDocumentUri;
-        if (virtualUri.Scheme == "razor-html")
+        if (virtualDocumentUri.Scheme == "razor-html")
         {
-            var builder = new UriBuilder(virtualUri);
+            var builder = new UriBuilder(virtualDocumentUri);
             builder.Scheme = Uri.UriSchemeFile;
             return base.GetRazorDocumentUri(builder.Uri);
         }

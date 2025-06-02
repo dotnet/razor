@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -107,7 +108,7 @@ public class CohostRangeFormattingEndpointTest(HtmlFormattingFixture htmlFormatt
             DisposalToken).ConfigureAwait(false);
         Assert.NotNull(generatedHtml);
 
-        var uri = new DocumentUri($"{document.FilePath}{FeatureOptions.HtmlVirtualDocumentSuffix}");
+        var uri = new Uri($"{document.FilePath}{FeatureOptions.HtmlVirtualDocumentSuffix}");
         var htmlEdits = await htmlFormattingFixture.Service.GetDocumentFormattingEditsAsync(LoggerFactory, uri, generatedHtml, insertSpaces: true, tabSize: 4);
 
         var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentFormattingName, htmlEdits)]);

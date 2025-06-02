@@ -24,7 +24,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Xunit.Abstractions;
-using LspServices = Microsoft.AspNetCore.Razor.LanguageServer.LspServices;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 

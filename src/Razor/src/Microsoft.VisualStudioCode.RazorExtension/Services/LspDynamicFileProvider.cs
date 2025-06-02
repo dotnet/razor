@@ -63,7 +63,7 @@ internal sealed partial class LspDynamicFileProvider(
             checksum,
             response.ChecksumAlgorithm,
             response.SourceEncodingCodePage,
-            razorUri,
+            razorUri.GetRequiredParsedUri(),
             _clientLanguageServerManager);
 
         return new RazorDynamicFileInfo(

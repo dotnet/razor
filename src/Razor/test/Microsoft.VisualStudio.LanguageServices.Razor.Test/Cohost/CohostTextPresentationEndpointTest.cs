@@ -33,7 +33,7 @@ public class CohostTextPresentationEndpointTest(ITestOutputHelper testOutputHelp
                     {
                         TextDocument = new()
                         {
-                            DocumentUri = FileUri("File1.razor.g.html")
+                            DocumentUri = new DocumentUri(FileUri("File1.razor.g.html"))
                         },
                         Edits = [LspFactory.CreateTextEdit(position: (0, 0), "Hello World")]
                     }

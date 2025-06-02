@@ -302,7 +302,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         return solution.GetAdditionalDocument(documentId).AssumeNotNull();
     }
 
-    internal static DocumentUri FileUri(string projectRelativeFileName)
+    internal static Uri FileUri(string projectRelativeFileName)
         => new(FilePath(projectRelativeFileName));
 
     protected static string FilePath(string projectRelativeFileName)

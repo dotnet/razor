@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -35,7 +36,7 @@ internal class FormattingLanguageServerClient(HtmlFormattingService htmlFormatti
     {
         var generatedHtml = GetGeneratedHtml(@params.TextDocument.DocumentUri);
 
-        var edits = await _htmlFormattingService.GetOnTypeFormattingEditsAsync(_loggerFactory, @params.TextDocument.DocumentUri, generatedHtml, @params.Position, @params.Options.InsertSpaces, @params.Options.TabSize);
+        var edits = await _htmlFormattingService.GetOnTypeFormattingEditsAsync(_loggerFactory, @params.TextDocument.DocumentUri.GetRequiredParsedUri(), generatedHtml, @params.Position, @params.Options.InsertSpaces, @params.Options.TabSize);
 
         return new()
         {
@@ -47,7 +48,7 @@ internal class FormattingLanguageServerClient(HtmlFormattingService htmlFormatti
     {
         var generatedHtml = GetGeneratedHtml(@params.TextDocument.DocumentUri);
 
-        var edits = await _htmlFormattingService.GetDocumentFormattingEditsAsync(_loggerFactory, @params.TextDocument.DocumentUri, generatedHtml, @params.Options.InsertSpaces, @params.Options.TabSize);
+        var edits = await _htmlFormattingService.GetDocumentFormattingEditsAsync(_loggerFactory, @params.TextDocument.DocumentUri.GetRequiredParsedUri(), generatedHtml, @params.Options.InsertSpaces, @params.Options.TabSize);
 
         return new()
         {

@@ -37,7 +37,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         int childActionIndex = 0,
         RazorFileKind? fileKind = null,
         (string filePath, string contents)[]? additionalFiles = null,
-        (DocumentUri fileUri, string contents)[]? additionalExpectedFiles = null)
+        (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
     {
         var document = CreateRazorDocument(input, fileKind, additionalFiles);
 
@@ -160,7 +160,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         return result;
     }
 
-    private async Task VerifyCodeActionResultAsync(TextDocument document, WorkspaceEdit workspaceEdit, string? expected, (DocumentUri fileUri, string contents)[]? additionalExpectedFiles = null)
+    private async Task VerifyCodeActionResultAsync(TextDocument document, WorkspaceEdit workspaceEdit, string? expected, (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
     {
         var solution = document.Project.Solution;
         var validated = false;
@@ -173,8 +173,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
                 if (sumType.Value is CreateFile createFile)
                 {
                     validated = true;
-                    // TODO(toddgrun): switch back to == when roslyn implementation of DocumentUri.operator== is available on ci
-                    Assert.Single(additionalExpectedFiles.AssumeNotNull(), f => f.fileUri.Equals(createFile.DocumentUri));
+                    Assert.Single(additionalExpectedFiles.AssumeNotNull(), f => f.fileUri == createFile.DocumentUri.GetRequiredParsedUri());
                     var documentId = DocumentId.CreateNewId(document.Project.Id);
                     var filePath = createFile.DocumentUri.GetDocumentFilePath();
                     var documentInfo = DocumentInfo.Create(documentId, filePath, filePath: filePath);

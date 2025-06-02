@@ -30,8 +30,7 @@ internal partial class RazorCustomMessageTarget
         }
 
         var hostDocumentUri = inlineCompletionParams.TextDocument.DocumentUri;
-        var hostUri = hostDocumentUri.GetRequiredParsedUri();
-        if (!_documentManager.TryGetDocument(hostUri, out var documentSnapshot))
+        if (!_documentManager.TryGetDocument(hostDocumentUri.GetRequiredParsedUri(), out var documentSnapshot))
         {
             return null;
         }
