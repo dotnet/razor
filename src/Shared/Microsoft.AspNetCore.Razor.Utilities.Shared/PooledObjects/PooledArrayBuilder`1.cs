@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
@@ -254,28 +254,10 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     }
 
     public void Add(T item)
-    {
-        if (TryGetBuilderAndEnsureCapacity(out var builder))
-        {
-            builder.Add(item);
-        }
-        else if (_inlineCount < InlineCapacity)
-        {
-            SetInlineElement(_inlineCount, item);
-            _inlineCount++;
-        }
-        else
-        {
-            Debug.Assert(_inlineCount == InlineCapacity);
-            MoveInlineItemsToBuilder();
-            _builder.Add(item);
-        }
-    }
+        => Insert(Count, item);
 
     public void AddRange(ImmutableArray<T> items)
-    {
-        AddRange(items.AsSpan());
-    }
+        => InsertRange(Count, items);
 
     // Necessary to avoid conflict with AddRange(IEnumerable<T>) and AddRange(ReadOnlySpan<T>).
     public void AddRange(T[] items)
@@ -323,9 +305,11 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
             return;
         }
 
+        var (start, end) = (index, index + count - 1);
+
         if (TryGetBuilderAndEnsureCapacity(out var builder))
         {
-            for (var i = index; i < count; i++)
+            for (var i = start; i <= end; i++)
             {
                 builder.Add(list[i]);
             }
@@ -335,7 +319,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
         if (_inlineCount + count <= InlineCapacity)
         {
-            for (var i = index; i < count; i++)
+            for (var i = start; i <= end; i++)
             {
                 SetInlineElement(_inlineCount, list[i]);
                 _inlineCount++;
@@ -345,7 +329,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         {
             MoveInlineItemsToBuilder();
 
-            for (var i = index; i < count; i++)
+            for (var i = start; i <= end; i++)
             {
                 _builder.Add(list[i]);
             }
@@ -353,46 +337,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     }
 
     public void AddRange(IEnumerable<T> items)
-    {
-        if (TryGetBuilderAndEnsureCapacity(out var builder))
-        {
-            builder.AddRange(items);
-            return;
-        }
-
-        if (!items.TryGetCount(out var count))
-        {
-            // We couldn't retrieve a count, so we have to enumerate the elements.
-            foreach (var item in items)
-            {
-                Add(item);
-            }
-
-            return;
-        }
-
-        if (count == 0)
-        {
-            // No items, so there's nothing to do.
-            return;
-        }
-
-        if (_inlineCount + count <= InlineCapacity)
-        {
-            // The items can fit into our inline elements.
-            foreach (var item in items)
-            {
-                SetInlineElement(_inlineCount, item);
-                _inlineCount++;
-            }
-        }
-        else
-        {
-            // The items can't fit into our inline elements, so we switch to a builder.
-            MoveInlineItemsToBuilder();
-            _builder.AddRange(items);
-        }
-    }
+        => InsertRange(Count, items);
 
     public void Clear()
     {
