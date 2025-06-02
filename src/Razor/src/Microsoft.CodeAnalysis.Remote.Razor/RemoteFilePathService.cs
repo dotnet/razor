@@ -4,7 +4,6 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 [method: ImportingConstructor]
 internal sealed class RemoteFilePathService(LanguageServerFeatureOptions options) : AbstractFilePathService(options)
 {
-    public override DocumentUri GetRazorDocumentUri(DocumentUri virtualDocumentUri)
+    public override Uri GetRazorDocumentUri(Uri virtualDocumentUri)
     {
         if (IsVirtualCSharpFile(virtualDocumentUri))
         {
@@ -23,6 +22,6 @@ internal sealed class RemoteFilePathService(LanguageServerFeatureOptions options
         return base.GetRazorDocumentUri(virtualDocumentUri);
     }
 
-    public override bool IsVirtualCSharpFile(DocumentUri uri)
-        => RazorUri.IsGeneratedDocumentUri(uri.GetRequiredParsedUri());
+    public override bool IsVirtualCSharpFile(Uri uri)
+        => RazorUri.IsGeneratedDocumentUri(uri);
 }

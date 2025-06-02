@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Testing;
@@ -132,7 +133,7 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
             Position = codeDocument.Source.Text.GetPosition(cursorPosition)
         };
 
-        var documentContext = CreateDocumentContext(request.TextDocument.DocumentUri, codeDocument);
+        var documentContext = CreateDocumentContext(request.TextDocument.DocumentUri.GetRequiredParsedUri(), codeDocument);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act

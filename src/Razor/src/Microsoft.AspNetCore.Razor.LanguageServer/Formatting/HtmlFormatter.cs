@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
@@ -22,7 +21,7 @@ internal sealed class HtmlFormatter(
 
     public async Task<ImmutableArray<TextChange>?> GetDocumentFormattingEditsAsync(
         IDocumentSnapshot documentSnapshot,
-        DocumentUri uri,
+        Uri uri,
         FormattingOptions options,
         CancellationToken cancellationToken)
     {
@@ -30,7 +29,7 @@ internal sealed class HtmlFormatter(
         {
             TextDocument = new TextDocumentIdentifier
             {
-                DocumentUri = uri,
+                DocumentUri = new DocumentUri(uri),
             },
             HostDocumentVersion = documentSnapshot.Version,
             Options = options
@@ -52,7 +51,7 @@ internal sealed class HtmlFormatter(
 
     public async Task<ImmutableArray<TextChange>?> GetOnTypeFormattingEditsAsync(
         IDocumentSnapshot documentSnapshot,
-        DocumentUri uri,
+        Uri uri,
         Position position,
         string triggerCharacter,
         FormattingOptions options,
@@ -62,7 +61,7 @@ internal sealed class HtmlFormatter(
         {
             Position = position,
             Character = triggerCharacter.ToString(),
-            TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = new DocumentUri(uri) },
             Options = options,
             HostDocumentVersion = documentSnapshot.Version,
         };

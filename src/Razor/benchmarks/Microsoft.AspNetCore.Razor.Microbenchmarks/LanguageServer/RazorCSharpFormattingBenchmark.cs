@@ -28,7 +28,7 @@ public class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
 
     private IRazorFormattingService RazorFormattingService { get; set; }
 
-    private DocumentUri DocumentUri { get; set; }
+    private Uri DocumentUri { get; set; }
 
     private IDocumentSnapshot DocumentSnapshot { get; set; }
 
@@ -56,7 +56,7 @@ public class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
 
         var targetPath = "/Components/Pages/Generated.razor";
 
-        DocumentUri = new DocumentUri(_filePath);
+        DocumentUri = new Uri(_filePath);
         DocumentSnapshot = await GetDocumentSnapshotAsync(projectFilePath, _filePath, targetPath);
         DocumentText = await DocumentSnapshot.GetTextAsync(CancellationToken.None);
     }

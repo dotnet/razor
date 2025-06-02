@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -9,11 +10,11 @@ internal interface IFilePathService
 {
     string GetRazorCSharpFilePath(ProjectKey projectKey, string razorFilePath);
 
-    DocumentUri GetRazorDocumentUri(DocumentUri virtualDocumentUri);
+    Uri GetRazorDocumentUri(Uri virtualDocumentUri);
 
-    bool IsVirtualCSharpFile(DocumentUri uri);
+    bool IsVirtualCSharpFile(Uri uri);
 
-    bool IsVirtualDocumentUri(DocumentUri uri);
+    bool IsVirtualDocumentUri(Uri uri);
 
-    bool IsVirtualHtmlFile(DocumentUri uri);
+    bool IsVirtualHtmlFile(Uri uri);
 }

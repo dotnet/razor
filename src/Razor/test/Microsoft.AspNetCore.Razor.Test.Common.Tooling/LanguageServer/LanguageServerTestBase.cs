@@ -94,19 +94,19 @@ public abstract class LanguageServerTestBase(ITestOutputHelper testOutput) : Too
         return projectEngine.ProcessDesignTime(sourceDocument, fileKind, [defaultImportDocument], tagHelpers);
     }
 
-    private protected static IDocumentContextFactory CreateDocumentContextFactory(DocumentUri documentPath, string sourceText)
+    private protected static IDocumentContextFactory CreateDocumentContextFactory(Uri documentPath, string sourceText)
     {
         var codeDocument = CreateCodeDocument(sourceText);
         return CreateDocumentContextFactory(documentPath, codeDocument);
     }
 
-    private protected static DocumentContext CreateDocumentContext(DocumentUri documentPath, RazorCodeDocument codeDocument)
+    private protected static DocumentContext CreateDocumentContext(Uri documentPath, RazorCodeDocument codeDocument)
     {
         return TestDocumentContext.Create(documentPath.GetAbsoluteOrUNCPath(), codeDocument);
     }
 
     private protected static IDocumentContextFactory CreateDocumentContextFactory(
-        DocumentUri documentPath,
+        Uri documentPath,
         RazorCodeDocument codeDocument,
         bool documentFound = true)
     {
@@ -117,7 +117,7 @@ public abstract class LanguageServerTestBase(ITestOutputHelper testOutput) : Too
         return documentContextFactory;
     }
 
-    private protected static DocumentContext CreateDocumentContext(DocumentUri uri, IDocumentSnapshot snapshot)
+    private protected static DocumentContext CreateDocumentContext(Uri uri, IDocumentSnapshot snapshot)
     {
         return new DocumentContext(uri, snapshot, projectContext: null);
     }

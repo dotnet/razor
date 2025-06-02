@@ -53,7 +53,7 @@ internal class DocumentFormattingEndpoint(
 
         if (await _htmlFormatter.GetDocumentFormattingEditsAsync(
             documentContext.Snapshot,
-            documentContext.DocumentUri,
+            documentContext.Uri,
             request.Options,
             cancellationToken).ConfigureAwait(false) is not { } htmlChanges)
         {

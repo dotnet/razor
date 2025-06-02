@@ -84,7 +84,7 @@
     </Dependency>
     <Dependency Name="Microsoft.CodeAnalysis.Analyzers" Version="3.12.0-beta1.25230.6">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>392fbb66a16ca3d34abdfa93cc5a3717f447d25e</Sha>
+      <Sha>ded867328249b5a9b9e6e29e3f07abc19111f5d1</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>

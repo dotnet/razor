@@ -28,7 +28,7 @@ internal class AddUsingsCodeActionResolver : IRazorCodeActionResolver
         var documentSnapshot = documentContext.Snapshot;
 
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentContext.DocumentUri };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new DocumentUri(documentContext.Uri) };
 
         return AddUsingsHelper.CreateAddUsingWorkspaceEdit(actionParams.Namespace, actionParams.AdditionalEdit, codeDocument, codeDocumentIdentifier);
     }

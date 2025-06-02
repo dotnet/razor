@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -240,7 +241,7 @@ public class DefinitionEndpointDelegationTest(ITestOutputHelper testOutput) : Si
         var componentSearchEngine = new RazorComponentSearchEngine(LoggerFactory);
         var componentDefinitionService = new RazorComponentDefinitionService(componentSearchEngine, DocumentMappingService, LoggerFactory);
 
-        var razorUri = new DocumentUri(razorFilePath);
+        var razorUri = new Uri(razorFilePath);
         Assert.True(DocumentContextFactory.TryCreate(razorUri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 

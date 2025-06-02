@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -42,7 +43,7 @@ internal sealed class RazorRequestContextFactory(
 
                 _logger.LogDebug($"Trying to create DocumentContext for {queueItem.MethodName}, with no project context, for {uri}");
 
-                _documentContextFactory.TryCreate(uri, out documentContext);
+                _documentContextFactory.TryCreate(uri.GetRequiredParsedUri(), out documentContext);
             }
             else
             {

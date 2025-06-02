@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -19,7 +20,7 @@ public partial class OnAutoInsertEndpointTest
         // Arrange
         var codeDocument = CreateCodeDocument();
         var razorFilePath = "file://path/test.razor";
-        var uri = new DocumentUri(razorFilePath);
+        var uri = new Uri(razorFilePath);
         await using var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var optionsMonitor = GetOptionsMonitor();
@@ -35,7 +36,7 @@ public partial class OnAutoInsertEndpointTest
             LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = uri, },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = new DocumentUri(uri), },
             Position = LspFactory.DefaultPosition,
             Character = ">",
             Options = new FormattingOptions
@@ -61,7 +62,7 @@ public partial class OnAutoInsertEndpointTest
         // Arrange
         var codeDocument = CreateCodeDocument();
         var razorFilePath = "file://path/test.razor";
-        var uri = new DocumentUri(razorFilePath);
+        var uri = new Uri(razorFilePath);
         await using var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var optionsMonitor = GetOptionsMonitor();
@@ -84,7 +85,7 @@ public partial class OnAutoInsertEndpointTest
             LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = uri, },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = new DocumentUri(uri), },
             Position = LspFactory.DefaultPosition,
             Character = ">",
             Options = new FormattingOptions
@@ -113,7 +114,7 @@ public partial class OnAutoInsertEndpointTest
         // Arrange
         var codeDocument = CreateCodeDocument();
         var razorFilePath = "file://path/test.razor";
-        var uri = new DocumentUri(razorFilePath);
+        var uri = new Uri(razorFilePath);
         await using var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var optionsMonitor = GetOptionsMonitor();
@@ -136,7 +137,7 @@ public partial class OnAutoInsertEndpointTest
             LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = uri, },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = new DocumentUri(uri), },
             Position = LspFactory.DefaultPosition,
             Character = ">",
             Options = new FormattingOptions
@@ -164,7 +165,7 @@ public partial class OnAutoInsertEndpointTest
         // Arrange
         var codeDocument = CreateCodeDocument();
         var razorFilePath = "file://path/test.razor";
-        var uri = new DocumentUri(razorFilePath);
+        var uri = new Uri(razorFilePath);
         await using var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var optionsMonitor = GetOptionsMonitor();
@@ -180,7 +181,7 @@ public partial class OnAutoInsertEndpointTest
             LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = uri, },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = new DocumentUri(uri), },
             Position = LspFactory.DefaultPosition,
             Character = ">",
             Options = new FormattingOptions
@@ -206,7 +207,7 @@ public partial class OnAutoInsertEndpointTest
         // Arrange
         var codeDocument = CreateCodeDocument();
         var razorFilePath = "file://path/test.razor";
-        var uri = new DocumentUri(razorFilePath);
+        var uri = new Uri(razorFilePath);
         await using var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var optionsMonitor = GetOptionsMonitor(formatOnType: false);
@@ -222,7 +223,7 @@ public partial class OnAutoInsertEndpointTest
             LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = uri, },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = new DocumentUri(uri), },
             Position = LspFactory.DefaultPosition,
             Character = "=",
             Options = new FormattingOptions
@@ -246,7 +247,7 @@ public partial class OnAutoInsertEndpointTest
         // Arrange
         var codeDocument = CreateCodeDocument();
         var razorFilePath = "file://path/test.razor";
-        var uri = new DocumentUri(razorFilePath);
+        var uri = new Uri(razorFilePath);
         await using var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var optionsMonitor = GetOptionsMonitor(autoInsertAttributeQuotes: false);
@@ -262,7 +263,7 @@ public partial class OnAutoInsertEndpointTest
             LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = uri, },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = new DocumentUri(uri), },
             Position = LspFactory.DefaultPosition,
             Character = "=",
             Options = new FormattingOptions

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -46,7 +47,7 @@ internal class CreateComponentCodeActionResolver(LanguageServerFeatureOptions la
         var newComponentUri = LspFactory.CreateFilePathUri(updatedPath);
 
         using var documentChanges = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
-        documentChanges.Add(new CreateFile() { DocumentUri = newComponentUri });
+        documentChanges.Add(new CreateFile() { DocumentUri = new DocumentUri(newComponentUri) });
 
         TryAddNamespaceDirective(codeDocument, newComponentUri, ref documentChanges.AsRef());
 
@@ -56,7 +57,7 @@ internal class CreateComponentCodeActionResolver(LanguageServerFeatureOptions la
         };
     }
 
-    private static void TryAddNamespaceDirective(RazorCodeDocument codeDocument, DocumentUri newComponentUri, ref PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges)
+    private static void TryAddNamespaceDirective(RazorCodeDocument codeDocument, Uri newComponentUri, ref PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges)
     {
         var syntaxTree = codeDocument.GetSyntaxTree();
         var namespaceDirective = syntaxTree.Root.DescendantNodes()
@@ -66,7 +67,7 @@ internal class CreateComponentCodeActionResolver(LanguageServerFeatureOptions la
 
         if (namespaceDirective != null)
         {
-            var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = newComponentUri };
+            var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new DocumentUri(newComponentUri) };
             documentChanges.Add(new TextDocumentEdit
             {
                 TextDocument = documentIdentifier,

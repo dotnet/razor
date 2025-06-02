@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -24,7 +25,7 @@ public class TextDocumentTextPresentationEndpointTests(ITestOutputHelper testOut
 
         var codeDocument = CreateCodeDocument(code.Text);
 
-        var uri = new DocumentUri("file://path/test.razor");
+        var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
 
         var clientConnection = CreateClientConnection(response: null, verifiable: true);
@@ -32,7 +33,7 @@ public class TextDocumentTextPresentationEndpointTests(ITestOutputHelper testOut
 
         var parameters = new TextPresentationParams()
         {
-            TextDocument = new() { DocumentUri = uri },
+            TextDocument = new() { DocumentUri = new DocumentUri(uri) },
             Range = codeDocument.Source.Text.GetRange(code.Span),
             Text = "Hi there"
         };
@@ -54,7 +55,7 @@ public class TextDocumentTextPresentationEndpointTests(ITestOutputHelper testOut
 
         var codeDocument = CreateCodeDocument(code.Text);
 
-        var uri = new DocumentUri("file://path/test.razor");
+        var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
 
         var clientConnection = StrictMock.Of<IClientConnection>();
@@ -62,7 +63,7 @@ public class TextDocumentTextPresentationEndpointTests(ITestOutputHelper testOut
 
         var parameters = new TextPresentationParams()
         {
-            TextDocument = new() { DocumentUri = uri },
+            TextDocument = new() { DocumentUri = new DocumentUri(uri) },
             Range = codeDocument.Source.Text.GetRange(code.Span),
             Text = "Hi there"
         };
@@ -84,7 +85,7 @@ public class TextDocumentTextPresentationEndpointTests(ITestOutputHelper testOut
         TestCode code = "<[|d|]iv></div>";
 
         var codeDocument = CreateCodeDocument(code.Text);
-        var uri = new DocumentUri("file://path/test.razor");
+        var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
 
         var clientConnection = CreateClientConnection(response: null);
@@ -92,7 +93,7 @@ public class TextDocumentTextPresentationEndpointTests(ITestOutputHelper testOut
 
         var parameters = new TextPresentationParams()
         {
-            TextDocument = new() { DocumentUri = uri },
+            TextDocument = new() { DocumentUri = new DocumentUri(uri) },
             Range = codeDocument.Source.Text.GetRange(code.Span),
             Text = "Hi there"
         };

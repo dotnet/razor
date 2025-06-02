@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Xunit;
@@ -15,7 +16,7 @@ public class DocumentRangeFormattingEndpointTest(ITestOutputHelper testOutput) :
     {
         // Arrange
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
-        var uri = new DocumentUri("file://path/test.razor");
+        var uri = new Uri("file://path/test.razor");
 
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var formattingService = new DummyRazorFormattingService();
@@ -26,7 +27,7 @@ public class DocumentRangeFormattingEndpointTest(ITestOutputHelper testOutput) :
             formattingService, htmlFormatter, optionsMonitor);
         var @params = new DocumentRangeFormattingParams()
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = uri, },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = new DocumentUri(uri), },
             Options = new FormattingOptions(),
             Range = LspFactory.DefaultRange
         };

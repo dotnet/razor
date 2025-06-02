@@ -25,7 +25,7 @@ public static class TestPathUtilities
         return result;
     }
 
-    internal static DocumentUri GetUri(params string[] parts)
+    internal static Uri GetUri(params string[] parts)
     {
         return new($"{Uri.UriSchemeFile}{Uri.SchemeDelimiter}{Path.Combine(parts)}");
     }

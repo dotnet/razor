@@ -36,10 +36,11 @@ internal class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : IRazorCo
 
         var importsFileName = PromoteUsingCodeActionProvider.GetImportsFileName(documentContext.FileKind);
 
-        var file = FilePathNormalizer.Normalize(documentContext.DocumentUri.GetAbsoluteOrUNCPath());
+        var file = FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath());
         var folder = Path.GetDirectoryName(file).AssumeNotNull();
         var importsFile = Path.GetFullPath(Path.Combine(folder, "..", importsFileName));
         var importFileUri = LspFactory.CreateFilePathUri(importsFile);
+        var importFileDocumentUri = new DocumentUri(importFileUri);
 
         using var edits = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
 
@@ -47,7 +48,7 @@ internal class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : IRazorCo
         var insertLocation = new LinePosition(0, 0);
         if (!_fileSystem.FileExists(importsFile))
         {
-            edits.Add(new CreateFile() { DocumentUri = importFileUri });
+            edits.Add(new CreateFile() { DocumentUri = importFileDocumentUri });
         }
         else
         {
@@ -65,7 +66,7 @@ internal class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : IRazorCo
 
         edits.Add(new TextDocumentEdit
         {
-            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = importFileUri },
+            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = importFileDocumentUri },
             Edits = [LspFactory.CreateTextEdit(insertLocation, textToInsert)]
         });
 
@@ -73,7 +74,7 @@ internal class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : IRazorCo
 
         edits.Add(new TextDocumentEdit
         {
-            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentContext.DocumentUri },
+            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new DocumentUri(documentContext.Uri) },
             Edits = [LspFactory.CreateTextEdit(removeRange, string.Empty)]
         });
 

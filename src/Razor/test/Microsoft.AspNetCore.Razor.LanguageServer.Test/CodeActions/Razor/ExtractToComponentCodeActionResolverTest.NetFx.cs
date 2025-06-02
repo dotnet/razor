@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -285,7 +286,7 @@ public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutp
         var componentFilePath = "C:/path/to/Component.razor";
         var codeDocument = CreateCodeDocument(input, filePath: razorFilePath);
         var sourceText = codeDocument.Source.Text;
-        var uri = new DocumentUri(razorFilePath);
+        var uri = new Uri(razorFilePath);
         await using var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var requestContext = new RazorRequestContext(documentContext, null!, "lsp/method", uri: null);

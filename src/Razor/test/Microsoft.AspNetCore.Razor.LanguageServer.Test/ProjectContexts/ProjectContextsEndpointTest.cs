@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectContexts;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -37,7 +38,7 @@ public class ProjectContextsEndpointTest(ITestOutputHelper testOutput) : SingleS
             }
         };
 
-        Assert.True(DocumentContextFactory.TryCreate(request.TextDocument.DocumentUri, out var documentContext));
+        Assert.True(DocumentContextFactory.TryCreate(request.TextDocument.DocumentUri.GetRequiredParsedUri(), out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
         var results = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);

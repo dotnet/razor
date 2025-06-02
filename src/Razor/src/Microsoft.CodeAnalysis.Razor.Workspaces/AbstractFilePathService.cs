@@ -4,7 +4,6 @@
 using System;
 using System.Diagnostics;
 using System.Text;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -16,24 +15,24 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
     public string GetRazorCSharpFilePath(ProjectKey projectKey, string razorFilePath)
         => GetGeneratedFilePath(projectKey, razorFilePath, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
 
-    public virtual DocumentUri GetRazorDocumentUri(DocumentUri virtualDocumentUri)
+    public virtual Uri GetRazorDocumentUri(Uri virtualDocumentUri)
     {
-        var uriPath = virtualDocumentUri.GetRequiredParsedUri().AbsoluteUri;
+        var uriPath = virtualDocumentUri.AbsoluteUri;
         var razorFilePath = GetRazorFilePath(uriPath);
-        var uri = new DocumentUri(razorFilePath);
+        var uri = new Uri(razorFilePath);
         return uri;
     }
 
-    public virtual bool IsVirtualCSharpFile(DocumentUri uri)
+    public virtual bool IsVirtualCSharpFile(Uri uri)
         => CheckIfFileUriAndExtensionMatch(uri, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
 
-    public bool IsVirtualHtmlFile(DocumentUri uri)
+    public bool IsVirtualHtmlFile(Uri uri)
         => CheckIfFileUriAndExtensionMatch(uri, _languageServerFeatureOptions.HtmlVirtualDocumentSuffix);
 
-    public bool IsVirtualDocumentUri(DocumentUri uri)
+    public bool IsVirtualDocumentUri(Uri uri)
         => IsVirtualCSharpFile(uri) || IsVirtualHtmlFile(uri);
 
-    private static bool CheckIfFileUriAndExtensionMatch(DocumentUri uri, string extension)
+    private static bool CheckIfFileUriAndExtensionMatch(Uri uri, string extension)
         => uri.GetAbsoluteOrUNCPath()?.EndsWith(extension, StringComparison.Ordinal) ?? false;
 
     private string GetRazorFilePath(string filePath)

@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
@@ -126,14 +127,15 @@ internal sealed class CohostGoToDefinitionEndpoint(
         return null;
     }
 
-    private DocumentUri RemapVirtualHtmlUri(DocumentUri uri)
+    private DocumentUri RemapVirtualHtmlUri(DocumentUri documentUri)
     {
+        var uri = documentUri.GetRequiredParsedUri();
         if (_filePathService.IsVirtualHtmlFile(uri))
         {
-            return _filePathService.GetRazorDocumentUri(uri);
+            return new DocumentUri(_filePathService.GetRazorDocumentUri(uri));
         }
 
-        return uri;
+        return documentUri;
     }
 
     internal TestAccessor GetTestAccessor() => new(this);

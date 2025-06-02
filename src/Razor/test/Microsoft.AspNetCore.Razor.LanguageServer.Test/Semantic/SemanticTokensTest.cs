@@ -981,7 +981,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
             .Returns(version);
 
         return new DocumentContext(
-            uri: new DocumentUri($@"c:\${GetFileName(isRazorFile)}"),
+            uri: new Uri($@"c:\${GetFileName(isRazorFile)}"),
             snapshot: documentSnapshotMock.Object,
             projectContext: null);
     }
@@ -1246,7 +1246,7 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
     private class TestDocumentContextFactory(DocumentContext? documentContext = null) : IDocumentContextFactory
     {
         public bool TryCreate(
-            DocumentUri documentUri,
+            Uri documentUri,
             VSProjectContext? projectContext,
             [NotNullWhen(true)] out DocumentContext? context)
         {

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -63,7 +64,7 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
     public async Task Handle_AddOneUsingToEmpty()
     {
         // Arrange
-        var documentPath = new DocumentUri("c:/Test.razor");
+        var documentPath = new Uri("c:/Test.razor");
         var contents = string.Empty;
         var codeDocument = CreateCodeDocument(contents);
 
@@ -98,7 +99,7 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
     public async Task Handle_AddOneUsingToComponentPageDirective()
     {
         // Arrange
-        var documentPath = new DocumentUri("c:/Test.razor");
+        var documentPath = new Uri("c:/Test.razor");
         var contents = """
             @page "/"
 
@@ -135,7 +136,7 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
     public async Task Handle_AddOneUsingToPageDirective()
     {
         // Arrange
-        var documentPath = new DocumentUri("c:/Test.cshtml");
+        var documentPath = new Uri("c:/Test.cshtml");
         var contents = """
             @page
             @model IndexModel
@@ -188,7 +189,7 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
     public async Task Handle_AddOneUsingToHTML()
     {
         // Arrange
-        var documentPath = new DocumentUri("c:/Test.razor");
+        var documentPath = new Uri("c:/Test.razor");
         var contents = """
             <table>
             <tr>
@@ -227,7 +228,7 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
     public async Task Handle_AddOneUsingToNamespace()
     {
         // Arrange
-        var documentPath = new DocumentUri("c:/Test.razor");
+        var documentPath = new Uri("c:/Test.razor");
         var contents = """
             @namespace Testing
 
@@ -264,7 +265,7 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
     public async Task Handle_AddOneUsingToPageAndNamespace()
     {
         // Arrange
-        var documentPath = new DocumentUri("c:/Test.razor");
+        var documentPath = new Uri("c:/Test.razor");
         var contents = """
             @page "/"
             @namespace Testing
@@ -302,7 +303,7 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
     public async Task Handle_AddOneUsingToUsings()
     {
         // Arrange
-        var documentPath = new DocumentUri("c:/Test.razor");
+        var documentPath = new Uri("c:/Test.razor");
         var contents = "@using System";
         var codeDocument = CreateCodeDocument(contents);
 
@@ -336,7 +337,7 @@ public class AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput) : Lan
     public async Task Handle_AddOneNonSystemUsingToSystemUsings()
     {
         // Arrange
-        var documentPath = new DocumentUri("c:/Test.razor");
+        var documentPath = new Uri("c:/Test.razor");
         var contents = """
             @using System
             @using System.Linq

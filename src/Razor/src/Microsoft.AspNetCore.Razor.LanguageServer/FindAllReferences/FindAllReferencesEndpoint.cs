@@ -100,8 +100,9 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
             // Indicates the reference item is directly available in the code
             referenceItem.Origin = VSInternalItemOrigin.Exact;
 
-            if (!_filePathService.IsVirtualCSharpFile(referenceItem.Location.DocumentUri) &&
-                !_filePathService.IsVirtualHtmlFile(referenceItem.Location.DocumentUri))
+            var referenceItemDocumentUri = referenceItem.Location.DocumentUri.GetRequiredParsedUri();
+            if (!_filePathService.IsVirtualCSharpFile(referenceItemDocumentUri) &&
+                !_filePathService.IsVirtualHtmlFile(referenceItemDocumentUri))
             {
                 // This location doesn't point to a virtual file. No need to remap, but we might still want to fix the text,
                 // because Roslyn may have done the remapping for us

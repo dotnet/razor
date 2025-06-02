@@ -75,7 +75,7 @@ internal class RenameService(
         using var _ = ListPool<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>.GetPooledObject(out var documentChanges);
         var fileRename = GetFileRenameForComponent(originComponentDocumentSnapshot, newPath);
         documentChanges.Add(fileRename);
-        AddEditsForCodeDocument(documentChanges, originTagHelpers, newName, documentContext.DocumentUri, codeDocument);
+        AddEditsForCodeDocument(documentChanges, originTagHelpers, newName, documentContext.Uri, codeDocument);
 
         var documentSnapshots = GetAllDocumentSnapshots(documentContext.FilePath, solutionQueryOperations);
 
@@ -137,11 +137,11 @@ internal class RenameService(
     private RenameFile GetFileRenameForComponent(IDocumentSnapshot documentSnapshot, string newPath)
         => new RenameFile
         {
-            OldDocumentUri = BuildUri(documentSnapshot.FilePath),
-            NewDocumentUri = BuildUri(newPath),
+            OldDocumentUri = new DocumentUri(BuildUri(documentSnapshot.FilePath)),
+            NewDocumentUri = new DocumentUri(BuildUri(newPath)),
         };
 
-    private DocumentUri BuildUri(string filePath)
+    private Uri BuildUri(string filePath)
     {
         // VS Code in Windows expects path to start with '/'
         var updatedPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !filePath.StartsWith("/")
@@ -181,10 +181,10 @@ internal class RenameService(
         List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges,
         ImmutableArray<TagHelperDescriptor> originTagHelpers,
         string newName,
-        DocumentUri uri,
+        Uri uri,
         RazorCodeDocument codeDocument)
     {
-        var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = uri };
+        var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new DocumentUri(uri) };
         var tagHelperElements = codeDocument.GetSyntaxTree().Root
             .DescendantNodes()
             .Where(n => n.Kind == RazorSyntaxKind.MarkupTagHelperElement)

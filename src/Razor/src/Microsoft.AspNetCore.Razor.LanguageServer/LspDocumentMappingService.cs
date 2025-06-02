@@ -22,8 +22,8 @@ internal sealed class LspDocumentMappingService(
     private readonly IFilePathService _filePathService = filePathService;
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
 
-    public async Task<(DocumentUri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(
-        DocumentUri generatedDocumentUri,
+    public async Task<(Uri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(
+        Uri generatedDocumentUri,
         LinePositionSpan generatedDocumentRange,
         CancellationToken cancellationToken)
     {
@@ -50,7 +50,7 @@ internal sealed class LspDocumentMappingService(
 
         if (!codeDocument.TryGetGeneratedDocument(generatedDocumentUri, _filePathService, out var generatedDocument))
         {
-            return Assumed.Unreachable<(DocumentUri, LinePositionSpan)>();
+            return Assumed.Unreachable<(Uri, LinePositionSpan)>();
         }
 
         if (TryMapToHostDocumentRange(generatedDocument, generatedDocumentRange, MappingBehavior.Strict, out var mappedRange))

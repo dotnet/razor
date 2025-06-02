@@ -25,7 +25,7 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
 {
     private IRazorSemanticTokensInfoService RazorSemanticTokenService { get; set; }
 
-    private DocumentUri DocumentUri => DocumentContext.DocumentUri;
+    private Uri DocumentUri => DocumentContext.Uri;
 
     private IDocumentSnapshot DocumentSnapshot => DocumentContext.Snapshot;
 
@@ -55,7 +55,7 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
         var filePath = Path.Combine(PagesDirectory, $"{fileName}.razor");
         TargetPath = $"/Components/Pages/{fileName}.razor";
 
-        var documentUri = new DocumentUri(filePath);
+        var documentUri = new Uri(filePath);
         var documentSnapshot = await GetDocumentSnapshotAsync(ProjectFilePath, filePath, TargetPath);
         DocumentContext = new DocumentContext(documentUri, documentSnapshot, projectContext: null);
 

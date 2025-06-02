@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.MapCode.Mappers;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -82,7 +83,7 @@ internal sealed class MapCodeEndpoint(
                 continue;
             }
 
-            if (!_documentContextFactory.TryCreate(mapping.TextDocument.DocumentUri, out var documentContext))
+            if (!_documentContextFactory.TryCreate(mapping.TextDocument.DocumentUri.GetRequiredParsedUri(), out var documentContext))
             {
                 continue;
             }
@@ -174,8 +175,7 @@ internal sealed class MapCodeEndpoint(
                 // as the code to map. The client is currently implemented using this behavior, but if it
                 // ever changes, we'll need to update this code to account for it (i.e., take into account
                 // focus location URIs).
-                // TODO(toddgrun): switch back to == when roslyn implementation of DocumentUri.operator== is available on ci
-                Debug.Assert(location.DocumentUri.Equals(documentContext.DocumentUri));
+                Debug.Assert(location.DocumentUri.GetRequiredParsedUri() == documentContext.Uri);
 
                 var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 if (syntaxTree is null)
@@ -236,7 +236,7 @@ internal sealed class MapCodeEndpoint(
                         {
                             TextDocument = new OptionalVersionedTextDocumentIdentifier
                             {
-                                DocumentUri = documentContext.DocumentUri
+                                DocumentUri = new DocumentUri(documentContext.Uri)
                             },
                             Edits = [edit],
                         };
@@ -351,7 +351,7 @@ internal sealed class MapCodeEndpoint(
                     continue;
                 }
 
-                if (!_documentContextFactory.TryCreate(potentialLocation.DocumentUri, out var documentContext))
+                if (!_documentContextFactory.TryCreate(potentialLocation.DocumentUri.GetRequiredParsedUri(), out var documentContext))
                 {
                     continue;
                 }
@@ -457,7 +457,7 @@ internal sealed class MapCodeEndpoint(
         foreach (var documentChanges in groupedChanges)
         {
             var edits = documentChanges.ToList();
-            edits.Sort((x, y) => ((TextEdit)x.Edits.Single()).Range.Start.CompareTo(((TextEdit)y.Edits.Single()).Range.Start));
+            edits.Sort((x, y) => LspExtensions.CompareTo(((TextEdit)x.Edits.Single()).Range.Start, ((TextEdit)y.Edits.Single()).Range.Start));
 
             for (var i = edits.Count - 1; i < edits.Count && i > 0; i--)
             {

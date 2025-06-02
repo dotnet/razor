@@ -5,13 +5,13 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
-using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
@@ -21,7 +21,7 @@ internal sealed class RoslynCodeActionHelpers(IClientConnection clientConnection
 
     private readonly IClientConnection _clientConnection = clientConnection;
 
-    public async Task<string> GetFormattedNewFileContentsAsync(IProjectSnapshot projectSnapshot, DocumentUri csharpFileUri, string newFileContent, CancellationToken cancellationToken)
+    public async Task<string> GetFormattedNewFileContentsAsync(IProjectSnapshot projectSnapshot, Uri csharpFileUri, string newFileContent, CancellationToken cancellationToken)
     {
         var parameters = new FormatNewFileParams()
         {
@@ -31,7 +31,7 @@ internal sealed class RoslynCodeActionHelpers(IClientConnection clientConnection
             },
             Document = new TextDocumentIdentifier
             {
-                DocumentUri = csharpFileUri
+                DocumentUri = new DocumentUri(csharpFileUri)
             },
             Contents = newFileContent
         };
@@ -51,11 +51,11 @@ internal sealed class RoslynCodeActionHelpers(IClientConnection clientConnection
         return node.ToFullString();
     }
 
-    public Task<TextEdit[]?> GetSimplifiedTextEditsAsync(DocumentContext documentContext, DocumentUri? codeBehindUri, TextEdit edit, CancellationToken cancellationToken)
+    public Task<TextEdit[]?> GetSimplifiedTextEditsAsync(DocumentContext documentContext, Uri? codeBehindUri, TextEdit edit, CancellationToken cancellationToken)
     {
         var tdi = codeBehindUri is null
             ? documentContext.GetTextDocumentIdentifierAndVersion()
-            : new TextDocumentIdentifierAndVersion(new TextDocumentIdentifier() { DocumentUri = codeBehindUri }, 1);
+            : new TextDocumentIdentifierAndVersion(new TextDocumentIdentifier() { DocumentUri = new DocumentUri(codeBehindUri) }, 1);
         var delegatedParams = new DelegatedSimplifyMethodParams(
             tdi,
             RequiresVirtualDocument: codeBehindUri == null,

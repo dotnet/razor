@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
@@ -9,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -151,7 +151,7 @@ public class CSharpCodeActionResolverTest(ITestOutputHelper testOutput) : Langua
         IRazorFormattingService? razorFormattingService = null)
     {
         var documentPath = "c:/Test.razor";
-        var documentUri = new DocumentUri(documentPath);
+        var documentUri = new Uri(documentPath);
         var contents = string.Empty;
         var codeDocument = CreateCodeDocument(contents, documentPath);
 
@@ -163,12 +163,11 @@ public class CSharpCodeActionResolverTest(ITestOutputHelper testOutput) : Langua
         documentContext = CreateDocumentContext(documentUri, codeDocument);
     }
 
-    private static IRazorFormattingService CreateRazorFormattingService(DocumentUri documentUri)
+    private static IRazorFormattingService CreateRazorFormattingService(Uri documentUri)
     {
         var razorFormattingService = Mock.Of<IRazorFormattingService>(
                         rfs => rfs.TryGetCSharpCodeActionEditAsync(
-                            // TODO(toddgrun): switch back to == when roslyn implementation of DocumentUri.operator== is available on ci
-                            It.Is<DocumentContext>(c => c.DocumentUri.Equals(documentUri)),
+                            It.Is<DocumentContext>(c => c.Uri == documentUri),
                             It.IsAny<ImmutableArray<TextChange>>(),
                             It.IsAny<RazorFormattingOptions>(),
                             It.IsAny<CancellationToken>()) == Task.FromResult<TextChange?>(s_defaultFormattedChange), MockBehavior.Strict);

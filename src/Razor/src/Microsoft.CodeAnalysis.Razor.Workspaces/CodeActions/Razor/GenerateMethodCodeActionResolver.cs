@@ -49,7 +49,7 @@ internal class GenerateMethodCodeActionResolver(
         }
 
         var code = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var uriPath = FilePathNormalizer.Normalize(documentContext.DocumentUri.GetAbsoluteOrUNCPath());
+        var uriPath = FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath());
         var razorClassName = Path.GetFileNameWithoutExtension(uriPath);
         var codeBehindPath = $"{uriPath}.cs";
 
@@ -85,7 +85,7 @@ internal class GenerateMethodCodeActionResolver(
 
         var codeBehindUri = LspFactory.CreateFilePathUri(codeBehindPath);
 
-        var codeBehindTextDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = codeBehindUri };
+        var codeBehindTextDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new DocumentUri(codeBehindUri) };
 
         var templateWithMethodSignature = PopulateMethodSignature(actionParams);
         var classLocationLineSpan = @class.GetLocation().GetLineSpan();
@@ -190,7 +190,7 @@ internal class GenerateMethodCodeActionResolver(
 
         var razorTextDocEdit = new TextDocumentEdit()
         {
-            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentContext.DocumentUri },
+            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new DocumentUri(documentContext.Uri) },
             Edits = [.. edits],
         };
 

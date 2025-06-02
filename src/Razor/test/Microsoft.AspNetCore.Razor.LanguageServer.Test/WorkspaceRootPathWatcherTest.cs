@@ -28,7 +28,7 @@ public class WorkspaceRootPathWatcherTest(ITestOutputHelper testOutput) : Toolin
 #pragma warning disable CS0618 // Type or member is obsolete
         var initializeParams = new InitializeParams()
         {
-            RootDocumentUri = LspFactory.CreateFilePathUri(initialWorkspaceDirectory),
+            RootDocumentUri = new DocumentUri(LspFactory.CreateFilePathUri(initialWorkspaceDirectory)),
         };
 #pragma warning restore CS0618 // Type or member is obsolete
 

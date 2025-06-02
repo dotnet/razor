@@ -119,7 +119,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
         var remappedChanges = new Dictionary<string, TextEdit[]>();
         foreach (var entry in changes)
         {
-            var uri = new DocumentUri(entry.Key);
+            var uri = new Uri(entry.Key);
             var edits = entry.Value;
 
             if (!_filePathService.IsVirtualDocumentUri(uri))
@@ -137,7 +137,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
             }
 
             var razorDocumentUri = _filePathService.GetRazorDocumentUri(uri);
-            remappedChanges[razorDocumentUri.GetRequiredParsedUri().AbsoluteUri] = remappedEdits;
+            remappedChanges[razorDocumentUri.AbsoluteUri] = remappedEdits;
         }
 
         return remappedChanges;
@@ -148,7 +148,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
         using var remappedDocumentEdits = new PooledArrayBuilder<TextDocumentEdit>(documentEdits.Length);
         foreach (var entry in documentEdits)
         {
-            var uri = entry.TextDocument.DocumentUri;
+            var uri = entry.TextDocument.DocumentUri.GetRequiredParsedUri();
             if (!_filePathService.IsVirtualDocumentUri(uri))
             {
                 // This location doesn't point to a background razor file. No need to remap.
@@ -169,7 +169,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
             {
                 TextDocument = new OptionalVersionedTextDocumentIdentifier()
                 {
-                    DocumentUri = razorDocumentUri,
+                    DocumentUri = new DocumentUri(razorDocumentUri),
                 },
                 Edits = [.. remappedEdits]
             });

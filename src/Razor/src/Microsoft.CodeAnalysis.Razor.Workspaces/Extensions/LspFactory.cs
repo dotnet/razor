@@ -161,13 +161,13 @@ internal static class LspFactory
         => CreateRange(CreatePosition(start), CreatePosition(start.line, start.character + length));
 
     public static LspLocation CreateLocation(string filePath, LinePositionSpan span)
-        => CreateLocation(CreateFilePathUri(filePath), CreateRange(span));
+        => CreateLocation(new DocumentUri(CreateFilePathUri(filePath)), CreateRange(span));
 
     public static LspLocation CreateLocation(DocumentUri uri, LinePositionSpan span)
         => CreateLocation(uri, CreateRange(span));
 
     public static LspLocation CreateLocation(string filePath, LspRange range)
-        => CreateLocation(CreateFilePathUri(filePath), range);
+        => CreateLocation(new DocumentUri(CreateFilePathUri(filePath)), range);
 
     public static LspLocation CreateLocation(DocumentUri uri, LspRange range)
         => new() { DocumentUri = uri, Range = range };
@@ -205,7 +205,7 @@ internal static class LspFactory
     public static TextEdit CreateTextEdit((int line, int character) position, string newText)
         => CreateTextEdit(CreateZeroWidthRange(position), newText);
 
-    public static DocumentUri CreateFilePathUri(string filePath)
+    public static Uri CreateFilePathUri(string filePath)
     {
         var builder = new UriBuilder
         {
@@ -214,6 +214,6 @@ internal static class LspFactory
             Host = string.Empty,
         };
 
-        return new DocumentUri(builder.Uri);
+        return builder.Uri;
     }
 }

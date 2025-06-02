@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -27,7 +28,7 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
     public async Task Handle_ReturnsValidExpressions()
     {
         // Arrange
-        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
+        var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument(@"
 <p>@{var abc = 123;}</p>");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
@@ -35,7 +36,7 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
         var endpoint = new RazorProximityExpressionsEndpoint(_mappingService, LoggerFactory);
         var request = new RazorProximityExpressionsParams()
         {
-            Uri = documentPath,
+            Uri = new DocumentUri(documentPath),
             Position = LspFactory.CreatePosition(1, 8),
             HostDocumentSyncVersion = 1,
         };
@@ -53,7 +54,7 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
     public async Task Handle_StartsInHtml_ReturnsValidExpressions()
     {
         // Arrange
-        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
+        var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument(@"
 <p>@{var abc = 123;}</p>");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
@@ -61,7 +62,7 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
         var endpoint = new RazorProximityExpressionsEndpoint(_mappingService, LoggerFactory);
         var request = new RazorProximityExpressionsParams()
         {
-            Uri = documentPath,
+            Uri = new DocumentUri(documentPath),
             Position = LspFactory.CreatePosition(1, 0),
             HostDocumentSyncVersion = 1,
         };
@@ -79,7 +80,7 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
     public async Task Handle_StartInHtml_NoCSharpOnLine_ReturnsNull()
     {
         // Arrange
-        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
+        var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument(@"
 <p></p>");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
@@ -87,7 +88,7 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
         var diagnosticsEndpoint = new RazorProximityExpressionsEndpoint(_mappingService, LoggerFactory);
         var request = new RazorProximityExpressionsParams()
         {
-            Uri = documentPath,
+            Uri = new DocumentUri(documentPath),
             Position = LspFactory.CreatePosition(1, 0),
             HostDocumentSyncVersion = 0,
         };
@@ -104,7 +105,7 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
     public async Task Handle_InvalidLocation_ReturnsNull()
     {
         // Arrange
-        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
+        var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument(@"
 <p>@{
 
@@ -115,7 +116,7 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
         var diagnosticsEndpoint = new RazorProximityExpressionsEndpoint(_mappingService, LoggerFactory);
         var request = new RazorProximityExpressionsParams()
         {
-            Uri = documentPath,
+            Uri = new DocumentUri(documentPath),
             Position = LspFactory.DefaultPosition,
             HostDocumentSyncVersion = 0,
         };

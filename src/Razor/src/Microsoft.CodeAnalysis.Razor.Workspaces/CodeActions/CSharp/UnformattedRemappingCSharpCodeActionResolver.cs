@@ -67,7 +67,7 @@ internal class UnformattedRemappingCSharpCodeActionResolver(IDocumentMappingServ
 
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier()
         {
-            DocumentUri = documentContext.DocumentUri,
+            DocumentUri = new DocumentUri(documentContext.Uri),
         };
         codeAction.Edit = new WorkspaceEdit()
         {

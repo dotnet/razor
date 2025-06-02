@@ -20,7 +20,7 @@ internal sealed class RemoteEditMappingService(
 {
     private readonly RemoteSnapshotManager _snapshotManager = snapshotManager;
 
-    protected override bool TryGetDocumentContext(IDocumentSnapshot contextDocumentSnapshot, DocumentUri razorDocumentUri, VSProjectContext? projectContext, [NotNullWhen(true)] out DocumentContext? documentContext)
+    protected override bool TryGetDocumentContext(IDocumentSnapshot contextDocumentSnapshot, Uri razorDocumentUri, VSProjectContext? projectContext, [NotNullWhen(true)] out DocumentContext? documentContext)
     {
         if (contextDocumentSnapshot is not RemoteDocumentSnapshot originSnapshot)
         {

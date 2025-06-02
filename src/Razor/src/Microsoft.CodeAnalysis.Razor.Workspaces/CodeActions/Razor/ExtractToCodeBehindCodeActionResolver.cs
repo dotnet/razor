@@ -44,7 +44,7 @@ internal class ExtractToCodeBehindCodeActionResolver(
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-        var path = FilePathNormalizer.Normalize(documentContext.DocumentUri.GetAbsoluteOrUNCPath());
+        var path = FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath());
         var codeBehindPath = FileUtilities.GenerateUniquePath(path, $"{Path.GetExtension(path)}.cs");
 
         // VS Code in Windows expects path to start with '/'
@@ -53,6 +53,7 @@ internal class ExtractToCodeBehindCodeActionResolver(
             : codeBehindPath;
 
         var codeBehindUri = LspFactory.CreateFilePathUri(updatedCodeBehindPath);
+        var codeBehindDocumentUri = new DocumentUri(codeBehindUri);
 
         var text = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -64,12 +65,12 @@ internal class ExtractToCodeBehindCodeActionResolver(
 
         var removeRange = codeDocument.Source.Text.GetRange(actionParams.RemoveStart, actionParams.RemoveEnd);
 
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = documentContext.DocumentUri };
-        var codeBehindDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = codeBehindUri };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new DocumentUri(documentContext.Uri) };
+        var codeBehindDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = codeBehindDocumentUri };
 
         var documentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
         {
-            new CreateFile { DocumentUri = codeBehindUri },
+            new CreateFile { DocumentUri = codeBehindDocumentUri },
             new TextDocumentEdit
             {
                 TextDocument = codeDocumentIdentifier,

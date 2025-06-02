@@ -49,10 +49,10 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         GeneratedCode = GetGeneratedCode();
         Diagnostics = BuildDiagnostics();
         var razorFilePath = "file://C:/path/test.razor";
-        var uri = new DocumentUri(razorFilePath);
+        var uri = new Uri(razorFilePath);
         Request = new VSInternalDocumentDiagnosticsParams
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = uri }
+            TextDocument = new TextDocumentIdentifier { DocumentUri = new DocumentUri(uri) }
         };
         var stringSourceDocument = RazorSourceDocument.Create(GetFileContents(), UTF8Encoding.UTF8, RazorSourceDocumentProperties.Default);
         var mockRazorCodeDocument = new Mock<RazorCodeDocument>(MockBehavior.Strict);
@@ -78,7 +78,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         documentContext
             .Setup(r => r.GetCodeDocumentAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(RazorCodeDocument);
-        documentContext.Setup(r => r.DocumentUri).Returns(It.IsAny<DocumentUri>());
+        documentContext.Setup(r => r.Uri).Returns(It.IsAny<Uri>());
         documentContext.Setup(r => r.Snapshot.Version).Returns(It.IsAny<int>());
         documentContext.Setup(r => r.GetSourceTextAsync(It.IsAny<CancellationToken>())).ReturnsAsync(It.IsAny<SourceText>());
         RazorRequestContext = new RazorRequestContext(documentContext.Object, null!, "lsp/method", uri: null);

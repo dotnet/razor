@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -32,7 +33,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
     {
         // Arrange
         var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
-        var uri = new DocumentUri(filePath);
+        var uri = new Uri(filePath);
 
         var factory = new DocumentContextFactory(_projectManager, LoggerFactory);
 
@@ -45,7 +46,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
     {
         // Arrange
         var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
-        var uri = new DocumentUri(filePath);
+        var uri = new Uri(filePath);
 
         var factory = new DocumentContextFactory(_projectManager, LoggerFactory);
 
@@ -58,7 +59,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
     {
         // Arrange
         var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
-        var uri = new DocumentUri(filePath);
+        var uri = new Uri(filePath);
 
         var hostDocument = new HostDocument(filePath, "file.cshtml");
 
@@ -77,7 +78,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         Assert.True(factory.TryCreate(uri, out var documentContext));
 
         // Assert
-        Assert.Equal(uri, documentContext.DocumentUri);
+        Assert.Equal(uri, documentContext.Uri);
         Assert.Same(documentSnapshot, documentContext.Snapshot);
     }
 
@@ -88,7 +89,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
         var intermediateOutputPath = Path.Combine(s_baseDirectory, "obj");
         var projectFilePath = Path.Combine(s_baseDirectory, "project.csproj");
-        var uri = new DocumentUri(filePath);
+        var uri = new Uri(filePath);
 
         var factory = new DocumentContextFactory(_projectManager, LoggerFactory);
 
@@ -105,7 +106,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
         Assert.True(factory.TryCreate(uri, new VSProjectContext { Id = hostProject.Key.Id }, out var documentContext));
 
         // Assert
-        Assert.Equal(uri, documentContext.DocumentUri);
+        Assert.Equal(uri, documentContext.Uri);
     }
 
     [Fact]
@@ -113,7 +114,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
     {
         // Arrange
         var filePath = FilePathNormalizer.Normalize(Path.Combine(s_baseDirectory, "file.cshtml"));
-        var uri = new DocumentUri(filePath);
+        var uri = new Uri(filePath);
 
         var hostDocument = new HostDocument(filePath, "file.cshtml");
 
@@ -133,7 +134,7 @@ public class DocumentContextFactoryTest : LanguageServerTestBase
 
         // Assert
         Assert.Equal(1, documentContext.Snapshot.Version);
-        Assert.Equal(uri, documentContext.DocumentUri);
+        Assert.Equal(uri, documentContext.Uri);
         Assert.Same(documentSnapshot, documentContext.Snapshot);
     }
 }

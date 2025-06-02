@@ -97,7 +97,6 @@ internal class RazorFormattingService : IRazorFormattingService
             }
         }
 
-        var uri = documentContext.DocumentUri;
         var documentSnapshot = documentContext.Snapshot;
         var hostDocumentVersion = documentContext.Snapshot.Version;
         var context = FormattingContext.Create(

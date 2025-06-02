@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
@@ -105,7 +106,7 @@ internal sealed class CohostCodeActionsResolveEndpoint(
 
             var uri = resolveParams.DelegatedDocumentUri.AssumeNotNull();
 
-            var generatedDocument = await razorDocument.Project.TryGetCSharpDocumentFromGeneratedDocumentUriAsync(uri, cancellationToken).ConfigureAwait(false);
+            var generatedDocument = await razorDocument.Project.TryGetCSharpDocumentFromGeneratedDocumentUriAsync(uri.GetRequiredParsedUri(), cancellationToken).ConfigureAwait(false);
             if (generatedDocument is null)
             {
                 return codeAction;

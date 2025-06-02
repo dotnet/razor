@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
@@ -27,9 +28,9 @@ internal sealed class RemoteDocumentMappingService(
     private readonly IFilePathService _filePathService = filePathService;
     private readonly RemoteSnapshotManager _snapshotManager = snapshotManager;
 
-    public async Task<(DocumentUri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(
+    public async Task<(Uri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(
         RemoteDocumentSnapshot originSnapshot,
-        DocumentUri generatedDocumentUri,
+        Uri generatedDocumentUri,
         LinePositionSpan generatedDocumentRange,
         CancellationToken cancellationToken)
     {
@@ -59,7 +60,7 @@ internal sealed class RemoteDocumentMappingService(
             var filePath = razorCodeDocument.Source.FilePath;
             var documentId = solution.GetDocumentIdsWithFilePath(filePath).First();
             var document = solution.GetAdditionalDocument(documentId).AssumeNotNull();
-            return (document.CreateDocumentUri(), mappedRange);
+            return (document.CreateUri(), mappedRange);
         }
 
         return (generatedDocumentUri, generatedDocumentRange);

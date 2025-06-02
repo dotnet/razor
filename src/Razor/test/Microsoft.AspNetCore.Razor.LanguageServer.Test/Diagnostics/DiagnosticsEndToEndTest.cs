@@ -4,6 +4,7 @@
 #if !NET
 using System.Collections.Generic;
 #endif
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -78,7 +79,7 @@ public sealed class DiagnosticsEndToEndTest(ITestOutputHelper testOutput) : Sing
         var codeDocument = CreateCodeDocument(input, filePath: filePath);
         var sourceText = codeDocument.Source.Text;
         var razorFilePath = "file://C:/path/test.razor";
-        var uri = new DocumentUri(razorFilePath);
+        var uri = new Uri(razorFilePath);
         await using var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var requestContext = new RazorRequestContext(documentContext, null!, "lsp/method", uri: null);
@@ -89,7 +90,7 @@ public sealed class DiagnosticsEndToEndTest(ITestOutputHelper testOutput) : Sing
 
         var diagnosticsRequest = new DocumentDiagnosticParams
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = uri }
+            TextDocument = new TextDocumentIdentifier { DocumentUri = new DocumentUri(uri) }
         };
 
         var report = await diagnosticsEndPoint.HandleRequestAsync(diagnosticsRequest, requestContext, DisposalToken);

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -32,7 +33,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
     public async Task Handle_MapToDocumentRanges_CSharp()
     {
         // Arrange
-        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
+        var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
             razorSource: "<p>@DateTime.Now</p>",
             projectedCSharpSource: "var __o = DateTime.Now",
@@ -43,7 +44,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         {
             Kind = RazorLanguageKind.CSharp,
             ProjectedRanges = [LspFactory.CreateSingleLineRange(line: 0, character: 10, length: 12)],
-            RazorDocumentUri = documentPath,
+            RazorDocumentUri = new DocumentUri(documentPath),
         };
         var expectedRange = LspFactory.CreateSingleLineRange(line: 0, character: 4, length: 12);
 
@@ -61,7 +62,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
     public async Task Handle_MapToDocumentRanges_CSharp_Unmapped()
     {
         // Arrange
-        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
+        var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
             razorSource: "<p>@DateTime.Now</p>",
             projectedCSharpSource: "var __o = DateTime.Now",
@@ -72,7 +73,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         {
             Kind = RazorLanguageKind.CSharp,
             ProjectedRanges = [LspFactory.CreateSingleLineRange(start: (0, 0), length: 3)],
-            RazorDocumentUri = documentPath,
+            RazorDocumentUri = new DocumentUri(documentPath),
         };
 
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -89,7 +90,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
     public async Task Handle_MapToDocumentRanges_CSharp_LeadingOverlapsUnmapped()
     {
         // Arrange
-        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
+        var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
             razorSource: "<p>@DateTime.Now</p>",
             projectedCSharpSource: "var __o = DateTime.Now",
@@ -100,7 +101,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         {
             Kind = RazorLanguageKind.CSharp,
             ProjectedRanges = [LspFactory.CreateSingleLineRange(start: (0, 0), length: 22)],
-            RazorDocumentUri = documentPath,
+            RazorDocumentUri = new DocumentUri(documentPath),
         };
 
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -117,7 +118,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
     public async Task Handle_MapToDocumentRanges_CSharp_TrailingOverlapsUnmapped()
     {
         // Arrange
-        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
+        var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
             razorSource: "<p>@DateTime.Now</p>",
             projectedCSharpSource: "var __o = DateTime.Now",
@@ -128,7 +129,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         {
             Kind = RazorLanguageKind.CSharp,
             ProjectedRanges = [LspFactory.CreateSingleLineRange(line: 0, character: 10, length: 13)],
-            RazorDocumentUri = documentPath,
+            RazorDocumentUri = new DocumentUri(documentPath),
         };
 
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -145,7 +146,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
     public async Task Handle_MapToDocumentRanges_Html()
     {
         // Arrange
-        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
+        var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument("<p>@DateTime.Now</p>");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_documentMappingService);
@@ -153,7 +154,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         {
             Kind = RazorLanguageKind.Html,
             ProjectedRanges = [LspFactory.CreateSingleLineRange(line: 0, character: 16, length: 4)],
-            RazorDocumentUri = documentPath,
+            RazorDocumentUri = new DocumentUri(documentPath),
         };
 
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -170,7 +171,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
     public async Task Handle_MapToDocumentRanges_Razor()
     {
         // Arrange
-        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
+        var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocument("<p>@DateTime.Now</p>");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var languageEndpoint = new RazorMapToDocumentRangesEndpoint(_documentMappingService);
@@ -178,7 +179,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         {
             Kind = RazorLanguageKind.Razor,
             ProjectedRanges = [LspFactory.CreateSingleLineRange(line: 0, character: 4, length: 1)],
-            RazorDocumentUri = documentPath,
+            RazorDocumentUri = new DocumentUri(documentPath),
         };
 
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -205,7 +206,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
             """;
 
         TestFileMarkupParser.GetSpan(chsarpAnnotatedSource, out var csharpSource, out var projectedRange);
-        var documentPath = new DocumentUri("C:/path/to/document.cshtml");
+        var documentPath = new Uri("C:/path/to/document.cshtml");
         var codeDocument = CreateCodeDocumentWithCSharpProjection(
             razorSource: "<p>@DateTime.Now</p>",
             projectedCSharpSource: csharpSource,
@@ -216,7 +217,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         {
             Kind = RazorLanguageKind.CSharp,
             ProjectedRanges = [LspFactory.CreateSingleLineRange(line: 4, character: 26, length: 12)],
-            RazorDocumentUri = documentPath,
+            RazorDocumentUri = new DocumentUri(documentPath),
         };
         var expectedRange = LspFactory.CreateSingleLineRange(line: 0, character: 4, length: 12);
 

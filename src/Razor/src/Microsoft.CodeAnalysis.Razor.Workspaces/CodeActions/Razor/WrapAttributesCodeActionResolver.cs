@@ -39,7 +39,7 @@ internal class WrapAttributesCodeActionResolver : IRazorCodeActionResolver
 
         var tde = new TextDocumentEdit
         {
-            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentContext.DocumentUri },
+            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new DocumentUri(documentContext.Uri) },
             Edits = edits.ToArray()
         };
 

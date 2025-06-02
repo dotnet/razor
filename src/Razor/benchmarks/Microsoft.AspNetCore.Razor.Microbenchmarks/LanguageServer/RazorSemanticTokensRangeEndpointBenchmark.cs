@@ -29,7 +29,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
 
     private SemanticTokensRangeEndpoint SemanticTokensRangeEndpoint { get; set; }
 
-    private DocumentUri DocumentUri => DocumentContext.DocumentUri;
+    private Uri DocumentUri => DocumentContext.Uri;
 
     private DocumentContext DocumentContext { get; set; }
 
@@ -61,7 +61,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
         var filePath = Path.Combine(PagesDirectory, "SemanticTokens.razor");
         TargetPath = "/Components/Pages/SemanticTokens.razor";
 
-        var documentUri = new DocumentUri(filePath);
+        var documentUri = new Uri(filePath);
         var documentSnapshot = await GetDocumentSnapshotAsync(ProjectFilePath, filePath, TargetPath);
         DocumentContext = new DocumentContext(documentUri, documentSnapshot, projectContext: null);
 
@@ -103,7 +103,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
     [Benchmark(Description = "Razor Semantic Tokens Range Endpoint")]
     public async Task RazorSemanticTokensRangeEndpointRangesAsync()
     {
-        var textDocumentIdentifier = new TextDocumentIdentifier { DocumentUri = DocumentUri };
+        var textDocumentIdentifier = new TextDocumentIdentifier { DocumentUri = new DocumentUri(DocumentUri) };
         var request = new SemanticTokensRangeParams { Range = Range, TextDocument = textDocumentIdentifier };
 
         await SemanticTokensRangeEndpoint.HandleRequestAsync(request, RequestContext, CancellationToken);

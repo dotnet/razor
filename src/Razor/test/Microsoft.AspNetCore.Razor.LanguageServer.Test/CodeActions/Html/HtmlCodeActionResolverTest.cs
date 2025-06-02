@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -28,7 +29,7 @@ public class HtmlCodeActionResolverTest(ITestOutputHelper testOutput) : Language
         TestFileMarkupParser.GetPositionAndSpan(contents, out contents, out var cursorPosition, out var span);
 
         var documentPath = "c:/Test.razor";
-        var documentUri = new DocumentUri(documentPath);
+        var documentUri = new Uri(documentPath);
         var documentContextFactory = CreateDocumentContextFactory(documentUri, contents);
         Assert.True(documentContextFactory.TryCreate(documentUri, out var context));
         var sourceText = await context.GetSourceTextAsync(DisposalToken);
@@ -39,7 +40,7 @@ public class HtmlCodeActionResolverTest(ITestOutputHelper testOutput) : Language
                 new() {
                     TextDocument = new OptionalVersionedTextDocumentIdentifier
                     {
-                        DocumentUri = documentUri,
+                        DocumentUri = new DocumentUri(documentUri),
                     },
                     Edits = [LspFactory.CreateTextEdit(sourceText.GetRange(span), "Goo /*~~~~~~~~~~~*/ Bar")]
                 }

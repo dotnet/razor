@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,13 +14,13 @@ using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal class DocumentContext(DocumentUri uri, IDocumentSnapshot snapshot, VSProjectContext? projectContext)
+internal class DocumentContext(Uri uri, IDocumentSnapshot snapshot, VSProjectContext? projectContext)
 {
     private readonly VSProjectContext? _projectContext = projectContext;
     private RazorCodeDocument? _codeDocument;
     private SourceText? _sourceText;
 
-    public DocumentUri DocumentUri { get; } = uri;
+    public Uri Uri { get; } = uri;
     public IDocumentSnapshot Snapshot { get; } = snapshot;
     public string FilePath => Snapshot.FilePath;
     public RazorFileKind FileKind => Snapshot.FileKind;
@@ -28,7 +29,7 @@ internal class DocumentContext(DocumentUri uri, IDocumentSnapshot snapshot, VSPr
     public TextDocumentIdentifier GetTextDocumentIdentifier()
         => new VSTextDocumentIdentifier()
         {
-            DocumentUri = DocumentUri,
+            DocumentUri = new DocumentUri(Uri),
             ProjectContext = _projectContext,
         };
 

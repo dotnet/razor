@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -53,7 +54,7 @@ internal static class RazorCodeDocumentExtensions
 
     public static bool TryGetGeneratedDocument(
         this RazorCodeDocument codeDocument,
-        DocumentUri generatedDocumentUri,
+        Uri generatedDocumentUri,
         IFilePathService filePathService,
         [NotNullWhen(true)] out IRazorGeneratedDocument? generatedDocument)
     {

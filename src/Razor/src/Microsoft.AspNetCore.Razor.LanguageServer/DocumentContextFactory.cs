@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
@@ -19,7 +20,7 @@ internal sealed class DocumentContextFactory(
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DocumentContextFactory>();
 
     public bool TryCreate(
-        DocumentUri documentUri,
+        Uri documentUri,
         VSProjectContext? projectContext,
         [NotNullWhen(true)] out DocumentContext? context)
     {

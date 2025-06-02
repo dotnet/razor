@@ -45,7 +45,7 @@ internal class ExtractToComponentCodeActionResolver(
         var componentDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         var text = componentDocument.Source.Text;
-        var path = FilePathNormalizer.Normalize(documentContext.DocumentUri.GetAbsoluteOrUNCPath());
+        var path = FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath());
         var directoryName = Path.GetDirectoryName(path).AssumeNotNull();
         var templatePath = Path.Combine(directoryName, "Component.razor");
         var componentPath = FileUtilities.GenerateUniquePath(templatePath, ".razor");
@@ -57,6 +57,7 @@ internal class ExtractToComponentCodeActionResolver(
             : componentPath;
 
         var newComponentUri = LspFactory.CreateFilePathUri(componentPath);
+        var newComponentDocumentUri = new DocumentUri(newComponentUri);
 
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
@@ -83,10 +84,10 @@ internal class ExtractToComponentCodeActionResolver(
 
         var documentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
         {
-            new CreateFile { DocumentUri = newComponentUri },
+            new CreateFile { DocumentUri = newComponentDocumentUri },
             new TextDocumentEdit
             {
-                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = documentContext.DocumentUri },
+                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new DocumentUri(documentContext.Uri) },
                 Edits =
                 [
                     new TextEdit
@@ -98,7 +99,7 @@ internal class ExtractToComponentCodeActionResolver(
             },
             new TextDocumentEdit
             {
-                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = newComponentUri },
+                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = newComponentDocumentUri },
                 Edits  =
                 [
                     new TextEdit

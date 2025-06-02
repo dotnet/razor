@@ -54,7 +54,7 @@ public abstract class CodeActionEndToEndTestBase(ITestOutputHelper testOutput) :
 
         var codeDocument = CreateCodeDocument(input.Text, filePath: razorFilePath, rootNamespace: "Test", tagHelpers: CreateTagHelperDescriptors());
         var razorSourceText = codeDocument.Source.Text;
-        var uri = new DocumentUri(razorFilePath);
+        var uri = new Uri(razorFilePath);
         await using var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var requestContext = new RazorRequestContext(documentContext, null!, "lsp/method", uri: null);
@@ -144,7 +144,7 @@ public abstract class CodeActionEndToEndTestBase(ITestOutputHelper testOutput) :
         var razorFilePath = "C:/path/test.razor";
         var codeDocument = CreateCodeDocument(input.Text, filePath: razorFilePath, tagHelpers: CreateTagHelperDescriptors());
         var sourceText = codeDocument.Source.Text;
-        var uri = new DocumentUri(razorFilePath);
+        var uri = new Uri(razorFilePath);
         await using var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var requestContext = new RazorRequestContext(documentContext, null!, "lsp/method", uri: null);
@@ -200,7 +200,7 @@ public abstract class CodeActionEndToEndTestBase(ITestOutputHelper testOutput) :
     }
 
     internal async Task<SumType<Command, CodeAction>[]> GetCodeActionsAsync(
-        DocumentUri uri,
+        Uri uri,
         TextSpan textSpan,
         SourceText sourceText,
         RazorRequestContext requestContext,
@@ -241,7 +241,7 @@ public abstract class CodeActionEndToEndTestBase(ITestOutputHelper testOutput) :
 
         var @params = new VSCodeActionParams
         {
-            TextDocument = new VSTextDocumentIdentifier { DocumentUri = uri },
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new DocumentUri(uri) },
             Range = sourceText.GetRange(textSpan),
             Context = new VSInternalCodeActionContext() { Diagnostics = diagnostics ?? [] }
         };

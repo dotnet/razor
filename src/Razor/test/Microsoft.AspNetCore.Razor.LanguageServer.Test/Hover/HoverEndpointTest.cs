@@ -214,10 +214,10 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
             languageServer,
             LoggerFactory);
 
-        var razorFileUri = new DocumentUri(razorFilePath);
+        var razorFileUri = new Uri(razorFilePath);
         var request = new TextDocumentPositionParams
         {
-            TextDocument = new() { DocumentUri = razorFileUri, },
+            TextDocument = new() { DocumentUri = new DocumentUri(razorFileUri), },
             Position = codeDocument.Source.Text.GetPosition(code.Position)
         };
 
@@ -269,7 +269,7 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
             .SetupGet(x => x.Project)
             .Returns(projectSnapshot);
 
-        var documentContext = new DocumentContext(new DocumentUri(path), documentSnapshotMock.Object, projectContext: null);
+        var documentContext = new DocumentContext(new Uri(path), documentSnapshotMock.Object, projectContext: null);
         var position = codeDocument.Source.Text.GetPosition(code.Position);
 
         return (documentContext, position);

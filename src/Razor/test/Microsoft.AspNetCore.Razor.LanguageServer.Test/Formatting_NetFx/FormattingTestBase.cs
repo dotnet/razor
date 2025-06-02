@@ -19,7 +19,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectEngineHost;
@@ -100,8 +99,8 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         tagHelpers = tagHelpers.AddRange(await s_standardTagHelpers.GetValueAsync(DisposalToken));
 
         var path = "file:///path/to/Document." + fileKindValue.ToString();
-        var uri = new DocumentUri(path);
-        var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(source, uri.GetRequiredParsedUri().AbsolutePath, tagHelpers, fileKindValue, allowDiagnostics, inGlobalNamespace);
+        var uri = new Uri(path);
+        var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(source, uri.AbsolutePath, tagHelpers, fileKindValue, allowDiagnostics, inGlobalNamespace);
         var options = new FormattingOptions()
         {
             TabSize = tabSize,
@@ -157,8 +156,8 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
 
         var razorSourceText = SourceText.From(input);
         var path = "file:///path/to/Document.razor";
-        var uri = new DocumentUri(path);
-        var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.GetRequiredParsedUri().AbsolutePath, tagHelpers, fileKind: fileKindValue, inGlobalNamespace: inGlobalNamespace);
+        var uri = new Uri(path);
+        var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, tagHelpers, fileKind: fileKindValue, inGlobalNamespace: inGlobalNamespace);
 
         var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(useNewFormattingEngine: _context.UseNewFormattingEngine);
 
