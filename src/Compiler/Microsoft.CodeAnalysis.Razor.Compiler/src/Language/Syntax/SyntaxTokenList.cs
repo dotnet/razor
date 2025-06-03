@@ -221,7 +221,7 @@ internal readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, 
 
         Debug.Assert(builder.Count == count + tokens.Length);
 
-        return new(parent: null, builder.ToGreenListNode(), position: 0, index: 0);
+        return builder.ToList();
     }
 
     public SyntaxTokenList InsertRange(int index, IEnumerable<SyntaxToken> tokens)
@@ -257,7 +257,7 @@ internal readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, 
         // Add remaining tokens starting from 'index'
         builder.AddRange(this, index, count - index);
 
-        return new(parent: null, builder.ToGreenListNode(), position: 0, index: 0);
+        return builder.ToList();
     }
 
     private SyntaxTokenList InsertRangeWithCount(int index, IEnumerable<SyntaxToken> tokens, int tokenCount)
@@ -282,7 +282,7 @@ internal readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, 
 
         Debug.Assert(builder.Count == count + tokenCount);
 
-        return new(parent: null, builder.ToGreenListNode(), position: 0, index: 0);
+        return builder.ToList();
     }
 
     public SyntaxTokenList RemoveAt(int index)
@@ -303,7 +303,7 @@ internal readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, 
         // Add remaining tokens starting *after* 'index'
         builder.AddRange(this, index + 1, newCount - index);
 
-        return new(parent: null, builder.ToGreenListNode(), position: 0, index: 0);
+        return builder.ToList();
     }
 
     public SyntaxTokenList Remove(SyntaxToken tokenInList)
@@ -350,7 +350,7 @@ internal readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, 
         // Add remaining tokens starting *after* 'index'
         builder.AddRange(this, index + 1, newCount - index);
 
-        return new(parent: null, builder.ToGreenListNode(), position: 0, index: 0);
+        return builder.ToList();
     }
 
     public SyntaxTokenList ReplaceRange(SyntaxToken tokenInList, IEnumerable<SyntaxToken> tokens)
@@ -383,7 +383,7 @@ internal readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, 
         // Add remaining tokens starting *after* 'index'
         builder.AddRange(this, index + 1, newCount - index);
 
-        return new(parent: null, builder.ToGreenListNode(), position: 0, index: 0);
+        return builder.ToList();
     }
 
     private SyntaxTokenList ReplaceRangeWithCount(int index, IEnumerable<SyntaxToken> tokens, int tokenCount)
@@ -411,7 +411,7 @@ internal readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, 
 
         Debug.Assert(builder.Count == newCount + tokenCount);
 
-        return new(parent: null, builder.ToGreenListNode(), position: 0, index: 0);
+        return builder.ToList();
     }
 
     public override bool Equals([NotNullWhen(true)] object? obj)
