@@ -63,12 +63,7 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     /// The number of nodes in the list.
     /// </summary>
     public int Count
-    {
-        get
-        {
-            return Node == null ? 0 : (Node.IsList ? Node.SlotCount : 1);
-        }
-    }
+        => Node == null ? 0 : (Node.IsList ? Node.SlotCount : 1);
 
     /// <summary>
     /// Gets the node at the specified index.
@@ -415,22 +410,26 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     /// <summary>
     /// The first node in the list.
     /// </summary>
-    public TNode First() => this[0];
+    public TNode First()
+        => this[0];
 
     /// <summary>
     /// The first node in the list or default if the list is empty.
     /// </summary>
-    public TNode? FirstOrDefault() => Any() ? this[0] : null;
+    public TNode? FirstOrDefault()
+        => Any() ? this[0] : null;
 
     /// <summary>
     /// The last node in the list.
     /// </summary>
-    public TNode Last() => this[^1];
+    public TNode Last()
+        => this[^1];
 
     /// <summary>
     /// The last node in the list or default if the list is empty.
     /// </summary>
-    public TNode? LastOrDefault() => Any() ? this[^1] : null;
+    public TNode? LastOrDefault()
+        => Any() ? this[^1] : null;
 
     /// <summary>
     /// True if the list has at least one node.
@@ -443,39 +442,24 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
 
     // for debugging
 #pragma warning disable IDE0051 // Remove unused private members
-    private TNode[] Nodes
+    private TNode[] Nodes => [.. this];
 #pragma warning restore IDE0051 // Remove unused private members
-    {
-        get { return this.ToArray(); }
-    }
 
     /// <summary>
     /// Get's the enumerator for this list.
     /// </summary>
     public Enumerator GetEnumerator()
-    {
-        return new Enumerator(in this);
-    }
+        => new(in this);
 
     IEnumerator<TNode> IEnumerable<TNode>.GetEnumerator()
-    {
-        if (Any())
-        {
-            return new EnumeratorImpl(this);
-        }
-
-        return SpecializedCollections.EmptyEnumerator<TNode>();
-    }
+        => Any()
+            ? new EnumeratorImpl(this)
+            : SpecializedCollections.EmptyEnumerator<TNode>();
 
     IEnumerator IEnumerable.GetEnumerator()
-    {
-        if (Any())
-        {
-            return new EnumeratorImpl(this);
-        }
-
-        return SpecializedCollections.EmptyEnumerator<TNode>();
-    }
+        => Any()
+            ? new EnumeratorImpl(this)
+            : (IEnumerator)SpecializedCollections.EmptyEnumerator<TNode>();
 
     public static bool operator ==(SyntaxList<TNode> left, SyntaxList<TNode> right)
         => left.Node == right.Node;
@@ -491,19 +475,13 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
            Equals(list);
 
     public override int GetHashCode()
-    {
-        return Node?.GetHashCode() ?? 0;
-    }
+        => Node?.GetHashCode() ?? 0;
 
     public static implicit operator SyntaxList<TNode>(SyntaxList<SyntaxNode> nodes)
-    {
-        return new SyntaxList<TNode>(nodes.Node);
-    }
+        => new(nodes.Node);
 
     public static implicit operator SyntaxList<SyntaxNode>(SyntaxList<TNode> nodes)
-    {
-        return new SyntaxList<SyntaxNode>(nodes.Node);
-    }
+        => new(nodes.Node);
 
     /// <summary>
     /// The index of the node in this list, or -1 if the node is not in the list.
@@ -511,9 +489,10 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     public int IndexOf(TNode node)
     {
         var index = 0;
+
         foreach (var child in this)
         {
-            if (object.Equals(child, node))
+            if (Equals(child, node))
             {
                 return index;
             }
@@ -527,6 +506,7 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     public int IndexOf(Func<TNode, bool> predicate)
     {
         var index = 0;
+
         foreach (var child in this)
         {
             if (predicate(child))
@@ -543,6 +523,7 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     internal int IndexOf(SyntaxKind kind)
     {
         var index = 0;
+
         foreach (var child in this)
         {
             if (child.Kind == kind)
@@ -560,7 +541,7 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     {
         for (var i = Count - 1; i >= 0; i--)
         {
-            if (object.Equals(this[i], node))
+            if (Equals(this[i], node))
             {
                 return i;
             }
@@ -605,67 +586,44 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
             return false;
         }
 
-        public TNode Current
-        {
-            get
-            {
-                return (TNode)_list.ItemInternal(_index)!;
-            }
-        }
+        public readonly TNode Current
+            => (TNode)_list.ItemInternal(_index)!;
 
         public void Reset()
         {
             _index = -1;
         }
 
-        public override bool Equals(object? obj)
-        {
-            throw new NotSupportedException();
-        }
+        public override readonly bool Equals(object? obj)
+            => throw new NotSupportedException();
 
-        public override int GetHashCode()
-        {
-            throw new NotSupportedException();
-        }
+        public override readonly int GetHashCode()
+            => throw new NotSupportedException();
     }
 
-    private class EnumeratorImpl : IEnumerator<TNode>
+    private sealed class EnumeratorImpl : IEnumerator<TNode>
     {
-        private Enumerator _e;
+        private Enumerator _enumerator;
 
         internal EnumeratorImpl(in SyntaxList<TNode> list)
         {
-            _e = new Enumerator(in list);
+            _enumerator = new Enumerator(in list);
         }
 
         public bool MoveNext()
-        {
-            return _e.MoveNext();
-        }
+            => _enumerator.MoveNext();
 
         public TNode Current
-        {
-            get
-            {
-                return _e.Current;
-            }
-        }
+            => _enumerator.Current;
 
         void IDisposable.Dispose()
         {
         }
 
         object IEnumerator.Current
-        {
-            get
-            {
-                return _e.Current;
-            }
-        }
+            => _enumerator.Current;
 
         void IEnumerator.Reset()
-        {
-            _e.Reset();
-        }
+            => _enumerator.Reset();
     }
 }
