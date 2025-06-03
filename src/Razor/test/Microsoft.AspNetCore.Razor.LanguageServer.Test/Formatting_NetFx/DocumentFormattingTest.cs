@@ -6207,4 +6207,90 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     </span>
                 }
                 """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/11873")]
+    public Task NestedExplicitExpression3()
+        => RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <span>
+                        @((((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                        ) €
+                    </span>
+                    <hr class="my-1" />
+                    <span>
+                        @((123d +
+                            ((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                        ) €
+                    </span>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <span>
+                        @((((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                            ) €
+                    </span>
+                    <hr class="my-1" />
+                    <span>
+                        @((123d +
+                            ((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                            ) €
+                    </span>
+                }
+                """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/11873")]
+    public Task NestedExplicitExpression4()
+    => RunFormattingTestAsync(
+        input: """
+                @if (true)
+                {
+                    <span>
+                        @((((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                ) €
+                    </span>
+                    <hr class="my-1" />
+                    <span>
+                        @((123d +
+                            ((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                ) €
+                    </span>
+                }
+                """,
+        expected: """
+                @if (true)
+                {
+                    <span>
+                        @((((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                            ) €
+                    </span>
+                    <hr class="my-1" />
+                    <span>
+                        @((123d +
+                            ((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                            ) €
+                    </span>
+                }
+                """);
 }

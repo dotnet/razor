@@ -301,21 +301,44 @@ internal partial class CSharpFormattingPass
                 // middle lines, we don't need to worry about that, but we do have to deal with quirks for Html attribute (see below)
                 // so this code handles both cases:
 
-                // We can't use node.Span because it can contain newlines from the line before.
-                // Emit the whitespace, so user spacing is honoured if possible
+                // We can't use node.Span because it can contain newlines from the line before, so we have to work a little.
+
+                // First, emit the whitespace, so user spacing is honoured if possible
                 _builder.Append(_sourceText.ToString(TextSpan.FromBounds(_currentLine.Start, _currentFirstNonWhitespacePosition)));
-                // Now emit the contents
-                var end = _sourceText.GetLinePosition(node.EndPosition).Line == _currentLine.LineNumber
-                    ? node.EndPosition
+
+                // Now emit the contents of the line. If this is the last line of the expression literal, then we want to stop at the
+                // end of the node, as there could be other contents afterwards, so work out if we're in that case first.
+                var toEndOfNode = _sourceText.GetLinePosition(node.EndPosition).Line == _currentLine.LineNumber;
+
+                // A special case here is if we're inside an explicit expression body, one of the bits of content after the node will
+                // be the final close parens, so we need to emit that or the C# expression won't be valid, and we can't trust the formatter.
+                var isEndOfExplicitExpression = toEndOfNode &&
+                    node.Parent.Parent is CSharpExplicitExpressionBodySyntax explicitExpression &&
+                    _sourceText.GetLinePosition(explicitExpression.EndPosition).Line == _currentLine.LineNumber;
+
+                var end = toEndOfNode
+                    ? isEndOfExplicitExpression
+                        ? node.Parent.Parent.EndPosition
+                        : node.EndPosition
                     : _currentLine.End;
                 var span = TextSpan.FromBounds(_currentFirstNonWhitespacePosition, end);
                 _builder.Append(_sourceText.ToString(span));
+
                 // Append a comment at the end so whitespace isn't removed, as Roslyn thinks its the end of the line, but we know it isn't.
                 // eg, given "4, 5, @<div></div>", we want Roslyn to keep the space after the last comma, because there is something after it,
                 // but we can't let Roslyn see the "@<div>" that it is.
                 // We use a multi-line comment because Roslyn has a desire to line up "//" comments with the previous line, which we could interpret
                 // as Roslyn suggesting we indent some trailing Html.
-                _builder.AppendLine(" /* */");
+                var endOfLineMarker = " /* */";
+
+                // If we're at the end of an explicit expression, we want to add a semi-colon to the end of the line, so that C# after the
+                // expression is formatted correctly. ie, we need to "close" the expression.
+                if (isEndOfExplicitExpression)
+                {
+                    endOfLineMarker = ";" + endOfLineMarker;
+                }
+
+                _builder.AppendLine(endOfLineMarker);
 
                 // Final quirk: If we're inside an Html attribute, it means the Html formatter won't have formatted this line, as multi-line
                 // Html attributes are not valid.
@@ -336,7 +359,7 @@ internal partial class CSharpFormattingPass
                     skipPreviousLine: skipPreviousLine,
                     processFormatting: true,
                     formattedLength: span.Length,
-                    formattedOffsetFromEndOfLine: 6,
+                    formattedOffsetFromEndOfLine: endOfLineMarker.Length,
                     htmlIndentLevel: htmlIndentLevel,
                     additionalIndentation: additionalIndentation,
                     checkForNewLines: false);
@@ -446,6 +469,21 @@ internal partial class CSharpFormattingPass
                 {
                     // This is not C# so we just need to avoid the default visit
                     return EmitCurrentLineAsComment();
+                }
+
+                if (node.MetaCode is [{ Kind: SyntaxKind.RightParenthesis } paren] &&
+                    node.Parent is CSharpExplicitExpressionBodySyntax &&
+                    paren.GetPreviousToken() is { Parent: CSharpExpressionLiteralSyntax literal })
+                {
+                    // This is the close bracket of a multi-line "@( .. )" expression at the start of a line, ie the last line of:
+                    //
+                    //    @(DateTime.
+                    //      Now
+                    //    )
+                    //
+                    // This needs some funky handling because there could be non-C# after the close parens, but fortunately
+                    // the method we already have that handles the intervening lines has all of the right code.
+                    return VisitMultilineCSharpExpressionLiteral(literal);
                 }
 
                 return EmitCurrentLineAsCSharp();
