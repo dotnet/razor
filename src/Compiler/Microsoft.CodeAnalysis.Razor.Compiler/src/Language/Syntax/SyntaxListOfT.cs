@@ -29,33 +29,6 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     }
 
     /// <summary>
-    /// Creates a list of syntax nodes.
-    /// </summary>
-    /// <param name="nodes">A sequence of element nodes.</param>
-    public SyntaxList(SyntaxList<TNode> nodes)
-        : this(CreateNode(nodes))
-    {
-    }
-
-    private static SyntaxNode? CreateNode(SyntaxList<TNode> nodes)
-    {
-        using var builder = new PooledArrayBuilder<TNode>(nodes.Count);
-        builder.AddRange(nodes);
-
-        return builder.ToList().Node;
-    }
-
-    public static SyntaxList<TNode> Create(SyntaxNode node, SyntaxNode parent, int position)
-    {
-        return new SyntaxList<TNode>(node.Green.CreateRed(parent, position));
-    }
-
-    public static SyntaxList<TNode> Create(SyntaxNode node, SyntaxNode parent)
-    {
-        return new SyntaxList<TNode>(node.Green.CreateRed(parent, parent.Position));
-    }
-
-    /// <summary>
     /// The number of nodes in the list.
     /// </summary>
     public int Count
@@ -94,7 +67,7 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
         }
     }
 
-    internal SyntaxNode? ItemInternal(int index)
+    private SyntaxNode? ItemInternal(int index)
     {
         if (Node?.IsList is true)
         {
@@ -361,21 +334,6 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     {
         Debug.Assert(Node == null || Count != 0);
         return Node != null;
-    }
-
-    public SyntaxList<TNode> Where(Func<TNode, bool> predicate)
-    {
-        using var builder = new PooledArrayBuilder<TNode>(Count);
-
-        foreach (var node in this)
-        {
-            if (predicate(node))
-            {
-                builder.Add(node);
-            }
-        }
-
-        return builder.ToList();
     }
 
     // for debugging
