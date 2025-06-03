@@ -144,10 +144,7 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     /// <param name="node">The node to insert.</param>
     public SyntaxList<TNode> Insert(int index, TNode node)
     {
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
+        ArgHelper.ThrowIfNull(node);
 
         return InsertRange(index, new[] { node });
     }
@@ -159,15 +156,9 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     /// <param name="nodes">The nodes to insert.</param>
     public SyntaxList<TNode> InsertRange(int index, IEnumerable<TNode> nodes)
     {
-        if (index < 0 || index > Count)
-        {
-            throw new ArgumentOutOfRangeException(nameof(index));
-        }
-
-        if (nodes == null)
-        {
-            throw new ArgumentNullException(nameof(nodes));
-        }
+        ArgHelper.ThrowIfNegative(index);
+        ArgHelper.ThrowIfGreaterThan(index, Count);
+        ArgHelper.ThrowIfNull(nodes);
 
         var list = this.ToList();
         list.InsertRange(index, nodes);
@@ -188,6 +179,8 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     /// <param name="index">The index of the element to remove.</param>
     public SyntaxList<TNode> RemoveAt(int index)
     {
+        ArgHelper.ThrowIfNegative(index);
+        ArgHelper.ThrowIfGreaterThanOrEqual(index, Count);
         if (index < 0 || index > Count)
         {
             throw new ArgumentOutOfRangeException(nameof(index));
@@ -222,15 +215,8 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     /// <param name="newNodes">The new nodes.</param>
     public SyntaxList<TNode> ReplaceRange(TNode nodeInList, IEnumerable<TNode> newNodes)
     {
-        if (nodeInList == null)
-        {
-            throw new ArgumentNullException(nameof(nodeInList));
-        }
-
-        if (newNodes == null)
-        {
-            throw new ArgumentNullException(nameof(newNodes));
-        }
+        ArgHelper.ThrowIfNull(nodeInList);
+        ArgHelper.ThrowIfNull(newNodes);
 
         var index = IndexOf(nodeInList);
         if (index >= 0 && index < Count)
