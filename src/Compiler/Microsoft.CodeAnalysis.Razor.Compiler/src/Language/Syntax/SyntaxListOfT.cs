@@ -28,6 +28,37 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     {
     }
 
+    public SyntaxList(params ReadOnlySpan<TNode> nodes)
+        : this(CreateRedListNode(nodes))
+    {
+    }
+
+    public SyntaxList(IEnumerable<TNode> nodes)
+        : this(CreateRedListNode(nodes))
+    {
+    }
+
+    private static SyntaxNode? CreateRedListNode(ReadOnlySpan<TNode> nodes)
+    {
+        if (nodes.Length == 0)
+        {
+            return null;
+        }
+
+        using var builder = new PooledArrayBuilder<TNode>(nodes.Length);
+        builder.AddRange(nodes);
+
+        return builder.ToListNode();
+    }
+
+    private static SyntaxNode? CreateRedListNode(IEnumerable<TNode> nodes)
+    {
+        using var builder = new PooledArrayBuilder<TNode>();
+        builder.AddRange(nodes);
+
+        return builder.ToListNode();
+    }
+
     /// <summary>
     /// The number of nodes in the list.
     /// </summary>

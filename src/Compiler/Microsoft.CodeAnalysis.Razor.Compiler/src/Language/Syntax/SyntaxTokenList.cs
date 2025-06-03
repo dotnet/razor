@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 /// <summary>
 /// Represents a read-only list of <see cref="SyntaxToken"/>.
 /// </summary>
-[CollectionBuilder(typeof(SyntaxTokenList), methodName: "Create")]
+[CollectionBuilder(typeof(SyntaxList), methodName: "Create")]
 internal readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, IReadOnlyList<SyntaxToken>
 {
     public static SyntaxTokenList Empty => default;
@@ -48,58 +48,36 @@ internal readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, 
     }
 
     public SyntaxTokenList(params ReadOnlySpan<SyntaxToken> tokens)
-        : this(parent: null, CreateNodeFromSpan(tokens), position: 0, index: 0)
+        : this(parent: null, CreateGreenListNode(tokens), position: 0, index: 0)
     {
     }
 
     public SyntaxTokenList(IEnumerable<SyntaxToken> tokens)
-        : this(parent: null, CreateNode(tokens), position: 0, index: 0)
+        : this(parent: null, CreateGreenListNode(tokens), position: 0, index: 0)
     {
     }
 
-    public static SyntaxTokenList Create(ReadOnlySpan<SyntaxToken> tokens)
+    private static GreenNode? CreateGreenListNode(ReadOnlySpan<SyntaxToken> tokens)
     {
-        return tokens.Length == 0
-            ? default
-            : new(parent: null, CreateNodeFromSpan(tokens), position: 0, index: 0);
-    }
-
-    private static GreenNode? CreateNodeFromSpan(ReadOnlySpan<SyntaxToken> tokens)
-    {
-        return tokens.Length switch
-        {
-            0 => null,
-            1 => tokens[0].Node,
-            2 => InternalSyntax.SyntaxList.List(tokens[0].Node, tokens[1].Node),
-            3 => InternalSyntax.SyntaxList.List(tokens[0].Node, tokens[1].Node, tokens[2].Node),
-            _ => BuildAsArray(tokens)
-        };
-
-        static GreenNode BuildAsArray(ReadOnlySpan<SyntaxToken> tokens)
-        {
-            var copy = new ArrayElement<GreenNode>[tokens.Length];
-
-            for (var i = 0; i < tokens.Length; i++)
-            {
-                copy[i].Value = tokens[i].RequiredNode;
-            }
-
-            return InternalSyntax.SyntaxList.List(copy);
-        }
-    }
-
-    private static GreenNode? CreateNode(IEnumerable<SyntaxToken> tokens)
-    {
-        if (tokens == null)
+        if (tokens.Length == 0)
         {
             return null;
         }
 
+        using var builder = new PooledArrayBuilder<SyntaxToken>(tokens.Length);
+        builder.AddRange(tokens);
+
+        return builder.ToGreenListNode();
+    }
+
+    private static GreenNode? CreateGreenListNode(IEnumerable<SyntaxToken> tokens)
+    {
         using var builder = new PooledArrayBuilder<SyntaxToken>();
         builder.AddRange(tokens);
 
-        return builder.ToList().Node;
+        return builder.ToGreenListNode();
     }
+
     /// <summary>
     /// The number of nodes in the list.
     /// </summary>
