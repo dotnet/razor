@@ -131,18 +131,21 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     /// </summary>
     /// <param name="node">The node to add.</param>
     public SyntaxList<TNode> Add(TNode node)
-    {
-        return Insert(Count, node);
-    }
+        => Insert(Count, node);
+
+    /// <summary>
+    /// Creates a new list with the specified nodes added at the end.
+    /// </summary>
+    /// <param name="nodes">The nodes to add.</param>
+    public SyntaxList<TNode> AddRange(ReadOnlySpan<TNode> nodes)
+        => InsertRange(Count, nodes);
 
     /// <summary>
     /// Creates a new list with the specified nodes added at the end.
     /// </summary>
     /// <param name="nodes">The nodes to add.</param>
     public SyntaxList<TNode> AddRange(IEnumerable<TNode> nodes)
-    {
-        return InsertRange(Count, nodes);
-    }
+        => InsertRange(Count, nodes);
 
     /// <summary>
     /// Creates a new list with the specified node inserted at the index.
@@ -154,6 +157,39 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
         ArgHelper.ThrowIfNull(node);
 
         return InsertRange(index, [node]);
+    }
+
+    /// <summary>
+    /// Creates a new list with the specified nodes inserted at the index.
+    /// </summary>
+    /// <param name="index">The index to insert at.</param>
+    /// <param name="nodes">The nodes to insert.</param>
+    public SyntaxList<TNode> InsertRange(int index, ReadOnlySpan<TNode> tokens)
+    {
+        var count = Count;
+
+        ArgHelper.ThrowIfNegative(index);
+        ArgHelper.ThrowIfGreaterThan(index, count);
+
+        if (tokens.Length == 0)
+        {
+            return this;
+        }
+
+        using var builder = new PooledArrayBuilder<TNode>(count + tokens.Length);
+
+        // Add current tokens up to 'index'
+        builder.AddRange(this, 0, index);
+
+        // Add new tokens
+        builder.AddRange(tokens);
+
+        // Add remaining tokens starting from 'index'
+        builder.AddRange(this, index, count - index);
+
+        Debug.Assert(builder.Count == count + tokens.Length);
+
+        return builder.ToList();
     }
 
     /// <summary>
@@ -269,6 +305,44 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
         ArgHelper.ThrowIfNull(newNode);
 
         return ReplaceRange(nodeInList, [newNode]);
+    }
+
+    /// <summary>
+    /// Creates a new list with the specified element replaced with new nodes.
+    /// </summary>
+    /// <param name="nodeInList">The element to replace.</param>
+    /// <param name="newNodes">The new nodes.</param>
+    public SyntaxList<TNode> ReplaceRange(TNode nodeInList, ReadOnlySpan<TNode> nodes)
+    {
+        ArgHelper.ThrowIfNull(nodeInList);
+
+        var index = IndexOf(nodeInList);
+
+        if (index < 0)
+        {
+            ThrowHelper.ThrowArgumentOutOfRangeException(nameof(nodeInList));
+        }
+
+        if (nodes.Length == 0)
+        {
+            return RemoveAt(index);
+        }
+
+        // Count - 1 because we're removing an item.
+        var newCount = Count - 1;
+
+        using var builder = new PooledArrayBuilder<TNode>(newCount + nodes.Length);
+
+        // Add current tokens up to 'index'
+        builder.AddRange(this, 0, index);
+
+        // Add new tokens
+        builder.AddRange(nodes);
+
+        // Add remaining tokens starting *after* 'index'
+        builder.AddRange(this, index + 1, newCount - index);
+
+        return builder.ToList();
     }
 
     /// <summary>

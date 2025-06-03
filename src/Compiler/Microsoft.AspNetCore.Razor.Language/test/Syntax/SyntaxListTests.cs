@@ -133,6 +133,116 @@ public class SyntaxListTests
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => list.Add(null!));
     }
+    [Fact]
+    public void AddRange_WithReadOnlySpan_WhenListIsEmpty_AddsAllNodes()
+    {
+        // Arrange
+        var emptyList = SyntaxList<SyntaxNode>.Empty;
+        SyntaxNode[] nodesToAdd = [
+            CreateMarkupTextLiteral(s_openAngle),
+            CreateMarkupTextLiteral(s_forwardSlash),
+            CreateMarkupTextLiteral(s_closeAngle)
+        ];
+
+        // Act
+        var newList = emptyList.AddRange(nodesToAdd.AsSpan());
+
+        // Assert
+        Assert.Empty(emptyList);
+        Assert.Equal(nodesToAdd.Length, newList.Count);
+
+        for (var i = 0; i < nodesToAdd.Length; i++)
+        {
+            Assert.True(nodesToAdd[i].IsEquivalentTo(newList[i]));
+        }
+    }
+
+    [Fact]
+    public void AddRange_WithReadOnlySpan_WhenListHasNodes_AddsNodesToEnd()
+    {
+        // Arrange
+        var existingNode = CreateMarkupTextLiteral(s_openAngle);
+        SyntaxList<SyntaxNode> originalList = [existingNode];
+
+        SyntaxNode[] nodesToAdd = [
+            CreateMarkupTextLiteral(s_forwardSlash),
+            CreateMarkupTextLiteral(s_closeAngle)
+        ];
+
+        // Act
+        var newList = originalList.AddRange(nodesToAdd.AsSpan());
+
+        // Assert
+        Assert.Single(originalList);
+        Assert.Equal(1 + nodesToAdd.Length, newList.Count);
+
+        Assert.True(existingNode.IsEquivalentTo(newList[0]));
+        Assert.True(nodesToAdd[0].IsEquivalentTo(newList[1]));
+        Assert.True(nodesToAdd[1].IsEquivalentTo(newList[2]));
+    }
+
+    [Fact]
+    public void AddRange_WithReadOnlySpan_WithEmptySpan_ReturnsSameList()
+    {
+        // Arrange
+        var node = CreateMarkupTextLiteral(s_openAngle);
+        SyntaxList<SyntaxNode> originalList = [node];
+        var emptySpan = ReadOnlySpan<SyntaxNode>.Empty;
+
+        // Act
+        var newList = originalList.AddRange(emptySpan);
+
+        // Assert
+        Assert.Equal(originalList.Count, newList.Count);
+        Assert.True(originalList[0].IsEquivalentTo(newList[0]));
+    }
+
+    [Fact]
+    public void AddRange_WithReadOnlySpan_ImplementsImmutability_DoesNotModifyOriginalList()
+    {
+        // Arrange
+        var existingNode = CreateMarkupTextLiteral(s_openAngle);
+        SyntaxList<SyntaxNode> originalList = [existingNode];
+
+        SyntaxNode[] nodesToAdd = [
+            CreateMarkupTextLiteral(s_forwardSlash),
+            CreateMarkupTextLiteral(s_closeAngle)
+        ];
+
+        // Act
+        var newList = originalList.AddRange(nodesToAdd.AsSpan());
+
+        // Assert
+        Assert.Single(originalList);
+        Assert.True(existingNode.IsEquivalentTo(originalList[0]));
+        Assert.Equal(3, newList.Count);
+    }
+
+    [Fact]
+    public void AddRange_WithReadOnlySpan_DelegatesToInsertRange_WithCorrectIndex()
+    {
+        // Arrange
+        var existingNode = CreateMarkupTextLiteral(s_openAngle);
+        SyntaxList<SyntaxNode> originalList = [existingNode];
+
+        SyntaxNode[] nodesToAdd = [
+            CreateMarkupTextLiteral(s_forwardSlash),
+            CreateMarkupTextLiteral(s_closeAngle)
+        ];
+
+        var span = nodesToAdd.AsSpan();
+
+        // Act
+        var addResult = originalList.AddRange(span);
+        var insertResult = originalList.InsertRange(originalList.Count, span);
+
+        // Assert
+        Assert.Equal(addResult.Count, insertResult.Count);
+        for (var i = 0; i < addResult.Count; i++)
+        {
+            Assert.True(addResult[i].IsEquivalentTo(insertResult[i]));
+        }
+    }
 
     [Fact]
     public void AddRange_WhenListIsEmpty_AddsAllNodes()
@@ -248,9 +358,10 @@ public class SyntaxListTests
     {
         // Arrange
         var list = SyntaxList<SyntaxNode>.Empty;
+        IEnumerable<SyntaxNode> newNodes = null!;
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => list.AddRange(null!));
+        Assert.Throws<ArgumentNullException>(() => list.AddRange(newNodes));
     }
 
     [Fact]
@@ -454,6 +565,163 @@ public class SyntaxListTests
     }
 
     [Fact]
+    public void InsertRange_WithReadOnlySpan_AtBeginning_InsertsNodesAtStart()
+    {
+        // Arrange
+        var existingNode = CreateMarkupTextLiteral(s_closeAngle);
+        SyntaxList<SyntaxNode> originalList = [existingNode];
+
+        SyntaxNode[] nodesToInsert = [
+            CreateMarkupTextLiteral(s_openAngle),
+            CreateMarkupTextLiteral(s_forwardSlash)
+        ];
+
+        // Act
+        var newList = originalList.InsertRange(0, nodesToInsert.AsSpan());
+
+        // Assert
+        Assert.Single(originalList);
+        Assert.Equal(nodesToInsert.Length + 1, newList.Count);
+        Assert.True(nodesToInsert[0].IsEquivalentTo(newList[0]));
+        Assert.True(nodesToInsert[1].IsEquivalentTo(newList[1]));
+        Assert.True(existingNode.IsEquivalentTo(newList[2]));
+    }
+
+    [Fact]
+    public void InsertRange_WithReadOnlySpan_AtMiddle_InsertsNodesAtCorrectPosition()
+    {
+        // Arrange
+        var node1 = CreateMarkupTextLiteral(s_openAngle);
+        var node2 = CreateMarkupTextLiteral(s_closeAngle);
+        SyntaxList<SyntaxNode> originalList = [node1, node2];
+
+        SyntaxNode[] nodesToInsert = [
+            CreateMarkupTextLiteral(s_forwardSlash),
+            CreateMarkupTextLiteral(s_rightBrace)
+        ];
+
+        // Act
+        var newList = originalList.InsertRange(1, nodesToInsert.AsSpan());
+
+        // Assert
+        Assert.Equal(2, originalList.Count);
+        Assert.Equal(originalList.Count + nodesToInsert.Length, newList.Count);
+        Assert.True(node1.IsEquivalentTo(newList[0]));
+        Assert.True(nodesToInsert[0].IsEquivalentTo(newList[1]));
+        Assert.True(nodesToInsert[1].IsEquivalentTo(newList[2]));
+        Assert.True(node2.IsEquivalentTo(newList[3]));
+    }
+
+    [Fact]
+    public void InsertRange_WithReadOnlySpan_AtEnd_SameAsAddRange()
+    {
+        // Arrange
+        var node1 = CreateMarkupTextLiteral(s_openAngle);
+        SyntaxList<SyntaxNode> originalList = [node1];
+
+        SyntaxNode[] nodesToInsert = [
+            CreateMarkupTextLiteral(s_forwardSlash),
+            CreateMarkupTextLiteral(s_closeAngle)
+        ];
+        var span = nodesToInsert.AsSpan();
+
+        // Act
+        var insertResult = originalList.InsertRange(originalList.Count, span);
+        var addResult = originalList.AddRange(span);
+
+        // Assert
+        Assert.Equal(addResult.Count, insertResult.Count);
+        for (var i = 0; i < addResult.Count; i++)
+        {
+            Assert.True(addResult[i].IsEquivalentTo(insertResult[i]));
+        }
+    }
+
+    [Fact]
+    public void InsertRange_WithReadOnlySpan_WithEmptySpan_ReturnsSameList()
+    {
+        // Arrange
+        var node = CreateMarkupTextLiteral(s_openAngle);
+        SyntaxList<SyntaxNode> originalList = [node];
+        var emptySpan = ReadOnlySpan<SyntaxNode>.Empty;
+
+        // Act
+        var newList = originalList.InsertRange(0, emptySpan);
+
+        // Assert
+        Assert.Equal(originalList.Count, newList.Count);
+        Assert.True(originalList[0].IsEquivalentTo(newList[0]));
+    }
+
+    [Fact]
+    public void InsertRange_WithReadOnlySpan_IntoEmptyList_CreatesListWithAllNodes()
+    {
+        // Arrange
+        var emptyList = SyntaxList<SyntaxNode>.Empty;
+
+        SyntaxNode[] nodesToInsert = [
+            CreateMarkupTextLiteral(s_openAngle),
+            CreateMarkupTextLiteral(s_forwardSlash),
+            CreateMarkupTextLiteral(s_closeAngle)
+        ];
+
+        // Act
+        var newList = emptyList.InsertRange(0, nodesToInsert.AsSpan());
+
+        // Assert
+        Assert.Empty(emptyList);
+        Assert.Equal(nodesToInsert.Length, newList.Count);
+
+        for (var i = 0; i < nodesToInsert.Length; i++)
+        {
+            Assert.True(nodesToInsert[i].IsEquivalentTo(newList[i]));
+        }
+    }
+
+    [Fact]
+    public void InsertRange_WithReadOnlySpan_ImplementsImmutability_DoesNotModifyOriginalList()
+    {
+        // Arrange
+        var existingNode = CreateMarkupTextLiteral(s_openAngle);
+        SyntaxList<SyntaxNode> originalList = [existingNode];
+
+        SyntaxNode[] nodesToInsert = [
+            CreateMarkupTextLiteral(s_forwardSlash),
+            CreateMarkupTextLiteral(s_closeAngle)
+        ];
+
+        // Act
+        var newList = originalList.InsertRange(0, nodesToInsert.AsSpan());
+
+        // Assert
+        Assert.Single(originalList);
+        Assert.True(existingNode.IsEquivalentTo(originalList[0]));
+        Assert.Equal(3, newList.Count);
+    }
+
+    [Fact]
+    public void InsertRange_WithReadOnlySpan_ThrowsArgumentOutOfRangeException_WhenIndexIsNegative()
+    {
+        // Arrange
+        SyntaxList<SyntaxNode> list = [CreateMarkupTextLiteral(s_openAngle)];
+        SyntaxNode[] nodes = [CreateMarkupTextLiteral(s_closeAngle)];
+
+        // Act & Assert
+        Assert.Throws<ArgumentOutOfRangeException>(() => list.InsertRange(-1, nodes.AsSpan()));
+    }
+
+    [Fact]
+    public void InsertRange_WithReadOnlySpan_ThrowsArgumentOutOfRangeException_WhenIndexExceedsCount()
+    {
+        // Arrange
+        SyntaxList<SyntaxNode> list = [CreateMarkupTextLiteral(s_openAngle)];
+        SyntaxNode[] nodes = [CreateMarkupTextLiteral(s_closeAngle)];
+
+        // Act & Assert
+        Assert.Throws<ArgumentOutOfRangeException>(() => list.InsertRange(list.Count + 1, nodes.AsSpan()));
+    }
+
+    [Fact]
     public void InsertRange_AtBeginning_InsertsNodesAtStart()
     {
         // Arrange
@@ -592,9 +860,10 @@ public class SyntaxListTests
     {
         // Arrange
         SyntaxList<SyntaxNode> list = [CreateMarkupTextLiteral(s_openAngle)];
+        IEnumerable<SyntaxNode> newNodes = null!;
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => list.InsertRange(0, null!));
+        Assert.Throws<ArgumentNullException>(() => list.InsertRange(0, newNodes));
     }
 
     [Fact]
@@ -1006,6 +1275,106 @@ public class SyntaxListTests
     }
 
     [Fact]
+    public void ReplaceRange_WithReadOnlySpan_SingleNodeList_ReplacesNodeWithMultipleNodes()
+    {
+        // Arrange
+        var original = CreateMarkupTextLiteral(s_openAngle);
+        SyntaxNode[] replacements = [
+            CreateMarkupTextLiteral(s_forwardSlash),
+            CreateMarkupTextLiteral(s_closeAngle)
+        ];
+        SyntaxList<SyntaxNode> originalList = [original];
+
+        // Act
+        var newList = originalList.ReplaceRange(originalList[0], replacements.AsSpan());
+
+        // Assert
+        Assert.Single(originalList);
+        Assert.Equal(2, newList.Count);
+        Assert.True(replacements[0].IsEquivalentTo(newList[0]));
+        Assert.True(replacements[1].IsEquivalentTo(newList[1]));
+    }
+
+    [Fact]
+    public void ReplaceRange_WithReadOnlySpan_MultiNodeList_ReplacesCorrectNodeWithMultipleNodes()
+    {
+        // Arrange
+        var node1 = CreateMarkupTextLiteral(s_openAngle);
+        var node2 = CreateMarkupTextLiteral(s_forwardSlash);
+        var node3 = CreateMarkupTextLiteral(s_closeAngle);
+        SyntaxList<SyntaxNode> originalList = [node1, node2, node3];
+        SyntaxNode[] replacements = [
+            CreateMarkupTextLiteral(s_leftBrace),
+            CreateMarkupTextLiteral(s_rightBrace)
+        ];
+
+        // Act
+        var newList = originalList.ReplaceRange(originalList[1], replacements.AsSpan());
+
+        // Assert
+        Assert.Equal(3, originalList.Count);
+        Assert.Equal(4, newList.Count);
+        Assert.True(node1.IsEquivalentTo(newList[0]));
+        Assert.True(replacements[0].IsEquivalentTo(newList[1]));
+        Assert.True(replacements[1].IsEquivalentTo(newList[2]));
+        Assert.True(node3.IsEquivalentTo(newList[3]));
+    }
+
+    [Fact]
+    public void ReplaceRange_WithReadOnlySpan_MultiNodeList_ReplacesNodeWithEmptySpan()
+    {
+        // Arrange
+        var node1 = CreateMarkupTextLiteral(s_openAngle);
+        var node2 = CreateMarkupTextLiteral(s_forwardSlash);
+        var node3 = CreateMarkupTextLiteral(s_closeAngle);
+        SyntaxList<SyntaxNode> originalList = [node1, node2, node3];
+
+        // Act
+        var newList = originalList.ReplaceRange(originalList[1], []);
+
+        // Assert
+        Assert.Equal(3, originalList.Count);
+        Assert.Equal(2, newList.Count);
+        Assert.True(node1.IsEquivalentTo(newList[0]));
+        Assert.True(node3.IsEquivalentTo(newList[1]));
+    }
+
+    [Fact]
+    public void ReplaceRange_WithReadOnlySpan_ImplementsImmutability_DoesNotModifyOriginalList()
+    {
+        // Arrange
+        var node1 = CreateMarkupTextLiteral(s_openAngle);
+        var node2 = CreateMarkupTextLiteral(s_forwardSlash);
+        SyntaxList<SyntaxNode> originalList = [node1, node2];
+        SyntaxNode[] replacements = [
+            CreateMarkupTextLiteral(s_leftBrace),
+            CreateMarkupTextLiteral(s_rightBrace)
+        ];
+
+        // Act
+        var newList = originalList.ReplaceRange(originalList[0], replacements.AsSpan());
+
+        // Assert
+        Assert.Equal(2, originalList.Count);
+        Assert.True(node1.IsEquivalentTo(originalList[0]));
+        Assert.True(node2.IsEquivalentTo(originalList[1]));
+        Assert.Equal(3, newList.Count);
+    }
+
+    [Fact]
+    public void ReplaceRange_WithReadOnlySpan_ThrowsArgumentOutOfRangeException_WhenNodeNotInList()
+    {
+        // Arrange
+        var node = CreateMarkupTextLiteral(s_openAngle);
+        var nodeNotInList = CreateMarkupTextLiteral(s_forwardSlash);
+        SyntaxNode[] replacements = [CreateMarkupTextLiteral(s_closeAngle)];
+        SyntaxList<SyntaxNode> list = [node];
+
+        // Act & Assert
+        Assert.Throws<ArgumentOutOfRangeException>(() => list.ReplaceRange(nodeNotInList, replacements.AsSpan()));
+    }
+
+    [Fact]
     public void ReplaceRange_SingleNodeList_ReplacesNodeWithMultipleNodes()
     {
         // Arrange
@@ -1104,9 +1473,10 @@ public class SyntaxListTests
         // Arrange
         var node = CreateMarkupTextLiteral(s_openAngle);
         SyntaxList<SyntaxNode> list = [node];
+        IEnumerable<SyntaxNode> newNodes = null!;
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => list.ReplaceRange(node, null!));
+        Assert.Throws<ArgumentNullException>(() => list.ReplaceRange(node, newNodes));
     }
 
     [Fact]
