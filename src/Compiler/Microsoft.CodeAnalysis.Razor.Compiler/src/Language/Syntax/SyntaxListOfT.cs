@@ -5,7 +5,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -150,7 +149,7 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     {
         ArgHelper.ThrowIfNull(node);
 
-        return InsertRange(index, new[] { node });
+        return InsertRange(index, [node]);
     }
 
     /// <summary>
@@ -160,21 +159,63 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     /// <param name="nodes">The nodes to insert.</param>
     public SyntaxList<TNode> InsertRange(int index, IEnumerable<TNode> nodes)
     {
+        var count = Count;
+
         ArgHelper.ThrowIfNegative(index);
-        ArgHelper.ThrowIfGreaterThan(index, Count);
+        ArgHelper.ThrowIfGreaterThan(index, count);
         ArgHelper.ThrowIfNull(nodes);
 
-        var list = this.ToList();
-        list.InsertRange(index, nodes);
+        if (nodes.TryGetCount(out var nodeCount))
+        {
+            return InsertRangeWithCount(index, nodes, nodeCount);
+        }
 
-        if (list.Count == 0)
+        using var builder = new PooledArrayBuilder<TNode>(count);
+
+        // Add current tokens up to 'index'
+        builder.AddRange(this, 0, index);
+
+        var oldCount = builder.Count;
+
+        // Add new tokens
+        builder.AddRange(nodes);
+
+        // If builder.Count == oldCount, there weren't any tokens added.
+        // So, there's no need to continue.
+        if (builder.Count == oldCount)
         {
             return this;
         }
-        else
+
+        // Add remaining tokens starting from 'index'
+        builder.AddRange(this, index, count - index);
+
+        return builder.ToList();
+    }
+
+    private SyntaxList<TNode> InsertRangeWithCount(int index, IEnumerable<TNode> nodes, int nodeCount)
+    {
+        if (nodeCount == 0)
         {
-            return CreateList(list[0].Green, list);
+            return this;
         }
+
+        var count = Count;
+
+        using var builder = new PooledArrayBuilder<TNode>(count + nodeCount);
+
+        // Add current tokens up to 'index'
+        builder.AddRange(this, 0, index);
+
+        // Add new tokens
+        builder.AddRange(nodes);
+
+        // Add remaining tokens starting from 'index'
+        builder.AddRange(this, index, count - index);
+
+        Debug.Assert(builder.Count == count + nodeCount);
+
+        return builder.ToList();
     }
 
     /// <summary>
@@ -183,14 +224,23 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     /// <param name="index">The index of the element to remove.</param>
     public SyntaxList<TNode> RemoveAt(int index)
     {
-        ArgHelper.ThrowIfNegative(index);
-        ArgHelper.ThrowIfGreaterThanOrEqual(index, Count);
-        if (index < 0 || index > Count)
-        {
-            throw new ArgumentOutOfRangeException(nameof(index));
-        }
+        var count = Count;
 
-        return Remove(this[index]);
+        ArgHelper.ThrowIfNegative(index);
+        ArgHelper.ThrowIfGreaterThanOrEqual(index, count);
+
+        // count - 1 because we're removing an item.
+        var newCount = count - 1;
+
+        using var builder = new PooledArrayBuilder<TNode>(newCount);
+
+        // Add current tokens up to 'index'
+        builder.AddRange(this, 0, index);
+
+        // Add remaining tokens starting *after* 'index'
+        builder.AddRange(this, index + 1, newCount - index);
+
+        return builder.ToList();
     }
 
     /// <summary>
@@ -201,7 +251,8 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     {
         ArgHelper.ThrowIfNull(node);
 
-        return CreateList(this.Where(x => x != node).ToList());
+        var index = IndexOf(node);
+        return index >= 0 ? RemoveAt(index) : this;
     }
 
     /// <summary>
@@ -213,7 +264,7 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     {
         ArgHelper.ThrowIfNull(newNode);
 
-        return ReplaceRange(nodeInList, new[] { newNode });
+        return ReplaceRange(nodeInList, [newNode]);
     }
 
     /// <summary>
@@ -227,35 +278,60 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
         ArgHelper.ThrowIfNull(newNodes);
 
         var index = IndexOf(nodeInList);
-        if (index >= 0 && index < Count)
+
+        if (index < 0)
         {
-            var list = this.ToList();
-            list.RemoveAt(index);
-            list.InsertRange(index, newNodes);
-            return CreateList(list);
+            ThrowHelper.ThrowArgumentOutOfRangeException(nameof(nodeInList));
         }
-        else
+
+        if (newNodes.TryGetCount(out var nodeCount))
         {
-            throw new ArgumentOutOfRangeException(nameof(nodeInList));
+            return ReplaceRangeWithCount(index, newNodes, nodeCount);
         }
+
+        // Count - 1 because we're removing an item.
+        var newCount = Count - 1;
+
+        using var builder = new PooledArrayBuilder<TNode>(newCount);
+
+        // Add current tokens up to 'index'
+        builder.AddRange(this, 0, index);
+
+        // Add new tokens
+        builder.AddRange(newNodes);
+
+        // Add remaining tokens starting *after* 'index'
+        builder.AddRange(this, index + 1, newCount - index);
+
+        return builder.ToList();
     }
 
-    private static SyntaxList<TNode> CreateList(List<TNode> items)
+    private SyntaxList<TNode> ReplaceRangeWithCount(int index, IEnumerable<TNode> nodes, int nodeCount)
     {
-        return items.Count != 0
-            ? CreateList(items[0].Green, items)
-            : default;
-    }
-
-    static SyntaxList<TNode> CreateList(GreenNode creator, List<TNode> items)
-    {
-        if (items.Count == 0)
+        if (nodeCount == 0)
         {
-            return default;
+            return RemoveAt(index);
         }
 
-        var newGreen = creator.CreateList(items.Select(n => n.Green));
-        return new SyntaxList<TNode>(newGreen.CreateRed());
+        // Count - 1 because we're removing an item.
+        var newCount = Count - 1;
+
+        using var builder = new PooledArrayBuilder<TNode>(newCount + nodeCount);
+
+        // Add current tokens up to 'index'
+        builder.AddRange(this, 0, index);
+
+        // Add new tokens
+        builder.AddRange(nodes);
+
+        Debug.Assert(builder.Count == index + nodeCount);
+
+        // Add remaining tokens starting *after* 'index'
+        builder.AddRange(this, index + 1, newCount - index);
+
+        Debug.Assert(builder.Count == newCount + nodeCount);
+
+        return builder.ToList();
     }
 
     /// <summary>
