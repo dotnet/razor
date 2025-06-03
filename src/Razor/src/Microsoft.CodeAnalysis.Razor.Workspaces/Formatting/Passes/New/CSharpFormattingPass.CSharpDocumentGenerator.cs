@@ -311,7 +311,11 @@ internal partial class CSharpFormattingPass
                 var span = TextSpan.FromBounds(_currentFirstNonWhitespacePosition, end);
                 _builder.Append(_sourceText.ToString(span));
                 // Append a comment at the end so whitespace isn't removed, as Roslyn thinks its the end of the line, but we know it isn't.
-                _builder.AppendLine(" //");
+                // eg, given "4, 5, @<div></div>", we want Roslyn to keep the space after the last comma, because there is something after it,
+                // but we can't let Roslyn see the "@<div>" that it is.
+                // We use a multi-line comment because Roslyn has a desire to line up "//" comments with the previous line, which we could interpret
+                // as Roslyn suggesting we indent some trailing Html.
+                _builder.AppendLine(" /* */");
 
                 // Final quirk: If we're inside an Html attribute, it means the Html formatter won't have formatted this line, as multi-line
                 // Html attributes are not valid.
@@ -332,7 +336,7 @@ internal partial class CSharpFormattingPass
                     skipPreviousLine: skipPreviousLine,
                     processFormatting: true,
                     formattedLength: span.Length,
-                    formattedOffsetFromEndOfLine: 3,
+                    formattedOffsetFromEndOfLine: 6,
                     htmlIndentLevel: htmlIndentLevel,
                     additionalIndentation: additionalIndentation,
                     checkForNewLines: false);
