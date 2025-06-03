@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
@@ -13,6 +14,20 @@ internal abstract class SyntaxList : SyntaxNode
     {
     }
 
+
+    public static SyntaxList<TNode> Create<TNode>(ReadOnlySpan<TNode> nodes)
+        where TNode : SyntaxNode
+    {
+        if (nodes.Length == 0)
+        {
+            return default;
+        }
+
+        using var builder = new PooledArrayBuilder<TNode>(nodes.Length);
+        builder.AddRange(nodes);
+
+        return builder.ToList();
+    }
 
     // For debugging
 #pragma warning disable IDE0051 // Remove unused private members

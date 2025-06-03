@@ -2,18 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
+[CollectionBuilder(typeof(SyntaxList), methodName: "Create")]
 internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNode>, IEquatable<SyntaxList<TNode>>
     where TNode : SyntaxNode
 {
+    public static SyntaxList<TNode> Empty => default;
+
     internal SyntaxNode? Node { get; } = node;
 
     /// <summary>
@@ -195,6 +199,8 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     /// <param name="node">The element to remove.</param>
     public SyntaxList<TNode> Remove(TNode node)
     {
+        ArgHelper.ThrowIfNull(node);
+
         return CreateList(this.Where(x => x != node).ToList());
     }
 
@@ -205,6 +211,8 @@ internal readonly struct SyntaxList<TNode>(SyntaxNode? node) : IReadOnlyList<TNo
     /// <param name="newNode">The new node.</param>
     public SyntaxList<TNode> Replace(TNode nodeInList, TNode newNode)
     {
+        ArgHelper.ThrowIfNull(newNode);
+
         return ReplaceRange(nodeInList, new[] { newNode });
     }
 

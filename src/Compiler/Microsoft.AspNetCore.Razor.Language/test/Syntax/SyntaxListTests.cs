@@ -28,7 +28,7 @@ public class SyntaxListTests
     public void Add_WhenListIsEmpty_AddsNodeAtEnd()
     {
         // Arrange
-        var emptyList = new SyntaxList<SyntaxNode>();
+        var emptyList = SyntaxList<SyntaxNode>.Empty;
         var node = CreateMarkupTextLiteral(s_openAngle);
 
         // Act
@@ -45,7 +45,7 @@ public class SyntaxListTests
     {
         // Arrange
         var existingNode = CreateMarkupTextLiteral(s_openAngle);
-        var originalList = new SyntaxList<SyntaxNode>(existingNode);
+        SyntaxList<SyntaxNode> originalList = [existingNode];
         var nodeToAdd = CreateMarkupTextLiteral(s_closeAngle);
 
         // Act
@@ -67,7 +67,7 @@ public class SyntaxListTests
         var node3 = CreateMarkupTextLiteral(s_leftBrace);
 
         // Act
-        var list = new SyntaxList<SyntaxNode>();
+        var list = SyntaxList<SyntaxNode>.Empty;
         var list1 = list.Add(node1);
         var list2 = list1.Add(node2);
         var list3 = list2.Add(node3);
@@ -92,7 +92,7 @@ public class SyntaxListTests
         // Arrange
         var node1 = CreateMarkupTextLiteral(s_openAngle);
         var node2 = CreateMarkupTextLiteral(s_closeAngle);
-        var originalList = new SyntaxList<SyntaxNode>(node1);
+        SyntaxList<SyntaxNode> originalList = [node1];
 
         // Act
         var newList = originalList.Add(node2);
@@ -109,7 +109,7 @@ public class SyntaxListTests
         // Arrange
         var node1 = CreateMarkupTextLiteral(s_openAngle);
         var node2 = CreateMarkupTextLiteral(s_closeAngle);
-        var originalList = new SyntaxList<SyntaxNode>(node1);
+        SyntaxList<SyntaxNode> originalList = [node1];
 
         // Act
         var addResult = originalList.Add(node2);
@@ -128,7 +128,7 @@ public class SyntaxListTests
     public void Add_ThrowsArgumentNullException_WhenNodeIsNull()
     {
         // Arrange
-        var list = new SyntaxList<SyntaxNode>();
+        var list = SyntaxList<SyntaxNode>.Empty;
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => list.Add(null!));
@@ -138,7 +138,7 @@ public class SyntaxListTests
     public void AddRange_WhenListIsEmpty_AddsAllNodes()
     {
         // Arrange
-        var emptyList = new SyntaxList<SyntaxNode>();
+        var emptyList = SyntaxList<SyntaxNode>.Empty;
         SyntaxNode[] nodesToAdd = [
             CreateMarkupTextLiteral(s_openAngle),
             CreateMarkupTextLiteral(s_forwardSlash),
@@ -163,7 +163,7 @@ public class SyntaxListTests
     {
         // Arrange
         var existingNode = CreateMarkupTextLiteral(s_openAngle);
-        var originalList = new SyntaxList<SyntaxNode>(existingNode);
+        SyntaxList<SyntaxNode> originalList = [existingNode];
 
         SyntaxNode[] nodesToAdd = [
             CreateMarkupTextLiteral(s_forwardSlash),
@@ -187,7 +187,7 @@ public class SyntaxListTests
     {
         // Arrange
         var node = CreateMarkupTextLiteral(s_openAngle);
-        var originalList = new SyntaxList<SyntaxNode>(node);
+        SyntaxList<SyntaxNode> originalList = [node];
         var emptyNodes = Array.Empty<SyntaxNode>();
 
         // Act
@@ -203,7 +203,7 @@ public class SyntaxListTests
     {
         // Arrange
         var existingNode = CreateMarkupTextLiteral(s_openAngle);
-        var originalList = new SyntaxList<SyntaxNode>(existingNode);
+        SyntaxList<SyntaxNode> originalList = [existingNode];
 
         SyntaxNode[] nodesToAdd = [
             CreateMarkupTextLiteral(s_forwardSlash),
@@ -224,7 +224,7 @@ public class SyntaxListTests
     {
         // Arrange
         var existingNode = CreateMarkupTextLiteral(s_openAngle);
-        var originalList = new SyntaxList<SyntaxNode>(existingNode);
+        SyntaxList<SyntaxNode> originalList = [existingNode];
 
         SyntaxNode[] nodesToAdd = [
             CreateMarkupTextLiteral(s_forwardSlash),
@@ -247,7 +247,7 @@ public class SyntaxListTests
     public void AddRange_ThrowsArgumentNullException_WhenNodesIsNull()
     {
         // Arrange
-        var list = new SyntaxList<SyntaxNode>();
+        var list = SyntaxList<SyntaxNode>.Empty;
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => list.AddRange(null!));
@@ -257,7 +257,7 @@ public class SyntaxListTests
     public void AddRange_WithDifferentNodeTypes_AddsAllNodes()
     {
         // Arrange
-        var emptyList = new SyntaxList<SyntaxNode>();
+        var emptyList = SyntaxList<SyntaxNode>.Empty;
 
         // Create different types of syntax nodes
         SyntaxNode[] mixedNodes = [
@@ -283,7 +283,7 @@ public class SyntaxListTests
     public void AddRange_WithListAsSource_AddsAllNodes()
     {
         // Arrange
-        var emptyList = new SyntaxList<SyntaxNode>();
+        var emptyList = SyntaxList<SyntaxNode>.Empty;
         List<SyntaxNode> nodesList = [
             CreateMarkupTextLiteral(s_openAngle),
             CreateMarkupTextLiteral(s_forwardSlash),
@@ -306,7 +306,7 @@ public class SyntaxListTests
     public void AddRange_WithIEnumerableAsSource_AddsAllNodes()
     {
         // Arrange
-        var emptyList = new SyntaxList<SyntaxNode>();
+        var emptyList = SyntaxList<SyntaxNode>.Empty;
 
         IEnumerable<SyntaxNode> nodes = [
             CreateMarkupTextLiteral(s_openAngle),
@@ -333,7 +333,7 @@ public class SyntaxListTests
         // Arrange
         var node1 = CreateMarkupTextLiteral(s_closeAngle);
         var node2 = CreateMarkupTextLiteral(s_rightBrace);
-        var originalList = new SyntaxList<SyntaxNode>(node1).Add(node2);
+        SyntaxList<SyntaxNode> originalList = [node1, node2];
         var nodeToInsert = CreateMarkupTextLiteral(s_openAngle);
 
         // Act
@@ -353,7 +353,7 @@ public class SyntaxListTests
         // Arrange
         var node1 = CreateMarkupTextLiteral(s_openAngle);
         var node2 = CreateMarkupTextLiteral(s_closeAngle);
-        var originalList = new SyntaxList<SyntaxNode>(node1).Add(node2);
+        SyntaxList<SyntaxNode> originalList = [node1, node2];
         var nodeToInsert = CreateMarkupTextLiteral(s_forwardSlash);
 
         // Act
@@ -373,7 +373,7 @@ public class SyntaxListTests
         // Arrange
         var node1 = CreateMarkupTextLiteral(s_openAngle);
         var node2 = CreateMarkupTextLiteral(s_forwardSlash);
-        var originalList = new SyntaxList<SyntaxNode>(node1).Add(node2);
+        SyntaxList<SyntaxNode> originalList = [node1, node2];
         var nodeToInsert = CreateMarkupTextLiteral(s_closeAngle);
 
         // Act
@@ -392,7 +392,7 @@ public class SyntaxListTests
     public void Insert_IntoEmptyList_CreatesSingleItemList()
     {
         // Arrange
-        var emptyList = new SyntaxList<SyntaxNode>();
+        var emptyList = SyntaxList<SyntaxNode>.Empty;
         var node = CreateMarkupTextLiteral(s_openAngle);
 
         // Act
@@ -409,7 +409,7 @@ public class SyntaxListTests
     {
         // Arrange
         var node1 = CreateMarkupTextLiteral(s_openAngle);
-        var originalList = new SyntaxList<SyntaxNode>(node1);
+        SyntaxList<SyntaxNode> originalList = [node1];
         var nodeToInsert = CreateMarkupTextLiteral(s_forwardSlash);
 
         // Act
@@ -425,7 +425,7 @@ public class SyntaxListTests
     public void Insert_ThrowsArgumentNullException_WhenNodeIsNull()
     {
         // Arrange
-        var list = new SyntaxList<SyntaxNode>(CreateMarkupTextLiteral(s_openAngle));
+        SyntaxList<SyntaxNode> list = [CreateMarkupTextLiteral(s_openAngle)];
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => list.Insert(0, null!));
@@ -435,7 +435,7 @@ public class SyntaxListTests
     public void Insert_ThrowsArgumentOutOfRangeException_WhenIndexIsNegative()
     {
         // Arrange
-        var list = new SyntaxList<SyntaxNode>(CreateMarkupTextLiteral(s_openAngle));
+        SyntaxList<SyntaxNode> list = [CreateMarkupTextLiteral(s_openAngle)];
         var node = CreateMarkupTextLiteral(s_closeAngle);
 
         // Act & Assert
@@ -446,7 +446,7 @@ public class SyntaxListTests
     public void Insert_ThrowsArgumentOutOfRangeException_WhenIndexExceedsCount()
     {
         // Arrange
-        var list = new SyntaxList<SyntaxNode>(CreateMarkupTextLiteral(s_openAngle));
+        SyntaxList<SyntaxNode> list = [CreateMarkupTextLiteral(s_openAngle)];
         var node = CreateMarkupTextLiteral(s_closeAngle);
 
         // Act & Assert
@@ -458,7 +458,7 @@ public class SyntaxListTests
     {
         // Arrange
         var existingNode = CreateMarkupTextLiteral(s_closeAngle);
-        var originalList = new SyntaxList<SyntaxNode>(existingNode);
+        SyntaxList<SyntaxNode> originalList = [existingNode];
 
         SyntaxNode[] nodesToInsert = [
             CreateMarkupTextLiteral(s_openAngle),
@@ -482,7 +482,7 @@ public class SyntaxListTests
         // Arrange
         var node1 = CreateMarkupTextLiteral(s_openAngle);
         var node2 = CreateMarkupTextLiteral(s_closeAngle);
-        var originalList = new SyntaxList<SyntaxNode>(node1).Add(node2);
+        SyntaxList<SyntaxNode> originalList = [node1, node2];
 
         SyntaxNode[] nodesToInsert = [
             CreateMarkupTextLiteral(s_forwardSlash),
@@ -506,7 +506,7 @@ public class SyntaxListTests
     {
         // Arrange
         var node1 = CreateMarkupTextLiteral(s_openAngle);
-        var originalList = new SyntaxList<SyntaxNode>(node1);
+        SyntaxList<SyntaxNode> originalList = [node1];
 
         SyntaxNode[] nodesToInsert = [
             CreateMarkupTextLiteral(s_forwardSlash),
@@ -530,7 +530,7 @@ public class SyntaxListTests
     {
         // Arrange
         var node = CreateMarkupTextLiteral(s_openAngle);
-        var originalList = new SyntaxList<SyntaxNode>(node);
+        SyntaxList<SyntaxNode> originalList = [node];
         var emptyNodes = Array.Empty<SyntaxNode>();
 
         // Act
@@ -545,7 +545,7 @@ public class SyntaxListTests
     public void InsertRange_IntoEmptyList_CreatesListWithAllNodes()
     {
         // Arrange
-        var emptyList = new SyntaxList<SyntaxNode>();
+        var emptyList = SyntaxList<SyntaxNode>.Empty;
         
         SyntaxNode[] nodesToInsert = [
             CreateMarkupTextLiteral(s_openAngle),
@@ -571,7 +571,7 @@ public class SyntaxListTests
     {
         // Arrange
         var existingNode = CreateMarkupTextLiteral(s_openAngle);
-        var originalList = new SyntaxList<SyntaxNode>(existingNode);
+        SyntaxList<SyntaxNode> originalList = [existingNode];
 
         SyntaxNode[] nodesToInsert = [
             CreateMarkupTextLiteral(s_forwardSlash),
@@ -591,7 +591,7 @@ public class SyntaxListTests
     public void InsertRange_ThrowsArgumentNullException_WhenNodesIsNull()
     {
         // Arrange
-        var list = new SyntaxList<SyntaxNode>(CreateMarkupTextLiteral(s_openAngle));
+        SyntaxList<SyntaxNode> list = [CreateMarkupTextLiteral(s_openAngle)];
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => list.InsertRange(0, null!));
@@ -601,7 +601,7 @@ public class SyntaxListTests
     public void InsertRange_ThrowsArgumentOutOfRangeException_WhenIndexIsNegative()
     {
         // Arrange
-        var list = new SyntaxList<SyntaxNode>(CreateMarkupTextLiteral(s_openAngle));
+        SyntaxList<SyntaxNode> list = [CreateMarkupTextLiteral(s_openAngle)];
         var nodes = new[] { CreateMarkupTextLiteral(s_closeAngle) };
 
         // Act & Assert
@@ -612,7 +612,7 @@ public class SyntaxListTests
     public void InsertRange_ThrowsArgumentOutOfRangeException_WhenIndexExceedsCount()
     {
         // Arrange
-        var list = new SyntaxList<SyntaxNode>(CreateMarkupTextLiteral(s_openAngle));
+        SyntaxList<SyntaxNode> list = [CreateMarkupTextLiteral(s_openAngle)];
         var nodes = new[] { CreateMarkupTextLiteral(s_closeAngle) };
 
         // Act & Assert
@@ -624,7 +624,7 @@ public class SyntaxListTests
     {
         // Arrange
         var existingNode = CreateMarkupTextLiteral(s_openAngle);
-        var originalList = new SyntaxList<SyntaxNode>(existingNode);
+        SyntaxList<SyntaxNode> originalList = [existingNode];
 
         List<SyntaxNode> nodesToInsert = [
             CreateMarkupTextLiteral(s_forwardSlash),
@@ -650,7 +650,7 @@ public class SyntaxListTests
     {
         // Arrange
         var existingNode = CreateMarkupTextLiteral(s_closeAngle);
-        var originalList = new SyntaxList<SyntaxNode>(existingNode);
+        SyntaxList<SyntaxNode> originalList = [existingNode];
 
         IEnumerable<SyntaxNode> nodesToInsert = [
             CreateMarkupTextLiteral(s_openAngle),
@@ -677,7 +677,7 @@ public class SyntaxListTests
     {
         // Arrange
         var node = CreateMarkupTextLiteral(s_openAngle);
-        var originalList = new SyntaxList<SyntaxNode>(node);
+        SyntaxList<SyntaxNode> originalList = [node];
 
         // Act
         var newList = originalList.RemoveAt(0);
@@ -694,7 +694,7 @@ public class SyntaxListTests
         var node1 = CreateMarkupTextLiteral(s_openAngle);
         var node2 = CreateMarkupTextLiteral(s_forwardSlash);
         var node3 = CreateMarkupTextLiteral(s_closeAngle);
-        var originalList = new SyntaxList<SyntaxNode>().AddRange([node1, node2, node3]);
+        SyntaxList<SyntaxNode> originalList = [node1, node2, node3];
 
         // Act
         var newList = originalList.RemoveAt(0);
@@ -713,7 +713,7 @@ public class SyntaxListTests
         var node1 = CreateMarkupTextLiteral(s_openAngle);
         var node2 = CreateMarkupTextLiteral(s_forwardSlash);
         var node3 = CreateMarkupTextLiteral(s_closeAngle);
-        var originalList = new SyntaxList<SyntaxNode>().AddRange([node1, node2, node3]);
+        SyntaxList<SyntaxNode> originalList = [node1, node2, node3];
 
         // Act
         var newList = originalList.RemoveAt(1);
@@ -732,7 +732,7 @@ public class SyntaxListTests
         var node1 = CreateMarkupTextLiteral(s_openAngle);
         var node2 = CreateMarkupTextLiteral(s_forwardSlash);
         var node3 = CreateMarkupTextLiteral(s_closeAngle);
-        var originalList = new SyntaxList<SyntaxNode>().AddRange([node1, node2, node3]);
+        SyntaxList<SyntaxNode> originalList = [node1, node2, node3];
 
         // Act
         var newList = originalList.RemoveAt(2);
@@ -749,7 +749,7 @@ public class SyntaxListTests
     {
         // Arrange
         var node = CreateMarkupTextLiteral(s_openAngle);
-        var list = new SyntaxList<SyntaxNode>(node);
+        SyntaxList<SyntaxNode> list = [node];
 
         // Act & Assert
         Assert.Throws<ArgumentOutOfRangeException>(() => list.RemoveAt(-1));
@@ -760,7 +760,7 @@ public class SyntaxListTests
     {
         // Arrange
         var node = CreateMarkupTextLiteral(s_openAngle);
-        var list = new SyntaxList<SyntaxNode>(node);
+        SyntaxList<SyntaxNode> list = [node];
 
         // Act & Assert
         Assert.Throws<ArgumentOutOfRangeException>(() => list.RemoveAt(list.Count));
@@ -772,7 +772,7 @@ public class SyntaxListTests
         // Arrange
         var node1 = CreateMarkupTextLiteral(s_openAngle);
         var node2 = CreateMarkupTextLiteral(s_forwardSlash);
-        var originalList = new SyntaxList<SyntaxNode>().AddRange([node1, node2]);
+        SyntaxList<SyntaxNode> originalList = [node1, node2];
 
         // Act
         var newList = originalList.RemoveAt(0);
@@ -790,7 +790,7 @@ public class SyntaxListTests
         // Arrange
         var node1 = CreateMarkupTextLiteral(s_openAngle);
         var node2 = CreateMarkupTextLiteral(s_forwardSlash);
-        var originalList = new SyntaxList<SyntaxNode>().AddRange([node1, node2]);
+        SyntaxList<SyntaxNode> originalList = [node1, node2];
 
         // Act
         var removeAtResult = originalList.RemoveAt(0);
@@ -809,10 +809,10 @@ public class SyntaxListTests
     {
         // Arrange
         var node = CreateMarkupTextLiteral(s_openAngle);
-        var originalList = new SyntaxList<SyntaxNode>(node);
+        SyntaxList<SyntaxNode> originalList = [node];
 
         // Act
-        var newList = originalList.Remove(node);
+        var newList = originalList.Remove(originalList[0]);
 
         // Assert
         Assert.Single(originalList);
@@ -826,7 +826,7 @@ public class SyntaxListTests
         var node1 = CreateMarkupTextLiteral(s_openAngle);
         var node2 = CreateMarkupTextLiteral(s_forwardSlash);
         var node3 = CreateMarkupTextLiteral(s_closeAngle);
-        var originalList = new SyntaxList<SyntaxNode>().AddRange([node1, node2, node3]);
+        SyntaxList<SyntaxNode> originalList = [node1, node2, node3];
 
         // Act
         var newList = originalList.Remove(originalList[1]);
@@ -845,7 +845,7 @@ public class SyntaxListTests
         var node1 = CreateMarkupTextLiteral(s_openAngle);
         var node2 = CreateMarkupTextLiteral(s_forwardSlash);
         var nodeNotInList = CreateMarkupTextLiteral(s_closeAngle);
-        var originalList = new SyntaxList<SyntaxNode>().AddRange([node1, node2]);
+        SyntaxList<SyntaxNode> originalList = [node1, node2];
 
         // Act
         var newList = originalList.Remove(nodeNotInList);
@@ -863,7 +863,7 @@ public class SyntaxListTests
         // Arrange
         var node1 = CreateMarkupTextLiteral(s_openAngle);
         var node2 = CreateMarkupTextLiteral(s_forwardSlash);
-        var originalList = new SyntaxList<SyntaxNode>().AddRange([node1, node2]);
+        SyntaxList<SyntaxNode> originalList = [node1, node2];
 
         // Act
         var newList = originalList.Remove(originalList[0]);
@@ -879,7 +879,7 @@ public class SyntaxListTests
     public void Remove_FromEmptyList_ReturnsEmptyList()
     {
         // Arrange
-        var emptyList = new SyntaxList<SyntaxNode>();
+        var emptyList = SyntaxList<SyntaxNode>.Empty;
         var node = CreateMarkupTextLiteral(s_openAngle);
 
         // Act
@@ -896,10 +896,10 @@ public class SyntaxListTests
         // Arrange
         var original = CreateMarkupTextLiteral(s_openAngle);
         var replacement = CreateMarkupTextLiteral(s_closeAngle);
-        var originalList = new SyntaxList<SyntaxNode>(original);
+        SyntaxList<SyntaxNode> originalList = [original];
 
         // Act
-        var newList = originalList.Replace(original, replacement);
+        var newList = originalList.Replace(originalList[0], replacement);
 
         // Assert
         Assert.Single(originalList);
@@ -915,7 +915,7 @@ public class SyntaxListTests
         var node1 = CreateMarkupTextLiteral(s_openAngle);
         var node2 = CreateMarkupTextLiteral(s_forwardSlash);
         var node3 = CreateMarkupTextLiteral(s_closeAngle);
-        var originalList = new SyntaxList<SyntaxNode>().AddRange([node1, node2, node3]);
+        SyntaxList<SyntaxNode> originalList = [node1, node2, node3];
         var replacement = CreateMarkupTextLiteral(s_leftBrace);
 
         // Act
@@ -935,7 +935,7 @@ public class SyntaxListTests
         // Arrange
         var node1 = CreateMarkupTextLiteral(s_openAngle);
         var node2 = CreateMarkupTextLiteral(s_forwardSlash);
-        var originalList = new SyntaxList<SyntaxNode>().AddRange([node1, node2]);
+        SyntaxList<SyntaxNode> originalList = [node1, node2];
         var replacement = CreateMarkupTextLiteral(s_closeAngle);
 
         // Act
@@ -953,7 +953,7 @@ public class SyntaxListTests
     {
         // Arrange
         var node = CreateMarkupTextLiteral(s_openAngle);
-        var list = new SyntaxList<SyntaxNode>(node);
+        SyntaxList<SyntaxNode> list = [node];
         var replacement = CreateMarkupTextLiteral(s_closeAngle);
 
         // Act & Assert
@@ -965,7 +965,7 @@ public class SyntaxListTests
     {
         // Arrange
         var node = CreateMarkupTextLiteral(s_openAngle);
-        var list = new SyntaxList<SyntaxNode>(node);
+        SyntaxList<SyntaxNode> list = [node];
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => list.Replace(list[0], null!));
@@ -978,7 +978,7 @@ public class SyntaxListTests
         var node = CreateMarkupTextLiteral(s_openAngle);
         var nodeNotInList = CreateMarkupTextLiteral(s_forwardSlash);
         var replacement = CreateMarkupTextLiteral(s_closeAngle);
-        var list = new SyntaxList<SyntaxNode>(node);
+        SyntaxList<SyntaxNode> list = [node];
 
         // Act & Assert
         Assert.Throws<ArgumentOutOfRangeException>(() => list.Replace(nodeNotInList, replacement));
@@ -990,7 +990,7 @@ public class SyntaxListTests
         // Arrange
         var node1 = CreateMarkupTextLiteral(s_openAngle);
         var node2 = CreateMarkupTextLiteral(s_forwardSlash);
-        var originalList = new SyntaxList<SyntaxNode>().AddRange([node1, node2]);
+        SyntaxList<SyntaxNode> originalList = [node1, node2];
         var replacement = CreateMarkupTextLiteral(s_closeAngle);
 
         // Act
@@ -1012,10 +1012,10 @@ public class SyntaxListTests
         var original = CreateMarkupTextLiteral(s_openAngle);
         var replacement1 = CreateMarkupTextLiteral(s_forwardSlash);
         var replacement2 = CreateMarkupTextLiteral(s_closeAngle);
-        var originalList = new SyntaxList<SyntaxNode>(original);
+        SyntaxList<SyntaxNode> originalList = [original];
 
         // Act
-        var newList = originalList.ReplaceRange(original, [replacement1, replacement2]);
+        var newList = originalList.ReplaceRange(originalList[0], [replacement1, replacement2]);
 
         // Assert
         Assert.Single(originalList);
@@ -1031,7 +1031,7 @@ public class SyntaxListTests
         var node1 = CreateMarkupTextLiteral(s_openAngle);
         var node2 = CreateMarkupTextLiteral(s_forwardSlash);
         var node3 = CreateMarkupTextLiteral(s_closeAngle);
-        var originalList = new SyntaxList<SyntaxNode>().AddRange([node1, node2, node3]);
+        SyntaxList<SyntaxNode> originalList = [node1, node2, node3];
         var replacement1 = CreateMarkupTextLiteral(s_leftBrace);
         var replacement2 = CreateMarkupTextLiteral(s_rightBrace);
 
@@ -1054,7 +1054,7 @@ public class SyntaxListTests
         var node1 = CreateMarkupTextLiteral(s_openAngle);
         var node2 = CreateMarkupTextLiteral(s_forwardSlash);
         var node3 = CreateMarkupTextLiteral(s_closeAngle);
-        var originalList = new SyntaxList<SyntaxNode>().AddRange([node1, node2, node3]);
+        SyntaxList<SyntaxNode> originalList = [node1, node2, node3];
 
         // Act
         var newList = originalList.ReplaceRange(originalList[1], []);
@@ -1072,7 +1072,7 @@ public class SyntaxListTests
         // Arrange
         var node1 = CreateMarkupTextLiteral(s_openAngle);
         var node2 = CreateMarkupTextLiteral(s_forwardSlash);
-        var originalList = new SyntaxList<SyntaxNode>().AddRange([node1, node2]);
+        SyntaxList<SyntaxNode> originalList = [node1, node2];
         var replacement1 = CreateMarkupTextLiteral(s_leftBrace);
         var replacement2 = CreateMarkupTextLiteral(s_rightBrace);
 
@@ -1091,7 +1091,7 @@ public class SyntaxListTests
     {
         // Arrange
         var node = CreateMarkupTextLiteral(s_openAngle);
-        var list = new SyntaxList<SyntaxNode>(node);
+        SyntaxList<SyntaxNode> list = [node];
         var replacements = new[] { CreateMarkupTextLiteral(s_closeAngle) };
 
         // Act & Assert
@@ -1103,7 +1103,7 @@ public class SyntaxListTests
     {
         // Arrange
         var node = CreateMarkupTextLiteral(s_openAngle);
-        var list = new SyntaxList<SyntaxNode>(node);
+        SyntaxList<SyntaxNode> list = [node];
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => list.ReplaceRange(node, null!));
@@ -1116,7 +1116,7 @@ public class SyntaxListTests
         var node = CreateMarkupTextLiteral(s_openAngle);
         var nodeNotInList = CreateMarkupTextLiteral(s_forwardSlash);
         var replacements = new[] { CreateMarkupTextLiteral(s_closeAngle) };
-        var list = new SyntaxList<SyntaxNode>(node);
+        SyntaxList<SyntaxNode> list = [node];
 
         // Act & Assert
         Assert.Throws<ArgumentOutOfRangeException>(() => list.ReplaceRange(nodeNotInList, replacements));
@@ -1127,14 +1127,14 @@ public class SyntaxListTests
     {
         // Arrange
         var node = CreateMarkupTextLiteral(s_openAngle);
-        var list = new SyntaxList<SyntaxNode>(node);
+        SyntaxList<SyntaxNode> list = [node];
         List<SyntaxNode> replacements = [
             CreateMarkupTextLiteral(s_forwardSlash),
             CreateMarkupTextLiteral(s_closeAngle)
         ];
 
         // Act
-        var newList = list.ReplaceRange(node, replacements);
+        var newList = list.ReplaceRange(list[0], replacements);
 
         // Assert
         Assert.Equal(replacements.Count, newList.Count);
@@ -1149,14 +1149,14 @@ public class SyntaxListTests
     {
         // Arrange
         var node = CreateMarkupTextLiteral(s_openAngle);
-        var list = new SyntaxList<SyntaxNode>(node);
+        SyntaxList<SyntaxNode> list = [node];
         IEnumerable<SyntaxNode> replacements = [
             CreateMarkupTextLiteral(s_forwardSlash),
             CreateMarkupTextLiteral(s_closeAngle)
         ];
 
         // Act
-        var newList = list.ReplaceRange(node, replacements);
+        var newList = list.ReplaceRange(list[0], replacements);
 
         // Assert
         Assert.Equal(2, newList.Count);
