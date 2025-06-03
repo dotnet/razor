@@ -130,9 +130,9 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
             // the next line as formatted content.
             var formattedLine = formattedCSharpText.Lines[iFormatted];
             if (formattedLine.Span.Length > 3 &&
-                formattedLine.ToString() is ['/', '/', ' ', ..] line)
+                formattedLine.ToString() is ['/', '/', ' ', ..] line &&
+                CSharpDocumentGenerator.TryParseAdditionalLineComment(line, out var start, out var length))
             {
-                var (start, length) = CSharpDocumentGenerator.ParseAdditionalLineComment(line);
                 iFormatted++;
 
                 // Skip ahead to where changes are likely to become relevant, to save looping the whole set every time

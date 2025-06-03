@@ -97,20 +97,37 @@ internal partial class CSharpFormattingPass
             return $"// {originalSpan.AbsoluteIndex} {originalSpan.Length}";
         }
 
-        public static (int start, int length) ParseAdditionalLineComment(string comment)
+        public static bool TryParseAdditionalLineComment(string comment, out int start, out int length)
         {
+            start = 0;
+            length = 0;
+
             var span = comment.AsSpan();
-            var toParse = span.Slice(span.IndexOf(' ') + 1);
+            var toParse = span[(span.IndexOf(' ') + 1)..];
             var space = toParse.IndexOf(' ');
 
-#if NET8_0_OR_GREATER
-            var start = int.Parse(toParse[..space]);
-            var length = int.Parse(toParse[(space + 1)..]);
-#else
-            var start = int.Parse(toParse.Slice(0, space).ToString());
-            var length = int.Parse(toParse.Slice(space + 1).ToString());
+            if (space == -1)
+            {
+                return false;
+            }
+
+            var startSpan = toParse[..space]
+#if !NET8_0_OR_GREATER
+                .ToString()
 #endif
-            return (start, length);
+                ;
+            var lengthSpan = toParse[(space + 1)..]
+#if !NET8_0_OR_GREATER
+                .ToString()
+#endif
+                ;
+
+            if (!int.TryParse(startSpan, out start))
+            {
+                return false;
+            }
+
+            return int.TryParse(lengthSpan, out length);
         }
 
         private sealed class Generator(
