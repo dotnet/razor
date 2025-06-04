@@ -97,37 +97,44 @@ internal partial class CSharpFormattingPass
             return $"// {originalSpan.AbsoluteIndex} {originalSpan.Length}";
         }
 
-        public static bool TryParseAdditionalLineComment(string comment, out int start, out int length)
+        public static bool TryParseAdditionalLineComment(TextLine line, out int start, out int length)
         {
             start = 0;
             length = 0;
 
-            var span = comment.AsSpan();
-            var toParse = span[(span.IndexOf(' ') + 1)..];
-            var space = toParse.IndexOf(' ');
+            // We're looking for a line that matches "// {start} {length}", where start and length are integers.
 
+            // Need at least 6 chars for two single digit integers separated by a space, plus "// "
+            if (line.Span.Length <= 6)
+            {
+                return false;
+            }
+
+            if (line.CharAt(0) != '/' ||
+                line.CharAt(1) != '/' ||
+                line.CharAt(2) != ' ')
+            {
+                return false;
+            }
+
+            var span = line.ToString().AsSpan();
+            var toParse = span[3..];
+            var space = toParse.IndexOf(' ');
             if (space == -1)
             {
                 return false;
             }
 
-            var startSpan = toParse[..space]
-#if !NET8_0_OR_GREATER
-                .ToString()
-#endif
-                ;
-            var lengthSpan = toParse[(space + 1)..]
-#if !NET8_0_OR_GREATER
-                .ToString()
-#endif
-                ;
+            var startSpan = toParse[..space];
+            var lengthSpan = toParse[(space + 1)..];
 
-            if (!int.TryParse(startSpan, out start))
-            {
-                return false;
-            }
-
-            return int.TryParse(lengthSpan, out length);
+#if NET8_0_OR_GREATER
+            return int.TryParse(startSpan, out start)
+                && int.TryParse(lengthSpan, out length);
+#else
+            return int.TryParse(startSpan.ToString(), out start)
+                && int.TryParse(lengthSpan.ToString(), out length);
+#endif
         }
 
         private sealed class Generator(
@@ -310,35 +317,47 @@ internal partial class CSharpFormattingPass
                 // end of the node, as there could be other contents afterwards, so work out if we're in that case first.
                 var toEndOfNode = _sourceText.GetLinePosition(node.EndPosition).Line == _currentLine.LineNumber;
 
-                // A special case here is if we're inside an explicit expression body, one of the bits of content after the node will
-                // be the final close parens, so we need to emit that or the C# expression won't be valid, and we can't trust the formatter.
-                var isEndOfExplicitExpression = toEndOfNode &&
-                    node.Parent.Parent is CSharpExplicitExpressionBodySyntax explicitExpression &&
-                    _sourceText.GetLinePosition(explicitExpression.EndPosition).Line == _currentLine.LineNumber;
+                var isEndOfExplicitExpression = false;
+                var end = _currentLine.End;
 
-                var end = toEndOfNode
-                    ? isEndOfExplicitExpression
-                        ? node.Parent.Parent.EndPosition
-                        : node.EndPosition
-                    : _currentLine.End;
+                if (toEndOfNode)
+                {
+                    // A special case here is if we're inside an explicit expression body, one of the bits of content after the node will
+                    // be the final close parens, so we need to emit that or the C# expression won't be valid, and we can't trust the formatter.
+                    if (node.Parent.Parent is CSharpExplicitExpressionBodySyntax explicitExpression &&
+                        _sourceText.GetLinePosition(explicitExpression.EndPosition).Line == _currentLine.LineNumber)
+                    {
+                        isEndOfExplicitExpression = true;
+                        end = explicitExpression.EndPosition;
+                    }
+                    else
+                    {
+                        end = node.EndPosition;
+                    }
+                }
+
                 var span = TextSpan.FromBounds(_currentFirstNonWhitespacePosition, end);
                 _builder.Append(_sourceText.ToString(span));
+
+                // Keep track of how many characters we add to the end of the line, so the formatter knows to ignore them.
+                var offsetFromEnd = 0;
+
+                // If we're at the end of an explicit expression, we want to add a semi-colon to the end of the line, so that C# after the
+                // expression is formatted correctly. ie, we need to "close" the expression.
+                if (isEndOfExplicitExpression)
+                {
+                    offsetFromEnd++;
+                    _builder.Append(';');
+                }
 
                 // Append a comment at the end so whitespace isn't removed, as Roslyn thinks its the end of the line, but we know it isn't.
                 // eg, given "4, 5, @<div></div>", we want Roslyn to keep the space after the last comma, because there is something after it,
                 // but we can't let Roslyn see the "@<div>" that it is.
                 // We use a multi-line comment because Roslyn has a desire to line up "//" comments with the previous line, which we could interpret
                 // as Roslyn suggesting we indent some trailing Html.
-                var endOfLineMarker = " /* */";
-
-                // If we're at the end of an explicit expression, we want to add a semi-colon to the end of the line, so that C# after the
-                // expression is formatted correctly. ie, we need to "close" the expression.
-                if (isEndOfExplicitExpression)
-                {
-                    endOfLineMarker = ";" + endOfLineMarker;
-                }
-
-                _builder.AppendLine(endOfLineMarker);
+                const string endOfLineComment = " /* */";
+                offsetFromEnd += endOfLineComment.Length;
+                _builder.AppendLine(endOfLineComment);
 
                 // Final quirk: If we're inside an Html attribute, it means the Html formatter won't have formatted this line, as multi-line
                 // Html attributes are not valid.
@@ -359,7 +378,7 @@ internal partial class CSharpFormattingPass
                     skipPreviousLine: skipPreviousLine,
                     processFormatting: true,
                     formattedLength: span.Length,
-                    formattedOffsetFromEndOfLine: endOfLineMarker.Length,
+                    formattedOffsetFromEndOfLine: offsetFromEnd,
                     htmlIndentLevel: htmlIndentLevel,
                     additionalIndentation: additionalIndentation,
                     checkForNewLines: false);
@@ -471,8 +490,11 @@ internal partial class CSharpFormattingPass
                     return EmitCurrentLineAsComment();
                 }
 
-                if (node.MetaCode is [{ Kind: SyntaxKind.RightParenthesis } paren] &&
-                    node.Parent is CSharpExplicitExpressionBodySyntax &&
+                if (node is
+                    {
+                        Parent: CSharpExplicitExpressionBodySyntax,
+                        MetaCode: [{ Kind: SyntaxKind.RightParenthesis } paren]
+                    } &&
                     paren.GetPreviousToken() is { Parent: CSharpExpressionLiteralSyntax literal })
                 {
                     // This is the close bracket of a multi-line "@( .. )" expression at the start of a line, ie the last line of:
