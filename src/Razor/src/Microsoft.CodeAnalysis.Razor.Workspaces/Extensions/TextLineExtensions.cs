@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using Microsoft.AspNetCore.Razor;
 
 namespace Microsoft.CodeAnalysis.Text;
@@ -9,17 +10,12 @@ internal static class TextLineExtensions
 {
     public static char CharAt(this TextLine line, int offset)
     {
-        if (offset < 0 || offset >= line.SpanIncludingLineBreak.Length)
-        {
-            return ThrowHelper.ThrowArgumentOutOfRangeException<char>(nameof(offset), SR.Invalid_Offset);
-        }
+        ArgHelper.ThrowIfNegative(offset);
+        ArgHelper.ThrowIfGreaterThanOrEqual(offset, line.SpanIncludingLineBreak.Length);
 
         var text = line.Text.AssumeNotNull();
         var index = line.Start + offset;
-        if (index >= text.Length)
-        {
-            return ThrowHelper.ThrowArgumentOutOfRangeException<char>(nameof(offset), index, SR.FormatPositionCharacter_Outside_Range(offset, "character", line.Span.Length));
-        }
+        Debug.Assert(index < text.Length, "This should be impossible as we validated offset against the line length above.");
 
         return text[index];
     }
