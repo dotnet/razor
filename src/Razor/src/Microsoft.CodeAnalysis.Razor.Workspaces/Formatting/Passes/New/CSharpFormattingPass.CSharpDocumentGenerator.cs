@@ -153,9 +153,8 @@ internal partial class CSharpFormattingPass
             private TextLine _currentLine;
             private int _currentFirstNonWhitespacePosition;
 
-            // These are set in GetCSharpDocumentContents so will never be observably null
-            private RazorSyntaxToken _currentToken = null!;
-            private RazorSyntaxToken _previousCurrentToken = null!;
+            private RazorSyntaxToken _currentToken;
+            private RazorSyntaxToken _previousCurrentToken;
 
             /// <summary>
             /// The line number of the last line of the current element, if we're inside one.
@@ -722,7 +721,7 @@ internal partial class CSharpFormattingPass
                 return EmitCurrentLineAsComment();
             }
 
-            private LineInfo VisitCodeOrFunctionsDirective(RazorSyntaxNode openBrace)
+            private LineInfo VisitCodeOrFunctionsDirective(RazorSyntaxToken openBrace)
             {
                 // If the open brace is on the same line as the directive, then we need to ensure the contents are indented
                 if (GetLineNumber(openBrace) == GetLineNumber(_currentToken))
@@ -732,7 +731,8 @@ internal partial class CSharpFormattingPass
                     _builder.AppendLine("class F");
                     _builder.AppendLine("{");
 
-                    return CreateLineInfo(skipNextLine: true);
+                    // Roslyn might move our brace to the previous line, so we might _not_ need to skip it 🤦‍
+                    return CreateLineInfo(skipNextLineIfBrace: true);
                 }
 
                 // If the braces are on different lines, then we can do nothing, unless its an @code or @functions
@@ -786,6 +786,9 @@ internal partial class CSharpFormattingPass
             private int GetLineNumber(RazorSyntaxNode node)
                 => _sourceText.Lines.GetLineFromPosition(node.Position).LineNumber;
 
+            private int GetLineNumber(RazorSyntaxToken token)
+                => _sourceText.Lines.GetLineFromPosition(token.Position).LineNumber;
+
             private LineInfo EmitCurrentLineAsCSharp()
             {
                 _builder.AppendLine(_currentLine.ToString());
@@ -814,6 +817,7 @@ internal partial class CSharpFormattingPass
                 bool checkForNewLines = false,
                 bool skipPreviousLine = false,
                 bool skipNextLine = false,
+                bool skipNextLineIfBrace = false,
                 int htmlIndentLevel = 0,
                 int originOffset = 0,
                 int formattedLength = 0,
@@ -840,6 +844,7 @@ internal partial class CSharpFormattingPass
                     CheckForNewLines: checkForNewLines,
                     SkipPreviousLine: skipPreviousLine,
                     SkipNextLine: skipNextLine,
+                    SkipNextLineIfBrace: skipNextLineIfBrace,
                     HtmlIndentLevel: htmlIndentLevel,
                     OriginOffset: originOffset,
                     FormattedLength: formattedLength,
