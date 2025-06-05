@@ -650,7 +650,8 @@ internal partial class CSharpFormattingPass
                     _builder.AppendLine("class F");
                     _builder.AppendLine("{");
 
-                    return CreateLineInfo(skipNextLine: true);
+                    // Roslyn might move our brace to the previous line, so we might _not_ need to skip it 🤦‍
+                    return CreateLineInfo(skipNextLineIfBrace: true);
                 }
 
                 // If the braces are on different lines, then we can do nothing, unless its an @code or @functions
@@ -735,6 +736,7 @@ internal partial class CSharpFormattingPass
                 bool checkForNewLines = false,
                 bool skipPreviousLine = false,
                 bool skipNextLine = false,
+                bool skipNextLineIfBrace = false,
                 int htmlIndentLevel = 0,
                 int originOffset = 0,
                 int formattedLength = 0,
@@ -761,6 +763,7 @@ internal partial class CSharpFormattingPass
                     CheckForNewLines: checkForNewLines,
                     SkipPreviousLine: skipPreviousLine,
                     SkipNextLine: skipNextLine,
+                    SkipNextLineIfBrace: skipNextLineIfBrace,
                     HtmlIndentLevel: htmlIndentLevel,
                     OriginOffset: originOffset,
                     FormattedLength: formattedLength,

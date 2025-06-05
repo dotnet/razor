@@ -1,10 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -26,6 +28,82 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
         await RunFormattingTestAsync(
             input: "",
             expected: "");
+    }
+
+    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    public async Task RoslynFormatBracesAsKandR()
+    {
+        // To format code blocks we emit a class so that class members are parsed properly by Roslyn, and ignore
+        // the open brace on the next line. This test validates that that system works when Roslyn is configured
+        // to format braces in K&R style, with the brace on the same line as the declaration.
+
+        await RunFormattingTestAsync(
+            input: """
+                <h1>count is @counter</h1>
+
+                @code {
+                private int counter;
+
+                class Goo
+                {
+                    public void Bar()
+                    {
+                        counter++;
+                    }
+                }
+                }
+                """,
+            expected: """
+                <h1>count is @counter</h1>
+
+                @code {
+                    private int counter;
+
+                    class Goo {
+                        public void Bar() {
+                            counter++;
+                        }
+                    }
+                }
+                """,
+            // I'm so sorry, but I could not find any way to change Roslyn formatting options from our test infra. Forgive my hacky sins
+            csharpModifierFunc: formattedCSharpText => SourceText.From(
+                Regex.Replace(
+                    formattedCSharpText.ToString(),
+                    @"(class|void) ([\S]+)[\s]+{",
+                    "$1 $2 {"
+                )));
+    }
+
+    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    public async Task PropertyShrunkToOneLine()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @code {
+                    public string Name
+                    {
+                        get;
+                        set;
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    public string Name { get; set; }
+                }
+                """,
+            // I'm so sorry, but I could not find any way to change Roslyn formatting options from our test infra. Forgive my hacky sins
+            csharpModifierFunc: formattedCSharpText => SourceText.From(
+                formattedCSharpText.ToString().Replace(
+                    """
+                    public string Name
+                        {
+                            get;
+                            set;
+                        }
+                    """,
+                    "public string Name { get; set; }")));
     }
 
     [FormattingTestFact]
