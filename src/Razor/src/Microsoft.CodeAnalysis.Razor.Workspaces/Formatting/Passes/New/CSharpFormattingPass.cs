@@ -147,7 +147,8 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
                 // If the next line is a brace, we skip it, otherwise we don't. This is used to skip the opening brace of a class
                 // that we insert, but Roslyn settings might place on the same like as the class declaration.
                 if (iFormatted + 1 < formattedCSharpText.Lines.Count &&
-                    formattedCSharpText.Lines[iFormatted + 1].CharAt(0) == '{')
+                    formattedCSharpText.Lines[iFormatted + 1] is { Span.Length: > 0 } nextLine &&
+                    nextLine.CharAt(0) == '{')
                 {
                     iFormatted++;
                 }
