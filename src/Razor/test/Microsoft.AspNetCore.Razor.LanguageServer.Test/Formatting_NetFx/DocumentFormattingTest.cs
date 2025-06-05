@@ -6258,4 +6258,214 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 """,
             debugAssertsEnabled: false
             );
+
+    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [WorkItem("https://github.com/dotnet/razor/issues/11873")]
+    public Task NestedExplicitExpression1()
+        => RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <div class="d-flex">
+                        <div class="d-flex flex-column" style="text-align: end;">
+                            @if (true)
+                            {
+                                <span>
+                                    @((((true) ? 123d : 0d) +
+                                        (true ? 123d : 0d)
+                                        ).ToString("F2", CultureInfo.InvariantCulture)) €
+                                </span>
+                                <hr class="my-1" />
+                                <span>
+                                    @((123d +
+                                        ((true) ? 123d : 0d) +
+                                        (true ? 123d : 0d)
+                                        ).ToString("F2", CultureInfo.InvariantCulture)) €
+                                </span>
+                            }
+                        </div>
+                    </div>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div class="d-flex">
+                        <div class="d-flex flex-column" style="text-align: end;">
+                            @if (true)
+                            {
+                                <span>
+                                    @((((true) ? 123d : 0d) +
+                                                (true ? 123d : 0d)
+                                                ).ToString("F2", CultureInfo.InvariantCulture)) €
+                                </span>
+                                <hr class="my-1" />
+                                <span>
+                                    @((123d +
+                                                ((true) ? 123d : 0d) +
+                                                (true ? 123d : 0d)
+                                                ).ToString("F2", CultureInfo.InvariantCulture)) €
+                                </span>
+                            }
+                        </div>
+                    </div>
+                }
+                """);
+
+    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [WorkItem("https://github.com/dotnet/razor/issues/11873")]
+    public Task NestedExplicitExpression1_Stable()
+    {
+        var code = """
+            @if (true)
+            {
+                <div class="d-flex">
+                    <div class="d-flex flex-column" style="text-align: end;">
+                        @if (true)
+                        {
+                            <span>
+                                @((((true) ? 123d : 0d) +
+                                            (true ? 123d : 0d)
+                                            ).ToString("F2", CultureInfo.InvariantCulture)) €
+                            </span>
+                            <hr class="my-1" />
+                            <span>
+                                @((123d +
+                                            ((true) ? 123d : 0d) +
+                                            (true ? 123d : 0d)
+                                            ).ToString("F2", CultureInfo.InvariantCulture)) €
+                            </span>
+                        }
+                    </div>
+                </div>
+            }
+            """;
+
+        return RunFormattingTestAsync(input: code, expected: code);
+    }
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/11873")]
+    public Task NestedExplicitExpression2()
+        => RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <span>
+                        @((((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)) €
+                    </span>
+                    <hr class="my-1" />
+                    <span>
+                        @((123d +
+                            ((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)) €
+                    </span>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <span>
+                        @((((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)) €
+                    </span>
+                    <hr class="my-1" />
+                    <span>
+                        @((123d +
+                            ((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)) €
+                    </span>
+                }
+                """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/11873")]
+    public Task NestedExplicitExpression3()
+        => RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <span>
+                        @((((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                        ) €
+                    </span>
+                    <hr class="my-1" />
+                    <span>
+                        @((123d +
+                            ((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                        ) €
+                    </span>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <span>
+                        @((((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                            ) €
+                    </span>
+                    <hr class="my-1" />
+                    <span>
+                        @((123d +
+                            ((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                            ) €
+                    </span>
+                }
+                """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/11873")]
+    public Task NestedExplicitExpression4()
+    => RunFormattingTestAsync(
+        input: """
+                @if (true)
+                {
+                    <span>
+                        @((((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                ) €
+                    </span>
+                    <hr class="my-1" />
+                    <span>
+                        @((123d +
+                            ((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                ) €
+                    </span>
+                }
+                """,
+        expected: """
+                @if (true)
+                {
+                    <span>
+                        @((((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                            ) €
+                    </span>
+                    <hr class="my-1" />
+                    <span>
+                        @((123d +
+                            ((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                            ) €
+                    </span>
+                }
+                """);
 }

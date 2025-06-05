@@ -168,11 +168,8 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
             // Any C# that is in the middle of a line of Html/Razor will be emitted at the end of the generated document, with a
             // comment above it that encodes where it came from in the original file. We just look for the comment, and then apply
             // the next line as formatted content.
-            var formattedLine = formattedCSharpText.Lines[iFormatted];
-            if (formattedLine.Span.Length > 3 &&
-                formattedLine.ToString() is ['/', '/', ' ', ..] line)
+            if (CSharpDocumentGenerator.TryParseAdditionalLineComment(formattedCSharpText.Lines[iFormatted], out var start, out var length))
             {
-                var (start, length) = CSharpDocumentGenerator.ParseAdditionalLineComment(line);
                 iFormatted++;
 
                 // Skip ahead to where changes are likely to become relevant, to save looping the whole set every time
