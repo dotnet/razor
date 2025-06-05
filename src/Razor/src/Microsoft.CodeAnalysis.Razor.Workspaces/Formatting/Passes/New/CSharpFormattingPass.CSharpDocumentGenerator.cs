@@ -105,7 +105,7 @@ internal partial class CSharpFormattingPass
             // We're looking for a line that matches "// {start} {length}", where start and length are integers.
 
             // Need at least 6 chars for two single digit integers separated by a space, plus "// "
-            if (line.Span.Length <= 6)
+            if (line.Span.Length < 6)
             {
                 return false;
             }
