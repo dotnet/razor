@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
@@ -16,11 +17,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 internal class DelegatedCompletionItemResolver(
     IDocumentContextFactory documentContextFactory,
     IRazorFormattingService formattingService,
+    IDocumentMappingService documentMappingService,
     RazorLSPOptionsMonitor optionsMonitor,
     IClientConnection clientConnection) : CompletionItemResolver
 {
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
     private readonly IRazorFormattingService _formattingService = formattingService;
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly RazorLSPOptionsMonitor _optionsMonitor = optionsMonitor;
     private readonly IClientConnection _clientConnection = clientConnection;
 
@@ -97,6 +100,6 @@ internal class DelegatedCompletionItemResolver(
 
         var options = RazorFormattingOptions.From(formattingOptions, _optionsMonitor.CurrentValue.CodeBlockBraceOnNextLine);
 
-        return await DelegatedCompletionHelper.FormatCSharpCompletionItemAsync(resolvedCompletionItem, documentContext, options, _formattingService, cancellationToken).ConfigureAwait(false);
+        return await DelegatedCompletionHelper.FormatCSharpCompletionItemAsync(resolvedCompletionItem, documentContext, options, _formattingService, _documentMappingService, cancellationToken).ConfigureAwait(false);
     }
 }
