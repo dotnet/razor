@@ -87,7 +87,7 @@ public class PooledArrayBuilderTests
     }
 
     [Fact]
-    public void UseDrainAndReuse()
+    public void UseToImmutableAndClearAndReuse()
     {
         var builderPool = TestArrayBuilderPool<int>.Create();
         using var builder = new PooledArrayBuilder<int>(capacity: 10, builderPool);
@@ -110,7 +110,7 @@ public class PooledArrayBuilderTests
 
         var result = builder.ToImmutableAndClear();
 
-        // After draining, the builder should contain 0 items in its inner array builder
+        // After calling ToImmutableAndClear, the builder should contain 0 items in its inner array builder
         // and the capacity should have been set to 0.
         builder.Validate(static t =>
         {
