@@ -5,6 +5,7 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -321,8 +322,8 @@ internal class RazorFormattingService : IRazorFormattingService
     }
 
     /// <summary>
-    /// This method counts the occurrences of CRLF and LF line endings in the original text. 
-    /// If LF line endings are more prevalent, it removes any CR characters from the text changes 
+    /// This method counts the occurrences of CRLF and LF line endings in the original text.
+    /// If LF line endings are more prevalent, it removes any CR characters from the text changes
     /// to ensure consistency with the LF style.
     /// </summary>
     private static ImmutableArray<TextChange> NormalizeLineEndings(SourceText originalText, ImmutableArray<TextChange> changes)
@@ -355,9 +356,20 @@ internal class RazorFormattingService : IRazorFormattingService
         return changes.DrainToImmutable();
     }
 
-    internal static class TestAccessor
+    internal TestAccessor GetTestAccessor() => new TestAccessor(this);
+
+    internal class TestAccessor(RazorFormattingService service)
     {
         public static FrozenSet<string> GetCSharpTriggerCharacterSet() => s_csharpTriggerCharacterSet;
         public static FrozenSet<string> GetHtmlTriggerCharacterSet() => s_htmlTriggerCharacterSet;
+
+        public void SetFormattedCSharpDocumentModifierFunc(Func<SourceText, SourceText> func)
+        {
+            // This is only valid for the new formatting engine, so a test that sets it for the old formatter is probably written incorrectly.
+            Debug.Assert(service._languageServerFeatureOptions.UseNewFormattingEngine);
+
+            var pass = service._documentFormattingPasses.OfType<New.CSharpFormattingPass>().Single();
+            pass.GetTestAccessor().SetFormattedCSharpDocumentModifierFunc(func);
+        }
     }
 }

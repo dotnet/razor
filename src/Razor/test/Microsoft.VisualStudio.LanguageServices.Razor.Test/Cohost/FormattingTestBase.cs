@@ -43,7 +43,8 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
         bool codeBlockBraceOnNextLine = false,
         bool insertSpaces = true,
         int tabSize = 4,
-        bool allowDiagnostics = false)
+        bool allowDiagnostics = false,
+        Func<SourceText, SourceText>? csharpModifierFunc = null)
     {
         (input, expected) = ProcessFormattingContext(input, expected);
 
@@ -62,6 +63,14 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
 
         var htmlDocumentPublisher = new HtmlDocumentPublisher(RemoteServiceInvoker, StrictMock.Of<TrackingLSPDocumentManager>(), JoinableTaskContext, LoggerFactory);
         var generatedHtml = await htmlDocumentPublisher.GetHtmlSourceFromOOPAsync(document, DisposalToken);
+
+        var formattingService = (RazorFormattingService)OOPExportProvider.GetExportedValue<IRazorFormattingService>();
+        var accessor = formattingService.GetTestAccessor();
+        if (csharpModifierFunc is not null)
+        {
+            accessor.SetFormattedCSharpDocumentModifierFunc(csharpModifierFunc);
+        }
+
         Assert.NotNull(generatedHtml);
 
         var uri = new Uri(document.CreateUri(), $"{document.FilePath}{FeatureOptions.HtmlVirtualDocumentSuffix}");
