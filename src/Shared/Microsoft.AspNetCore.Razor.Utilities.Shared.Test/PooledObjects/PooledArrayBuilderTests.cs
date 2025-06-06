@@ -26,7 +26,7 @@ public class PooledArrayBuilderTests
             Assert.Equal(i, builder[i]);
         }
 
-        var result = builder.DrainToImmutable();
+        var result = builder.ToImmutableAndClear();
 
         for (var i = 0; i < count; i++)
         {
@@ -108,7 +108,7 @@ public class PooledArrayBuilderTests
             Assert.Equal(10, t.InnerArrayBuilder.Capacity);
         });
 
-        var result = builder.DrainToImmutable();
+        var result = builder.ToImmutableAndClear();
 
         // After draining, the builder should contain 0 items in its inner array builder
         // and the capacity should have been set to 0.

@@ -83,7 +83,7 @@ internal sealed class TagHelperBinder
         tagNameToDescriptorsMap = new ReadOnlyDictionary<string, ImmutableArray<TagHelperDescriptor>>(map);
 
         // Build the catch all descriptors array.
-        catchAllDescriptors = catchAllBuilder.DrainToImmutable();
+        catchAllDescriptors = catchAllBuilder.ToImmutableAndClear();
     }
 
     /// <summary>
@@ -146,7 +146,7 @@ internal sealed class TagHelperBinder
             ref resultsBuilder.AsRef(), ref tempRulesBuilder.AsRef(), distinctSet);
 
         return resultsBuilder.Count > 0
-            ? new(resultsBuilder.DrainToImmutable(), tagName, parentTagName, attributes, TagNamePrefix)
+            ? new(resultsBuilder.ToImmutableAndClear(), tagName, parentTagName, attributes, TagNamePrefix)
             : null;
 
         static void CollectBoundRulesInfo(

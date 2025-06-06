@@ -105,7 +105,7 @@ internal static partial class ImmutableArrayExtensions
             builder.AddRange(selector(item));
         }
 
-        return builder.DrainToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     public static ImmutableArray<T> WhereAsArray<T>(this ImmutableArray<T> source, Func<T, bool> predicate)
@@ -125,7 +125,7 @@ internal static partial class ImmutableArrayExtensions
             }
         }
 
-        return builder.DrainToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     /// <summary>
@@ -219,7 +219,7 @@ internal static partial class ImmutableArrayExtensions
             result.Add(stack.Pop());
         }
 
-        return result.DrainToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     /// <summary>
@@ -724,7 +724,7 @@ internal static partial class ImmutableArrayExtensions
     ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
     ///  into a new array. The collection will then be set to a zero length array.
     /// </remarks>
-    public static ImmutableArray<T> DrainToImmutableOrdered<T>(this ImmutableArray<T>.Builder builder)
+    public static ImmutableArray<T> ToImmutableOrderedAndClear<T>(this ImmutableArray<T>.Builder builder)
     {
         var array = builder.DrainToImmutable();
         array.Unsafe().Order();
@@ -748,7 +748,7 @@ internal static partial class ImmutableArrayExtensions
     ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
     ///  into a new array. The collection will then be set to a zero length array.
     /// </remarks>
-    public static ImmutableArray<T> DrainToImmutableOrdered<T>(this ImmutableArray<T>.Builder builder, IComparer<T> comparer)
+    public static ImmutableArray<T> ToImmutableOrderedAndClear<T>(this ImmutableArray<T>.Builder builder, IComparer<T> comparer)
     {
         var array = builder.DrainToImmutable();
         array.Unsafe().Order(comparer);
@@ -772,7 +772,7 @@ internal static partial class ImmutableArrayExtensions
     ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
     ///  into a new array. The collection will then be set to a zero length array.
     /// </remarks>
-    public static ImmutableArray<T> DrainToImmutableOrdered<T>(this ImmutableArray<T>.Builder builder, Comparison<T> comparison)
+    public static ImmutableArray<T> ToImmutableOrderedAndClear<T>(this ImmutableArray<T>.Builder builder, Comparison<T> comparison)
     {
         var array = builder.DrainToImmutable();
         array.Unsafe().Order(comparison);
@@ -795,7 +795,7 @@ internal static partial class ImmutableArrayExtensions
     ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
     ///  into a new array. The collection will then be set to a zero length array.
     /// </remarks>
-    public static ImmutableArray<T> DrainToImmutableOrderedDescending<T>(this ImmutableArray<T>.Builder builder)
+    public static ImmutableArray<T> ToImmutableOrderedDescendingAndClear<T>(this ImmutableArray<T>.Builder builder)
     {
         var array = builder.DrainToImmutable();
         array.Unsafe().OrderDescending();
@@ -819,7 +819,7 @@ internal static partial class ImmutableArrayExtensions
     ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
     ///  into a new array. The collection will then be set to a zero length array.
     /// </remarks>
-    public static ImmutableArray<T> DrainToImmutableOrderedDescending<T>(this ImmutableArray<T>.Builder builder, IComparer<T> comparer)
+    public static ImmutableArray<T> ToImmutableOrderedDescendingAndClear<T>(this ImmutableArray<T>.Builder builder, IComparer<T> comparer)
     {
         var array = builder.DrainToImmutable();
         array.Unsafe().OrderDescending(comparer);
@@ -843,7 +843,7 @@ internal static partial class ImmutableArrayExtensions
     ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
     ///  into a new array. The collection will then be set to a zero length array.
     /// </remarks>
-    public static ImmutableArray<T> DrainToImmutableOrderedDescending<T>(this ImmutableArray<T>.Builder builder, Comparison<T> comparison)
+    public static ImmutableArray<T> ToImmutableOrderedDescendingAndClear<T>(this ImmutableArray<T>.Builder builder, Comparison<T> comparison)
     {
         var array = builder.DrainToImmutable();
         array.Unsafe().OrderDescending(comparison);
@@ -869,7 +869,7 @@ internal static partial class ImmutableArrayExtensions
     ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
     ///  into a new array. The collection will then be set to a zero length array.
     /// </remarks>
-    public static ImmutableArray<TElement> DrainToImmutableOrderedBy<TElement, TKey>(
+    public static ImmutableArray<TElement> ToImmutableOrderedByAndClear<TElement, TKey>(
         this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector)
     {
         var array = builder.DrainToImmutable();
@@ -897,7 +897,7 @@ internal static partial class ImmutableArrayExtensions
     ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
     ///  into a new array. The collection will then be set to a zero length array.
     /// </remarks>
-    public static ImmutableArray<TElement> DrainToImmutableOrderedBy<TElement, TKey>(
+    public static ImmutableArray<TElement> ToImmutableOrderedByAndClear<TElement, TKey>(
         this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
     {
         var array = builder.DrainToImmutable();
@@ -925,7 +925,7 @@ internal static partial class ImmutableArrayExtensions
     ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
     ///  into a new array. The collection will then be set to a zero length array.
     /// </remarks>
-    public static ImmutableArray<TElement> DrainToImmutableOrderedBy<TElement, TKey>(
+    public static ImmutableArray<TElement> ToImmutableOrderedByAndClear<TElement, TKey>(
         this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector, Comparison<TKey> comparison)
     {
         var array = builder.DrainToImmutable();
@@ -952,7 +952,7 @@ internal static partial class ImmutableArrayExtensions
     ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
     ///  into a new array. The collection will then be set to a zero length array.
     /// </remarks>
-    public static ImmutableArray<TElement> DrainToImmutableOrderedByDescending<TElement, TKey>(
+    public static ImmutableArray<TElement> ToImmutableOrderedByDescendingAndClear<TElement, TKey>(
         this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector)
     {
         var array = builder.DrainToImmutable();
@@ -980,7 +980,7 @@ internal static partial class ImmutableArrayExtensions
     ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
     ///  into a new array. The collection will then be set to a zero length array.
     /// </remarks>
-    public static ImmutableArray<TElement> DrainToImmutableOrderedByDescending<TElement, TKey>(
+    public static ImmutableArray<TElement> ToImmutableOrderedByDescendingAndClear<TElement, TKey>(
         this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
     {
         var array = builder.DrainToImmutable();
@@ -1008,7 +1008,7 @@ internal static partial class ImmutableArrayExtensions
     ///  <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the contents will be copied
     ///  into a new array. The collection will then be set to a zero length array.
     /// </remarks>
-    public static ImmutableArray<TElement> DrainToImmutableOrderedByDescending<TElement, TKey>(
+    public static ImmutableArray<TElement> ToImmutableOrderedByDescendingAndClear<TElement, TKey>(
         this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector, Comparison<TKey> comparison)
     {
         var array = builder.DrainToImmutable();
