@@ -22,20 +22,11 @@ internal class HtmlTokenizer : Tokenizer
 
     private new HtmlTokenizerState? CurrentState => (HtmlTokenizerState?)base.CurrentState;
 
-    public override SyntaxKind RazorCommentKind
-    {
-        get { return SyntaxKind.RazorCommentLiteral; }
-    }
+    public override SyntaxKind RazorCommentKind => SyntaxKind.RazorCommentLiteral;
 
-    public override SyntaxKind RazorCommentTransitionKind
-    {
-        get { return SyntaxKind.RazorCommentTransition; }
-    }
+    public override SyntaxKind RazorCommentTransitionKind => SyntaxKind.RazorCommentTransition;
 
-    public override SyntaxKind RazorCommentStarKind
-    {
-        get { return SyntaxKind.RazorCommentStar; }
-    }
+    public override SyntaxKind RazorCommentStarKind => SyntaxKind.RazorCommentStar;
 
     protected override SyntaxToken CreateToken(string content, SyntaxKind type, RazorDiagnostic[] errors)
     {
@@ -60,9 +51,10 @@ internal class HtmlTokenizer : Tokenizer
                 return StarAfterRazorCommentBody();
             case HtmlTokenizerState.AtTokenAfterRazorCommentBody:
                 return AtTokenAfterRazorCommentBody(nextState: StartState);
+
             default:
                 Debug.Fail("Invalid TokenizerState");
-                return default(StateResult);
+                return default;
         }
     }
 
@@ -96,20 +88,22 @@ internal class HtmlTokenizer : Tokenizer
                 case SyntaxKind.SingleQuote:
                     return "'";
                 case SyntaxKind.Whitespace:
-                    if (Buffer[0] == ' ')
+                    switch (Buffer[0])
                     {
-                        return " ";
+                        case ' ':
+                            return " ";
+                        case '\t':
+                            return "\t";
                     }
-                    if (Buffer[0] == '\t')
-                    {
-                        return "\t";
-                    }
+
                     break;
+
                 case SyntaxKind.NewLine:
                     if (Buffer[0] == '\n')
                     {
                         return "\n";
                     }
+
                     break;
             }
         }
@@ -197,8 +191,10 @@ internal class HtmlTokenizer : Tokenizer
     private SyntaxToken? Token()
     {
         Debug.Assert(AtToken());
+
         var sym = CurrentCharacter;
         TakeCurrent();
+
         switch (sym)
         {
             case '<':
@@ -225,6 +221,7 @@ internal class HtmlTokenizer : Tokenizer
                 Debug.Assert(CurrentCharacter == '-');
                 TakeCurrent();
                 return EndToken(SyntaxKind.DoubleHyphen);
+
             default:
                 Debug.Fail("Unexpected token!");
                 return EndToken(SyntaxKind.Marker);
@@ -237,54 +234,39 @@ internal class HtmlTokenizer : Tokenizer
         {
             TakeCurrent();
         }
+
         return EndToken(SyntaxKind.Whitespace);
     }
 
     private SyntaxToken? Newline()
     {
         Debug.Assert(SyntaxFacts.IsNewLine(CurrentCharacter));
+
         // CSharp Spec §2.3.1
         var checkTwoCharNewline = CurrentCharacter == '\r';
         TakeCurrent();
+
         if (checkTwoCharNewline && CurrentCharacter == '\n')
         {
             TakeCurrent();
         }
+
         return EndToken(SyntaxKind.NewLine);
     }
 
     private bool AtToken()
-    {
-        switch (CurrentCharacter)
+        => CurrentCharacter switch
         {
-            case '<':
-            case '!':
-            case '/':
-            case '?':
-            case '[':
-            case '>':
-            case ']':
-            case '=':
-            case '"':
-            case '\'':
-            case '@':
-                return true;
-            case '-':
-                return Peek() == '-';
-        }
-
-        return false;
-    }
+            '<' or '!' or '/' or '?' or '[' or '>' or ']' or '=' or '"' or '\'' or '@' => true,
+            '-' => Peek() == '-',
+            _ => false,
+        };
 
     private StateResult Transition(HtmlTokenizerState state)
-    {
-        return Transition((int)state, result: null);
-    }
+        => Transition((int)state, result: null);
 
     private StateResult Transition(HtmlTokenizerState state, SyntaxToken? result)
-    {
-        return Transition((int)state, result);
-    }
+        => Transition((int)state, result);
 
     private enum HtmlTokenizerState
     {
