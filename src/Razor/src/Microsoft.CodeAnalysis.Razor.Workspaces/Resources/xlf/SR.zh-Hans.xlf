@@ -109,6 +109,11 @@
         <target state="translated">将 using 指令提升为 {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_Tag_To_SelfClosing_Title">
+        <source>Simplify tag to self-closing</source>
+        <target state="new">Simplify tag to self-closing</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
         <source>Razor TagHelper Attribute Glyph</source>
         <target state="translated">Razor TagHelper 特性字形</target>
