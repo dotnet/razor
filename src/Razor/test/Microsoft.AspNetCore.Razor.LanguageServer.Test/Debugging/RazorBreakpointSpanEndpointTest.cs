@@ -37,7 +37,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(_mappingService, LoggerFactory);
         var request = new RazorBreakpointSpanParams()
         {
-            Uri = documentPath,
+            Uri = new DocumentUri(documentPath),
             Position = LspFactory.CreatePosition(1, 0),
             HostDocumentSyncVersion = 1,
         };
@@ -63,7 +63,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(_mappingService, LoggerFactory);
         var request = new RazorBreakpointSpanParams()
         {
-            Uri = documentPath,
+            Uri = new DocumentUri(documentPath),
             Position = LspFactory.CreatePosition(1, 0),
             HostDocumentSyncVersion = 1,
         };
@@ -89,7 +89,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(_mappingService, LoggerFactory);
         var request = new RazorBreakpointSpanParams()
         {
-            Uri = documentPath,
+            Uri = new DocumentUri(documentPath),
             Position = LspFactory.CreatePosition(1, 0),
             HostDocumentSyncVersion = 1,
         };
@@ -115,7 +115,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(_mappingService, LoggerFactory);
         var request = new RazorBreakpointSpanParams()
         {
-            Uri = documentPath,
+            Uri = new DocumentUri(documentPath),
             Position = LspFactory.CreatePosition(1, 0),
             HostDocumentSyncVersion = 1,
         };
@@ -142,7 +142,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(_mappingService, LoggerFactory);
         var request = new RazorBreakpointSpanParams()
         {
-            Uri = documentPath,
+            Uri = new DocumentUri(documentPath),
             Position = LspFactory.CreatePosition(1, 0),
             HostDocumentSyncVersion = 1,
         };
@@ -167,7 +167,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(_mappingService, LoggerFactory);
         var request = new RazorBreakpointSpanParams()
         {
-            Uri = documentPath,
+            Uri = new DocumentUri(documentPath),
             Position = LspFactory.CreatePosition(1, 0),
             HostDocumentSyncVersion = 0,
         };
@@ -195,7 +195,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(_mappingService, LoggerFactory);
         var request = new RazorBreakpointSpanParams()
         {
-            Uri = documentPath,
+            Uri = new DocumentUri(documentPath),
             Position = LspFactory.CreatePosition(1, 0),
             HostDocumentSyncVersion = 0,
         };
@@ -223,7 +223,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(_mappingService, LoggerFactory);
         var request = new RazorBreakpointSpanParams()
         {
-            Uri = documentPath,
+            Uri = new DocumentUri(documentPath),
             Position = LspFactory.CreatePosition(2, 0),
             HostDocumentSyncVersion = 0,
         };

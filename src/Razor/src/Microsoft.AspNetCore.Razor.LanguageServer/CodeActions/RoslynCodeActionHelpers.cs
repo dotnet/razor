@@ -5,13 +5,13 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
-using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
@@ -27,11 +27,11 @@ internal sealed class RoslynCodeActionHelpers(IClientConnection clientConnection
         {
             Project = new TextDocumentIdentifier
             {
-                Uri = new Uri(projectSnapshot.FilePath, UriKind.Absolute)
+                DocumentUri = new DocumentUri(new Uri(projectSnapshot.FilePath, UriKind.Absolute))
             },
             Document = new TextDocumentIdentifier
             {
-                Uri = csharpFileUri
+                DocumentUri = new DocumentUri(csharpFileUri)
             },
             Contents = newFileContent
         };
@@ -55,7 +55,7 @@ internal sealed class RoslynCodeActionHelpers(IClientConnection clientConnection
     {
         var tdi = codeBehindUri is null
             ? documentContext.GetTextDocumentIdentifierAndVersion()
-            : new TextDocumentIdentifierAndVersion(new TextDocumentIdentifier() { Uri = codeBehindUri }, 1);
+            : new TextDocumentIdentifierAndVersion(new TextDocumentIdentifier() { DocumentUri = new DocumentUri(codeBehindUri) }, 1);
         var delegatedParams = new DelegatedSimplifyMethodParams(
             tdi,
             RequiresVirtualDocument: codeBehindUri == null,

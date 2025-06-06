@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
 [RazorLanguageServerEndpoint(LanguageServerConstants.RazorMapToDocumentRangesEndpoint)]
 internal sealed class RazorMapToDocumentRangesEndpoint :
     IRazorDocumentlessRequestHandler<RazorMapToDocumentRangesParams, RazorMapToDocumentRangesResponse?>,
-    ITextDocumentIdentifierHandler<RazorMapToDocumentRangesParams, Uri>
+    ITextDocumentIdentifierHandler<RazorMapToDocumentRangesParams, DocumentUri>
 {
     private readonly IDocumentMappingService _documentMappingService;
 
@@ -27,10 +27,8 @@ internal sealed class RazorMapToDocumentRangesEndpoint :
 
     public bool MutatesSolutionState { get; } = false;
 
-    public Uri GetTextDocumentIdentifier(RazorMapToDocumentRangesParams request)
-    {
-        return request.RazorDocumentUri;
-    }
+    public DocumentUri GetTextDocumentIdentifier(RazorMapToDocumentRangesParams request)
+        => request.RazorDocumentUri;
 
     public async Task<RazorMapToDocumentRangesResponse?> HandleRequestAsync(RazorMapToDocumentRangesParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {

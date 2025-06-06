@@ -180,7 +180,7 @@ public class DocumentSpellCheckEndpointTest(ITestOutputHelper testOutput) : Sing
 
         var request = new VSInternalDocumentSpellCheckableParams
         {
-            TextDocument = new TextDocumentIdentifier { Uri = uri }
+            TextDocument = new TextDocumentIdentifier { DocumentUri = new DocumentUri(uri) }
         };
 
         var response = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);

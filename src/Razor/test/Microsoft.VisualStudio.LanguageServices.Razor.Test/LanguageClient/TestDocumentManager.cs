@@ -17,9 +17,7 @@ internal sealed class TestDocumentManager : TrackingLSPDocumentManager
     public int UpdateVirtualDocumentCallCount { get; private set; }
 
     public override bool TryGetDocument(Uri uri, out LSPDocumentSnapshot lspDocumentSnapshot)
-    {
-        return _documents.TryGetValue(uri, out lspDocumentSnapshot);
-    }
+        => _documents.TryGetValue(uri, out lspDocumentSnapshot);
 
     public void AddDocument(Uri uri, LSPDocumentSnapshot documentSnapshot)
     {

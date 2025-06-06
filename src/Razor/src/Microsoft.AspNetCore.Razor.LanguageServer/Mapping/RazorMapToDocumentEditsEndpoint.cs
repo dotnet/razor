@@ -7,14 +7,12 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
@@ -22,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Mapping;
 [RazorLanguageServerEndpoint(LanguageServerConstants.RazorMapToDocumentEditsEndpoint)]
 internal partial class RazorMapToDocumentEditsEndpoint(IDocumentMappingService documentMappingService, ITelemetryReporter telemetryReporter, ILoggerFactory loggerFactory) :
     IRazorDocumentlessRequestHandler<RazorMapToDocumentEditsParams, RazorMapToDocumentEditsResponse?>,
-    ITextDocumentIdentifierHandler<RazorMapToDocumentEditsParams, Uri>
+    ITextDocumentIdentifierHandler<RazorMapToDocumentEditsParams, DocumentUri>
 {
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
@@ -30,10 +28,8 @@ internal partial class RazorMapToDocumentEditsEndpoint(IDocumentMappingService d
 
     public bool MutatesSolutionState => false;
 
-    public Uri GetTextDocumentIdentifier(RazorMapToDocumentEditsParams request)
-    {
-        return request.RazorDocumentUri;
-    }
+    public DocumentUri GetTextDocumentIdentifier(RazorMapToDocumentEditsParams request)
+        => request.RazorDocumentUri;
 
     public async Task<RazorMapToDocumentEditsResponse?> HandleRequestAsync(RazorMapToDocumentEditsParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {

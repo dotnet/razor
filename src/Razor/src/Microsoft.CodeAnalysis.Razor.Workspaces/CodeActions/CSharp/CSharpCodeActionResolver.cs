@@ -61,7 +61,7 @@ internal class CSharpCodeActionResolver(IRazorFormattingService razorFormattingS
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier()
         {
-            Uri = documentContext.Uri
+            DocumentUri = new DocumentUri(documentContext.Uri)
         };
         codeAction.Edit = new WorkspaceEdit()
         {

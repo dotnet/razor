@@ -26,7 +26,7 @@ internal partial class RazorCustomMessageTarget
 
         var spellCheckParams = new VSInternalDocumentSpellCheckableParams
         {
-            TextDocument = hostDocument.WithUri(virtualDocument.Uri),
+            TextDocument = hostDocument.WithUri(new DocumentUri(virtualDocument.Uri)),
         };
 
         var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentSpellCheckableParams, VSInternalSpellCheckableRangeReport[]>(

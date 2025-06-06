@@ -47,7 +47,7 @@ internal sealed class RemoteInlineCompletionService(in ServiceArgs args) : Razor
 
         var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
         return new InlineCompletionRequestInfo(
-            GeneratedDocumentUri: generatedDocument.CreateUri(),
+            GeneratedDocumentUri: generatedDocument.CreateDocumentUri(),
             Position: mappedPosition);
     }
 

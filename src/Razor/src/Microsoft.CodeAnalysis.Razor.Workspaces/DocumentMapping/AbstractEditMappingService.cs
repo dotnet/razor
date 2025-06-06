@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
@@ -113,7 +114,7 @@ internal abstract class AbstractEditMappingService(
 
         foreach (var entry in documentEdits)
         {
-            var generatedDocumentUri = entry.TextDocument.Uri;
+            var generatedDocumentUri = entry.TextDocument.DocumentUri.GetRequiredParsedUri();
 
             // Check if the edit is actually for a generated document, because if not we don't need to do anything
             if (!_filePathService.IsVirtualDocumentUri(generatedDocumentUri))
@@ -144,7 +145,7 @@ internal abstract class AbstractEditMappingService(
             {
                 TextDocument = new OptionalVersionedTextDocumentIdentifier()
                 {
-                    Uri = razorDocumentUri,
+                    DocumentUri = new DocumentUri(razorDocumentUri),
                 },
                 Edits = remappedEdits.Select(e => new SumType<TextEdit, AnnotatedTextEdit>(e)).ToArray()
             });

@@ -44,7 +44,7 @@ internal class LSPDocumentMappingProvider(
         var mapToDocumentRangeParams = new RazorMapToDocumentRangesParams()
         {
             Kind = languageKind,
-            RazorDocumentUri = razorDocumentUri,
+            RazorDocumentUri = new DocumentUri(razorDocumentUri),
             ProjectedRanges = projectedRanges,
             MappingBehavior = MappingBehavior.Strict,
         };
@@ -73,7 +73,7 @@ internal class LSPDocumentMappingProvider(
         var mapToDocumentEditsParams = new RazorMapToDocumentEditsParams()
         {
             Kind = languageKind,
-            RazorDocumentUri = razorDocumentUri,
+            RazorDocumentUri = new DocumentUri(razorDocumentUri),
             TextChanges = textEdits.Select(ConvertToRazorCSharpTextChange).ToArray(),
         };
 

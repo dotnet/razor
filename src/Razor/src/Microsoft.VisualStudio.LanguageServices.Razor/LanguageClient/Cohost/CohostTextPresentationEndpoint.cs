@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -71,9 +72,10 @@ internal sealed class CohostTextPresentationEndpoint(
 
         foreach (var edit in edits)
         {
-            if (_filePathService.IsVirtualHtmlFile(edit.TextDocument.Uri))
+            var editDocumentUri = edit.TextDocument.DocumentUri.GetRequiredParsedUri();
+            if (_filePathService.IsVirtualHtmlFile(editDocumentUri))
             {
-                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = _filePathService.GetRazorDocumentUri(edit.TextDocument.Uri) };
+                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new DocumentUri(_filePathService.GetRazorDocumentUri(editDocumentUri)) };
             }
         }
 

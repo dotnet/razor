@@ -113,7 +113,7 @@ public class CohostOnTypeFormattingEndpointTest(HtmlFormattingFixture htmlFormat
                 DisposalToken).ConfigureAwait(false);
             Assert.NotNull(generatedHtml);
 
-            var uri = new Uri(document.CreateUri(), $"{document.FilePath}{FeatureOptions.HtmlVirtualDocumentSuffix}");
+            var uri = new Uri($"{document.FilePath}{FeatureOptions.HtmlVirtualDocumentSuffix}");
             var htmlEdits = await htmlFormattingFixture.Service.GetOnTypeFormattingEditsAsync(LoggerFactory, uri, generatedHtml, position, insertSpaces: true, tabSize: 4);
 
             requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentOnTypeFormattingName, htmlEdits)]);
@@ -130,7 +130,7 @@ public class CohostOnTypeFormattingEndpointTest(HtmlFormattingFixture htmlFormat
 
         var request = new DocumentOnTypeFormattingParams()
         {
-            TextDocument = new TextDocumentIdentifier() { Uri = document.CreateUri() },
+            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.CreateDocumentUri() },
             Options = new FormattingOptions()
             {
                 TabSize = 4,

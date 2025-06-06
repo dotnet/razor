@@ -1,14 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
@@ -25,26 +24,26 @@ internal sealed class RazorRequestContextFactory(
     public override Task<RazorRequestContext> CreateRequestContextAsync<TRequestParams>(IQueueItem<RazorRequestContext> queueItem, IMethodHandler methodHandler, TRequestParams @params, CancellationToken cancellationToken)
     {
         DocumentContext? documentContext = null;
-        Uri? uri = null;
+        DocumentUri? uri = null;
 
         if (methodHandler is ITextDocumentIdentifierHandler textDocumentHandler)
         {
             if (textDocumentHandler is ITextDocumentIdentifierHandler<TRequestParams, TextDocumentIdentifier> tdiHandler)
             {
                 var textDocumentIdentifier = tdiHandler.GetTextDocumentIdentifier(@params);
-                uri = textDocumentIdentifier.Uri;
+                uri = textDocumentIdentifier.DocumentUri;
 
                 _logger.LogDebug($"Trying to create DocumentContext for {queueItem.MethodName} for {textDocumentIdentifier.GetProjectContext()?.Id ?? "(no project context)"} for {uri}");
 
                 _documentContextFactory.TryCreate(textDocumentIdentifier, out documentContext);
             }
-            else if (textDocumentHandler is ITextDocumentIdentifierHandler<TRequestParams, Uri> uriHandler)
+            else if (textDocumentHandler is ITextDocumentIdentifierHandler<TRequestParams, DocumentUri> uriHandler)
             {
                 uri = uriHandler.GetTextDocumentIdentifier(@params);
 
                 _logger.LogDebug($"Trying to create DocumentContext for {queueItem.MethodName}, with no project context, for {uri}");
 
-                _documentContextFactory.TryCreate(uri, out documentContext);
+                _documentContextFactory.TryCreate(uri.GetRequiredParsedUri(), out documentContext);
             }
             else
             {

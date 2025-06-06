@@ -36,7 +36,7 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
         var languageEndpoint = new RazorLanguageQueryEndpoint(_documentMappingService, LoggerFactory);
         var request = new RazorLanguageQueryParams()
         {
-            Uri = documentPath,
+            Uri = new DocumentUri(documentPath),
             Position = LspFactory.CreatePosition(0, 1),
         };
 
@@ -62,7 +62,7 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
         var languageEndpoint = new RazorLanguageQueryEndpoint(_documentMappingService, LoggerFactory);
         var request = new RazorLanguageQueryParams()
         {
-            Uri = documentPath,
+            Uri = new DocumentUri(documentPath),
             Position = LspFactory.CreatePosition(0, 2),
         };
 
@@ -91,7 +91,7 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
         var languageEndpoint = new RazorLanguageQueryEndpoint(_documentMappingService, LoggerFactory);
         var request = new RazorLanguageQueryParams()
         {
-            Uri = documentPath,
+            Uri = new DocumentUri(documentPath),
             Position = LspFactory.CreatePosition(0, 1),
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -120,7 +120,7 @@ public class RazorLanguageQueryEndpointTest : LanguageServerTestBase
         var languageEndpoint = new RazorLanguageQueryEndpoint(_documentMappingService, LoggerFactory);
         var request = new RazorLanguageQueryParams()
         {
-            Uri = documentPath,
+            Uri = new DocumentUri(documentPath),
             Position = LspFactory.CreatePosition(1, 0),
         };
 

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -75,7 +76,7 @@ internal sealed class CohostUriPresentationEndpoint(
                     {
                         TextDocument = new()
                         {
-                            Uri = request.TextDocument.Uri
+                            DocumentUri = request.TextDocument.DocumentUri
                         },
                         Edits = [sourceText.GetTextEdit(textChange)]
                     }
@@ -112,9 +113,10 @@ internal sealed class CohostUriPresentationEndpoint(
         //       but if we move this all to OOP, per the above TODO, then that point is moot.
         foreach (var edit in edits)
         {
-            if (_filePathService.IsVirtualHtmlFile(edit.TextDocument.Uri))
+            var editDocumentUri = edit.TextDocument.DocumentUri.GetRequiredParsedUri();
+            if (_filePathService.IsVirtualHtmlFile(editDocumentUri))
             {
-                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = _filePathService.GetRazorDocumentUri(edit.TextDocument.Uri) };
+                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new DocumentUri(_filePathService.GetRazorDocumentUri(editDocumentUri)) };
             }
         }
 

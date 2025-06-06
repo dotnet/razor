@@ -60,7 +60,7 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
 
         var request = new TextDocumentPositionParams
         {
-            TextDocument = new() { Uri = new Uri("C:/text.razor") },
+            TextDocument = new() { DocumentUri = new DocumentUri("C:/text.razor") },
             Position = position,
         };
 
@@ -217,7 +217,7 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
         var razorFileUri = new Uri(razorFilePath);
         var request = new TextDocumentPositionParams
         {
-            TextDocument = new() { Uri = razorFileUri, },
+            TextDocument = new() { DocumentUri = new DocumentUri(razorFileUri), },
             Position = codeDocument.Source.Text.GetPosition(code.Position)
         };
 
@@ -325,7 +325,7 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
 
             var hoverRequest = new TextDocumentPositionParams()
             {
-                TextDocument = new() { Uri = csharpDocumentUri, },
+                TextDocument = new() { DocumentUri = new DocumentUri(csharpDocumentUri), },
                 Position = hoverParams.ProjectedPosition
             };
 

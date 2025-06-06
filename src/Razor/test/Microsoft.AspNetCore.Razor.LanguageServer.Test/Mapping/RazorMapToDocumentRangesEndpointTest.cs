@@ -44,7 +44,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         {
             Kind = RazorLanguageKind.CSharp,
             ProjectedRanges = [LspFactory.CreateSingleLineRange(line: 0, character: 10, length: 12)],
-            RazorDocumentUri = documentPath,
+            RazorDocumentUri = new DocumentUri(documentPath),
         };
         var expectedRange = LspFactory.CreateSingleLineRange(line: 0, character: 4, length: 12);
 
@@ -73,7 +73,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         {
             Kind = RazorLanguageKind.CSharp,
             ProjectedRanges = [LspFactory.CreateSingleLineRange(start: (0, 0), length: 3)],
-            RazorDocumentUri = documentPath,
+            RazorDocumentUri = new DocumentUri(documentPath),
         };
 
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -101,7 +101,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         {
             Kind = RazorLanguageKind.CSharp,
             ProjectedRanges = [LspFactory.CreateSingleLineRange(start: (0, 0), length: 22)],
-            RazorDocumentUri = documentPath,
+            RazorDocumentUri = new DocumentUri(documentPath),
         };
 
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -129,7 +129,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         {
             Kind = RazorLanguageKind.CSharp,
             ProjectedRanges = [LspFactory.CreateSingleLineRange(line: 0, character: 10, length: 13)],
-            RazorDocumentUri = documentPath,
+            RazorDocumentUri = new DocumentUri(documentPath),
         };
 
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -154,7 +154,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         {
             Kind = RazorLanguageKind.Html,
             ProjectedRanges = [LspFactory.CreateSingleLineRange(line: 0, character: 16, length: 4)],
-            RazorDocumentUri = documentPath,
+            RazorDocumentUri = new DocumentUri(documentPath),
         };
 
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -179,7 +179,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         {
             Kind = RazorLanguageKind.Razor,
             ProjectedRanges = [LspFactory.CreateSingleLineRange(line: 0, character: 4, length: 1)],
-            RazorDocumentUri = documentPath,
+            RazorDocumentUri = new DocumentUri(documentPath),
         };
 
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -217,7 +217,7 @@ public class RazorMapToDocumentRangesEndpointTest : LanguageServerTestBase
         {
             Kind = RazorLanguageKind.CSharp,
             ProjectedRanges = [LspFactory.CreateSingleLineRange(line: 4, character: 26, length: 12)],
-            RazorDocumentUri = documentPath,
+            RazorDocumentUri = new DocumentUri(documentPath),
         };
         var expectedRange = LspFactory.CreateSingleLineRange(line: 0, character: 4, length: 12);
 

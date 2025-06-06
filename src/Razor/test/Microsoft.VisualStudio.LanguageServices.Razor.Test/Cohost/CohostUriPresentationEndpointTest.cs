@@ -56,7 +56,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                     {
                         TextDocument = new()
                         {
-                            Uri = FileUri("File1.razor.g.html")
+                            DocumentUri = new DocumentUri(FileUri("File1.razor.g.html"))
                         },
                         Edits = [LspFactory.CreateTextEdit(position: (0, 0), htmlTag)]
                     }
@@ -128,7 +128,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
                     {
                         TextDocument = new()
                         {
-                            Uri = FileUri("File1.razor.g.html")
+                            DocumentUri = new DocumentUri(FileUri("File1.razor.g.html"))
                         },
                         Edits = [LspFactory.CreateTextEdit(position: (0, 0), htmlTag)]
                     }
@@ -251,10 +251,10 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                Uri = document.CreateUri()
+                DocumentUri = document.CreateDocumentUri()
             },
             Range = sourceText.GetRange(span),
-            Uris = uris
+            Uris = uris,
         };
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
@@ -268,7 +268,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
             Assert.NotNull(result);
             Assert.NotNull(result.DocumentChanges);
             Assert.Equal(expected, ((TextEdit)result.DocumentChanges.Value.First[0].Edits[0]).NewText);
-            Assert.Equal(document.CreateUri(), result.DocumentChanges.Value.First[0].TextDocument.Uri);
+            Assert.Equal(document.CreateDocumentUri(), result.DocumentChanges.Value.First[0].TextDocument.DocumentUri);
         }
     }
 }

@@ -1,19 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Frozen;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 
@@ -46,7 +41,7 @@ internal class DocumentOnTypeFormattingEndpoint(
 
     public async Task<TextEdit[]?> HandleRequestAsync(DocumentOnTypeFormattingParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
-        _logger.LogInformation($"Starting OnTypeFormatting request for {request.TextDocument.Uri}.");
+        _logger.LogInformation($"Starting OnTypeFormatting request for {request.TextDocument.DocumentUri}.");
 
         if (!_optionsMonitor.CurrentValue.Formatting.IsEnabled())
         {
@@ -69,7 +64,7 @@ internal class DocumentOnTypeFormattingEndpoint(
         var documentContext = requestContext.DocumentContext;
         if (documentContext is null)
         {
-            _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
+            _logger.LogWarning($"Failed to find document {request.TextDocument.DocumentUri}.");
             return null;
         }
 

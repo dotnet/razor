@@ -97,7 +97,7 @@ internal class ComponentAccessibilityCodeActionProvider(IFileSystem fileSystem) 
             return;
         }
 
-        var path = context.Request.TextDocument.Uri.GetAbsoluteOrUNCPath();
+        var path = context.Request.TextDocument.DocumentUri.GetAbsoluteOrUNCPath();
         path = FilePathNormalizer.Normalize(path);
 
         var directoryName = Path.GetDirectoryName(path);
@@ -185,7 +185,7 @@ internal class ComponentAccessibilityCodeActionProvider(IFileSystem fileSystem) 
                 // name to give the tag.
                 if (!tagHelperPair.CaseInsensitiveMatch || newTagName is not null)
                 {
-                    if (AddUsingsCodeActionResolver.TryCreateAddUsingResolutionParams(fullyQualifiedName, context.Request.TextDocument, additionalEdit, context.DelegatedDocumentUri, out var @namespace, out var resolutionParams))
+                    if (AddUsingsCodeActionResolver.TryCreateAddUsingResolutionParams(fullyQualifiedName, context.Request.TextDocument, additionalEdit, context.DelegatedDocumentUri?.ParsedUri, out var @namespace, out var resolutionParams))
                     {
                         var addUsingCodeAction = RazorCodeActionFactory.CreateAddComponentUsing(@namespace, newTagName, resolutionParams);
                         container.Add(addUsingCodeAction);
@@ -291,7 +291,7 @@ internal class ComponentAccessibilityCodeActionProvider(IFileSystem fileSystem) 
         RazorCodeActionContext context, BaseMarkupStartTagSyntax startTag, string newTagName)
     {
         using var textEdits = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>();
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = context.Request.TextDocument.DocumentUri };
 
         var startTagTextEdit = LspFactory.CreateTextEdit(startTag.Name.GetRange(context.CodeDocument.Source), newTagName);
 

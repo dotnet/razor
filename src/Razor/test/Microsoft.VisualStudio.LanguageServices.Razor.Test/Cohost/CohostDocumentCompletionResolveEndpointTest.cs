@@ -47,7 +47,7 @@ public class CohostDocumentCompletionResolveEndpointTest(ITestOutputHelper testO
             requestInvoker,
             LoggerFactory);
 
-        var textDocumentIdentifier = new TextDocumentIdentifierAndVersion(new TextDocumentIdentifier { Uri = document.CreateUri() }, Version: 0);
+        var textDocumentIdentifier = new TextDocumentIdentifierAndVersion(new TextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() }, Version: 0);
 
         var context = new DelegatedCompletionResolutionContext(
             textDocumentIdentifier,

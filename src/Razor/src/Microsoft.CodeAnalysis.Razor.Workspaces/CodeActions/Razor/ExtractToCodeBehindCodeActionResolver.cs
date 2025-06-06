@@ -53,6 +53,7 @@ internal class ExtractToCodeBehindCodeActionResolver(
             : codeBehindPath;
 
         var codeBehindUri = LspFactory.CreateFilePathUri(updatedCodeBehindPath);
+        var codeBehindDocumentUri = new DocumentUri(codeBehindUri);
 
         var text = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -64,12 +65,12 @@ internal class ExtractToCodeBehindCodeActionResolver(
 
         var removeRange = codeDocument.Source.Text.GetRange(actionParams.RemoveStart, actionParams.RemoveEnd);
 
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = documentContext.Uri };
-        var codeBehindDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = codeBehindUri };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new DocumentUri(documentContext.Uri) };
+        var codeBehindDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = codeBehindDocumentUri };
 
         var documentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
         {
-            new CreateFile { Uri = codeBehindUri },
+            new CreateFile { DocumentUri = codeBehindDocumentUri },
             new TextDocumentEdit
             {
                 TextDocument = codeDocumentIdentifier,
