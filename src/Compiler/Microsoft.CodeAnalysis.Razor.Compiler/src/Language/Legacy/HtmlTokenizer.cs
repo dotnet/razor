@@ -1,6 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Frozen;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
 using Microsoft.CodeAnalysis.CSharp;
@@ -12,6 +14,21 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 // Tokenizer _loosely_ based on http://dev.w3.org/html5/spec/Overview.html#tokenization
 internal class HtmlTokenizer : Tokenizer
 {
+    private static readonly FrozenDictionary<SyntaxKind, SyntaxToken> s_kindToTokenMap = new Dictionary<SyntaxKind, SyntaxToken>()
+    {
+        [SyntaxKind.OpenAngle] = SyntaxFactory.Token(SyntaxKind.OpenAngle, "<"),
+        [SyntaxKind.Bang] = SyntaxFactory.Token(SyntaxKind.Bang, "!"),
+        [SyntaxKind.ForwardSlash] = SyntaxFactory.Token(SyntaxKind.ForwardSlash, "/"),
+        [SyntaxKind.QuestionMark] = SyntaxFactory.Token(SyntaxKind.QuestionMark, "?"),
+        [SyntaxKind.LeftBracket] = SyntaxFactory.Token(SyntaxKind.LeftBracket, "["),
+        [SyntaxKind.CloseAngle] = SyntaxFactory.Token(SyntaxKind.CloseAngle, ">"),
+        [SyntaxKind.RightBracket] = SyntaxFactory.Token(SyntaxKind.RightBracket, "]"),
+        [SyntaxKind.Equals] = SyntaxFactory.Token(SyntaxKind.Equals, "="),
+        [SyntaxKind.DoubleQuote] = SyntaxFactory.Token(SyntaxKind.DoubleQuote, "\""),
+        [SyntaxKind.SingleQuote] = SyntaxFactory.Token(SyntaxKind.SingleQuote, "'"),
+        [SyntaxKind.DoubleHyphen] = SyntaxFactory.Token(SyntaxKind.DoubleHyphen, "--"),
+    }.ToFrozenDictionary();
+
     public HtmlTokenizer(SeekableTextReader source)
         : base(source)
     {
@@ -30,6 +47,12 @@ internal class HtmlTokenizer : Tokenizer
 
     protected override SyntaxToken CreateToken(string content, SyntaxKind type, RazorDiagnostic[] errors)
     {
+        if (errors.Length == 0 && s_kindToTokenMap.TryGetValue(type, out var token))
+        {
+            Debug.Assert(token.Content == content);
+            return token;
+        }
+
         return SyntaxFactory.Token(type, content, errors);
     }
 
