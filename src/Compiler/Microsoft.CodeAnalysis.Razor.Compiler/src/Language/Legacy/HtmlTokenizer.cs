@@ -1,7 +1,5 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-
-#nullable disable
 
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
@@ -196,7 +194,7 @@ internal class HtmlTokenizer : Tokenizer
         return Transition(HtmlTokenizerState.Data, EndToken(SyntaxKind.Text));
     }
 
-    private SyntaxToken Token()
+    private SyntaxToken? Token()
     {
         Debug.Assert(AtToken());
         var sym = CurrentCharacter;
@@ -233,7 +231,7 @@ internal class HtmlTokenizer : Tokenizer
         }
     }
 
-    private SyntaxToken Whitespace()
+    private SyntaxToken? Whitespace()
     {
         while (SyntaxFacts.IsWhitespace(CurrentCharacter))
         {
@@ -242,7 +240,7 @@ internal class HtmlTokenizer : Tokenizer
         return EndToken(SyntaxKind.Whitespace);
     }
 
-    private SyntaxToken Newline()
+    private SyntaxToken? Newline()
     {
         Debug.Assert(SyntaxFacts.IsNewLine(CurrentCharacter));
         // CSharp Spec §2.3.1
@@ -283,7 +281,7 @@ internal class HtmlTokenizer : Tokenizer
         return Transition((int)state, result: null);
     }
 
-    private StateResult Transition(HtmlTokenizerState state, SyntaxToken result)
+    private StateResult Transition(HtmlTokenizerState state, SyntaxToken? result)
     {
         return Transition((int)state, result);
     }
