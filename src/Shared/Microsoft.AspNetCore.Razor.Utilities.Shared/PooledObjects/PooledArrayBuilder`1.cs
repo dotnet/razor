@@ -486,7 +486,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     {
         if (TryGetBuilder(out var builder))
         {
-            return builder.DrainToImmutable();
+            return builder.ToImmutableAndClear();
         }
 
         var inlineArray = InlineItemsToImmutableArray();

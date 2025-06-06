@@ -77,7 +77,7 @@ internal sealed class TagHelperBinder
 
         foreach (var (key, value) in mapBuilder)
         {
-            map.Add(key, value.DrainToImmutable());
+            map.Add(key, value.ToImmutableAndClear());
         }
 
         tagNameToDescriptorsMap = new ReadOnlyDictionary<string, ImmutableArray<TagHelperDescriptor>>(map);

@@ -46,7 +46,7 @@ public sealed class RazorProjectEngineBuilder
             }
         }
 
-        var engine = new RazorEngine(engineFeatures.ToImmutableAndClear(), Phases.DrainToImmutable());
+        var engine = new RazorEngine(engineFeatures.ToImmutableAndClear(), Phases.ToImmutableAndClear());
 
         var projectEngine = new RazorProjectEngine(Configuration, engine, FileSystem, projectEngineFeatures.ToImmutableAndClear());
 

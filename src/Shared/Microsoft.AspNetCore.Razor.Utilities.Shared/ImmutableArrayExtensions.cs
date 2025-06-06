@@ -756,7 +756,7 @@ internal static partial class ImmutableArrayExtensions
     /// </remarks>
     public static ImmutableArray<T> ToImmutableOrderedAndClear<T>(this ImmutableArray<T>.Builder builder)
     {
-        var array = builder.DrainToImmutable();
+        var array = builder.ToImmutableAndClear();
         array.Unsafe().Order();
         return array;
     }
@@ -780,7 +780,7 @@ internal static partial class ImmutableArrayExtensions
     /// </remarks>
     public static ImmutableArray<T> ToImmutableOrderedAndClear<T>(this ImmutableArray<T>.Builder builder, IComparer<T> comparer)
     {
-        var array = builder.DrainToImmutable();
+        var array = builder.ToImmutableAndClear();
         array.Unsafe().Order(comparer);
         return array;
     }
@@ -804,7 +804,7 @@ internal static partial class ImmutableArrayExtensions
     /// </remarks>
     public static ImmutableArray<T> ToImmutableOrderedAndClear<T>(this ImmutableArray<T>.Builder builder, Comparison<T> comparison)
     {
-        var array = builder.DrainToImmutable();
+        var array = builder.ToImmutableAndClear();
         array.Unsafe().Order(comparison);
         return array;
     }
@@ -827,7 +827,7 @@ internal static partial class ImmutableArrayExtensions
     /// </remarks>
     public static ImmutableArray<T> ToImmutableOrderedDescendingAndClear<T>(this ImmutableArray<T>.Builder builder)
     {
-        var array = builder.DrainToImmutable();
+        var array = builder.ToImmutableAndClear();
         array.Unsafe().OrderDescending();
         return array;
     }
@@ -851,7 +851,7 @@ internal static partial class ImmutableArrayExtensions
     /// </remarks>
     public static ImmutableArray<T> ToImmutableOrderedDescendingAndClear<T>(this ImmutableArray<T>.Builder builder, IComparer<T> comparer)
     {
-        var array = builder.DrainToImmutable();
+        var array = builder.ToImmutableAndClear();
         array.Unsafe().OrderDescending(comparer);
         return array;
     }
@@ -875,7 +875,7 @@ internal static partial class ImmutableArrayExtensions
     /// </remarks>
     public static ImmutableArray<T> ToImmutableOrderedDescendingAndClear<T>(this ImmutableArray<T>.Builder builder, Comparison<T> comparison)
     {
-        var array = builder.DrainToImmutable();
+        var array = builder.ToImmutableAndClear();
         array.Unsafe().OrderDescending(comparison);
         return array;
     }
@@ -902,7 +902,7 @@ internal static partial class ImmutableArrayExtensions
     public static ImmutableArray<TElement> ToImmutableOrderedByAndClear<TElement, TKey>(
         this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector)
     {
-        var array = builder.DrainToImmutable();
+        var array = builder.ToImmutableAndClear();
         array.Unsafe().OrderBy(keySelector);
         return array;
     }
@@ -930,7 +930,7 @@ internal static partial class ImmutableArrayExtensions
     public static ImmutableArray<TElement> ToImmutableOrderedByAndClear<TElement, TKey>(
         this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
     {
-        var array = builder.DrainToImmutable();
+        var array = builder.ToImmutableAndClear();
         array.Unsafe().OrderBy(keySelector, comparer);
         return array;
     }
@@ -958,7 +958,7 @@ internal static partial class ImmutableArrayExtensions
     public static ImmutableArray<TElement> ToImmutableOrderedByAndClear<TElement, TKey>(
         this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector, Comparison<TKey> comparison)
     {
-        var array = builder.DrainToImmutable();
+        var array = builder.ToImmutableAndClear();
         array.Unsafe().OrderBy(keySelector, comparison);
         return array;
     }
@@ -985,7 +985,7 @@ internal static partial class ImmutableArrayExtensions
     public static ImmutableArray<TElement> ToImmutableOrderedByDescendingAndClear<TElement, TKey>(
         this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector)
     {
-        var array = builder.DrainToImmutable();
+        var array = builder.ToImmutableAndClear();
         array.Unsafe().OrderByDescending(keySelector);
         return array;
     }
@@ -1013,7 +1013,7 @@ internal static partial class ImmutableArrayExtensions
     public static ImmutableArray<TElement> ToImmutableOrderedByDescendingAndClear<TElement, TKey>(
         this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector, IComparer<TKey> comparer)
     {
-        var array = builder.DrainToImmutable();
+        var array = builder.ToImmutableAndClear();
         array.Unsafe().OrderByDescending(keySelector, comparer);
         return array;
     }
@@ -1041,7 +1041,7 @@ internal static partial class ImmutableArrayExtensions
     public static ImmutableArray<TElement> ToImmutableOrderedByDescendingAndClear<TElement, TKey>(
         this ImmutableArray<TElement>.Builder builder, Func<TElement, TKey> keySelector, Comparison<TKey> comparison)
     {
-        var array = builder.DrainToImmutable();
+        var array = builder.ToImmutableAndClear();
         array.Unsafe().OrderByDescending(keySelector, comparison);
         return array;
     }
