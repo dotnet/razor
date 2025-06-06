@@ -367,7 +367,7 @@ internal class ClassifiedSpanVisitor : SyntaxWalker
         _spans.Add(span);
     }
 
-    private class Policy : IPooledObjectPolicy<ImmutableArray<ClassifiedSpanInternal>.Builder>
+    private sealed class Policy : IPooledObjectPolicy<ImmutableArray<ClassifiedSpanInternal>.Builder>
     {
         public static readonly Policy Instance = new();
 
