@@ -486,6 +486,36 @@ internal static partial class ImmutableArrayExtensions
 
     /// <summary>
     ///  Returns an immutable array that contains the current contents of this
+    ///  <see cref="ImmutableArray{T}.Builder"/> and clears the collection.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="builder"/>.</typeparam>
+    /// <param name="builder">The <see cref="ImmutableArray{T}.Builder"/> whose contents will be cleared.</param>
+    /// <returns>
+    ///  An immutable array that contains the current contents of this
+    ///  <see cref="ImmutableArray{T}.Builder"/>.
+    /// </returns>
+    /// <remarks>
+    /// This method is preferred over calling DrainToImmutable as it allows reuse of the
+    /// backing array in the common case where the builder isn't fully utilizing it's capacity.
+    /// </remarks>
+    public static ImmutableArray<T> ToImmutableAndClear<T>(this ImmutableArray<T>.Builder builder)
+    {
+        ImmutableArray<T> result;
+        if (builder.Count != builder.Capacity)
+        {
+            result = builder.ToImmutable();
+            builder.Clear();
+        }
+        else
+        {
+            result = builder.DrainToImmutable();
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    ///  Returns an immutable array that contains the current contents of this
     ///  <see cref="ImmutableArray{T}.Builder"/> sorted in ascending order.
     /// </summary>
     /// <typeparam name="T">The type of the elements in <paramref name="builder"/>.</typeparam>
