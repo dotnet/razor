@@ -69,7 +69,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
                 Method = Methods.TextDocumentCompletionName,
                 RegisterOptions = new CompletionRegistrationOptions()
                 {
-                    ResolveProvider = false, // TODO - change to true when Resolve is implemented
+                    ResolveProvider = true,
                     TriggerCharacters = [.. _triggerAndCommitCharacters.AllTriggerCharacters],
                     AllCommitCharacters = [.. _triggerAndCommitCharacters.AllCommitCharacters]
                 }
