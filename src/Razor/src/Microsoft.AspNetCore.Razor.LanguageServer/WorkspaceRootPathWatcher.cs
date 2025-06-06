@@ -60,7 +60,7 @@ internal partial class WorkspaceRootPathWatcher : IOnInitialized, IDisposable
 
         _disposeTokenSource = new();
         _workQueue = new AsyncBatchingWorkQueue<(string, RazorFileChangeKind)>(delay, ProcessBatchAsync, _disposeTokenSource.Token);
-        _filePathToChangeMap = new(FilePathComparer.Instance);
+        _filePathToChangeMap = new(PathUtilities.OSSpecificPathComparer);
         _indicesToSkip = [];
         _watchers = [];
         _fileSystem = fileSystem;

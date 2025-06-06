@@ -45,7 +45,7 @@ internal partial class ProjectStateChangeDetector : IRazorStartupService, IDispo
     /// <summary>
     ///  A map of assembly path strings to ProjectKeys. This will be cleared when the solution is closed.
     /// </summary>
-    private readonly Dictionary<string, ProjectKey> _assemblyPathToProjectKeyMap = new(FilePathComparer.Instance);
+    private readonly Dictionary<string, ProjectKey> _assemblyPathToProjectKeyMap = new(PathUtilities.OSSpecificPathComparer);
 
     private WorkspaceChangedListener? _workspaceChangedListener;
 
