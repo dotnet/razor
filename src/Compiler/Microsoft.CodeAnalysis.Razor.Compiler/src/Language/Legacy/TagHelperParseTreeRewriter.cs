@@ -80,7 +80,21 @@ internal static class TagHelperParseTreeRewriter
 
         private bool CurrentParentIsTagHelper => CurrentTracker?.IsTagHelper ?? false;
 
-        private TagHelperTracker? CurrentTagHelperTracker => _trackerStack.Count > 0 ? _trackerStack.Peek() as TagHelperTracker : null;
+        private TagHelperTracker? CurrentTagHelperTracker
+        {
+            get
+            {
+                foreach (var tracker in _trackerStack)
+                {
+                    if (tracker.IsTagHelper)
+                    {
+                        return tracker as TagHelperTracker;
+                    }
+                }
+
+                return null;
+            }
+        }
 
         public override SyntaxNode VisitMarkupElement(MarkupElementSyntax node)
         {
