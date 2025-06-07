@@ -22,12 +22,7 @@ internal sealed partial class MarkupTagHelperAttributeSyntax
 
     public MarkupTagHelperAttributeSyntax WithTagHelperAttributeInfo(TagHelperAttributeInfo info)
     {
-        var annotations = new List<SyntaxAnnotation>(GetAnnotations())
-            {
-                new SyntaxAnnotation(TagHelperAttributeInfoKey, info)
-            };
-
-        var newGreen = Green.WithAnnotationsGreen(annotations.ToArray());
+        var newGreen = Green.WithAnnotationsGreen([.. GetAnnotations(), new(TagHelperAttributeInfoKey, info)]);
 
         return (MarkupTagHelperAttributeSyntax)newGreen.CreateRed(Parent, Position);
     }
