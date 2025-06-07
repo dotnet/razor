@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -81,7 +80,7 @@ internal static class TagHelperParseTreeRewriter
 
         private bool CurrentParentIsTagHelper => CurrentTracker?.IsTagHelper ?? false;
 
-        private TagHelperTracker? CurrentTagHelperTracker => _trackerStack.FirstOrDefault(t => t.IsTagHelper) as TagHelperTracker;
+        private TagHelperTracker? CurrentTagHelperTracker => _trackerStack.Count > 0 ? _trackerStack.Peek() as TagHelperTracker : null;
 
         public override SyntaxNode VisitMarkupElement(MarkupElementSyntax node)
         {
