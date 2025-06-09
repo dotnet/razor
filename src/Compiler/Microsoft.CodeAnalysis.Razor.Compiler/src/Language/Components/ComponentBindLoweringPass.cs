@@ -483,10 +483,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
         {
             var valueNode = new HtmlAttributeIntermediateNode()
             {
-                Annotations =
-                    {
-                        [ComponentMetadata.Common.OriginalAttributeName] = bindEntry.GetOriginalAttributeName(),
-                    },
+                OriginalAttributeName = bindEntry.GetOriginalAttributeName(),
                 AttributeName = valueAttributeName,
                 Source = targetNode.Source,
 
@@ -504,10 +501,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
 
             var changeNode = new HtmlAttributeIntermediateNode()
             {
-                Annotations =
-                    {
-                        [ComponentMetadata.Common.OriginalAttributeName] = bindEntry.GetOriginalAttributeName(),
-                    },
+                OriginalAttributeName = bindEntry.GetOriginalAttributeName(),
                 AttributeName = changeAttributeName,
                 AttributeNameExpression = changeAttributeNode,
                 Source = targetNode.Source,
@@ -533,7 +527,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
             var valuePropertyName = valueAttribute?.GetPropertyName();
 
             ComponentAttributeIntermediateNode valueNode = node != null ? new ComponentAttributeIntermediateNode(node) : new ComponentAttributeIntermediateNode(getNode);
-            valueNode.Annotations[ComponentMetadata.Common.OriginalAttributeName] = bindEntry.GetOriginalAttributeName();
+            valueNode.OriginalAttributeName = bindEntry.GetOriginalAttributeName();
             valueNode.PropertySpan = GetOriginalPropertySpan(valueNode);
             valueNode.AttributeName = valueAttributeName;
             valueNode.BoundAttribute = valueAttribute; // Might be null if it doesn't match a component attribute
@@ -551,7 +545,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
             builder.Add(valueNode);
 
             var changeNode = node != null ? new ComponentAttributeIntermediateNode(node) : new ComponentAttributeIntermediateNode(getNode);
-            changeNode.Annotations[ComponentMetadata.Common.OriginalAttributeName] = bindEntry.GetOriginalAttributeName();
+            changeNode.OriginalAttributeName = bindEntry.GetOriginalAttributeName();
             changeNode.PropertySpan = GetOriginalPropertySpan(changeNode);
             changeNode.IsSynthesized = true;
             changeNode.AttributeName = changeAttributeName;
@@ -574,7 +568,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
             if (expressionAttribute != null)
             {
                 var expressionNode = node != null ? new ComponentAttributeIntermediateNode(node) : new ComponentAttributeIntermediateNode(getNode);
-                expressionNode.Annotations[ComponentMetadata.Common.OriginalAttributeName] = bindEntry.GetOriginalAttributeName();
+                expressionNode.OriginalAttributeName = bindEntry.GetOriginalAttributeName();
                 expressionNode.PropertySpan = GetOriginalPropertySpan(expressionNode);
                 expressionNode.IsSynthesized = true;
                 expressionNode.AttributeName = expressionAttributeName;
@@ -613,7 +607,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
         }
 
         var helperNode = new ComponentAttributeIntermediateNode(intermediateNode);
-        helperNode.Annotations[ComponentMetadata.Common.OriginalAttributeName] = intermediateNode.OriginalAttributeName;
+        helperNode.OriginalAttributeName = intermediateNode.OriginalAttributeName;
         helperNode.Annotations[ComponentMetadata.Common.IsDesignTimePropertyAccessHelper] = bool.TrueString;
         helperNode.PropertySpan = GetOriginalPropertySpan(intermediateNode);
         helperNode.BoundAttribute = valueAttribute;

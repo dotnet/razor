@@ -202,10 +202,7 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
         {
             var result = new HtmlAttributeIntermediateNode()
             {
-                Annotations =
-                    {
-                        [ComponentMetadata.Common.OriginalAttributeName] = node.OriginalAttributeName,
-                    },
+                OriginalAttributeName = node.OriginalAttributeName,
                 AttributeName = attributeName,
                 Source = node.Source,
 
@@ -229,10 +226,7 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
         {
             var result = new ComponentAttributeIntermediateNode(node)
             {
-                Annotations =
-                    {
-                        [ComponentMetadata.Common.OriginalAttributeName] = node.OriginalAttributeName,
-                    },
+                OriginalAttributeName = node.OriginalAttributeName,
             };
 
             result.Children.Clear();
@@ -301,9 +295,9 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
 
         var result = new ComponentAttributeIntermediateNode(node)
         {
+            OriginalAttributeName = node.OriginalAttributeName,
             Annotations =
             {
-                [ComponentMetadata.Common.OriginalAttributeName] = node.OriginalAttributeName,
                 [ComponentMetadata.Common.AddAttributeMethodName] = eventHandlerMethod,
             },
         };

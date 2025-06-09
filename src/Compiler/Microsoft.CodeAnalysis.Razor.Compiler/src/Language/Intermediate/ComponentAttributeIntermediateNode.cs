@@ -31,6 +31,8 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
     /// </remarks>
     public SourceSpan? PropertySpan { get; set; }
 
+    public string OriginalAttributeName { get; set; }
+
     public SourceSpan? OriginalAttributeSpan { get; set; }
 
     public ComponentAttributeIntermediateNode()

@@ -695,7 +695,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
         // Write the name of the property, for rename support.
         // __o = ((global::ComponentName)default).PropertyName;
-        var originalAttributeName = node.Annotations[ComponentMetadata.Common.OriginalAttributeName]?.ToString() ?? node.AttributeName;
+        var originalAttributeName = node.OriginalAttributeName ?? node.AttributeName;
 
         int offset;
         if (originalAttributeName == node.PropertyName)
