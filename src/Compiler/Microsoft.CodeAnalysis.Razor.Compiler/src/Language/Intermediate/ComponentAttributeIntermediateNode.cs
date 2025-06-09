@@ -14,6 +14,11 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
     public bool HasExplicitTypeName { get; set; }
     public bool IsOpenGeneric { get; set; }
 
+    /// <summary>
+    /// Used to track if this node was synthesized by the compiler and not explicitly written by a user.
+    /// </summary>
+    public bool IsSynthesized { get; set; }
+
     public ComponentAttributeIntermediateNode()
     {
     }

@@ -80,12 +80,6 @@ internal static class ComponentMetadata
         /// </pre>
         /// </remarks>
         public const string PropertySpan = "Components.Bind.PropertySpan";
-
-        /// <summary>
-        /// Used to track if this node was synthesized by the compiler and
-        /// not explicitly written by a user.
-        /// </summary>
-        public const string IsSynthesized = "Components.Bind.IsSynthesized";
     }
 
     public static class ChildContent

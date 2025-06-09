@@ -362,8 +362,7 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
             TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, containingType);
             context.CodeWriter.Write(".");
 
-            var isSynthesized = attribute.Annotations.TryGetValue(ComponentMetadata.Bind.IsSynthesized, out string synthesizedString) && synthesizedString == bool.TrueString;
-            if (!isSynthesized)
+            if (!attribute.IsSynthesized)
             {
                 var attributeSourceSpan = (SourceSpan)(attribute.Annotations[ComponentMetadata.Bind.PropertySpan] ?? attribute.Annotations[ComponentMetadata.Common.OriginalAttributeSpan]);
                 var requiresEscaping = attribute.PropertyName.IdentifierRequiresEscaping();

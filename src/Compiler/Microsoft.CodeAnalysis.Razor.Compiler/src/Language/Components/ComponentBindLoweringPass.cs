@@ -553,7 +553,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
             var changeNode = node != null ? new ComponentAttributeIntermediateNode(node) : new ComponentAttributeIntermediateNode(getNode);
             changeNode.Annotations[ComponentMetadata.Common.OriginalAttributeName] = bindEntry.GetOriginalAttributeName();
             changeNode.Annotations[ComponentMetadata.Bind.PropertySpan] = GetOriginalPropertySpan(changeNode);
-            changeNode.Annotations[ComponentMetadata.Bind.IsSynthesized] = bool.TrueString;
+            changeNode.IsSynthesized = true;
             changeNode.AttributeName = changeAttributeName;
             changeNode.BoundAttribute = changeAttribute; // Might be null if it doesn't match a component attribute
             changeNode.PropertyName = changeAttribute?.GetPropertyName();
@@ -576,7 +576,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
                 var expressionNode = node != null ? new ComponentAttributeIntermediateNode(node) : new ComponentAttributeIntermediateNode(getNode);
                 expressionNode.Annotations[ComponentMetadata.Common.OriginalAttributeName] = bindEntry.GetOriginalAttributeName();
                 expressionNode.Annotations[ComponentMetadata.Bind.PropertySpan] = GetOriginalPropertySpan(expressionNode);
-                expressionNode.Annotations[ComponentMetadata.Bind.IsSynthesized] = bool.TrueString;
+                expressionNode.IsSynthesized = true;
                 expressionNode.AttributeName = expressionAttributeName;
                 expressionNode.BoundAttribute = expressionAttribute;
                 expressionNode.PropertyName = expressionAttribute.GetPropertyName();
