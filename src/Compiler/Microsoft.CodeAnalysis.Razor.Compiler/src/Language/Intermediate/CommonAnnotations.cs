@@ -7,7 +7,5 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 public static class CommonAnnotations
 {
-    public static readonly object PrimaryClass = "PrimaryClass";
-
     public static readonly object PrimaryMethod = "PrimaryMethod";
 }

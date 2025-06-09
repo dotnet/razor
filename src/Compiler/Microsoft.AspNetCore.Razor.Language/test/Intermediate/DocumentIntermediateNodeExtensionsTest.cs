@@ -14,8 +14,10 @@ public class DocumentIntermediateNodeExtensionsTest
     {
         // Arrange
         var document = new DocumentIntermediateNode();
-        var @class = new ClassDeclarationIntermediateNode();
-        @class.Annotations[CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass;
+        var @class = new ClassDeclarationIntermediateNode
+        {
+            IsPrimaryClass = true
+        };
 
         var builder = IntermediateNodeBuilder.Create(document);
         builder.Add(@class);

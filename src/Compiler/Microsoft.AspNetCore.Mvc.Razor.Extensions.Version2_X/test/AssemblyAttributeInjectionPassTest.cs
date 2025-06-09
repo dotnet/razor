@@ -87,10 +87,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
 
         builder.Add(new ClassDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
-            },
+            IsPrimaryClass = true,
         });
 
         // Act
@@ -119,10 +116,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
         var @class = new ClassDeclarationIntermediateNode
         {
             ClassName = "SomeName",
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
-            }
+            IsPrimaryClass = true,
         };
 
         builder.Add(@class);
@@ -160,10 +154,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
         var @class = new ClassDeclarationIntermediateNode
         {
             ClassName = "SomeName",
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
-            }
+            IsPrimaryClass = true,
         };
 
         builder.Add(@class);
@@ -203,10 +194,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
         var @class = new ClassDeclarationIntermediateNode
         {
             ClassName = "SomeName",
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
-            }
+            IsPrimaryClass = true,
         };
 
         builder.Add(@class);
@@ -254,10 +242,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
         var @class = new ClassDeclarationIntermediateNode
         {
             ClassName = "SomeName",
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
-            }
+            IsPrimaryClass = true,
         };
 
         builder.Add(@class);
@@ -312,10 +297,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
         var @class = new ClassDeclarationIntermediateNode
         {
             ClassName = "SomeName",
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
-            }
+            IsPrimaryClass = true,
         };
 
         builder.Add(@class);
@@ -363,10 +345,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
         var @class = new ClassDeclarationIntermediateNode
         {
             ClassName = "SomeName",
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
-            }
+            IsPrimaryClass = true,
         };
 
         builder.Add(@class);

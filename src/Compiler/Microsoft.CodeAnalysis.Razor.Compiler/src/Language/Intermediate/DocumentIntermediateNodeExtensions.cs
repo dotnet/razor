@@ -17,7 +17,7 @@ public static class DocumentIntermediateNodeExtensions
             throw new ArgumentNullException(nameof(node));
         }
 
-        return FindWithAnnotation<ClassDeclarationIntermediateNode>(node, CommonAnnotations.PrimaryClass);
+        return FindNode<ClassDeclarationIntermediateNode>(node, static n => n.IsPrimaryClass);
     }
 
     public static MethodDeclarationIntermediateNode FindPrimaryMethod(this DocumentIntermediateNode node)

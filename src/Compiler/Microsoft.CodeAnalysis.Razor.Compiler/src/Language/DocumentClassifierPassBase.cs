@@ -58,8 +58,10 @@ public abstract class DocumentClassifierPassBase : IntermediateNodePassBase, IRa
             IsPrimaryNamespace = true
         };
 
-        var @class = new ClassDeclarationIntermediateNode();
-        @class.Annotations[CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass;
+        var @class = new ClassDeclarationIntermediateNode
+        {
+            IsPrimaryClass = true
+        };
 
         var method = new MethodDeclarationIntermediateNode();
         method.Annotations[CommonAnnotations.PrimaryMethod] = CommonAnnotations.PrimaryMethod;

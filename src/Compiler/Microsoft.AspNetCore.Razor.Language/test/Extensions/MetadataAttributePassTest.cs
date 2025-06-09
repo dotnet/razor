@@ -110,10 +110,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
 
         var @class = new ClassDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
-            },
+            IsPrimaryClass = true,
             ClassName = "Test"
         };
 
@@ -163,10 +160,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
 
         var @class = new ClassDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
-            },
+            IsPrimaryClass = true,
         };
 
         builder.Add(@class);
@@ -198,10 +192,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
 
         var @class = new ClassDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
-            },
+            IsPrimaryClass = true,
             ClassName = "Test"
         };
 
@@ -238,10 +229,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
 
         var @class = new ClassDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
-            },
+            IsPrimaryClass = true,
             ClassName = "Test"
         };
 
@@ -278,10 +266,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
 
         var @class = new ClassDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
-            },
+            IsPrimaryClass = true,
             ClassName = "Test",
         };
 
@@ -329,10 +314,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
 
         var @class = new ClassDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
-            },
+            IsPrimaryClass = true,
             ClassName = "Test",
         };
 
@@ -392,10 +374,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
 
         var @class = new ClassDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
-            },
+            IsPrimaryClass = true,
             ClassName = "Test"
         };
 

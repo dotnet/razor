@@ -231,7 +231,7 @@ public class DocumentClassifierPassBaseTest : RazorProjectEngineTestBase
         Assert.True(@namespace.IsPrimaryNamespace);
 
         var @class = SingleChild<ClassDeclarationIntermediateNode>(@namespace);
-        AnnotationEquals(@class, CommonAnnotations.PrimaryClass);
+        Assert.True(@class.IsPrimaryClass);
 
         var method = SingleChild<MethodDeclarationIntermediateNode>(@class);
         AnnotationEquals(method, CommonAnnotations.PrimaryMethod);
