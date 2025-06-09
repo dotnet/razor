@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -728,7 +728,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             }
             else if (node.BoundAttribute?.IsEventCallbackProperty() ?? false)
             {
-                var explicitType = (bool?)node.Annotations[ComponentMetadata.Component.ExplicitTypeNameKey];
+                var explicitType = node.HasExplicitTypeName;
                 var isInferred = (bool?)node.Annotations[ComponentMetadata.Component.OpenGenericKey];
                 if (canTypeCheck && NeedsTypeCheck(node))
                 {
@@ -750,7 +750,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 if (isInferred != true && node.TryParseEventCallbackTypeArgument(out ReadOnlyMemory<char> argument))
                 {
                     context.CodeWriter.Write("<");
-                    if (explicitType == true)
+                    if (explicitType)
                     {
                         context.CodeWriter.Write(argument);
                     }

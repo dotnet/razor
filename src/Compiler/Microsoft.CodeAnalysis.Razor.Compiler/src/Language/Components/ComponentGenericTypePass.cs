@@ -340,7 +340,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
                     Debug.Assert(bindings != null || hasTypeArgumentSpecified == true);
                     if (hasTypeArgumentSpecified == true)
                     {
-                        attribute.Annotations.Add(ComponentMetadata.Component.ExplicitTypeNameKey, true);
+                        attribute.HasExplicitTypeName = true;
                     }
                     else if(attribute.BoundAttribute?.IsEventCallbackProperty() ?? false)
                     {

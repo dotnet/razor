@@ -502,8 +502,7 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
 
     protected static void WriteGloballyQualifiedTypeName(CodeRenderingContext context, ComponentAttributeIntermediateNode node)
     {
-        var explicitType = (bool?)node.Annotations[ComponentMetadata.Component.ExplicitTypeNameKey];
-        if (explicitType == true)
+        if (node.HasExplicitTypeName)
         {
             context.CodeWriter.Write(node.TypeName);
         }
