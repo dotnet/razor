@@ -14,9 +14,4 @@ public static class CommonAnnotations
     public static readonly object PrimaryMethod = "PrimaryMethod";
 
     public static readonly object PrimaryNamespace = "PrimaryNamespace";
-
-    public static class DefaultTagHelperExtension
-    {
-        public static readonly object TagHelperField = "TagHelperField";
-    }
 }
