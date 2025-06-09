@@ -11,11 +11,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 public static class IntermediateNodeExtensions
 {
-    public static bool IsImported(this IntermediateNode node)
-    {
-        return ReferenceEquals(node.Annotations[CommonAnnotations.Imported], CommonAnnotations.Imported);
-    }
-
     public static ImmutableArray<RazorDiagnostic> GetAllDiagnostics(this IntermediateNode node)
     {
         ArgHelper.ThrowIfNull(node);

@@ -199,7 +199,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             var descriptor = directive.Directive;
             var seenDirective = !seenDirectives.Add(descriptor);
 
-            if (!directive.IsImported())
+            if (!directive.IsImported)
             {
                 continue;
             }
@@ -2373,7 +2373,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
             public override void Add(IntermediateNode node)
             {
-                node.Annotations[CommonAnnotations.Imported] = CommonAnnotations.Imported;
+                node.IsImported = true;
                 _innerBuilder.Add(node);
             }
 
@@ -2381,7 +2381,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
             public override void Insert(int index, IntermediateNode node)
             {
-                node.Annotations[CommonAnnotations.Imported] = CommonAnnotations.Imported;
+                node.IsImported = true;
                 _innerBuilder.Insert(index, node);
             }
 
@@ -2389,7 +2389,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
             public override void Push(IntermediateNode node)
             {
-                node.Annotations[CommonAnnotations.Imported] = CommonAnnotations.Imported;
+                node.IsImported = true;
                 _innerBuilder.Push(node);
             }
         }

@@ -116,7 +116,7 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
     {
         Debug.Assert(pageDirective != null);
 
-        if (pageDirective.DirectiveNode.IsImported())
+        if (pageDirective.DirectiveNode.IsImported)
         {
             pageDirective.DirectiveNode.AddDiagnostic(
                 RazorExtensionsDiagnosticFactory.CreatePageDirective_CannotBeImported(pageDirective.DirectiveNode.Source.Value));

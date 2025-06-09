@@ -25,6 +25,8 @@ public abstract class IntermediateNode
 
     public SourceSpan? Source { get; set; }
 
+    public bool IsImported { get; set; }
+
     public abstract IntermediateNodeCollection Children { get; }
 
     public abstract void Accept(IntermediateNodeVisitor visitor);
