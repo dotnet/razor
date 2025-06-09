@@ -326,7 +326,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         // Text node
         var content = GetHtmlContent(node);
         var renderApi = ComponentsApi.RenderTreeBuilder.AddContent;
-        if (node.IsEncoded())
+        if (node.HasEncodedContent)
         {
             // This content is already encoded.
             renderApi = ComponentsApi.RenderTreeBuilder.AddMarkupContent;
