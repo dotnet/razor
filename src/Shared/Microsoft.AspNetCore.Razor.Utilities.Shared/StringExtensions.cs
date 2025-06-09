@@ -555,6 +555,7 @@ internal static class StringExtensions
 #endif
     }
 
+#if !NET
     /// <summary>
     ///  Encapsulates a method that receives a span of objects of type <typeparamref name="T"/>
     ///  and a state object of type <typeparamref name="TArg"/>.
@@ -598,27 +599,24 @@ internal static class StringExtensions
         ///  Therefore, it is the delegate's responsibility to ensure that every element of the span is assigned.
         ///  Otherwise, the resulting string could contain random characters.
         /// </remarks>
-        public unsafe static string CreateString<TState>(int length, TState state, SpanAction<char, TState> action)
+        public unsafe static string Create<TState>(int length, TState state, SpanAction<char, TState> action)
         {
-#if NET
-            return string.Create(length, (action, state), static (span, state) => state.action(span, state.state));
-#else
-        ArgHelper.ThrowIfNegative(length);
+            ArgHelper.ThrowIfNegative(length);
 
-        if (length == 0)
-        {
-            return string.Empty;
-        }
+            if (length == 0)
+            {
+                return string.Empty;
+            }
 
-        var result = new string('\0', length);
+            var result = new string('\0', length);
 
-        fixed (char* ptr = result)
-        {
-            action(new Span<char>(ptr, length), state);
-        }
+            fixed (char* ptr = result)
+            {
+                action(new Span<char>(ptr, length), state);
+            }
 
-        return result;
-#endif
+            return result;
         }
     }
+#endif
 }

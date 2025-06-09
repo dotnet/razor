@@ -507,7 +507,7 @@ public sealed partial class CodeWriter : IDisposable
                 return string.Empty;
             }
 
-            var result = string.CreateString(_remainingLength, (_page, _chunkIndex, _charIndex), static (destination, state) =>
+            var result = string.Create(_remainingLength, (_page, _chunkIndex, _charIndex), static (destination, state) =>
             {
                 var (page, chunkIndex, charIndex) = state;
 

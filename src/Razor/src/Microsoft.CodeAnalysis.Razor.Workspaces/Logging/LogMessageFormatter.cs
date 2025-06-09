@@ -22,7 +22,7 @@ internal static partial class LogMessageFormatter
                 ref messageLineRangeBuilder, ref exceptionLineRangeBuilder);
 
             // Create the final string.
-            return string.CreateString(state.Length, state, static (span, state) =>
+            return string.Create(state.Length, state, static (span, state) =>
             {
                 Write(state.CategoryNamePart, ref span);
 
