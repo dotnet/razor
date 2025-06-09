@@ -50,8 +50,10 @@ public class DocumentIntermediateNodeExtensionsTest
     {
         // Arrange
         var document = new DocumentIntermediateNode();
-        var @namespace = new NamespaceDeclarationIntermediateNode();
-        @namespace.Annotations[CommonAnnotations.PrimaryNamespace] = CommonAnnotations.PrimaryNamespace;
+        var @namespace = new NamespaceDeclarationIntermediateNode
+        {
+            IsPrimaryNamespace = true
+        };
 
         var builder = IntermediateNodeBuilder.Create(document);
         builder.Add(@namespace);

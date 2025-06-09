@@ -37,7 +37,7 @@ public static class DocumentIntermediateNodeExtensions
             throw new ArgumentNullException(nameof(node));
         }
 
-        return FindWithAnnotation<NamespaceDeclarationIntermediateNode>(node, CommonAnnotations.PrimaryNamespace);
+        return FindNode<NamespaceDeclarationIntermediateNode>(node, static n => n.IsPrimaryNamespace);
     }
 
     public static IReadOnlyList<IntermediateNodeReference> FindDirectiveReferences(this DocumentIntermediateNode node, DirectiveDescriptor directive)
@@ -68,6 +68,27 @@ public static class DocumentIntermediateNodeExtensions
         var visitor = new ReferenceVisitor<TNode>();
         visitor.Visit(document);
         return visitor.References;
+    }
+
+    private static T FindNode<T>(IntermediateNode node, Func<T, bool> predicate)
+        where T : IntermediateNode
+    {
+        if (node is T target && predicate(target))
+        {
+            return target;
+        }
+
+        foreach (var child in node.Children)
+        {
+            var result = FindNode<T>(child, predicate);
+
+            if (result != null)
+            {
+                return result;
+            }
+        }
+
+        return null;
     }
 
     private static T FindWithAnnotation<T>(IntermediateNode node, object annotation) where T : IntermediateNode

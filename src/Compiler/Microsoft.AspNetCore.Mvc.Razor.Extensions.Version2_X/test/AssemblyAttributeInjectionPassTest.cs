@@ -36,10 +36,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
         var @namespace = new NamespaceDeclarationIntermediateNode()
         {
             Content = string.Empty,
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryNamespace] = CommonAnnotations.PrimaryNamespace
-            }
+            IsPrimaryNamespace = true,
         };
 
         builder.Push(@namespace);
@@ -83,10 +80,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
         var @namespace = new NamespaceDeclarationIntermediateNode()
         {
             Content = "SomeNamespace",
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryNamespace] = CommonAnnotations.PrimaryNamespace
-            }
+            IsPrimaryNamespace = true,
         };
 
         builder.Push(@namespace);
@@ -158,10 +152,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
             Content = "SomeNamespace",
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryNamespace] = CommonAnnotations.PrimaryNamespace
-            }
+            IsPrimaryNamespace = true,
         };
 
         builder.Push(@namespace);
@@ -205,10 +196,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
             Content = "SomeNamespace",
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryNamespace] = CommonAnnotations.PrimaryNamespace
-            }
+            IsPrimaryNamespace = true,
         };
 
         builder.Push(@namespace);
@@ -258,10 +246,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
             Content = "SomeNamespace",
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryNamespace] = CommonAnnotations.PrimaryNamespace
-            }
+            IsPrimaryNamespace = true,
         };
 
         builder.Push(@namespace);
@@ -319,10 +304,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
             Content = "SomeNamespace",
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryNamespace] = CommonAnnotations.PrimaryNamespace
-            }
+            IsPrimaryNamespace = true,
         };
 
         builder.Push(@namespace);
@@ -374,10 +356,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
             Content = "SomeNamespace",
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryNamespace] = CommonAnnotations.PrimaryNamespace
-            }
+            IsPrimaryNamespace = true,
         };
         builder.Push(@namespace);
 

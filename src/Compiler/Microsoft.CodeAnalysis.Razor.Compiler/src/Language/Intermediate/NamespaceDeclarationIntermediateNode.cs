@@ -13,6 +13,8 @@ public sealed class NamespaceDeclarationIntermediateNode : IntermediateNode
 
     public string Content { get; set; }
 
+    public bool IsPrimaryNamespace { get; set; }
+
     public bool IsGenericTyped { get; set; }
 
     public override void Accept(IntermediateNodeVisitor visitor)
