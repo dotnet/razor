@@ -95,7 +95,7 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
             @class.Modifiers.Add("public");
         }
 
-        @class.Annotations[CommonAnnotations.NullableContext] = CommonAnnotations.NullableContext;
+        @class.NullableContext = true;
 
         method.MethodName = "ExecuteAsync";
         method.Modifiers.Clear();

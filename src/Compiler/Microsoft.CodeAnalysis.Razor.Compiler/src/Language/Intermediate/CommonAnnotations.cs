@@ -15,8 +15,6 @@ public static class CommonAnnotations
 
     public static readonly object PrimaryNamespace = "PrimaryNamespace";
 
-    public static readonly object NullableContext = "NullableContext";
-
     public static class DefaultTagHelperExtension
     {
         public static readonly object TagHelperField = "TagHelperField";
