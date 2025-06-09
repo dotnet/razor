@@ -1147,17 +1147,27 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
 
     private static SourceSpan? GetOriginalPropertySpan(IntermediateNode node)
     {
-        if (node?.Annotations[ComponentMetadata.Common.OriginalAttributeSpan] is SourceSpan attributeSourceSpan)
+        var originalSpan = node switch
+        {
+            ComponentAttributeIntermediateNode n => n.OriginalAttributeSpan,
+            TagHelperDirectiveAttributeParameterIntermediateNode n => n.OriginalAttributeSpan,
+            TagHelperPropertyIntermediateNode n => n.OriginalAttributeSpan,
+            _ => null
+        };
+
+        if (originalSpan is SourceSpan span)
         {
             var offset = "bind-".Length;
-            return new SourceSpan(attributeSourceSpan.FilePath,
-                                  attributeSourceSpan.AbsoluteIndex + offset,
-                                  attributeSourceSpan.LineIndex,
-                                  attributeSourceSpan.CharacterIndex + offset,
-                                  attributeSourceSpan.Length - offset,
-                                  attributeSourceSpan.LineCount,
-                                  attributeSourceSpan.EndCharacterIndex);
+
+            return new SourceSpan(span.FilePath,
+                                  span.AbsoluteIndex + offset,
+                                  span.LineIndex,
+                                  span.CharacterIndex + offset,
+                                  span.Length - offset,
+                                  span.LineCount,
+                                  span.EndCharacterIndex);
         }
+
         return null;
     }
 

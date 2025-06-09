@@ -364,7 +364,7 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
 
             if (!attribute.IsSynthesized)
             {
-                var attributeSourceSpan = (SourceSpan)(attribute.PropertySpan ?? attribute.Annotations[ComponentMetadata.Common.OriginalAttributeSpan]);
+                var attributeSourceSpan = (SourceSpan)(attribute.PropertySpan ?? attribute.OriginalAttributeSpan);
                 var requiresEscaping = attribute.PropertyName.IdentifierRequiresEscaping();
                 using (context.CodeWriter.BuildEnhancedLinePragma(attributeSourceSpan, context, characterOffset: requiresEscaping ? 1 : 0))
                 {

@@ -42,8 +42,6 @@ internal static class ComponentMetadata
 
         public const string AddAttributeMethodName = "Common.AddAttributeMethodName";
 
-        public const string OriginalAttributeSpan = "Common.OriginalAttributeSpan";
-
         public const string IsDesignTimePropertyAccessHelper = "Common.IsDesignTimePropertyAccessHelper";
     }
 

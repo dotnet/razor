@@ -1894,7 +1894,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                             IsIndexerNameMatch = indexerMatch,
                         };
 
-                        setTagHelperProperty.Annotations.Add(ComponentMetadata.Common.OriginalAttributeSpan, BuildSourceSpanFromNode(node.Name));
+                        setTagHelperProperty.OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name);
 
                         _builder.Add(setTagHelperProperty);
                     }
@@ -2035,7 +2035,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                             IsIndexerNameMatch = indexerMatch,
                         };
 
-                        setTagHelperProperty.Annotations.Add(ComponentMetadata.Common.OriginalAttributeSpan, BuildSourceSpanFromNode(node.Name));
+                        setTagHelperProperty.OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name);
 
                         _builder.Push(setTagHelperProperty);
                         VisitAttributeValue(attributeValueNode);
@@ -2098,6 +2098,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                                 IsIndexerNameMatch = indexerMatch,
                                 AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                                 Source = BuildSourceSpanFromNode(attributeValueNode),
+                                OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name)
                             };
                         }
                         else
@@ -2111,10 +2112,9 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                                 AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                                 Source = BuildSourceSpanFromNode(attributeValueNode),
                                 IsIndexerNameMatch = indexerMatch,
+                                OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name)
                             };
                         }
-
-                        attributeNode.Annotations.Add(ComponentMetadata.Common.OriginalAttributeSpan, BuildSourceSpanFromNode(node.Name));
 
                         _builder.Push(attributeNode);
                         VisitAttributeValue(attributeValueNode);

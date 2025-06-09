@@ -11,9 +11,6 @@ using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
-using CSharpSyntaxFacts = Microsoft.CodeAnalysis.CSharp.SyntaxFacts;
-using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
-
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
 // Based on the DesignTimeNodeWriter from Razor repo.
@@ -683,7 +680,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
     private void WritePropertyAccess(CodeRenderingContext context, ComponentAttributeIntermediateNode node, ComponentIntermediateNode componentNode, string typeInferenceLocalName, bool shouldWriteBL0005Disable, out bool wrotePropertyAccess)
     {
         wrotePropertyAccess = false;
-        if (node?.TagHelper?.Name is null || node.Annotations[ComponentMetadata.Common.OriginalAttributeSpan] is null)
+        if (node?.TagHelper?.Name is null || node.OriginalAttributeSpan is null)
         {
             return;
         }
@@ -719,7 +716,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             context.CodeWriter.WriteLine("#pragma warning disable BL0005");
         }
 
-        var attributeSourceSpan = (SourceSpan)node.Annotations[ComponentMetadata.Common.OriginalAttributeSpan];
+        var attributeSourceSpan = (SourceSpan)node.OriginalAttributeSpan;
         attributeSourceSpan = new SourceSpan(attributeSourceSpan.FilePath, attributeSourceSpan.AbsoluteIndex + offset, attributeSourceSpan.LineIndex, attributeSourceSpan.CharacterIndex + offset, node.PropertyName.Length, attributeSourceSpan.LineCount, attributeSourceSpan.CharacterIndex + offset + node.PropertyName.Length);
 
         if (componentNode.TypeInferenceNode == null)

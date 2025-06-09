@@ -31,6 +31,8 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
     /// </remarks>
     public SourceSpan? PropertySpan { get; set; }
 
+    public SourceSpan? OriginalAttributeSpan { get; set; }
+
     public ComponentAttributeIntermediateNode()
     {
     }
@@ -71,6 +73,7 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
         AttributeName = attributeName;
         AttributeStructure = propertyNode.AttributeStructure;
         BoundAttribute = propertyNode.BoundAttribute;
+        OriginalAttributeSpan = propertyNode.OriginalAttributeSpan;
         PropertyName = propertyNode.BoundAttribute.GetPropertyName();
         Source = propertyNode.Source;
         TagHelper = propertyNode.TagHelper;
@@ -99,6 +102,7 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
         AttributeName = directiveAttributeNode.AttributeName;
         AttributeStructure = directiveAttributeNode.AttributeStructure;
         BoundAttribute = directiveAttributeNode.BoundAttribute;
+        OriginalAttributeSpan = directiveAttributeNode.OriginalAttributeSpan;
         PropertyName = directiveAttributeNode.BoundAttribute.GetPropertyName();
         Source = directiveAttributeNode.Source;
         TagHelper = directiveAttributeNode.TagHelper;
@@ -127,6 +131,7 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
         AttributeName = directiveAttributeParameterNode.AttributeNameWithoutParameter;
         AttributeStructure = directiveAttributeParameterNode.AttributeStructure;
         BoundAttribute = directiveAttributeParameterNode.BoundAttribute;
+        OriginalAttributeSpan = directiveAttributeParameterNode.OriginalAttributeSpan;
         PropertyName = directiveAttributeParameterNode.BoundAttributeParameter.GetPropertyName();
         Source = directiveAttributeParameterNode.Source;
         TagHelper = directiveAttributeParameterNode.TagHelper;
