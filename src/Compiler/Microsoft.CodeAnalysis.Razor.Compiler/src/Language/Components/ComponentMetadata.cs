@@ -68,18 +68,6 @@ internal static class ComponentMetadata
         public const string IsInvariantCulture = "Components.Bind.IsInvariantCulture";
 
         public const string Format = "Components.Bind.Format";
-
-        /// <summary>
-        /// Represents the sub-span of the bind node that actually represents the property
-        /// </summary>
-        /// <remarks>
-        /// <pre>
-        /// @bind-Value:get=""
-        /// ^----------------^ Regular node span
-        ///       ^---^        Property span
-        /// </pre>
-        /// </remarks>
-        public const string PropertySpan = "Components.Bind.PropertySpan";
     }
 
     public static class ChildContent

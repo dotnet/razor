@@ -19,6 +19,18 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
     /// </summary>
     public bool IsSynthesized { get; set; }
 
+    /// <summary>
+    /// Represents the sub-span of the bind node that actually represents the property
+    /// </summary>
+    /// <remarks>
+    /// <pre>
+    /// @bind-Value:get=""
+    /// ^----------------^ Regular node span
+    ///       ^---^        Property span
+    /// </pre>
+    /// </remarks>
+    public SourceSpan? PropertySpan { get; set; }
+
     public ComponentAttributeIntermediateNode()
     {
     }
