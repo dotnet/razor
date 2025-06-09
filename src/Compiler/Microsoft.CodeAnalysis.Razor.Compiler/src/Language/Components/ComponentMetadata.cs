@@ -127,8 +127,6 @@ internal static class ComponentMetadata
 
         public const string GenericTypedKey = "Components.GenericTyped";
 
-        public const string OpenGenericKey = "Components.OpenGeneric";
-
         public const string TypeParameterKey = "Components.TypeParameter";
 
         public const string TypeParameterIsCascadingKey = "Components.TypeParameterIsCascading";

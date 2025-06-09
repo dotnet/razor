@@ -12,6 +12,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 public sealed class ComponentAttributeIntermediateNode : IntermediateNode
 {
     public bool HasExplicitTypeName { get; set; }
+    public bool IsOpenGeneric { get; set; }
 
     public ComponentAttributeIntermediateNode()
     {

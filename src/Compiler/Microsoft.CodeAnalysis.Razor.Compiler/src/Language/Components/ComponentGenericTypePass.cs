@@ -351,7 +351,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
                             var parameter = typeParameters[i];
                             if (bindings!.ContainsKey(parameter))
                             {
-                                attribute.Annotations.Add(ComponentMetadata.Component.OpenGenericKey, true);
+                                attribute.IsOpenGeneric = true;
                                 break;
                             }
                         }

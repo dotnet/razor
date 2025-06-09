@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -824,7 +824,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 // Since we don't look at the code the user typed inside the attribute value, this is always
                 // resolved via overloading.
                 var explicitType = node.HasExplicitTypeName;
-                var isInferred = (bool?)node.Annotations[ComponentMetadata.Component.OpenGenericKey];
+                var isInferred = node.IsOpenGeneric;
                 if (canTypeCheck && NeedsTypeCheck(node))
                 {
                     context.CodeWriter.Write(ComponentsApi.RuntimeHelpers.TypeCheck);
