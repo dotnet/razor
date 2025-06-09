@@ -34,8 +34,10 @@ public class DocumentIntermediateNodeExtensionsTest
     {
         // Arrange
         var document = new DocumentIntermediateNode();
-        var method = new MethodDeclarationIntermediateNode();
-        method.Annotations[CommonAnnotations.PrimaryMethod] = CommonAnnotations.PrimaryMethod;
+        var method = new MethodDeclarationIntermediateNode
+        {
+            IsPrimaryMethod = true
+        };
 
         var builder = IntermediateNodeBuilder.Create(document);
         builder.Add(method);

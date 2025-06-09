@@ -234,7 +234,7 @@ public class DocumentClassifierPassBaseTest : RazorProjectEngineTestBase
         Assert.True(@class.IsPrimaryClass);
 
         var method = SingleChild<MethodDeclarationIntermediateNode>(@class);
-        AnnotationEquals(method, CommonAnnotations.PrimaryMethod);
+        Assert.True(method.IsPrimaryMethod);
     }
 
     private class TestDocumentClassifierPass : DocumentClassifierPassBase

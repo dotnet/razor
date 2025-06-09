@@ -27,7 +27,7 @@ public static class DocumentIntermediateNodeExtensions
             throw new ArgumentNullException(nameof(node));
         }
 
-        return FindWithAnnotation<MethodDeclarationIntermediateNode>(node, CommonAnnotations.PrimaryMethod);
+        return FindNode<MethodDeclarationIntermediateNode>(node, static n => n.IsPrimaryMethod);
     }
 
     public static NamespaceDeclarationIntermediateNode FindPrimaryNamespace(this DocumentIntermediateNode node)
@@ -82,25 +82,6 @@ public static class DocumentIntermediateNodeExtensions
         {
             var result = FindNode<T>(child, predicate);
 
-            if (result != null)
-            {
-                return result;
-            }
-        }
-
-        return null;
-    }
-
-    private static T FindWithAnnotation<T>(IntermediateNode node, object annotation) where T : IntermediateNode
-    {
-        if (node is T target && object.ReferenceEquals(target.Annotations[annotation], annotation))
-        {
-            return target;
-        }
-
-        for (var i = 0; i < node.Children.Count; i++)
-        {
-            var result = FindWithAnnotation<T>(node.Children[i], annotation);
             if (result != null)
             {
                 return result;
