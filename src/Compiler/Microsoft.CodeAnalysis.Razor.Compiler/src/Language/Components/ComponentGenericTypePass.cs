@@ -434,16 +434,13 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
             // Now we need to insert the type inference node into the tree.
             var namespaceNode = documentNode.Children
                 .OfType<NamespaceDeclarationIntermediateNode>()
-                .FirstOrDefault(n => n.Annotations.Contains(new KeyValuePair<object, object>(ComponentMetadata.Component.GenericTypedKey, bool.TrueString)));
+                .FirstOrDefault(n => n.IsGenericTyped);
             if (namespaceNode == null)
             {
                 namespaceNode = new NamespaceDeclarationIntermediateNode()
                 {
-                    Annotations =
-                        {
-                            { ComponentMetadata.Component.GenericTypedKey, bool.TrueString },
-                        },
                     Content = @namespace,
+                    IsGenericTyped = true,
                 };
 
                 documentNode.Children.Add(namespaceNode);
