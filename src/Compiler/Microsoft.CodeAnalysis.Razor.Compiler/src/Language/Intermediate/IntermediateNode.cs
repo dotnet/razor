@@ -5,6 +5,7 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -54,19 +55,24 @@ public abstract class IntermediateNode
     {
         get
         {
-            var formatter = new DebuggerDisplayFormatter();
+            using var _ = StringBuilderPool.GetPooledObject(out var builder);
+
+            var formatter = new IntermediateNodeFormatter(builder);
             formatter.FormatTree(this);
-            return formatter.ToString();
+
+            return builder.ToString();
         }
     }
 
     internal string DebuggerToString()
     {
-        var formatter = new DebuggerDisplayFormatter();
-        formatter.FormatNode(this);
-        return formatter.ToString();
-    }
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
+        var formatter = new IntermediateNodeFormatter(builder);
+        formatter.FormatNode(this);
+
+        return builder.ToString();
+    }
 
     public virtual void FormatNode(IntermediateNodeFormatter formatter)
     {
