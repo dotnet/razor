@@ -241,7 +241,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
                 var mappings = bindings.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Node);
                 RewriteTypeNames(new GenericTypeNameRewriter(mappings), node, bindings: bindings);
 
-                node.Diagnostics.Add(ComponentDiagnosticFactory.Create_GenericComponentTypeInferenceUnderspecified(node.Source, node, node.Component.GetTypeParameters()));
+                node.AddDiagnostic(ComponentDiagnosticFactory.Create_GenericComponentTypeInferenceUnderspecified(node.Source, node, node.Component.GetTypeParameters()));
             }
 
             // Next we need to generate a type inference 'method' node. This represents a method that we will codegen that
@@ -300,7 +300,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
                 // We add our own error for this because its likely the user will see other errors due
                 // to incorrect codegen without the types. Our errors message will pretty clearly indicate
                 // what to do, whereas the other errors might be confusing.
-                node.Diagnostics.Add(ComponentDiagnosticFactory.Create_GenericComponentMissingTypeArgument(node.Source, node, missing));
+                node.AddDiagnostic(ComponentDiagnosticFactory.Create_GenericComponentMissingTypeArgument(node.Source, node, missing));
                 return false;
             }
 

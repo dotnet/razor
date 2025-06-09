@@ -36,10 +36,7 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
             Children.Add(attributeNode.Children[i]);
         }
 
-        for (var i = 0; i < attributeNode.Diagnostics.Count; i++)
-        {
-            Diagnostics.Add(attributeNode.Diagnostics[i]);
-        }
+        AddDiagnosticsFromNode(attributeNode);
     }
 
     public ComponentAttributeIntermediateNode(TagHelperPropertyIntermediateNode propertyNode)
@@ -69,10 +66,7 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
             Children.Add(propertyNode.Children[i]);
         }
 
-        for (var i = 0; i < propertyNode.Diagnostics.Count; i++)
-        {
-            Diagnostics.Add(propertyNode.Diagnostics[i]);
-        }
+        AddDiagnosticsFromNode(propertyNode);
     }
 
     public ComponentAttributeIntermediateNode(TagHelperDirectiveAttributeIntermediateNode directiveAttributeNode)
@@ -100,10 +94,7 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
             Children.Add(directiveAttributeNode.Children[i]);
         }
 
-        for (var i = 0; i < directiveAttributeNode.Diagnostics.Count; i++)
-        {
-            Diagnostics.Add(directiveAttributeNode.Diagnostics[i]);
-        }
+        AddDiagnosticsFromNode(directiveAttributeNode);
     }
 
     public ComponentAttributeIntermediateNode(TagHelperDirectiveAttributeParameterIntermediateNode directiveAttributeParameterNode)
@@ -131,10 +122,7 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
             Children.Add(directiveAttributeParameterNode.Children[i]);
         }
 
-        for (var i = 0; i < directiveAttributeParameterNode.Diagnostics.Count; i++)
-        {
-            Diagnostics.Add(directiveAttributeParameterNode.Diagnostics[i]);
-        }
+        AddDiagnosticsFromNode(directiveAttributeParameterNode);
     }
 
     public override IntermediateNodeCollection Children { get; } = new IntermediateNodeCollection();

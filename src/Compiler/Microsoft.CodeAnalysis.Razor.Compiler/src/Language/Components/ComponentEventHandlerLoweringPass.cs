@@ -125,7 +125,7 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
 
         foreach (var duplicate in duplicates)
         {
-            parent.Diagnostics.Add(ComponentDiagnosticFactory.CreateEventHandler_Duplicates(
+            parent.AddDiagnostic(ComponentDiagnosticFactory.CreateEventHandler_Duplicates(
                 parent.Source,
                 duplicate.Key,
                 duplicate.ToArray()));
@@ -144,7 +144,7 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
 
         foreach (var duplicate in parameterDuplicates)
         {
-            parent.Diagnostics.Add(ComponentDiagnosticFactory.CreateEventHandlerParameter_Duplicates(
+            parent.AddDiagnostic(ComponentDiagnosticFactory.CreateEventHandlerParameter_Duplicates(
                 parent.Source,
                 duplicate.Key,
                 duplicate.ToArray()));
@@ -213,10 +213,7 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
                 Suffix = "\"",
             };
 
-            for (var i = 0; i < node.Diagnostics.Count; i++)
-            {
-                result.Diagnostics.Add(node.Diagnostics[i]);
-            }
+            result.AddDiagnosticsFromNode(node);
 
             var attributeValueNode = new CSharpExpressionAttributeValueIntermediateNode();
             result.Children.Add(attributeValueNode);
@@ -259,7 +256,7 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
         if (template != null)
         {
             // See comments in TemplateDiagnosticPass
-            node.Diagnostics.Add(ComponentDiagnosticFactory.Create_TemplateInvalidLocation(template.Source));
+            node.AddDiagnostic(ComponentDiagnosticFactory.Create_TemplateInvalidLocation(template.Source));
             return new[] { new IntermediateToken() { Kind = TokenKind.CSharp, Content = string.Empty, }, };
         }
 

@@ -77,7 +77,7 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
         if (char.IsLower(computedClass, 0))
         {
             // We don't allow component names to start with a lowercase character.
-            documentNode.Diagnostics.Add(
+            documentNode.AddDiagnostic(
                 ComponentDiagnosticFactory.Create_ComponentNamesCannotStartWithLowerCase(computedClass, documentNode.Source));
         }
 

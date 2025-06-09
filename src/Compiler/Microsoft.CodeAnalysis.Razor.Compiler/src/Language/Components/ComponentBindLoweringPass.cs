@@ -101,7 +101,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
             {
                 if (!_bindGetSetSupported)
                 {
-                    node.Diagnostics.Add(ComponentDiagnosticFactory.CreateBindAttributeParameter_UnsupportedSyntaxBindGetSet(
+                    node.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttributeParameter_UnsupportedSyntaxBindGetSet(
                         node.Source,
                         node.AttributeName));
                 }
@@ -111,9 +111,9 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
                 }
                 else
                 {
-                    existingEntry.BindNode.Diagnostics.Add(ComponentDiagnosticFactory.CreateBindAttributeParameter_InvalidSyntaxBindAndBindGet(
-                            node.Source,
-                            existingEntry.BindNode.AttributeName));
+                    existingEntry.BindNode.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttributeParameter_InvalidSyntaxBindAndBindGet(
+                        node.Source,
+                        existingEntry.BindNode.AttributeName));
                 }
             }
         }
@@ -139,14 +139,14 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
                     if (node.BoundAttributeParameter.Name != "set")
                     {
                         // There is no corresponding bind node. Add a diagnostic and move on.
-                        parameterReference.Parent.Diagnostics.Add(ComponentDiagnosticFactory.CreateBindAttributeParameter_MissingBind(
+                        parameterReference.Parent.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttributeParameter_MissingBind(
                             node.Source,
                             node.AttributeName));
                     }
                     else
                     {
                         // There is no corresponding bind node. Add a diagnostic and move on.
-                        parameterReference.Parent.Diagnostics.Add(ComponentDiagnosticFactory.CreateBindAttributeParameter_MissingBindGet(
+                        parameterReference.Parent.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttributeParameter_MissingBindGet(
                             node.Source,
                             node.AttributeNameWithoutParameter));
                     }
@@ -176,7 +176,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
                 {
                     if (entry.BindNode != null)
                     {
-                        parameterReference.Parent.Diagnostics.Add(ComponentDiagnosticFactory.CreateBindAttributeParameter_UseBindGet(
+                        parameterReference.Parent.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttributeParameter_UseBindGet(
                             node.Source,
                             node.BoundAttribute.Name));
                     }
@@ -200,7 +200,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
             if (entry.Value.BindSetNode != null && entry.Value.BindAfterNode != null)
             {
                 var afterNode = entry.Value.BindAfterNode;
-                entry.Key.Item1.Diagnostics.Add(ComponentDiagnosticFactory.CreateBindAttributeParameter_InvalidSyntaxBindSetAfter(
+                entry.Key.Item1.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttributeParameter_InvalidSyntaxBindSetAfter(
                     afterNode.Source,
                     afterNode.AttributeNameWithoutParameter));
             }
@@ -316,7 +316,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
 
         foreach (var duplicate in duplicates)
         {
-            node.Diagnostics.Add(ComponentDiagnosticFactory.CreateBindAttribute_Duplicates(
+            node.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttribute_Duplicates(
                 node.Source,
                 duplicate.First().OriginalAttributeName,
                 duplicate.ToArray()));
@@ -368,14 +368,14 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
             // the build.
             if (node != null)
             {
-                node.Diagnostics.Add(ComponentDiagnosticFactory.CreateBindAttribute_InvalidSyntax(
+                node.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttribute_InvalidSyntax(
                     node.Source,
                     node.AttributeName));
                 return new[] { node };
             }
             else
             {
-                getNode.Diagnostics.Add(ComponentDiagnosticFactory.CreateBindAttribute_MissingBindSet(
+                getNode.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttribute_MissingBindSet(
                     getNode.Source,
                     getNode.AttributeName,
                     $"{getNode.AttributeNameWithoutParameter}:set"));
@@ -494,10 +494,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
                 Suffix = "\"",
             };
 
-            for (var i = 0; i < targetNode.Diagnostics.Count; i++)
-            {
-                valueNode.Diagnostics.Add(targetNode.Diagnostics[i]);
-            }
+            valueNode.AddDiagnosticsFromNode(targetNode);
 
             valueNode.Children.Add(new CSharpExpressionAttributeValueIntermediateNode());
             for (var i = 0; i < valueExpressionTokens.Count; i++)
@@ -1109,7 +1106,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
         if (template != null)
         {
             // See comments in TemplateDiagnosticPass
-            node.Diagnostics.Add(ComponentDiagnosticFactory.Create_TemplateInvalidLocation(template.Source));
+            node.AddDiagnostic(ComponentDiagnosticFactory.Create_TemplateInvalidLocation(template.Source));
             return new IntermediateToken() { Kind = TokenKind.CSharp, Content = string.Empty, };
         }
 

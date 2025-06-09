@@ -125,7 +125,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         // adding the errors from the primary and imported syntax trees.
         foreach (var diagnostic in syntaxTree.Diagnostics)
         {
-            documentNode.Diagnostics.Add(diagnostic);
+            documentNode.AddDiagnostic(diagnostic);
         }
 
         if (!imports.IsDefaultOrEmpty)
@@ -134,7 +134,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 foreach (var diagnostic in import.Diagnostics)
                 {
-                    documentNode.Diagnostics.Add(diagnostic);
+                    documentNode.AddDiagnostic(diagnostic);
                 }
             }
         }
@@ -223,7 +223,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                         if (descriptor.Usage == DirectiveUsage.FileScopedSinglyOccurring)
                         {
                             // A block directive cannot be imported.
-                            document.Diagnostics.Add(
+                            document.AddDiagnostic(
                                 RazorDiagnosticFactory.CreateDirective_BlockDirectiveCannotBeImported(descriptor.Directive));
                         }
 
@@ -326,7 +326,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
                 for (var i = 0; i < diagnostics.Length; i++)
                 {
-                    directiveNode.Diagnostics.Add(diagnostics[i]);
+                    directiveNode.AddDiagnostic(diagnostics[i]);
                 }
 
                 _builder.Push(directiveNode);
@@ -384,7 +384,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
                         for (var i = 0; i < addTagHelperChunkGenerator.Diagnostics.Count; i++)
                         {
-                            directiveNode.Diagnostics.Add(addTagHelperChunkGenerator.Diagnostics[i]);
+                            directiveNode.AddDiagnostic(addTagHelperChunkGenerator.Diagnostics[i]);
                         }
 
                         _builder.Push(directiveNode);
@@ -423,7 +423,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
                         for (var i = 0; i < removeTagHelperChunkGenerator.Diagnostics.Count; i++)
                         {
-                            directiveNode.Diagnostics.Add(removeTagHelperChunkGenerator.Diagnostics[i]);
+                            directiveNode.AddDiagnostic(removeTagHelperChunkGenerator.Diagnostics[i]);
                         }
 
                         _builder.Push(directiveNode);
@@ -462,7 +462,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
                         for (var i = 0; i < tagHelperPrefixChunkGenerator.Diagnostics.Count; i++)
                         {
-                            directiveNode.Diagnostics.Add(tagHelperPrefixChunkGenerator.Diagnostics[i]);
+                            directiveNode.AddDiagnostic(tagHelperPrefixChunkGenerator.Diagnostics[i]);
                         }
 
                         _builder.Push(directiveNode);
@@ -1298,19 +1298,19 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
             if (node.StartTag != null && node.EndTag != null && node.StartTag.IsVoidElement())
             {
-                element.Diagnostics.Add(
+                element.AddDiagnostic(
                     ComponentDiagnosticFactory.Create_UnexpectedClosingTagForVoidElement(
                         BuildSourceSpanFromNode(node.EndTag), node.EndTag.GetTagNameWithOptionalBang()));
             }
             else if (node.StartTag != null && node.EndTag == null && !node.StartTag.IsVoidElement() && !node.StartTag.IsSelfClosing())
             {
-                element.Diagnostics.Add(
+                element.AddDiagnostic(
                     ComponentDiagnosticFactory.Create_UnclosedTag(
                         BuildSourceSpanFromNode(node.StartTag), node.StartTag.GetTagNameWithOptionalBang()));
             }
             else if (node.StartTag == null && node.EndTag != null)
             {
-                element.Diagnostics.Add(
+                element.AddDiagnostic(
                     ComponentDiagnosticFactory.Create_UnexpectedClosingTag(
                         BuildSourceSpanFromNode(node.EndTag), node.EndTag.GetTagNameWithOptionalBang()));
             }
@@ -1321,7 +1321,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 var startTagName = node.StartTag.GetTagNameWithOptionalBang();
                 if (!string.IsNullOrEmpty(startTagName) && LooksLikeAComponentName(_document, startTagName))
                 {
-                    element.Diagnostics.Add(
+                    element.AddDiagnostic(
                         ComponentDiagnosticFactory.Create_UnexpectedMarkupElement(startTagName, BuildSourceSpanFromNode(node.StartTag)));
                 }
             }
@@ -1796,7 +1796,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 if (!string.IsNullOrEmpty(tagName) && LooksLikeAComponentName(_document, tagName))
                 {
-                    tagHelperNode.Diagnostics.Add(
+                    tagHelperNode.AddDiagnostic(
                         ComponentDiagnosticFactory.Create_UnexpectedMarkupElement(tagName, BuildSourceSpanFromNode(node.StartTag)));
                 }
             }
@@ -1829,7 +1829,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 {
                     // This is most likely a case mismatch in start and end tags. Otherwise the parser wouldn't have grouped them together.
                     // But we can't have case mismatch in start and end tags in components. Add a diagnostic.
-                    tagHelperNode.Diagnostics.Add(
+                    tagHelperNode.AddDiagnostic(
                         ComponentDiagnosticFactory.Create_InconsistentStartAndEndTagName(startTagName, endTagName, BuildSourceSpanFromNode(node.EndTag)));
                 }
             }
@@ -2250,7 +2250,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
         public override void VisitMarkupElement(MarkupElementSyntax node)
         {
-            _document.Diagnostics.Add(
+            _document.AddDiagnostic(
                 ComponentDiagnosticFactory.Create_UnsupportedComponentImportContent(BuildSourceSpanFromNode(node)));
 
             base.VisitMarkupElement(node);
@@ -2258,7 +2258,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
         public override void VisitMarkupCommentBlock(MarkupCommentBlockSyntax node)
         {
-            _document.Diagnostics.Add(
+            _document.AddDiagnostic(
                 ComponentDiagnosticFactory.Create_UnsupportedComponentImportContent(BuildSourceSpanFromNode(node)));
 
             base.VisitMarkupCommentBlock(node);
@@ -2266,7 +2266,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
         public override void VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
         {
-            _document.Diagnostics.Add(
+            _document.AddDiagnostic(
                 ComponentDiagnosticFactory.Create_UnsupportedComponentImportContent(BuildSourceSpanFromNode(node)));
 
             base.VisitMarkupTagHelperElement(node);
@@ -2274,7 +2274,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
         public override void VisitCSharpExplicitExpression(CSharpExplicitExpressionSyntax node)
         {
-            _document.Diagnostics.Add(
+            _document.AddDiagnostic(
                 ComponentDiagnosticFactory.Create_UnsupportedComponentImportContent(BuildSourceSpanFromNode(node)));
 
             base.VisitCSharpExplicitExpression(node);
@@ -2321,7 +2321,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 }
             }
 
-            _document.Diagnostics.Add(
+            _document.AddDiagnostic(
                 ComponentDiagnosticFactory.Create_UnsupportedComponentImportContent(expressionNode.Source));
 
             base.VisitCSharpImplicitExpression(node);
@@ -2346,7 +2346,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
         public override void VisitCSharpStatement(CSharpStatementSyntax node)
         {
-            _document.Diagnostics.Add(
+            _document.AddDiagnostic(
                 ComponentDiagnosticFactory.Create_UnsupportedComponentImportContent(BuildSourceSpanFromNode(node)));
 
             base.VisitCSharpStatement(node);
