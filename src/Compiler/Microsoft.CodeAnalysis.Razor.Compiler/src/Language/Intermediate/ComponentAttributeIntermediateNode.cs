@@ -60,11 +60,6 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
         AttributeStructure = attributeNode.AttributeStructure;
         Source = attributeNode.Source;
 
-        foreach (var annotation in attributeNode.Annotations)
-        {
-            Annotations[annotation.Key] = annotation.Value;
-        }
-
         for (var i = 0; i < attributeNode.Children.Count; i++)
         {
             Children.Add(attributeNode.Children[i]);
@@ -91,11 +86,6 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
         TagHelper = propertyNode.TagHelper;
         TypeName = propertyNode.BoundAttribute.IsWeaklyTyped() ? null : propertyNode.BoundAttribute.TypeName;
 
-        foreach (var annotation in propertyNode.Annotations)
-        {
-            Annotations[annotation.Key] = annotation.Value;
-        }
-
         for (var i = 0; i < propertyNode.Children.Count; i++)
         {
             Children.Add(propertyNode.Children[i]);
@@ -120,11 +110,6 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
         TagHelper = directiveAttributeNode.TagHelper;
         TypeName = directiveAttributeNode.BoundAttribute.IsWeaklyTyped() ? null : directiveAttributeNode.BoundAttribute.TypeName;
 
-        foreach (var annotation in directiveAttributeNode.Annotations)
-        {
-            Annotations[annotation.Key] = annotation.Value;
-        }
-
         for (var i = 0; i < directiveAttributeNode.Children.Count; i++)
         {
             Children.Add(directiveAttributeNode.Children[i]);
@@ -148,11 +133,6 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
         Source = directiveAttributeParameterNode.Source;
         TagHelper = directiveAttributeParameterNode.TagHelper;
         TypeName = directiveAttributeParameterNode.BoundAttributeParameter.TypeName;
-
-        foreach (var annotation in directiveAttributeParameterNode.Annotations)
-        {
-            Annotations[annotation.Key] = annotation.Value;
-        }
 
         for (var i = 0; i < directiveAttributeParameterNode.Children.Count; i++)
         {

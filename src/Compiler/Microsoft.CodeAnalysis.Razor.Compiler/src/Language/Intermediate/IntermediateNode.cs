@@ -11,12 +11,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public abstract class IntermediateNode
 {
-    private ItemCollection? _annotations;
-
     private ImmutableArray<RazorDiagnostic>.Builder? _diagnosticsBuilder;
     private ImmutableArray<RazorDiagnostic>? _diagnostics;
-
-    public ItemCollection Annotations => _annotations ??= [];
 
     public ImmutableArray<RazorDiagnostic> Diagnostics
         => _diagnostics ??= _diagnosticsBuilder?.ToImmutable() ?? [];
