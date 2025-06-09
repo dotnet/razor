@@ -635,7 +635,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             throw new ArgumentNullException(nameof(node));
         }
 
-        if (node.IsDesignTimePropertyAccessHelper())
+        if (node.IsDesignTimePropertyAccessHelper)
         {
             WriteDesignTimePropertyAccessor(context, node);
             return;

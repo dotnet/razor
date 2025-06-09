@@ -606,12 +606,14 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
             return;
         }
 
-        var helperNode = new ComponentAttributeIntermediateNode(intermediateNode);
-        helperNode.OriginalAttributeName = intermediateNode.OriginalAttributeName;
-        helperNode.Annotations[ComponentMetadata.Common.IsDesignTimePropertyAccessHelper] = bool.TrueString;
-        helperNode.PropertySpan = GetOriginalPropertySpan(intermediateNode);
-        helperNode.BoundAttribute = valueAttribute;
-        helperNode.PropertyName = valueAttribute.GetPropertyName();
+        var helperNode = new ComponentAttributeIntermediateNode(intermediateNode)
+        {
+            OriginalAttributeName = intermediateNode.OriginalAttributeName,
+            IsDesignTimePropertyAccessHelper = true,
+            PropertySpan = GetOriginalPropertySpan(intermediateNode),
+            BoundAttribute = valueAttribute,
+            PropertyName = valueAttribute.GetPropertyName()
+        };
 
         builder.Add(helperNode);
     }

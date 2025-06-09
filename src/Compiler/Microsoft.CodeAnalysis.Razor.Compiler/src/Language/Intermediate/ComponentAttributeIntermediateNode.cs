@@ -19,6 +19,8 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
     /// </summary>
     public bool IsSynthesized { get; set; }
 
+    public bool IsDesignTimePropertyAccessHelper { get; set; }
+
     /// <summary>
     /// Represents the sub-span of the bind node that actually represents the property
     /// </summary>

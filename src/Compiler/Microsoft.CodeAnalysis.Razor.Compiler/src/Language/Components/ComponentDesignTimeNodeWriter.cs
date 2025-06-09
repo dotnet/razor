@@ -660,7 +660,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         }
 
         // This attribute might only be here in order to allow us to generate code in WritePropertyAccess
-        if (node.IsDesignTimePropertyAccessHelper())
+        if (node.IsDesignTimePropertyAccessHelper)
         {
             return;
         }

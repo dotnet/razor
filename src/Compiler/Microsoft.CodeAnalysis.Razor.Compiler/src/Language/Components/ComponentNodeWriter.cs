@@ -394,7 +394,7 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
             if (child is ComponentAttributeIntermediateNode attribute)
             {
                 // Some nodes just exist to help with property access at design time, and don't need anything else written
-                if (child.IsDesignTimePropertyAccessHelper())
+                if (attribute.IsDesignTimePropertyAccessHelper)
                 {
                     continue;
                 }
