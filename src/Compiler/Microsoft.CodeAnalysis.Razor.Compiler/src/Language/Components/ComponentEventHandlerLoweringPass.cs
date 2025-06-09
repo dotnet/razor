@@ -296,10 +296,7 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
         var result = new ComponentAttributeIntermediateNode(node)
         {
             OriginalAttributeName = node.OriginalAttributeName,
-            Annotations =
-            {
-                [ComponentMetadata.Common.AddAttributeMethodName] = eventHandlerMethod,
-            },
+            AddAttributeMethodName = eventHandlerMethod,
         };
 
         result.Children.Clear();
