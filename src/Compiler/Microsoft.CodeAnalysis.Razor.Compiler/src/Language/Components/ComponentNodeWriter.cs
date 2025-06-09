@@ -354,7 +354,7 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
     {
         if (allowNameof && attribute.BoundAttribute?.ContainingType is string containingType)
         {
-            containingType = attribute.Annotations[ComponentMetadata.Component.ConcreteContainingType] as string ?? containingType;
+            containingType = attribute.ConcreteContainingType ?? containingType;
 
             // nameof(containingType.PropertyName)
             // This allows things like Find All References to work in the IDE as we have an actual reference to the parameter

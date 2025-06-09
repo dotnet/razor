@@ -37,7 +37,13 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
 
     public SourceSpan? OriginalAttributeSpan { get; set; }
 
-    public string? AddAttributeMethodName { get; set; }
+    public string AddAttributeMethodName { get; set; }
+
+    /// <summary>
+    /// When a generic component is re-written with its concrete implementation type
+    /// We use this metadata on its bound attributes to track the updated type.
+    /// </summary>
+    public string ConcreteContainingType { get; set; }
 
     public ComponentAttributeIntermediateNode()
     {

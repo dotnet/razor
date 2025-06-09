@@ -314,7 +314,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
 
             foreach (var attribute in node.Attributes)
             {
-                attribute.Annotations[ComponentMetadata.Component.ConcreteContainingType] = node.TypeName;
+                attribute.ConcreteContainingType = node.TypeName;
 
                 var globallyQualifiedTypeName = attribute.BoundAttribute?.GetGloballyQualifiedTypeName();
 

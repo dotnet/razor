@@ -120,12 +120,6 @@ internal static class ComponentMetadata
         public const string FullyQualifiedNameMatch = "Components.FullyQualifiedNameMatch";
 
         public const string InitOnlyProperty = "Components.InitOnlyProperty";
-
-        /// <summary>
-        /// When a generic component is re-written with its concrete implementation type
-        /// We use this metadata on its bound attributes to track the updated type.
-        /// </summary>
-        public const string ConcreteContainingType = "Components.ConcreteContainingType";
     }
 
     public static class EventHandler
