@@ -324,7 +324,7 @@ $$Path;
         var csharpDocument = codeDocument.GetRequiredCSharpDocument();
         var diagnosticDescriptor = new RazorDiagnosticDescriptor("RZ10012", "diagnostic", RazorDiagnosticSeverity.Error);
         var diagnostic = RazorDiagnostic.Create(diagnosticDescriptor, componentSourceSpan);
-        var csharpDocumentWithDiagnostic = new RazorCSharpDocument(codeDocument, csharpDocument.Text, csharpDocument.Options, [diagnostic]);
+        var csharpDocumentWithDiagnostic = new RazorCSharpDocument(codeDocument, csharpDocument.Text, [diagnostic]);
         codeDocument.SetCSharpDocument(csharpDocumentWithDiagnostic);
 
         var documentSnapshotMock = new StrictMock<IDocumentSnapshot>();
