@@ -372,6 +372,11 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
                 codeDocument.SetDocumentIntermediateNode(documentNode);
             }
 
+            if (currentCodeDocument.TryGetCSharpDocument(out var csharpDocument))
+            {
+                codeDocument.SetCSharpDocument(csharpDocument);
+            }
+
             codeDocument.SetSyntaxTree(partialParseSyntaxTree);
             TryUpdateLatestParsedSyntaxTreeSnapshot(codeDocument, snapshot);
         }

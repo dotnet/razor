@@ -71,7 +71,7 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
 
     protected void AssertCSharpDocumentMatchesBaseline(RazorCodeDocument codeDocument, bool verifyLinePragmas = true, [CallerMemberName] string testName = "")
     {
-        var document = codeDocument.GetCSharpDocument();
+        var document = codeDocument.GetRequiredCSharpDocument();
 
         // Normalize newlines to match those in the baseline.
         var actualCode = document.Text.ToString().Replace("\r", "").Replace("\n", "\r\n");

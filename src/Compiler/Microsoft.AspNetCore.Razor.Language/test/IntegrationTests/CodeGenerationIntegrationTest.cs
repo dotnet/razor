@@ -345,7 +345,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         // Assert
         AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentIntermediateNode(), testName);
         AssertHtmlDocumentMatchesBaseline(codeDocument.GetHtmlDocument(), testName);
-        AssertCSharpDocumentMatchesBaseline(codeDocument.GetCSharpDocument(), testName);
+        AssertCSharpDocumentMatchesBaseline(codeDocument.GetRequiredCSharpDocument(), testName);
         AssertSourceMappingsMatchBaseline(codeDocument, testName);
         AssertHtmlSourceMappingsMatchBaseline(codeDocument, testName);
         AssertLinePragmas(codeDocument, designTime: true);
@@ -364,7 +364,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentIntermediateNode(), testName);
-        AssertCSharpDocumentMatchesBaseline(codeDocument.GetCSharpDocument(), testName);
+        AssertCSharpDocumentMatchesBaseline(codeDocument.GetRequiredCSharpDocument(), testName);
         AssertLinePragmas(codeDocument, designTime: false);
         AssertCSharpDiagnosticsMatchBaseline(codeDocument, testName);
     }
@@ -396,7 +396,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentIntermediateNode(), testName);
-        AssertCSharpDocumentMatchesBaseline(codeDocument.GetCSharpDocument(), testName);
+        AssertCSharpDocumentMatchesBaseline(codeDocument.GetRequiredCSharpDocument(), testName);
         AssertCSharpDiagnosticsMatchBaseline(codeDocument, testName);
     }
 
@@ -415,7 +415,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentIntermediateNode(), testName);
-        AssertCSharpDocumentMatchesBaseline(codeDocument.GetCSharpDocument(), testName);
+        AssertCSharpDocumentMatchesBaseline(codeDocument.GetRequiredCSharpDocument(), testName);
         AssertHtmlDocumentMatchesBaseline(codeDocument.GetHtmlDocument(), testName);
         AssertHtmlSourceMappingsMatchBaseline(codeDocument, testName);
         AssertSourceMappingsMatchBaseline(codeDocument, testName);

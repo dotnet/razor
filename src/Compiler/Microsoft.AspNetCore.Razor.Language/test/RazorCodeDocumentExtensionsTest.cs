@@ -44,37 +44,6 @@ public class RazorCodeDocumentExtensionsTest
     }
 
     [Fact]
-    public void GetCSharpDocument_ReturnsCSharpDocument()
-    {
-        // Arrange
-        var codeDocument = TestRazorCodeDocument.CreateEmpty();
-
-        var expected = TestRazorCSharpDocument.Create(codeDocument, "");
-        codeDocument.Items[typeof(RazorCSharpDocument)] = expected;
-
-        // Act
-        var actual = codeDocument.GetCSharpDocument();
-
-        // Assert
-        Assert.Same(expected, actual);
-    }
-
-    [Fact]
-    public void SetCSharpDocument_SetsCSharpDocument()
-    {
-        // Arrange
-        var codeDocument = TestRazorCodeDocument.CreateEmpty();
-
-        var expected = TestRazorCSharpDocument.Create(codeDocument, "");
-
-        // Act
-        codeDocument.SetCSharpDocument(expected);
-
-        // Assert
-        Assert.Same(expected, codeDocument.Items[typeof(RazorCSharpDocument)]);
-    }
-
-    [Fact]
     public void GetAndSetTagHelperContext_ReturnsTagHelperContext()
     {
         // Arrange

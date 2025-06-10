@@ -81,7 +81,7 @@ public class DefaultRazorCSharpLoweringPhaseTest
         phase.Execute(codeDocument);
 
         // Assert
-        var csharpDocument = codeDocument.GetCSharpDocument();
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
         var diagnostic = Assert.Single(csharpDocument.Diagnostics);
         Assert.Same(expectedDiagnostic, diagnostic);
     }

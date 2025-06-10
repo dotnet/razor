@@ -228,7 +228,7 @@ public abstract class IntegrationTestBase
 
     protected CompiledAssembly CompileToAssembly(CompiledCSharpCode code, bool throwOnFailure = true, bool ignoreRazorDiagnostics = false)
     {
-        var csharpDocument = code.CodeDocument.GetCSharpDocument();
+        var csharpDocument = code.CodeDocument.GetRequiredCSharpDocument();
         if (!ignoreRazorDiagnostics && csharpDocument.Diagnostics.Any())
         {
             var diagnosticsLog = string.Join(Environment.NewLine, csharpDocument.Diagnostics.Select(d => d.ToString()).ToArray());

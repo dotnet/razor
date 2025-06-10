@@ -55,14 +55,14 @@ internal static partial class RazorWrapperFactory
 
         public ImmutableArray<RazorSourceMapping> GetSourceMappings()
         {
-            var mappings = Object.GetCSharpDocument().SourceMappings;
+            var mappings = Object.GetRequiredCSharpDocument().SourceMappings;
 
             return WrapAll<SourceMapping, RazorSourceMapping>(mappings, ConvertSourceMapping);
         }
 
         public ImmutableArray<IRazorDiagnostic> GetDiagnostics()
         {
-            var diagnostics = Object.GetCSharpDocument().Diagnostics;
+            var diagnostics = Object.GetRequiredCSharpDocument().Diagnostics;
             return WrapAll(diagnostics, Wrap);
         }
 
@@ -76,6 +76,6 @@ internal static partial class RazorWrapperFactory
 
         public string GetGeneratedCode()
             => _csharpGeneratedCode ??=
-                InterlockedOperations.Initialize(ref _csharpGeneratedCode, Object.GetCSharpDocument().Text.ToString());
+                InterlockedOperations.Initialize(ref _csharpGeneratedCode, Object.GetRequiredCSharpDocument().Text.ToString());
     }
 }

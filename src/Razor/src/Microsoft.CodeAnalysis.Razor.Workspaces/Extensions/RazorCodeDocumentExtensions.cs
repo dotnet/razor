@@ -38,7 +38,7 @@ internal static class RazorCodeDocumentExtensions
         => codeDocument.GetRequiredSyntaxTree().Root;
 
     public static SourceText GetCSharpSourceText(this RazorCodeDocument document)
-        => document.GetCSharpDocument().Text;
+        => document.GetRequiredCSharpDocument().Text;
 
     public static SourceText GetHtmlSourceText(this RazorCodeDocument document)
         => document.GetHtmlDocument().Text;
@@ -69,7 +69,7 @@ internal static class RazorCodeDocumentExtensions
     {
         if (filePathService.IsVirtualCSharpFile(generatedDocumentUri))
         {
-            generatedDocument = codeDocument.GetCSharpDocument();
+            generatedDocument = codeDocument.GetRequiredCSharpDocument();
             return true;
         }
 
@@ -94,7 +94,7 @@ internal static class RazorCodeDocumentExtensions
     public static IRazorGeneratedDocument GetGeneratedDocument(this RazorCodeDocument document, RazorLanguageKind languageKind)
         => languageKind switch
         {
-            RazorLanguageKind.CSharp => document.GetCSharpDocument(),
+            RazorLanguageKind.CSharp => document.GetRequiredCSharpDocument(),
             RazorLanguageKind.Html => document.GetHtmlDocument(),
             _ => ThrowHelper.ThrowInvalidOperationException<IRazorGeneratedDocument>($"Unexpected language kind: {languageKind}"),
         };
@@ -106,7 +106,7 @@ internal static class RazorCodeDocumentExtensions
 
         var sourceText = codeDocument.Source.Text;
         var textSpan = sourceText.GetTextSpan(razorRange);
-        var csharpDoc = codeDocument.GetCSharpDocument();
+        var csharpDoc = codeDocument.GetRequiredCSharpDocument();
 
         // We want to find the min and max C# source mapping that corresponds with our Razor range.
         foreach (var mapping in csharpDoc.SourceMappings)

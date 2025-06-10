@@ -34,26 +34,6 @@ public static class RazorCodeDocumentExtensions
         return (RazorHtmlDocument)razorHtmlObj;
     }
 
-    public static RazorCSharpDocument GetCSharpDocument(this RazorCodeDocument document)
-    {
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        return (RazorCSharpDocument)document.Items[typeof(RazorCSharpDocument)];
-    }
-
-    public static void SetCSharpDocument(this RazorCodeDocument document, RazorCSharpDocument csharp)
-    {
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        document.Items[typeof(RazorCSharpDocument)] = csharp;
-    }
-
     public static string GetCssScope(this RazorCodeDocument document)
     {
         if (document == null)

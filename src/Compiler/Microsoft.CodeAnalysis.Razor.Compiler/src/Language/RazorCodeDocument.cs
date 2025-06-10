@@ -27,6 +27,7 @@ public sealed class RazorCodeDocument
     private ImmutableArray<RazorSyntaxTree>? _importSyntaxTrees;
     private TagHelperDocumentContext? _tagHelperContext;
     private DocumentIntermediateNode? _documentIntermediateNode;
+    private RazorCSharpDocument? _csharpDocument;
 
     private RazorCodeDocument(
         RazorSourceDocument source,
@@ -196,5 +197,24 @@ public sealed class RazorCodeDocument
         ArgHelper.ThrowIfNull(node);
 
         _documentIntermediateNode = node;
+    }
+
+    internal bool TryGetCSharpDocument([NotNullWhen(true)] out RazorCSharpDocument? result)
+    {
+        result = _csharpDocument;
+        return result is not null;
+    }
+
+    internal RazorCSharpDocument? GetCSharpDocument()
+        => _csharpDocument;
+
+    internal RazorCSharpDocument GetRequiredCSharpDocument()
+        => _csharpDocument.AssumeNotNull();
+
+    internal void SetCSharpDocument(RazorCSharpDocument csharpDocument)
+    {
+        ArgHelper.ThrowIfNull(csharpDocument);
+
+        _csharpDocument = csharpDocument;
     }
 }

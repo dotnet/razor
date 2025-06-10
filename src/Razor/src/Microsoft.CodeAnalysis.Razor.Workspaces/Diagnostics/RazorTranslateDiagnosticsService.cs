@@ -486,7 +486,7 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
         }
 
         if (!_documentMappingService.TryMapToHostDocumentRange(
-            codeDocument.GetCSharpDocument(),
+            codeDocument.GetRequiredCSharpDocument(),
             diagnostic.Range,
             MappingBehavior.Inferred,
             out originalRange))
