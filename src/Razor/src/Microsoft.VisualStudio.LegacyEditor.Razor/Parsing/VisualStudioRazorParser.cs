@@ -345,6 +345,11 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
                 codeDocument.SetTagHelpers(tagHelpers);
             }
 
+            if (currentCodeDocument.TryGetReferencedTagHelpers(out var referencedTagHelpers))
+            {
+                codeDocument.SetReferencedTagHelpers(referencedTagHelpers);
+            }
+
             if (currentCodeDocument.TryGetPreTagHelperSyntaxTree(out var preTagHelperSyntaxTree))
             {
                 codeDocument.SetPreTagHelperSyntaxTree(preTagHelperSyntaxTree);

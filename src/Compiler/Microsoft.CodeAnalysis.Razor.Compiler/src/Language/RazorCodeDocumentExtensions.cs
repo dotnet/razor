@@ -22,26 +22,6 @@ public static class RazorCodeDocumentExtensions
     private static readonly object CssScopeKey = new();
     private static readonly object NamespaceKey = new();
 
-    internal static ISet<TagHelperDescriptor> GetReferencedTagHelpers(this RazorCodeDocument document)
-    {
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        return document.Items[nameof(GetReferencedTagHelpers)] as ISet<TagHelperDescriptor>;
-    }
-
-    internal static void SetReferencedTagHelpers(this RazorCodeDocument document, ISet<TagHelperDescriptor> tagHelpers)
-    {
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        document.Items[nameof(GetReferencedTagHelpers)] = tagHelpers;
-    }
-
     public static RazorSyntaxTree GetSyntaxTree(this RazorCodeDocument document)
     {
         if (document == null)

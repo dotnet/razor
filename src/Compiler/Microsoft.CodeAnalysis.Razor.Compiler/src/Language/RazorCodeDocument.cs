@@ -20,6 +20,7 @@ public sealed class RazorCodeDocument
     public RazorFileKind FileKind => ParserOptions.FileKind;
 
     private IReadOnlyList<TagHelperDescriptor>? _tagHelpers;
+    private ISet<TagHelperDescriptor>? _referencedTagHelpers;
     private RazorSyntaxTree? _preTagHelperSyntaxTree;
     private TagHelperDocumentContext? _tagHelperContext;
 
@@ -74,6 +75,24 @@ public sealed class RazorCodeDocument
     internal void SetTagHelpers(IReadOnlyList<TagHelperDescriptor>? tagHelpers)
     {
         _tagHelpers = tagHelpers;
+    }
+
+    internal bool TryGetReferencedTagHelpers([NotNullWhen(true)] out ISet<TagHelperDescriptor>? result)
+    {
+        result = _referencedTagHelpers;
+        return result is not null;
+    }
+
+    internal ISet<TagHelperDescriptor>? GetReferencedTagHelpers()
+        => _referencedTagHelpers;
+
+    internal ISet<TagHelperDescriptor> GetRequiredReferencedTagHelpers()
+        => _referencedTagHelpers.AssumeNotNull();
+
+    internal void SetReferencedTagHelpers(ISet<TagHelperDescriptor> value)
+    {
+        ArgHelper.ThrowIfNull(value);
+        _referencedTagHelpers = value;
     }
 
     internal bool TryGetPreTagHelperSyntaxTree([NotNullWhen(true)] out RazorSyntaxTree? result)
