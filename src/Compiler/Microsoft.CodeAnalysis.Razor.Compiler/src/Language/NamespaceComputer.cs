@@ -28,55 +28,28 @@ internal static class NamespaceComputer
             return false;
         }
 
-        // If the document or it's imports contains a @namespace directive, we want to use that over the root namespace.
-        string lastNamespaceContent = null;
-        namespaceSpan = null;
-
-        if (considerImports && codeDocument.TryGetImportSyntaxTrees(out var importSyntaxTrees))
-        {
-            // ImportSyntaxTrees is usually set. Just being defensive.
-            foreach (var importSyntaxTree in importSyntaxTrees)
-            {
-                if (importSyntaxTree != null && NamespaceVisitor.TryGetLastNamespaceDirective(importSyntaxTree, out var importNamespaceContent, out var importNamespaceLocation))
-                {
-                    lastNamespaceContent = importNamespaceContent;
-                    namespaceSpan = importNamespaceLocation;
-                }
-            }
-        }
-
-        if (codeDocument.TryGetSyntaxTree(out var syntaxTree) &&
-            NamespaceVisitor.TryGetLastNamespaceDirective(syntaxTree, out var namespaceContent, out var namespaceLocation))
-        {
-            lastNamespaceContent = namespaceContent;
-            namespaceSpan = namespaceLocation;
-        }
-
-        var relativePathSpan = relativePath.AsSpan();
-
-        // If there are multiple @namespace directives in the hierarchy,
-        // we want to pick the closest one to the current document.
-        if (!string.IsNullOrEmpty(lastNamespaceContent))
+        // If the document or its imports contains a @namespace directive, we want to use that over the root namespace.
+        if (TryGetNamespaceFromDirective(codeDocument, considerImports, out var directiveNamespaceName, out var directiveNamespaceSpan))
         {
             using var builder = new NamespaceBuilder();
 
-            builder.AppendNamespace(lastNamespaceContent);
+            builder.AppendNamespace(directiveNamespaceName);
 
-            var sourceFilePath = codeDocument.Source.FilePath.AsSpan();
-            var directiveDirectorySpan = NormalizeDirectory(namespaceSpan.Value.FilePath);
+            var sourceFilePath = filePath.AsSpan();
+            var directiveDirectorySpan = NormalizeDirectory(directiveNamespaceSpan.FilePath);
 
             // We're specifically using OrdinalIgnoreCase here because Razor treats all paths as case-insensitive.
             if (sourceFilePath.Length > directiveDirectorySpan.Length &&
                 sourceFilePath.StartsWith(directiveDirectorySpan, StringComparison.OrdinalIgnoreCase))
             {
                 // We know that the document containing the namespace directive is in the current document's hierarchy.
-                // Let's compute the actual relative path that we'll use to compute the namespace suffix.
-                relativePathSpan = sourceFilePath[directiveDirectorySpan.Length..];
-
-                builder.AppendRelativePath(relativePathSpan);
+                // Compute the actual relative path and use that as the namespace suffix.
+                var suffix = sourceFilePath[directiveDirectorySpan.Length..];
+                builder.AppendRelativePath(suffix);
             }
 
             @namespace = builder.ToString();
+            namespaceSpan = directiveNamespaceSpan;
             return true;
         }
 
@@ -89,7 +62,7 @@ internal static class NamespaceComputer
             if (!rootNamespace.IsNullOrEmpty() || codeDocument.FileKind.IsComponent())
             {
                 builder.AppendNamespace(rootNamespace);
-                builder.AppendRelativePath(relativePathSpan);
+                builder.AppendRelativePath(relativePath.AsSpan());
 
                 @namespace = builder.ToString();
                 namespaceSpan = null;
@@ -99,6 +72,7 @@ internal static class NamespaceComputer
 
         // There was no valid @namespace directive.
         @namespace = null;
+        namespaceSpan = null;
         return false;
     }
 
@@ -196,6 +170,39 @@ internal static class NamespaceComputer
                 CSharpIdentifier.AppendSanitized(builder, token);
             }
         }
+    }
+
+    private static bool TryGetNamespaceFromDirective(
+        RazorCodeDocument codeDocument,
+        bool considerImports,
+        out string namespaceName,
+        out SourceSpan namespaceSpan)
+    {
+        // If there are multiple @namespace directives in the hierarchy,
+        // we want to pick the closest one to the current document.
+        // So, we start with the current document before looking at imports.
+
+        if (codeDocument.TryGetSyntaxTree(out var syntaxTree) &&
+            NamespaceVisitor.TryGetLastNamespaceDirective(syntaxTree, out namespaceName, out namespaceSpan))
+        {
+            return true;
+        }
+
+        if (considerImports &&
+            codeDocument.TryGetImportSyntaxTrees(out var importSyntaxTrees))
+        {
+            foreach (var importSyntaxTree in importSyntaxTrees)
+            {
+                if (NamespaceVisitor.TryGetLastNamespaceDirective(importSyntaxTree, out namespaceName, out namespaceSpan))
+                {
+                    return true;
+                }
+            }
+        }
+
+        namespaceName = null;
+        namespaceSpan = default;
+        return false;
     }
 
     private class NamespaceVisitor : SyntaxWalker
