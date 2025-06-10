@@ -19,7 +19,9 @@ internal static class NamespaceComputer
     public static bool TryComputeNamespace(RazorCodeDocument codeDocument, bool fallbackToRootNamespace, bool considerImports, out string @namespace, out SourceSpan? namespaceSpan)
     {
         var filePath = codeDocument.Source.FilePath;
-        if (filePath == null || codeDocument.Source.RelativePath == null || filePath.Length < codeDocument.Source.RelativePath.Length)
+        var relativePath = codeDocument.Source.RelativePath;
+
+        if (filePath == null || relativePath == null || filePath.Length < relativePath.Length)
         {
             @namespace = null;
             namespaceSpan = null;
@@ -50,15 +52,15 @@ internal static class NamespaceComputer
             namespaceSpan = namespaceLocation;
         }
 
-        var relativePath = codeDocument.Source.RelativePath.AsSpan();
+        var relativePathSpan = relativePath.AsSpan();
 
         // If there are multiple @namespace directives in the hierarchy,
         // we want to pick the closest one to the current document.
         if (!string.IsNullOrEmpty(lastNamespaceContent))
         {
-            using var _ = StringBuilderPool.GetPooledObject(out var builder);
+            using var builder = new NamespaceBuilder();
 
-            AppendNamespace(lastNamespaceContent, builder);
+            builder.AppendNamespace(lastNamespaceContent);
 
             var sourceFilePath = codeDocument.Source.FilePath.AsSpan();
             var directiveDirectorySpan = NormalizeDirectory(namespaceSpan.Value.FilePath);
@@ -69,9 +71,9 @@ internal static class NamespaceComputer
             {
                 // We know that the document containing the namespace directive is in the current document's hierarchy.
                 // Let's compute the actual relative path that we'll use to compute the namespace suffix.
-                relativePath = sourceFilePath[directiveDirectorySpan.Length..];
+                relativePathSpan = sourceFilePath[directiveDirectorySpan.Length..];
 
-                AppendRelativePath(relativePath, builder);
+                builder.AppendRelativePath(relativePathSpan);
             }
 
             @namespace = builder.ToString();
@@ -80,14 +82,14 @@ internal static class NamespaceComputer
 
         if (fallbackToRootNamespace)
         {
-            using var _ = StringBuilderPool.GetPooledObject(out var builder);
+            using var builder = new NamespaceBuilder();
 
             var rootNamespace = codeDocument.CodeGenerationOptions.RootNamespace;
 
             if (!rootNamespace.IsNullOrEmpty() || codeDocument.FileKind.IsComponent())
             {
-                AppendNamespace(rootNamespace, builder);
-                AppendRelativePath(relativePath, builder);
+                builder.AppendNamespace(rootNamespace);
+                builder.AppendRelativePath(relativePathSpan);
 
                 @namespace = builder.ToString();
                 namespaceSpan = null;
@@ -128,56 +130,71 @@ internal static class NamespaceComputer
         return span[..(lastSeparator + 1)];
     }
 
-    private static void AppendNamespace(string namespaceName, StringBuilder builder)
+    private readonly ref struct NamespaceBuilder
     {
-        var tokenizer = new StringTokenizer(namespaceName, NamespaceSeparators);
-        var first = true;
+        private readonly PooledObject<StringBuilder> _pooledBuilder;
 
-        foreach (var token in tokenizer)
+        public NamespaceBuilder()
         {
-            if (token.IsEmpty)
-            {
-                continue;
-            }
-
-            if (first)
-            {
-                first = false;
-            }
-            else
-            {
-                builder.Append('.');
-            }
-
-            CSharpIdentifier.AppendSanitized(builder, token);
-        }
-    }
-
-    private static void AppendRelativePath(ReadOnlySpan<char> relativePath, StringBuilder builder)
-    {
-        var lastSeparatorIndex = relativePath.LastIndexOfAny(PathSeparators);
-        if (lastSeparatorIndex < 0)
-        {
-            return;
+            _pooledBuilder = StringBuilderPool.GetPooledObject();
         }
 
-        relativePath = relativePath[..lastSeparatorIndex];
-
-        var tokenizer = new StringTokenizer(relativePath, PathSeparators);
-
-        foreach (var token in tokenizer)
+        public void Dispose()
         {
-            if (token.IsEmpty)
+            _pooledBuilder.Dispose();
+        }
+
+        public override string ToString()
+            => _pooledBuilder.Object.ToString();
+
+        public void AppendNamespace(string namespaceName)
+        {
+            var builder = _pooledBuilder.Object;
+            var tokenizer = new StringTokenizer(namespaceName, NamespaceSeparators);
+
+            foreach (var token in tokenizer)
             {
-                continue;
+                if (token.IsEmpty)
+                {
+                    continue;
+                }
+
+                if (builder.Length > 0)
+                {
+                    builder.Append('.');
+                }
+
+                CSharpIdentifier.AppendSanitized(builder, token);
+            }
+        }
+
+        public void AppendRelativePath(ReadOnlySpan<char> relativePath)
+        {
+            var lastSeparatorIndex = relativePath.LastIndexOfAny(PathSeparators);
+            if (lastSeparatorIndex < 0)
+            {
+                return;
             }
 
-            if (builder.Length != 0)
-            {
-                builder.Append('.');
-            }
+            relativePath = relativePath[..lastSeparatorIndex];
 
-            CSharpIdentifier.AppendSanitized(builder, token);
+            var builder = _pooledBuilder.Object;
+            var tokenizer = new StringTokenizer(relativePath, PathSeparators);
+
+            foreach (var token in tokenizer)
+            {
+                if (token.IsEmpty)
+                {
+                    continue;
+                }
+
+                if (builder.Length > 0)
+                {
+                    builder.Append('.');
+                }
+
+                CSharpIdentifier.AppendSanitized(builder, token);
+            }
         }
     }
 
