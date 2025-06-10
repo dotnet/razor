@@ -12,8 +12,8 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 internal static class NamespaceComputer
 {
-    private static readonly char[] PathSeparators = ['/', '\\'];
-    private static readonly char[] NamespaceSeparators = ['.'];
+    private static ReadOnlySpan<char> PathSeparators => ['/', '\\'];
+    private static ReadOnlySpan<char> NamespaceSeparators => ['.'];
 
     public static bool TryComputeNamespace(RazorCodeDocument codeDocument, bool fallbackToRootNamespace, bool considerImports, out string @namespace, out SourceSpan? namespaceSpan)
     {
