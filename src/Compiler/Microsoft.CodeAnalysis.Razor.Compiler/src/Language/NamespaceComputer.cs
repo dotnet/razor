@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -26,9 +27,7 @@ internal static class NamespaceComputer
         }
 
         // If the document or it's imports contains a @namespace directive, we want to use that over the root namespace.
-        string baseNamespace;
-        var appendSuffix = true;
-        var lastNamespaceContent = string.Empty;
+        string lastNamespaceContent = null;
         namespaceSpan = null;
 
         if (considerImports && codeDocument.TryGetImportSyntaxTrees(out var importSyntaxTrees))
@@ -57,96 +56,48 @@ internal static class NamespaceComputer
         // we want to pick the closest one to the current document.
         if (!string.IsNullOrEmpty(lastNamespaceContent))
         {
-            baseNamespace = lastNamespaceContent;
-            var directiveLocationDirectory = NormalizeDirectory(namespaceSpan.Value.FilePath);
+            using var _ = StringBuilderPool.GetPooledObject(out var builder);
+
+            AppendNamespace(lastNamespaceContent, builder);
 
             var sourceFilePath = codeDocument.Source.FilePath.AsSpan();
+            var directiveDirectorySpan = NormalizeDirectory(namespaceSpan.Value.FilePath);
+
             // We're specifically using OrdinalIgnoreCase here because Razor treats all paths as case-insensitive.
-            if (!sourceFilePath.StartsWith(directiveLocationDirectory, StringComparison.OrdinalIgnoreCase) ||
-                sourceFilePath.Length <= directiveLocationDirectory.Length)
-            {
-                // The most relevant directive is not from the directory hierarchy, can't compute a suffix.
-                appendSuffix = false;
-            }
-            else
+            if (sourceFilePath.Length > directiveDirectorySpan.Length &&
+                sourceFilePath.StartsWith(directiveDirectorySpan, StringComparison.OrdinalIgnoreCase))
             {
                 // We know that the document containing the namespace directive is in the current document's hierarchy.
                 // Let's compute the actual relative path that we'll use to compute the namespace suffix.
-                relativePath = sourceFilePath.Slice(directiveLocationDirectory.Length);
+                relativePath = sourceFilePath[directiveDirectorySpan.Length..];
+
+                AppendRelativePath(relativePath, builder);
             }
+
+            @namespace = builder.ToString();
+            return true;
         }
-        else if (fallbackToRootNamespace)
+
+        if (fallbackToRootNamespace)
         {
-            baseNamespace = codeDocument.CodeGenerationOptions.RootNamespace;
-            appendSuffix = true;
+            using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
-            // Empty RootNamespace is allowed only in components.
-            if (!codeDocument.FileKind.IsComponent() && string.IsNullOrEmpty(baseNamespace))
+            var rootNamespace = codeDocument.CodeGenerationOptions.RootNamespace;
+
+            if (!rootNamespace.IsNullOrEmpty() || codeDocument.FileKind.IsComponent())
             {
-                @namespace = null;
-                return false;
+                AppendNamespace(rootNamespace, builder);
+                AppendRelativePath(relativePath, builder);
+
+                @namespace = builder.ToString();
+                namespaceSpan = null;
+                return true;
             }
         }
-        else
-        {
-            // There was no valid @namespace directive.
-            @namespace = null;
-            return false;
-        }
 
-        using var _ = StringBuilderPool.GetPooledObject(out var builder);
-
-        // Sanitize the base namespace, but leave the dots.
-        var segments = new StringTokenizer(baseNamespace, NamespaceSeparators);
-        var first = true;
-        foreach (var token in segments)
-        {
-            if (token.IsEmpty)
-            {
-                continue;
-            }
-
-            if (first)
-            {
-                first = false;
-            }
-            else
-            {
-                builder.Append('.');
-            }
-
-            CSharpIdentifier.AppendSanitized(builder, token);
-        }
-
-        if (appendSuffix)
-        {
-            // If we get here, we already have a base namespace and the relative path that should be used as the namespace suffix.
-            segments = new StringTokenizer(relativePath, PathSeparators);
-            var previousLength = builder.Length;
-            foreach (var token in segments)
-            {
-                if (token.IsEmpty)
-                {
-                    continue;
-                }
-
-                previousLength = builder.Length;
-
-                if (previousLength != 0)
-                {
-                    builder.Append('.');
-                }
-
-                CSharpIdentifier.AppendSanitized(builder, token);
-            }
-
-            // Trim the last segment because it's the FileName.
-            builder.Length = previousLength;
-        }
-
-        @namespace = builder.ToString();
-
-        return true;
+        // There was no valid @namespace directive.
+        @namespace = null;
+        return false;
     }
 
     // We want to normalize the path of the file containing the '@namespace' directive to just the containing
@@ -175,6 +126,59 @@ internal static class NamespaceComputer
 
         // Includes the separator
         return span[..(lastSeparator + 1)];
+    }
+
+    private static void AppendNamespace(string namespaceName, StringBuilder builder)
+    {
+        var tokenizer = new StringTokenizer(namespaceName, NamespaceSeparators);
+        var first = true;
+
+        foreach (var token in tokenizer)
+        {
+            if (token.IsEmpty)
+            {
+                continue;
+            }
+
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                builder.Append('.');
+            }
+
+            CSharpIdentifier.AppendSanitized(builder, token);
+        }
+    }
+
+    private static void AppendRelativePath(ReadOnlySpan<char> relativePath, StringBuilder builder)
+    {
+        var lastSeparatorIndex = relativePath.LastIndexOfAny(PathSeparators);
+        if (lastSeparatorIndex < 0)
+        {
+            return;
+        }
+
+        relativePath = relativePath[..lastSeparatorIndex];
+
+        var tokenizer = new StringTokenizer(relativePath, PathSeparators);
+
+        foreach (var token in tokenizer)
+        {
+            if (token.IsEmpty)
+            {
+                continue;
+            }
+
+            if (builder.Length != 0)
+            {
+                builder.Append('.');
+            }
+
+            CSharpIdentifier.AppendSanitized(builder, token);
+        }
     }
 
     private class NamespaceVisitor : SyntaxWalker
