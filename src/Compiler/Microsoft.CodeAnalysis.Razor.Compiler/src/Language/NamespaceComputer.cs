@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -186,8 +187,10 @@ internal static class NamespaceComputer
         // we want to pick the closest one to the current document.
         // So, we start with the current document before looking at imports.
 
+        var visitor = new NamespaceDirectiveVisitor();
+
         if (codeDocument.TryGetSyntaxTree(out var syntaxTree) &&
-            NamespaceVisitor.TryGetLastNamespaceDirective(syntaxTree, out namespaceName, out namespaceSpan))
+            visitor.TryGetLastNamespaceDirective(syntaxTree, out namespaceName, out namespaceSpan))
         {
             return true;
         }
@@ -197,7 +200,7 @@ internal static class NamespaceComputer
         {
             foreach (var importSyntaxTree in importSyntaxTrees)
             {
-                if (NamespaceVisitor.TryGetLastNamespaceDirective(importSyntaxTree, out namespaceName, out namespaceSpan))
+                if (visitor.TryGetLastNamespaceDirective(importSyntaxTree, out namespaceName, out namespaceSpan))
                 {
                     return true;
                 }
@@ -209,47 +212,44 @@ internal static class NamespaceComputer
         return false;
     }
 
-    private class NamespaceVisitor : SyntaxWalker
+    private sealed class NamespaceDirectiveVisitor : SyntaxWalker
     {
-        private readonly RazorSourceDocument _source;
+        private RazorSourceDocument? _source;
+        private string? _lastNamespaceName;
+        private SourceSpan _lastNamespaceSpan;
 
-        private NamespaceVisitor(RazorSourceDocument source)
-        {
-            _source = source;
-        }
-
-        public string? LastNamespaceContent { get; set; }
-
-        public SourceSpan LastNamespaceLocation { get; set; }
-
-        public static bool TryGetLastNamespaceDirective(
+        public bool TryGetLastNamespaceDirective(
             RazorSyntaxTree syntaxTree,
-            [NotNullWhen(true)] out string? namespaceDirectiveContent,
-            out SourceSpan namespaceDirectiveSpan)
+            [NotNullWhen(true)] out string? namespaceName,
+            out SourceSpan namespaceSpan)
         {
-            var visitor = new NamespaceVisitor(syntaxTree.Source);
-            visitor.Visit(syntaxTree.Root);
-            if (string.IsNullOrEmpty(visitor.LastNamespaceContent))
+            _source = syntaxTree.Source;
+            _lastNamespaceName = null;
+            _lastNamespaceSpan = default;
+
+            Visit(syntaxTree.Root);
+
+            if (_lastNamespaceName.IsNullOrEmpty())
             {
-                namespaceDirectiveContent = null;
-                namespaceDirectiveSpan = SourceSpan.Undefined;
+                namespaceName = null;
+                namespaceSpan = SourceSpan.Undefined;
                 return false;
             }
 
-            namespaceDirectiveContent = visitor.LastNamespaceContent;
-            namespaceDirectiveSpan = visitor.LastNamespaceLocation;
+            namespaceName = _lastNamespaceName;
+            namespaceSpan = _lastNamespaceSpan;
             return true;
         }
 
         public override void VisitRazorDirective(RazorDirectiveSyntax node)
         {
-            if (node != null && node.DirectiveDescriptor == NamespaceDirective.Directive)
+            Debug.Assert(_source != null);
+
+            if (node.DirectiveDescriptor == NamespaceDirective.Directive &&
+                node.Body is RazorDirectiveBodySyntax { CSharpCode.Children: [_, CSharpSyntaxNode @namespace, ..] })
             {
-                if (node.Body is RazorDirectiveBodySyntax { CSharpCode.Children: [_, CSharpSyntaxNode @namespace, ..] })
-                {
-                    LastNamespaceContent = @namespace.GetContent();
-                    LastNamespaceLocation = @namespace.GetSourceSpan(_source);
-                }
+                _lastNamespaceName = @namespace.GetContent();
+                _lastNamespaceSpan = @namespace.GetSourceSpan(_source);
             }
 
             base.VisitRazorDirective(node);
