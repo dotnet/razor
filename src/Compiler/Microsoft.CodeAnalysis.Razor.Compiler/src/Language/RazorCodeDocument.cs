@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
@@ -18,6 +19,7 @@ public sealed class RazorCodeDocument
 
     public RazorFileKind FileKind => ParserOptions.FileKind;
 
+    private IReadOnlyList<TagHelperDescriptor>? _tagHelpers;
     private RazorSyntaxTree? _preTagHelperSyntaxTree;
     private TagHelperDocumentContext? _tagHelperContext;
 
@@ -55,6 +57,23 @@ public sealed class RazorCodeDocument
         ArgHelper.ThrowIfNull(source);
 
         return new RazorCodeDocument(source, imports, parserOptions, codeGenerationOptions);
+    }
+
+    internal bool TryGetTagHelpers([NotNullWhen(true)] out IReadOnlyList<TagHelperDescriptor>? result)
+    {
+        result = _tagHelpers;
+        return result is not null;
+    }
+
+    internal IReadOnlyList<TagHelperDescriptor>? GetTagHelpers()
+        => _tagHelpers;
+
+    internal IReadOnlyList<TagHelperDescriptor> GetRequiredTagHelpers()
+        => _tagHelpers.AssumeNotNull();
+
+    internal void SetTagHelpers(IReadOnlyList<TagHelperDescriptor>? tagHelpers)
+    {
+        _tagHelpers = tagHelpers;
     }
 
     internal bool TryGetPreTagHelperSyntaxTree([NotNullWhen(true)] out RazorSyntaxTree? result)

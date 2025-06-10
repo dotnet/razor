@@ -70,9 +70,8 @@ internal sealed class SourceGeneratorProjectEngine
 
         int startIndex = _discoveryPhaseIndex;
         var codeDocument = sgDocument.CodeDocument;
-        var previousTagHelpers = codeDocument.GetTagHelpers();
 
-        if (checkForIdempotency && previousTagHelpers is not null)
+        if (checkForIdempotency && codeDocument.TryGetTagHelpers(out var previousTagHelpers))
         {
             // compare the tag helpers with the ones the document last used
             if (Enumerable.SequenceEqual(tagHelpers, previousTagHelpers))
