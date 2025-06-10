@@ -5,8 +5,10 @@
 
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
 
@@ -110,17 +112,20 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
         EnsureValidPageDirective(codeDocument, pageDirective);
 
         AddRouteTemplateMetadataAttribute(@namespace, @class, pageDirective);
+
+        AddRouteTemplateConstant(@class, pageDirective);
     }
 
-    private static void AddRouteTemplateMetadataAttribute(NamespaceDeclarationIntermediateNode @namespace, ClassDeclarationIntermediateNode @class, PageDirective pageDirective)
+    private void AddRouteTemplateMetadataAttribute(NamespaceDeclarationIntermediateNode @namespace, ClassDeclarationIntermediateNode @class, PageDirective pageDirective)
     {
-        if (string.IsNullOrEmpty(pageDirective.RouteTemplate))
+        var classIndex = @namespace.Children.IndexOf(@class);
+        if (classIndex == -1)
         {
             return;
         }
 
-        var classIndex = @namespace.Children.IndexOf(@class);
-        if (classIndex == -1)
+        // Only generate this attribute on Razor compile-time-known strings
+        if (pageDirective.RouteTemplate is null)
         {
             return;
         }
@@ -134,6 +139,43 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
         };
         // Metadata attributes need to be inserted right before the class declaration.
         @namespace.Children.Insert(classIndex, metadataAttributeNode);
+    }
+
+    private void AddRouteTemplateConstant(ClassDeclarationIntermediateNode @class, PageDirective pageDirective)
+    {
+        var content = pageDirective.RouteTemplateContent;
+        if (content is null)
+        {
+            return;
+        }
+
+        // If we have a constant route template known to the Razor compiler,
+        // like a simple quoted string, we do not generate an internal constant
+        // member for the route template
+        if (pageDirective.RouteTemplate is not null)
+        {
+            return;
+        }
+
+        var routeTemplateConstNode = new FieldDeclarationIntermediateNode
+        {
+            Annotations =
+            {
+                [ComponentMetadata.Common.IsDesignTimePropertyAccessHelper] = bool.TrueString,
+            },
+            Modifiers =
+            {
+                "public",
+                "const",
+            },
+            FieldName = ViewComponentTypes.PageRouteTemplateFieldName,
+            FieldType = "string",
+            Initializer = content,
+        };
+        var constBuilder = IntermediateNodeBuilder.Create(@class);
+        constBuilder.Push(routeTemplateConstNode);
+
+        @class.Children.Insert(0, routeTemplateConstNode);
     }
 
     private void EnsureValidPageDirective(RazorCodeDocument codeDocument, PageDirective pageDirective)

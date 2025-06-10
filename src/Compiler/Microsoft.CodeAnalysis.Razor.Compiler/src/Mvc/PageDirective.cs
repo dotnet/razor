@@ -1,11 +1,10 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -19,19 +18,33 @@ public class PageDirective
         DirectiveKind.SingleLine,
         builder =>
         {
-            builder.AddOptionalStringToken(RazorExtensionsResources.PageDirective_RouteToken_Name, RazorExtensionsResources.PageDirective_RouteToken_Description);
+            builder
+                .AddOptionalIdentifierOrExpressionOrString(
+                    RazorExtensionsResources.PageDirective_RouteToken_Name,
+                    RazorExtensionsResources.PageDirective_RouteToken_Description)
+            ;
             builder.Usage = DirectiveUsage.FileScopedSinglyOccurring;
             builder.Description = RazorExtensionsResources.PageDirective_Description;
         });
 
-    private PageDirective(string routeTemplate, IntermediateNode directiveNode, SourceSpan? source)
+    private PageDirective(
+        string? routeTemplate, DirectiveTokenIntermediateNode? routeTemplateNode,
+        LazyIntermediateToken? routeTemplateToken, IntermediateNode directiveNode, SourceSpan? source)
     {
         RouteTemplate = routeTemplate;
+        RouteTemplateNode = routeTemplateNode;
+        RouteTemplateToken = routeTemplateToken;
         DirectiveNode = directiveNode;
         Source = source;
     }
 
-    public string RouteTemplate { get; }
+    public string? RouteTemplate { get; }
+
+    public DirectiveTokenIntermediateNode? RouteTemplateNode { get; }
+
+    public IntermediateToken? RouteTemplateToken { get; }
+
+    public string? RouteTemplateContent => RouteTemplateNode?.Content ?? RouteTemplateToken?.Content;
 
     public IntermediateNode DirectiveNode { get; }
 
@@ -48,7 +61,7 @@ public class PageDirective
         return builder;
     }
 
-    public static bool TryGetPageDirective(DocumentIntermediateNode documentNode, out PageDirective pageDirective)
+    public static bool TryGetPageDirective(DocumentIntermediateNode documentNode, [NotNullWhen(true)] out PageDirective? pageDirective)
     {
         var visitor = new Visitor();
         for (var i = 0; i < documentNode.Children.Count; i++)
@@ -63,34 +76,55 @@ public class PageDirective
         }
 
         var tokens = visitor.DirectiveTokens.ToList();
-        string routeTemplate = null;
-        SourceSpan? sourceSpan = null;
-        if (tokens.Count > 0)
+        var children = visitor.Children?.ToList();
+        DirectiveTokenIntermediateNode? routeTemplateNode = null;
+        LazyIntermediateToken? routeTemplateLazyToken = null;
+
+        if (tokens is [var firstToken, ..])
         {
-            routeTemplate = TrimQuotes(tokens[0].Content);
-            sourceSpan = tokens[0].Source;
+            routeTemplateNode = firstToken;
         }
 
-        pageDirective = new PageDirective(routeTemplate, visitor.DirectiveNode, sourceSpan);
+        if (routeTemplateNode is null && children is [LazyIntermediateToken firstChild, ..])
+        {
+            routeTemplateLazyToken = firstChild;
+        }
+
+        var content = routeTemplateNode?.Content ?? routeTemplateLazyToken?.Content;
+        var source = routeTemplateNode?.Source ?? routeTemplateLazyToken?.Source;
+
+        var routeTemplate = TryGetQuotedContent(content);
+        var sourceSpan = source;
+
+        Debug.Assert(visitor.DirectiveNode is not null);
+
+        pageDirective = new PageDirective(routeTemplate, routeTemplateNode,
+            routeTemplateLazyToken, visitor.DirectiveNode, sourceSpan);
         return true;
     }
 
-    private static string TrimQuotes(string content)
+    private static string? TryGetQuotedContent(string? content)
     {
         // Tokens aren't captured if they're malformed. Therefore, this method will
-        // always be called with a valid token content.
-        Debug.Assert(content.Length >= 2);
-        Debug.Assert(content.StartsWith("\"", StringComparison.Ordinal));
-        Debug.Assert(content.EndsWith("\"", StringComparison.Ordinal));
+        // always be called with a valid token content. However, we could also
+        // receive an expression that is not a string literal. We will therefore
+        // only try to parse the simple string literal case, and otherwise let the
+        // C# expression parser determine the constant value.
+        if (content is ['\"', .. var literal, '\"'])
+        {
+            return literal;
+        }
 
-        return content.Substring(1, content.Length - 2);
+        return null;
     }
 
     private class Visitor : IntermediateNodeWalker
     {
-        public IntermediateNode DirectiveNode { get; private set; }
+        public IntermediateNode DirectiveNode { get; private set; } = null!;
 
-        public IEnumerable<DirectiveTokenIntermediateNode> DirectiveTokens { get; private set; }
+        public IEnumerable<DirectiveTokenIntermediateNode>? DirectiveTokens { get; private set; }
+
+        public IntermediateNodeCollection? Children { get; private set; }
 
         public override void VisitDirective(DirectiveIntermediateNode node)
         {
@@ -98,6 +132,7 @@ public class PageDirective
             {
                 DirectiveNode = node;
                 DirectiveTokens = node.Tokens;
+                Children = node.Children;
             }
         }
 
@@ -107,6 +142,7 @@ public class PageDirective
             {
                 DirectiveNode = node;
                 DirectiveTokens = node.Tokens;
+                Children = node.Children;
             }
         }
     }

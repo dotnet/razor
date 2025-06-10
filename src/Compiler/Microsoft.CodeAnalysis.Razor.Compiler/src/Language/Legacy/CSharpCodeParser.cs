@@ -1511,7 +1511,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                             tokenDescriptor.Kind == DirectiveTokenKind.Attribute ||
                             tokenDescriptor.Kind == DirectiveTokenKind.GenericTypeConstraint ||
                             tokenDescriptor.Kind == DirectiveTokenKind.Boolean ||
-                            tokenDescriptor.Kind == DirectiveTokenKind.IdentifierOrExpression)
+                            tokenDescriptor.Kind == DirectiveTokenKind.IdentifierOrExpression ||
+                            tokenDescriptor.Kind == DirectiveTokenKind.IdentifierOrExpressionOrString)
                         {
                             directiveBuilder.Add(OutputTokensAsStatementLiteral());
 
@@ -1715,6 +1716,36 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                             }
 
                             break;
+
+                        case DirectiveTokenKind.IdentifierOrExpressionOrString:
+                            if (At(SyntaxKind.Transition) && NextIs(SyntaxKind.LeftParenthesis))
+                            {
+                                AcceptAndMoveNext();
+                                directiveBuilder.Add(OutputAsMetaCode(Output()));
+
+                                var expression = ParseExplicitExpressionBody();
+                                directiveBuilder.Add(expression);
+                            }
+                            else if (TryParseQualifiedIdentifier(out _))
+                            {
+                                break;
+                            }
+                            else if (At(SyntaxKind.StringLiteral) && !CurrentToken.ContainsDiagnostics)
+                            {
+                                AcceptAndMoveNext();
+                            }
+                            else
+                            {
+                                Context.ErrorSink.OnError(
+                                    RazorDiagnosticFactory.CreateParsing_DirectiveExpectsIdentifierOrExpressionOrString(
+                                        new SourceSpan(CurrentStart, CurrentToken.Content.Length), descriptor.Directive));
+
+                                // Default to a string literal as the missing token's kind
+                                builder.Add(BuildDirective(SyntaxKind.StringLiteral));
+                                return;
+                            }
+                            break;
+
                     }
 
                     chunkGenerator = new DirectiveTokenChunkGenerator(tokenDescriptor);
