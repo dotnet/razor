@@ -33,7 +33,7 @@ internal readonly ref struct StringTokenizer
     /// </summary>
     /// <param name="value">The <see cref="string"/> to tokenize.</param>
     /// <param name="separators">The characters to tokenize by.</param>
-    public StringTokenizer(string value, ReadOnlySpan<char> separators)
+    public StringTokenizer(string? value, ReadOnlySpan<char> separators)
         : this(value.AsSpanOrDefault(), separators, hasValue: value is not null)
     {
     }

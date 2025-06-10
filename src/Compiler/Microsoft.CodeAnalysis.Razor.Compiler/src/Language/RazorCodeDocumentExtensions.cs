@@ -39,10 +39,17 @@ public static class RazorCodeDocumentExtensions
         return className is not null;
     }
 
-    public static bool TryComputeNamespace(this RazorCodeDocument codeDocument, bool fallbackToRootNamespace, out string @namespace)
+    public static bool TryComputeNamespace(
+        this RazorCodeDocument codeDocument,
+        bool fallbackToRootNamespace,
+        [NotNullWhen(true)] out string? @namespace)
         => TryComputeNamespace(codeDocument, fallbackToRootNamespace, out @namespace, out _);
 
-    public static bool TryComputeNamespace(this RazorCodeDocument document, bool fallbackToRootNamespace, out string @namespace, out SourceSpan? namespaceSpan)
+    public static bool TryComputeNamespace(
+        this RazorCodeDocument document,
+        bool fallbackToRootNamespace,
+        [NotNullWhen(true)] out string? @namespace,
+        out SourceSpan? namespaceSpan)
         => TryComputeNamespace(document, fallbackToRootNamespace, considerImports: true, out @namespace, out namespaceSpan);
 
     // In general documents will have a relative path (relative to the project root).
@@ -50,7 +57,12 @@ public static class RazorCodeDocumentExtensions
     //
     // However all kinds of thing are possible in tools. We shouldn't barf here if the document isn't
     // set up correctly.
-    public static bool TryComputeNamespace(this RazorCodeDocument codeDocument, bool fallbackToRootNamespace, bool considerImports, out string @namespace, out SourceSpan? namespaceSpan)
+    public static bool TryComputeNamespace(
+        this RazorCodeDocument codeDocument,
+        bool fallbackToRootNamespace,
+        bool considerImports,
+        [NotNullWhen(true)] out string? @namespace,
+        out SourceSpan? namespaceSpan)
     {
         ArgHelper.ThrowIfNull(codeDocument);
 

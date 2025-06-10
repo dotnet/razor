@@ -1,9 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -16,7 +15,12 @@ internal static class NamespaceComputer
     private static ReadOnlySpan<char> PathSeparators => ['/', '\\'];
     private static ReadOnlySpan<char> NamespaceSeparators => ['.'];
 
-    public static bool TryComputeNamespace(RazorCodeDocument codeDocument, bool fallbackToRootNamespace, bool considerImports, out string @namespace, out SourceSpan? namespaceSpan)
+    public static bool TryComputeNamespace(
+        RazorCodeDocument codeDocument,
+        bool fallbackToRootNamespace,
+        bool considerImports,
+        [NotNullWhen(true)] out string? @namespace,
+        out SourceSpan? namespaceSpan)
     {
         var filePath = codeDocument.Source.FilePath;
         var relativePath = codeDocument.Source.RelativePath;
@@ -121,7 +125,7 @@ internal static class NamespaceComputer
         public override string ToString()
             => _pooledBuilder.Object.ToString();
 
-        public void AppendNamespace(string namespaceName)
+        public void AppendNamespace(string? namespaceName)
         {
             var builder = _pooledBuilder.Object;
             var tokenizer = new StringTokenizer(namespaceName, NamespaceSeparators);
@@ -175,7 +179,7 @@ internal static class NamespaceComputer
     private static bool TryGetNamespaceFromDirective(
         RazorCodeDocument codeDocument,
         bool considerImports,
-        out string namespaceName,
+        [NotNullWhen(true)] out string? namespaceName,
         out SourceSpan namespaceSpan)
     {
         // If there are multiple @namespace directives in the hierarchy,
@@ -214,13 +218,13 @@ internal static class NamespaceComputer
             _source = source;
         }
 
-        public string LastNamespaceContent { get; set; }
+        public string? LastNamespaceContent { get; set; }
 
         public SourceSpan LastNamespaceLocation { get; set; }
 
         public static bool TryGetLastNamespaceDirective(
             RazorSyntaxTree syntaxTree,
-            out string namespaceDirectiveContent,
+            [NotNullWhen(true)] out string? namespaceDirectiveContent,
             out SourceSpan namespaceDirectiveSpan)
         {
             var visitor = new NamespaceVisitor(syntaxTree.Source);
