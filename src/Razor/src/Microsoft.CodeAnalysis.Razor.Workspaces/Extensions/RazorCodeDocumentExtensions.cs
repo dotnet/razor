@@ -148,7 +148,7 @@ internal static class RazorCodeDocumentExtensions
     public static bool ComponentNamespaceMatches(this RazorCodeDocument razorCodeDocument, string fullyQualifiedNamespace)
     {
         var namespaceNode = (NamespaceDeclarationIntermediateNode)razorCodeDocument
-            .GetDocumentIntermediateNode()
+            .GetRequiredDocumentIntermediateNode()
             .FindDescendantNodes<IntermediateNode>()
             .First(static n => n is NamespaceDeclarationIntermediateNode);
 

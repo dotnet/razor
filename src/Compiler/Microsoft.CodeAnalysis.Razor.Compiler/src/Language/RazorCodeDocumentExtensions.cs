@@ -7,7 +7,6 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
-using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -19,26 +18,6 @@ public static class RazorCodeDocumentExtensions
     private static readonly char[] NamespaceSeparators = ['.'];
     private static readonly object CssScopeKey = new();
     private static readonly object NamespaceKey = new();
-
-    public static DocumentIntermediateNode GetDocumentIntermediateNode(this RazorCodeDocument document)
-    {
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        return document.Items[typeof(DocumentIntermediateNode)] as DocumentIntermediateNode;
-    }
-
-    public static void SetDocumentIntermediateNode(this RazorCodeDocument document, DocumentIntermediateNode documentNode)
-    {
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        document.Items[typeof(DocumentIntermediateNode)] = documentNode;
-    }
 
     internal static RazorHtmlDocument GetHtmlDocument(this RazorCodeDocument codeDocument)
     {

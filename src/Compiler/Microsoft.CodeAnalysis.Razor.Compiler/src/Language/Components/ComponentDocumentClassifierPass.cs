@@ -73,7 +73,7 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
             computedClass = $"AspNetCore_{checksum}";
         }
 
-        var documentNode = codeDocument.GetDocumentIntermediateNode();
+        var documentNode = codeDocument.GetRequiredDocumentIntermediateNode();
         if (char.IsLower(computedClass, 0))
         {
             // We don't allow component names to start with a lowercase character.

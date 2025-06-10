@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -43,7 +42,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         phase.Execute(codeDocument);
 
         // Assert
-        var documentNode = codeDocument.GetDocumentIntermediateNode();
+        var documentNode = codeDocument.GetRequiredDocumentIntermediateNode();
         var customDirectives = documentNode.FindDirectiveReferences(directive);
         var customDirective = (DirectiveIntermediateNode)Assert.Single(customDirectives).Node;
         var stringToken = Assert.Single(customDirective.Tokens);
@@ -81,7 +80,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         phase.Execute(codeDocument);
 
         // Assert
-        var documentNode = codeDocument.GetDocumentIntermediateNode();
+        var documentNode = codeDocument.GetRequiredDocumentIntermediateNode();
         var customDirectives = documentNode.FindDirectiveReferences(directive);
         var customDirective = (DirectiveIntermediateNode)Assert.Single(customDirectives).Node;
         var stringToken = Assert.Single(customDirective.Tokens);
@@ -120,7 +119,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         phase.Execute(codeDocument);
 
         // Assert
-        var documentNode = codeDocument.GetDocumentIntermediateNode();
+        var documentNode = codeDocument.GetRequiredDocumentIntermediateNode();
         var customDirectives = documentNode.FindDirectiveReferences(directive);
         var customDirective = (DirectiveIntermediateNode)Assert.Single(customDirectives).Node;
         var stringToken = Assert.Single(customDirective.Tokens);
@@ -157,7 +156,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         phase.Execute(codeDocument);
 
         // Assert
-        var documentNode = codeDocument.GetDocumentIntermediateNode();
+        var documentNode = codeDocument.GetRequiredDocumentIntermediateNode();
         var directives = documentNode.Children.OfType<DirectiveIntermediateNode>();
         Assert.Empty(directives);
     }
@@ -188,7 +187,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         phase.Execute(codeDocument);
 
         // Assert
-        var documentNode = codeDocument.GetDocumentIntermediateNode();
+        var documentNode = codeDocument.GetRequiredDocumentIntermediateNode();
         var directives = documentNode.Children.OfType<DirectiveIntermediateNode>();
         Assert.Empty(directives);
         var diagnostic = Assert.Single(documentNode.GetAllDiagnostics());
@@ -221,7 +220,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         phase.Execute(codeDocument);
 
         // Assert
-        var documentNode = codeDocument.GetDocumentIntermediateNode();
+        var documentNode = codeDocument.GetRequiredDocumentIntermediateNode();
         var directives = documentNode.Children.OfType<DirectiveIntermediateNode>();
         Assert.Empty(directives);
         var diagnostic = Assert.Single(documentNode.GetAllDiagnostics());
@@ -270,7 +269,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         phase.Execute(codeDocument);
 
         // Assert
-        var documentNode = codeDocument.GetDocumentIntermediateNode();
+        var documentNode = codeDocument.GetRequiredDocumentIntermediateNode();
         var diagnostic = Assert.Single(documentNode.Diagnostics);
         Assert.Equal(@"The explicit expression block is missing a closing "")"" character.  Make sure you have a matching "")"" character for all the ""("" characters within this block, and that none of the "")"" characters are being interpreted as markup.",
             diagnostic.GetMessage(CultureInfo.CurrentCulture));
@@ -302,7 +301,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         phase.Execute(codeDocument);
 
         // Assert
-        var documentNode = codeDocument.GetDocumentIntermediateNode();
+        var documentNode = codeDocument.GetRequiredDocumentIntermediateNode();
         Assert.Collection(documentNode.Diagnostics,
             diagnostic =>
             {

@@ -44,37 +44,6 @@ public class RazorCodeDocumentExtensionsTest
     }
 
     [Fact]
-    public void GetIRDocument_ReturnsIRDocument()
-    {
-        // Arrange
-        var codeDocument = TestRazorCodeDocument.CreateEmpty();
-
-        var expected = new DocumentIntermediateNode();
-        codeDocument.Items[typeof(DocumentIntermediateNode)] = expected;
-
-        // Act
-        var actual = codeDocument.GetDocumentIntermediateNode();
-
-        // Assert
-        Assert.Same(expected, actual);
-    }
-
-    [Fact]
-    public void SetIRDocument_SetsIRDocument()
-    {
-        // Arrange
-        var codeDocument = TestRazorCodeDocument.CreateEmpty();
-
-        var expected = new DocumentIntermediateNode();
-
-        // Act
-        codeDocument.SetDocumentIntermediateNode(expected);
-
-        // Assert
-        Assert.Same(expected, codeDocument.Items[typeof(DocumentIntermediateNode)]);
-    }
-
-    [Fact]
     public void GetCSharpDocument_ReturnsCSharpDocument()
     {
         // Arrange

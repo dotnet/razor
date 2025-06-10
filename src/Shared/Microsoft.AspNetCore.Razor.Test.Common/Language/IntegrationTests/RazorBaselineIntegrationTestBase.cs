@@ -44,7 +44,7 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
 
     protected void AssertDocumentNodeMatchesBaseline(RazorCodeDocument codeDocument, [CallerMemberName]string testName = "")
     {
-        var document = codeDocument.GetDocumentIntermediateNode();
+        var document = codeDocument.GetRequiredDocumentIntermediateNode();
         var baselineFilePath = GetBaselineFilePath(codeDocument, ".ir.txt", testName);
 
         if (GenerateBaselines.ShouldGenerate)

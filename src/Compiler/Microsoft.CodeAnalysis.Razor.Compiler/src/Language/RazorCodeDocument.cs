@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -25,6 +26,7 @@ public sealed class RazorCodeDocument
     private RazorSyntaxTree? _syntaxTree;
     private ImmutableArray<RazorSyntaxTree>? _importSyntaxTrees;
     private TagHelperDocumentContext? _tagHelperContext;
+    private DocumentIntermediateNode? _documentIntermediateNode;
 
     private RazorCodeDocument(
         RazorSourceDocument source,
@@ -175,5 +177,24 @@ public sealed class RazorCodeDocument
         ArgHelper.ThrowIfNull(context);
 
         _tagHelperContext = context;
+    }
+
+    internal bool TryGetDocumentIntermediateNode([NotNullWhen(true)] out DocumentIntermediateNode? result)
+    {
+        result = _documentIntermediateNode;
+        return result is not null;
+    }
+
+    internal DocumentIntermediateNode? GetDocumentIntermediateNode()
+        => _documentIntermediateNode;
+
+    internal DocumentIntermediateNode GetRequiredDocumentIntermediateNode()
+        => _documentIntermediateNode.AssumeNotNull();
+
+    internal void SetDocumentIntermediateNode(DocumentIntermediateNode node)
+    {
+        ArgHelper.ThrowIfNull(node);
+
+        _documentIntermediateNode = node;
     }
 }
