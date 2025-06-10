@@ -211,9 +211,9 @@ internal static class DelegatedCompletionHelper
 
     public static bool ShouldIncludeSnippets(RazorCodeDocument razorCodeDocument, int absoluteIndex)
     {
-        var tree = razorCodeDocument.GetSyntaxTree();
+        var root = razorCodeDocument.GetRequiredSyntaxRoot();
 
-        var token = tree.Root.FindToken(absoluteIndex, includeWhitespace: false);
+        var token = root.FindToken(absoluteIndex, includeWhitespace: false);
         if (token.Kind == SyntaxKind.EndOfFile &&
             token.GetPreviousToken().Parent is { } parent &&
             parent.FirstAncestorOrSelf<RazorSyntaxNode>(RazorSyntaxFacts.IsAnyStartTag) is not null)

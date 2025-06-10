@@ -46,7 +46,7 @@ public class DefaultRazorParsingPhaseTest
         phase.Execute(codeDocument);
 
         // Assert
-        var syntaxTree = codeDocument.GetSyntaxTree();
+        Assert.True(codeDocument.TryGetSyntaxTree(out var syntaxTree));
         var directive = Assert.Single(syntaxTree.Options.Directives);
         Assert.Equal("test", directive.Directive);
     }

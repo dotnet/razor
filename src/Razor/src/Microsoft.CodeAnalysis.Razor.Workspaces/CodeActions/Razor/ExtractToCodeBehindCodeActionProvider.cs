@@ -36,13 +36,12 @@ internal class ExtractToCodeBehindCodeActionProvider(ILoggerFactory loggerFactor
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        var syntaxTree = context.CodeDocument.GetSyntaxTree();
-        if (syntaxTree?.Root is null)
+        if (!context.CodeDocument.TryGetSyntaxRoot(out var root))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        var owner = syntaxTree.Root.FindInnermostNode(context.StartAbsoluteIndex);
+        var owner = root.FindInnermostNode(context.StartAbsoluteIndex);
         if (owner is null)
         {
             _logger.LogWarning($"Owner should never be null.");

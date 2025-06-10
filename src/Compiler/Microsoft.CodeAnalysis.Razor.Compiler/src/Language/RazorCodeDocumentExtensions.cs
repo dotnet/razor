@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -21,26 +21,6 @@ public static class RazorCodeDocumentExtensions
     private static readonly char[] NamespaceSeparators = ['.'];
     private static readonly object CssScopeKey = new();
     private static readonly object NamespaceKey = new();
-
-    public static RazorSyntaxTree GetSyntaxTree(this RazorCodeDocument document)
-    {
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        return document.Items[typeof(RazorSyntaxTree)] as RazorSyntaxTree;
-    }
-
-    public static void SetSyntaxTree(this RazorCodeDocument document, RazorSyntaxTree syntaxTree)
-    {
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        document.Items[typeof(RazorSyntaxTree)] = syntaxTree;
-    }
 
     public static ImmutableArray<RazorSyntaxTree> GetImportSyntaxTrees(this RazorCodeDocument document)
     {
@@ -227,8 +207,8 @@ public static class RazorCodeDocumentExtensions
                 }
             }
 
-            var syntaxTree = codeDocument.GetSyntaxTree();
-            if (syntaxTree != null && NamespaceVisitor.TryGetLastNamespaceDirective(syntaxTree, out var namespaceContent, out var namespaceLocation))
+            if (codeDocument.TryGetSyntaxTree(out var syntaxTree) &&
+                NamespaceVisitor.TryGetLastNamespaceDirective(syntaxTree, out var namespaceContent, out var namespaceLocation))
             {
                 lastNamespaceContent = namespaceContent;
                 namespaceSpan = namespaceLocation;

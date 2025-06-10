@@ -43,7 +43,7 @@ internal sealed class RazorFormattingPass(LanguageServerFeatureOptions languageS
         }
 
         // Format the razor bits of the file
-        var syntaxTree = changedContext.CodeDocument.GetSyntaxTree();
+        var syntaxTree = changedContext.CodeDocument.GetRequiredSyntaxTree();
         var razorChanges = FormatRazor(changedContext, syntaxTree);
 
         if (razorChanges.Length > 0)

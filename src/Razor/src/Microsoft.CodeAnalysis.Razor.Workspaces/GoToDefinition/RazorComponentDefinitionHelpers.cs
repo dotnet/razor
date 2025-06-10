@@ -29,9 +29,9 @@ internal static class RazorComponentDefinitionHelpers
         boundTagHelper = null;
         boundAttribute = null;
 
-        var syntaxTree = codeDocument.GetSyntaxTree();
+        var root = codeDocument.GetRequiredSyntaxRoot();
 
-        var innermostNode = syntaxTree.Root.FindInnermostNode(absoluteIndex);
+        var innermostNode = root.FindInnermostNode(absoluteIndex);
         if (innermostNode is null)
         {
             logger.LogInformation($"Could not locate innermost node at index, {absoluteIndex}.");

@@ -14,7 +14,7 @@ internal class UsingsFoldingRangeProvider : IRazorFoldingRangeProvider
         var builder = new List<FoldingRange>();
 
         var razorFileSyntaxWalker = new RazorFileUsingsFoldingSyntaxWalker(codeDocument.Source);
-        razorFileSyntaxWalker.Visit(codeDocument.GetSyntaxTree().Root);
+        razorFileSyntaxWalker.Visit(codeDocument.GetRequiredSyntaxRoot());
         builder.AddRange(razorFileSyntaxWalker.Ranges);
 
         return builder.ToImmutableArray();

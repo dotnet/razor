@@ -22,8 +22,17 @@ internal static class RazorCodeDocumentExtensions
 {
     private static readonly object s_csharpSyntaxTreeKey = new();
 
-    public static RazorSyntaxTree GetRequiredSyntaxTree(this RazorCodeDocument codeDocument)
-        => codeDocument.GetSyntaxTree().AssumeNotNull();
+    public static bool TryGetSyntaxRoot(this RazorCodeDocument codeDocument, [NotNullWhen(true)] out Syntax.SyntaxNode? result)
+    {
+        if (codeDocument.TryGetSyntaxTree(out var syntaxTree))
+        {
+            result = syntaxTree.Root;
+            return true;
+        }
+
+        result = null;
+        return false;
+    }
 
     public static Syntax.SyntaxNode GetRequiredSyntaxRoot(this RazorCodeDocument codeDocument)
         => codeDocument.GetRequiredSyntaxTree().Root;
@@ -162,7 +171,7 @@ internal static class RazorCodeDocumentExtensions
         // different, so we don't need to worry about invalidating the cache.
         if (!document.Items.TryGetValue(typeof(ClassifiedSpanInternal), out ImmutableArray<ClassifiedSpanInternal> classifiedSpans))
         {
-            var syntaxTree = document.GetSyntaxTree();
+            var syntaxTree = document.GetRequiredSyntaxTree();
             classifiedSpans = syntaxTree.GetClassifiedSpans();
 
             document.Items[typeof(ClassifiedSpanInternal)] = classifiedSpans;
@@ -178,7 +187,7 @@ internal static class RazorCodeDocumentExtensions
         // different, so we don't need to worry about invalidating the cache.
         if (!document.Items.TryGetValue(typeof(TagHelperSpanInternal), out ImmutableArray<TagHelperSpanInternal> tagHelperSpans))
         {
-            var syntaxTree = document.GetSyntaxTree();
+            var syntaxTree = document.GetRequiredSyntaxTree();
             tagHelperSpans = syntaxTree.GetTagHelperSpans();
 
             document.Items[typeof(TagHelperSpanInternal)] = tagHelperSpans;

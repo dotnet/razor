@@ -18,7 +18,7 @@ internal static partial class RazorWrapperFactory
 
         public ImmutableArray<ClassifiedSpan> GetClassifiedSpans()
         {
-            var result = Object.GetSyntaxTree().GetClassifiedSpans();
+            var result = Object.GetRequiredSyntaxTree().GetClassifiedSpans();
 
             using var builder = new PooledArrayBuilder<ClassifiedSpan>(capacity: result.Length);
 
@@ -39,7 +39,7 @@ internal static partial class RazorWrapperFactory
 
         public ImmutableArray<TagHelperSpan> GetTagHelperSpans()
         {
-            var result = Object.GetSyntaxTree().GetTagHelperSpans();
+            var result = Object.GetRequiredSyntaxTree().GetTagHelperSpans();
 
             using var builder = new PooledArrayBuilder<TagHelperSpan>(capacity: result.Length);
 
@@ -72,7 +72,7 @@ internal static partial class RazorWrapperFactory
                 : null;
 
         public int? GetDesiredIndentation(ITextSnapshot snapshot, ITextSnapshotLine line, int indentSize, int tabSize)
-            => RazorIndentationFacts.GetDesiredIndentation(Object.GetSyntaxTree(), snapshot, line, indentSize, tabSize);
+            => RazorIndentationFacts.GetDesiredIndentation(Object.GetRequiredSyntaxTree(), snapshot, line, indentSize, tabSize);
 
         public string GetGeneratedCode()
             => _csharpGeneratedCode ??=

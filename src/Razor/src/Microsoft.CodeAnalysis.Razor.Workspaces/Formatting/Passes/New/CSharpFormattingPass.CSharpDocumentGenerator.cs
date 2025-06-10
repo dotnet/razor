@@ -179,7 +179,7 @@ internal partial class CSharpFormattingPass
             {
                 using var _ = StringBuilderPool.GetPooledObject(out var additionalLinesBuilder);
 
-                var root = _codeDocument.GetSyntaxTree().Root;
+                var root = _codeDocument.GetRequiredSyntaxRoot();
                 var sourceMappings = _codeDocument.GetCSharpDocument().SourceMappings;
                 var iMapping = 0;
                 foreach (var line in _sourceText.Lines)

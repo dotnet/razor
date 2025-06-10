@@ -80,7 +80,7 @@ internal class RazorHtmlWriter : SyntaxWalker, IDisposable
     public static RazorHtmlDocument GetHtmlDocument(RazorCodeDocument codeDocument)
     {
         using var writer = new RazorHtmlWriter(codeDocument.Source);
-        var syntaxTree = codeDocument.GetSyntaxTree();
+        var syntaxTree = codeDocument.GetRequiredSyntaxTree();
 
         writer.Visit(syntaxTree);
 

@@ -414,7 +414,7 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
             return;
         }
 
-        var tree = codeDocument.GetSyntaxTree();
+        var tree = codeDocument.GetRequiredSyntaxTree();
 
         AddNode(new RazorSyntaxNode(tree), parent: null);
 

@@ -147,7 +147,7 @@ internal sealed class FormattingContext
     {
         if (_formattingSpans is null)
         {
-            var syntaxTree = CodeDocument.GetSyntaxTree();
+            var syntaxTree = CodeDocument.GetRequiredSyntaxTree();
             var inGlobalNamespace = CodeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace) &&
                 string.IsNullOrEmpty(@namespace);
             _formattingSpans = GetFormattingSpans(syntaxTree, inGlobalNamespace: inGlobalNamespace);
@@ -258,8 +258,8 @@ internal sealed class FormattingContext
             return;
         }
 
-        var oldTagHelperElements = oldCodeDocument.GetSyntaxTree().Root.DescendantNodesAndSelf().OfType<MarkupTagHelperElementSyntax>().Count();
-        var newTagHelperElements = newCodeDocument.GetSyntaxTree().Root.DescendantNodesAndSelf().OfType<MarkupTagHelperElementSyntax>().Count();
+        var oldTagHelperElements = oldCodeDocument.GetRequiredSyntaxRoot().DescendantNodesAndSelf().OfType<MarkupTagHelperElementSyntax>().Count();
+        var newTagHelperElements = newCodeDocument.GetRequiredSyntaxRoot().DescendantNodesAndSelf().OfType<MarkupTagHelperElementSyntax>().Count();
         Debug.Assert(oldTagHelperElements == newTagHelperElements, $"Previous context had {oldTagHelperElements} components, new only has {newTagHelperElements}.");
     }
 

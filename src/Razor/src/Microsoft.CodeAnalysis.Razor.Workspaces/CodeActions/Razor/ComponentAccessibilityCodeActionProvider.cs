@@ -30,7 +30,7 @@ internal class ComponentAccessibilityCodeActionProvider(IFileSystem fileSystem) 
         RazorCodeActionContext context, CancellationToken cancellationToken)
     {
         // Locate cursor
-        var node = context.CodeDocument.GetSyntaxTree().Root.FindInnermostNode(context.StartAbsoluteIndex);
+        var node = context.CodeDocument.GetRequiredSyntaxRoot().FindInnermostNode(context.StartAbsoluteIndex);
         if (node is null)
         {
             return [];

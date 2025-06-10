@@ -329,6 +329,8 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
                 return;
             }
 
+            Assumed.NotNull(partialParseSyntaxTree, $"Expected new {nameof(RazorSyntaxTree)} when parser result is not '{result}'.");
+
             var codeDocument = RazorCodeDocument.Create(
                 currentCodeDocument.Source,
                 currentCodeDocument.Imports,
@@ -551,7 +553,7 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
 
             _codeDocument = codeDocument;
             _snapshot = snapshot;
-            _partialParser = new RazorSyntaxTreePartialParser(_codeDocument.GetSyntaxTree());
+            _partialParser = new RazorSyntaxTreePartialParser(_codeDocument.GetRequiredSyntaxTree());
             TryUpdateLatestParsedSyntaxTreeSnapshot(_codeDocument, _snapshot);
         }
     }

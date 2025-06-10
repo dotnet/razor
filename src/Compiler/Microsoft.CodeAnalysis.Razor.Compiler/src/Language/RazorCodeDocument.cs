@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
@@ -22,6 +22,7 @@ public sealed class RazorCodeDocument
     private IReadOnlyList<TagHelperDescriptor>? _tagHelpers;
     private ISet<TagHelperDescriptor>? _referencedTagHelpers;
     private RazorSyntaxTree? _preTagHelperSyntaxTree;
+    private RazorSyntaxTree? _syntaxTree;
     private TagHelperDocumentContext? _tagHelperContext;
 
     private RazorCodeDocument(
@@ -107,10 +108,27 @@ public sealed class RazorCodeDocument
     internal RazorSyntaxTree GetRequiredPreTagHelperSyntaxTree()
         => _preTagHelperSyntaxTree.AssumeNotNull();
 
-    internal void SetPreTagHelperSyntaxTree(RazorSyntaxTree syntaxTree)
+    internal void SetPreTagHelperSyntaxTree(RazorSyntaxTree? syntaxTree)
+    {
+        _preTagHelperSyntaxTree = syntaxTree;
+    }
+
+    internal bool TryGetSyntaxTree([NotNullWhen(true)] out RazorSyntaxTree? result)
+    {
+        result = _syntaxTree;
+        return result is not null;
+    }
+
+    internal RazorSyntaxTree? GetSyntaxTree()
+        => _syntaxTree;
+
+    internal RazorSyntaxTree GetRequiredSyntaxTree()
+        => _syntaxTree.AssumeNotNull();
+
+    internal void SetSyntaxTree(RazorSyntaxTree syntaxTree)
     {
         ArgHelper.ThrowIfNull(syntaxTree);
-        _preTagHelperSyntaxTree = syntaxTree;
+        _syntaxTree = syntaxTree;
     }
 
     internal bool TryGetTagHelperContext([NotNullWhen(true)] out TagHelperDocumentContext? result)
