@@ -37,7 +37,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         var importSource = TestRazorSourceDocument.Create("@custom \"hello\"", filePath: "import.cshtml");
         var codeDocument = TestRazorCodeDocument.Create("<p>NonDirective</p>");
         codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(codeDocument.Source, options));
-        codeDocument.SetImportSyntaxTrees(new[] { RazorSyntaxTree.Parse(importSource, options) }.ToImmutableArray());
+        codeDocument.SetImportSyntaxTrees([RazorSyntaxTree.Parse(importSource, options)]);
 
         // Act
         phase.Execute(codeDocument);
@@ -75,7 +75,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         var importSource = TestRazorSourceDocument.Create("@custom \"hello\"", filePath: "import.cshtml");
         var codeDocument = TestRazorCodeDocument.Create("@custom \"world\"");
         codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(codeDocument.Source, options));
-        codeDocument.SetImportSyntaxTrees(new[] { RazorSyntaxTree.Parse(importSource, options) }.ToImmutableArray());
+        codeDocument.SetImportSyntaxTrees([RazorSyntaxTree.Parse(importSource, options)]);
 
         // Act
         phase.Execute(codeDocument);
@@ -114,7 +114,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         var importSource2 = TestRazorSourceDocument.Create("@custom \"world\"", filePath: "import2.cshtml");
         var codeDocument = TestRazorCodeDocument.Create("<p>NonDirective</p>");
         codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(codeDocument.Source, options));
-        codeDocument.SetImportSyntaxTrees(new[] { RazorSyntaxTree.Parse(importSource1, options), RazorSyntaxTree.Parse(importSource2, options) }.ToImmutableArray());
+        codeDocument.SetImportSyntaxTrees([RazorSyntaxTree.Parse(importSource1, options), RazorSyntaxTree.Parse(importSource2, options)]);
 
         // Act
         phase.Execute(codeDocument);
@@ -151,7 +151,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
             filePath: "testImports.cshtml");
         var codeDocument = TestRazorCodeDocument.Create("<p>NonDirective</p>");
         codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(codeDocument.Source, options));
-        codeDocument.SetImportSyntaxTrees(new[] { RazorSyntaxTree.Parse(importSource, options) }.ToImmutableArray());
+        codeDocument.SetImportSyntaxTrees([RazorSyntaxTree.Parse(importSource, options)]);
 
         // Act
         phase.Execute(codeDocument);
@@ -181,7 +181,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         var importSource = TestRazorSourceDocument.Create("@custom { }", filePath: "import.cshtml");
         var codeDocument = TestRazorCodeDocument.Create("<p>NonDirective</p>");
         codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(codeDocument.Source, options));
-        codeDocument.SetImportSyntaxTrees(new[] { RazorSyntaxTree.Parse(importSource, options) }.ToImmutableArray());
+        codeDocument.SetImportSyntaxTrees([RazorSyntaxTree.Parse(importSource, options)]);
         var expectedDiagnostic = RazorDiagnosticFactory.CreateDirective_BlockDirectiveCannotBeImported("custom");
 
         // Act
@@ -214,7 +214,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         var importSource = TestRazorSourceDocument.Create("@custom { }", filePath: "import.cshtml");
         var codeDocument = TestRazorCodeDocument.Create("<p>NonDirective</p>");
         codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(codeDocument.Source, options));
-        codeDocument.SetImportSyntaxTrees(new[] { RazorSyntaxTree.Parse(importSource, options) }.ToImmutableArray());
+        codeDocument.SetImportSyntaxTrees([RazorSyntaxTree.Parse(importSource, options)]);
         var expectedDiagnostic = RazorDiagnosticFactory.CreateDirective_BlockDirectiveCannotBeImported("custom");
 
         // Act
@@ -291,11 +291,11 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
 
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
         codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(codeDocument.Source, parseOptions));
-        codeDocument.SetImportSyntaxTrees(new[]
-        {
+        codeDocument.SetImportSyntaxTrees(
+        [
             RazorSyntaxTree.Parse(TestRazorSourceDocument.Create("@ "), parseOptions),
             RazorSyntaxTree.Parse(TestRazorSourceDocument.Create("<p @("), parseOptions),
-        }.ToImmutableArray());
+        ]);
         var options = RazorCodeGenerationOptions.Default;
 
         // Act

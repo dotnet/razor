@@ -1,11 +1,9 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -21,31 +19,6 @@ public static class RazorCodeDocumentExtensions
     private static readonly char[] NamespaceSeparators = ['.'];
     private static readonly object CssScopeKey = new();
     private static readonly object NamespaceKey = new();
-
-    public static ImmutableArray<RazorSyntaxTree> GetImportSyntaxTrees(this RazorCodeDocument document)
-    {
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        return (document.Items[typeof(ImportSyntaxTreesHolder)] as ImportSyntaxTreesHolder)?.SyntaxTrees ?? default;
-    }
-
-    public static void SetImportSyntaxTrees(this RazorCodeDocument document, ImmutableArray<RazorSyntaxTree> syntaxTrees)
-    {
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        if (syntaxTrees.IsDefault)
-        {
-            throw new ArgumentException("", nameof(syntaxTrees));
-        }
-
-        document.Items[typeof(ImportSyntaxTreesHolder)] = new ImportSyntaxTreesHolder(syntaxTrees);
-    }
 
     public static DocumentIntermediateNode GetDocumentIntermediateNode(this RazorCodeDocument document)
     {
@@ -194,7 +167,7 @@ public static class RazorCodeDocumentExtensions
             var lastNamespaceContent = string.Empty;
             namespaceSpan = null;
 
-            if (considerImports && codeDocument.GetImportSyntaxTrees() is { IsDefault: false } importSyntaxTrees)
+            if (considerImports && codeDocument.TryGetImportSyntaxTrees(out var importSyntaxTrees))
             {
                 // ImportSyntaxTrees is usually set. Just being defensive.
                 foreach (var importSyntaxTree in importSyntaxTrees)
@@ -339,18 +312,6 @@ public static class RazorCodeDocumentExtensions
             // Includes the separator
             return span[..(lastSeparator + 1)];
         }
-    }
-
-    private record class ImportSyntaxTreesHolder(ImmutableArray<RazorSyntaxTree> SyntaxTrees);
-
-    private class IncludeSyntaxTreesHolder
-    {
-        public IncludeSyntaxTreesHolder(IReadOnlyList<RazorSyntaxTree> syntaxTrees)
-        {
-            SyntaxTrees = syntaxTrees;
-        }
-
-        public IReadOnlyList<RazorSyntaxTree> SyntaxTrees { get; }
     }
 
     private class NamespaceVisitor : SyntaxWalker

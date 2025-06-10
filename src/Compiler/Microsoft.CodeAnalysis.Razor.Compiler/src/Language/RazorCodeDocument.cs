@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
@@ -23,6 +23,7 @@ public sealed class RazorCodeDocument
     private ISet<TagHelperDescriptor>? _referencedTagHelpers;
     private RazorSyntaxTree? _preTagHelperSyntaxTree;
     private RazorSyntaxTree? _syntaxTree;
+    private ImmutableArray<RazorSyntaxTree>? _importSyntaxTrees;
     private TagHelperDocumentContext? _tagHelperContext;
 
     private RazorCodeDocument(
@@ -129,6 +130,32 @@ public sealed class RazorCodeDocument
     {
         ArgHelper.ThrowIfNull(syntaxTree);
         _syntaxTree = syntaxTree;
+    }
+
+    internal bool TryGetImportSyntaxTrees(out ImmutableArray<RazorSyntaxTree> result)
+    {
+        if (_importSyntaxTrees is { } imports)
+        {
+            result = imports;
+            return true;
+        }
+
+        result = default;
+        return false;
+    }
+
+    internal ImmutableArray<RazorSyntaxTree> GetImportSyntaxTrees()
+        => _importSyntaxTrees ?? [];
+
+    internal void SetImportSyntaxTrees(ImmutableArray<RazorSyntaxTree> syntaxTrees)
+    {
+        if (syntaxTrees.IsDefault)
+        {
+            ThrowHelper.ThrowArgumentNullException(nameof(syntaxTrees));
+            return;
+        }
+
+        _importSyntaxTrees = syntaxTrees;
     }
 
     internal bool TryGetTagHelperContext([NotNullWhen(true)] out TagHelperDocumentContext? result)

@@ -23,7 +23,7 @@ public class RazorCodeDocumentExtensionsTest
         var actual = codeDocument.GetImportSyntaxTrees();
 
         // Assert
-        Assert.False(actual.IsDefault);
+        Assert.False(actual.IsEmpty);
         Assert.Equal<RazorSyntaxTree>([importSyntaxTree], actual);
     }
 
