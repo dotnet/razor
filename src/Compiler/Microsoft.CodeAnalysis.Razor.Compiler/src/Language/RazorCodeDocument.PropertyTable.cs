@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -14,9 +15,9 @@ public sealed partial class RazorCodeDocument
     /// <summary>
     ///  Wraps an array to store properties associated with a <see cref="RazorCodeDocument"/>.
     /// </summary>
-    private readonly struct PropertyTable
+    private readonly ref struct PropertyTable
     {
-        private const int Size = 10;
+        public const int Size = 10;
 
         private const int TagHelpersIndex = 0;
         private const int ReferencedTagHelpersIndex = 1;
@@ -29,11 +30,12 @@ public sealed partial class RazorCodeDocument
         private const int HtmlDocumentIndex = 8;
         private const int NamespaceInfoIndex = 9;
 
-        private readonly object?[] _values;
+        public readonly object?[] _values;
 
-        public PropertyTable()
+        public PropertyTable(object?[] values)
         {
-            _values = new object?[Size];
+            Debug.Assert(values.Length == Size);
+            _values = values;
         }
 
         public Property<IReadOnlyList<TagHelperDescriptor>> TagHelpers => new(_values, TagHelpersIndex);

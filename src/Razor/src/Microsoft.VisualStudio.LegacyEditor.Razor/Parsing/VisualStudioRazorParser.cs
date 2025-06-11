@@ -331,49 +331,12 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
 
             Assumed.NotNull(partialParseSyntaxTree, $"Expected new {nameof(RazorSyntaxTree)} when parser result is not '{result}'.");
 
-            var codeDocument = RazorCodeDocument.Create(
-                currentCodeDocument.Source,
-                currentCodeDocument.Imports,
-                currentCodeDocument.ParserOptions,
-                currentCodeDocument.CodeGenerationOptions);
+#pragma warning disable CS0618 // Type or member is obsolete
+            var newCodeDocument = currentCodeDocument.Clone();
+#pragma warning restore CS0618 // Type or member is obsolete
 
-            if (currentCodeDocument.TryGetTagHelpers(out var tagHelpers))
-            {
-                codeDocument.SetTagHelpers(tagHelpers);
-            }
-
-            if (currentCodeDocument.TryGetReferencedTagHelpers(out var referencedTagHelpers))
-            {
-                codeDocument.SetReferencedTagHelpers(referencedTagHelpers);
-            }
-
-            if (currentCodeDocument.TryGetPreTagHelperSyntaxTree(out var preTagHelperSyntaxTree))
-            {
-                codeDocument.SetPreTagHelperSyntaxTree(preTagHelperSyntaxTree);
-            }
-
-            if (currentCodeDocument.TryGetImportSyntaxTrees(out var importSyntaxTrees))
-            {
-                codeDocument.SetImportSyntaxTrees(importSyntaxTrees);
-            }
-
-            if (currentCodeDocument.TryGetTagHelperContext(out var tagHelperContext))
-            {
-                codeDocument.SetTagHelperContext(tagHelperContext);
-            }
-
-            if (currentCodeDocument.TryGetDocumentNode(out var documentNode))
-            {
-                codeDocument.SetDocumentNode(documentNode);
-            }
-
-            if (currentCodeDocument.TryGetCSharpDocument(out var csharpDocument))
-            {
-                codeDocument.SetCSharpDocument(csharpDocument);
-            }
-
-            codeDocument.SetSyntaxTree(partialParseSyntaxTree);
-            TryUpdateLatestParsedSyntaxTreeSnapshot(codeDocument, snapshot);
+            newCodeDocument.SetSyntaxTree(partialParseSyntaxTree);
+            TryUpdateLatestParsedSyntaxTreeSnapshot(newCodeDocument, snapshot);
         }
 
         if ((result & PartialParseResultInternal.Provisional) == PartialParseResultInternal.Provisional)
