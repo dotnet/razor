@@ -37,8 +37,17 @@ internal record RazorCompletionResolveData(
 
         if (supportsCompletionListData)
         {
-            // Can set data at the completion list level
-            completionList.Data = data with { OriginalData = completionList.Data };
+            if (completionList.Data is not null)
+            {
+                // Can set data at the completion list level
+                completionList.Data = data with { OriginalData = completionList.Data };
+            }
+
+            if (completionList.ItemDefaults?.Data is not null)
+            {
+                // Set data for the item defaults
+                completionList.ItemDefaults.Data = data with { OriginalData = completionList.ItemDefaults.Data };
+            }
 
             // Set data for items that won't inherit the default
             foreach (var completionItem in completionList.Items.Where(static c => c.Data is not null))
