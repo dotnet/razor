@@ -14,7 +14,6 @@ public sealed class RazorCodeDocument
 {
     public RazorSourceDocument Source { get; }
     public ImmutableArray<RazorSourceDocument> Imports { get; }
-    public ItemCollection Items { get; }
 
     public RazorParserOptions ParserOptions { get; }
     public RazorCodeGenerationOptions CodeGenerationOptions { get; }
@@ -43,8 +42,6 @@ public sealed class RazorCodeDocument
 
         ParserOptions = parserOptions ?? RazorParserOptions.Default;
         CodeGenerationOptions = codeGenerationOptions ?? RazorCodeGenerationOptions.Default;
-
-        Items = new ItemCollection();
     }
 
     public static RazorCodeDocument Create(
