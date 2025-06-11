@@ -5,12 +5,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public sealed class RazorCodeDocument
+public sealed partial class RazorCodeDocument
 {
     public RazorSourceDocument Source { get; }
     public ImmutableArray<RazorSourceDocument> Imports { get; }
@@ -20,16 +21,7 @@ public sealed class RazorCodeDocument
 
     public RazorFileKind FileKind => ParserOptions.FileKind;
 
-    private IReadOnlyList<TagHelperDescriptor>? _tagHelpers;
-    private ISet<TagHelperDescriptor>? _referencedTagHelpers;
-    private RazorSyntaxTree? _preTagHelperSyntaxTree;
-    private RazorSyntaxTree? _syntaxTree;
-    private ImmutableArray<RazorSyntaxTree>? _importSyntaxTrees;
-    private TagHelperDocumentContext? _tagHelperContext;
-    private DocumentIntermediateNode? _documentIntermediateNode;
-    private RazorCSharpDocument? _csharpDocument;
-    private RazorHtmlDocument? _htmlDocument;
-    private (string name, SourceSpan? span)? _namespaceInfo;
+    private readonly PropertyTable _properties = new();
 
     private RazorCodeDocument(
         RazorSourceDocument source,
@@ -66,160 +58,130 @@ public sealed class RazorCodeDocument
     }
 
     internal bool TryGetTagHelpers([NotNullWhen(true)] out IReadOnlyList<TagHelperDescriptor>? result)
-    {
-        result = _tagHelpers;
-        return result is not null;
-    }
+        => _properties.TagHelpers.TryGetValue(out result);
 
     internal IReadOnlyList<TagHelperDescriptor>? GetTagHelpers()
-        => _tagHelpers;
+        => _properties.TagHelpers.Value;
 
     internal IReadOnlyList<TagHelperDescriptor> GetRequiredTagHelpers()
-        => _tagHelpers.AssumeNotNull();
+        => _properties.TagHelpers.RequiredValue;
 
     internal void SetTagHelpers(IReadOnlyList<TagHelperDescriptor>? tagHelpers)
-    {
-        _tagHelpers = tagHelpers;
-    }
+        => _properties.TagHelpers.SetValue(tagHelpers);
 
     internal bool TryGetReferencedTagHelpers([NotNullWhen(true)] out ISet<TagHelperDescriptor>? result)
-    {
-        result = _referencedTagHelpers;
-        return result is not null;
-    }
+        => _properties.ReferencedTagHelpers.TryGetValue(out result);
 
     internal ISet<TagHelperDescriptor>? GetReferencedTagHelpers()
-        => _referencedTagHelpers;
+        => _properties.ReferencedTagHelpers.Value;
 
     internal ISet<TagHelperDescriptor> GetRequiredReferencedTagHelpers()
-        => _referencedTagHelpers.AssumeNotNull();
+        => _properties.ReferencedTagHelpers.RequiredValue;
 
     internal void SetReferencedTagHelpers(ISet<TagHelperDescriptor> value)
     {
         ArgHelper.ThrowIfNull(value);
-        _referencedTagHelpers = value;
+        _properties.ReferencedTagHelpers.SetValue(value);
     }
 
     internal bool TryGetPreTagHelperSyntaxTree([NotNullWhen(true)] out RazorSyntaxTree? result)
-    {
-        result = _preTagHelperSyntaxTree;
-        return result is not null;
-    }
+        => _properties.PreTagHelperSyntaxTree.TryGetValue(out result);
 
     internal RazorSyntaxTree? GetPreTagHelperSyntaxTree()
-        => _preTagHelperSyntaxTree;
+        => _properties.PreTagHelperSyntaxTree.Value;
 
     internal RazorSyntaxTree GetRequiredPreTagHelperSyntaxTree()
-        => _preTagHelperSyntaxTree.AssumeNotNull();
+        => _properties.PreTagHelperSyntaxTree.RequiredValue;
 
     internal void SetPreTagHelperSyntaxTree(RazorSyntaxTree? syntaxTree)
-    {
-        _preTagHelperSyntaxTree = syntaxTree;
-    }
+        => _properties.PreTagHelperSyntaxTree.SetValue(syntaxTree);
 
     internal bool TryGetSyntaxTree([NotNullWhen(true)] out RazorSyntaxTree? result)
-    {
-        result = _syntaxTree;
-        return result is not null;
-    }
+        => _properties.SyntaxTree.TryGetValue(out result);
 
     internal RazorSyntaxTree? GetSyntaxTree()
-        => _syntaxTree;
+        => _properties.SyntaxTree.Value;
 
     internal RazorSyntaxTree GetRequiredSyntaxTree()
-        => _syntaxTree.AssumeNotNull();
+        => _properties.SyntaxTree.RequiredValue;
 
     internal void SetSyntaxTree(RazorSyntaxTree syntaxTree)
     {
-        ArgHelper.ThrowIfNull(syntaxTree);
-        _syntaxTree = syntaxTree;
+        Debug.Assert(syntaxTree is not null);
+        _properties.SyntaxTree.SetValue(syntaxTree);
     }
 
     internal bool TryGetImportSyntaxTrees(out ImmutableArray<RazorSyntaxTree> result)
-    {
-        if (_importSyntaxTrees is { } imports)
-        {
-            result = imports;
-            return true;
-        }
-
-        result = default;
-        return false;
-    }
+        => _properties.ImportSyntaxTrees.TryGetValue(out result);
 
     internal ImmutableArray<RazorSyntaxTree> GetImportSyntaxTrees()
-        => _importSyntaxTrees ?? [];
+        => _properties.ImportSyntaxTrees.Value ?? [];
 
     internal void SetImportSyntaxTrees(ImmutableArray<RazorSyntaxTree> syntaxTrees)
     {
-        if (syntaxTrees.IsDefault)
-        {
-            ThrowHelper.ThrowArgumentNullException(nameof(syntaxTrees));
-            return;
-        }
+        Debug.Assert(!syntaxTrees.IsDefault);
+        Debug.Assert(syntaxTrees.IsEmpty || syntaxTrees.All(static t => t is not null));
 
-        _importSyntaxTrees = syntaxTrees;
+        _properties.ImportSyntaxTrees.SetValue(syntaxTrees);
     }
 
     internal bool TryGetTagHelperContext([NotNullWhen(true)] out TagHelperDocumentContext? result)
-    {
-        result = _tagHelperContext;
-        return result is not null;
-    }
+        => _properties.TagHelperContext.TryGetValue(out result);
 
     internal TagHelperDocumentContext? GetTagHelperContext()
-        => _tagHelperContext;
+        => _properties.TagHelperContext.Value;
 
     internal TagHelperDocumentContext GetRequiredTagHelperContext()
-        => _tagHelperContext.AssumeNotNull();
+        => _properties.TagHelperContext.RequiredValue;
 
     internal void SetTagHelperContext(TagHelperDocumentContext context)
     {
-        ArgHelper.ThrowIfNull(context);
-
-        _tagHelperContext = context;
+        Debug.Assert(context is not null);
+        _properties.TagHelperContext.SetValue(context);
     }
 
     internal bool TryGetDocumentIntermediateNode([NotNullWhen(true)] out DocumentIntermediateNode? result)
-    {
-        result = _documentIntermediateNode;
-        return result is not null;
-    }
+        => _properties.DocumentNode.TryGetValue(out result);
 
     internal DocumentIntermediateNode? GetDocumentIntermediateNode()
-        => _documentIntermediateNode;
+        => _properties.DocumentNode.Value;
 
     internal DocumentIntermediateNode GetRequiredDocumentIntermediateNode()
-        => _documentIntermediateNode.AssumeNotNull();
+        => _properties.DocumentNode.RequiredValue;
 
     internal void SetDocumentIntermediateNode(DocumentIntermediateNode node)
     {
-        ArgHelper.ThrowIfNull(node);
-
-        _documentIntermediateNode = node;
+        Debug.Assert(node is not null);
+        _properties.DocumentNode.SetValue(node);
     }
 
     internal bool TryGetCSharpDocument([NotNullWhen(true)] out RazorCSharpDocument? result)
-    {
-        result = _csharpDocument;
-        return result is not null;
-    }
+        => _properties.CSharpDocument.TryGetValue(out result);
 
     internal RazorCSharpDocument? GetCSharpDocument()
-        => _csharpDocument;
+        => _properties.CSharpDocument.Value;
 
     internal RazorCSharpDocument GetRequiredCSharpDocument()
-        => _csharpDocument.AssumeNotNull();
+        => _properties.CSharpDocument.RequiredValue;
 
     internal void SetCSharpDocument(RazorCSharpDocument csharpDocument)
     {
-        ArgHelper.ThrowIfNull(csharpDocument);
-
-        _csharpDocument = csharpDocument;
+        Debug.Assert(csharpDocument is not null);
+        _properties.CSharpDocument.SetValue(csharpDocument);
     }
 
     internal RazorHtmlDocument GetHtmlDocument()
-        => _htmlDocument ??= RazorHtmlWriter.GetHtmlDocument(this);
+    {
+        if (_properties.HtmlDocument.TryGetValue(out var result))
+        {
+            return result;
+        }
+
+        result = RazorHtmlWriter.GetHtmlDocument(this);
+        _properties.HtmlDocument.SetValue(result);
+
+        return result;
+    }
 
     // In general documents will have a relative path (relative to the project root).
     // We can only really compute a nice namespace when we know a relative path.
@@ -233,11 +195,12 @@ public sealed class RazorCodeDocument
     {
         // We only want to cache the namespace if we're considering all possibilities.
         // Anyone wanting something different (i.e., tooling) has to pay a slight penalty.
-        if (fallbackToRootNamespace && considerImports && _namespaceInfo is var (name, span))
+        if (fallbackToRootNamespace && considerImports &&
+            _properties.NamespaceInfo.TryGetValue(out var info))
         {
-            VerifyNamespace(this, fallbackToRootNamespace, considerImports, name);
+            VerifyNamespace(this, fallbackToRootNamespace, considerImports, info.name);
 
-            (@namespace, namespaceSpan) = (name, span);
+            (@namespace, namespaceSpan) = info;
             return true;
         }
 
@@ -245,7 +208,7 @@ public sealed class RazorCodeDocument
         {
             VerifyNamespace(this, fallbackToRootNamespace, considerImports, @namespace);
 
-            _namespaceInfo = (@namespace, namespaceSpan);
+            _properties.NamespaceInfo.SetValue((@namespace, namespaceSpan));
             return true;
         }
 
