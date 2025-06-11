@@ -15,7 +15,7 @@ public class DirectiveAttributeEventParameterCompletionItemProviderTest : RazorT
 {
     private readonly DirectiveAttributeEventParameterCompletionItemProvider _provider;
 
-    internal override string FileKind => FileKinds.Component;
+    internal override RazorFileKind? FileKind => RazorFileKind.Component;
     internal override bool UseTwoPhaseCompilation => true;
 
     public DirectiveAttributeEventParameterCompletionItemProviderTest(ITestOutputHelper testOutput)
@@ -206,7 +206,7 @@ public class DirectiveAttributeEventParameterCompletionItemProviderTest : RazorT
     {
         var codeDocument = GetCodeDocument(documentContent.Text);
         var syntaxTree = codeDocument.GetSyntaxTree();
-        var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
+        var tagHelperDocumentContext = codeDocument.GetRequiredTagHelperContext();
         var absoluteIndex = documentContent.Position;
 
         var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex);

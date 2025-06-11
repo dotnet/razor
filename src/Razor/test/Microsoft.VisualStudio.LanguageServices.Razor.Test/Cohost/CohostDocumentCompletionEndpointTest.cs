@@ -533,14 +533,14 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                     private string? str;
                 }
                 """,
-            completionContext: new RoslynVSInternalCompletionContext()
+            completionContext: new VSInternalCompletionContext()
             {
-                InvokeKind = RoslynVSInternalCompletionInvokeKind.Typing,
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = null,
-                TriggerKind = RoslynCompletionTriggerKind.Invoked
+                TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["oninput", "onchange", "onblur"],
-            delegatedItemLabels: [],
+            htmlItemLabels: [],
             commitElementsWithSpace: true);
     }
 
@@ -559,14 +559,14 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                     private string? str;
                 }
                 """,
-            completionContext: new RoslynVSInternalCompletionContext()
+            completionContext: new VSInternalCompletionContext()
             {
-                InvokeKind = RoslynVSInternalCompletionInvokeKind.Typing,
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = null,
-                TriggerKind = RoslynCompletionTriggerKind.Invoked
+                TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["oninput", "onchange", "onblur"],
-            delegatedItemLabels: [],
+            htmlItemLabels: [],
             commitElementsWithSpace: true);
     }
 
@@ -585,14 +585,14 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                     private string? str;
                 }
                 """,
-            completionContext: new RoslynVSInternalCompletionContext()
+            completionContext: new VSInternalCompletionContext()
             {
-                InvokeKind = RoslynVSInternalCompletionInvokeKind.Typing,
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = null,
-                TriggerKind = RoslynCompletionTriggerKind.Invoked
+                TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["oninput", "onchange", "onblur"],
-            delegatedItemLabels: [],
+            htmlItemLabels: [],
             commitElementsWithSpace: true);
     }
 

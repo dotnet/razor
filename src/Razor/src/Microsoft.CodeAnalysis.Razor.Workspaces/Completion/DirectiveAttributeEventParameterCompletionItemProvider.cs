@@ -41,7 +41,7 @@ internal class DirectiveAttributeEventParameterCompletionItemProvider : IRazorCo
             return [];
         }
 
-        if (!valueSyntax.FullSpan.Contains(context.AbsoluteIndex) && valueSyntax.EndPosition != context.AbsoluteIndex)
+        if (!valueSyntax.Span.Contains(context.AbsoluteIndex) && valueSyntax.EndPosition != context.AbsoluteIndex)
         {
             return [];
         }
