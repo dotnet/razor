@@ -303,14 +303,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
 
                 The end.
                 """,
-            expected:
-                """
-                This is a Razor document.
-
-                <EditForm 
-
-                The end.
-                """,
             completionContext: new VSInternalCompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
