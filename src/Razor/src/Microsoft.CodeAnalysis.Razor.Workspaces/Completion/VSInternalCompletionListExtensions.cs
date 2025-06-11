@@ -22,7 +22,7 @@ internal static class VSInternalCompletionListExtensions
             [ResultIdKey] = resultId,
         });
 
-        if (completionSetting?.CompletionList?.Data == true)
+        if (completionSetting.SupportsCompletionListData())
         {
             // Can set data at the completion list level
 

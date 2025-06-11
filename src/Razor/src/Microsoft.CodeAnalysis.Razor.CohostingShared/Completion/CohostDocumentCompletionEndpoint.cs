@@ -212,7 +212,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
         }
 
         var completionCapability = _clientCapabilitiesService.ClientCapabilities.TextDocument?.Completion as VSInternalCompletionSetting;
-        var supportsCompletionListData = completionCapability?.CompletionList?.Data ?? false;
+        var supportsCompletionListData = completionCapability.SupportsCompletionListData();
 
         RazorCompletionResolveData.Wrap(combinedCompletionList, originalTextDocumentIdentifier, supportsCompletionListData: supportsCompletionListData);
 
