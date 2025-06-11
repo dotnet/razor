@@ -45,7 +45,7 @@ internal static partial class RazorCodeDocumentExtensions
     ///  If a tree has not yet been cached, a new one will be parsed and added to the cache.
     /// </summary>
     public static SyntaxTree GetOrParseCSharpSyntaxTree(this RazorCodeDocument document, CancellationToken cancellationToken)
-        => GetCachedData(document).GetOrParseSyntaxTree(cancellationToken);
+        => GetCachedData(document).GetOrParseCSharpSyntaxTree(cancellationToken);
 
     public static bool TryGetGeneratedDocument(
         this RazorCodeDocument codeDocument,

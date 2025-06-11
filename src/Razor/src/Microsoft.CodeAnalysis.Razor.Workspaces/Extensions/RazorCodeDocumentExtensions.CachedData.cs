@@ -42,7 +42,7 @@ internal static partial class RazorCodeDocumentExtensions
         private ImmutableArray<ClassifiedSpanInternal>? _classifiedSpans;
         private ImmutableArray<TagHelperSpanInternal>? _tagHelperSpans;
 
-        public SyntaxTree GetOrParseSyntaxTree(CancellationToken cancellationToken)
+        public SyntaxTree GetOrParseCSharpSyntaxTree(CancellationToken cancellationToken)
         {
             if (_syntaxTree is { } syntaxTree)
             {
