@@ -167,6 +167,27 @@ public class SimplifyTagToSelfClosingTests(ITestOutputHelper testOutputHelper) :
     }
 
     [Fact]
+    public async Task DoNotOfferIfComponentIsSelfClosing()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                <Comp[||]onent />
+
+                <div></div>
+                """,
+            expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.SimplifyTagToSelfClosingAction,
+            additionalFiles: [
+                (FilePath("Component.razor"), """
+                    <div>
+                        Hello world
+                    </div>
+                    """)]);
+    }
+
+    [Fact]
     public async Task DoNotOfferIfHasAnyEditorRequiredRenderFragmentAttribute()
     {
         await VerifyCodeActionAsync(

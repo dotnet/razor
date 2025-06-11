@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 
@@ -83,13 +82,13 @@ internal class SimplifyTagToSelfClosingCodeActionProvider : IRazorCodeActionProv
 
     internal static bool IsApplicableTo(MarkupTagHelperElementSyntax markupElementSyntax)
     {
-        // Check whether the element is self-closing
-        if (markupElementSyntax is not
-            {
-                EndTag.CloseAngle.IsMissing: false,
-                StartTag: { ForwardSlash: null, CloseAngle.IsMissing: false },
-                TagHelperInfo.BindingResult.Descriptors: [.. var descriptors]
-            })
+        // If there is no end tag, then the element is either already self-closing, or invalid. Either way, don't offer.
+        if (markupElementSyntax.EndTag is null)
+        {
+            return false;
+        }
+
+        if (markupElementSyntax is not { TagHelperInfo.BindingResult.Descriptors: [.. var descriptors] })
         {
             return false;
         }
