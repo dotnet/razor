@@ -24,7 +24,7 @@ internal static class RazorSyntaxTreeExtensions
     {
         using var builder = new PooledArrayBuilder<RazorDirectiveSyntax>();
 
-        foreach (var node in syntaxTree.Root.DescendantNodes(ShouldDescendIntoChildren))
+        foreach (var node in syntaxTree.Root.DescendantNodes(MayContainDirectives))
         {
             if (node is RazorDirectiveSyntax directive && predicate(directive))
             {
@@ -33,10 +33,8 @@ internal static class RazorSyntaxTreeExtensions
         }
 
         return builder.ToImmutable();
-
-        static bool ShouldDescendIntoChildren(SyntaxNode node)
-        {
-            return node is RazorDocumentSyntax or MarkupBlockSyntax or CSharpCodeBlockSyntax;
-        }
     }
+
+    public static bool MayContainDirectives(this SyntaxNode node)
+        => node is RazorDocumentSyntax or MarkupBlockSyntax or CSharpCodeBlockSyntax;
 }
