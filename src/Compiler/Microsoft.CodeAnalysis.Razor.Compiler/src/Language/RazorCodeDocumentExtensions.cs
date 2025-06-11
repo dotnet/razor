@@ -8,21 +8,6 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public static class RazorCodeDocumentExtensions
 {
-    internal static RazorHtmlDocument GetHtmlDocument(this RazorCodeDocument codeDocument)
-    {
-        ArgHelper.ThrowIfNull(codeDocument);
-
-        var razorHtmlObj = codeDocument.Items[typeof(RazorHtmlDocument)];
-        if (razorHtmlObj == null)
-        {
-            var razorHtmlDocument = RazorHtmlWriter.GetHtmlDocument(codeDocument);
-            codeDocument.Items[typeof(RazorHtmlDocument)] = razorHtmlDocument;
-            return razorHtmlDocument;
-        }
-
-        return (RazorHtmlDocument)razorHtmlObj;
-    }
-
     public static bool TryComputeClassName(this RazorCodeDocument codeDocument, [NotNullWhen(true)] out string? className)
     {
         var filePath = codeDocument.Source.RelativePath ?? codeDocument.Source.FilePath;

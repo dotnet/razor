@@ -29,6 +29,7 @@ public sealed class RazorCodeDocument
     private TagHelperDocumentContext? _tagHelperContext;
     private DocumentIntermediateNode? _documentIntermediateNode;
     private RazorCSharpDocument? _csharpDocument;
+    private RazorHtmlDocument? _htmlDocument;
     private (string name, SourceSpan? span)? _namespaceInfo;
 
     private RazorCodeDocument(
@@ -219,6 +220,9 @@ public sealed class RazorCodeDocument
 
         _csharpDocument = csharpDocument;
     }
+
+    internal RazorHtmlDocument GetHtmlDocument()
+        => _htmlDocument ??= RazorHtmlWriter.GetHtmlDocument(this);
 
     // In general documents will have a relative path (relative to the project root).
     // We can only really compute a nice namespace when we know a relative path.
