@@ -70,6 +70,12 @@ internal class RazorCompletionListProvider(
 
         _logger.LogTrace($"Resolved {razorCompletionItems.Length} completion items.");
 
+        // No point caching or setting data for an empty completion list.
+        if (razorCompletionItems.Length == 0)
+        {
+            return null;
+        }
+
         var completionList = CreateLSPCompletionList(razorCompletionItems, clientCapabilities);
 
         var completionCapability = clientCapabilities?.TextDocument?.Completion as VSInternalCompletionSetting;
