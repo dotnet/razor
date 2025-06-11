@@ -339,6 +339,46 @@ public class RazorCodeDocumentExtensionsTest
         Assert.Equal("My.Custom.OverrideNS", @namespace);
     }
 
+    [Fact]
+    public void TryGetNamespace_PicksNearestImportsNamespaceDirective()
+    {
+        // Arrange
+        var source = TestRazorSourceDocument.Create(
+            filePath: "C:\\RazorPagesWebPage\\Pages\\Namespace\\Nested\\Folder\\Index.cshtml",
+            relativePath: "\\Pages\\Namespace\\Nested\\Folder\\Index.cshtml");
+
+        var codeDocument = RazorCodeDocument.Create(
+            source,
+            parserOptions: RazorParserOptions.Create(RazorLanguageVersion.Latest, RazorFileKind.Legacy, builder =>
+            {
+                builder.Directives = [NamespaceDirective.Directive];
+            }));
+
+        codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
+
+        var importSource1 = TestRazorSourceDocument.Create(
+            content: "@namespace RazorPagesWebSite.Pages",
+            filePath: "C:\\RazorPagesWebPage\\Pages\\_ViewImports.cshtml",
+            relativePath: "\\Pages\\_ViewImports.cshtml");
+
+        var importSyntaxTree1 = RazorSyntaxTree.Parse(importSource1, codeDocument.ParserOptions);
+
+        var importSource2 = TestRazorSourceDocument.Create(
+            content: "@namespace CustomNamespace",
+            filePath: "C:\\RazorPagesWebPage\\Pages\\Namespace\\_ViewImports.cshtml",
+            relativePath: "\\Pages\\Namespace\\_ViewImports.cshtml");
+
+        var importSyntaxTree2 = RazorSyntaxTree.Parse(importSource2, codeDocument.ParserOptions);
+
+        codeDocument.SetImportSyntaxTrees([importSyntaxTree1, importSyntaxTree2]);
+
+        // Act
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
+
+        // Assert
+        Assert.Equal("CustomNamespace.Nested.Folder", @namespace);
+    }
+
     [Theory]
     [InlineData("/", "foo.cshtml", "Base")]
     [InlineData("/", "foo/bar.cshtml", "Base.foo")]

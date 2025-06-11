@@ -198,8 +198,10 @@ internal static class NamespaceComputer
         if (considerImports &&
             codeDocument.TryGetImportSyntaxTrees(out var importSyntaxTrees))
         {
-            foreach (var importSyntaxTree in importSyntaxTrees)
+            // Be sure to walk the imports in reverse order since the last one is the closest to the document.
+            for (var i = importSyntaxTrees.Length - 1; i >= 0; i--)
             {
+                var importSyntaxTree = importSyntaxTrees[i];
                 if (visitor.TryGetLastNamespaceDirective(importSyntaxTree, out namespaceName, out namespaceSpan))
                 {
                     return true;
