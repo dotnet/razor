@@ -180,6 +180,47 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             expectedResolvedItemDescription: "(awaitable) Task ComponentBase.SetParametersAsync(ParameterView parameters)");
     }
 
+    [Fact]
+    public async Task CSharpOverrideMethods_VSCode()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <div></div>
+
+                @code {
+                    public override $$
+                }
+
+                The end.
+                """,
+            expected: """
+                This is a Razor document.
+            
+                <div></div>
+            
+                @code {
+                    public override Task SetParametersAsync(ParameterView parameters)
+                    {
+                        return base.SetParametersAsync(parameters);
+                    }
+                }
+            
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["Equals(object? obj)", "GetHashCode()", "SetParametersAsync(ParameterView parameters)", "ToString()"],
+            itemToResolve: "SetParametersAsync(ParameterView parameters)",
+            expectedResolvedItemDescription: "(awaitable) Task ComponentBase.SetParametersAsync(ParameterView parameters)",
+            supportsVisualStudioExtensions: false);
+    }
+
     // Tests MarkupTransitionCompletionItemProvider
     [Fact]
     public async Task CSharpMarkupTransitionAndTagHelpersInCodeBlock()
@@ -594,8 +635,15 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         string? expected = null,
         string? expectedResolvedItemDescription = null,
         bool autoInsertAttributeQuotes = true,
-        bool commitElementsWithSpace = true)
+        bool commitElementsWithSpace = true,
+        bool supportsVisualStudioExtensions = true)
     {
+        UpdateClientLSPInitializationOptions(c =>
+        {
+            c.ClientCapabilities.SupportsVisualStudioExtensions = supportsVisualStudioExtensions;
+            return c;
+        });
+
         var document = CreateProjectAndRazorDocument(input.Text);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
@@ -690,9 +738,14 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             return;
         }
 
-        Assert.NotNull(expectedResolvedItemDescription);
-
+        // In the real world the client will send us back the data for the item to resolve, but in tests its easier if we just set it here.
+        // We clone the item first though, to ensure us setting the data doesn't hide a bug in our caching logic, around wrapping" the data.
         var item = Assert.Single(result.Items.Where(i => i.Label == itemToResolve));
+        item = JsonSerializer.Deserialize<VSInternalCompletionItem>(JsonSerializer.SerializeToElement(item, JsonHelpers.JsonSerializerOptions), JsonHelpers.JsonSerializerOptions)!;
+        item.Data ??= result.Data ?? result.ItemDefaults?.Data;
+
+        Assert.NotNull(item);
+        Assert.NotNull(expectedResolvedItemDescription);
 
         await VerifyCompletionResolveAsync(document, completionListCache, item, expected, expectedResolvedItemDescription);
     }
