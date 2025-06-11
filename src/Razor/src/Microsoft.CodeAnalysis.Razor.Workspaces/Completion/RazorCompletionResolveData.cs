@@ -22,8 +22,7 @@ internal record RazorCompletionResolveData(
             throw new InvalidOperationException($"Invalid completion item received'{completionItem.Label}'.");
         }
 
-        var context = paramsObj.Deserialize<RazorCompletionResolveData>();
-        if (context is null)
+        if (paramsObj.Deserialize<RazorCompletionResolveData>() is not { } context)
         {
             throw new InvalidOperationException($"completionItem.Data should be convertible to {nameof(RazorCompletionResolveData)}");
         }

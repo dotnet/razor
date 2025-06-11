@@ -10,9 +10,6 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal static class VSInternalCompletionListExtensions
 {
-    // This needs to match what's listed in VSInternalCompletionItemExtensions.ResultIdKey
-    private const string ResultIdKey = "_resultId";
-
     public static void SetResultId(
         this RazorVSInternalCompletionList completionList,
         int resultId,
@@ -20,7 +17,7 @@ internal static class VSInternalCompletionListExtensions
     {
         var data = JsonSerializer.SerializeToElement(new JsonObject()
         {
-            [ResultIdKey] = resultId,
+            [VSInternalCompletionItemExtensions.ResultIdKey] = resultId,
         });
 
         if (completionSetting.SupportsCompletionListData())

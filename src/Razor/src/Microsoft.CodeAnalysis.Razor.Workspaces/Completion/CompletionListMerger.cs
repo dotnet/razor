@@ -210,11 +210,7 @@ internal static class CompletionListMerger
             }
 
             completionListToStopInheriting.CommitCharacters = null;
-
-            if (completionListToStopInheriting.ItemDefaults is not null)
-            {
-                completionListToStopInheriting.ItemDefaults.CommitCharacters = null;
-            }
+            completionListToStopInheriting.ItemDefaults?.CommitCharacters = null;
         }
     }
 
@@ -223,8 +219,7 @@ internal static class CompletionListMerger
         using var inheritableCompletions = new PooledArrayBuilder<VSInternalCompletionItem>();
         for (var i = 0; i < completionList.Items.Length; i++)
         {
-            var completionItem = completionList.Items[i] as VSInternalCompletionItem;
-            if (completionItem is null ||
+            if (completionList.Items[i] is not VSInternalCompletionItem completionItem ||
                 completionItem.CommitCharacters is not null ||
                 completionItem.VsCommitCharacters is not null)
             {

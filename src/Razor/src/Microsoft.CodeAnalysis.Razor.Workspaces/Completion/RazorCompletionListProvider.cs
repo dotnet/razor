@@ -115,10 +115,7 @@ internal class RazorCompletionListProvider(
         VSInternalClientCapabilities clientCapabilities,
         [NotNullWhen(true)] out VSInternalCompletionItem? completionItem)
     {
-        if (razorCompletionItem is null)
-        {
-            throw new ArgumentNullException(nameof(razorCompletionItem));
-        }
+        ArgHelper.ThrowIfNull(razorCompletionItem);
 
         var tagHelperCompletionItemKind = CompletionItemKind.TypeParameter;
         var supportedItemKinds = clientCapabilities.TextDocument?.Completion?.CompletionItemKind?.ValueSet ?? [];
