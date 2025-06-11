@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -81,7 +80,7 @@ public sealed class DiagnosticsEndToEndTest(ITestOutputHelper testOutput) : Sing
         var sourceText = codeDocument.Source.Text;
         var razorFilePath = "file://C:/path/test.razor";
         var uri = new Uri(razorFilePath);
-        var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
+        await using var languageServer = await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var requestContext = new RazorRequestContext(documentContext, null!, "lsp/method", uri: null);
 

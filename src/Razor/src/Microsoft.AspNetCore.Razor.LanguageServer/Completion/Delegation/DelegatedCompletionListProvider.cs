@@ -17,32 +17,22 @@ using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 
-internal class DelegatedCompletionListProvider
+internal class DelegatedCompletionListProvider(
+    IDocumentMappingService documentMappingService,
+    IClientConnection clientConnection,
+    CompletionListCache completionListCache,
+    CompletionTriggerAndCommitCharacters completionTriggerAndCommitCharacters)
 {
-    private readonly IDocumentMappingService _documentMappingService;
-    private readonly IClientConnection _clientConnection;
-    private readonly CompletionListCache _completionListCache;
-    private readonly CompletionTriggerAndCommitCharacters _triggerAndCommitCharacters;
-
-    public DelegatedCompletionListProvider(
-        IDocumentMappingService documentMappingService,
-        IClientConnection clientConnection,
-        CompletionListCache completionListCache,
-        CompletionTriggerAndCommitCharacters completionTriggerAndCommitCharacters)
-    {
-        _documentMappingService = documentMappingService;
-        _clientConnection = clientConnection;
-        _completionListCache = completionListCache;
-        _triggerAndCommitCharacters = completionTriggerAndCommitCharacters;
-    }
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
+    private readonly IClientConnection _clientConnection = clientConnection;
+    private readonly CompletionListCache _completionListCache = completionListCache;
+    private readonly CompletionTriggerAndCommitCharacters _triggerAndCommitCharacters = completionTriggerAndCommitCharacters;
 
     // virtual for tests
-    public virtual ValueTask<VSInternalCompletionList?> GetCompletionListAsync(
+    public virtual ValueTask<RazorVSInternalCompletionList?> GetCompletionListAsync(
         RazorCodeDocument codeDocument,
         int absoluteIndex,
         VSInternalCompletionContext completionContext,
@@ -93,7 +83,7 @@ internal class DelegatedCompletionListProvider
             cancellationToken));
     }
 
-    private async Task<VSInternalCompletionList?> GetDelegatedCompletionListAsync(
+    private async Task<RazorVSInternalCompletionList?> GetDelegatedCompletionListAsync(
         RazorCodeDocument codeDocument,
         int absoluteIndex,
         VSInternalCompletionContext completionContext,
@@ -116,7 +106,7 @@ internal class DelegatedCompletionListProvider
             correlationId);
 
         var delegatedResponse = await _clientConnection
-            .SendRequestAsync<DelegatedCompletionParams, VSInternalCompletionList?>(
+            .SendRequestAsync<DelegatedCompletionParams, RazorVSInternalCompletionList?>(
                 LanguageServerConstants.RazorCompletionEndpointName,
                 delegatedParams,
                 cancellationToken)
@@ -127,7 +117,7 @@ internal class DelegatedCompletionListProvider
             : DelegatedCompletionHelper.RewriteHtmlResponse(delegatedResponse, razorCompletionOptions);
 
         var completionCapability = clientCapabilities?.TextDocument?.Completion as VSInternalCompletionSetting;
-        var resolutionContext = new DelegatedCompletionResolutionContext(delegatedParams, rewrittenResponse.Data);
+        var resolutionContext = new DelegatedCompletionResolutionContext(identifier, positionInfo.LanguageKind, rewrittenResponse.Data);
         var resultId = _completionListCache.Add(rewrittenResponse, resolutionContext);
         rewrittenResponse.SetResultId(resultId, completionCapability);
 

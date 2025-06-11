@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
 using Microsoft.VisualStudio.Razor.Settings;
 using Roslyn.Test.Utilities;
@@ -236,13 +235,12 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             };
         }
 
-        var requestInvoker = new TestLSPRequestInvoker([(VSInternalMethods.OnAutoInsertName, response)]);
+        var requestInvoker = new TestHtmlRequestInvoker([(VSInternalMethods.OnAutoInsertName, response)]);
 
         var endpoint = new CohostOnAutoInsertEndpoint(
             RemoteServiceInvoker,
             clientSettingsManager,
             onAutoInsertTriggerCharacterProviders,
-            TestHtmlDocumentSynchronizer.Instance,
             requestInvoker,
             LoggerFactory);
 

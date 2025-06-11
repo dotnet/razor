@@ -13,8 +13,6 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using LspRange = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 using RazorSyntaxKind = Microsoft.AspNetCore.Razor.Language.SyntaxKind;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 using RazorSyntaxToken = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxToken;
@@ -116,16 +114,16 @@ internal static class RazorComponentDefinitionHelpers
             return node.Kind is RazorSyntaxKind.MarkupTagHelperStartTag or RazorSyntaxKind.MarkupTagHelperEndTag;
         }
 
-        static bool TryGetTagName(RazorSyntaxNode node, [NotNullWhen(true)] out RazorSyntaxToken? tagName)
+        static bool TryGetTagName(RazorSyntaxNode node, out RazorSyntaxToken tagName)
         {
             tagName = node switch
             {
                 MarkupTagHelperStartTagSyntax tagHelperStartTag => tagHelperStartTag.Name,
                 MarkupTagHelperEndTagSyntax tagHelperEndTag => tagHelperEndTag.Name,
-                _ => null
+                _ => default
             };
 
-            return tagName is not null;
+            return tagName != default;
         }
     }
 

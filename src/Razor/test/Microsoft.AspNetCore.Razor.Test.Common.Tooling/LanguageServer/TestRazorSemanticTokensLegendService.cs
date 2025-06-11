@@ -2,11 +2,16 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
 internal static class TestRazorSemanticTokensLegendService
 {
-    public static RazorSemanticTokensLegendService Instance = new(new TestClientCapabilitiesService(new VSInternalClientCapabilities() { SupportsVisualStudioExtensions = true }));
+    private static RazorSemanticTokensLegendService s_vsInstance = new(new TestClientCapabilitiesService(new VSInternalClientCapabilities() { SupportsVisualStudioExtensions = true }));
+    private static RazorSemanticTokensLegendService s_vsCodeInstance = new(new TestClientCapabilitiesService(new VSInternalClientCapabilities() { SupportsVisualStudioExtensions = false }));
+
+    public static RazorSemanticTokensLegendService GetInstance(bool supportsVSExtensions)
+        => supportsVSExtensions
+            ? s_vsInstance
+            : s_vsCodeInstance;
 }

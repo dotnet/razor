@@ -1,17 +1,22 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
-
-using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 /// <summary>
 /// Helper methods for C# and HTML completion ("delegated" completion) that are used both in LSP and cohosting
@@ -93,8 +98,8 @@ internal static class DelegatedCompletionHelper
     /// <returns>
     /// Possibly modified completion response.
     /// </returns>
-    public static VSInternalCompletionList RewriteCSharpResponse(
-        VSInternalCompletionList? delegatedResponse,
+    public static RazorVSInternalCompletionList RewriteCSharpResponse(
+        RazorVSInternalCompletionList? delegatedResponse,
         int absoluteIndex,
         RazorCodeDocument codeDocument,
         Position projectedPosition,
@@ -106,7 +111,7 @@ internal static class DelegatedCompletionHelper
             // list. When a user is typing quickly, the delegated request from the first keystroke will fail to synchronize,
             // so if we return a "complete" list then the query won't re-query us for completion once the typing stops/slows
             // so we'd only ever return Razor completion items.
-            return new VSInternalCompletionList() { IsIncomplete = true, Items = [] };
+            return new RazorVSInternalCompletionList() { IsIncomplete = true, Items = [] };
         }
 
         var rewrittenResponse = delegatedResponse;
@@ -124,8 +129,8 @@ internal static class DelegatedCompletionHelper
         return rewrittenResponse;
     }
 
-    public static VSInternalCompletionList RewriteHtmlResponse(
-        VSInternalCompletionList? delegatedResponse,
+    public static RazorVSInternalCompletionList RewriteHtmlResponse(
+        RazorVSInternalCompletionList? delegatedResponse,
         RazorCompletionOptions completionOptions)
     {
         if (delegatedResponse?.Items is null)
@@ -134,7 +139,7 @@ internal static class DelegatedCompletionHelper
             // list. When a user is typing quickly, the delegated request from the first keystroke will fail to synchronize,
             // so if we return a "complete" list then the query won't re-query us for completion once the typing stops/slows
             // so we'd only ever return Razor completion items.
-            return new VSInternalCompletionList() { IsIncomplete = true, Items = [] };
+            return new RazorVSInternalCompletionList() { IsIncomplete = true, Items = [] };
         }
 
         var rewrittenResponse = s_delegatedHtmlCompletionResponseRewriter.Rewrite(
@@ -190,11 +195,11 @@ internal static class DelegatedCompletionHelper
 
         // Edit the CSharp projected document to contain a '.'. This allows C# completion to provide valid
         // completion items for moments when a user has typed a '.' that's typically interpreted as Html.
-        var addProvisionalDot = VsLspFactory.CreateTextEdit(previousPosition, ".");
+        var addProvisionalDot = LspFactory.CreateTextEdit(previousPosition, ".");
 
         var provisionalPositionInfo = new DocumentPositionInfo(
             RazorLanguageKind.CSharp,
-            VsLspFactory.CreatePosition(
+            LspFactory.CreatePosition(
                 previousPosition.Line,
                 previousPosition.Character + 1),
             previousCharacterPositionInfo.HostDocumentIndex + 1);
@@ -209,8 +214,8 @@ internal static class DelegatedCompletionHelper
 
         var token = tree.Root.FindToken(absoluteIndex, includeWhitespace: false);
         if (token.Kind == SyntaxKind.EndOfFile &&
-            token.GetPreviousToken()?.Parent is { } parent &&
-            parent.FirstAncestorOrSelf<SyntaxNode>(RazorSyntaxFacts.IsAnyStartTag) is not null)
+            token.GetPreviousToken().Parent is { } parent &&
+            parent.FirstAncestorOrSelf<RazorSyntaxNode>(RazorSyntaxFacts.IsAnyStartTag) is not null)
         {
             // If we're at the end of the file, we check if the previous token is part of a start tag, because the parser
             // treats whitespace at the end different. eg with "<$$[EOF]" or "<div $$", the EndOfFile won't be seen as being
@@ -219,7 +224,7 @@ internal static class DelegatedCompletionHelper
         }
 
         var node = token.Parent;
-        var startOrEndTag = node?.FirstAncestorOrSelf<SyntaxNode>(n => RazorSyntaxFacts.IsAnyStartTag(n) || RazorSyntaxFacts.IsAnyEndTag(n));
+        var startOrEndTag = node?.FirstAncestorOrSelf<RazorSyntaxNode>(n => RazorSyntaxFacts.IsAnyStartTag(n) || RazorSyntaxFacts.IsAnyEndTag(n));
 
         if (startOrEndTag is null)
         {
@@ -234,5 +239,81 @@ internal static class DelegatedCompletionHelper
         }
 
         return !startOrEndTag.Span.Contains(absoluteIndex);
+    }
+
+    public static object? GetOriginalCompletionItemData(
+        VSInternalCompletionItem requestCompletionItem,
+        VSInternalCompletionList containingCompletionList,
+        object? originalCompletionListData)
+    {
+        var requestLabel = requestCompletionItem.Label;
+        var requestKind = requestCompletionItem.Kind;
+        var originalDelegatedCompletionItem = containingCompletionList.Items.FirstOrDefault(
+            completionItem => string.Equals(requestLabel, completionItem.Label, StringComparison.Ordinal)
+                && requestKind == completionItem.Kind);
+
+        if (originalDelegatedCompletionItem is null)
+        {
+            return null;
+        }
+
+        object? originalData;
+
+        // If the data was merged to combine resultId with original data, undo that merge and set the data back
+        // to what it originally was for the delegated request
+        if (CompletionListMerger.TrySplit(originalDelegatedCompletionItem.Data, out var splitData) && splitData.Length == 2)
+        {
+            originalData = splitData[1];
+        }
+        else
+        {
+            originalData = originalDelegatedCompletionItem.Data ?? originalCompletionListData;
+        }
+
+        return originalData;
+    }
+
+    public static async Task<VSInternalCompletionItem> FormatCSharpCompletionItemAsync(VSInternalCompletionItem resolvedCompletionItem, DocumentContext documentContext, RazorFormattingOptions options, IRazorFormattingService formattingService, CancellationToken cancellationToken)
+    {
+        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var csharpSourceText = await documentContext.GetCSharpSourceTextAsync(cancellationToken).ConfigureAwait(false);
+
+        if (resolvedCompletionItem.TextEdit is not null)
+        {
+            if (resolvedCompletionItem.TextEdit.Value.TryGetFirst(out var textEdit))
+            {
+                var textChange = csharpSourceText.GetTextChange(textEdit);
+                var formattedTextChange = await formattingService.TryGetCSharpSnippetFormattingEditAsync(
+                    documentContext,
+                    [textChange],
+                    options,
+                    cancellationToken).ConfigureAwait(false);
+
+                if (formattedTextChange is { } change)
+                {
+                    resolvedCompletionItem.TextEdit = sourceText.GetTextEdit(change);
+                }
+            }
+            else
+            {
+                // TODO: Handle InsertReplaceEdit type
+                // https://github.com/dotnet/razor/issues/8829
+                Debug.Fail("Unsupported edit type.");
+            }
+        }
+
+        if (resolvedCompletionItem.AdditionalTextEdits is not null)
+        {
+            var additionalChanges = resolvedCompletionItem.AdditionalTextEdits.SelectAsArray(csharpSourceText.GetTextChange);
+            var formattedTextChange = await formattingService.TryGetCSharpSnippetFormattingEditAsync(
+                documentContext,
+                additionalChanges,
+                options,
+                cancellationToken).ConfigureAwait(false);
+
+            resolvedCompletionItem.AdditionalTextEdits = formattedTextChange is { } change ? [sourceText.GetTextEdit(change)] : null;
+        }
+
+        return resolvedCompletionItem;
     }
 }

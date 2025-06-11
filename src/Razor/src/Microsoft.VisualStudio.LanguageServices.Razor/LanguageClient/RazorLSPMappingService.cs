@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.LanguageClient.DocumentMapping;
 using Microsoft.VisualStudio.Text;
 
@@ -111,7 +110,7 @@ internal sealed class RazorLSPMappingService(
             results.Add(new RazorMappedSpanResult(localFilePath, linePositionSpan, mappedSpan));
         }
 
-        return results.DrainToImmutable();
+        return results.ToImmutableAndClear();
     }
 
     public TestAccessor GetTestAccessor() => new(this);

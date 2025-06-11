@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol.Debugging;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -27,32 +26,6 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
     }
 
     [Fact]
-    public async Task Handle_UnsupportedDocument_ReturnsNull()
-    {
-        // Arrange
-        var documentPath = new Uri("C:/path/to/document.cshtml");
-        var codeDocument = CreateCodeDocument(@"
-<p>@DateTime.Now</p>");
-        var documentContext = CreateDocumentContext(documentPath, codeDocument);
-
-        var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(_mappingService, LoggerFactory);
-        var request = new RazorBreakpointSpanParams()
-        {
-            Uri = documentPath,
-            Position = VsLspFactory.CreatePosition(1, 0),
-            HostDocumentSyncVersion = 0,
-        };
-        codeDocument.SetUnsupported();
-        var requestContext = CreateRazorRequestContext(documentContext);
-
-        // Act
-        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, DisposalToken);
-
-        // Assert
-        Assert.Null(response);
-    }
-
-    [Fact]
     public async Task Handle_StartsInHtml_BreakpointMoved()
     {
         // Arrange
@@ -65,10 +38,10 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var request = new RazorBreakpointSpanParams()
         {
             Uri = documentPath,
-            Position = VsLspFactory.CreatePosition(1, 0),
+            Position = LspFactory.CreatePosition(1, 0),
             HostDocumentSyncVersion = 1,
         };
-        var expectedRange = VsLspFactory.CreateSingleLineRange(line: 1, character: 5, length: 14);
+        var expectedRange = LspFactory.CreateSingleLineRange(line: 1, character: 5, length: 14);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -91,10 +64,10 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var request = new RazorBreakpointSpanParams()
         {
             Uri = documentPath,
-            Position = VsLspFactory.CreatePosition(1, 0),
+            Position = LspFactory.CreatePosition(1, 0),
             HostDocumentSyncVersion = 1,
         };
-        var expectedRange = VsLspFactory.CreateSingleLineRange(line: 1, character: 4, length: 12);
+        var expectedRange = LspFactory.CreateSingleLineRange(line: 1, character: 4, length: 12);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -110,17 +83,17 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         // Arrange
         var documentPath = new Uri("C:/path/to/document.razor");
         var codeDocument = CreateCodeDocument(@"
-<p>@{var abc = 123;}</p>", FileKinds.Component);
+<p>@{var abc = 123;}</p>", RazorFileKind.Component);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
         var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(_mappingService, LoggerFactory);
         var request = new RazorBreakpointSpanParams()
         {
             Uri = documentPath,
-            Position = VsLspFactory.CreatePosition(1, 0),
+            Position = LspFactory.CreatePosition(1, 0),
             HostDocumentSyncVersion = 1,
         };
-        var expectedRange = VsLspFactory.CreateSingleLineRange(line: 1, character: 5, length: 14);
+        var expectedRange = LspFactory.CreateSingleLineRange(line: 1, character: 5, length: 14);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -136,17 +109,17 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         // Arrange
         var documentPath = new Uri("C:/path/to/document.razor");
         var codeDocument = CreateCodeDocument(@"
-<p>@currentCount</p>", FileKinds.Component);
+<p>@currentCount</p>", RazorFileKind.Component);
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
 
         var diagnosticsEndpoint = new RazorBreakpointSpanEndpoint(_mappingService, LoggerFactory);
         var request = new RazorBreakpointSpanParams()
         {
             Uri = documentPath,
-            Position = VsLspFactory.CreatePosition(1, 0),
+            Position = LspFactory.CreatePosition(1, 0),
             HostDocumentSyncVersion = 1,
         };
-        var expectedRange = VsLspFactory.CreateSingleLineRange(line: 1, character: 4, length: 12);
+        var expectedRange = LspFactory.CreateSingleLineRange(line: 1, character: 4, length: 12);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
@@ -170,7 +143,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var request = new RazorBreakpointSpanParams()
         {
             Uri = documentPath,
-            Position = VsLspFactory.CreatePosition(1, 0),
+            Position = LspFactory.CreatePosition(1, 0),
             HostDocumentSyncVersion = 1,
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -195,7 +168,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var request = new RazorBreakpointSpanParams()
         {
             Uri = documentPath,
-            Position = VsLspFactory.CreatePosition(1, 0),
+            Position = LspFactory.CreatePosition(1, 0),
             HostDocumentSyncVersion = 0,
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -223,7 +196,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var request = new RazorBreakpointSpanParams()
         {
             Uri = documentPath,
-            Position = VsLspFactory.CreatePosition(1, 0),
+            Position = LspFactory.CreatePosition(1, 0),
             HostDocumentSyncVersion = 0,
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -251,7 +224,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         var request = new RazorBreakpointSpanParams()
         {
             Uri = documentPath,
-            Position = VsLspFactory.CreatePosition(2, 0),
+            Position = LspFactory.CreatePosition(2, 0),
             HostDocumentSyncVersion = 0,
         };
         var requestContext = CreateRazorRequestContext(documentContext);
@@ -263,7 +236,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         Assert.Null(response);
     }
 
-    private static RazorCodeDocument CreateCodeDocument(string text, string? fileKind = null)
+    private static RazorCodeDocument CreateCodeDocument(string text, RazorFileKind? fileKind = null)
     {
         var sourceDocument = TestRazorSourceDocument.Create(text);
         var projectEngine = RazorProjectEngine.Create(builder =>
@@ -273,7 +246,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
                 builder.UseRoslynTokenizer = true;
             });
         });
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind ?? FileKinds.Legacy, importSources: default, tagHelpers: []);
-        return codeDocument;
+
+        return projectEngine.ProcessDesignTime(sourceDocument, fileKind ?? RazorFileKind.Legacy, importSources: default, tagHelpers: []);
     }
 }

@@ -8,10 +8,12 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectEngineHost;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -47,7 +49,7 @@ internal partial class ProjectSnapshotManager : IDisposable
     /// <summary>
     /// The set of open documents.
     /// </summary>
-    private readonly HashSet<string> _openDocumentSet = new(FilePathComparer.Instance);
+    private readonly HashSet<string> _openDocumentSet = new(PathUtilities.OSSpecificPathComparer);
 
     /// <summary>
     /// Determines whether or not the solution is closing.
@@ -82,6 +84,7 @@ internal partial class ProjectSnapshotManager : IDisposable
     /// <param name="projectEngineFactoryProvider">The <see cref="IProjectEngineFactoryProvider"/> to
     /// use when creating <see cref="ProjectState"/>.</param>
     /// <param name="compilerOptions">Options used to control Razor compilation.</param>
+    /// <param name="featureOptions">The <see cref="LanguageServerFeatureOptions"/> to use.</param>
     /// <param name="loggerFactory">The <see cref="ILoggerFactory"/> to use.</param>
     /// <param name="initializer">An optional callback to set up the initial set of projects and documents.
     /// Note that this is called during construction, so it does not run on the dispatcher and notifications
@@ -89,12 +92,13 @@ internal partial class ProjectSnapshotManager : IDisposable
     public ProjectSnapshotManager(
         IProjectEngineFactoryProvider projectEngineFactoryProvider,
         RazorCompilerOptions compilerOptions,
+        LanguageServerFeatureOptions featureOptions,
         ILoggerFactory loggerFactory,
         Action<Updater>? initializer = null)
     {
         _projectEngineFactoryProvider = projectEngineFactoryProvider;
         _compilerOptions = compilerOptions;
-        _dispatcher = new(loggerFactory);
+        _dispatcher = new(featureOptions, loggerFactory);
         _logger = loggerFactory.GetOrCreateLogger(GetType());
 
         initializer?.Invoke(new(this));
@@ -130,7 +134,7 @@ internal partial class ProjectSnapshotManager : IDisposable
                 builder.Add(entry.GetSnapshot());
             }
 
-            return builder.DrainToImmutable();
+            return builder.ToImmutableAndClear();
         }
     }
 
@@ -173,13 +177,13 @@ internal partial class ProjectSnapshotManager : IDisposable
 
             foreach (var (key, entry) in _projectMap)
             {
-                if (FilePathComparer.Instance.Equals(entry.State.HostProject.FilePath, filePath))
+                if (PathUtilities.OSSpecificPathComparer.Equals(entry.State.HostProject.FilePath, filePath))
                 {
                     projects.Add(key);
                 }
             }
 
-            return projects.DrainToImmutable();
+            return projects.ToImmutableAndClear();
         }
     }
 

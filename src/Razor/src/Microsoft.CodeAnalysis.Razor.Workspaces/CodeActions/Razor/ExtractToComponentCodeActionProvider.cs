@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -12,10 +11,10 @@ using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 
+using RazorSyntaxNodeOrToken = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNodeOrToken;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 internal class ExtractToComponentCodeActionProvider() : IRazorCodeActionProvider
@@ -35,18 +34,13 @@ internal class ExtractToComponentCodeActionProvider() : IRazorCodeActionProvider
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        if (!FileKinds.IsComponent(context.CodeDocument.FileKind))
+        if (!context.CodeDocument.FileKind.IsComponent())
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         var syntaxTree = context.CodeDocument.GetSyntaxTree();
         if (syntaxTree?.Root is null)
-        {
-            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
-        }
-
-        if (!TryGetNamespace(context.CodeDocument, out var @namespace))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
@@ -70,6 +64,7 @@ internal class ExtractToComponentCodeActionProvider() : IRazorCodeActionProvider
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
+        var @namespace = GetDeclaredNamespaceOrNull(context.CodeDocument);
         var actionParams = new ExtractToComponentCodeActionParams
         {
             Start = span.Start,
@@ -227,8 +222,8 @@ internal class ExtractToComponentCodeActionProvider() : IRazorCodeActionProvider
         if (commonAncestor != startNode &&
             commonAncestor != endNode)
         {
-            SyntaxNode? modifiedStart = null, modifiedEnd = null;
-            foreach (var child in commonAncestor.ChildNodes())
+            RazorSyntaxNodeOrToken? modifiedStart = null, modifiedEnd = null;
+            foreach (var child in commonAncestor.ChildNodesAndTokens())
             {
                 if (child.Span.Contains(startNode.Span))
                 {
@@ -247,9 +242,9 @@ internal class ExtractToComponentCodeActionProvider() : IRazorCodeActionProvider
 
             // There's a start and end node that are siblings and will work for start/end
             // of extraction into the new component.
-            if (modifiedStart is not null && modifiedEnd is not null)
+            if (modifiedStart is { } modifiedStartValue && modifiedEnd is { } modifiedEndValue)
             {
-                return TextSpan.FromBounds(modifiedStart.Span.Start, modifiedEnd.Span.End);
+                return TextSpan.FromBounds(modifiedStartValue.Span.Start, modifiedEndValue.Span.End);
             }
         }
 
@@ -272,12 +267,18 @@ internal class ExtractToComponentCodeActionProvider() : IRazorCodeActionProvider
         return node1.Parent == node2.Parent;
     }
 
-    private static bool TryGetNamespace(RazorCodeDocument codeDocument, [NotNullWhen(returnValue: true)] out string? @namespace)
-        // If the compiler can't provide a computed namespace it will fallback to "__GeneratedComponent" or
-        // similar for the NamespaceNode. This would end up with extracting to a wrong namespace
-        // and causing compiler errors. Avoid offering this refactoring if we can't accurately get a
-        // good namespace to extract to
-        => codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out @namespace);
+    private static string? GetDeclaredNamespaceOrNull(RazorCodeDocument codeDocument)
+    {
+        // We only want to get the namespace if it is explicitly defined in this document:
+        //   * If it's not explicit, then it would be weird to generate an explicit one in the new component.
+        //   * If it's in an import document, then that same import document will still apply to the new component.
+        if (codeDocument.TryComputeNamespace(fallbackToRootNamespace: false, considerImports: false, out var @namespace, out _))
+        {
+            return @namespace;
+        }
+
+        return null;
+    }
 
     private static bool IsBlockNode(SyntaxNode node)
         => node.Kind is

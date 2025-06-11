@@ -153,7 +153,10 @@ public abstract class IntegrationTestBase
         return projectItem;
     }
 
-    protected RazorProjectItem CreateProjectItemFromFile(string? filePath = null, string? fileKind = null, [CallerMemberName]string? testName = "")
+    protected RazorProjectItem CreateProjectItemFromFile(
+        string? filePath = null,
+        RazorFileKind? fileKind = null,
+        [CallerMemberName] string? testName = "")
     {
         var fileName = GetTestFileName(testName);
 
@@ -319,7 +322,6 @@ public abstract class IntegrationTestBase
                 });
             }
 
-            b.Features.Add(new DefaultTypeNameFeature());
             b.SetCSharpLanguageVersion(CSharpParseOptions.LanguageVersion);
 
             b.ConfigureParserOptions(builder =>

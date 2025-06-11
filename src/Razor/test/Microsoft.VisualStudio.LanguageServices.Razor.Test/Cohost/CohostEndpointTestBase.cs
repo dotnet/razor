@@ -23,9 +23,8 @@ using Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Xunit;
 using Roslyn.Test.Utilities;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -117,6 +116,10 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         UpdateClientLSPInitializationOptions(c => c);
 
         _filePathService = new RemoteFilePathService(FeatureOptions);
+
+        // Force initialization and creation of the remote workspace. It will be filled in later.
+        await RemoteWorkspaceProvider.TestAccessor.InitializeRemoteExportProviderBuilderAsync(Path.GetTempPath(), DisposalToken);
+        _ = RemoteWorkspaceProvider.Instance.GetWorkspace();
     }
 
     private protected void UpdateClientInitializationOptions(Func<RemoteClientInitializationOptions, RemoteClientInitializationOptions> mutation)
@@ -137,13 +140,13 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
 
     protected TextDocument CreateProjectAndRazorDocument(
         string contents,
-        string? fileKind = null,
+        RazorFileKind? fileKind = null,
         (string fileName, string contents)[]? additionalFiles = null,
         bool createSeparateRemoteAndLocalWorkspaces = false,
         bool inGlobalNamespace = false)
     {
         // Using IsLegacy means null == component, so easier for test authors
-        var isComponent = !FileKinds.IsLegacy(fileKind);
+        var isComponent = fileKind != RazorFileKind.Legacy;
 
         var documentFilePath = isComponent
             ? TestProjectData.SomeProjectComponentFile1.FilePath
@@ -154,7 +157,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         var projectId = ProjectId.CreateNewId(debugName: projectName);
         var documentId = DocumentId.CreateNewId(projectId, debugName: documentFilePath);
 
-        var remoteWorkspace = RemoteWorkspaceAccessor.GetWorkspace();
+        var remoteWorkspace = RemoteWorkspaceProvider.Instance.GetWorkspace();
         var remoteDocument = CreateProjectAndRazorDocument(remoteWorkspace, projectId, projectName, documentId, documentFilePath, contents, additionalFiles, inGlobalNamespace);
 
         if (createSeparateRemoteAndLocalWorkspaces)

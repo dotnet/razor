@@ -17,15 +17,12 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using LspDiagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
-using LspDiagnosticSeverity = Microsoft.VisualStudio.LanguageServer.Protocol.DiagnosticSeverity;
-using LspRange = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.Razor.Diagnostics;
 
 using RazorDiagnosticFactory = AspNetCore.Razor.Language.RazorDiagnosticFactory;
 using SyntaxNode = AspNetCore.Razor.Language.Syntax.SyntaxNode;
+using RazorSyntaxNodeOrToken = AspNetCore.Razor.Language.Syntax.SyntaxNodeOrToken;
 
 /// <summary>
 /// Contains several methods for mapping and filtering Razor and C# diagnostics. It allows for
@@ -67,11 +64,6 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
         CancellationToken cancellationToken)
     {
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        if (codeDocument.IsUnsupported() != false)
-        {
-            _logger.LogInformation($"Unsupported code document.");
-            return [];
-        }
 
         var filteredDiagnostics = diagnosticKind == RazorLanguageKind.CSharp
             ? FilterCSharpDiagnostics(diagnostics, codeDocument)
@@ -240,7 +232,7 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
             CSSErrorCodes.MissingSelectorBeforeCombinatorCode => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree),
             HtmlErrorCodes.UnexpectedEndTagErrorCode => IsHtmlWithBangAndMatchingTags(diagnostic, sourceText, syntaxTree),
             HtmlErrorCodes.InvalidNestingErrorCode => IsAnyFilteredInvalidNestingError(diagnostic, sourceText, syntaxTree),
-            HtmlErrorCodes.MissingEndTagErrorCode => FileKinds.IsComponent(syntaxTree.Options.FileKind), // Redundant with RZ9980 in Components
+            HtmlErrorCodes.MissingEndTagErrorCode => syntaxTree.Options.FileKind.IsComponent(), // Redundant with RZ9980 in Components
             HtmlErrorCodes.TooFewElementsErrorCode => IsAnyFilteredTooFewElementsError(diagnostic, sourceText, syntaxTree),
             _ => false,
         };
@@ -312,7 +304,8 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
 
             var bodyElement = element
                 .ChildNodes()
-                .SingleOrDefault(static c => c is MarkupElementSyntax tag && tag.StartTag?.Name.Content == "body") as MarkupElementSyntax;
+                .OfType<MarkupElementSyntax>()
+                .SingleOrDefault(static element => element.StartTag?.Name.Content == "body");
 
             return bodyElement is not null &&
                    bodyElement.StartTag?.Bang is not null;
@@ -338,7 +331,7 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
                 return false;
             }
 
-            var haveBang = startNode.Bang is not null && endNode.Bang is not null;
+            var haveBang = startNode.Bang.IsValid() && endNode.Bang.IsValid();
             var namesEquivalent = startNode.Name.Content == endNode.Name.Content;
 
             return haveBang && namesEquivalent;
@@ -414,10 +407,10 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
 
         if (markupAttributeNode is not null)
         {
-            if (!processedAttributes.TryGetValue(markupAttributeNode.FullSpan, out var doesAttributeContainNonMarkup))
+            if (!processedAttributes.TryGetValue(markupAttributeNode.Span, out var doesAttributeContainNonMarkup))
             {
                 doesAttributeContainNonMarkup = CheckIfAttributeContainsNonMarkupNodes(markupAttributeNode);
-                processedAttributes.Add(markupAttributeNode.FullSpan, doesAttributeContainNonMarkup);
+                processedAttributes.Add(markupAttributeNode.Span, doesAttributeContainNonMarkup);
             }
 
             return doesAttributeContainNonMarkup;
@@ -428,13 +421,15 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
         static bool CheckIfAttributeContainsNonMarkupNodes(RazorSyntaxNode attributeNode)
         {
             // Only allow markup, generic & (non-razor comment) token nodes
-            var containsNonMarkupNodes = attributeNode.DescendantNodes()
-                .Any(static n => !(n is MarkupBlockSyntax ||
-                    n is MarkupSyntaxNode ||
-                    n is GenericBlockSyntax ||
-                    (n is SyntaxNode sn && sn.IsToken && sn.Kind != SyntaxKind.RazorCommentTransition)));
+            var containsNonMarkupNodes = attributeNode.DescendantNodesAndTokens().Any(IsNotMarkupNodeOrCommentToken);
 
             return containsNonMarkupNodes;
+        }
+
+        static bool IsNotMarkupNodeOrCommentToken(RazorSyntaxNodeOrToken nodeOrToken)
+        {
+            return !(nodeOrToken.IsToken && nodeOrToken.AsToken().Kind == SyntaxKind.RazorCommentTransition) &&
+                   !(nodeOrToken.IsNode && nodeOrToken.AsNode() is MarkupBlockSyntax or MarkupSyntaxNode or GenericBlockSyntax);
         }
     }
 
@@ -575,7 +570,7 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
                 var diagnosticEndWhitespaceOffset = diagnosticEndCharacter + 1;
                 var endLinePosition = (endLineIndex, diagnosticEndWhitespaceOffset);
 
-                remappedRange = VsLspFactory.CreateRange(startLinePosition, endLinePosition);
+                remappedRange = LspFactory.CreateRange(startLinePosition, endLinePosition);
                 return true;
         }
     }

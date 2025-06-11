@@ -5,16 +5,16 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Razor.Settings;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -38,12 +38,14 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
     private protected async Task RunFormattingTestAsync(
         TestCode input,
         string expected,
-        string? fileKind = null,
+        RazorFileKind? fileKind = null,
         bool inGlobalNamespace = false,
         bool codeBlockBraceOnNextLine = false,
         bool insertSpaces = true,
         int tabSize = 4,
-        bool allowDiagnostics = false)
+        bool allowDiagnostics = false,
+        bool debugAssertsEnabled = true,
+        Func<SourceText, SourceText>? csharpModifierFunc = null)
     {
         (input, expected) = ProcessFormattingContext(input, expected);
 
@@ -60,14 +62,23 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
             //Assert.False(csharpDocument.Diagnostics.Any(), "Error creating document:" + Environment.NewLine + string.Join(Environment.NewLine, csharpDocument.Diagnostics));
         }
 
-        var htmlDocumentPublisher = new HtmlDocumentPublisher(RemoteServiceInvoker, StrictMock.Of<TrackingLSPDocumentManager>(), JoinableTaskContext, LoggerFactory);
-        var generatedHtml = await htmlDocumentPublisher.GetHtmlSourceFromOOPAsync(document, DisposalToken);
+        var formattingService = (RazorFormattingService)OOPExportProvider.GetExportedValue<IRazorFormattingService>();
+        var accessor = formattingService.GetTestAccessor();
+        accessor.SetDebugAssertsEnabled(debugAssertsEnabled);
+        if (csharpModifierFunc is not null)
+        {
+            accessor.SetFormattedCSharpDocumentModifierFunc(csharpModifierFunc);
+        }
+
+        var generatedHtml = await RemoteServiceInvoker.TryInvokeAsync<IRemoteHtmlDocumentService, string?>(document.Project.Solution,
+            (service, solutionInfo, ct) => service.GetHtmlDocumentTextAsync(solutionInfo, document.Id, ct),
+            DisposalToken).ConfigureAwait(false);
         Assert.NotNull(generatedHtml);
 
         var uri = new Uri(document.CreateUri(), $"{document.FilePath}{FeatureOptions.HtmlVirtualDocumentSuffix}");
         var htmlEdits = await _htmlFormattingService.GetDocumentFormattingEditsAsync(LoggerFactory, uri, generatedHtml, insertSpaces, tabSize);
 
-        var requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentFormattingName, htmlEdits)]);
+        var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentFormattingName, htmlEdits)]);
 
         var clientSettingsManager = new ClientSettingsManager(changeTriggers: []);
         clientSettingsManager.Update(clientSettingsManager.GetClientSettings().AdvancedSettings with { CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine });
@@ -97,7 +108,7 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
         bool inGlobalNamespace = false,
         bool insertSpaces = true,
         int tabSize = 4,
-        string? fileKind = null,
+        RazorFileKind? fileKind = null,
         int? expectedChangedLines = null)
     {
         (input, expected) = ProcessFormattingContext(input, expected);
@@ -106,18 +117,19 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
         var inputText = await document.GetTextAsync(DisposalToken);
         var position = inputText.GetPosition(input.Position);
 
-        var htmlDocumentPublisher = new HtmlDocumentPublisher(RemoteServiceInvoker, StrictMock.Of<TrackingLSPDocumentManager>(), StrictMock.Of<JoinableTaskContext>(), LoggerFactory);
-        var generatedHtml = await htmlDocumentPublisher.GetHtmlSourceFromOOPAsync(document, DisposalToken);
+        var generatedHtml = await RemoteServiceInvoker.TryInvokeAsync<IRemoteHtmlDocumentService, string?>(document.Project.Solution,
+            (service, solutionInfo, ct) => service.GetHtmlDocumentTextAsync(solutionInfo, document.Id, ct),
+            DisposalToken).ConfigureAwait(false);
         Assert.NotNull(generatedHtml);
 
         var uri = new Uri(document.CreateUri(), $"{document.FilePath}{FeatureOptions.HtmlVirtualDocumentSuffix}");
         var htmlEdits = await _htmlFormattingService.GetOnTypeFormattingEditsAsync(LoggerFactory, uri, generatedHtml, position, insertSpaces: true, tabSize: 4);
 
-        var requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentOnTypeFormattingName, htmlEdits)]);
+        var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentOnTypeFormattingName, htmlEdits)]);
 
         var clientSettingsManager = new ClientSettingsManager(changeTriggers: []);
 
-        var endpoint = new CohostOnTypeFormattingEndpoint(RemoteServiceInvoker, TestHtmlDocumentSynchronizer.Instance, requestInvoker, clientSettingsManager, LoggerFactory);
+        var endpoint = new CohostOnTypeFormattingEndpoint(RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
 
         var request = new DocumentOnTypeFormattingParams()
         {
@@ -167,11 +179,11 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
         return (input, expected);
     }
 
-    private async Task<TextEdit[]?> GetFormattingEditsAsync(TextSpan span, bool insertSpaces, int tabSize, TextDocument document, LSPRequestInvoker requestInvoker, IClientSettingsManager clientSettingsManager)
+    private async Task<TextEdit[]?> GetFormattingEditsAsync(TextSpan span, bool insertSpaces, int tabSize, TextDocument document, IHtmlRequestInvoker requestInvoker, IClientSettingsManager clientSettingsManager)
     {
         if (span.IsEmpty)
         {
-            var endpoint = new CohostDocumentFormattingEndpoint(RemoteServiceInvoker, TestHtmlDocumentSynchronizer.Instance, requestInvoker, clientSettingsManager, LoggerFactory);
+            var endpoint = new CohostDocumentFormattingEndpoint(RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
             var request = new DocumentFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = document.CreateUri() },
@@ -186,7 +198,7 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
         }
 
         var inputText = await document.GetTextAsync(DisposalToken);
-        var rangeEndpoint = new CohostRangeFormattingEndpoint(RemoteServiceInvoker, TestHtmlDocumentSynchronizer.Instance, requestInvoker, clientSettingsManager, LoggerFactory);
+        var rangeEndpoint = new CohostRangeFormattingEndpoint(RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
         var rangeRequest = new DocumentRangeFormattingParams()
         {
             TextDocument = new TextDocumentIdentifier() { Uri = document.CreateUri() },

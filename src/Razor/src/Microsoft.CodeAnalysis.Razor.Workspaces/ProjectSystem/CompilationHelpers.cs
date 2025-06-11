@@ -20,7 +20,7 @@ internal static class CompilationHelpers
     {
         var importSources = await GetImportSourcesAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);
         var tagHelpers = await document.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
-        var source = await document.GetSourceAsync(projectEngine, cancellationToken).ConfigureAwait(false);
+        var source = await document.GetSourceAsync(cancellationToken).ConfigureAwait(false);
 
         var generator = new CodeDocumentGenerator(projectEngine, compilerOptions);
         return generator.Generate(source, document.FileKind, importSources, tagHelpers, cancellationToken);
@@ -33,15 +33,18 @@ internal static class CompilationHelpers
     {
         var importSources = await GetImportSourcesAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);
         var tagHelpers = await document.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
-        var source = await document.GetSourceAsync(projectEngine, cancellationToken).ConfigureAwait(false);
+        var source = await document.GetSourceAsync(cancellationToken).ConfigureAwait(false);
 
         var generator = new CodeDocumentGenerator(projectEngine, RazorCompilerOptions.None);
         return generator.GenerateDesignTime(source, document.FileKind, importSources, tagHelpers, cancellationToken);
     }
 
-    private static async Task<ImmutableArray<RazorSourceDocument>> GetImportSourcesAsync(IDocumentSnapshot document, RazorProjectEngine projectEngine, CancellationToken cancellationToken)
+    internal static async Task<ImmutableArray<RazorSourceDocument>> GetImportSourcesAsync(IDocumentSnapshot document, RazorProjectEngine projectEngine, CancellationToken cancellationToken)
     {
-        var projectItem = projectEngine.FileSystem.GetItem(document.FilePath, document.FileKind);
+        // We don't use document.FilePath when calling into GetItem(...) because
+        // it could be rooted outside of the project root. document.TargetPath should
+        // represent the logical relative path within the project root.
+        var projectItem = projectEngine.FileSystem.GetItem(document.TargetPath, document.FileKind);
 
         using var importProjectItems = new PooledArrayBuilder<RazorProjectItem>();
         projectEngine.CollectImports(projectItem, ref importProjectItems.AsRef());
@@ -71,14 +74,12 @@ internal static class CompilationHelpers
             }
             else if (project.TryGetDocument(importProjectItem.PhysicalPath, out var importDocument))
             {
-                var text = await importDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var properties = RazorSourceDocumentProperties.Create(importProjectItem.FilePath, importProjectItem.RelativePhysicalPath);
-                var importSource = RazorSourceDocument.Create(text, properties);
+                var importSource = await importDocument.GetSourceAsync(cancellationToken).ConfigureAwait(false);
 
                 importSources.Add(importSource);
             }
         }
 
-        return importSources.DrainToImmutable();
+        return importSources.ToImmutableAndClear();
     }
 }

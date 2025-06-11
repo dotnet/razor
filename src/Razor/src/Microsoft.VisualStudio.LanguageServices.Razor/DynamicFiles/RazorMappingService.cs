@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 
@@ -58,7 +57,7 @@ internal class RazorMappingService(IDocumentSnapshot document, ITelemetryReporte
             }
         }
 
-        return results.DrainToImmutable();
+        return results.ToImmutableAndClear();
     }
 
     public async Task<ImmutableArray<RazorMappedEditResult>> MapTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)

@@ -5,20 +5,19 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal static class IDocumentSnapshotExtensions
 {
-    public static async Task<RazorSourceDocument> GetSourceAsync(this IDocumentSnapshot document, RazorProjectEngine projectEngine, CancellationToken cancellationToken)
+    public static async Task<RazorSourceDocument> GetSourceAsync(
+        this IDocumentSnapshot document,
+        CancellationToken cancellationToken)
     {
-        var projectItem = document is { FilePath: string filePath, FileKind: var fileKind }
-            ? projectEngine.FileSystem.GetItem(filePath, fileKind)
-            : null;
-
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var properties = RazorSourceDocumentProperties.Create(document.FilePath, projectItem?.RelativePhysicalPath);
+        var properties = RazorSourceDocumentProperties.Create(document.FilePath, document.TargetPath);
         return RazorSourceDocument.Create(text, properties);
     }
 
@@ -27,7 +26,7 @@ internal static class IDocumentSnapshotExtensions
         CancellationToken cancellationToken)
     {
         // No point doing anything if its not a component
-        if (documentSnapshot.FileKind != FileKinds.Component)
+        if (documentSnapshot.FileKind != RazorFileKind.Component)
         {
             return null;
         }
@@ -57,12 +56,12 @@ internal static class IDocumentSnapshotExtensions
 
     public static bool IsPathCandidateForComponent(this IDocumentSnapshot documentSnapshot, ReadOnlyMemory<char> path)
     {
-        if (documentSnapshot.FileKind != FileKinds.Component)
+        if (documentSnapshot.FileKind != RazorFileKind.Component)
         {
             return false;
         }
 
         var fileName = Path.GetFileNameWithoutExtension(documentSnapshot.FilePath);
-        return fileName.AsSpan().Equals(path.Span, FilePathComparison.Instance);
+        return fileName.AsSpan().Equals(path.Span, PathUtilities.OSSpecificPathComparison);
     }
 }

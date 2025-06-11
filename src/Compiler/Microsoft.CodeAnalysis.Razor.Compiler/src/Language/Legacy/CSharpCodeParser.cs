@@ -1244,7 +1244,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
             // Accept the directive name
             var keywordToken = EatCurrentToken();
-            var keywordLength = keywordToken.FullWidth + 1 /* @ */;
+            var keywordLength = keywordToken.Width + 1 /* @ */;
 
             var foundWhitespace = At(SyntaxKind.Whitespace);
 
@@ -2650,7 +2650,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         chunkGenerator = SpanChunkGenerator.Null;
         CompleteBlock();
         var keyword = OutputAsMetaCode(Output());
-        var directiveBody = SyntaxFactory.RazorDirectiveBody(keyword, cSharpCode: null);
+        var directiveBody = SyntaxFactory.RazorDirectiveBody(keyword, csharpCode: null);
 
         // transition could be null if we're already inside a code block.
         transition = transition ?? SyntaxFactory.CSharpTransition(SyntaxFactory.MissingToken(SyntaxKind.Transition), chunkGenerator: null);

@@ -152,7 +152,7 @@ internal static class CodeWriterExtensions
         return writer;
     }
 
-    public static CodeWriter WriteEnhancedLineNumberDirective(this CodeWriter writer, SourceSpan span, int characterOffset = 0)
+    public static CodeWriter WriteEnhancedLineNumberDirective(this CodeWriter writer, SourceSpan span, int characterOffset, bool ensurePathBackslashes)
     {
         // All values here need to be offset by 1 since #line uses a 1-indexed numbering system.
         var lineNumberAsString = (span.LineIndex + 1).ToString(CultureInfo.InvariantCulture);
@@ -176,10 +176,10 @@ internal static class CodeWriterExtensions
             writer.Write(characterOffsetAsString).Write(" ");
         }
 
-        return writer.Write("\"").Write(span.FilePath).WriteLine("\"");
+        return writer.Write("\"").WriteFilePath(span.FilePath, ensurePathBackslashes).WriteLine("\"");
     }
 
-    public static CodeWriter WriteLineNumberDirective(this CodeWriter writer, SourceSpan span)
+    public static CodeWriter WriteLineNumberDirective(this CodeWriter writer, SourceSpan span, bool ensurePathBackslashes)
     {
         if (writer.Length >= writer.NewLine.Length && !IsAtBeginningOfLine(writer))
         {
@@ -187,7 +187,35 @@ internal static class CodeWriterExtensions
         }
 
         var lineNumberAsString = (span.LineIndex + 1).ToString(CultureInfo.InvariantCulture);
-        return writer.Write("#line ").Write(lineNumberAsString).Write(" \"").Write(span.FilePath).WriteLine("\"");
+        return writer.Write("#line ").Write(lineNumberAsString).Write(" \"").WriteFilePath(span.FilePath, ensurePathBackslashes).WriteLine("\"");
+    }
+
+    private static CodeWriter WriteFilePath(this CodeWriter writer, string filePath, bool ensurePathBackslashes)
+    {
+        if (!ensurePathBackslashes)
+        {
+            return writer.Write(filePath);
+        }
+
+        // ISSUE: https://github.com/dotnet/razor/issues/9108
+        // The razor tooling normalizes paths to be forward slash based, regardless of OS.
+        // If you try and use the line pragma in the design time docs to map back to the original file it will fail,
+        // as the path isn't actually valid on windows. As a workaround we apply a simple heuristic to switch the
+        // paths back when writing out the design time paths.
+        var filePathMemory = filePath.AsMemory();
+        var forwardSlashIndex = filePathMemory.Span.IndexOf('/');
+        while (forwardSlashIndex >= 0)
+        {
+            writer.Write(filePathMemory[..forwardSlashIndex]);
+            writer.Write("\\");
+
+            filePathMemory = filePathMemory[(forwardSlashIndex + 1)..];
+            forwardSlashIndex = filePathMemory.Span.IndexOf('/');
+        }
+
+        writer.Write(filePathMemory);
+
+        return writer;
     }
 
     public static CodeWriter WriteStartMethodInvocation(this CodeWriter writer, string methodName)
@@ -337,32 +365,23 @@ internal static class CodeWriterExtensions
             .WriteEndMethodInvocation(endLine);
     }
 
+    public static CodeWriter WritePropertyDeclaration(this CodeWriter writer, IList<string> modifiers, IntermediateToken type, string propertyName, string propertyExpression, CodeRenderingContext context)
+    {
+        WritePropertyDeclarationPreamble(writer, modifiers, type.Content, propertyName, type.Source, propertySpan: null, context);
+        writer.Write(" => ");
+        writer.Write(propertyExpression);
+        writer.WriteLine(";");
+        return writer;
+    }
+
     public static CodeWriter WriteAutoPropertyDeclaration(this CodeWriter writer, IList<string> modifiers, string typeName, string propertyName, SourceSpan? typeSpan = null, SourceSpan? propertySpan = null, CodeRenderingContext context = null, bool privateSetter = false, bool defaultValue = false)
     {
-        if (modifiers == null)
-        {
-            throw new ArgumentNullException(nameof(modifiers));
-        }
+        ArgHelper.ThrowIfNull(modifiers);
+        ArgHelper.ThrowIfNull(typeName);
+        ArgHelper.ThrowIfNull(propertyName);
 
-        if (typeName == null)
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
+        WritePropertyDeclarationPreamble(writer, modifiers, typeName, propertyName, typeSpan, propertySpan, context);
 
-        if (propertyName == null)
-        {
-            throw new ArgumentNullException(nameof(propertyName));
-        }
-
-        for (var i = 0; i < modifiers.Count; i++)
-        {
-            writer.Write(modifiers[i]);
-            writer.Write(" ");
-        }
-
-        WriteToken(writer, typeName, typeSpan, context);
-        writer.Write(" ");
-        WriteToken(writer, propertyName, propertySpan, context);
         writer.Write(" { get;");
         if (privateSetter)
         {
@@ -377,6 +396,19 @@ internal static class CodeWriterExtensions
         }
 
         return writer;
+    }
+
+    private static void WritePropertyDeclarationPreamble(CodeWriter writer, IList<string> modifiers, string typeName, string propertyName, SourceSpan? typeSpan, SourceSpan? propertySpan, CodeRenderingContext context)
+    {
+        for (var i = 0; i < modifiers.Count; i++)
+        {
+            writer.Write(modifiers[i]);
+            writer.Write(" ");
+        }
+
+        WriteToken(writer, typeName, typeSpan, context);
+        writer.Write(" ");
+        WriteToken(writer, propertyName, propertySpan, context);
 
         static void WriteToken(CodeWriter writer, string content, SourceSpan? span, CodeRenderingContext context)
         {
@@ -659,20 +691,6 @@ internal static class CodeWriterExtensions
         return new LinePragmaWriter(writer, span.Value, context, characterOffset, useEnhancedLinePragma: true, suppressLineDefaultAndHidden);
     }
 
-    private static SourceSpan RemapFilePathIfNecessary(SourceSpan sourceSpan, CodeRenderingContext context)
-    {
-        if (context.Options.RemapLinePragmaPathsOnWindows && PlatformInformation.IsWindows)
-        {
-            // ISSUE: https://github.com/dotnet/razor/issues/9108
-            // The razor tooling normalizes paths to be forward slash based, regardless of OS.
-            // If you try and use the line pragma in the design time docs to map back to the original file it will fail,
-            // as the path isn't actually valid on windows. As a workaround we apply a simple heuristic to switch the
-            // paths back when writing out the design time paths.
-            sourceSpan = new SourceSpan(sourceSpan.FilePath.Replace("/", "\\"), sourceSpan.AbsoluteIndex, sourceSpan.LineIndex, sourceSpan.CharacterIndex, sourceSpan.Length, sourceSpan.LineCount, sourceSpan.EndCharacterIndex);
-        }
-        return sourceSpan;
-    }
-
     private static void WriteVerbatimStringLiteral(CodeWriter writer, ReadOnlyMemory<char> literal)
     {
         writer.Write("@\"");
@@ -872,14 +890,14 @@ internal static class CodeWriterExtensions
                 _writer.WriteLine("#nullable restore");
             }
 
-            var sourceSpan = RemapFilePathIfNecessary(span, context);
+            var ensurePathBackslashes = context.Options.RemapLinePragmaPathsOnWindows && PlatformInformation.IsWindows;
             if (useEnhancedLinePragma && _context.Options.UseEnhancedLinePragma)
             {
-                WriteEnhancedLineNumberDirective(writer, sourceSpan, characterOffset);
+                WriteEnhancedLineNumberDirective(writer, span, characterOffset, ensurePathBackslashes);
             }
             else
             {
-                WriteLineNumberDirective(writer, sourceSpan);
+                WriteLineNumberDirective(writer, span, ensurePathBackslashes);
             }
 
             // Capture the line index after writing the #line directive.

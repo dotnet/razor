@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.AutoInsert;
 
@@ -36,7 +35,7 @@ internal class AutoInsertService(IEnumerable<IOnAutoInsertProvider> onAutoInsert
             }
         }
 
-        return builder.DrainToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     public ImmutableArray<string> TriggerCharacters => _triggerCharacters;
