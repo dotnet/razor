@@ -42,7 +42,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         phase.Execute(codeDocument);
 
         // Assert
-        var documentNode = codeDocument.GetRequiredDocumentIntermediateNode();
+        var documentNode = codeDocument.GetRequiredDocumentNode();
         var customDirectives = documentNode.FindDirectiveReferences(directive);
         var customDirective = (DirectiveIntermediateNode)Assert.Single(customDirectives).Node;
         var stringToken = Assert.Single(customDirective.Tokens);
@@ -80,7 +80,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         phase.Execute(codeDocument);
 
         // Assert
-        var documentNode = codeDocument.GetRequiredDocumentIntermediateNode();
+        var documentNode = codeDocument.GetRequiredDocumentNode();
         var customDirectives = documentNode.FindDirectiveReferences(directive);
         var customDirective = (DirectiveIntermediateNode)Assert.Single(customDirectives).Node;
         var stringToken = Assert.Single(customDirective.Tokens);
@@ -119,7 +119,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         phase.Execute(codeDocument);
 
         // Assert
-        var documentNode = codeDocument.GetRequiredDocumentIntermediateNode();
+        var documentNode = codeDocument.GetRequiredDocumentNode();
         var customDirectives = documentNode.FindDirectiveReferences(directive);
         var customDirective = (DirectiveIntermediateNode)Assert.Single(customDirectives).Node;
         var stringToken = Assert.Single(customDirective.Tokens);
@@ -156,7 +156,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         phase.Execute(codeDocument);
 
         // Assert
-        var documentNode = codeDocument.GetRequiredDocumentIntermediateNode();
+        var documentNode = codeDocument.GetRequiredDocumentNode();
         var directives = documentNode.Children.OfType<DirectiveIntermediateNode>();
         Assert.Empty(directives);
     }
@@ -187,7 +187,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         phase.Execute(codeDocument);
 
         // Assert
-        var documentNode = codeDocument.GetRequiredDocumentIntermediateNode();
+        var documentNode = codeDocument.GetRequiredDocumentNode();
         var directives = documentNode.Children.OfType<DirectiveIntermediateNode>();
         Assert.Empty(directives);
         var diagnostic = Assert.Single(documentNode.GetAllDiagnostics());
@@ -220,7 +220,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         phase.Execute(codeDocument);
 
         // Assert
-        var documentNode = codeDocument.GetRequiredDocumentIntermediateNode();
+        var documentNode = codeDocument.GetRequiredDocumentNode();
         var directives = documentNode.Children.OfType<DirectiveIntermediateNode>();
         Assert.Empty(directives);
         var diagnostic = Assert.Single(documentNode.GetAllDiagnostics());
@@ -269,7 +269,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         phase.Execute(codeDocument);
 
         // Assert
-        var documentNode = codeDocument.GetRequiredDocumentIntermediateNode();
+        var documentNode = codeDocument.GetRequiredDocumentNode();
         var diagnostic = Assert.Single(documentNode.Diagnostics);
         Assert.Equal(@"The explicit expression block is missing a closing "")"" character.  Make sure you have a matching "")"" character for all the ""("" characters within this block, and that none of the "")"" characters are being interpreted as markup.",
             diagnostic.GetMessage(CultureInfo.CurrentCulture));
@@ -301,7 +301,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseTest
         phase.Execute(codeDocument);
 
         // Assert
-        var documentNode = codeDocument.GetRequiredDocumentIntermediateNode();
+        var documentNode = codeDocument.GetRequiredDocumentNode();
         Assert.Collection(documentNode.Diagnostics,
             diagnostic =>
             {

@@ -17,7 +17,7 @@ internal class DefaultRazorDocumentClassifierPhase : RazorEnginePhaseBase, IRazo
 
     protected override void ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
     {
-        var documentNode = codeDocument.GetDocumentIntermediateNode();
+        var documentNode = codeDocument.GetDocumentNode();
         ThrowForMissingDocumentDependency(documentNode);
 
         foreach (var pass in Passes)
@@ -25,6 +25,6 @@ internal class DefaultRazorDocumentClassifierPhase : RazorEnginePhaseBase, IRazo
             pass.Execute(codeDocument, documentNode);
         }
 
-        codeDocument.SetDocumentIntermediateNode(documentNode);
+        codeDocument.SetDocumentNode(documentNode);
     }
 }

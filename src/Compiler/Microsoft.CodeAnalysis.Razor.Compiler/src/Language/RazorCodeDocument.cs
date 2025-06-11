@@ -66,8 +66,8 @@ public sealed partial class RazorCodeDocument
     internal IReadOnlyList<TagHelperDescriptor> GetRequiredTagHelpers()
         => _properties.TagHelpers.RequiredValue;
 
-    internal void SetTagHelpers(IReadOnlyList<TagHelperDescriptor>? tagHelpers)
-        => _properties.TagHelpers.SetValue(tagHelpers);
+    internal void SetTagHelpers(IReadOnlyList<TagHelperDescriptor>? value)
+        => _properties.TagHelpers.SetValue(value);
 
     internal bool TryGetReferencedTagHelpers([NotNullWhen(true)] out ISet<TagHelperDescriptor>? result)
         => _properties.ReferencedTagHelpers.TryGetValue(out result);
@@ -93,8 +93,8 @@ public sealed partial class RazorCodeDocument
     internal RazorSyntaxTree GetRequiredPreTagHelperSyntaxTree()
         => _properties.PreTagHelperSyntaxTree.RequiredValue;
 
-    internal void SetPreTagHelperSyntaxTree(RazorSyntaxTree? syntaxTree)
-        => _properties.PreTagHelperSyntaxTree.SetValue(syntaxTree);
+    internal void SetPreTagHelperSyntaxTree(RazorSyntaxTree? value)
+        => _properties.PreTagHelperSyntaxTree.SetValue(value);
 
     internal bool TryGetSyntaxTree([NotNullWhen(true)] out RazorSyntaxTree? result)
         => _properties.SyntaxTree.TryGetValue(out result);
@@ -105,10 +105,10 @@ public sealed partial class RazorCodeDocument
     internal RazorSyntaxTree GetRequiredSyntaxTree()
         => _properties.SyntaxTree.RequiredValue;
 
-    internal void SetSyntaxTree(RazorSyntaxTree syntaxTree)
+    internal void SetSyntaxTree(RazorSyntaxTree value)
     {
-        Debug.Assert(syntaxTree is not null);
-        _properties.SyntaxTree.SetValue(syntaxTree);
+        Debug.Assert(value is not null);
+        _properties.SyntaxTree.SetValue(value);
     }
 
     internal bool TryGetImportSyntaxTrees(out ImmutableArray<RazorSyntaxTree> result)
@@ -117,12 +117,12 @@ public sealed partial class RazorCodeDocument
     internal ImmutableArray<RazorSyntaxTree> GetImportSyntaxTrees()
         => _properties.ImportSyntaxTrees.Value ?? [];
 
-    internal void SetImportSyntaxTrees(ImmutableArray<RazorSyntaxTree> syntaxTrees)
+    internal void SetImportSyntaxTrees(ImmutableArray<RazorSyntaxTree> value)
     {
-        Debug.Assert(!syntaxTrees.IsDefault);
-        Debug.Assert(syntaxTrees.IsEmpty || syntaxTrees.All(static t => t is not null));
+        Debug.Assert(!value.IsDefault);
+        Debug.Assert(value.IsEmpty || value.All(static t => t is not null));
 
-        _properties.ImportSyntaxTrees.SetValue(syntaxTrees);
+        _properties.ImportSyntaxTrees.SetValue(value);
     }
 
     internal bool TryGetTagHelperContext([NotNullWhen(true)] out TagHelperDocumentContext? result)
@@ -134,25 +134,25 @@ public sealed partial class RazorCodeDocument
     internal TagHelperDocumentContext GetRequiredTagHelperContext()
         => _properties.TagHelperContext.RequiredValue;
 
-    internal void SetTagHelperContext(TagHelperDocumentContext context)
+    internal void SetTagHelperContext(TagHelperDocumentContext value)
     {
-        Debug.Assert(context is not null);
-        _properties.TagHelperContext.SetValue(context);
+        Debug.Assert(value is not null);
+        _properties.TagHelperContext.SetValue(value);
     }
 
-    internal bool TryGetDocumentIntermediateNode([NotNullWhen(true)] out DocumentIntermediateNode? result)
+    internal bool TryGetDocumentNode([NotNullWhen(true)] out DocumentIntermediateNode? result)
         => _properties.DocumentNode.TryGetValue(out result);
 
-    internal DocumentIntermediateNode? GetDocumentIntermediateNode()
+    internal DocumentIntermediateNode? GetDocumentNode()
         => _properties.DocumentNode.Value;
 
-    internal DocumentIntermediateNode GetRequiredDocumentIntermediateNode()
+    internal DocumentIntermediateNode GetRequiredDocumentNode()
         => _properties.DocumentNode.RequiredValue;
 
-    internal void SetDocumentIntermediateNode(DocumentIntermediateNode node)
+    internal void SetDocumentNode(DocumentIntermediateNode value)
     {
-        Debug.Assert(node is not null);
-        _properties.DocumentNode.SetValue(node);
+        Debug.Assert(value is not null);
+        _properties.DocumentNode.SetValue(value);
     }
 
     internal bool TryGetCSharpDocument([NotNullWhen(true)] out RazorCSharpDocument? result)
@@ -164,10 +164,10 @@ public sealed partial class RazorCodeDocument
     internal RazorCSharpDocument GetRequiredCSharpDocument()
         => _properties.CSharpDocument.RequiredValue;
 
-    internal void SetCSharpDocument(RazorCSharpDocument csharpDocument)
+    internal void SetCSharpDocument(RazorCSharpDocument value)
     {
-        Debug.Assert(csharpDocument is not null);
-        _properties.CSharpDocument.SetValue(csharpDocument);
+        Debug.Assert(value is not null);
+        _properties.CSharpDocument.SetValue(value);
     }
 
     internal RazorHtmlDocument GetHtmlDocument()

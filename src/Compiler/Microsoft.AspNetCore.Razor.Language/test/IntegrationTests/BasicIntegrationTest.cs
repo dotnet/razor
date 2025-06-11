@@ -18,7 +18,7 @@ public class BasicIntegrationTest() : IntegrationTestBase(layer: TestProject.Lay
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
-        AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentIntermediateNode());
+        AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentNode());
     }
 
     [Fact]
@@ -32,7 +32,7 @@ public class BasicIntegrationTest() : IntegrationTestBase(layer: TestProject.Lay
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
-        AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentIntermediateNode());
+        AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentNode());
     }
 
     [Fact]
@@ -50,6 +50,6 @@ public class BasicIntegrationTest() : IntegrationTestBase(layer: TestProject.Lay
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
-        AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentIntermediateNode());
+        AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentNode());
     }
 }

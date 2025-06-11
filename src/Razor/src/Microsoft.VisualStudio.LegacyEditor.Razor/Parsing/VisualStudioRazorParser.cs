@@ -362,9 +362,9 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
                 codeDocument.SetTagHelperContext(tagHelperContext);
             }
 
-            if (currentCodeDocument.TryGetDocumentIntermediateNode(out var documentNode))
+            if (currentCodeDocument.TryGetDocumentNode(out var documentNode))
             {
-                codeDocument.SetDocumentIntermediateNode(documentNode);
+                codeDocument.SetDocumentNode(documentNode);
             }
 
             if (currentCodeDocument.TryGetCSharpDocument(out var csharpDocument))

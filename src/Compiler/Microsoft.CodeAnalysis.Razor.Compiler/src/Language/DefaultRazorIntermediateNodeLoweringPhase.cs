@@ -139,7 +139,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             }
         }
 
-        codeDocument.SetDocumentIntermediateNode(documentNode);
+        codeDocument.SetDocumentNode(documentNode);
 
         static bool TryRemoveGlobalPrefixFromDefaultUsing(in UsingReference usingReference, out ReadOnlySpan<char> trimmedNamespace)
         {

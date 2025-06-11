@@ -465,7 +465,7 @@ public class ComponentMarkupBlockPassTest
             phase.Execute(codeDocument);
         }
 
-        var document = codeDocument.GetRequiredDocumentIntermediateNode();
+        var document = codeDocument.GetRequiredDocumentNode();
         Engine.GetFeatures<ComponentDocumentClassifierPass>().Single().Execute(codeDocument, document);
         Engine.GetFeatures<ComponentMarkupDiagnosticPass>().Single().Execute(codeDocument, document);
         return document;

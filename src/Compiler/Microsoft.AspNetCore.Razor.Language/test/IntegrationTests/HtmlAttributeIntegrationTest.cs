@@ -17,7 +17,7 @@ public class HtmlAttributeIntegrationTest() : IntegrationTestBase(layer: TestPro
         var compiled = CompileToCSharp(projectItem);
 
         // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetRequiredDocumentIntermediateNode());
+        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetRequiredDocumentNode());
     }
 
     [Fact]
@@ -30,6 +30,6 @@ public class HtmlAttributeIntegrationTest() : IntegrationTestBase(layer: TestPro
         var compiled = CompileToCSharp(projectItem);
 
         // Assert
-        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetRequiredDocumentIntermediateNode());
+        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetRequiredDocumentNode());
     }
 }

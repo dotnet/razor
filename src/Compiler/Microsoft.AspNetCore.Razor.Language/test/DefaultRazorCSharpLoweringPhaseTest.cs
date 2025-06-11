@@ -47,7 +47,7 @@ public class DefaultRazorCSharpLoweringPhaseTest
         {
             DocumentKind = "test",
         };
-        codeDocument.SetDocumentIntermediateNode(documentNode);
+        codeDocument.SetDocumentNode(documentNode);
 
         // Act & Assert
         var exception = Assert.Throws<InvalidOperationException>(() => phase.Execute(codeDocument));
@@ -75,7 +75,7 @@ public class DefaultRazorCSharpLoweringPhaseTest
             new RazorDiagnosticDescriptor("1234", "I am an error.", RazorDiagnosticSeverity.Error),
             new SourceSpan("SomeFile.cshtml", 11, 0, 11, 1));
         documentNode.AddDiagnostic(expectedDiagnostic);
-        codeDocument.SetDocumentIntermediateNode(documentNode);
+        codeDocument.SetDocumentNode(documentNode);
 
         // Act
         phase.Execute(codeDocument);
