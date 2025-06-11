@@ -771,19 +771,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
 
         Assert.NotNull(result);
 
-        if (result.Description is not null)
-        {
-            AssertEx.EqualOrDiff(expectedResolvedItemDescription, FlattenDescription(result.Description));
-        }
-        else if (result.Documentation is { Value: string description })
-        {
-            AssertEx.EqualOrDiff(expectedResolvedItemDescription, description);
-        }
-        else
-        {
-            Assert.Fail("Unhandled description type: " + JsonSerializer.SerializeToElement(result).ToString());
-        }
-
         if (result.TextEdit is { Value: TextEdit edit })
         {
             Assert.NotNull(expected);
@@ -792,6 +779,36 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             var changedText = text.WithChanges(text.GetTextChange(edit));
 
             AssertEx.EqualOrDiff(expected, changedText.ToString());
+        }
+        else if (result.Command is { Arguments: [_, TextEdit textEdit, ..] })
+        {
+            Assert.NotNull(expected);
+
+            var text = await document.GetTextAsync(DisposalToken).ConfigureAwait(false);
+            var changedText = text.WithChanges(text.GetTextChange(textEdit));
+
+            AssertEx.EqualOrDiff(expected, changedText.ToString());
+        }
+        else if (expected is not null)
+        {
+            Assert.Fail("Expected a TextEdit or Command with TextEdit, but got none. Presumably resolve failed. Result: " + JsonSerializer.SerializeToElement(result).ToString());
+        }
+
+        if (result.Description is not null)
+        {
+            AssertEx.EqualOrDiff(expectedResolvedItemDescription, FlattenDescription(result.Description));
+        }
+        else if (result.Documentation is { Value: string description })
+        {
+            AssertEx.EqualOrDiff(expectedResolvedItemDescription, description);
+        }
+        else if (result.Documentation is { Value: MarkupContent { Kind.Value: "plaintext" } content })
+        {
+            AssertEx.EqualOrDiff(expectedResolvedItemDescription, content.Value);
+        }
+        else
+        {
+            Assert.Fail("Unhandled description type: " + JsonSerializer.SerializeToElement(result).ToString());
         }
     }
 
