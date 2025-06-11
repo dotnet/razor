@@ -10,11 +10,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CommonLanguageServerProtocol.Framework;
+using FileSystemWatcher = System.IO.FileSystemWatcher;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -60,7 +59,7 @@ internal partial class WorkspaceRootPathWatcher : IOnInitialized, IDisposable
 
         _disposeTokenSource = new();
         _workQueue = new AsyncBatchingWorkQueue<(string, RazorFileChangeKind)>(delay, ProcessBatchAsync, _disposeTokenSource.Token);
-        _filePathToChangeMap = new(FilePathComparer.Instance);
+        _filePathToChangeMap = new(PathUtilities.OSSpecificPathComparer);
         _indicesToSkip = [];
         _watchers = [];
         _fileSystem = fileSystem;
@@ -160,7 +159,7 @@ internal partial class WorkspaceRootPathWatcher : IOnInitialized, IDisposable
         }
     }
 
-    public async Task OnInitializedAsync(ILspServices services, CancellationToken cancellationToken)
+    public async Task OnInitializedAsync(CancellationToken cancellationToken)
     {
         // Initialized request, this occurs once the server and client have agreed on what sort of features they both support. It only happens once.
 
@@ -218,13 +217,13 @@ internal partial class WorkspaceRootPathWatcher : IOnInitialized, IDisposable
                 Debug.Assert(filter[0] == '*');
                 var extension = filter.AsSpan()[1..];
 
-                if (PathUtilities.GetExtension(args.OldFullPath.AsSpan()).Equals(extension, FilePathComparison.Instance))
+                if (PathUtilities.GetExtension(args.OldFullPath.AsSpan()).Equals(extension, PathUtilities.OSSpecificPathComparison))
                 {
                     // Renaming from Razor file to something else.
                     _workQueue.AddWork((args.OldFullPath, RazorFileChangeKind.Removed));
                 }
 
-                if (PathUtilities.GetExtension(args.FullPath.AsSpan()).Equals(extension, FilePathComparison.Instance))
+                if (PathUtilities.GetExtension(args.FullPath.AsSpan()).Equals(extension, PathUtilities.OSSpecificPathComparison))
                 {
                     // Renaming to a Razor file.
                     _workQueue.AddWork((args.FullPath, RazorFileChangeKind.Added));
@@ -261,6 +260,6 @@ internal partial class WorkspaceRootPathWatcher : IOnInitialized, IDisposable
             result.AddRange(existingFiles);
         }
 
-        return result.DrainToImmutable();
+        return result.ToImmutableAndClear();
     }
 }

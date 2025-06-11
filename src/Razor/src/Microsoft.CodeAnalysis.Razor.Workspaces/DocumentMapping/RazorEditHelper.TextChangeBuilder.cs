@@ -17,7 +17,6 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.ObjectPool;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
@@ -41,7 +40,7 @@ internal static partial class RazorEditHelper
         }
 
         public ImmutableArray<RazorTextChange> DrainToOrderedImmutable()
-            => _builder.DrainToImmutableOrderedBy(static e => e.Span.Start);
+            => _builder.ToImmutableOrderedByAndClear(static e => e.Span.Start);
 
         /// <summary>
         /// For all edits that are not mapped to using directives, add them directly to the builder.
@@ -422,7 +421,7 @@ internal static partial class RazorEditHelper
                 }
             }
 
-            return (firstBlockOfUsingsBuilder.DrainToImmutable(), remainingUsingsBuilder.DrainToImmutable());
+            return (firstBlockOfUsingsBuilder.ToImmutableAndClear(), remainingUsingsBuilder.ToImmutableAndClear());
         }
     }
 }

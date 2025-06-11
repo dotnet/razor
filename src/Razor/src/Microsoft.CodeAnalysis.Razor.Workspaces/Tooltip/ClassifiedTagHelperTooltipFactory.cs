@@ -12,8 +12,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.VisualStudio.Core.Imaging;
-using Microsoft.VisualStudio.Text.Adornments;
+using Roslyn.Core.Imaging;
+using Roslyn.Text.Adornments;
 
 namespace Microsoft.CodeAnalysis.Razor.Tooltip;
 
@@ -178,7 +178,7 @@ internal static class ClassifiedTagHelperTooltipFactory
             descriptions.Add(new DescriptionClassification(typeRuns, documentationRuns));
         }
 
-        return descriptions.DrainToImmutable();
+        return descriptions.ToImmutableAndClear();
     }
 
     private static async Task AddProjectAvailabilityInfoAsync(
@@ -239,7 +239,7 @@ internal static class ClassifiedTagHelperTooltipFactory
             descriptions.Add(new DescriptionClassification(typeRuns, documentationRuns));
         }
 
-        classifications = descriptions.DrainToImmutable();
+        classifications = descriptions.ToImmutableAndClear();
         return true;
     }
 

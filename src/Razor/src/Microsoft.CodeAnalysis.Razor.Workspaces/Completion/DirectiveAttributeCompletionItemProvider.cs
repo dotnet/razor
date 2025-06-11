@@ -16,7 +16,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 {
     public override ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
-        if (!FileKinds.IsComponent(context.SyntaxTree.Options.FileKind))
+        if (!context.SyntaxTree.Options.FileKind.IsComponent())
         {
             // Directive attributes are only supported in components
             return [];
@@ -142,12 +142,12 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                 displayText,
                 insertText,
                 descriptionInfo: new([.. attributeDescriptions]),
-                commitCharacters: razorCommitCharacters.DrainToImmutable());
+                commitCharacters: razorCommitCharacters.ToImmutableAndClear());
 
             completionItems.Add(razorCompletionItem);
         }
 
-        return completionItems.DrainToImmutable();
+        return completionItems.ToImmutableAndClear();
 
         bool TryAddCompletion(string attributeName, BoundAttributeDescriptor boundAttributeDescriptor, TagHelperDescriptor tagHelperDescriptor)
         {

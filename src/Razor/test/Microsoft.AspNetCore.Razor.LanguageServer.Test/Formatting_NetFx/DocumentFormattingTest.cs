@@ -1,10 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -26,6 +28,82 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
         await RunFormattingTestAsync(
             input: "",
             expected: "");
+    }
+
+    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    public async Task RoslynFormatBracesAsKandR()
+    {
+        // To format code blocks we emit a class so that class members are parsed properly by Roslyn, and ignore
+        // the open brace on the next line. This test validates that that system works when Roslyn is configured
+        // to format braces in K&R style, with the brace on the same line as the declaration.
+
+        await RunFormattingTestAsync(
+            input: """
+                <h1>count is @counter</h1>
+
+                @code {
+                private int counter;
+
+                class Goo
+                {
+                    public void Bar()
+                    {
+                        counter++;
+                    }
+                }
+                }
+                """,
+            expected: """
+                <h1>count is @counter</h1>
+
+                @code {
+                    private int counter;
+
+                    class Goo {
+                        public void Bar() {
+                            counter++;
+                        }
+                    }
+                }
+                """,
+            // I'm so sorry, but I could not find any way to change Roslyn formatting options from our test infra. Forgive my hacky sins
+            csharpModifierFunc: formattedCSharpText => SourceText.From(
+                Regex.Replace(
+                    formattedCSharpText.ToString(),
+                    @"(class|void) ([\S]+)[\s]+{",
+                    "$1 $2 {"
+                )));
+    }
+
+    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    public async Task PropertyShrunkToOneLine()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @code {
+                    public string Name
+                    {
+                        get;
+                        set;
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    public string Name { get; set; }
+                }
+                """,
+            // I'm so sorry, but I could not find any way to change Roslyn formatting options from our test infra. Forgive my hacky sins
+            csharpModifierFunc: formattedCSharpText => SourceText.From(
+                formattedCSharpText.ToString().Replace(
+                    """
+                    public string Name
+                        {
+                            get;
+                            set;
+                        }
+                    """,
+                    "public string Name { get; set; }")));
     }
 
     [FormattingTestFact]
@@ -98,7 +176,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         <meta property="a" content="b">
                     }
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -115,7 +193,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         <meta property="a" content="b">
                     }
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestTheory, CombinatorialData]
@@ -510,7 +588,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -537,7 +615,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -565,7 +643,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
-            fileKind: FileKinds.Legacy,
+            fileKind: RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: true);
     }
 
@@ -593,7 +671,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -619,7 +697,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -648,7 +726,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     """,
             insertSpaces: false,
             tabSize: 8,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -879,7 +957,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             expected: """
                     @model MyModel
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -892,7 +970,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             expected: """
                     @page "MyPage"
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -917,7 +995,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         *@
                     </div>
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -940,7 +1018,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             </div>                        *@
                     </div>
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -965,7 +1043,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     *@
                     </div>
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -1022,7 +1100,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     @removeTagHelper    "*,  Microsoft.AspNetCore.Mvc.TagHelpers"
                     @tagHelperPrefix    th:
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -1589,7 +1667,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     """,
             tabSize: 4, // Due to a bug in the HTML formatter, this needs to be 4
             insertSpaces: false,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -1631,7 +1709,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     """,
             tabSize: 4, // Due to a bug in the HTML formatter, this needs to be 4
             insertSpaces: false,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -1677,7 +1755,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     """,
             tabSize: 4, // Due to a bug in the HTML formatter, this needs to be 4
             insertSpaces: false,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -1769,6 +1847,71 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     """);
     }
+
+    [FormattingTestFact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2471065")]
+    public Task MultipleHtmlElementsInCSharpCode()
+        => RunFormattingTestAsync(
+            input: """
+                <div class="p-3 pb-0" style="min-height:24rem;">
+
+                @if (productsForExport != null)
+                {
+                <label class="section-label">
+                @(!showResult ? "some label" : "another label")
+                </label>
+
+                <div class="row">
+                <div class="col">
+                @if (!showResult)
+                {
+                <label>
+                <input type="checkbox" class="me-2 mt-1" />
+                <span>some label</span>
+                </label>
+                }
+                </div>
+
+                </div>
+                }
+
+                </div>
+
+                @code {
+                bool showResult = false;
+                object? productsForExport = null;
+                }
+                """,
+            expected: """
+                <div class="p-3 pb-0" style="min-height:24rem;">
+
+                    @if (productsForExport != null)
+                    {
+                        <label class="section-label">
+                            @(!showResult ? "some label" : "another label")
+                        </label>
+
+                        <div class="row">
+                            <div class="col">
+                                @if (!showResult)
+                                {
+                                    <label>
+                                        <input type="checkbox" class="me-2 mt-1" />
+                                        <span>some label</span>
+                                    </label>
+                                }
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+
+                @code {
+                    bool showResult = false;
+                    object? productsForExport = null;
+                }
+                """);
 
     [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/29645")]
@@ -2097,7 +2240,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         public bool VarBool { get; set; }
                     }
                     """,
-            fileKind: FileKinds.Component);
+            fileKind: RazorFileKind.Component);
     }
 
     [FormattingTestFact(SkipFlipLineEndingInOldEngine = true)]
@@ -2155,7 +2298,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         public bool VarBool { get; set; }
                     }
                     """,
-            fileKind: FileKinds.Component); // tracked by https://github.com/dotnet/razor/issues/10836
+            fileKind: RazorFileKind.Component); // tracked by https://github.com/dotnet/razor/issues/10836
     }
 
     [FormattingTestFact]
@@ -2215,7 +2358,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         public bool VarBool { get; set; }
                     }
                     """,
-            fileKind: FileKinds.Component);
+            fileKind: RazorFileKind.Component);
     }
 
     [FormattingTestFact(SkipFlipLineEndingInOldEngine = true)]
@@ -2267,7 +2410,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         public bool VarBool { get; set; }
                     }
                     """,
-            fileKind: FileKinds.Component);
+            fileKind: RazorFileKind.Component);
     }
 
     [FormattingTestFact(SkipFlipLineEndingInOldEngine = true)]
@@ -2325,7 +2468,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         public bool VarBool { get; set; }
                     }
                     """,
-            fileKind: FileKinds.Component);
+            fileKind: RazorFileKind.Component);
     }
 
     [FormattingTestFact]
@@ -2387,7 +2530,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         public bool VarBool { get; set; }
                     }
                     """,
-            fileKind: FileKinds.Component);
+            fileKind: RazorFileKind.Component);
     }
 
     [FormattingTestFact]
@@ -2437,7 +2580,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     </div>
                     """,
-            fileKind: FileKinds.Component);
+            fileKind: RazorFileKind.Component);
     }
 
     [FormattingTestFact]
@@ -2481,7 +2624,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         </div>
                     </div>
                     """,
-            fileKind: FileKinds.Component);
+            fileKind: RazorFileKind.Component);
     }
 
     [FormattingTestFact]
@@ -2519,7 +2662,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         </div>
                     </div>
                     """,
-            fileKind: FileKinds.Component);
+            fileKind: RazorFileKind.Component);
     }
 
     [FormattingTestFact]
@@ -2563,7 +2706,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     </div>
                     """,
-            fileKind: FileKinds.Component);
+            fileKind: RazorFileKind.Component);
     }
 
     [FormattingTestFact]
@@ -2613,7 +2756,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     </div>
                     """,
-            fileKind: FileKinds.Component);
+            fileKind: RazorFileKind.Component);
     }
 
     [FormattingTestFact(SkipOldFormattingEngine = true)]
@@ -2652,7 +2795,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
-            fileKind: FileKinds.Component);
+            fileKind: RazorFileKind.Component);
     }
 
     [FormattingTestFact(SkipOldFormattingEngine = true)]
@@ -2695,7 +2838,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
-            fileKind: FileKinds.Component);
+            fileKind: RazorFileKind.Component);
     }
 
     [FormattingTestFact(SkipOldFormattingEngine = true)]
@@ -2736,7 +2879,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
-            fileKind: FileKinds.Component);
+            fileKind: RazorFileKind.Component);
     }
 
     [FormattingTestFact]
@@ -2780,7 +2923,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     </div>
                     """,
-            fileKind: FileKinds.Component);
+            fileKind: RazorFileKind.Component);
     }
 
     [FormattingTestFact]
@@ -2874,7 +3017,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -2946,7 +3089,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             4))
                     </div>
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -3283,7 +3426,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                                     </div>
                         </section>
                     """,
-            fileKind: FileKinds.Legacy,
+            fileKind: RazorFileKind.Legacy,
             allowDiagnostics: true);
     }
 
@@ -3490,7 +3633,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -3520,7 +3663,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         <script></script>
                     }
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -3556,7 +3699,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         </script>
                     }
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -3594,7 +3737,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -3635,7 +3778,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         <p></p>
                     }
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -3683,7 +3826,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
 
                     <p></p>
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -3727,7 +3870,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -3773,7 +3916,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -3813,7 +3956,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         <p>and finally this</p>
                     }
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -3870,7 +4013,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -4066,7 +4209,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -5518,7 +5661,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
 
                 """;
 
-        await RunFormattingTestAsync(input, input, fileKind: FileKinds.Component);
+        await RunFormattingTestAsync(input, input, fileKind: RazorFileKind.Component);
     }
 
     [FormattingTestFact]
@@ -5825,7 +5968,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 }
                 @Foo()
                 """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact]
@@ -5937,7 +6080,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                              }" />
                 </div>
                 """,
-            fileKind: FileKinds.Legacy);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [FormattingTestFact(SkipOldFormattingEngine = true)]
@@ -6082,4 +6225,247 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             input: code,
             expected: code);
     }
+
+    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [WorkItem("https://github.com/dotnet/razor/issues/11777")]
+    public Task RangeFormat_AfterProperty()
+        => RunFormattingTestAsync(
+            input: """
+                @code
+                {
+                    public string S
+                    {
+                        get => _s;
+                        set
+                        {
+                            _s = value;
+                        }
+                    } [|private string _s = "";|]
+                }
+                """,
+            expected: """
+                @code
+                {
+                    public string S
+                    {
+                        get => _s;
+                        set
+                        {
+                            _s = value;
+                        }
+                    } private string _s = "";
+                }
+                """,
+            debugAssertsEnabled: false
+            );
+
+    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [WorkItem("https://github.com/dotnet/razor/issues/11873")]
+    public Task NestedExplicitExpression1()
+        => RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <div class="d-flex">
+                        <div class="d-flex flex-column" style="text-align: end;">
+                            @if (true)
+                            {
+                                <span>
+                                    @((((true) ? 123d : 0d) +
+                                        (true ? 123d : 0d)
+                                        ).ToString("F2", CultureInfo.InvariantCulture)) €
+                                </span>
+                                <hr class="my-1" />
+                                <span>
+                                    @((123d +
+                                        ((true) ? 123d : 0d) +
+                                        (true ? 123d : 0d)
+                                        ).ToString("F2", CultureInfo.InvariantCulture)) €
+                                </span>
+                            }
+                        </div>
+                    </div>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div class="d-flex">
+                        <div class="d-flex flex-column" style="text-align: end;">
+                            @if (true)
+                            {
+                                <span>
+                                    @((((true) ? 123d : 0d) +
+                                                (true ? 123d : 0d)
+                                                ).ToString("F2", CultureInfo.InvariantCulture)) €
+                                </span>
+                                <hr class="my-1" />
+                                <span>
+                                    @((123d +
+                                                ((true) ? 123d : 0d) +
+                                                (true ? 123d : 0d)
+                                                ).ToString("F2", CultureInfo.InvariantCulture)) €
+                                </span>
+                            }
+                        </div>
+                    </div>
+                }
+                """);
+
+    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [WorkItem("https://github.com/dotnet/razor/issues/11873")]
+    public Task NestedExplicitExpression1_Stable()
+    {
+        var code = """
+            @if (true)
+            {
+                <div class="d-flex">
+                    <div class="d-flex flex-column" style="text-align: end;">
+                        @if (true)
+                        {
+                            <span>
+                                @((((true) ? 123d : 0d) +
+                                            (true ? 123d : 0d)
+                                            ).ToString("F2", CultureInfo.InvariantCulture)) €
+                            </span>
+                            <hr class="my-1" />
+                            <span>
+                                @((123d +
+                                            ((true) ? 123d : 0d) +
+                                            (true ? 123d : 0d)
+                                            ).ToString("F2", CultureInfo.InvariantCulture)) €
+                            </span>
+                        }
+                    </div>
+                </div>
+            }
+            """;
+
+        return RunFormattingTestAsync(input: code, expected: code);
+    }
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/11873")]
+    public Task NestedExplicitExpression2()
+        => RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <span>
+                        @((((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)) €
+                    </span>
+                    <hr class="my-1" />
+                    <span>
+                        @((123d +
+                            ((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)) €
+                    </span>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <span>
+                        @((((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)) €
+                    </span>
+                    <hr class="my-1" />
+                    <span>
+                        @((123d +
+                            ((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)) €
+                    </span>
+                }
+                """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/11873")]
+    public Task NestedExplicitExpression3()
+        => RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <span>
+                        @((((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                        ) €
+                    </span>
+                    <hr class="my-1" />
+                    <span>
+                        @((123d +
+                            ((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                        ) €
+                    </span>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <span>
+                        @((((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                            ) €
+                    </span>
+                    <hr class="my-1" />
+                    <span>
+                        @((123d +
+                            ((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                            ) €
+                    </span>
+                }
+                """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/11873")]
+    public Task NestedExplicitExpression4()
+    => RunFormattingTestAsync(
+        input: """
+                @if (true)
+                {
+                    <span>
+                        @((((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                ) €
+                    </span>
+                    <hr class="my-1" />
+                    <span>
+                        @((123d +
+                            ((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                ) €
+                    </span>
+                }
+                """,
+        expected: """
+                @if (true)
+                {
+                    <span>
+                        @((((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                            ) €
+                    </span>
+                    <hr class="my-1" />
+                    <span>
+                        @((123d +
+                            ((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)
+                            ) €
+                    </span>
+                }
+                """);
 }

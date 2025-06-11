@@ -15,6 +15,7 @@ internal static class CustomMessageNames
     // VS Windows only
     public const string RazorInlineCompletionEndpoint = "razor/inlineCompletion";
     public const string RazorValidateBreakpointRangeName = "razor/validateBreakpointRange";
+    public const string RazorDataTipRangeName = "razor/dataTipRange";
     public const string RazorOnAutoInsertEndpointName = "razor/onAutoInsert";
     public const string RazorSemanticTokensRefreshEndpoint = "razor/semanticTokensRefresh";
     public const string RazorTextPresentationEndpoint = "razor/textPresentation";
@@ -64,6 +65,4 @@ internal static class CustomMessageNames
 
     // Called to get C# diagnostics from Roslyn when publishing diagnostics for VS Code
     public const string RazorCSharpPullDiagnosticsEndpointName = "razor/csharpPullDiagnostics";
-
-    public const string ColorPresentationMethodName = "textDocument/colorPresentation";
 }

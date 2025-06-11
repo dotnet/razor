@@ -9,14 +9,13 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.FindAllReferences;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.LanguageServer.Protocol;
-using static Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.SumType<Roslyn.LanguageServer.Protocol.VSInternalReferenceItem, Roslyn.LanguageServer.Protocol.Location>[]?>;
+using static Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<
+    Roslyn.LanguageServer.Protocol.SumType<Roslyn.LanguageServer.Protocol.VSInternalReferenceItem, Roslyn.LanguageServer.Protocol.Location>[]?>;
 using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
-using LspLocation = Roslyn.LanguageServer.Protocol.Location;
-using VsLspExtensions = Microsoft.VisualStudio.LanguageServer.Protocol.VsLspExtensions;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -29,6 +28,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
     }
 
     private readonly IClientCapabilitiesService _clientCapabilitiesService = args.ExportProvider.GetExportedValue<IClientCapabilitiesService>();
+    private readonly IWorkspaceProvider _workspaceProvider = args.WorkspaceProvider;
 
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
 
@@ -69,9 +69,9 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
 
         var results = await ExternalHandlers.FindAllReferences
             .FindReferencesAsync(
-                RemoteWorkspaceAccessor.GetWorkspace(),
+                _workspaceProvider.GetWorkspace(),
                 generatedDocument,
-                VsLspExtensions.ToLinePosition(positionInfo.Position),
+                positionInfo.Position.ToLinePosition(),
                 _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions,
                 cancellationToken)
             .ConfigureAwait(false);

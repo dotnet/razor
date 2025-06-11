@@ -223,7 +223,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     public void BasicComponent_Runtime()
     {
         // Arrange
-        var projectItem = CreateProjectItemFromFile(fileKind: FileKinds.Component);
+        var projectItem = CreateProjectItemFromFile(fileKind: RazorFileKind.Component);
 
         // Act
         var compiled = CompileToAssembly(projectItem, designTime: false);
@@ -442,6 +442,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentIntermediateNode());
         AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
         AssertLinePragmas(compiled.CodeDocument, designTime: false);
     }
 
@@ -1137,7 +1138,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     public void BasicComponent_DesignTime()
     {
         // Arrange
-        var projectItem = CreateProjectItemFromFile(fileKind: FileKinds.Component);
+        var projectItem = CreateProjectItemFromFile(fileKind: RazorFileKind.Component);
 
         // Act
         var compiled = CompileToAssembly(projectItem, designTime: true);

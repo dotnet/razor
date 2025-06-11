@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.Settings;
 using Microsoft.VisualStudio.Razor.Snippets;
-using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -26,7 +25,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostInlineCompletionEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [Fact(Skip = "Cannot edit source generated documents")]
+    [Fact]
     public Task Constructor()
         => VerifyInlineCompletionAsync(
             input: """
@@ -49,7 +48,7 @@ public class CohostInlineCompletionEndpointTest(ITestOutputHelper testOutputHelp
                 }
                 """);
 
-    [Fact(Skip = "Cannot edit source generated documents")]
+    [Fact]
     public Task Constructor_SmallIndent()
         => VerifyInlineCompletionAsync(
             input: """
@@ -94,7 +93,7 @@ public class CohostInlineCompletionEndpointTest(ITestOutputHelper testOutputHelp
             TabSize = tabSize
         };
 
-        var list = await endpoint.GetTestAccessor().HandleRequestAsync(document, position, options.ToRoslynFormattingOptions(), DisposalToken);
+        var list = await endpoint.GetTestAccessor().HandleRequestAsync(document, position, options.ToLspFormattingOptions(), DisposalToken);
 
         if (output is null)
         {

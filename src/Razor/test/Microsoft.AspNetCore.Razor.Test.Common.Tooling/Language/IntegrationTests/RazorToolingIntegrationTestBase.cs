@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
+using Diagnostic = Microsoft.CodeAnalysis.Diagnostic;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
@@ -84,7 +85,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
     /// Gets a hardcoded document kind to be added to each code document that's created. This can
     /// be used to generate components.
     /// </summary>
-    internal virtual string FileKind { get; }
+    internal virtual RazorFileKind? FileKind { get; }
 
     internal virtual VirtualRazorProjectFileSystem FileSystem { get; }
 
@@ -122,8 +123,6 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
 
             b.Features.Add(new TestImportProjectFeature(ImportItems.ToImmutable()));
 
-            b.Features.Add(new DefaultTypeNameFeature());
-
             b.Features.Add(new CompilationTagHelperFeature());
             b.Features.Add(new DefaultMetadataReferenceFeature()
             {
@@ -142,7 +141,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
         });
     }
 
-    internal RazorProjectItem CreateProjectItem(string cshtmlRelativePath, string cshtmlContent, string fileKind = null)
+    internal RazorProjectItem CreateProjectItem(string cshtmlRelativePath, string cshtmlContent, RazorFileKind? fileKind = null)
     {
         var fullPath = WorkingDirectory + PathSeparator + cshtmlRelativePath;
 
@@ -174,7 +173,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
         return CompileToCSharp(DefaultFileName, cshtmlContent, throwOnFailure);
     }
 
-    protected CompileToCSharpResult CompileToCSharp(string cshtmlRelativePath, string cshtmlContent, bool throwOnFailure = true, string fileKind = null)
+    protected CompileToCSharpResult CompileToCSharp(string cshtmlRelativePath, string cshtmlContent, bool throwOnFailure = true, RazorFileKind? fileKind = null)
     {
         if (DeclarationOnly && DesignTime)
         {
@@ -288,7 +287,7 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
 
         var diagnostics = compilation
             .GetDiagnostics()
-            .Where(d => d.Severity != DiagnosticSeverity.Hidden);
+            .Where(d => d.Severity != CodeAnalysis.DiagnosticSeverity.Hidden);
 
         if (diagnostics.Any() && throwOnFailure)
         {

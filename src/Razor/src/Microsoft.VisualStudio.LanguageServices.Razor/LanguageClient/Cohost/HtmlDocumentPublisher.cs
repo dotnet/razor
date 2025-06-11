@@ -6,10 +6,10 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Threading;
 
@@ -18,28 +18,17 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Export(typeof(IHtmlDocumentPublisher))]
 [method: ImportingConstructor]
 internal sealed class HtmlDocumentPublisher(
-    IRemoteServiceInvoker remoteServiceInvoker,
     LSPDocumentManager documentManager,
     JoinableTaskContext joinableTaskContext,
     ILoggerFactory loggerFactory) : IHtmlDocumentPublisher
 {
-    private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly JoinableTaskContext _joinableTaskContext = joinableTaskContext;
     private readonly TrackingLSPDocumentManager _documentManager = documentManager as TrackingLSPDocumentManager ?? throw new InvalidOperationException("Expected TrackingLSPDocumentManager");
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<HtmlDocumentPublisher>();
 
-    public Task<string?> GetHtmlSourceFromOOPAsync(TextDocument document, CancellationToken cancellationToken)
+    public async Task PublishAsync(TextDocument document, SynchronizationResult synchronizationResult, string htmlText, CancellationToken cancellationToken)
     {
-        return _remoteServiceInvoker.TryInvokeAsync<IRemoteHtmlDocumentService, string?>(document.Project.Solution,
-            (service, solutionInfo, ct) => service.GetHtmlDocumentTextAsync(solutionInfo, document.Id, ct),
-            cancellationToken).AsTask();
-    }
-
-    public async Task PublishAsync(TextDocument document, string htmlText, CancellationToken cancellationToken)
-    {
-        // TODO: Eventually, for VS Code, the following piece of logic needs to make an LSP call rather than directly update the
-        // buffer, but the assembly this code currently lives in doesn't ship in VS Code, so we need to solve a few other things
-        // before we get there.
+        Assumed.True(synchronizationResult.Synchronized);
 
         var uri = document.CreateUri();
         if (!_documentManager.TryGetDocument(uri, out var documentSnapshot) ||
@@ -65,7 +54,7 @@ internal sealed class HtmlDocumentPublisher(
         }
 
         VisualStudioTextChange[] changes = [new(0, htmlDocument.Snapshot.Length, htmlText)];
-        _documentManager.UpdateVirtualDocument<HtmlVirtualDocument>(uri, changes, documentSnapshot.Version, state: null);
+        _documentManager.UpdateVirtualDocument<HtmlVirtualDocument>(uri, changes, documentSnapshot.Version, state: synchronizationResult.Checksum);
 
         _logger.LogDebug($"Finished Html document generation for {document.FilePath} (into {uri})");
     }

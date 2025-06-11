@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Text;
 
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
@@ -48,10 +48,11 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
     {
         autoInsertEdit = null;
 
-        if (!(enableAutoClosingTags
-            && codeDocument.Source.Text is { } sourceText
-            && sourceText.TryGetAbsoluteIndex(position, out var afterCloseAngleIndex)
-            && TryResolveAutoClosingBehavior(codeDocument, afterCloseAngleIndex) is { } tagNameWithClosingBehavior))
+        var sourceText = codeDocument.Source.Text;
+
+        if (!enableAutoClosingTags ||
+            !sourceText.TryGetAbsoluteIndex(position, out var afterCloseAngleIndex) ||
+            TryResolveAutoClosingBehavior(codeDocument, afterCloseAngleIndex) is not { } tagNameWithClosingBehavior)
         {
             return false;
         }
@@ -59,7 +60,7 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
         if (tagNameWithClosingBehavior.AutoClosingBehavior == AutoClosingBehavior.EndTag)
         {
             var formatForEndTag = InsertTextFormat.Snippet;
-            var editForEndTag = VsLspFactory.CreateTextEdit(position, $"$0</{tagNameWithClosingBehavior.TagName}>");
+            var editForEndTag = LspFactory.CreateTextEdit(position, $"$0</{tagNameWithClosingBehavior.TagName}>");
 
             autoInsertEdit = new()
             {
@@ -76,7 +77,7 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
 
         // Need to replace the `>` with ' />$0' or '/>$0' depending on if there's prefixed whitespace.
         var insertionText = char.IsWhiteSpace(sourceText[afterCloseAngleIndex - 2]) ? "/" : " /";
-        var edit = VsLspFactory.CreateTextEdit(position.Line, position.Character - 1, insertionText);
+        var edit = LspFactory.CreateTextEdit(position.Line, position.Character - 1, insertionText);
 
         autoInsertEdit = new()
         {
@@ -94,7 +95,7 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
 
         if (closeAngle.Parent is MarkupStartTagSyntax
             {
-                ForwardSlash: null,
+                ForwardSlash: not { Kind: SyntaxKind.ForwardSlash, IsMissing: false },
                 Parent: MarkupElementSyntax htmlElement
             } startTag)
         {
@@ -114,7 +115,7 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
 
         if (closeAngle.Parent is MarkupTagHelperStartTagSyntax
             {
-                ForwardSlash: null,
+                ForwardSlash: not { Kind: SyntaxKind.ForwardSlash, IsMissing: false },
                 Parent: MarkupTagHelperElementSyntax { TagHelperInfo.BindingResult: var binding } tagHelperElement
             } startTagHelper)
         {
@@ -153,10 +154,9 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
     {
         var resolvedTagStructure = TagStructure.Unspecified;
 
-        foreach (var descriptor in bindingResult.Descriptors)
+        foreach (var boundRulesInfo in bindingResult.AllBoundRules)
         {
-            var tagMatchingRules = bindingResult.Mappings[descriptor];
-            foreach (var tagMatchingRule in tagMatchingRules)
+            foreach (var tagMatchingRule in boundRulesInfo.Rules)
             {
                 if (tagMatchingRule.TagStructure == TagStructure.Unspecified)
                 {

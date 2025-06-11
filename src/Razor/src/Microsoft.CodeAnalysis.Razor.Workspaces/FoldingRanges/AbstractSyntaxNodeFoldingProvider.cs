@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.FoldingRanges;
 
@@ -38,7 +37,7 @@ internal abstract class AbstractSyntaxNodeFoldingProvider<TNode> : IRazorFolding
             builder.Add(foldingRange);
         }
 
-        return builder.DrainToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     protected abstract ImmutableArray<TNode> GetFoldableNodes(RazorSyntaxTree syntaxTree);
