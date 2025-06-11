@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -492,13 +493,45 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             return node.GetSourceSpan(SourceDocument);
         }
 
-        protected static SyntaxTokenList MergeTokenLists(params ReadOnlySpan<SyntaxTokenList?> tokenLists)
+        protected static SyntaxTokenList MergeTokenLists(
+            SyntaxTokenList? literal1,
+            SyntaxTokenList? literal2,
+            SyntaxTokenList? literal3 = null,
+            SyntaxTokenList? literal4 = null,
+            SyntaxTokenList? literal5 = null)
         {
+            using var _ = ArrayPool<SyntaxTokenList>.Shared.GetPooledArraySpan(5, out var tokenLists);
+            var tokenListsCount = 0;
             var count = 0;
 
-            foreach (var tokenList in tokenLists)
+            if (literal1 is { } tokens1)
             {
-                count += tokenList?.Count ?? 0;
+                tokenLists[tokenListsCount++] = tokens1;
+                count += tokens1.Count;
+            }
+
+            if (literal2 is { } tokens2)
+            {
+                tokenLists[tokenListsCount++] = tokens2;
+                count += tokens2.Count;
+            }
+
+            if (literal3 is { } tokens3)
+            {
+                tokenLists[tokenListsCount++] = tokens3;
+                count += tokens3.Count;
+            }
+
+            if (literal4 is { } tokens4)
+            {
+                tokenLists[tokenListsCount++] = tokens4;
+                count += tokens4.Count;
+            }
+
+            if (literal5 is { } tokens5)
+            {
+                tokenLists[tokenListsCount++] = tokens5;
+                count += tokens5.Count;
             }
 
             if (count == 0)
@@ -508,14 +541,9 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
             using var builder = new PooledArrayBuilder<SyntaxToken>(count);
 
-            foreach (var tokenList in tokenLists)
+            foreach (var tokenList in tokenLists[..tokenListsCount])
             {
-                if (tokenList == null)
-                {
-                    continue;
-                }
-
-                builder.AddRange(tokenList.GetValueOrDefault());
+                builder.AddRange(tokenList);
             }
 
             return builder.ToList();
