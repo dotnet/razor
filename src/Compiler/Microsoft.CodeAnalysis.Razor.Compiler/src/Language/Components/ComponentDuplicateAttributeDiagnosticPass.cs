@@ -44,17 +44,17 @@ internal sealed class ComponentMarkupDiagnosticPass : ComponentIntermediateNodeP
 
                         if (originalAttributeName != null)
                         {
-                            other.node.AddDiagnostic(ComponentDiagnosticFactory.Create_DuplicateMarkupAttributeDirective(
+                            otherAttribute.AddDiagnostic(ComponentDiagnosticFactory.Create_DuplicateMarkupAttributeDirective(
                                 other.name,
                                 originalAttributeName,
-                                other.node.Source ?? node.Source));
+                                otherAttribute.Source ?? node.Source));
                         }
                         else
                         {
                             // This is a conflict in the code the user wrote.
-                            other.node.AddDiagnostic(ComponentDiagnosticFactory.Create_DuplicateMarkupAttribute(
+                            otherAttribute.AddDiagnostic(ComponentDiagnosticFactory.Create_DuplicateMarkupAttribute(
                                 other.name,
-                                other.node.Source ?? node.Source));
+                                otherAttribute.Source ?? node.Source));
                         }
                     }
 

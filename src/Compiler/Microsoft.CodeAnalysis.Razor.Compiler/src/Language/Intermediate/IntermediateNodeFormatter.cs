@@ -28,7 +28,6 @@ public sealed class IntermediateNodeFormatter(
         PreferProperties,
     }
 
-    private const string ShortNameSuffix = nameof(IntermediateNode);
     private static readonly Dictionary<Type, string> s_nodeTypeToShortNameMap = [];
 
     private static readonly char[] s_charsToEscape = ['\r', '\n', '\t'];
@@ -49,6 +48,8 @@ public sealed class IntermediateNodeFormatter(
 
         static string ComputeShortName(Type type)
         {
+            const string ShortNameSuffix = nameof(IntermediateNode);
+
             var shortName = type.Name;
 
             if (shortName.EndsWith(ShortNameSuffix, StringComparison.Ordinal))

@@ -1146,6 +1146,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
         var originalSpan = node switch
         {
             ComponentAttributeIntermediateNode n => n.OriginalAttributeSpan,
+            TagHelperDirectiveAttributeIntermediateNode n => n.OriginalAttributeSpan,
             TagHelperDirectiveAttributeParameterIntermediateNode n => n.OriginalAttributeSpan,
             TagHelperPropertyIntermediateNode n => n.OriginalAttributeSpan,
             _ => null
