@@ -333,6 +333,7 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
 
 #pragma warning disable CS0618 // Type or member is obsolete
             var newCodeDocument = currentCodeDocument.Clone();
+            currentCodeDocument.CloneCachedData(newCodeDocument);
 #pragma warning restore CS0618 // Type or member is obsolete
 
             newCodeDocument.SetSyntaxTree(partialParseSyntaxTree);

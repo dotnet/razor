@@ -1,7 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -17,6 +19,19 @@ internal static partial class RazorCodeDocumentExtensions
 
     private static CachedData GetCachedData(RazorCodeDocument codeDocument)
         => s_codeDocumentCache.GetValue(codeDocument, static doc => new CachedData(doc));
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("Do not use. Present to support the legacy editor", error: false)]
+    public static void CloneCachedData(this RazorCodeDocument fromCodeDocument, RazorCodeDocument toCodeDocument)
+    {
+        if (!s_codeDocumentCache.TryGetValue(fromCodeDocument, out var fromCachedData))
+        {
+            // If there isn't any data cached, there's nothing to clone.
+            return;
+        }
+
+        s_codeDocumentCache.Add(toCodeDocument, fromCachedData.Clone());
+    }
 
     private sealed class CachedData(RazorCodeDocument codeDocument)
     {
@@ -71,5 +86,13 @@ internal static partial class RazorCodeDocumentExtensions
                 return _tagHelperSpans ??= _codeDocument.GetRequiredSyntaxTree().GetTagHelperSpans();
             }
         }
+
+        public CachedData Clone()
+            => new(_codeDocument)
+            {
+                _syntaxTree = _syntaxTree,
+                _classifiedSpans = _classifiedSpans,
+                _tagHelperSpans = _tagHelperSpans,
+            };
     }
 }
