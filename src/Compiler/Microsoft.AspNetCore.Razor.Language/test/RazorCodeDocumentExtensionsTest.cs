@@ -3,7 +3,6 @@
 
 using System.IO;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
-using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -60,7 +59,7 @@ public class RazorCodeDocumentExtensionsTest
     }
 
     [Fact]
-    public void TryComputeNamespace_RootNamespaceNotSet_ReturnsNull()
+    public void TryGetNamespace_RootNamespaceNotSet_ReturnsNull()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(filePath: "C:\\Hello\\Test.cshtml", relativePath: "Test.cshtml");
@@ -69,14 +68,14 @@ public class RazorCodeDocumentExtensionsTest
             codeGenerationOptions: RazorCodeGenerationOptions.Default);
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Null(@namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_RelativePathNull_ReturnsNull()
+    public void TryGetNamespace_RelativePathNull_ReturnsNull()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(filePath: "C:\\Hello\\Test.cshtml", relativePath: null);
@@ -85,14 +84,14 @@ public class RazorCodeDocumentExtensionsTest
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello"));
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Null(@namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_FilePathNull_ReturnsNull()
+    public void TryGetNamespace_FilePathNull_ReturnsNull()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(filePath: null, relativePath: "Test.cshtml");
@@ -101,14 +100,14 @@ public class RazorCodeDocumentExtensionsTest
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello"));
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Null(@namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_RelativePathLongerThanFilePath_ReturnsNull()
+    public void TryGetNamespace_RelativePathLongerThanFilePath_ReturnsNull()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(
@@ -120,14 +119,14 @@ public class RazorCodeDocumentExtensionsTest
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello"));
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Null(@namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_ComputesNamespace()
+    public void TryGetNamespace_ComputesNamespace()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(
@@ -139,14 +138,14 @@ public class RazorCodeDocumentExtensionsTest
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello"));
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Equal("Hello.Components", @namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_NoRootNamespaceFallback_ReturnsNull()
+    public void TryGetNamespace_NoRootNamespaceFallback_ReturnsNull()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(
@@ -158,14 +157,14 @@ public class RazorCodeDocumentExtensionsTest
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello"));
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: false, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: false, out var @namespace);
 
         // Assert
         Assert.Null(@namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_SanitizesNamespaceName()
+    public void TryGetNamespace_SanitizesNamespaceName()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(
@@ -177,14 +176,14 @@ public class RazorCodeDocumentExtensionsTest
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hel?o.World"));
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Equal("Hel_o.World.Components_with_space", @namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_RespectsNamespaceDirective()
+    public void TryGetNamespace_RespectsNamespaceDirective()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(
@@ -203,14 +202,14 @@ public class RazorCodeDocumentExtensionsTest
         codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Equal("My.Custom.NS", @namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_RespectsImportsNamespaceDirective()
+    public void TryGetNamespace_RespectsImportsNamespaceDirective()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(
@@ -236,14 +235,14 @@ public class RazorCodeDocumentExtensionsTest
         codeDocument.SetImportSyntaxTrees([importSyntaxTree]);
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Equal("My.Custom.NS.Components", @namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_IgnoresImportsNamespaceDirectiveWhenAsked()
+    public void TryGetNamespace_IgnoresImportsNamespaceDirectiveWhenAsked()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(
@@ -268,14 +267,14 @@ public class RazorCodeDocumentExtensionsTest
         codeDocument.SetImportSyntaxTrees([importSyntaxTree]);
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, considerImports: false, out var @namespace, out _);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, considerImports: false, out var @namespace, out _);
 
         // Assert
         Assert.Equal("Hello.World.Components", @namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_RespectsImportsNamespaceDirective_SameFolder()
+    public void TryGetNamespace_RespectsImportsNamespaceDirective_SameFolder()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(
@@ -301,14 +300,14 @@ public class RazorCodeDocumentExtensionsTest
         codeDocument.SetImportSyntaxTrees([importSyntaxTree]);
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Equal("My.Custom.NS", @namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_OverrideImportsNamespaceDirective()
+    public void TryGetNamespace_OverrideImportsNamespaceDirective()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(
@@ -334,7 +333,7 @@ public class RazorCodeDocumentExtensionsTest
         codeDocument.SetImportSyntaxTrees([importSyntaxTree]);
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Equal("My.Custom.OverrideNS", @namespace);
@@ -351,7 +350,7 @@ public class RazorCodeDocumentExtensionsTest
     [InlineData("c:\\", "foo\\bar\\baz.cshtml", "Base.foo.bar")]
     [InlineData("c:\\foo\\", "bar\\baz.cshtml", "Base.bar")]
     [InlineData("c:\\Foo\\", "bar\\baz.cshtml", "Base.bar")]
-    public void TryComputeNamespace_ComputesNamespaceWithSuffix(string basePath, string relativePath, string expectedNamespace)
+    public void TryGetNamespace_ComputesNamespaceWithSuffix(string basePath, string relativePath, string expectedNamespace)
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(
@@ -374,14 +373,14 @@ public class RazorCodeDocumentExtensionsTest
         codeDocument.SetImportSyntaxTrees([importSyntaxTree]);
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Equal(expectedNamespace, @namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_ForNonRelatedFiles_UsesNamespaceVerbatim()
+    public void TryGetNamespace_ForNonRelatedFiles_UsesNamespaceVerbatim()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(
@@ -403,7 +402,7 @@ public class RazorCodeDocumentExtensionsTest
         codeDocument.SetImportSyntaxTrees([importSyntaxTree]);
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Equal("Base", @namespace);

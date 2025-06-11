@@ -62,7 +62,7 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
     {
         base.OnDocumentStructureCreated(codeDocument, @namespace, @class, method);
 
-        if (!codeDocument.TryComputeNamespace(fallbackToRootNamespace: false, out var namespaceName))
+        if (!codeDocument.TryGetNamespace(fallbackToRootNamespace: false, out var namespaceName))
         {
             @namespace.Content = _useConsolidatedMvcViews ? "AspNetCoreGeneratedDocument" : "AspNetCore";
         }

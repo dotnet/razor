@@ -62,7 +62,7 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
         ClassDeclarationIntermediateNode @class,
         MethodDeclarationIntermediateNode method)
     {
-        if (!codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var computedNamespace, out var computedNamespaceSpan))
+        if (!codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var computedNamespace, out var computedNamespaceSpan))
         {
             computedNamespace = FallbackRootNamespace;
         }

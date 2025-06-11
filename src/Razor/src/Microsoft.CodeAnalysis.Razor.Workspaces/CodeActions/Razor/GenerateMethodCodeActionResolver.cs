@@ -55,7 +55,7 @@ internal class GenerateMethodCodeActionResolver(
 
         if (!_fileSystem.FileExists(codeBehindPath) ||
             razorClassName is null ||
-            !code.TryComputeNamespace(fallbackToRootNamespace: true, out var razorNamespace))
+            !code.TryGetNamespace(fallbackToRootNamespace: true, out var razorNamespace))
         {
             return await GenerateMethodInCodeBlockAsync(
                 code,
@@ -130,7 +130,7 @@ internal class GenerateMethodCodeActionResolver(
         var editToSendToRoslyn = edits.Length == 3 ? edits[1] : edits[0];
         if (edits.Length == 3
             && razorClassName is not null
-            && (razorNamespace is not null || code.TryComputeNamespace(fallbackToRootNamespace: true, out razorNamespace))
+            && (razorNamespace is not null || code.TryGetNamespace(fallbackToRootNamespace: true, out razorNamespace))
             && GetCSharpClassDeclarationSyntax(code.GetOrParseCSharpSyntaxTree(cancellationToken), razorNamespace, razorClassName) is { } @class)
         {
             // There is no existing @code block. This means that there is no code block source mapping in the generated C# document

@@ -148,7 +148,7 @@ internal sealed class FormattingContext
         if (_formattingSpans is null)
         {
             var syntaxTree = CodeDocument.GetRequiredSyntaxTree();
-            var inGlobalNamespace = CodeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace) &&
+            var inGlobalNamespace = CodeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace) &&
                 string.IsNullOrEmpty(@namespace);
             _formattingSpans = GetFormattingSpans(syntaxTree, inGlobalNamespace: inGlobalNamespace);
         }

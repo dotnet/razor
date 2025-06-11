@@ -128,7 +128,7 @@ internal class ExtractToCodeBehindCodeActionProvider(ILoggerFactory loggerFactor
         // similar for the NamespaceNode. This would end up with extracting to a wrong namespace
         // and causing compiler errors. Avoid offering this refactoring if we can't accurately get a
         // good namespace to extract to
-        => codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out @namespace);
+        => codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out @namespace);
 
     private static bool HasUnsupportedChildren(RazorSyntaxNode node)
         => node.DescendantNodes().Any(n => n is MarkupBlockSyntax or CSharpTransitionSyntax or RazorCommentBlockSyntax);

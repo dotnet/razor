@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis;
@@ -28,6 +29,7 @@ public sealed class RazorCodeDocument
     private TagHelperDocumentContext? _tagHelperContext;
     private DocumentIntermediateNode? _documentIntermediateNode;
     private RazorCSharpDocument? _csharpDocument;
+    private (string name, SourceSpan? span)? _namespaceInfo;
 
     private RazorCodeDocument(
         RazorSourceDocument source,
@@ -216,5 +218,48 @@ public sealed class RazorCodeDocument
         ArgHelper.ThrowIfNull(csharpDocument);
 
         _csharpDocument = csharpDocument;
+    }
+
+    // In general documents will have a relative path (relative to the project root).
+    // We can only really compute a nice namespace when we know a relative path.
+    //
+    // However all kinds of thing are possible in tools. We shouldn't barf here if the document isn't set up correctly.
+    internal bool TryGetNamespace(
+        bool fallbackToRootNamespace,
+        bool considerImports,
+        [NotNullWhen(true)] out string? @namespace,
+        out SourceSpan? namespaceSpan)
+    {
+        // We only want to cache the namespace if we're considering all possibilities.
+        // Anyone wanting something different (i.e., tooling) has to pay a slight penalty.
+        if (fallbackToRootNamespace && considerImports && _namespaceInfo is var (name, span))
+        {
+            VerifyNamespace(this, fallbackToRootNamespace, considerImports, name);
+
+            (@namespace, namespaceSpan) = (name, span);
+            return true;
+        }
+
+        if (NamespaceComputer.TryComputeNamespace(this, fallbackToRootNamespace, considerImports, out @namespace, out namespaceSpan))
+        {
+            VerifyNamespace(this, fallbackToRootNamespace, considerImports, @namespace);
+
+            _namespaceInfo = (@namespace, namespaceSpan);
+            return true;
+        }
+
+        return false;
+
+        [Conditional("DEBUG")]
+        static void VerifyNamespace(RazorCodeDocument codeDocument, bool fallbackToRootNamespace, bool considerImports, string? @namespace)
+        {
+            // In debug mode, even if we're cached, lets take the hit to run this again and make sure the cached value is correct.
+            // This is to help us find issues with caching logic during development.
+            var validateResult = NamespaceComputer.TryComputeNamespace(
+                codeDocument, fallbackToRootNamespace, considerImports, out var validateNamespace, out _);
+
+            Debug.Assert(validateResult, "We couldn't compute the namespace, but have a cached value, so something has gone wrong");
+            Debug.Assert(validateNamespace == @namespace, $"We cached a namespace of {@namespace} but calculated that it should be {validateNamespace}");
+        }
     }
 }
