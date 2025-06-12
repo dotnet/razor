@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
@@ -18,7 +18,7 @@ internal static class RazorSyntaxTreeExtensions
         => GetDirectives(syntaxTree, static d => d.DirectiveDescriptor?.Kind == DirectiveKind.CodeBlock);
 
     public static ImmutableArray<RazorDirectiveSyntax> GetUsingDirectives(this RazorSyntaxTree syntaxTree)
-        => GetDirectives(syntaxTree, static d => d.IsUsingDirective(out var _));
+        => GetDirectives(syntaxTree, static d => d.IsUsingDirective());
 
     private static ImmutableArray<RazorDirectiveSyntax> GetDirectives(RazorSyntaxTree syntaxTree, Func<RazorDirectiveSyntax, bool> predicate)
     {

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Diagnostics;
@@ -26,6 +26,9 @@ internal static class RazorSyntaxNodeExtensions
         body = null;
         return false;
     }
+
+    internal static bool IsUsingDirective(this SyntaxNode node)
+        => node.IsUsingDirective(out _);
 
     internal static bool IsUsingDirective(this SyntaxNode node, out SyntaxTokenList tokens)
     {
