@@ -6,8 +6,8 @@
 using System;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
@@ -251,22 +251,34 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
     {
         const int MaxStringLiteralLength = 1024;
 
-        var builder = new StringBuilder();
-        for (var i = 0; i < node.Children.Count; i++)
+        using var htmlContentBuilder = new PooledArrayBuilder<ReadOnlyMemory<char>>();
+
+        var length = 0;
+        foreach (var child in node.Children)
         {
-            if (node.Children[i] is IntermediateToken token && token.IsHtml)
+            if (child is IntermediateToken token && token.IsHtml)
             {
-                builder.Append(token.Content);
+                var htmlContent = token.Content.AsMemory();
+
+                htmlContentBuilder.Add(htmlContent);
+                length += htmlContent.Length;
             }
         }
 
-        var content = builder.ToString();
+        // Can't use a pooled builder here as the memory will be stored in the context.
+        var content = new char[length];
+        var contentIndex = 0;
+        foreach (var htmlContent in htmlContentBuilder)
+        {
+            htmlContent.Span.CopyTo(content.AsSpan(contentIndex));
+            contentIndex += htmlContent.Length;
+        }
 
-        WriteHtmlLiteral(context, MaxStringLiteralLength, content);
+        WriteHtmlLiteral(context, MaxStringLiteralLength, content.AsMemory());
     }
 
     // Internal for testing
-    internal void WriteHtmlLiteral(CodeRenderingContext context, int maxStringLiteralLength, string literal)
+    internal void WriteHtmlLiteral(CodeRenderingContext context, int maxStringLiteralLength, ReadOnlyMemory<char> literal)
     {
         if (literal.Length <= maxStringLiteralLength)
         {
@@ -281,7 +293,7 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
             var charactersRemaining = literal.Length - charactersConsumed;
             var charactersToSubstring = Math.Min(maxStringLiteralLength, charactersRemaining);
             var lastCharBeforeSplitIndex = charactersConsumed + charactersToSubstring - 1;
-            var lastCharBeforeSplit = literal[lastCharBeforeSplitIndex];
+            var lastCharBeforeSplit = literal.Span[lastCharBeforeSplitIndex];
 
             if (char.IsHighSurrogate(lastCharBeforeSplit))
             {
@@ -299,14 +311,14 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
                 }
             }
 
-            var textToRender = literal.Substring(charactersConsumed, charactersToSubstring);
+            var textToRender = literal.Slice(charactersConsumed, charactersToSubstring);
 
             WriteLiteral(textToRender);
 
             charactersConsumed += textToRender.Length;
         } while (charactersConsumed < literal.Length);
 
-        void WriteLiteral(string content)
+        void WriteLiteral(ReadOnlyMemory<char> content)
         {
             context.CodeWriter
                 .WriteStartMethodInvocation(WriteHtmlContentMethod)
