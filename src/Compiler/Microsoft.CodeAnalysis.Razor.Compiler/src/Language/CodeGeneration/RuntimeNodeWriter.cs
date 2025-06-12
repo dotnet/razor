@@ -280,43 +280,24 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
     // Internal for testing
     internal void WriteHtmlLiteral(CodeRenderingContext context, int maxStringLiteralLength, ReadOnlyMemory<char> literal)
     {
-        if (literal.Length <= maxStringLiteralLength)
+        while (literal.Length > maxStringLiteralLength)
         {
-            WriteLiteral(literal);
-            return;
+            // String is too large, render the string in pieces to avoid Roslyn OOM exceptions at compile time: https://github.com/aspnet/External/issues/54
+            var lastCharBeforeSplit = literal.Span[maxStringLiteralLength - 1];
+
+            // If character at splitting point is a high surrogate, take one less character this iteration
+            // as we're attempting to split a surrogate pair. This can happen when something like an
+            // emoji sits on the barrier between splits; if we were to split the emoji we'd end up with
+            // invalid bytes in our output.
+            var renderCharCount = char.IsHighSurrogate(lastCharBeforeSplit) ? maxStringLiteralLength - 1 : maxStringLiteralLength;
+
+            WriteLiteral(literal[..renderCharCount]);
+
+            literal = literal[renderCharCount..];
         }
 
-        // String is too large, render the string in pieces to avoid Roslyn OOM exceptions at compile time: https://github.com/aspnet/External/issues/54
-        var charactersConsumed = 0;
-        do
-        {
-            var charactersRemaining = literal.Length - charactersConsumed;
-            var charactersToSubstring = Math.Min(maxStringLiteralLength, charactersRemaining);
-            var lastCharBeforeSplitIndex = charactersConsumed + charactersToSubstring - 1;
-            var lastCharBeforeSplit = literal.Span[lastCharBeforeSplitIndex];
-
-            if (char.IsHighSurrogate(lastCharBeforeSplit))
-            {
-                if (charactersRemaining > 1)
-                {
-                    // Take one less character this iteration. We're attempting to split inbetween a surrogate pair.
-                    // This can happen when something like an emoji sits on the barrier between splits; if we were to
-                    // split the emoji we'd end up with invalid bytes in our output.
-                    charactersToSubstring--;
-                }
-                else
-                {
-                    // The user has an invalid file with a partial surrogate a the splitting point.
-                    // We'll let the invalid character flow but we'll explode later on.
-                }
-            }
-
-            var textToRender = literal.Slice(charactersConsumed, charactersToSubstring);
-
-            WriteLiteral(textToRender);
-
-            charactersConsumed += textToRender.Length;
-        } while (charactersConsumed < literal.Length);
+        WriteLiteral(literal);
+        return;
 
         void WriteLiteral(ReadOnlyMemory<char> content)
         {
