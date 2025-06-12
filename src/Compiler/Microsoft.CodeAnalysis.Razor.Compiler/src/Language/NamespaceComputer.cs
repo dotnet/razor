@@ -60,12 +60,12 @@ internal static class NamespaceComputer
 
         if (fallbackToRootNamespace)
         {
-            using var builder = new NamespaceBuilder();
-
             var rootNamespace = codeDocument.CodeGenerationOptions.RootNamespace;
 
             if (!rootNamespace.IsNullOrEmpty() || codeDocument.FileKind.IsComponent())
             {
+                using var builder = new NamespaceBuilder();
+
                 builder.AppendNamespace(rootNamespace);
                 builder.AppendRelativePath(relativePath.AsSpan());
 
