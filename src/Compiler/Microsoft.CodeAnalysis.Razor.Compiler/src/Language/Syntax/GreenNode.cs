@@ -28,7 +28,7 @@ internal abstract class GreenNode
     /// Pool of StringWriters for use in <see cref="ToString()"/>. Users should not dispose the StringWriter directly
     /// (but should dispose of the PooledObject returned from Pool.GetPooledObject).
     /// </summary>
-    private static readonly ObjectPool<StringWriter> CurrentCultureStringWriterPool = DefaultPool.Create(Policy.Instance);
+    private static readonly ObjectPool<StringWriter> StringWriterPool = DefaultPool.Create(Policy.Instance);
 
     private int _width;
     private byte _slotCount;
@@ -242,15 +242,7 @@ internal abstract class GreenNode
 
     public override string ToString()
     {
-        using var _ = StringBuilderPool.GetPooledObject(out var builder);
-        using var writer = new StringWriter(builder, CultureInfo.InvariantCulture);
-        WriteTo(writer);
-        return builder.ToString();
-    }
-
-    internal string ToStringInCurrentCulture()
-    {
-        using var _ = CurrentCultureStringWriterPool.GetPooledObject(out var writer);
+        using var _ = StringWriterPool.GetPooledObject(out var writer);
 
         WriteTo(writer);
 
@@ -378,7 +370,7 @@ internal abstract class GreenNode
         }
 
         public StringWriter Create()
-            => new StringWriter(new StringBuilder());
+            => new StringWriter(new StringBuilder(), CultureInfo.InvariantCulture);
 
         public bool Return(StringWriter writer)
         {

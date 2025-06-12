@@ -302,7 +302,7 @@ internal static class SyntaxNodeExtensions
 
     public static string GetContent<TNode>(this TNode node) where TNode : SyntaxNode
     {
-        return node.Green.ToStringInCurrentCulture();
+        return node.Green.ToString();
     }
 
     private sealed class DiagnosticSyntaxWalker(List<RazorDiagnostic> diagnostics) : SyntaxWalker
