@@ -25,21 +25,20 @@ internal class UsingsFoldingRangeProvider : IRazorFoldingRangeProvider
                 continue;
             }
 
-            // first rule: we can fold consecutive usings if we have an existing range that
-            // ends the line *before* this current using directive or begins the line *after*,
-            // we extend the range one line
-
             var span = directive.GetLinePositionSpan(sourceDocument);
 
-            if (ranges.Count > 0 && ranges[^1] is { } lastRange)
+            if (ranges.LastOrDefault() is { } lastRange)
             {
+                // We can fold consecutive usings if the last range we added *ends* the line *before* this directive.
                 if (lastRange.EndLine + 1 == span.Start.Line)
                 {
                     lastRange.EndLine = span.End.Line;
                     lastRange.EndCharacter = span.End.Character;
                     continue;
                 }
-                else if (lastRange.StartLine - 1 == span.End.Line)
+
+                // We can fold consecutive usings if the last range we added *begins* the line *after* this directive.
+                if (lastRange.StartLine - 1 == span.End.Line)
                 {
                     lastRange.StartLine = span.Start.Line;
                     lastRange.StartCharacter = span.Start.Character;
