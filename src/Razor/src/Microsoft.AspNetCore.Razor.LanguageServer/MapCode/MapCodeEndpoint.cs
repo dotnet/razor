@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.MapCode.Mappers;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -82,7 +83,7 @@ internal sealed class MapCodeEndpoint(
                 continue;
             }
 
-            if (!_documentContextFactory.TryCreate(mapping.TextDocument.Uri, out var documentContext))
+            if (!_documentContextFactory.TryCreate(mapping.TextDocument.DocumentUri.GetRequiredParsedUri(), out var documentContext))
             {
                 continue;
             }
@@ -174,7 +175,7 @@ internal sealed class MapCodeEndpoint(
                 // as the code to map. The client is currently implemented using this behavior, but if it
                 // ever changes, we'll need to update this code to account for it (i.e., take into account
                 // focus location URIs).
-                Debug.Assert(location.Uri == documentContext.Uri);
+                Debug.Assert(location.DocumentUri.GetRequiredParsedUri() == documentContext.Uri);
 
                 var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 if (syntaxTree is null)
@@ -235,7 +236,7 @@ internal sealed class MapCodeEndpoint(
                         {
                             TextDocument = new OptionalVersionedTextDocumentIdentifier
                             {
-                                Uri = documentContext.Uri
+                                DocumentUri = new DocumentUri(documentContext.Uri)
                             },
                             Edits = [edit],
                         };
@@ -350,7 +351,7 @@ internal sealed class MapCodeEndpoint(
                     continue;
                 }
 
-                if (!_documentContextFactory.TryCreate(potentialLocation.Uri, out var documentContext))
+                if (!_documentContextFactory.TryCreate(potentialLocation.DocumentUri.GetRequiredParsedUri(), out var documentContext))
                 {
                     continue;
                 }
@@ -366,7 +367,7 @@ internal sealed class MapCodeEndpoint(
                     {
                         // We convert the URI to the C# generated document URI later on in
                         // LanguageServer.Client since we're unable to retrieve it here.
-                        Uri = potentialLocation.Uri,
+                        DocumentUri = potentialLocation.DocumentUri,
                         Range = generatedDocumentRange.ToRange()
                     };
 
@@ -393,7 +394,7 @@ internal sealed class MapCodeEndpoint(
             // into also supporting file creation/deletion/rename.
             foreach (var edit in documentEdits)
             {
-                var success = await TryProcessEditAsync(edit.TextDocument.Uri, edit.Edits, csharpChanges, cancellationToken).ConfigureAwait(false);
+                var success = await TryProcessEditAsync(edit.TextDocument.DocumentUri, edit.Edits, csharpChanges, cancellationToken).ConfigureAwait(false);
                 if (!success)
                 {
                     return false;
@@ -405,7 +406,7 @@ internal sealed class MapCodeEndpoint(
         {
             foreach (var edit in edits.Changes)
             {
-                var generatedUri = new Uri(edit.Key);
+                var generatedUri = new DocumentUri(edit.Key);
                 var success = await TryProcessEditAsync(generatedUri, edit.Value.Select(e => (SumType<TextEdit, AnnotatedTextEdit>)e), csharpChanges, cancellationToken).ConfigureAwait(false);
                 if (!success)
                 {
@@ -418,11 +419,12 @@ internal sealed class MapCodeEndpoint(
         return true;
 
         async Task<bool> TryProcessEditAsync(
-            Uri generatedUri,
+            DocumentUri generatedDocumentUri,
             IEnumerable<SumType<TextEdit, AnnotatedTextEdit>> textEdits,
             List<TextDocumentEdit> csharpChanges,
             CancellationToken cancellationToken)
         {
+            var generatedUri = generatedDocumentUri.GetRequiredParsedUri();
             foreach (var documentEdit in textEdits.Select(e => (TextEdit)e))
             {
                 var (hostDocumentUri, hostDocumentRange) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(
@@ -437,7 +439,7 @@ internal sealed class MapCodeEndpoint(
 
                 var textDocumentEdit = new TextDocumentEdit
                 {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = hostDocumentUri },
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new DocumentUri(hostDocumentUri) },
                     Edits = [textEdit]
                 };
 
@@ -451,12 +453,12 @@ internal sealed class MapCodeEndpoint(
     // Resolve edits that are at the same start location by merging them together.
     private static void MergeEdits(List<TextDocumentEdit> changes)
     {
-        var groupedChanges = changes.GroupBy(c => c.TextDocument.Uri).ToImmutableArray();
+        var groupedChanges = changes.GroupBy(c => c.TextDocument.DocumentUri).ToImmutableArray();
         changes.Clear();
         foreach (var documentChanges in groupedChanges)
         {
             var edits = documentChanges.ToList();
-            edits.Sort((x, y) => ((TextEdit)x.Edits.Single()).Range.Start.CompareTo(((TextEdit)y.Edits.Single()).Range.Start));
+            edits.Sort((x, y) => LspExtensions.CompareTo(((TextEdit)x.Edits.Single()).Range.Start, ((TextEdit)y.Edits.Single()).Range.Start));
 
             for (var i = edits.Count - 1; i < edits.Count && i > 0; i--)
             {
@@ -475,7 +477,7 @@ internal sealed class MapCodeEndpoint(
             {
                 TextDocument = new OptionalVersionedTextDocumentIdentifier
                 {
-                    Uri = documentChanges.Key,
+                    DocumentUri = documentChanges.Key,
                 },
                 Edits = edits.SelectMany(e => e.Edits).ToArray()
             };

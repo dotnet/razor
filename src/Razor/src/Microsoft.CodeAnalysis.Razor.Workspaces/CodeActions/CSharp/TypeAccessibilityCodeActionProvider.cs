@@ -141,7 +141,7 @@ internal class TypeAccessibilityCodeActionProvider : ICSharpCodeActionProvider
                 var fqnCodeAction = CreateFQNCodeAction(context, diagnostic, codeAction, fqn);
                 typeAccessibilityCodeActions.Add(fqnCodeAction);
 
-                if (AddUsingsCodeActionResolver.TryCreateAddUsingResolutionParams(fqn, context.Request.TextDocument, additionalEdit: null, context.DelegatedDocumentUri, out var @namespace, out var resolutionParams))
+                if (AddUsingsCodeActionResolver.TryCreateAddUsingResolutionParams(fqn, context.Request.TextDocument, additionalEdit: null, context.DelegatedDocumentUri?.ParsedUri, out var @namespace, out var resolutionParams))
                 {
                     var addUsingCodeAction = RazorCodeActionFactory.CreateAddComponentUsing(@namespace, newTagName: null, resolutionParams);
                     typeAccessibilityCodeActions.Add(addUsingCodeAction);
@@ -262,7 +262,7 @@ internal class TypeAccessibilityCodeActionProvider : ICSharpCodeActionProvider
         RazorVSInternalCodeAction nonFQNCodeAction,
         string fullyQualifiedName)
     {
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = context.Request.TextDocument.DocumentUri };
 
         var fqnTextEdit = LspFactory.CreateTextEdit(fqnDiagnostic.Range, fullyQualifiedName);
 

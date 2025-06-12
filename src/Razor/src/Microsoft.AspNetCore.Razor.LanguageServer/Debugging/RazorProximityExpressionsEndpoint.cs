@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,14 +19,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 [RazorLanguageServerEndpoint(LanguageServerConstants.RazorProximityExpressionsEndpoint)]
 internal class RazorProximityExpressionsEndpoint(
     IDocumentMappingService documentMappingService,
-    ILoggerFactory loggerFactory) : IRazorDocumentlessRequestHandler<RazorProximityExpressionsParams, RazorProximityExpressionsResponse?>, ITextDocumentIdentifierHandler<RazorProximityExpressionsParams, Uri>
+    ILoggerFactory loggerFactory) : IRazorDocumentlessRequestHandler<RazorProximityExpressionsParams, RazorProximityExpressionsResponse?>, ITextDocumentIdentifierHandler<RazorProximityExpressionsParams, DocumentUri>
 {
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorBreakpointSpanEndpoint>();
 
     public bool MutatesSolutionState => false;
 
-    public Uri GetTextDocumentIdentifier(RazorProximityExpressionsParams request)
+    public DocumentUri GetTextDocumentIdentifier(RazorProximityExpressionsParams request)
         => request.Uri;
 
     public async Task<RazorProximityExpressionsResponse?> HandleRequestAsync(RazorProximityExpressionsParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)

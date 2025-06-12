@@ -1,10 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 #if !NET
 using System.Collections.Generic;
 #endif
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -89,7 +89,7 @@ public class VSCSharpDiagnosticsEndToEndTest(ITestOutputHelper testOutput) : Sin
 
         var diagnosticsRequest = new VSInternalDocumentDiagnosticsParams
         {
-            TextDocument = new TextDocumentIdentifier { Uri = uri }
+            TextDocument = new TextDocumentIdentifier { DocumentUri = new DocumentUri(uri) }
         };
         var diagnostics = await diagnosticsEndPoint.HandleRequestAsync(diagnosticsRequest, requestContext, DisposalToken);
 

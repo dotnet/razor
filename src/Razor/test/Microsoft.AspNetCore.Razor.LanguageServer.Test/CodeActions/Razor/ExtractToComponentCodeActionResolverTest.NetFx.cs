@@ -325,13 +325,13 @@ public class ExtractToComponentCodeActionResolverTest(ITestOutputHelper testOutp
             [resolver]
             );
 
-        var edits = changes.Where(change => change.TextDocument.Uri.AbsolutePath == componentFilePath).Single();
+        var edits = changes.Where(change => change.TextDocument.DocumentUri.ParsedUri?.AbsolutePath == componentFilePath).Single();
         var actual = edits.Edits.Select(edit => ((TextEdit)edit).NewText).Single();
 
         AssertEx.EqualOrDiff(expectedNewComponent, actual);
 
         var originalDocumentEdits = changes
-            .Where(change => change.TextDocument.Uri.AbsolutePath == razorFilePath)
+            .Where(change => change.TextDocument.DocumentUri.ParsedUri?.AbsolutePath == razorFilePath)
             .SelectMany(change => change.Edits.Select(e => sourceText.GetTextChange(((TextEdit)e))));
         var documentText = sourceText.WithChanges(originalDocumentEdits).ToString();
         AssertEx.EqualOrDiff(expectedOriginalDocument, documentText);

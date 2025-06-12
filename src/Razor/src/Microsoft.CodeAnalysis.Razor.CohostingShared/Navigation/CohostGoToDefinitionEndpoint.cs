@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
@@ -102,11 +103,11 @@ internal sealed class CohostGoToDefinitionEndpoint(
 
         if (result.TryGetFirst(out var singleLocation))
         {
-            return LspFactory.CreateLocation(RemapVirtualHtmlUri(singleLocation.Uri), singleLocation.Range.ToLinePositionSpan());
+            return LspFactory.CreateLocation(RemapVirtualHtmlUri(singleLocation.DocumentUri), singleLocation.Range.ToLinePositionSpan());
         }
         else if (result.TryGetSecond(out var multipleLocations))
         {
-            return Array.ConvertAll(multipleLocations, l => LspFactory.CreateLocation(RemapVirtualHtmlUri(l.Uri), l.Range.ToLinePositionSpan()));
+            return Array.ConvertAll(multipleLocations, l => LspFactory.CreateLocation(RemapVirtualHtmlUri(l.DocumentUri), l.Range.ToLinePositionSpan()));
         }
         else if (result.TryGetThird(out var documentLinks))
         {
@@ -114,7 +115,7 @@ internal sealed class CohostGoToDefinitionEndpoint(
 
             foreach (var documentLink in documentLinks)
             {
-                if (documentLink.Target is Uri target)
+                if (documentLink.DocumentTarget is DocumentUri target)
                 {
                     builder.Add(LspFactory.CreateDocumentLink(RemapVirtualHtmlUri(target), documentLink.Range.ToLinePositionSpan()));
                 }
@@ -126,14 +127,15 @@ internal sealed class CohostGoToDefinitionEndpoint(
         return null;
     }
 
-    private Uri RemapVirtualHtmlUri(Uri uri)
+    private DocumentUri RemapVirtualHtmlUri(DocumentUri documentUri)
     {
+        var uri = documentUri.GetRequiredParsedUri();
         if (_filePathService.IsVirtualHtmlFile(uri))
         {
-            return _filePathService.GetRazorDocumentUri(uri);
+            return new DocumentUri(_filePathService.GetRazorDocumentUri(uri));
         }
 
-        return uri;
+        return documentUri;
     }
 
     internal TestAccessor GetTestAccessor() => new(this);

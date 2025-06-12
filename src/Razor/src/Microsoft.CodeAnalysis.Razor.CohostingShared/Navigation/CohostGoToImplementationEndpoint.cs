@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -122,10 +123,10 @@ internal sealed class CohostGoToImplementationEndpoint(
 
     private void RemapVirtualHtmlUri(LspLocation? location)
     {
-        if (location is not null &&
-            _filePathService.IsVirtualHtmlFile(location.Uri))
+        if (location?.DocumentUri.ParsedUri is Uri parsedUri &&
+            _filePathService.IsVirtualHtmlFile(parsedUri))
         {
-            location.Uri = _filePathService.GetRazorDocumentUri(location.Uri);
+            location.DocumentUri = new DocumentUri(_filePathService.GetRazorDocumentUri(parsedUri));
         }
     }
 

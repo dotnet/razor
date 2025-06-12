@@ -161,22 +161,22 @@ internal static class LspFactory
         => CreateRange(CreatePosition(start), CreatePosition(start.line, start.character + length));
 
     public static LspLocation CreateLocation(string filePath, LinePositionSpan span)
-        => CreateLocation(CreateFilePathUri(filePath), CreateRange(span));
+        => CreateLocation(new DocumentUri(CreateFilePathUri(filePath)), CreateRange(span));
 
-    public static LspLocation CreateLocation(Uri uri, LinePositionSpan span)
+    public static LspLocation CreateLocation(DocumentUri uri, LinePositionSpan span)
         => CreateLocation(uri, CreateRange(span));
 
     public static LspLocation CreateLocation(string filePath, LspRange range)
-        => CreateLocation(CreateFilePathUri(filePath), range);
+        => CreateLocation(new DocumentUri(CreateFilePathUri(filePath)), range);
 
-    public static LspLocation CreateLocation(Uri uri, LspRange range)
-        => new() { Uri = uri, Range = range };
+    public static LspLocation CreateLocation(DocumentUri uri, LspRange range)
+        => new() { DocumentUri = uri, Range = range };
 
-    public static DocumentLink CreateDocumentLink(Uri target, LspRange range)
-        => new() { Target = target, Range = range };
+    public static DocumentLink CreateDocumentLink(DocumentUri target, LspRange range)
+        => new() { DocumentTarget = target, Range = range };
 
-    public static DocumentLink CreateDocumentLink(Uri target, LinePositionSpan span)
-        => new() { Target = target, Range = CreateRange(span) };
+    public static DocumentLink CreateDocumentLink(DocumentUri target, LinePositionSpan span)
+        => new() { DocumentTarget = target, Range = CreateRange(span) };
 
     public static TextEdit CreateTextEdit(Range range, string newText)
         => new() { Range = range, NewText = newText };

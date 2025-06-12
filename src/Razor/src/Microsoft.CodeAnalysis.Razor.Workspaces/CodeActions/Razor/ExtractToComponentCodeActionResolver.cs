@@ -57,6 +57,7 @@ internal class ExtractToComponentCodeActionResolver(
             : componentPath;
 
         var newComponentUri = LspFactory.CreateFilePathUri(componentPath);
+        var newComponentDocumentUri = new DocumentUri(newComponentUri);
 
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
@@ -89,10 +90,10 @@ internal class ExtractToComponentCodeActionResolver(
 
         var documentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
         {
-            new CreateFile { Uri = newComponentUri },
+            new CreateFile { DocumentUri = newComponentDocumentUri },
             new TextDocumentEdit
             {
-                TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = documentContext.Uri },
+                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new DocumentUri(documentContext.Uri) },
                 Edits =
                 [
                     new TextEdit
@@ -104,7 +105,7 @@ internal class ExtractToComponentCodeActionResolver(
             },
             new TextDocumentEdit
             {
-                TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = newComponentUri },
+                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = newComponentDocumentUri },
                 Edits  =
                 [
                     new TextEdit

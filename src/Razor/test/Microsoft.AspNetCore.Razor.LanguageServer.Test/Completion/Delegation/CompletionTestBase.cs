@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -76,15 +77,15 @@ public abstract class CompletionTestBase(ITestOutputHelper testOutput) : Languag
                 {
                     processParams?.Invoke(@params);
 
-                    var csharpDocumentPath = @params.Identifier.TextDocumentIdentifier.Uri.OriginalString + "__virtual.g.cs";
-                    var csharpDocumentUri = new Uri(csharpDocumentPath);
+                    var csharpDocumentPath = @params.Identifier.TextDocumentIdentifier.DocumentUri.GetRequiredParsedUri().OriginalString + "__virtual.g.cs";
+                    var csharpDocumentUri = new DocumentUri(csharpDocumentPath);
                     var csharpCompletionParams = new CompletionParams()
                     {
                         Context = @params.Context,
                         Position = @params.ProjectedPosition,
                         TextDocument = new TextDocumentIdentifier()
                         {
-                            Uri = csharpDocumentUri
+                            DocumentUri = csharpDocumentUri
                         }
                     };
 

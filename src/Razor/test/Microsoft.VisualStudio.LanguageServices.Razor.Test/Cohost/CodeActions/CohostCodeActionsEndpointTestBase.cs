@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
@@ -138,7 +139,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
 
         var request = new VSCodeActionParams
         {
-            TextDocument = new VSTextDocumentIdentifier { Uri = document.CreateUri() },
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() },
             Range = range,
             Context = new VSInternalCodeActionContext() { Diagnostics = diagnostics.ToArray() }
         };
@@ -172,9 +173,9 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
                 if (sumType.Value is CreateFile createFile)
                 {
                     validated = true;
-                    Assert.Single(additionalExpectedFiles.AssumeNotNull(), f => f.fileUri == createFile.Uri);
+                    Assert.Single(additionalExpectedFiles.AssumeNotNull(), f => f.fileUri == createFile.DocumentUri.GetRequiredParsedUri());
                     var documentId = DocumentId.CreateNewId(document.Project.Id);
-                    var filePath = createFile.Uri.GetDocumentFilePath();
+                    var filePath = createFile.DocumentUri.GetDocumentFilePath();
                     var documentInfo = DocumentInfo.Create(documentId, filePath, filePath: filePath);
                     solution = solution.AddDocument(documentInfo);
                 }
@@ -185,7 +186,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         {
             foreach (var edit in documentEdits)
             {
-                var textDocument = solution.GetTextDocuments(edit.TextDocument.Uri).First();
+                var textDocument = solution.GetTextDocuments(edit.TextDocument.DocumentUri.GetRequiredParsedUri()).First();
                 var text = await textDocument.GetTextAsync(DisposalToken).ConfigureAwait(false);
                 if (textDocument is Document)
                 {

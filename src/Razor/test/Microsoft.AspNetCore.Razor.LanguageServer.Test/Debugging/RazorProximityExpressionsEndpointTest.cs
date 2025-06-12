@@ -36,7 +36,7 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
         var endpoint = new RazorProximityExpressionsEndpoint(_mappingService, LoggerFactory);
         var request = new RazorProximityExpressionsParams()
         {
-            Uri = documentPath,
+            Uri = new DocumentUri(documentPath),
             Position = LspFactory.CreatePosition(1, 8),
             HostDocumentSyncVersion = 1,
         };
@@ -62,7 +62,7 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
         var endpoint = new RazorProximityExpressionsEndpoint(_mappingService, LoggerFactory);
         var request = new RazorProximityExpressionsParams()
         {
-            Uri = documentPath,
+            Uri = new DocumentUri(documentPath),
             Position = LspFactory.CreatePosition(1, 0),
             HostDocumentSyncVersion = 1,
         };
@@ -88,7 +88,7 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
         var diagnosticsEndpoint = new RazorProximityExpressionsEndpoint(_mappingService, LoggerFactory);
         var request = new RazorProximityExpressionsParams()
         {
-            Uri = documentPath,
+            Uri = new DocumentUri(documentPath),
             Position = LspFactory.CreatePosition(1, 0),
             HostDocumentSyncVersion = 0,
         };
@@ -116,7 +116,7 @@ public class RazorProximityExpressionsEndpointTest : LanguageServerTestBase
         var diagnosticsEndpoint = new RazorProximityExpressionsEndpoint(_mappingService, LoggerFactory);
         var request = new RazorProximityExpressionsParams()
         {
-            Uri = documentPath,
+            Uri = new DocumentUri(documentPath),
             Position = LspFactory.DefaultPosition,
             HostDocumentSyncVersion = 0,
         };

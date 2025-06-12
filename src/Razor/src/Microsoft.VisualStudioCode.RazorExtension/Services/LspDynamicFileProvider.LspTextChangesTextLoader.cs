@@ -100,7 +100,7 @@ internal sealed partial class LspDynamicFileProvider
                 {
                     RazorDocument = new()
                     {
-                        Uri = _razorUri,
+                        DocumentUri = new DocumentUri(_razorUri),
                     },
                     FullText = true
                 },

@@ -30,7 +30,7 @@ internal class DocumentSymbolService(IDocumentMappingService documentMappingServ
                 if (_documentMappingService.TryMapToHostDocumentRange(csharpDocument, symbolInformation.Location.Range, out var newRange))
                 {
                     symbolInformation.Location.Range = newRange;
-                    symbolInformation.Location.Uri = razorDocumentUri;
+                    symbolInformation.Location.DocumentUri = new DocumentUri(razorDocumentUri);
                     mappedSymbols.Add(symbolInformation);
                 }
 #pragma warning restore CS0618 // Type or member is obsolete

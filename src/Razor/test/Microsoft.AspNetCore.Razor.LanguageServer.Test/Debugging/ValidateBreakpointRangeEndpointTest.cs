@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -144,7 +143,7 @@ public class ValidateBreakpointRangeEndpointTest(ITestOutputHelper testOutput) :
         {
             TextDocument = new TextDocumentIdentifier
             {
-                Uri = new Uri(razorFilePath)
+                DocumentUri = new DocumentUri(razorFilePath)
             },
             Range = codeDocument.Source.Text.GetRange(breakpointSpan)
         };

@@ -23,7 +23,7 @@ internal static class CodeActionExtensions
                 TextDocument = textDocument,
                 Action = LanguageServerConstants.CodeActions.EditBasedCodeActionCommand,
                 Language = RazorLanguageKind.Razor,
-                DelegatedDocumentUri = delegatedDocumentUri,
+                DelegatedDocumentUri = delegatedDocumentUri != null ? new DocumentUri(delegatedDocumentUri) : null,
                 Data = razorCodeAction.Edit ?? new WorkspaceEdit(),
             };
 

@@ -1181,14 +1181,14 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
     private static SemanticTokensRangesParams CreateVSSemanticTokensRangesParams(ImmutableArray<LinePositionSpan> ranges, Uri uri)
         => new()
         {
-            TextDocument = new TextDocumentIdentifier { Uri = uri },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = new DocumentUri(uri) },
             Ranges = ranges.Select(s => s.ToRange()).ToArray()
         };
 
     private static SemanticTokensRangeParams CreateVSSemanticTokensRangeParams(LinePositionSpan range, Uri uri)
         => new()
         {
-            TextDocument = new TextDocumentIdentifier { Uri = uri },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = new DocumentUri(uri) },
             Range = range.ToRange()
         };
 

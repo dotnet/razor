@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -212,7 +211,7 @@ public class FoldingEndpointTest(ITestOutputHelper testOutput) : SingleServerDel
         {
             TextDocument = new VSTextDocumentIdentifier
             {
-                Uri = new Uri(filePath),
+                DocumentUri = new DocumentUri(filePath),
                 ProjectContext = new VSProjectContext()
                 {
                     Label = "test",

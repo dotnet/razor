@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -73,13 +72,13 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
-        Assert.EndsWith("String.cs", location.Uri.ToString());
+        Assert.EndsWith("String.cs", location.DocumentUri.ParsedUri?.ToString());
 
         // Note: The location is in a generated C# "metadata-as-source" file, which has a different
         // number of using directives in .NET Framework vs. .NET Core, so rather than relying on line
         // numbers we do some vague notion of actual navigation and test the actual source line that
         // the user would see.
-        var line = File.ReadLines(location.Uri.LocalPath).ElementAt(location.Range.Start.Line);
+        var line = File.ReadLines(location.DocumentUri.ParsedUri?.LocalPath).ElementAt(location.Range.Start.Line);
         Assert.Contains("public sealed class String", line);
     }
 
@@ -220,7 +219,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var htmlResponse = new SumType<LspLocation, LspLocation[], DocumentLink[]>?(new LspLocation[]
         {
             new() {
-                Uri = new Uri(document.CreateUri(), document.Name + FeatureOptions.HtmlVirtualDocumentSuffix),
+                DocumentUri = new DocumentUri(document.Name + FeatureOptions.HtmlVirtualDocumentSuffix),
                 Range = inputText.GetRange(input.Span),
             },
         });
@@ -249,7 +248,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var range = text.GetRange(input.Span);
         Assert.Equal(range, location.Range);
 
-        Assert.Equal(document.CreateUri(), location.Uri);
+        Assert.Equal(document.CreateDocumentUri(), location.DocumentUri);
     }
 
     private async Task<SumType<LspLocation, LspLocation[], DocumentLink[]>?> GetGoToDefinitionResultAsync(
@@ -275,7 +274,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var textDocumentPositionParams = new TextDocumentPositionParams
         {
             Position = position,
-            TextDocument = new TextDocumentIdentifier { Uri = document.CreateUri() },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() },
         };
 
         return await endpoint.GetTestAccessor().HandleRequestAsync(textDocumentPositionParams, document, DisposalToken);

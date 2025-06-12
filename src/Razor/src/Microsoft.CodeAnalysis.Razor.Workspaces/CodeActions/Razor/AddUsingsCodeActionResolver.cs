@@ -28,7 +28,7 @@ internal class AddUsingsCodeActionResolver : IRazorCodeActionResolver
         var documentSnapshot = documentContext.Snapshot;
 
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = documentContext.Uri };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new DocumentUri(documentContext.Uri) };
 
         return AddUsingsHelper.CreateAddUsingWorkspaceEdit(actionParams.Namespace, actionParams.AdditionalEdit, codeDocument, codeDocumentIdentifier);
     }
@@ -54,7 +54,7 @@ internal class AddUsingsCodeActionResolver : IRazorCodeActionResolver
             TextDocument = textDocument,
             Action = LanguageServerConstants.CodeActions.AddUsing,
             Language = RazorLanguageKind.Razor,
-            DelegatedDocumentUri = delegatedDocumentUri,
+            DelegatedDocumentUri = delegatedDocumentUri != null ? new DocumentUri(delegatedDocumentUri) : null,
             Data = actionParams,
         };
 
