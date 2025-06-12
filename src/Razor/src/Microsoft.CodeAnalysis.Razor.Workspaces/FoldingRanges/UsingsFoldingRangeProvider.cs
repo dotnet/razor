@@ -16,15 +16,10 @@ internal class UsingsFoldingRangeProvider : IRazorFoldingRangeProvider
         using var ranges = new PooledArrayBuilder<FoldingRange>();
 
         var sourceDocument = codeDocument.Source;
-        var root = codeDocument.GetRequiredSyntaxRoot();
+        var syntaxTree = codeDocument.GetRequiredSyntaxTree();
 
-        foreach (var node in root.DescendantNodes(static n => n.MayContainDirectives()))
+        foreach (var directive in syntaxTree.EnumerateUsingDirectives())
         {
-            if (node is not RazorDirectiveSyntax directive || !directive.IsUsingDirective(out _))
-            {
-                continue;
-            }
-
             var span = directive.GetLinePositionSpan(sourceDocument);
 
             if (ranges.LastOrDefault() is { } lastRange)
