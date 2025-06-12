@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
@@ -273,34 +274,50 @@ internal static class DelegatedCompletionHelper
         return originalData;
     }
 
-    public static async Task<VSInternalCompletionItem> FormatCSharpCompletionItemAsync(VSInternalCompletionItem resolvedCompletionItem, DocumentContext documentContext, RazorFormattingOptions options, IRazorFormattingService formattingService, IDocumentMappingService documentMappingService, CancellationToken cancellationToken)
+    public static async Task<VSInternalCompletionItem> FormatCSharpCompletionItemAsync(
+        VSInternalCompletionItem resolvedCompletionItem,
+        DocumentContext documentContext,
+        RazorFormattingOptions options,
+        IRazorFormattingService formattingService,
+        IDocumentMappingService documentMappingService,
+        ILogger logger,
+        CancellationToken cancellationToken)
     {
         // In VS Code, Roslyn does resolve via a custom command. Thats fine, but we have to modify the text edit sitting within it,
         // rather than the one LSP knows about.
-        if (resolvedCompletionItem.Command is
-            {
-                CommandIdentifier: "roslyn.client.completionComplexEdit",
-                Arguments: [TextDocumentIdentifier, TextEdit complexEdit, _, int nextCursorPosition] args
-            })
+        if (resolvedCompletionItem.Command is { CommandIdentifier: "roslyn.client.completionComplexEdit", Arguments: var args })
         {
-            var formattedTextEdit = await FormatTextEditsAsync([complexEdit], documentContext, options, formattingService, cancellationToken).ConfigureAwait(false);
-            if (formattedTextEdit is null)
+            if (args is [TextDocumentIdentifier, TextEdit complexEdit, _, int nextCursorPosition])
             {
-                resolvedCompletionItem.Command = null;
+                var formattedTextEdit = await FormatTextEditsAsync([complexEdit], documentContext, options, formattingService, cancellationToken).ConfigureAwait(false);
+                if (formattedTextEdit is null)
+                {
+                    resolvedCompletionItem.Command = null;
+                }
+                else
+                {
+                    args[0] = documentContext.GetTextDocumentIdentifier();
+                    args[1] = formattedTextEdit;
+                    if (nextCursorPosition >= 0)
+                    {
+                        // nextCursorPosition is where VS Code will navigate to, so we translate it to our document, or set to 0 to do nothing.
+                        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+                        args[3] = documentMappingService.TryMapToHostDocumentPosition(codeDocument.GetCSharpDocument(), nextCursorPosition, out _, out nextCursorPosition)
+                            ? nextCursorPosition
+                            : 0;
+                    }
+                }
             }
             else
             {
-                args[0] = documentContext.GetTextDocumentIdentifier();
-                args[1] = formattedTextEdit;
-                if (nextCursorPosition >= 0)
-                {
-                    // nextCursorPosition is where VS Code will navigate to, so we translate it to our document, or set to 0 to do nothing.
-                    var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-                    args[3] = documentMappingService.TryMapToHostDocumentPosition(codeDocument.GetCSharpDocument(), nextCursorPosition, out _, out nextCursorPosition)
-                        ? nextCursorPosition
-                        : 0;
-                }
+                logger.LogError($"Unexpected arguments for command '{resolvedCompletionItem.Command.CommandIdentifier}': Expected: [TextDocumentIdentifier, TextEdit, _, int], Actual: {GetArgumentTypesLogString(resolvedCompletionItem)}");
+                Debug.Fail("Unexpected arguments for Roslyn complex edit command. Have they changed things?");
             }
+        }
+        else if (resolvedCompletionItem.Command is not null)
+        {
+            logger.LogError($"Unsupported command for Razor document: {resolvedCompletionItem.Command.CommandIdentifier}.");
+            Debug.Fail("Unexpected command. Do we need to add something to support a new feature?");
         }
 
         if (resolvedCompletionItem.TextEdit is not null)
@@ -328,6 +345,16 @@ internal static class DelegatedCompletionHelper
         }
 
         return resolvedCompletionItem;
+
+        static string GetArgumentTypesLogString(VSInternalCompletionItem resolvedCompletionItem)
+        {
+            if (resolvedCompletionItem.Command?.Arguments is { } args)
+            {
+                return "[" + string.Join(", ", args.Select(a => a.GetType().Name)) + "]";
+            }
+
+            return "null";
+        }
     }
 
     private static async Task<TextEdit?> FormatTextEditsAsync(TextEdit[] textEdits, DocumentContext documentContext, RazorFormattingOptions options, IRazorFormattingService formattingService, CancellationToken cancellationToken)

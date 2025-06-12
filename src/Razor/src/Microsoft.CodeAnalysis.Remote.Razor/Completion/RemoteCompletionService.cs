@@ -351,6 +351,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 formattingOptions,
                 _formattingService,
                 _documentMappingService,
+                Logger,
                 cancellationToken).ConfigureAwait(false);
 
             return item;
