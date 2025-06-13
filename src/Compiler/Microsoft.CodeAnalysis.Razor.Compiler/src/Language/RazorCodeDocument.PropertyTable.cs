@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -15,28 +16,28 @@ public sealed partial class RazorCodeDocument
     /// <summary>
     ///  Represents a set of mutable values associated with a <see cref="RazorCodeDocument"/>.
     /// </summary>
-    private readonly struct PropertyTable
+    private readonly struct PropertyTable()
     {
-        public const int Size = 10;
+        // To add a mutable value, increase Size by 1 and add a new property below.
+        // Use a Property<T> for reference types or a BoxedProperty<T> for value types.
 
-        private const int TagHelpersIndex = 0;
-        private const int ReferencedTagHelpersIndex = 1;
-        private const int PreTagHelperSyntaxTreeIndex = 2;
-        private const int SyntaxTreeIndex = 3;
-        private const int ImportSyntaxTreesIndex = 4;
-        private const int TagHelperContextIndex = 5;
-        private const int DocumentIntermediateNodeIndex = 6;
-        private const int CSharpDocumentIndex = 7;
-        private const int HtmlDocumentIndex = 8;
-        private const int NamespaceInfoIndex = 9;
+        private const int Size = 10;
 
-        private readonly object?[] _values;
+        private readonly object?[] _values = new object?[Size];
 
-        public PropertyTable()
-        {
-            _values = new object?[Size];
-        }
+        public Property<IReadOnlyList<TagHelperDescriptor>> TagHelpers => new(_values, 0);
+        public Property<ISet<TagHelperDescriptor>> ReferencedTagHelpers => new(_values, 1);
+        public Property<RazorSyntaxTree> PreTagHelperSyntaxTree => new(_values, 2);
+        public Property<RazorSyntaxTree> SyntaxTree => new(_values, 3);
+        public BoxedProperty<ImmutableArray<RazorSyntaxTree>> ImportSyntaxTrees => new(_values, 4);
+        public Property<TagHelperDocumentContext> TagHelperContext => new(_values, 5);
+        public Property<DocumentIntermediateNode> DocumentNode => new(_values, 6);
+        public Property<RazorCSharpDocument> CSharpDocument => new(_values, 7);
+        public Property<RazorHtmlDocument> HtmlDocument => new(_values, 8);
+        public BoxedProperty<(string name, SourceSpan? span)> NamespaceInfo => new(_values, 9);
 
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Do not use. Present to support the legacy editor", error: false)]
         public PropertyTable Clone()
         {
             var clone = new PropertyTable();
@@ -45,25 +46,36 @@ public sealed partial class RazorCodeDocument
             return clone;
         }
 
-        public Property<IReadOnlyList<TagHelperDescriptor>> TagHelpers => new(_values, TagHelpersIndex);
-        public Property<ISet<TagHelperDescriptor>> ReferencedTagHelpers => new(_values, ReferencedTagHelpersIndex);
-        public Property<RazorSyntaxTree> PreTagHelperSyntaxTree => new(_values, PreTagHelperSyntaxTreeIndex);
-        public Property<RazorSyntaxTree> SyntaxTree => new(_values, SyntaxTreeIndex);
-        public BoxedProperty<ImmutableArray<RazorSyntaxTree>> ImportSyntaxTrees => new(_values, ImportSyntaxTreesIndex);
-        public Property<TagHelperDocumentContext> TagHelperContext => new(_values, TagHelperContextIndex);
-        public Property<DocumentIntermediateNode> DocumentNode => new(_values, DocumentIntermediateNodeIndex);
-        public Property<RazorCSharpDocument> CSharpDocument => new(_values, CSharpDocumentIndex);
-        public Property<RazorHtmlDocument> HtmlDocument => new(_values, HtmlDocumentIndex);
-        public BoxedProperty<(string name, SourceSpan? span)> NamespaceInfo => new(_values, NamespaceInfoIndex);
-
+        /// <summary>
+        ///  Provides access to a specific slot within an array for a given reference type.
+        /// </summary>
+        /// <param name="values">The array of values.</param>
+        /// <param name="index">The index within <paramref name="values"/> to access.</param>
+        /// <remarks>
+        ///  A <see langword="null"/> value in the slot indicates that the value is not present.
+        /// </remarks>
         public readonly ref struct Property<T>(object?[] values, int index)
             where T : class
         {
+            // We can use a ref field to access the array slot directly on modern .NET.
+            // On NetFx, we index into the array for each access.
+#if NET
+            private readonly ref object? _value = ref values[index];
+#endif
+
             public T? Value
+#if NET
+                => (T?)_value;
+#else
                 => (T?)values[index];
+#endif
 
             public void SetValue(T? value)
+#if NET
+                => _value = value;
+#else
                 => values[index] = value;
+#endif
 
             public bool TryGetValue([NotNullWhen(true)] out T? result)
             {
@@ -75,16 +87,22 @@ public sealed partial class RazorCodeDocument
                 => Value.AssumeNotNull();
         }
 
+        /// <summary>
+        ///  Provides access to a specific slot within an array for a given value type.
+        ///  A <see cref="StrongBox{T}"/> is employed to avoid boxing and unboxing the value.
+        /// </summary>
+        /// <param name="values">The array of values.</param>
+        /// <param name="index">The index within <paramref name="values"/> to access.</param>
         public readonly ref struct BoxedProperty<T>(object?[] values, int index)
             where T : struct
         {
-            private Property<StrongBox<T>> StrongBox => new(values, index);
+            private readonly Property<StrongBox<T>> _box = new(values, index);
 
-            public T? Value => StrongBox.Value?.Value;
+            public T? Value => _box.Value?.Value;
 
             public bool TryGetValue(out T result)
             {
-                if (StrongBox.TryGetValue(out var box))
+                if (_box.TryGetValue(out var box))
                 {
                     result = box.Value;
                     return true;
@@ -96,7 +114,7 @@ public sealed partial class RazorCodeDocument
 
             public void SetValue(T value)
             {
-                if (StrongBox.TryGetValue(out var box))
+                if (_box.TryGetValue(out var box))
                 {
                     // If we've already created a StrongBox, just update the value.
                     box.Value = value;
@@ -105,7 +123,7 @@ public sealed partial class RazorCodeDocument
                 {
                     // Otherwise, create a new StrongBox.
                     box = new(value);
-                    StrongBox.SetValue(box);
+                    _box.SetValue(box);
                 }
             }
         }
