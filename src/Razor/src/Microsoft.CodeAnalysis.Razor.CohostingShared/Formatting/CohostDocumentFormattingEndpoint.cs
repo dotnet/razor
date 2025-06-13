@@ -79,6 +79,8 @@ internal sealed class CohostDocumentFormattingEndpoint(
 
         var options = RazorFormattingOptions.From(request.Options, _clientSettingsManager.GetClientSettings().AdvancedSettings.CodeBlockBraceOnNextLine);
 
+        
+
         _logger.LogDebug($"Calling OOP with the {htmlChanges.Length} html edits, so it can fill in the rest");
         var remoteResult = await _remoteServiceInvoker.TryInvokeAsync<IRemoteFormattingService, ImmutableArray<TextChange>>(
             razorDocument.Project.Solution,
