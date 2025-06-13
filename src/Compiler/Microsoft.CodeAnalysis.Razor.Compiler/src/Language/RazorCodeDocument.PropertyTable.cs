@@ -1,9 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -13,9 +13,9 @@ namespace Microsoft.AspNetCore.Razor.Language;
 public sealed partial class RazorCodeDocument
 {
     /// <summary>
-    ///  Wraps an array to store properties associated with a <see cref="RazorCodeDocument"/>.
+    ///  Represents a set of mutable values associated with a <see cref="RazorCodeDocument"/>.
     /// </summary>
-    private readonly ref struct PropertyTable
+    private readonly struct PropertyTable
     {
         public const int Size = 10;
 
@@ -30,12 +30,19 @@ public sealed partial class RazorCodeDocument
         private const int HtmlDocumentIndex = 8;
         private const int NamespaceInfoIndex = 9;
 
-        public readonly object?[] _values;
+        private readonly object?[] _values;
 
-        public PropertyTable(object?[] values)
+        public PropertyTable()
         {
-            Debug.Assert(values.Length == Size);
-            _values = values;
+            _values = new object?[Size];
+        }
+
+        public PropertyTable Clone()
+        {
+            var clone = new PropertyTable();
+            Array.Copy(_values, clone._values, Size);
+
+            return clone;
         }
 
         public Property<IReadOnlyList<TagHelperDescriptor>> TagHelpers => new(_values, TagHelpersIndex);
