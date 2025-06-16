@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Utilities;
 
@@ -30,6 +31,8 @@ public sealed class BoundAttributeDescriptor : TagHelperObject<BoundAttributeDes
 
     private readonly BoundAttributeFlags _flags;
     private readonly DocumentationObject _documentationObject;
+
+    private TagHelperDescriptor? _parent;
 
     public string Kind { get; }
     public string Name { get; }
@@ -81,6 +84,11 @@ public sealed class BoundAttributeDescriptor : TagHelperObject<BoundAttributeDes
         ContainingType = containingType;
         Parameters = parameters.NullToEmpty();
         Metadata = metadata ?? MetadataCollection.Empty;
+
+        foreach (var parameter in Parameters)
+        {
+            parameter.SetParent(this);
+        }
 
         BoundAttributeFlags flags = 0;
 
@@ -159,6 +167,17 @@ public sealed class BoundAttributeDescriptor : TagHelperObject<BoundAttributeDes
         }
 
         builder.AppendData(Metadata.Checksum);
+    }
+
+    public TagHelperDescriptor Parent
+        => _parent ?? ThrowHelper.ThrowInvalidOperationException<TagHelperDescriptor>(Resources.Parent_has_not_been_set);
+
+    internal void SetParent(TagHelperDescriptor parent)
+    {
+        Debug.Assert(parent != null);
+        Debug.Assert(_parent == null);
+
+        _parent = parent;
     }
 
     public string? Documentation => _documentationObject.GetText();

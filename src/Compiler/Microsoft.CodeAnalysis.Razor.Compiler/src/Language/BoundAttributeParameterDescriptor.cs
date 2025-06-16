@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -20,6 +21,8 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
 
     private readonly BoundAttributeParameterFlags _flags;
     private readonly DocumentationObject _documentationObject;
+
+    private BoundAttributeDescriptor? _parent;
 
     public string Kind { get; }
     public string Name { get; }
@@ -91,6 +94,17 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
         builder.AppendData(IsBooleanProperty);
         builder.AppendData(IsStringProperty);
         builder.AppendData(Metadata.Checksum);
+    }
+
+    public BoundAttributeDescriptor Parent
+        => _parent ?? ThrowHelper.ThrowInvalidOperationException<BoundAttributeDescriptor>(Resources.Parent_has_not_been_set);
+
+    internal void SetParent(BoundAttributeDescriptor parent)
+    {
+        Debug.Assert(parent != null);
+        Debug.Assert(_parent == null);
+
+        _parent = parent;
     }
 
     public string? Documentation => _documentationObject.GetText();
