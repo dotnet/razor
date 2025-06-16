@@ -25,6 +25,7 @@ public partial class BoundAttributeParameterDescriptorBuilder
         _documentationObject = default;
 
         Name = null;
+        PropertyName = null;
         TypeName = null;
         IsEnum = false;
         DisplayName = null;

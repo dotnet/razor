@@ -116,6 +116,7 @@ internal static partial class ObjectWriters
             writer.WriteObject(value, static (writer, value) =>
             {
                 writer.Write(nameof(value.Name), value.Name);
+                writer.Write(nameof(value.PropertyName), value.PropertyName);
                 writer.Write(nameof(value.TypeName), value.TypeName);
                 writer.WriteIfNotFalse(nameof(value.IsEnum), value.IsEnum);
                 writer.WriteIfNotNull(nameof(value.DisplayName), value.DisplayName);

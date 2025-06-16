@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.MessagePack.Formatters.TagH
 
 internal sealed class BoundAttributeParameterFormatter : ValueFormatter<BoundAttributeParameterDescriptor>
 {
-    private const int PropertyCount = 8;
+    private const int PropertyCount = 9;
 
     public static readonly ValueFormatter<BoundAttributeParameterDescriptor> Instance = new BoundAttributeParameterFormatter();
 
@@ -23,6 +23,7 @@ internal sealed class BoundAttributeParameterFormatter : ValueFormatter<BoundAtt
         reader.ReadArrayHeaderAndVerify(PropertyCount);
 
         var name = CachedStringFormatter.Instance.Deserialize(ref reader, options);
+        var propertyName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
         var typeName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
         var isEnum = reader.ReadBoolean();
         var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
@@ -33,7 +34,7 @@ internal sealed class BoundAttributeParameterFormatter : ValueFormatter<BoundAtt
         var diagnostics = reader.Deserialize<ImmutableArray<RazorDiagnostic>>(options);
 
         return new BoundAttributeParameterDescriptor(
-            name!, typeName,
+            name!, propertyName, typeName,
             isEnum, documentationObject, displayName, caseSensitive,
             metadata, diagnostics);
     }
@@ -43,6 +44,7 @@ internal sealed class BoundAttributeParameterFormatter : ValueFormatter<BoundAtt
         writer.WriteArrayHeader(PropertyCount);
 
         CachedStringFormatter.Instance.Serialize(ref writer, value.Name, options);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.PropertyName, options);
         CachedStringFormatter.Instance.Serialize(ref writer, value.TypeName, options);
         writer.Write(value.IsEnum);
         CachedStringFormatter.Instance.Serialize(ref writer, value.DisplayName, options);
@@ -58,6 +60,7 @@ internal sealed class BoundAttributeParameterFormatter : ValueFormatter<BoundAtt
         reader.ReadArrayHeaderAndVerify(PropertyCount);
 
         CachedStringFormatter.Instance.Skim(ref reader, options); // Name
+        CachedStringFormatter.Instance.Skim(ref reader, options); // PropertyName
         CachedStringFormatter.Instance.Skim(ref reader, options); // TypeName
         reader.Skip(); // IsEnum
         CachedStringFormatter.Instance.Skim(ref reader, options); // DisplayName

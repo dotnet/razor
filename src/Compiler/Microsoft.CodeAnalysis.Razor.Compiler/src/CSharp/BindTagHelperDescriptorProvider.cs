@@ -164,57 +164,53 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
             attribute.BindAttributeParameter(parameter =>
             {
                 parameter.Name = "format";
+                parameter.PropertyName = "Format";
                 parameter.TypeName = typeof(string).FullName;
                 parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Fallback_Format);
-
-                parameter.SetMetadata(Parameters.Format);
             });
 
             attribute.BindAttributeParameter(parameter =>
             {
                 parameter.Name = "event";
+                parameter.PropertyName = "Event";
                 parameter.TypeName = typeof(string).FullName;
                 parameter.SetDocumentation(
                     DocumentationDescriptor.From(
                         DocumentationId.BindTagHelper_Fallback_Event, attributeName));
-
-                parameter.SetMetadata(Parameters.Event);
             });
 
             attribute.BindAttributeParameter(parameter =>
             {
                 parameter.Name = "culture";
+                parameter.PropertyName = "Culture";
                 parameter.TypeName = typeof(CultureInfo).FullName;
                 parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_Culture);
-
-                parameter.SetMetadata(Parameters.Culture);
             });
 
             attribute.BindAttributeParameter(parameter =>
             {
                 parameter.Name = "get";
+                parameter.PropertyName = "Get";
                 parameter.TypeName = typeof(object).FullName;
                 parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_Get);
 
-                parameter.SetMetadata(Parameters.Get);
+                parameter.SetMetadata(BindAttributeGetSet);
             });
 
             attribute.BindAttributeParameter(parameter =>
             {
                 parameter.Name = "set";
+                parameter.PropertyName = "Set";
                 parameter.TypeName = typeof(Delegate).FullName;
                 parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_Set);
-
-                parameter.SetMetadata(Parameters.Set);
             });
 
             attribute.BindAttributeParameter(parameter =>
             {
                 parameter.Name = "after";
+                parameter.PropertyName = "After";
                 parameter.TypeName = typeof(Delegate).FullName;
                 parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_After);
-
-                parameter.SetMetadata(Parameters.After);
             });
         });
 
@@ -470,61 +466,57 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
                 a.BindAttributeParameter(parameter =>
                 {
                     parameter.Name = "format";
+                    parameter.PropertyName = formatName;
                     parameter.TypeName = typeof(string).FullName;
                     parameter.SetDocumentation(
                         DocumentationDescriptor.From(
                             DocumentationId.BindTagHelper_Element_Format,
                             attributeName));
-
-                    parameter.SetMetadata(PropertyName(formatName));
                 });
 
                 a.BindAttributeParameter(parameter =>
                 {
                     parameter.Name = "event";
+                    parameter.PropertyName = eventName;
                     parameter.TypeName = typeof(string).FullName;
                     parameter.SetDocumentation(
                         DocumentationDescriptor.From(
                             DocumentationId.BindTagHelper_Element_Event,
                             attributeName));
-
-                    parameter.SetMetadata(PropertyName(eventName));
                 });
 
                 a.BindAttributeParameter(parameter =>
                 {
                     parameter.Name = "culture";
+                    parameter.PropertyName = "Culture";
                     parameter.TypeName = typeof(CultureInfo).FullName;
                     parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_Culture);
-
-                    parameter.SetMetadata(Parameters.Culture);
                 });
 
                 a.BindAttributeParameter(parameter =>
                 {
                     parameter.Name = "get";
+                    parameter.PropertyName = "Get";
                     parameter.TypeName = typeof(object).FullName;
                     parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_Get);
 
-                    parameter.SetMetadata(Parameters.Get);
+                    parameter.SetMetadata(BindAttributeGetSet);
                 });
 
                 a.BindAttributeParameter(parameter =>
                 {
                     parameter.Name = "set";
+                    parameter.PropertyName = "Set";
                     parameter.TypeName = typeof(Delegate).FullName;
                     parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_Set);
-
-                    parameter.SetMetadata(Parameters.Set);
                 });
 
                 a.BindAttributeParameter(parameter =>
                 {
                     parameter.Name = "after";
+                    parameter.PropertyName = "After";
                     parameter.TypeName = typeof(Delegate).FullName;
                     parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_After);
-
-                    parameter.SetMetadata(Parameters.After);
                 });
             });
 
@@ -676,28 +668,27 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
                     attribute.BindAttributeParameter(parameter =>
                     {
                         parameter.Name = "get";
+                        parameter.PropertyName = "Get";
                         parameter.TypeName = typeof(object).FullName;
                         parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_Get);
 
-                        parameter.SetMetadata(Parameters.Get);
+                        parameter.SetMetadata(BindAttributeGetSet);
                     });
 
                     attribute.BindAttributeParameter(parameter =>
                     {
                         parameter.Name = "set";
+                        parameter.PropertyName = "Set";
                         parameter.TypeName = typeof(Delegate).FullName;
                         parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_Set);
-
-                        parameter.SetMetadata(Parameters.Set);
                     });
 
                     attribute.BindAttributeParameter(parameter =>
                     {
                         parameter.Name = "after";
+                        parameter.PropertyName = "After";
                         parameter.TypeName = typeof(Delegate).FullName;
                         parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_After);
-
-                        parameter.SetMetadata(Parameters.After);
                     });
                 });
 
