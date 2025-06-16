@@ -35,8 +35,6 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBui
 
     [AllowNull]
     private TagHelperDescriptorBuilder _parent;
-    [AllowNull]
-    private string _kind;
     private DocumentationObject _documentationObject;
     private MetadataHolder _metadata;
     private bool? _caseSensitive;
@@ -45,10 +43,9 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBui
     {
     }
 
-    internal BoundAttributeDescriptorBuilder(TagHelperDescriptorBuilder parent, string kind)
+    internal BoundAttributeDescriptorBuilder(TagHelperDescriptorBuilder parent)
     {
         _parent = parent;
-        _kind = kind;
     }
 
     [AllowNull]
@@ -111,7 +108,6 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBui
     private protected override BoundAttributeDescriptor BuildCore(ImmutableArray<RazorDiagnostic> diagnostics)
     {
         return new BoundAttributeDescriptor(
-            _kind,
             Name ?? string.Empty,
             TypeName ?? string.Empty,
             IsEnum,

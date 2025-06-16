@@ -34,7 +34,6 @@ public sealed class BoundAttributeDescriptor : TagHelperObject<BoundAttributeDes
 
     private TagHelperDescriptor? _parent;
 
-    public string Kind { get; }
     public string Name { get; }
     public string TypeName { get; }
     public string DisplayName { get; }
@@ -57,7 +56,6 @@ public sealed class BoundAttributeDescriptor : TagHelperObject<BoundAttributeDes
     public MetadataCollection Metadata { get; }
 
     internal BoundAttributeDescriptor(
-        string kind,
         string name,
         string typeName,
         bool isEnum,
@@ -74,7 +72,6 @@ public sealed class BoundAttributeDescriptor : TagHelperObject<BoundAttributeDes
         ImmutableArray<RazorDiagnostic> diagnostics)
         : base(diagnostics)
     {
-        Kind = kind;
         Name = name;
         TypeName = typeName;
         IndexerNamePrefix = indexerNamePrefix;
@@ -142,7 +139,6 @@ public sealed class BoundAttributeDescriptor : TagHelperObject<BoundAttributeDes
 
     private protected override void BuildChecksum(in Checksum.Builder builder)
     {
-        builder.AppendData(Kind);
         builder.AppendData(Name);
         builder.AppendData(TypeName);
         builder.AppendData(IndexerNamePrefix);

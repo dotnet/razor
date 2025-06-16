@@ -27,7 +27,7 @@ public static class BoundAttributeDescriptorExtensions
     {
         ArgHelper.ThrowIfNull(attribute);
 
-        return attribute.Kind == TagHelperConventions.DefaultKind;
+        return attribute.Parent.Kind == TagHelperConventions.DefaultKind;
     }
 
     internal static bool ExpectsStringValue(this BoundAttributeDescriptor attribute, string name)

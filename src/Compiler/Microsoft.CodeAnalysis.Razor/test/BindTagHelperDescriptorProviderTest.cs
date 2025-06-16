@@ -146,7 +146,7 @@ namespace Test
         // Invariants
         Assert.Empty(attribute.Diagnostics);
         Assert.False(attribute.HasErrors);
-        Assert.Equal(ComponentMetadata.Bind.TagHelperKind, attribute.Kind);
+        Assert.Equal(ComponentMetadata.Bind.TagHelperKind, attribute.Parent.Kind);
         Assert.False(attribute.IsDefaultKind());
         Assert.False(attribute.HasIndexer);
         Assert.Null(attribute.IndexerNamePrefix);
@@ -370,7 +370,7 @@ namespace Test
         // Invariants
         Assert.Empty(attribute.Diagnostics);
         Assert.False(attribute.HasErrors);
-        Assert.Equal(ComponentMetadata.Bind.TagHelperKind, attribute.Kind);
+        Assert.Equal(ComponentMetadata.Bind.TagHelperKind, attribute.Parent.Kind);
         Assert.False(attribute.IsDefaultKind());
         Assert.False(attribute.HasIndexer);
         Assert.Null(attribute.IndexerNamePrefix);
@@ -563,7 +563,7 @@ namespace Test
             // Invariants
             Assert.Empty(attribute.Diagnostics);
             Assert.False(attribute.HasErrors);
-            Assert.Equal(ComponentMetadata.Bind.TagHelperKind, attribute.Kind);
+            Assert.Equal(ComponentMetadata.Bind.TagHelperKind, attribute.Parent.Kind);
             Assert.False(attribute.IsDefaultKind());
             Assert.False(attribute.HasIndexer);
             Assert.Null(attribute.IndexerNamePrefix);
@@ -1157,7 +1157,7 @@ namespace Test
         // Invariants
         Assert.Empty(attribute.Diagnostics);
         Assert.False(attribute.HasErrors);
-        Assert.Equal(ComponentMetadata.Bind.TagHelperKind, attribute.Kind);
+        Assert.Equal(ComponentMetadata.Bind.TagHelperKind, attribute.Parent.Kind);
         Assert.False(attribute.IsDefaultKind());
         Assert.False(attribute.IsIndexerBooleanProperty);
         Assert.False(attribute.IsIndexerStringProperty);
