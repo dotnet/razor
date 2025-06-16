@@ -591,7 +591,7 @@ namespace Test
             // Invariants
             Assert.Empty(parameter.Diagnostics);
             Assert.False(parameter.HasErrors);
-            Assert.Equal(ComponentMetadata.Bind.TagHelperKind, parameter.Kind);
+            Assert.Equal(ComponentMetadata.Bind.TagHelperKind, parameter.Parent.Parent.Kind);
             Assert.False(parameter.IsDefaultKind());
 
             Assert.Equal(
@@ -614,7 +614,7 @@ namespace Test
             // Invariants
             Assert.Empty(parameter.Diagnostics);
             Assert.False(parameter.HasErrors);
-            Assert.Equal(ComponentMetadata.Bind.TagHelperKind, parameter.Kind);
+            Assert.Equal(ComponentMetadata.Bind.TagHelperKind, parameter.Parent.Parent.Kind);
             Assert.False(parameter.IsDefaultKind());
 
             Assert.Equal(
@@ -636,7 +636,7 @@ namespace Test
             // Invariants
             Assert.Empty(parameter.Diagnostics);
             Assert.False(parameter.HasErrors);
-            Assert.Equal(ComponentMetadata.Bind.TagHelperKind, parameter.Kind);
+            Assert.Equal(ComponentMetadata.Bind.TagHelperKind, parameter.Parent.Parent.Kind);
             Assert.False(parameter.IsDefaultKind());
 
             Assert.Equal(
@@ -658,7 +658,7 @@ namespace Test
             // Invariants
             Assert.Empty(parameter.Diagnostics);
             Assert.False(parameter.HasErrors);
-            Assert.Equal(ComponentMetadata.Bind.TagHelperKind, parameter.Kind);
+            Assert.Equal(ComponentMetadata.Bind.TagHelperKind, parameter.Parent.Parent.Kind);
             Assert.False(parameter.IsDefaultKind());
 
             Assert.Equal(
@@ -680,7 +680,7 @@ namespace Test
             // Invariants
             Assert.Empty(parameter.Diagnostics);
             Assert.False(parameter.HasErrors);
-            Assert.Equal(ComponentMetadata.Bind.TagHelperKind, parameter.Kind);
+            Assert.Equal(ComponentMetadata.Bind.TagHelperKind, parameter.Parent.Parent.Kind);
             Assert.False(parameter.IsDefaultKind());
 
             Assert.Equal(
@@ -1190,7 +1190,7 @@ namespace Test
         // Invariants
         Assert.Empty(parameter.Diagnostics);
         Assert.False(parameter.HasErrors);
-        Assert.Equal(ComponentMetadata.Bind.TagHelperKind, parameter.Kind);
+        Assert.Equal(ComponentMetadata.Bind.TagHelperKind, parameter.Parent.Parent.Kind);
         Assert.False(parameter.IsDefaultKind());
 
         Assert.Equal(
@@ -1215,7 +1215,7 @@ namespace Test
         // Invariants
         Assert.Empty(parameter.Diagnostics);
         Assert.False(parameter.HasErrors);
-        Assert.Equal(ComponentMetadata.Bind.TagHelperKind, parameter.Kind);
+        Assert.Equal(ComponentMetadata.Bind.TagHelperKind, parameter.Parent.Parent.Kind);
         Assert.False(parameter.IsDefaultKind());
 
         Assert.Equal(

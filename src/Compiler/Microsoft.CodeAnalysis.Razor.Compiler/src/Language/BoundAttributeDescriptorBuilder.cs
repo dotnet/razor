@@ -93,7 +93,7 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBui
             throw new ArgumentNullException(nameof(configure));
         }
 
-        var builder = BoundAttributeParameterDescriptorBuilder.GetInstance(this, _kind);
+        var builder = BoundAttributeParameterDescriptorBuilder.GetInstance(this);
         configure(builder);
         Parameters.Add(builder);
     }

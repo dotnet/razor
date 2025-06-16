@@ -24,7 +24,6 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
 
     private BoundAttributeDescriptor? _parent;
 
-    public string Kind { get; }
     public string Name { get; }
     public string TypeName { get; }
     public string DisplayName { get; }
@@ -37,7 +36,6 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
     public MetadataCollection Metadata { get; }
 
     internal BoundAttributeParameterDescriptor(
-        string kind,
         string name,
         string typeName,
         bool isEnum,
@@ -48,7 +46,6 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
         ImmutableArray<RazorDiagnostic> diagnostics)
         : base(diagnostics)
     {
-        Kind = kind;
         Name = name;
         TypeName = typeName;
         _documentationObject = documentationObject;
@@ -82,7 +79,6 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
 
     private protected override void BuildChecksum(in Checksum.Builder builder)
     {
-        builder.AppendData(Kind);
         builder.AppendData(Name);
         builder.AppendData(TypeName);
         builder.AppendData(DisplayName);

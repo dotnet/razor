@@ -56,7 +56,7 @@ public static class BoundAttributeDescriptorExtensions
     {
         ArgHelper.ThrowIfNull(parameter);
 
-        return parameter.Kind == TagHelperConventions.DefaultKind;
+        return parameter.Parent.Parent.Kind == TagHelperConventions.DefaultKind;
     }
 
     public static string? GetPropertyName(this BoundAttributeParameterDescriptor parameter)
