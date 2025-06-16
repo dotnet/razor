@@ -29,8 +29,6 @@ public partial class BoundAttributeParameterDescriptorBuilder
         PropertyName = null;
         TypeName = null;
         DisplayName = null;
-
-        _metadata.Clear();
     }
 
     private sealed class Policy : PooledBuilderPolicy<BoundAttributeParameterDescriptorBuilder>

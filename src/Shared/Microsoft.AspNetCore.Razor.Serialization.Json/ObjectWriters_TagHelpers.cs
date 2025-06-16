@@ -122,7 +122,6 @@ internal static partial class ObjectWriters
                 writer.WriteIfNotNull(nameof(value.DisplayName), value.DisplayName);
                 WriteDocumentationObject(writer, nameof(value.Documentation), value.DocumentationObject);
 
-                WriteMetadata(writer, nameof(value.Metadata), value.Metadata);
                 writer.WriteArrayIfNotDefaultOrEmpty(nameof(value.Diagnostics), value.Diagnostics, Write);
             });
         }

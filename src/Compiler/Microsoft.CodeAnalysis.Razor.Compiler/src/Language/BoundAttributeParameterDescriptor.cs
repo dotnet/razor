@@ -26,8 +26,6 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
     public bool IsBooleanProperty => _flags.IsFlagSet(BoundAttributeParameterFlags.IsBooleanProperty);
     public bool BindAttributeGetSet => _flags.IsFlagSet(BoundAttributeParameterFlags.BindAttributeGetSet);
 
-    public MetadataCollection Metadata { get; }
-
     internal BoundAttributeParameterDescriptor(
         BoundAttributeParameterFlags flags,
         string name,
@@ -35,7 +33,6 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
         string typeName,
         DocumentationObject documentationObject,
         string displayName,
-        MetadataCollection metadata,
         ImmutableArray<RazorDiagnostic> diagnostics)
         : base(diagnostics)
     {
@@ -46,7 +43,6 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
         TypeName = typeName;
         _documentationObject = documentationObject;
         DisplayName = displayName;
-        Metadata = metadata ?? MetadataCollection.Empty;
     }
 
     private protected override void BuildChecksum(in Checksum.Builder builder)
@@ -58,8 +54,6 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
         builder.AppendData(DisplayName);
 
         DocumentationObject.AppendToChecksum(in builder);
-
-        builder.AppendData(Metadata.Checksum);
     }
 
     public BoundAttributeDescriptor Parent

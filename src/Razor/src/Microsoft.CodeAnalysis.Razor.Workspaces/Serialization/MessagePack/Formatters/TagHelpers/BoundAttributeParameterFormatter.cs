@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.MessagePack.Formatters.TagH
 
 internal sealed class BoundAttributeParameterFormatter : ValueFormatter<BoundAttributeParameterDescriptor>
 {
-    private const int PropertyCount = 8;
+    private const int PropertyCount = 7;
 
     public static readonly ValueFormatter<BoundAttributeParameterDescriptor> Instance = new BoundAttributeParameterFormatter();
 
@@ -29,11 +29,10 @@ internal sealed class BoundAttributeParameterFormatter : ValueFormatter<BoundAtt
         var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
         var documentationObject = reader.Deserialize<DocumentationObject>(options);
 
-        var metadata = reader.Deserialize<MetadataCollection>(options);
         var diagnostics = reader.Deserialize<ImmutableArray<RazorDiagnostic>>(options);
 
         return new BoundAttributeParameterDescriptor(
-            flags, name!, propertyName, typeName, documentationObject, displayName, metadata, diagnostics);
+            flags, name!, propertyName, typeName, documentationObject, displayName, diagnostics);
     }
 
     public override void Serialize(ref MessagePackWriter writer, BoundAttributeParameterDescriptor value, SerializerCachingOptions options)
@@ -47,7 +46,6 @@ internal sealed class BoundAttributeParameterFormatter : ValueFormatter<BoundAtt
         CachedStringFormatter.Instance.Serialize(ref writer, value.DisplayName, options);
         writer.Serialize(value.DocumentationObject, options);
 
-        writer.Serialize(value.Metadata, options);
         writer.Serialize(value.Diagnostics, options);
     }
 
@@ -62,7 +60,6 @@ internal sealed class BoundAttributeParameterFormatter : ValueFormatter<BoundAtt
         CachedStringFormatter.Instance.Skim(ref reader, options); // DisplayName
         DocumentationObjectFormatter.Instance.Skim(ref reader, options); // DocumentationObject
 
-        MetadataCollectionFormatter.Instance.Skim(ref reader, options); // Metadata
         RazorDiagnosticFormatter.Instance.SkimArray(ref reader, options); // Diagnostics
     }
 }
