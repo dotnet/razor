@@ -36,6 +36,12 @@ public sealed partial class BoundAttributeParameterDescriptorBuilder : TagHelper
         set => _flags.UpdateFlag(BoundAttributeParameterFlags.IsEnum, value);
     }
 
+    public bool BindAttributeGetSet
+    {
+        get => _flags.IsFlagSet(BoundAttributeParameterFlags.BindAttributeGetSet);
+        set => _flags.UpdateFlag(BoundAttributeParameterFlags.BindAttributeGetSet, value);
+    }
+
     public string? Documentation
     {
         get => _documentationObject.GetText();

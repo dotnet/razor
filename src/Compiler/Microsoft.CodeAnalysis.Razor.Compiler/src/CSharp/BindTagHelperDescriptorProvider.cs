@@ -193,8 +193,7 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
                 parameter.PropertyName = "Get";
                 parameter.TypeName = typeof(object).FullName;
                 parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_Get);
-
-                parameter.SetMetadata(BindAttributeGetSet);
+                parameter.BindAttributeGetSet = true;
             });
 
             attribute.BindAttributeParameter(parameter =>
@@ -499,8 +498,7 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
                     parameter.PropertyName = "Get";
                     parameter.TypeName = typeof(object).FullName;
                     parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_Get);
-
-                    parameter.SetMetadata(BindAttributeGetSet);
+                    parameter.BindAttributeGetSet = true;
                 });
 
                 a.BindAttributeParameter(parameter =>
@@ -671,8 +669,7 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
                         parameter.PropertyName = "Get";
                         parameter.TypeName = typeof(object).FullName;
                         parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_Get);
-
-                        parameter.SetMetadata(BindAttributeGetSet);
+                        parameter.BindAttributeGetSet = true;
                     });
 
                     attribute.BindAttributeParameter(parameter =>

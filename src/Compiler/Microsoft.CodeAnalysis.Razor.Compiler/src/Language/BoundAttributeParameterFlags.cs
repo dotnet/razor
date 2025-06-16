@@ -11,5 +11,6 @@ public enum BoundAttributeParameterFlags : byte
     CaseSensitive = 1 << 0,
     IsEnum = 1 << 1,
     IsStringProperty = 1 << 2,
-    IsBooleanProperty = 1 << 3
+    IsBooleanProperty = 1 << 3,
+    BindAttributeGetSet = 1 << 4
 }
