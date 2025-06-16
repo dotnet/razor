@@ -22,12 +22,12 @@ public partial class BoundAttributeParameterDescriptorBuilder
     private protected override void Reset()
     {
         _parent = null;
+        _flags = 0;
         _documentationObject = default;
 
         Name = null;
         PropertyName = null;
         TypeName = null;
-        IsEnum = false;
         DisplayName = null;
 
         _metadata.Clear();

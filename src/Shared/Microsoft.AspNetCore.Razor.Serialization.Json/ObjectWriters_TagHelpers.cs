@@ -115,13 +115,12 @@ internal static partial class ObjectWriters
         {
             writer.WriteObject(value, static (writer, value) =>
             {
+                writer.Write(nameof(value.Flags), (byte)value.Flags);
                 writer.Write(nameof(value.Name), value.Name);
                 writer.Write(nameof(value.PropertyName), value.PropertyName);
                 writer.Write(nameof(value.TypeName), value.TypeName);
-                writer.WriteIfNotFalse(nameof(value.IsEnum), value.IsEnum);
                 writer.WriteIfNotNull(nameof(value.DisplayName), value.DisplayName);
                 WriteDocumentationObject(writer, nameof(value.Documentation), value.DocumentationObject);
-                writer.WriteIfNotTrue(nameof(value.CaseSensitive), value.CaseSensitive);
 
                 WriteMetadata(writer, nameof(value.Metadata), value.Metadata);
                 writer.WriteArrayIfNotDefaultOrEmpty(nameof(value.Diagnostics), value.Diagnostics, Write);

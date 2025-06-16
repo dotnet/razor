@@ -183,21 +183,19 @@ internal static partial class ObjectReaders
 
             static BoundAttributeParameterDescriptor ReadFromProperties(JsonDataReader reader)
             {
+                var flags = (BoundAttributeParameterFlags)reader.ReadInt32(nameof(BoundAttributeParameterDescriptor.Flags));
                 var name = reader.ReadString(nameof(BoundAttributeParameterDescriptor.Name));
                 var propertyName = reader.ReadNonNullString(nameof(BoundAttributeParameterDescriptor.PropertyName));
                 var typeName = reader.ReadNonNullString(nameof(BoundAttributeParameterDescriptor.TypeName));
-                var isEnum = reader.ReadBooleanOrFalse(nameof(BoundAttributeParameterDescriptor.IsEnum));
                 var displayName = reader.ReadNonNullString(nameof(BoundAttributeParameterDescriptor.DisplayName));
                 var documentationObject = ReadDocumentationObject(reader, nameof(BoundAttributeParameterDescriptor.Documentation));
-                var caseSensitive = reader.ReadBooleanOrTrue(nameof(BoundAttributeParameterDescriptor.CaseSensitive));
 
                 var metadata = ReadMetadata(reader, nameof(RequiredAttributeDescriptor.Metadata));
                 var diagnostics = reader.ReadImmutableArrayOrEmpty(nameof(BoundAttributeParameterDescriptor.Diagnostics), ReadDiagnostic);
 
                 return new BoundAttributeParameterDescriptor(
-                    Cached(name)!, Cached(propertyName), Cached(typeName),
-                    isEnum, documentationObject, Cached(displayName), caseSensitive,
-                    metadata, diagnostics);
+                    flags, Cached(name)!, Cached(propertyName), Cached(typeName),
+                    documentationObject, Cached(displayName), metadata, diagnostics);
             }
         }
 

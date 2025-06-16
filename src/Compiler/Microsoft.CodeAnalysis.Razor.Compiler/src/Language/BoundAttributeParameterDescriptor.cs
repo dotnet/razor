@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Utilities;
@@ -10,78 +9,48 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAttributeParameterDescriptor>
 {
-    [Flags]
-    private enum BoundAttributeParameterFlags
-    {
-        CaseSensitive = 1 << 0,
-        IsEnum = 1 << 1,
-        IsStringProperty = 1 << 2,
-        IsBooleanProperty = 1 << 3
-    }
-
     private readonly BoundAttributeParameterFlags _flags;
     private readonly DocumentationObject _documentationObject;
 
     private BoundAttributeDescriptor? _parent;
 
+    public BoundAttributeParameterFlags Flags => _flags;
     public string Name { get; }
     public string PropertyName { get; }
     public string TypeName { get; }
     public string DisplayName { get; }
 
-    public bool CaseSensitive => (_flags & BoundAttributeParameterFlags.CaseSensitive) != 0;
-    public bool IsEnum => (_flags & BoundAttributeParameterFlags.IsEnum) != 0;
-    public bool IsStringProperty => (_flags & BoundAttributeParameterFlags.IsStringProperty) != 0;
-    public bool IsBooleanProperty => (_flags & BoundAttributeParameterFlags.IsBooleanProperty) != 0;
+    public bool CaseSensitive => _flags.IsFlagSet(BoundAttributeParameterFlags.CaseSensitive);
+    public bool IsEnum => _flags.IsFlagSet(BoundAttributeParameterFlags.IsEnum);
+    public bool IsStringProperty => _flags.IsFlagSet(BoundAttributeParameterFlags.IsStringProperty);
+    public bool IsBooleanProperty => _flags.IsFlagSet(BoundAttributeParameterFlags.IsBooleanProperty);
 
     public MetadataCollection Metadata { get; }
 
     internal BoundAttributeParameterDescriptor(
+        BoundAttributeParameterFlags flags,
         string name,
         string propertyName,
         string typeName,
-        bool isEnum,
         DocumentationObject documentationObject,
         string displayName,
-        bool caseSensitive,
         MetadataCollection metadata,
         ImmutableArray<RazorDiagnostic> diagnostics)
         : base(diagnostics)
     {
+        _flags = flags;
+
         Name = name;
         PropertyName = propertyName;
         TypeName = typeName;
         _documentationObject = documentationObject;
         DisplayName = displayName;
         Metadata = metadata ?? MetadataCollection.Empty;
-
-        BoundAttributeParameterFlags flags = 0;
-
-        if (isEnum)
-        {
-            flags |= BoundAttributeParameterFlags.IsEnum;
-        }
-
-        if (caseSensitive)
-        {
-            flags |= BoundAttributeParameterFlags.CaseSensitive;
-        }
-
-        if (typeName == typeof(string).FullName || typeName == "string")
-        {
-            flags |= BoundAttributeParameterFlags.IsStringProperty;
-        }
-
-        if (typeName == typeof(bool).FullName || typeName == "bool")
-        {
-            flags |= BoundAttributeParameterFlags.IsBooleanProperty;
-        }
-
-        _flags = flags;
     }
 
     private protected override void BuildChecksum(in Checksum.Builder builder)
     {
+        builder.AppendData((byte)Flags);
         builder.AppendData(Name);
         builder.AppendData(PropertyName);
         builder.AppendData(TypeName);
@@ -89,10 +58,6 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
 
         DocumentationObject.AppendToChecksum(in builder);
 
-        builder.AppendData(CaseSensitive);
-        builder.AppendData(IsEnum);
-        builder.AppendData(IsBooleanProperty);
-        builder.AppendData(IsStringProperty);
         builder.AppendData(Metadata.Checksum);
     }
 
