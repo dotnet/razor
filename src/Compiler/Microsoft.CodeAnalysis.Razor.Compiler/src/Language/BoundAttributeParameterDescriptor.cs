@@ -11,6 +11,7 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
 {
     private readonly BoundAttributeParameterFlags _flags;
     private readonly DocumentationObject _documentationObject;
+    private readonly TypeNameObject _typeNameObject;
 
     private BoundAttributeDescriptor? _parent;
     private string? _displayName;
@@ -18,20 +19,25 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
     public BoundAttributeParameterFlags Flags => _flags;
     public string Name { get; }
     public string PropertyName { get; }
-    public string TypeName { get; }
+    public string TypeName => _typeNameObject.GetTypeName().AssumeNotNull();
     public string DisplayName => _displayName ??= ":" + Name;
+
+    public string? Documentation => _documentationObject.GetText();
 
     public bool CaseSensitive => _flags.IsFlagSet(BoundAttributeParameterFlags.CaseSensitive);
     public bool IsEnum => _flags.IsFlagSet(BoundAttributeParameterFlags.IsEnum);
-    public bool IsStringProperty => _flags.IsFlagSet(BoundAttributeParameterFlags.IsStringProperty);
-    public bool IsBooleanProperty => _flags.IsFlagSet(BoundAttributeParameterFlags.IsBooleanProperty);
+    public bool IsStringProperty => _typeNameObject.IsString;
+    public bool IsBooleanProperty => _typeNameObject.IsBoolean;
     public bool BindAttributeGetSet => _flags.IsFlagSet(BoundAttributeParameterFlags.BindAttributeGetSet);
+
+    internal TypeNameObject TypeNameObject => _typeNameObject;
+    internal DocumentationObject DocumentationObject => _documentationObject;
 
     internal BoundAttributeParameterDescriptor(
         BoundAttributeParameterFlags flags,
         string name,
         string propertyName,
-        string typeName,
+        TypeNameObject typeNameObject,
         DocumentationObject documentationObject,
         ImmutableArray<RazorDiagnostic> diagnostics)
         : base(diagnostics)
@@ -40,7 +46,7 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
 
         Name = name;
         PropertyName = propertyName;
-        TypeName = typeName;
+        _typeNameObject = typeNameObject;
         _documentationObject = documentationObject;
     }
 
@@ -49,8 +55,8 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
         builder.AppendData((byte)Flags);
         builder.AppendData(Name);
         builder.AppendData(PropertyName);
-        builder.AppendData(TypeName);
 
+        TypeNameObject.AppendToChecksum(in builder);
         DocumentationObject.AppendToChecksum(in builder);
     }
 
@@ -65,10 +71,6 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
         _parent = parent;
     }
 
-    public string? Documentation => _documentationObject.GetText();
-
-    internal DocumentationObject DocumentationObject => _documentationObject;
-
     public override string ToString()
-        => DisplayName ?? base.ToString()!;
+        => DisplayName;
 }

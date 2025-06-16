@@ -25,13 +25,13 @@ internal sealed class BoundAttributeParameterFormatter : ValueFormatter<BoundAtt
         var flags = (BoundAttributeParameterFlags)reader.ReadByte();
         var name = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var propertyName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
-        var typeName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
+        var typeNameObject = reader.Deserialize<TypeNameObject>(options);
         var documentationObject = reader.Deserialize<DocumentationObject>(options);
 
         var diagnostics = reader.Deserialize<ImmutableArray<RazorDiagnostic>>(options);
 
         return new BoundAttributeParameterDescriptor(
-            flags, name!, propertyName, typeName, documentationObject, diagnostics);
+            flags, name!, propertyName, typeNameObject, documentationObject, diagnostics);
     }
 
     public override void Serialize(ref MessagePackWriter writer, BoundAttributeParameterDescriptor value, SerializerCachingOptions options)
@@ -41,7 +41,7 @@ internal sealed class BoundAttributeParameterFormatter : ValueFormatter<BoundAtt
         writer.Write((byte)value.Flags);
         CachedStringFormatter.Instance.Serialize(ref writer, value.Name, options);
         CachedStringFormatter.Instance.Serialize(ref writer, value.PropertyName, options);
-        CachedStringFormatter.Instance.Serialize(ref writer, value.TypeName, options);
+        writer.Serialize(value.TypeNameObject, options);
         writer.Serialize(value.DocumentationObject, options);
 
         writer.Serialize(value.Diagnostics, options);
@@ -54,7 +54,7 @@ internal sealed class BoundAttributeParameterFormatter : ValueFormatter<BoundAtt
         reader.Skip(); // Flags
         CachedStringFormatter.Instance.Skim(ref reader, options); // Name
         CachedStringFormatter.Instance.Skim(ref reader, options); // PropertyName
-        CachedStringFormatter.Instance.Skim(ref reader, options); // TypeName
+        TypeNameObjectFormatter.Instance.Skim(ref reader, options); // TypeNameObject
         DocumentationObjectFormatter.Instance.Skim(ref reader, options); // DocumentationObject
 
         RazorDiagnosticFormatter.Instance.SkimArray(ref reader, options); // Diagnostics

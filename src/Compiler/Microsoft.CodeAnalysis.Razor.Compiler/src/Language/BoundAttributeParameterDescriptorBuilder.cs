@@ -14,6 +14,7 @@ public sealed partial class BoundAttributeParameterDescriptorBuilder : TagHelper
     private BoundAttributeDescriptorBuilder _parent;
     private BoundAttributeParameterFlags _flags;
     private DocumentationObject _documentationObject;
+    private TypeNameObject _typeNameObject;
 
     private BoundAttributeParameterDescriptorBuilder()
     {
@@ -26,7 +27,12 @@ public sealed partial class BoundAttributeParameterDescriptorBuilder : TagHelper
 
     public string? Name { get; set; }
     public string? PropertyName { get; set; }
-    public string? TypeName { get; set; }
+
+    public string? TypeName
+    {
+        get => _typeNameObject.GetTypeName();
+        set => _typeNameObject = TypeNameObject.From(value);
+    }
 
     public bool IsEnum
     {
@@ -67,23 +73,11 @@ public sealed partial class BoundAttributeParameterDescriptorBuilder : TagHelper
             flags |= BoundAttributeParameterFlags.CaseSensitive;
         }
 
-        if (TypeName == typeof(string).FullName || TypeName == "string")
-        {
-            flags |= BoundAttributeParameterFlags.IsStringProperty;
-        }
-
-        if (TypeName == typeof(bool).FullName || TypeName == "bool")
-        {
-            flags |= BoundAttributeParameterFlags.IsBooleanProperty;
-        }
-
-        _flags = flags;
-
         return new BoundAttributeParameterDescriptor(
             flags,
             Name ?? string.Empty,
             PropertyName ?? string.Empty,
-            TypeName ?? string.Empty,
+            _typeNameObject,
             _documentationObject,
             diagnostics);
     }

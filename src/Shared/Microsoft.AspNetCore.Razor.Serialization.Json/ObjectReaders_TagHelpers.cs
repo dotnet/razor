@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 #if JSONSERIALIZATION_ENABLETAGHELPERCACHE
@@ -186,12 +187,12 @@ internal static partial class ObjectReaders
                 var flags = (BoundAttributeParameterFlags)reader.ReadInt32(nameof(BoundAttributeParameterDescriptor.Flags));
                 var name = reader.ReadString(nameof(BoundAttributeParameterDescriptor.Name));
                 var propertyName = reader.ReadNonNullString(nameof(BoundAttributeParameterDescriptor.PropertyName));
-                var typeName = reader.ReadNonNullString(nameof(BoundAttributeParameterDescriptor.TypeName));
+                var typeNameObject = ReadTypeNameObject(reader, nameof(BoundAttributeParameterDescriptor.TypeName));
                 var documentationObject = ReadDocumentationObject(reader, nameof(BoundAttributeParameterDescriptor.Documentation));
                 var diagnostics = reader.ReadImmutableArrayOrEmpty(nameof(BoundAttributeParameterDescriptor.Diagnostics), ReadDiagnostic);
 
                 return new BoundAttributeParameterDescriptor(
-                    flags, Cached(name)!, Cached(propertyName), Cached(typeName), documentationObject, diagnostics);
+                    flags, Cached(name)!, Cached(propertyName), typeNameObject, documentationObject, diagnostics);
             }
         }
 
@@ -207,6 +208,25 @@ internal static partial class ObjectReaders
 
                 return new AllowedChildTagDescriptor(Cached(name), Cached(displayName), diagnostics);
             }
+        }
+
+        static TypeNameObject ReadTypeNameObject(JsonDataReader reader, string propertyName)
+        {
+            if (!reader.TryReadPropertyName(propertyName))
+            {
+                return default;
+            }
+
+            if (reader.IsInteger)
+            {
+                var index = reader.ReadInt32();
+                return new(index);
+            }
+
+            Debug.Assert(reader.IsString);
+
+            var fullName = reader.ReadNonNullString();
+            return new(Cached(fullName));
         }
 
         static DocumentationObject ReadDocumentationObject(JsonDataReader reader, string propertyName)

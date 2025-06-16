@@ -24,10 +24,10 @@ public partial class BoundAttributeParameterDescriptorBuilder
         _parent = null;
         _flags = 0;
         _documentationObject = default;
+        _typeNameObject = default;
 
         Name = null;
         PropertyName = null;
-        TypeName = null;
     }
 
     private sealed class Policy : PooledBuilderPolicy<BoundAttributeParameterDescriptorBuilder>

@@ -40,7 +40,9 @@ internal partial class JsonDataReader
     {
     }
 
+    public bool IsInteger => _reader.TokenType == JsonToken.Integer;
     public bool IsObjectStart => _reader.TokenType == JsonToken.StartObject;
+    public bool IsString => _reader.TokenType == JsonToken.String;
 
     public bool IsPropertyName(string propertyName)
         => _reader.TokenType == JsonToken.PropertyName &&
