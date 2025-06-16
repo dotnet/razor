@@ -2,12 +2,9 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -55,11 +52,8 @@ internal sealed class RemoteDocumentMappingService(
 
         if (TryMapToHostDocumentRange(razorCodeDocument.GetRequiredCSharpDocument(), generatedDocumentRange, MappingBehavior.Strict, out var mappedRange))
         {
-            var solution = project.Solution;
-            var filePath = razorCodeDocument.Source.FilePath;
-            var documentId = solution.GetDocumentIdsWithFilePath(filePath).First();
-            var document = solution.GetAdditionalDocument(documentId).AssumeNotNull();
-            return (document.CreateUri(), mappedRange);
+            var razorDocumentUri = project.Solution.GetRazorDocumentUri(razorCodeDocument);
+            return (razorDocumentUri, mappedRange);
         }
 
         return (generatedDocumentUri, generatedDocumentRange);
