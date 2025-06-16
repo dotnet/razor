@@ -46,8 +46,6 @@ public sealed partial class BoundAttributeParameterDescriptorBuilder : TagHelper
         set => _documentationObject = new(value);
     }
 
-    public string? DisplayName { get; set; }
-
     internal bool CaseSensitive => _parent.CaseSensitive;
 
     internal void SetDocumentation(string? text)
@@ -87,12 +85,8 @@ public sealed partial class BoundAttributeParameterDescriptorBuilder : TagHelper
             PropertyName ?? string.Empty,
             TypeName ?? string.Empty,
             _documentationObject,
-            GetDisplayName(),
             diagnostics);
     }
-
-    private string GetDisplayName()
-        => DisplayName ?? $":{Name}";
 
     private protected override void CollectDiagnostics(ref PooledHashSet<RazorDiagnostic> diagnostics)
     {

@@ -28,7 +28,6 @@ public partial class BoundAttributeParameterDescriptorBuilder
         Name = null;
         PropertyName = null;
         TypeName = null;
-        DisplayName = null;
     }
 
     private sealed class Policy : PooledBuilderPolicy<BoundAttributeParameterDescriptorBuilder>

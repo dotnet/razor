@@ -13,12 +13,13 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
     private readonly DocumentationObject _documentationObject;
 
     private BoundAttributeDescriptor? _parent;
+    private string? _displayName;
 
     public BoundAttributeParameterFlags Flags => _flags;
     public string Name { get; }
     public string PropertyName { get; }
     public string TypeName { get; }
-    public string DisplayName { get; }
+    public string DisplayName => _displayName ??= ":" + Name;
 
     public bool CaseSensitive => _flags.IsFlagSet(BoundAttributeParameterFlags.CaseSensitive);
     public bool IsEnum => _flags.IsFlagSet(BoundAttributeParameterFlags.IsEnum);
@@ -32,7 +33,6 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
         string propertyName,
         string typeName,
         DocumentationObject documentationObject,
-        string displayName,
         ImmutableArray<RazorDiagnostic> diagnostics)
         : base(diagnostics)
     {
@@ -42,7 +42,6 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
         PropertyName = propertyName;
         TypeName = typeName;
         _documentationObject = documentationObject;
-        DisplayName = displayName;
     }
 
     private protected override void BuildChecksum(in Checksum.Builder builder)
@@ -51,7 +50,6 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
         builder.AppendData(Name);
         builder.AppendData(PropertyName);
         builder.AppendData(TypeName);
-        builder.AppendData(DisplayName);
 
         DocumentationObject.AppendToChecksum(in builder);
     }

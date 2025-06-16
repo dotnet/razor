@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.MessagePack.Formatters.TagH
 
 internal sealed class BoundAttributeParameterFormatter : ValueFormatter<BoundAttributeParameterDescriptor>
 {
-    private const int PropertyCount = 7;
+    private const int PropertyCount = 6;
 
     public static readonly ValueFormatter<BoundAttributeParameterDescriptor> Instance = new BoundAttributeParameterFormatter();
 
@@ -26,13 +26,12 @@ internal sealed class BoundAttributeParameterFormatter : ValueFormatter<BoundAtt
         var name = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var propertyName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
         var typeName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
-        var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
         var documentationObject = reader.Deserialize<DocumentationObject>(options);
 
         var diagnostics = reader.Deserialize<ImmutableArray<RazorDiagnostic>>(options);
 
         return new BoundAttributeParameterDescriptor(
-            flags, name!, propertyName, typeName, documentationObject, displayName, diagnostics);
+            flags, name!, propertyName, typeName, documentationObject, diagnostics);
     }
 
     public override void Serialize(ref MessagePackWriter writer, BoundAttributeParameterDescriptor value, SerializerCachingOptions options)
@@ -43,7 +42,6 @@ internal sealed class BoundAttributeParameterFormatter : ValueFormatter<BoundAtt
         CachedStringFormatter.Instance.Serialize(ref writer, value.Name, options);
         CachedStringFormatter.Instance.Serialize(ref writer, value.PropertyName, options);
         CachedStringFormatter.Instance.Serialize(ref writer, value.TypeName, options);
-        CachedStringFormatter.Instance.Serialize(ref writer, value.DisplayName, options);
         writer.Serialize(value.DocumentationObject, options);
 
         writer.Serialize(value.Diagnostics, options);
@@ -57,7 +55,6 @@ internal sealed class BoundAttributeParameterFormatter : ValueFormatter<BoundAtt
         CachedStringFormatter.Instance.Skim(ref reader, options); // Name
         CachedStringFormatter.Instance.Skim(ref reader, options); // PropertyName
         CachedStringFormatter.Instance.Skim(ref reader, options); // TypeName
-        CachedStringFormatter.Instance.Skim(ref reader, options); // DisplayName
         DocumentationObjectFormatter.Instance.Skim(ref reader, options); // DocumentationObject
 
         RazorDiagnosticFormatter.Instance.SkimArray(ref reader, options); // Diagnostics
