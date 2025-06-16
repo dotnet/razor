@@ -66,7 +66,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                 }
                 """,
-            formattingOptionsOverride: new RazorCSharpSyntaxFormattingOptions() with
+            formattingOptionsOverride: RazorCSharpSyntaxFormattingOptions.Default with
             {
                 NewLines = RazorNewLinePlacement.None
             });
@@ -93,7 +93,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                 }
                 """,
-            formattingOptionsOverride: new RazorCSharpSyntaxFormattingOptions() with
+            formattingOptionsOverride: RazorCSharpSyntaxFormattingOptions.Default with
             {
                 NewLines = RazorNewLinePlacement.None
             });
