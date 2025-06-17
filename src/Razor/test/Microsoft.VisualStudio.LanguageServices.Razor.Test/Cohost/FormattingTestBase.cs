@@ -131,7 +131,7 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
 
         var request = new DocumentOnTypeFormattingParams()
         {
-            TextDocument = new TextDocumentIdentifier() { Uri = document.CreateUri() },
+            TextDocument = new TextDocumentIdentifier() { DocumentUri = new(document.CreateUri()) },
             Options = new FormattingOptions()
             {
                 TabSize = tabSize,
@@ -184,7 +184,7 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
             var endpoint = new CohostDocumentFormattingEndpoint(RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
             var request = new DocumentFormattingParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = document.CreateUri() },
+                TextDocument = new TextDocumentIdentifier() { DocumentUri = new(document.CreateUri()) },
                 Options = new FormattingOptions()
                 {
                     TabSize = tabSize,
@@ -199,7 +199,7 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
         var rangeEndpoint = new CohostRangeFormattingEndpoint(RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
         var rangeRequest = new DocumentRangeFormattingParams()
         {
-            TextDocument = new TextDocumentIdentifier() { Uri = document.CreateUri() },
+            TextDocument = new TextDocumentIdentifier() { DocumentUri = new(document.CreateUri()) },
             Options = new FormattingOptions()
             {
                 TabSize = 4,
