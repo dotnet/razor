@@ -404,6 +404,11 @@ internal class RazorFormattingService : IRazorFormattingService
                 pass.GetTestAccessor().SetCSharpSyntaxFormattingOptionsOverride(optionsOverride);
             }
 
+            if (service._documentFormattingPasses.OfType<CSharpOnTypeFormattingPass>().SingleOrDefault() is { } onTypePass)
+            {
+                onTypePass.GetTestAccessor().SetCSharpSyntaxFormattingOptionsOverride(optionsOverride);
+            }
+
             if (service._documentFormattingPasses.OfType<New.CSharpFormattingPass>().SingleOrDefault() is { } newPass)
             {
                 newPass.GetTestAccessor().SetCSharpSyntaxFormattingOptionsOverride(optionsOverride);

@@ -46,13 +46,14 @@ internal sealed class CSharpFormatter(IDocumentMappingService documentMappingSer
         FormattingContext context,
         HashSet<int> projectedDocumentLocations,
         HostWorkspaceServices hostWorkspaceServices,
+        RazorCSharpSyntaxFormattingOptions? formattingOptionsOverride,
         CancellationToken cancellationToken)
     {
         // Sorting ensures we count the marker offsets correctly.
         // We also want to ensure there are no duplicates to avoid duplicate markers.
         var filteredLocations = projectedDocumentLocations.OrderAsArray();
 
-        var indentations = await GetCSharpIndentationCoreAsync(context, filteredLocations, hostWorkspaceServices, cancellationToken).ConfigureAwait(false);
+        var indentations = await GetCSharpIndentationCoreAsync(context, filteredLocations, hostWorkspaceServices, formattingOptionsOverride, cancellationToken).ConfigureAwait(false);
         return indentations;
     }
 
@@ -60,7 +61,7 @@ internal sealed class CSharpFormatter(IDocumentMappingService documentMappingSer
     {
         var actualEdits = _documentMappingService.GetHostDocumentEdits(codeDocument.GetRequiredCSharpDocument(), csharpEdits);
 
-        return actualEdits.ToImmutableArray();
+        return [.. actualEdits];
     }
 
     private static async Task<ImmutableArray<TextChange>> GetFormattingEditsAsync(
@@ -77,10 +78,15 @@ internal sealed class CSharpFormatter(IDocumentMappingService documentMappingSer
         Assumes.NotNull(root);
 
         var changes = RazorCSharpFormattingInteractionService.GetFormattedTextChanges(hostWorkspaceServices, root, spanToFormat, indentationOptions, formattingOptionsOverride, cancellationToken);
-        return changes.ToImmutableArray();
+        return [.. changes];
     }
 
-    private static async Task<Dictionary<int, int>> GetCSharpIndentationCoreAsync(FormattingContext context, ImmutableArray<int> projectedDocumentLocations, HostWorkspaceServices hostWorkspaceServices, CancellationToken cancellationToken)
+    private static async Task<Dictionary<int, int>> GetCSharpIndentationCoreAsync(
+        FormattingContext context,
+        ImmutableArray<int> projectedDocumentLocations,
+        HostWorkspaceServices hostWorkspaceServices,
+        RazorCSharpSyntaxFormattingOptions? formattingOptionsOverride,
+        CancellationToken cancellationToken)
     {
         // No point calling the C# formatting if we won't be interested in any of its work anyway
         if (projectedDocumentLocations.Length == 0)
@@ -96,7 +102,7 @@ internal sealed class CSharpFormatter(IDocumentMappingService documentMappingSer
 
         // At this point, we have added all the necessary markers and attached annotations.
         // Let's invoke the C# formatter and hope for the best.
-        var formattedRoot = RazorCSharpFormattingInteractionService.Format(hostWorkspaceServices, root, context.Options.ToIndentationOptions(), cancellationToken);
+        var formattedRoot = RazorCSharpFormattingInteractionService.Format(hostWorkspaceServices, root, context.Options.ToIndentationOptions(), formattingOptionsOverride, cancellationToken);
         var formattedText = formattedRoot.GetText();
 
         var desiredIndentationMap = new Dictionary<int, int>();

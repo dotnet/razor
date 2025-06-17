@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -27,8 +26,6 @@ internal sealed class CSharpFormattingPass(
 {
     private readonly CSharpFormatter _csharpFormatter = new(documentMappingService);
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpFormattingPass>();
-
-    private RazorCSharpSyntaxFormattingOptions? _csharpSyntaxFormattingOptionsOverride;
 
     protected async override Task<ImmutableArray<TextChange>> ExecuteCoreAsync(FormattingContext context, RoslynWorkspaceHelper roslynWorkspaceHelper, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
     {
@@ -95,15 +92,5 @@ internal sealed class CSharpFormattingPass(
         }
 
         return csharpChanges.ToImmutable();
-    }
-
-    internal TestAccessor GetTestAccessor() => new TestAccessor(this);
-
-    internal readonly struct TestAccessor(CSharpFormattingPass instance)
-    {
-        public void SetCSharpSyntaxFormattingOptionsOverride(RazorCSharpSyntaxFormattingOptions? optionsOverride)
-        {
-            instance._csharpSyntaxFormattingOptionsOverride = optionsOverride;
-        }
     }
 }
