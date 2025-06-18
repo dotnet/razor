@@ -74,12 +74,12 @@ internal readonly struct TypeNameObject
         _stringValue = null;
     }
 
-    public TypeNameObject(string? typeName)
+    public TypeNameObject(string? stringValue)
     {
-        Debug.Assert(typeName is null || !s_typeNameToIndex.ContainsKey(typeName));
+        Debug.Assert(stringValue is null || !s_typeNameToIndex.ContainsKey(stringValue));
 
         _index = null;
-        _stringValue = typeName;
+        _stringValue = stringValue;
     }
 
     public bool IsNull => _index is null && _stringValue is null;

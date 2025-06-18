@@ -57,10 +57,14 @@ internal sealed class TypeNameObjectFormatter : ValueFormatter<TypeNameObject>
             writer.Write((int)TypeNameKind.Index);
             writer.Write(index);
         }
-        else
+        else if (value.StringValue is string stringValue)
         {
             writer.Write((int)TypeNameKind.String);
-            CachedStringFormatter.Instance.Serialize(ref writer, value.GetTypeName(), options);
+            CachedStringFormatter.Instance.Serialize(ref writer, stringValue, options);
+        }
+        else
+        {
+            Assumed.Unreachable();
         }
     }
 
@@ -73,7 +77,16 @@ internal sealed class TypeNameObjectFormatter : ValueFormatter<TypeNameObject>
 
         reader.ReadArrayHeaderAndVerify(PropertyCount);
 
-        reader.Skip(); // TypeNameKind
-        CachedStringFormatter.Instance.Skim(ref reader, options); // Name
+        var typeNameKind = (TypeNameKind)reader.ReadInt32();
+        switch (typeNameKind)
+        {
+            case TypeNameKind.Index:
+                reader.Skip(); // Index
+                break;
+
+            case TypeNameKind.String:
+                CachedStringFormatter.Instance.Skim(ref reader, options); // StringValue
+                break;
+        }
     }
 }
