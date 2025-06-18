@@ -31,101 +31,79 @@ public class TagHelperMatchingConventionsTest
                         false
                     },
                     {
-                        builder => builder
-                            .Name("route-")
-                            .NameComparison(RequiredAttributeNameComparison.PrefixMatch),
+                        builder => builder.Name("route-", RequiredAttributeNameComparison.PrefixMatch),
                         "ROUTE-area",
                         "manage",
                         true
                     },
                     {
-                        builder => builder
-                            .Name("route-")
-                            .NameComparison(RequiredAttributeNameComparison.PrefixMatch),
+                        builder => builder.Name("route-", RequiredAttributeNameComparison.PrefixMatch),
                         "routearea",
                         "manage",
                         false
                     },
                     {
-                        builder => builder
-                            .Name("route-")
-                            .NameComparison(RequiredAttributeNameComparison.PrefixMatch),
+                        builder => builder.Name("route-", RequiredAttributeNameComparison.PrefixMatch),
                         "route-",
                         "manage",
                         false
                     },
                     {
-                        builder => builder
-                            .Name("key")
-                            .NameComparison(RequiredAttributeNameComparison.FullMatch),
+                        builder => builder.Name("key", RequiredAttributeNameComparison.FullMatch),
                         "KeY",
                         "value",
                         true
                     },
                     {
-                        builder => builder
-                            .Name("key")
-                            .NameComparison(RequiredAttributeNameComparison.FullMatch),
+                        builder => builder.Name("key", RequiredAttributeNameComparison.FullMatch),
                         "keys",
                         "value",
                         false
                     },
                     {
                         builder => builder
-                            .Name("key")
-                            .NameComparison(RequiredAttributeNameComparison.FullMatch)
-                            .Value("value")
-                            .ValueComparison(RequiredAttributeValueComparison.FullMatch),
+                            .Name("key", RequiredAttributeNameComparison.FullMatch)
+                            .Value("value", RequiredAttributeValueComparison.FullMatch),
                         "key",
                         "value",
                         true
                     },
                     {
                         builder => builder
-                            .Name("key")
-                            .NameComparison(RequiredAttributeNameComparison.FullMatch)
-                            .Value("value")
-                            .ValueComparison(RequiredAttributeValueComparison.FullMatch),
+                            .Name("key", RequiredAttributeNameComparison.FullMatch)
+                            .Value("value", RequiredAttributeValueComparison.FullMatch),
                         "key",
                         "Value",
                         false
                     },
                     {
                         builder => builder
-                            .Name("class")
-                            .NameComparison(RequiredAttributeNameComparison.FullMatch)
-                            .Value("btn")
-                            .ValueComparison(RequiredAttributeValueComparison.PrefixMatch),
+                            .Name("class", RequiredAttributeNameComparison.FullMatch)
+                            .Value("btn", RequiredAttributeValueComparison.PrefixMatch),
                         "class",
                         "btn btn-success",
                         true
                     },
                     {
                         builder => builder
-                            .Name("class")
-                            .NameComparison(RequiredAttributeNameComparison.FullMatch)
-                            .Value("btn")
-                            .ValueComparison(RequiredAttributeValueComparison.PrefixMatch),
+                            .Name("class", RequiredAttributeNameComparison.FullMatch)
+                            .Value("btn", RequiredAttributeValueComparison.PrefixMatch),
                         "class",
                         "BTN btn-success",
                         false
                     },
                     {
                         builder => builder
-                            .Name("href")
-                            .NameComparison(RequiredAttributeNameComparison.FullMatch)
-                            .Value("#navigate")
-                            .ValueComparison(RequiredAttributeValueComparison.SuffixMatch),
+                            .Name("href", RequiredAttributeNameComparison.FullMatch)
+                            .Value("#navigate", RequiredAttributeValueComparison.SuffixMatch),
                         "href",
                         "/home/index#navigate",
                         true
                     },
                     {
                         builder => builder
-                            .Name("href")
-                            .NameComparison(RequiredAttributeNameComparison.FullMatch)
-                            .Value("#navigate")
-                            .ValueComparison(RequiredAttributeValueComparison.SuffixMatch),
+                            .Name("href", RequiredAttributeNameComparison.FullMatch)
+                            .Value("#navigate", RequiredAttributeValueComparison.SuffixMatch),
                         "href",
                         "/home/index#NAVigate",
                         false

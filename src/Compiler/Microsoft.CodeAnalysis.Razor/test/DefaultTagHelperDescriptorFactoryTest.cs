@@ -154,8 +154,7 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
                         {
                             builder => builder
                                 .Name("name")
-                                .Value("value")
-                                .ValueComparison(RequiredAttributeValueComparison.FullMatch)
+                                .Value("value", RequiredAttributeValueComparison.FullMatch)
                                 .AddDiagnostic(RazorDiagnosticFactory.CreateTagHelper_CouldNotFindMatchingEndBrace("[name='value'")),
                         }
                     },
@@ -183,8 +182,7 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
                         {
                             builder => builder
                                 .Name("name")
-                                .Value("value")
-                                .ValueComparison(RequiredAttributeValueComparison.FullMatch)
+                                .Value("value", RequiredAttributeValueComparison.FullMatch)
                                 .AddDiagnostic(RazorDiagnosticFactory.CreateTagHelper_CouldNotFindMatchingEndBrace("[name=value ")),
                         }
                     },
@@ -224,15 +222,12 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
         get
         {
             Func<string, RequiredAttributeNameComparison, Action<RequiredAttributeDescriptorBuilder>> plain =
-                (name, nameComparison) => (builder) => builder
-                    .Name(name)
-                    .NameComparison(nameComparison);
+                (name, nameComparison) => builder => builder.Name(name, nameComparison);
 
             Func<string, string, RequiredAttributeValueComparison, Action<RequiredAttributeDescriptorBuilder>> css =
-                (name, value, valueComparison) => (builder) => builder
+                (name, value, valueComparison) => builder => builder
                     .Name(name)
-                    .Value(value)
-                    .ValueComparison(valueComparison);
+                    .Value(value, valueComparison);
 
             return new TheoryData<string, IEnumerable<Action<RequiredAttributeDescriptorBuilder>>>
                 {
@@ -954,8 +949,7 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
                             {
                                 builder => builder
                                     .RequireAttributeDescriptor(attribute => attribute
-                                        .Name("class")
-                                        .NameComparison(RequiredAttributeNameComparison.PrefixMatch)),
+                                        .Name("class", RequiredAttributeNameComparison.PrefixMatch)),
                             })
                     },
                     {
@@ -970,11 +964,9 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
                             {
                                 builder => builder
                                     .RequireAttributeDescriptor(attribute => attribute
-                                        .Name("class")
-                                        .NameComparison(RequiredAttributeNameComparison.PrefixMatch))
+                                        .Name("class", RequiredAttributeNameComparison.PrefixMatch))
                                     .RequireAttributeDescriptor(attribute => attribute
-                                        .Name("style")
-                                        .NameComparison(RequiredAttributeNameComparison.PrefixMatch)),
+                                        .Name("style", RequiredAttributeNameComparison.PrefixMatch)),
                             })
                     },
                 };
