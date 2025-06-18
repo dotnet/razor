@@ -135,13 +135,10 @@ internal static partial class ObjectReaders
                 var value = reader.ReadStringOrNull(nameof(RequiredAttributeDescriptor.Value));
                 var valueComparison = (RequiredAttributeValueComparison)reader.ReadInt32OrZero(nameof(RequiredAttributeDescriptor.ValueComparison));
 
-                var metadata = ReadMetadata(reader, nameof(RequiredAttributeDescriptor.Metadata));
                 var diagnostics = reader.ReadImmutableArrayOrEmpty(nameof(RequiredAttributeDescriptor.Diagnostics), ReadDiagnostic);
 
                 return new RequiredAttributeDescriptor(
-                    flags, Cached(name)!, nameComparison,
-                    Cached(value), valueComparison,
-                    diagnostics, metadata);
+                    flags, Cached(name)!, nameComparison, Cached(value), valueComparison, diagnostics);
             }
         }
 

@@ -24,16 +24,13 @@ public sealed class RequiredAttributeDescriptor : TagHelperObject<RequiredAttrib
     public bool CaseSensitive => _flags.IsFlagSet(RequiredAttributeDescriptorFlags.CaseSensitive);
     public bool IsDirectiveAttribute => _flags.IsFlagSet(RequiredAttributeDescriptorFlags.IsDirectiveAttribute);
 
-    public MetadataCollection Metadata { get; }
-
     internal RequiredAttributeDescriptor(
         RequiredAttributeDescriptorFlags flags,
         string name,
         RequiredAttributeNameComparison nameComparison,
         string? value,
         RequiredAttributeValueComparison valueComparison,
-        ImmutableArray<RazorDiagnostic> diagnostics,
-        MetadataCollection metadata)
+        ImmutableArray<RazorDiagnostic> diagnostics)
         : base(diagnostics)
     {
         _flags = flags;
@@ -41,7 +38,6 @@ public sealed class RequiredAttributeDescriptor : TagHelperObject<RequiredAttrib
         NameComparison = nameComparison;
         Value = value;
         ValueComparison = valueComparison;
-        Metadata = metadata ?? MetadataCollection.Empty;
     }
 
     private protected override void BuildChecksum(in Checksum.Builder builder)
@@ -51,7 +47,6 @@ public sealed class RequiredAttributeDescriptor : TagHelperObject<RequiredAttrib
         builder.AppendData((int)NameComparison);
         builder.AppendData(Value);
         builder.AppendData((int)ValueComparison);
-        builder.AppendData(Metadata.Checksum);
     }
 
     public TagMatchingRuleDescriptor Parent

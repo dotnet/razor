@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -15,7 +14,6 @@ public sealed partial class RequiredAttributeDescriptorBuilder : TagHelperObject
     [AllowNull]
     private TagMatchingRuleDescriptorBuilder _parent;
     private RequiredAttributeDescriptorFlags _flags;
-    private MetadataHolder _metadata;
 
     private RequiredAttributeDescriptorBuilder()
     {
@@ -39,14 +37,8 @@ public sealed partial class RequiredAttributeDescriptorBuilder : TagHelperObject
         set => _flags.UpdateFlag(RequiredAttributeDescriptorFlags.IsDirectiveAttribute, value);
     }
 
-    public IDictionary<string, string?> Metadata => _metadata.MetadataDictionary;
-
-    public void SetMetadata(MetadataCollection metadata) => _metadata.SetMetadataCollection(metadata);
-
     private protected override RequiredAttributeDescriptor BuildCore(ImmutableArray<RazorDiagnostic> diagnostics)
     {
-        var metadata = _metadata.GetMetadataCollection();
-
         var flags = _flags;
 
         if (CaseSensitive)
@@ -60,8 +52,7 @@ public sealed partial class RequiredAttributeDescriptorBuilder : TagHelperObject
             NameComparison,
             Value,
             ValueComparison,
-            diagnostics,
-            metadata);
+            diagnostics);
     }
 
     private protected override void CollectDiagnostics(ref PooledHashSet<RazorDiagnostic> diagnostics)
