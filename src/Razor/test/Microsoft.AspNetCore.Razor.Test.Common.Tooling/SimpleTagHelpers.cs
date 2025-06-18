@@ -101,7 +101,7 @@ internal static class SimpleTagHelpers
             rule.RequireAttributeDescriptor(b =>
             {
                 b.Name = "@test";
-                b.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
+                b.NameComparison = RequiredAttributeNameComparison.PrefixMatch;
             });
         });
         directiveAttribute1.TagMatchingRule(rule =>
@@ -110,7 +110,7 @@ internal static class SimpleTagHelpers
             rule.RequireAttributeDescriptor(b =>
             {
                 b.Name = "@test";
-                b.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
+                b.NameComparison = RequiredAttributeNameComparison.FullMatch;
             });
         });
         directiveAttribute1.BindAttribute(attribute =>
@@ -138,7 +138,7 @@ internal static class SimpleTagHelpers
             rule.RequireAttributeDescriptor(b =>
             {
                 b.Name = "@minimized";
-                b.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
+                b.NameComparison = RequiredAttributeNameComparison.PrefixMatch;
             });
         });
         directiveAttribute2.TagMatchingRule(rule =>
@@ -147,7 +147,7 @@ internal static class SimpleTagHelpers
             rule.RequireAttributeDescriptor(b =>
             {
                 b.Name = "@minimized";
-                b.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
+                b.NameComparison = RequiredAttributeNameComparison.FullMatch;
             });
         });
         directiveAttribute2.BindAttribute(attribute =>
@@ -176,7 +176,7 @@ internal static class SimpleTagHelpers
             {
                 b.Name = "@onclick";
                 b.SetMetadata(MetadataCollection.Create(IsDirectiveAttribute));
-                b.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
+                b.NameComparison = RequiredAttributeNameComparison.FullMatch;
             });
         });
         directiveAttribute3.TagMatchingRule(rule =>
@@ -186,7 +186,7 @@ internal static class SimpleTagHelpers
             {
                 b.Name = "@onclick";
                 b.SetMetadata(MetadataCollection.Create(IsDirectiveAttribute));
-                b.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
+                b.NameComparison = RequiredAttributeNameComparison.PrefixMatch;
             });
         });
         directiveAttribute3.BindAttribute(attribute =>

@@ -67,12 +67,12 @@ public class TagHelperDescriptorSerializationTest(ITestOutputHelper testOutput) 
                 builder => builder
                     .RequireAttributeDescriptor(attribute => attribute
                         .Name("required-attribute-one")
-                        .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch))
+                        .NameComparison(RequiredAttributeNameComparison.PrefixMatch))
                     .RequireAttributeDescriptor(attribute => attribute
                         .Name("required-attribute-two")
-                        .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.FullMatch)
+                        .NameComparison(RequiredAttributeNameComparison.FullMatch)
                         .Value("something")
-                        .ValueComparisonMode(RequiredAttributeDescriptor.ValueComparisonMode.PrefixMatch))
+                        .ValueComparison(RequiredAttributeValueComparison.PrefixMatch))
                     .RequireParentTag("parent-name")
                     .RequireTagStructure(TagStructure.WithoutEndTag),
             ],
@@ -111,12 +111,12 @@ public class TagHelperDescriptorSerializationTest(ITestOutputHelper testOutput) 
                 builder => builder
                     .RequireAttributeDescriptor(attribute => attribute
                         .Name("required-attribute-one")
-                        .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch))
+                        .NameComparison(RequiredAttributeNameComparison.PrefixMatch))
                     .RequireAttributeDescriptor(attribute => attribute
                         .Name("required-attribute-two")
-                        .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.FullMatch)
+                        .NameComparison(RequiredAttributeNameComparison.FullMatch)
                         .Value("something")
-                        .ValueComparisonMode(RequiredAttributeDescriptor.ValueComparisonMode.PrefixMatch))
+                        .ValueComparison(RequiredAttributeValueComparison.PrefixMatch))
                     .RequireParentTag("parent-name")
                     .RequireTagStructure(TagStructure.WithoutEndTag),
             ],
@@ -155,12 +155,12 @@ public class TagHelperDescriptorSerializationTest(ITestOutputHelper testOutput) 
                 builder => builder
                     .RequireAttributeDescriptor(attribute => attribute
                         .Name("required-attribute-one")
-                        .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch))
+                        .NameComparison(RequiredAttributeNameComparison.PrefixMatch))
                     .RequireAttributeDescriptor(attribute => attribute
                         .Name("required-attribute-two")
-                        .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.FullMatch)
+                        .NameComparison(RequiredAttributeNameComparison.FullMatch)
                         .Value("something")
-                        .ValueComparisonMode(RequiredAttributeDescriptor.ValueComparisonMode.PrefixMatch))
+                        .ValueComparison(RequiredAttributeValueComparison.PrefixMatch))
                     .RequireParentTag("parent-name"),
             ],
             configureAction: builder => builder
@@ -205,7 +205,7 @@ public class TagHelperDescriptorSerializationTest(ITestOutputHelper testOutput) 
                 builder => builder
                     .RequireAttributeDescriptor(attribute => attribute
                         .Name("required-attribute-one")
-                        .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch))
+                        .NameComparison(RequiredAttributeNameComparison.PrefixMatch))
             ],
             configureAction: builder => builder
                 .AllowChildTag("allowed-child-one")
@@ -310,7 +310,8 @@ public class TagHelperDescriptorSerializationTest(ITestOutputHelper testOutput) 
         {
             foreach (var ruleBuilder in ruleBuilders)
             {
-                builder.TagMatchingRuleDescriptor(innerRuleBuilder => {
+                builder.TagMatchingRuleDescriptor(innerRuleBuilder =>
+                {
                     innerRuleBuilder.RequireTagName(tagName);
                     ruleBuilder(innerRuleBuilder);
                 });

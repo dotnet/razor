@@ -2453,7 +2453,7 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
                         .RequireAttributeDescriptor(r =>
                         {
                             r.Name = "@bind-";
-                            r.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
+                            r.NameComparison = RequiredAttributeNameComparison.PrefixMatch;
                             r.SetMetadata(Attributes.IsDirectiveAttribute);
                         }))
                 .BoundAttributeDescriptor(attribute =>
@@ -2498,7 +2498,7 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
                         .RequireAttributeDescriptor(r =>
                         {
                             r.Name = "@bind-";
-                            r.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
+                            r.NameComparison = RequiredAttributeNameComparison.PrefixMatch;
                             r.SetMetadata(Attributes.IsDirectiveAttribute);
                         }))
                 .BoundAttributeDescriptor(attribute =>

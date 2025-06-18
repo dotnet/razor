@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using MessagePack;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using static Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor;
 
 namespace Microsoft.CodeAnalysis.Razor.Serialization.MessagePack.Formatters.TagHelpers;
 
@@ -22,10 +21,10 @@ internal sealed class RequiredAttributeFormatter : ValueFormatter<RequiredAttrib
         reader.ReadArrayHeaderAndVerify(8);
 
         var name = CachedStringFormatter.Instance.Deserialize(ref reader, options);
-        var nameComparison = (NameComparisonMode)reader.ReadInt32();
+        var nameComparison = (RequiredAttributeNameComparison)reader.ReadInt32();
         var caseSensitive = reader.ReadBoolean();
         var value = CachedStringFormatter.Instance.Deserialize(ref reader, options);
-        var valueComparison = (ValueComparisonMode)reader.ReadInt32();
+        var valueComparison = (RequiredAttributeValueComparison)reader.ReadInt32();
         var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
 
         var metadata = reader.Deserialize<MetadataCollection>(options);
