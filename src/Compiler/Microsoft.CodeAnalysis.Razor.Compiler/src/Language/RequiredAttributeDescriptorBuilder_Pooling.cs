@@ -28,8 +28,6 @@ public partial class RequiredAttributeDescriptorBuilder
         NameComparison = default;
         Value = null;
         ValueComparison = default;
-
-        _metadata.Clear();
     }
 
     private sealed class Policy : PooledBuilderPolicy<RequiredAttributeDescriptorBuilder>

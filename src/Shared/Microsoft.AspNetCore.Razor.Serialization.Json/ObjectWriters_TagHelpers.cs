@@ -94,8 +94,6 @@ internal static partial class ObjectWriters
                 writer.WriteIfNotZero(nameof(value.NameComparison), (int)value.NameComparison);
                 writer.WriteIfNotNull(nameof(value.Value), value.Value);
                 writer.WriteIfNotZero(nameof(value.ValueComparison), (int)value.ValueComparison);
-
-                WriteMetadata(writer, nameof(value.Metadata), value.Metadata);
                 writer.WriteArrayIfNotDefaultOrEmpty(nameof(value.Diagnostics), value.Diagnostics, Write);
             });
         }

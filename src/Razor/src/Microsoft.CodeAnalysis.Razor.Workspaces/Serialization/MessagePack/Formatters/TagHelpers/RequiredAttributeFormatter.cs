@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.MessagePack.Formatters.TagH
 
 internal sealed class RequiredAttributeFormatter : ValueFormatter<RequiredAttributeDescriptor>
 {
-    private const int PropertyCount = 7;
+    private const int PropertyCount = 6;
 
     public static readonly ValueFormatter<RequiredAttributeDescriptor> Instance = new RequiredAttributeFormatter();
 
@@ -27,13 +27,10 @@ internal sealed class RequiredAttributeFormatter : ValueFormatter<RequiredAttrib
         var value = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var valueComparison = (RequiredAttributeValueComparison)reader.ReadInt32();
 
-        var metadata = reader.Deserialize<MetadataCollection>(options);
         var diagnostics = reader.Deserialize<ImmutableArray<RazorDiagnostic>>(options);
 
         return new RequiredAttributeDescriptor(
-            flags, name!, nameComparison,
-            value, valueComparison,
-            diagnostics, metadata);
+            flags, name!, nameComparison, value, valueComparison, diagnostics);
     }
 
     public override void Serialize(ref MessagePackWriter writer, RequiredAttributeDescriptor value, SerializerCachingOptions options)
@@ -46,7 +43,6 @@ internal sealed class RequiredAttributeFormatter : ValueFormatter<RequiredAttrib
         CachedStringFormatter.Instance.Serialize(ref writer, value.Value, options);
         writer.Write((int)value.ValueComparison);
 
-        writer.Serialize(value.Metadata, options);
         writer.Serialize(value.Diagnostics, options);
     }
 
@@ -60,7 +56,6 @@ internal sealed class RequiredAttributeFormatter : ValueFormatter<RequiredAttrib
         CachedStringFormatter.Instance.Skim(ref reader, options); // Value
         reader.Skip(); // ValueComparison
 
-        MetadataCollectionFormatter.Instance.Skim(ref reader, options); // Metadata
         RazorDiagnosticFormatter.Instance.SkimArray(ref reader, options); // Diagnostics
     }
 }
