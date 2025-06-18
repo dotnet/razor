@@ -11,6 +11,7 @@ public sealed class RequiredAttributeDescriptor : TagHelperObject<RequiredAttrib
 {
     private readonly RequiredAttributeDescriptorFlags _flags;
     private TagMatchingRuleDescriptor? _parent;
+    private string? _displayName;
 
     internal RequiredAttributeDescriptorFlags Flags => _flags;
 
@@ -18,7 +19,7 @@ public sealed class RequiredAttributeDescriptor : TagHelperObject<RequiredAttrib
     public RequiredAttributeNameComparison NameComparison { get; }
     public string? Value { get; }
     public RequiredAttributeValueComparison ValueComparison { get; }
-    public string DisplayName { get; }
+    public string DisplayName => _displayName ??= GetDisplayName(Name, NameComparison);
 
     public bool CaseSensitive => _flags.IsFlagSet(RequiredAttributeDescriptorFlags.CaseSensitive);
     public bool IsDirectiveAttribute => _flags.IsFlagSet(RequiredAttributeDescriptorFlags.IsDirectiveAttribute);
@@ -31,7 +32,6 @@ public sealed class RequiredAttributeDescriptor : TagHelperObject<RequiredAttrib
         RequiredAttributeNameComparison nameComparison,
         string? value,
         RequiredAttributeValueComparison valueComparison,
-        string displayName,
         ImmutableArray<RazorDiagnostic> diagnostics,
         MetadataCollection metadata)
         : base(diagnostics)
@@ -41,7 +41,6 @@ public sealed class RequiredAttributeDescriptor : TagHelperObject<RequiredAttrib
         NameComparison = nameComparison;
         Value = value;
         ValueComparison = valueComparison;
-        DisplayName = displayName;
         Metadata = metadata ?? MetadataCollection.Empty;
     }
 
@@ -52,7 +51,6 @@ public sealed class RequiredAttributeDescriptor : TagHelperObject<RequiredAttrib
         builder.AppendData((int)NameComparison);
         builder.AppendData(Value);
         builder.AppendData((int)ValueComparison);
-        builder.AppendData(DisplayName);
         builder.AppendData(Metadata.Checksum);
     }
 
@@ -69,6 +67,11 @@ public sealed class RequiredAttributeDescriptor : TagHelperObject<RequiredAttrib
 
     public override string ToString()
     {
-        return DisplayName ?? base.ToString()!;
+        return DisplayName;
     }
+
+    internal static string GetDisplayName(string name, RequiredAttributeNameComparison nameComparison)
+        => nameComparison == RequiredAttributeNameComparison.PrefixMatch
+        ? name + "..."
+        : name;
 }
