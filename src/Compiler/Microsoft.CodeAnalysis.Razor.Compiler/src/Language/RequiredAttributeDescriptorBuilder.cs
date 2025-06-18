@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -44,7 +45,6 @@ public sealed partial class RequiredAttributeDescriptorBuilder : TagHelperObject
 
     private protected override RequiredAttributeDescriptor BuildCore(ImmutableArray<RazorDiagnostic> diagnostics)
     {
-        var displayName = GetDisplayName();
         var metadata = _metadata.GetMetadataCollection();
 
         var flags = _flags;
@@ -60,47 +60,47 @@ public sealed partial class RequiredAttributeDescriptorBuilder : TagHelperObject
             NameComparison,
             Value,
             ValueComparison,
-            displayName,
             diagnostics,
             metadata);
     }
 
-    private string GetDisplayName()
-    {
-        return (NameComparison == RequiredAttributeNameComparison.PrefixMatch ? string.Concat(Name, "...") : Name) ?? string.Empty;
-    }
-
     private protected override void CollectDiagnostics(ref PooledHashSet<RazorDiagnostic> diagnostics)
     {
-        if (Name.IsNullOrWhiteSpace())
+        var name = Name;
+
+        if (name.IsNullOrWhiteSpace())
         {
             var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidTargetedAttributeNameNullOrWhitespace();
 
             diagnostics.Add(diagnostic);
+            return;
         }
-        else
+
+        var nameSpan = name.AsSpan();
+        Debug.Assert(nameSpan.Length > 0, "Name should not be empty at this point.");
+
+        if (IsDirectiveAttribute)
         {
-            var name = Name.AsSpan();
-            var isDirectiveAttribute = IsDirectiveAttribute;
-            if (isDirectiveAttribute && name[0] == '@')
+            if (nameSpan[0] == '@')
             {
-                name = name[1..];
+                nameSpan = nameSpan[1..];
             }
-            else if (isDirectiveAttribute)
+            else
             {
-                var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidRequiredDirectiveAttributeName(GetDisplayName(), Name);
+                var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidRequiredDirectiveAttributeName(
+                    RequiredAttributeDescriptor.GetDisplayName(name, NameComparison), name);
 
                 diagnostics.Add(diagnostic);
             }
+        }
 
-            foreach (var ch in name)
+        foreach (var ch in nameSpan)
+        {
+            if (char.IsWhiteSpace(ch) || HtmlConventions.IsInvalidNonWhitespaceHtmlCharacters(ch))
             {
-                if (char.IsWhiteSpace(ch) || HtmlConventions.IsInvalidNonWhitespaceHtmlCharacters(ch))
-                {
-                    var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidTargetedAttributeName(Name, ch);
+                var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidTargetedAttributeName(name, ch);
 
-                    diagnostics.Add(diagnostic);
-                }
+                diagnostics.Add(diagnostic);
             }
         }
     }
