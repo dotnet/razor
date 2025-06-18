@@ -3,9 +3,9 @@
 
 #nullable disable
 
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.CodeAnalysis.Razor;
@@ -23,18 +23,17 @@ internal static class RequiredAttributeParser
     {
         private const char RequiredAttributeWildcardSuffix = '*';
 
-        private static readonly IReadOnlyDictionary<char, RequiredAttributeValueComparison> CssValueComparisons =
+        private static readonly FrozenDictionary<char, RequiredAttributeValueComparison> s_cssValueComparisons =
             new Dictionary<char, RequiredAttributeValueComparison>
             {
-                        { '=', RequiredAttributeValueComparison.FullMatch },
-                        { '^', RequiredAttributeValueComparison.PrefixMatch },
-                        { '$', RequiredAttributeValueComparison.SuffixMatch }
-            };
-        private static readonly char[] InvalidPlainAttributeNameCharacters = { ' ', '\t', ',', RequiredAttributeWildcardSuffix };
-        private static readonly char[] InvalidCssAttributeNameCharacters = (new[] { ' ', '\t', ',', ']' })
-            .Concat(CssValueComparisons.Keys)
-            .ToArray();
-        private static readonly char[] InvalidCssQuotelessValueCharacters = { ' ', '\t', ']' };
+                ['='] = RequiredAttributeValueComparison.FullMatch,
+                ['^'] = RequiredAttributeValueComparison.PrefixMatch,
+                ['$'] = RequiredAttributeValueComparison.SuffixMatch
+            }.ToFrozenDictionary();
+
+        private static readonly char[] s_invalidPlainAttributeNameCharacters = [' ', '\t', ',', RequiredAttributeWildcardSuffix];
+        private static readonly char[] s_invalidCssAttributeNameCharacters = [' ', '\t', ',', ']', ..s_cssValueComparisons.Keys];
+        private static readonly char[] s_invalidCssQuotelessValueCharacters = [' ', '\t', ']'];
 
         private int _index;
         private readonly string _requiredAttributes;
@@ -109,7 +108,7 @@ internal static class RequiredAttributeParser
 
         private void ParsePlainSelector(RequiredAttributeDescriptorBuilder attributeBuilder)
         {
-            var nameEndIndex = _requiredAttributes.IndexOfAny(InvalidPlainAttributeNameCharacters, _index);
+            var nameEndIndex = _requiredAttributes.IndexOfAny(s_invalidPlainAttributeNameCharacters, _index);
             string attributeName;
 
             var nameComparison = RequiredAttributeNameComparison.FullMatch;
@@ -139,7 +138,7 @@ internal static class RequiredAttributeParser
         private void ParseCssAttributeName(RequiredAttributeDescriptorBuilder builder)
         {
             var nameStartIndex = _index;
-            var nameEndIndex = _requiredAttributes.IndexOfAny(InvalidCssAttributeNameCharacters, _index);
+            var nameEndIndex = _requiredAttributes.IndexOfAny(s_invalidCssAttributeNameCharacters, _index);
             nameEndIndex = nameEndIndex == -1 ? _requiredAttributes.Length : nameEndIndex;
             _index = nameEndIndex;
 
@@ -152,7 +151,7 @@ internal static class RequiredAttributeParser
         {
             Debug.Assert(!AtEnd);
 
-            if (CssValueComparisons.TryGetValue(Current, out valueComparison))
+            if (s_cssValueComparisons.TryGetValue(Current, out valueComparison))
             {
                 var op = Current;
                 _index++;
@@ -208,7 +207,7 @@ internal static class RequiredAttributeParser
             else
             {
                 valueStart = _index;
-                var valueEndIndex = _requiredAttributes.IndexOfAny(InvalidCssQuotelessValueCharacters, _index);
+                var valueEndIndex = _requiredAttributes.IndexOfAny(s_invalidCssQuotelessValueCharacters, _index);
                 valueEnd = valueEndIndex == -1 ? _requiredAttributes.Length : valueEndIndex;
                 _index = valueEnd;
             }
