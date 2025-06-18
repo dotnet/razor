@@ -129,9 +129,9 @@ internal static partial class ObjectReaders
 
             static RequiredAttributeDescriptor ReadFromProperties(JsonDataReader reader)
             {
+                var flags = (RequiredAttributeDescriptorFlags)reader.ReadInt32(nameof(RequiredAttributeDescriptor.Flags));
                 var name = reader.ReadString(nameof(RequiredAttributeDescriptor.Name));
                 var nameComparison = (RequiredAttributeNameComparison)reader.ReadInt32OrZero(nameof(RequiredAttributeDescriptor.NameComparison));
-                var caseSensitive = reader.ReadBooleanOrTrue(nameof(RequiredAttributeDescriptor.CaseSensitive));
                 var value = reader.ReadStringOrNull(nameof(RequiredAttributeDescriptor.Value));
                 var valueComparison = (RequiredAttributeValueComparison)reader.ReadInt32OrZero(nameof(RequiredAttributeDescriptor.ValueComparison));
                 var displayName = reader.ReadNonNullString(nameof(RequiredAttributeDescriptor.DisplayName));
@@ -140,8 +140,7 @@ internal static partial class ObjectReaders
                 var diagnostics = reader.ReadImmutableArrayOrEmpty(nameof(RequiredAttributeDescriptor.Diagnostics), ReadDiagnostic);
 
                 return new RequiredAttributeDescriptor(
-                    Cached(name)!, nameComparison,
-                    caseSensitive,
+                    flags, Cached(name)!, nameComparison,
                     Cached(value), valueComparison,
                     Cached(displayName), diagnostics, metadata);
             }

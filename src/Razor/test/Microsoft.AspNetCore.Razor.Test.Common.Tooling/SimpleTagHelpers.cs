@@ -172,22 +172,16 @@ internal static class SimpleTagHelpers
         directiveAttribute3.TagMatchingRule(rule =>
         {
             rule.TagName = "*";
-            rule.RequireAttributeDescriptor(b =>
-            {
-                b.Name = "@onclick";
-                b.SetMetadata(MetadataCollection.Create(IsDirectiveAttribute));
-                b.NameComparison = RequiredAttributeNameComparison.FullMatch;
-            });
+            rule.RequireAttributeDescriptor(attribute => attribute
+                .Name("@onclick", RequiredAttributeNameComparison.FullMatch)
+                .IsDirectiveAttribute());
         });
         directiveAttribute3.TagMatchingRule(rule =>
         {
             rule.TagName = "*";
-            rule.RequireAttributeDescriptor(b =>
-            {
-                b.Name = "@onclick";
-                b.SetMetadata(MetadataCollection.Create(IsDirectiveAttribute));
-                b.NameComparison = RequiredAttributeNameComparison.PrefixMatch;
-            });
+            rule.RequireAttributeDescriptor(attribute => attribute
+                .Name("@onclick", RequiredAttributeNameComparison.PrefixMatch)
+                .IsDirectiveAttribute());
         });
         directiveAttribute3.BindAttribute(attribute =>
         {

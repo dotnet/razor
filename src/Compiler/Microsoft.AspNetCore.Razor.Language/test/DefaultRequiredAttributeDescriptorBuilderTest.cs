@@ -1,8 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Generic;
 using Xunit;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -12,34 +12,34 @@ public class DefaultRequiredAttributeDescriptorBuilderTest
     public void Build_DisplayNameIsName_NameComparisonFullMatch()
     {
         // Arrange
-        var tagHelperBuilder = new TagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        var tagMatchingRuleBuilder = new TagMatchingRuleDescriptorBuilder(tagHelperBuilder);
-        var builder = new RequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
-
-        builder.Name("asp-action", RequiredAttributeNameComparison.FullMatch);
+        var builder = TagHelperDescriptorBuilder.Create(TagHelperConventions.DefaultKind, "TestTagHelper", "Test")
+            .TagMatchingRuleDescriptor(rule => rule
+                .RequireAttributeDescriptor(attribute => attribute
+                    .Name("asp-action", RequiredAttributeNameComparison.FullMatch)));
 
         // Act
-        var descriptor = builder.Build();
+        var tagHelper = builder.Build();
+        var attribute = tagHelper.TagMatchingRules[0].Attributes[0];
 
         // Assert
-        Assert.Equal("asp-action", descriptor.DisplayName);
+        Assert.Equal("asp-action", attribute.DisplayName);
     }
 
     [Fact]
     public void Build_DisplayNameIsNameWithDots_NameComparisonPrefixMatch()
     {
         // Arrange
-        var tagHelperBuilder = new TagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        var tagMatchingRuleBuilder = new TagMatchingRuleDescriptorBuilder(tagHelperBuilder);
-        var builder = new RequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
-
-        builder.Name("asp-route-", RequiredAttributeNameComparison.PrefixMatch);
+        var builder = TagHelperDescriptorBuilder.Create(TagHelperConventions.DefaultKind, "TestTagHelper", "Test")
+            .TagMatchingRuleDescriptor(rule => rule
+                .RequireAttributeDescriptor(attribute => attribute
+                    .Name("asp-route-", RequiredAttributeNameComparison.PrefixMatch)));
 
         // Act
-        var descriptor = builder.Build();
+        var tagHelper = builder.Build();
+        var attribute = tagHelper.TagMatchingRules[0].Attributes[0];
 
         // Assert
-        Assert.Equal("asp-route-...", descriptor.DisplayName);
+        Assert.Equal("asp-route-...", attribute.DisplayName);
     }
 
     [Fact]
@@ -49,23 +49,24 @@ public class DefaultRequiredAttributeDescriptorBuilderTest
         // they should share the instance.
 
         // Arrange
-        var tagHelperBuilder = new TagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        var tagMatchingRuleBuilder = new TagMatchingRuleDescriptorBuilder(tagHelperBuilder);
+        var metadata = MetadataCollection.Create(KeyValuePair.Create<string, string?>("TestKey", "TestValue"));
 
-        var metadata = MetadataCollection.Create(PropertyName("SomeProperty"));
-
-        var builder1 = new RequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
-        var builder2 = new RequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
-
-        builder1.SetMetadata(metadata);
-        builder2.SetMetadata(metadata);
+        var builder = TagHelperDescriptorBuilder.Create(TagHelperConventions.DefaultKind, "TestTagHelper", "Test")
+            .TagMatchingRuleDescriptor(rule => rule
+                .RequireAttributeDescriptor(attribute => attribute
+                    .Name("test1")
+                    .SetMetadata(metadata))
+                .RequireAttributeDescriptor(attribute => attribute
+                    .Name("test2")
+                    .SetMetadata(metadata)));
 
         // Act
-        var descriptor1 = builder1.Build();
-        var descriptor2 = builder2.Build();
+        var tagHelper = builder.Build();
+        var attribute1 = tagHelper.TagMatchingRules[0].Attributes[0];
+        var attribute2 = tagHelper.TagMatchingRules[0].Attributes[1];
 
         // Assert
-        Assert.Same(descriptor1.Metadata, descriptor2.Metadata);
+        Assert.Same(attribute1.Metadata, attribute2.Metadata);
     }
 
     [Fact]
@@ -75,20 +76,21 @@ public class DefaultRequiredAttributeDescriptorBuilderTest
         // they do not share the instance.
 
         // Arrange
-        var tagHelperBuilder = new TagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        var tagMatchingRuleBuilder = new TagMatchingRuleDescriptorBuilder(tagHelperBuilder);
-
-        var builder1 = new RequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
-        var builder2 = new RequiredAttributeDescriptorBuilder(tagMatchingRuleBuilder);
-
-        builder1.Metadata.Add(PropertyName("SomeProperty"));
-        builder2.Metadata.Add(PropertyName("SomeProperty"));
+        var builder = TagHelperDescriptorBuilder.Create(TagHelperConventions.DefaultKind, "TestTagHelper", "Test")
+            .TagMatchingRuleDescriptor(rule => rule
+                .RequireAttributeDescriptor(attribute => attribute
+                    .Name("test1")
+                    .Metadata.Add("TestKey", "TestValue"))
+                .RequireAttributeDescriptor(attribute => attribute
+                    .Name("test2")
+                    .Metadata.Add("TestKey", "TestValue")));
 
         // Act
-        var descriptor1 = builder1.Build();
-        var descriptor2 = builder2.Build();
+        var tagHelper = builder.Build();
+        var attribute1 = tagHelper.TagMatchingRules[0].Attributes[0];
+        var attribute2 = tagHelper.TagMatchingRules[0].Attributes[1];
 
         // Assert
-        Assert.NotSame(descriptor1.Metadata, descriptor2.Metadata);
+        Assert.NotSame(attribute1.Metadata, attribute2.Metadata);
     }
 }
