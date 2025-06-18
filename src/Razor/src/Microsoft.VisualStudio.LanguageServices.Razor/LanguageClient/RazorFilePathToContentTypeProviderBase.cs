@@ -7,21 +7,14 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient;
 
-internal abstract class RazorFilePathToContentTypeProviderBase : IFilePathToContentTypeProvider
+internal abstract class RazorFilePathToContentTypeProviderBase(
+    IContentTypeRegistryService contentTypeRegistryService,
+    ILspEditorFeatureDetector lspEditorFeatureDetector,
+    LanguageServerFeatureOptions options) : IFilePathToContentTypeProvider
 {
-    private readonly IContentTypeRegistryService _contentTypeRegistryService;
-    private readonly ILspEditorFeatureDetector _lspEditorFeatureDetector;
-    private readonly LanguageServerFeatureOptions _options;
-
-    public RazorFilePathToContentTypeProviderBase(
-        IContentTypeRegistryService contentTypeRegistryService,
-        ILspEditorFeatureDetector lspEditorFeatureDetector,
-        LanguageServerFeatureOptions options)
-    {
-        _contentTypeRegistryService = contentTypeRegistryService;
-        _lspEditorFeatureDetector = lspEditorFeatureDetector;
-        _options = options;
-    }
+    private readonly IContentTypeRegistryService _contentTypeRegistryService = contentTypeRegistryService;
+    private readonly ILspEditorFeatureDetector _lspEditorFeatureDetector = lspEditorFeatureDetector;
+    private readonly LanguageServerFeatureOptions _options = options;
 
     public bool TryGetContentTypeForFilePath(string filePath, [NotNullWhen(true)] out IContentType? contentType)
     {
