@@ -1,57 +1,54 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
-using System;
-
 namespace Microsoft.AspNetCore.Razor.Language;
 
 public static class TestRequiredAttributeDescriptorBuilderExtensions
 {
-    public static RequiredAttributeDescriptorBuilder Name(this RequiredAttributeDescriptorBuilder builder, string name)
+    public static RequiredAttributeDescriptorBuilder Name(
+        this RequiredAttributeDescriptorBuilder builder, string name, RequiredAttributeNameComparison? nameComparison = null)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
         builder.Name = name;
+
+        if (nameComparison is RequiredAttributeNameComparison nameComparisonValue)
+        {
+            builder.NameComparison = nameComparisonValue;
+        }
 
         return builder;
     }
 
     public static RequiredAttributeDescriptorBuilder NameComparison(
-        this RequiredAttributeDescriptorBuilder builder,
-        RequiredAttributeNameComparison nameComparison)
+        this RequiredAttributeDescriptorBuilder builder, RequiredAttributeNameComparison nameComparison)
     {
         builder.NameComparison = nameComparison;
 
         return builder;
     }
 
-    public static RequiredAttributeDescriptorBuilder Value(this RequiredAttributeDescriptorBuilder builder, string value)
+    public static RequiredAttributeDescriptorBuilder Value(
+        this RequiredAttributeDescriptorBuilder builder, string value, RequiredAttributeValueComparison? valueComparison = null)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
         builder.Value = value;
+
+        if (valueComparison is RequiredAttributeValueComparison valueComparisonValue)
+        {
+            builder.ValueComparison = valueComparisonValue;
+        }
 
         return builder;
     }
 
     public static RequiredAttributeDescriptorBuilder ValueComparison(
-        this RequiredAttributeDescriptorBuilder builder,
-        RequiredAttributeValueComparison valueComparison)
+        this RequiredAttributeDescriptorBuilder builder, RequiredAttributeValueComparison valueComparison)
     {
         builder.ValueComparison = valueComparison;
 
         return builder;
     }
 
-    public static RequiredAttributeDescriptorBuilder AddDiagnostic(this RequiredAttributeDescriptorBuilder builder, RazorDiagnostic diagnostic)
+    public static RequiredAttributeDescriptorBuilder AddDiagnostic(
+        this RequiredAttributeDescriptorBuilder builder, RazorDiagnostic diagnostic)
     {
         builder.Diagnostics.Add(diagnostic);
 
