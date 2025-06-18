@@ -53,7 +53,6 @@ internal static class RequiredAttributeParser
             {
                 return;
             }
-            var descriptors = new List<RequiredAttributeDescriptor>();
 
             PassOptionalWhitespace();
 
