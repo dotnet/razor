@@ -244,7 +244,7 @@ public class TagHelperBinderTest
                     .RequireAttributeDescriptor(attribute =>
                         attribute
                         .Name("nodashprefix")
-                        .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch)))
+                        .NameComparison(RequiredAttributeNameComparison.PrefixMatch)))
                 .Build();
             var catchAllDescriptor = TagHelperDescriptorBuilder.Create("CatchAllTagHelper", "SomeAssembly")
                 .TagMatchingRuleDescriptor(rule =>
@@ -266,7 +266,7 @@ public class TagHelperBinderTest
                     .RequireAttributeDescriptor(attribute =>
                         attribute
                         .Name("prefix-")
-                        .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch)))
+                        .NameComparison(RequiredAttributeNameComparison.PrefixMatch)))
                 .Build();
             ImmutableArray<TagHelperDescriptor> defaultAvailableDescriptors =
                 [divDescriptor, inputDescriptor, catchAllDescriptor, catchAllDescriptor2];

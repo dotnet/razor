@@ -101,7 +101,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                     .RequireAttributeDescriptor(builder =>
                     {
                         builder.Name = "asp-route-";
-                        builder.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
+                        builder.NameComparison = RequiredAttributeNameComparison.PrefixMatch;
                     }))
                 .TagMatchingRuleDescriptor(rule => rule
                     .RequireTagName("form")

@@ -24,9 +24,9 @@ public partial class RequiredAttributeDescriptorBuilder
         _parent = null;
 
         Name = null;
-        NameComparisonMode = default;
+        NameComparison = default;
         Value = null;
-        ValueComparisonMode = default;
+        ValueComparison = default;
 
         _metadata.Clear();
     }

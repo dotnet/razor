@@ -180,7 +180,7 @@ internal sealed class EventHandlerTagHelperDescriptorProvider : TagHelperDescrip
                 rule.Attribute(a =>
                 {
                     a.Name = attributeName;
-                    a.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
+                    a.NameComparison = RequiredAttributeNameComparison.FullMatch;
                     a.SetMetadata(Attributes.IsDirectiveAttribute);
                 });
             });
@@ -194,7 +194,7 @@ internal sealed class EventHandlerTagHelperDescriptorProvider : TagHelperDescrip
                     rule.Attribute(a =>
                     {
                         a.Name = attributeName + ":preventDefault";
-                        a.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
+                        a.NameComparison = RequiredAttributeNameComparison.FullMatch;
                         a.SetMetadata(Attributes.IsDirectiveAttribute);
                     });
                 });
@@ -209,7 +209,7 @@ internal sealed class EventHandlerTagHelperDescriptorProvider : TagHelperDescrip
                     rule.Attribute(a =>
                     {
                         a.Name = attributeName + ":stopPropagation";
-                        a.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
+                        a.NameComparison = RequiredAttributeNameComparison.FullMatch;
                         a.SetMetadata(Attributes.IsDirectiveAttribute);
                     });
                 });

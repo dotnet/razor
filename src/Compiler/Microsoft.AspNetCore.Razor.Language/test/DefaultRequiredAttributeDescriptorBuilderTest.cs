@@ -18,7 +18,7 @@ public class DefaultRequiredAttributeDescriptorBuilderTest
 
         builder
             .Name("asp-action")
-            .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.FullMatch);
+            .NameComparison(RequiredAttributeNameComparison.FullMatch);
 
         // Act
         var descriptor = builder.Build();
@@ -37,7 +37,7 @@ public class DefaultRequiredAttributeDescriptorBuilderTest
 
         builder
             .Name("asp-route-")
-            .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch);
+            .NameComparison(RequiredAttributeNameComparison.PrefixMatch);
 
         // Act
         var descriptor = builder.Build();

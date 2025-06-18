@@ -21,16 +21,11 @@ public static class TestRequiredAttributeDescriptorBuilderExtensions
         return builder;
     }
 
-    public static RequiredAttributeDescriptorBuilder NameComparisonMode(
+    public static RequiredAttributeDescriptorBuilder NameComparison(
         this RequiredAttributeDescriptorBuilder builder,
-        RequiredAttributeDescriptor.NameComparisonMode nameComparison)
+        RequiredAttributeNameComparison nameComparison)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        builder.NameComparisonMode = nameComparison;
+        builder.NameComparison = nameComparison;
 
         return builder;
     }
@@ -47,16 +42,11 @@ public static class TestRequiredAttributeDescriptorBuilderExtensions
         return builder;
     }
 
-    public static RequiredAttributeDescriptorBuilder ValueComparisonMode(
+    public static RequiredAttributeDescriptorBuilder ValueComparison(
         this RequiredAttributeDescriptorBuilder builder,
-        RequiredAttributeDescriptor.ValueComparisonMode valueComparison)
+        RequiredAttributeValueComparison valueComparison)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        builder.ValueComparisonMode = valueComparison;
+        builder.ValueComparison = valueComparison;
 
         return builder;
     }

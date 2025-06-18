@@ -70,12 +70,12 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
                 builder => builder
                     .RequireAttributeDescriptor(attribute => attribute
                         .Name("required-attribute-one")
-                        .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch))
+                        .NameComparison(RequiredAttributeNameComparison.PrefixMatch))
                     .RequireAttributeDescriptor(attribute => attribute
                         .Name("required-attribute-two")
-                        .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.FullMatch)
+                        .NameComparison(RequiredAttributeNameComparison.FullMatch)
                         .Value("something")
-                        .ValueComparisonMode(RequiredAttributeDescriptor.ValueComparisonMode.PrefixMatch))
+                        .ValueComparison(RequiredAttributeValueComparison.PrefixMatch))
                     .RequireParentTag("parent-name")
                     .RequireTagStructure(TagStructure.WithoutEndTag),
             ],
@@ -120,12 +120,12 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
                 builder => builder
                     .RequireAttributeDescriptor(attribute => attribute
                         .Name("required-attribute-one")
-                        .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch))
+                        .NameComparison(RequiredAttributeNameComparison.PrefixMatch))
                     .RequireAttributeDescriptor(attribute => attribute
                         .Name("required-attribute-two")
-                        .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.FullMatch)
+                        .NameComparison(RequiredAttributeNameComparison.FullMatch)
                         .Value("something")
-                        .ValueComparisonMode(RequiredAttributeDescriptor.ValueComparisonMode.PrefixMatch))
+                        .ValueComparison(RequiredAttributeValueComparison.PrefixMatch))
                     .RequireParentTag("parent-name")
                     .RequireTagStructure(TagStructure.WithoutEndTag),
             ],
@@ -170,12 +170,12 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
                 builder => builder
                     .RequireAttributeDescriptor(attribute => attribute
                         .Name("required-attribute-one")
-                        .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch))
+                        .NameComparison(RequiredAttributeNameComparison.PrefixMatch))
                     .RequireAttributeDescriptor(attribute => attribute
                         .Name("required-attribute-two")
-                        .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.FullMatch)
+                        .NameComparison(RequiredAttributeNameComparison.FullMatch)
                         .Value("something")
-                        .ValueComparisonMode(RequiredAttributeDescriptor.ValueComparisonMode.PrefixMatch))
+                        .ValueComparison(RequiredAttributeValueComparison.PrefixMatch))
                     .RequireParentTag("parent-name"),
             ],
             configureAction: builder => builder.AllowChildTag("allowed-child-one")
@@ -225,7 +225,7 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
                 builder => builder
                     .RequireAttributeDescriptor(attribute => attribute
                         .Name("required-attribute-one")
-                        .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch))
+                        .NameComparison(RequiredAttributeNameComparison.PrefixMatch))
             ],
             configureAction: builder => builder
                 .AllowChildTag("allowed-child-one")

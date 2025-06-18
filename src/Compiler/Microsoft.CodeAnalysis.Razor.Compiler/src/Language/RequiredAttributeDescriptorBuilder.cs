@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using static Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -27,9 +26,9 @@ public sealed partial class RequiredAttributeDescriptorBuilder : TagHelperObject
     }
 
     public string? Name { get; set; }
-    public NameComparisonMode NameComparisonMode { get; set; }
+    public RequiredAttributeNameComparison NameComparison { get; set; }
     public string? Value { get; set; }
-    public ValueComparisonMode ValueComparisonMode { get; set; }
+    public RequiredAttributeValueComparison ValueComparison { get; set; }
 
     internal bool CaseSensitive => _parent.CaseSensitive;
 
@@ -47,10 +46,10 @@ public sealed partial class RequiredAttributeDescriptorBuilder : TagHelperObject
 
         return new RequiredAttributeDescriptor(
             Name ?? string.Empty,
-            NameComparisonMode,
+            NameComparison,
             CaseSensitive,
             Value,
-            ValueComparisonMode,
+            ValueComparison,
             displayName,
             diagnostics,
             metadata);
@@ -58,7 +57,7 @@ public sealed partial class RequiredAttributeDescriptorBuilder : TagHelperObject
 
     private string GetDisplayName()
     {
-        return (NameComparisonMode == NameComparisonMode.PrefixMatch ? string.Concat(Name, "...") : Name) ?? string.Empty;
+        return (NameComparison == RequiredAttributeNameComparison.PrefixMatch ? string.Concat(Name, "...") : Name) ?? string.Empty;
     }
 
     private bool IsDirectiveAttribute()
