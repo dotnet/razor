@@ -22,6 +22,7 @@ public partial class RequiredAttributeDescriptorBuilder
     private protected override void Reset()
     {
         _parent = null;
+        _flags = 0;
 
         Name = null;
         NameComparison = default;

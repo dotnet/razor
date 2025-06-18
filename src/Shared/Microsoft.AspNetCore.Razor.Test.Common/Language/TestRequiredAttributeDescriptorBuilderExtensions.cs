@@ -47,6 +47,14 @@ public static class TestRequiredAttributeDescriptorBuilderExtensions
         return builder;
     }
 
+    public static RequiredAttributeDescriptorBuilder IsDirectiveAttribute(
+        this RequiredAttributeDescriptorBuilder builder, bool isDirectiveAttribute = true)
+    {
+        builder.IsDirectiveAttribute = isDirectiveAttribute;
+
+        return builder;
+    }
+
     public static RequiredAttributeDescriptorBuilder AddDiagnostic(
         this RequiredAttributeDescriptorBuilder builder, RazorDiagnostic diagnostic)
     {

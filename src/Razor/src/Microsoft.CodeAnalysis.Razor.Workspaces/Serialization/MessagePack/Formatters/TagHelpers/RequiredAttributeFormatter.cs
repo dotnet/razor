@@ -10,6 +10,8 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.MessagePack.Formatters.TagH
 
 internal sealed class RequiredAttributeFormatter : ValueFormatter<RequiredAttributeDescriptor>
 {
+    private const int PropertyCount = 8;
+
     public static readonly ValueFormatter<RequiredAttributeDescriptor> Instance = new RequiredAttributeFormatter();
 
     private RequiredAttributeFormatter()
@@ -18,11 +20,11 @@ internal sealed class RequiredAttributeFormatter : ValueFormatter<RequiredAttrib
 
     public override RequiredAttributeDescriptor Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
-        reader.ReadArrayHeaderAndVerify(8);
+        reader.ReadArrayHeaderAndVerify(PropertyCount);
 
+        var flags = (RequiredAttributeDescriptorFlags)reader.ReadInt32();
         var name = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var nameComparison = (RequiredAttributeNameComparison)reader.ReadInt32();
-        var caseSensitive = reader.ReadBoolean();
         var value = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var valueComparison = (RequiredAttributeValueComparison)reader.ReadInt32();
         var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
@@ -31,19 +33,18 @@ internal sealed class RequiredAttributeFormatter : ValueFormatter<RequiredAttrib
         var diagnostics = reader.Deserialize<ImmutableArray<RazorDiagnostic>>(options);
 
         return new RequiredAttributeDescriptor(
-            name!, nameComparison,
-            caseSensitive,
+            flags, name!, nameComparison,
             value, valueComparison,
             displayName, diagnostics, metadata);
     }
 
     public override void Serialize(ref MessagePackWriter writer, RequiredAttributeDescriptor value, SerializerCachingOptions options)
     {
-        writer.WriteArrayHeader(8);
+        writer.WriteArrayHeader(PropertyCount);
 
+        writer.Write((int)value.Flags);
         CachedStringFormatter.Instance.Serialize(ref writer, value.Name, options);
         writer.Write((int)value.NameComparison);
-        writer.Write(value.CaseSensitive);
         CachedStringFormatter.Instance.Serialize(ref writer, value.Value, options);
         writer.Write((int)value.ValueComparison);
         CachedStringFormatter.Instance.Serialize(ref writer, value.DisplayName, options);
@@ -54,11 +55,11 @@ internal sealed class RequiredAttributeFormatter : ValueFormatter<RequiredAttrib
 
     public override void Skim(ref MessagePackReader reader, SerializerCachingOptions options)
     {
-        reader.ReadArrayHeaderAndVerify(8);
+        reader.ReadArrayHeaderAndVerify(PropertyCount);
 
+        reader.Skip(); // Flags
         CachedStringFormatter.Instance.Skim(ref reader, options); // Name
         reader.Skip(); // NameComparison
-        reader.Skip(); // CaseSensitive
         CachedStringFormatter.Instance.Skim(ref reader, options); // Value
         reader.Skip(); // ValueComparison
         CachedStringFormatter.Instance.Skim(ref reader, options); // DisplayName
