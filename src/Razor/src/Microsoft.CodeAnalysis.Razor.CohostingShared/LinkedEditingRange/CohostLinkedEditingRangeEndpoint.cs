@@ -56,7 +56,7 @@ internal sealed class CohostLinkedEditingRangeEndpoint(IRemoteServiceInvoker rem
         // a little defensive here.
         if (context.TextDocument is null)
         {
-            return SpecializedTasks.Default<LinkedEditingRanges?>();
+            return SpecializedTasks.Null<LinkedEditingRanges>();
         }
 
         return HandleRequestAsync(request, context.TextDocument, cancellationToken);
