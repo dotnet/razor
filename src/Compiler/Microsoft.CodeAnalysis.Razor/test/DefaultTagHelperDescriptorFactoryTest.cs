@@ -249,8 +249,9 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
     public void CreateDescriptor_IsEnumIsSetCorrectly(string tagHelperTypeName, TagHelperDescriptor? expectedDescriptor)
     {
         // Arrange
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(tagHelperTypeName);
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
@@ -278,8 +279,9 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
     public void CreateDescriptor_CreatesDesignTimeDescriptorsWithRequiredParent(string tagHelperTypeName, TagHelperDescriptor? expectedDescriptor)
     {
         // Arrange
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(tagHelperTypeName);
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
@@ -311,8 +313,9 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
     public void CreateDescriptor_CreatesDescriptorsWithAllowedChildren(string tagHelperTypeName, TagHelperDescriptor? expectedDescriptor)
     {
         // Arrange
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(tagHelperTypeName);
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
@@ -340,8 +343,9 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
     public void CreateDescriptor_CreatesDesignTimeDescriptorsWithTagStructure(string tagHelperTypeFullName, TagHelperDescriptor? expectedDescriptor)
     {
         // Arrange
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(tagHelperTypeFullName);
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
@@ -398,8 +402,9 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
     public void CreateDescriptor_UnderstandsEditorBrowsableAttribute(string tagHelperTypeName, bool designTime, TagHelperDescriptor? expectedDescriptor)
     {
         // Arrange
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, designTime, designTime);
+        var factory = new DefaultTagHelperDescriptorFactory(designTime, designTime);
         var typeSymbol = Compilation.GetTypeByMetadataName(tagHelperTypeName);
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
@@ -469,8 +474,9 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
     public void CreateDescriptor_ReturnsExpectedDescriptors(string tagHelperTypeName, TagHelperDescriptor? expectedDescriptor)
     {
         // Arrange
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(tagHelperTypeName);
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
@@ -498,13 +504,15 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
     public void CreateDescriptor_HtmlCasesTagNameAndAttributeName(string tagHelperTypeName, string expectedTagName, string expectedAttributeName)
     {
         // Arrange
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(tagHelperTypeName);
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
 
         // Assert
+        Assert.NotNull(descriptor);
         var rule = Assert.Single(descriptor.TagMatchingRules);
         Assert.Equal(expectedTagName, rule.TagName, StringComparer.Ordinal);
         var attributeDescriptor = Assert.Single(descriptor.BoundAttributes);
@@ -520,8 +528,9 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
             .BoundAttribute<string>(name: "SomethingElse", propertyName: "ValidAttribute1")
             .BoundAttribute<string>(name: "Something-Else", propertyName: "ValidAttribute2"));
 
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName("TestNamespace.OverriddenAttributeTagHelper");
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
@@ -539,8 +548,9 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
             .BoundAttribute<string>(name: "valid-attribute1", propertyName: "ValidAttribute1")
             .BoundAttribute<string>(name: "Something-Else", propertyName: "ValidAttribute2"));
 
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName("TestNamespace.InheritedOverriddenAttributeTagHelper");
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
@@ -558,8 +568,9 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
             .BoundAttribute<string>(name: "SomethingElse", propertyName: "ValidAttribute1")
             .BoundAttribute<string>(name: "Something-Else", propertyName: "ValidAttribute2"));
 
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName("TestNamespace.InheritedNotOverriddenAttributeTagHelper");
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
@@ -576,8 +587,9 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
             .TagMatchingRule(tagName: "inherited-single-attribute")
             .BoundAttribute<int>(name: "int-attribute", propertyName: "IntAttribute"));
 
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName("TestNamespace.InheritedSingleAttributeTagHelper");
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
@@ -594,8 +606,9 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
             .TagMatchingRule(tagName: "single-attribute")
             .BoundAttribute<int>(name: "int-attribute", propertyName: "IntAttribute"));
 
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName("TestNamespace.SingleAttributeTagHelper");
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
@@ -612,8 +625,9 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
             .TagMatchingRule(tagName: "missing-accessor")
             .BoundAttribute<string>(name: "valid-attribute", propertyName: "ValidAttribute"));
 
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName("TestNamespace.MissingAccessorTagHelper");
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
@@ -630,8 +644,9 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
             .TagMatchingRule(tagName: "non-public-accessor")
             .BoundAttribute<string>(name: "valid-attribute", propertyName: "ValidAttribute"));
 
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName("TestNamespace.NonPublicAccessorTagHelper");
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
@@ -648,8 +663,9 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
             .TagMatchingRule(tagName: "not-bound-attribute")
             .BoundAttribute<object>(name: "bound-property", propertyName: "BoundProperty"));
 
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName("TestNamespace.NotBoundAttributeTagHelper");
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
@@ -667,8 +683,9 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
             .TagMatchingRule(tagName: "div")
             .BoundAttribute<string>(name: "valid-attribute", propertyName: "ValidAttribute"));
 
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName("TestNamespace.MultiTagTagHelper");
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
@@ -685,8 +702,9 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
             .TagMatchingRule(tagName: "inherited-multi-tag")
             .BoundAttribute<string>(name: "valid-attribute", propertyName: "ValidAttribute"));
 
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName("TestNamespace.InheritedMultiTagTagHelper");
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
@@ -703,8 +721,9 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
             .TagMatchingRule(tagName: "p")
             .TagMatchingRule(tagName: "div"));
 
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName("TestNamespace.DuplicateTagNameTagHelper");
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
@@ -720,8 +739,9 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
         var expectedDescriptor = CreateTagHelper("OverrideNameTagHelper", static b => b
             .TagMatchingRule(tagName: "data-condition"));
 
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName("TestNamespace.OverrideNameTagHelper");
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
@@ -768,12 +788,13 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
         Assert.NotNull(tagHelperType);
 
         var attribute = tagHelperType.GetAttributes().Single();
-        var factory = new DefaultTagHelperDescriptorFactory(compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
 
         // Act
         var descriptor = factory.CreateDescriptor(tagHelperType);
 
         // Assert
+        Assert.NotNull(descriptor);
         var rule = Assert.Single(descriptor.TagMatchingRules);
         var errorMessages = rule.GetAllDiagnostics().Select(diagnostic => diagnostic.GetMessage(CultureInfo.CurrentCulture)).ToArray();
         Assert.Equal(expectedErrorMessages.Length, errorMessages.Length);
@@ -826,13 +847,15 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
         ImmutableArray<BoundAttributeDescriptor> expectedAttributes)
     {
         // Arrange
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(tagHelperTypeName);
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
 
         // Assert
+        Assert.NotNull(descriptor);
         Assert.Equal<BoundAttributeDescriptor>(expectedAttributes, descriptor.BoundAttributes);
 
         var id = AspNetCore.Razor.Language.RazorDiagnosticFactory.TagHelper_InvalidBoundAttributeNameStartsWith.Id;
@@ -870,12 +893,14 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
         var syntaxTree = Parse(text);
         var compilation = Compilation.AddSyntaxTrees(syntaxTree);
         var tagHelperType = compilation.GetTypeByMetadataName("DynamicTestTagHelper");
-        var factory = new DefaultTagHelperDescriptorFactory(compilation, includeDocumentation: false, excludeHidden: false);
+        Assert.NotNull(tagHelperType);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
 
         // Act
         var descriptor = factory.CreateDescriptor(tagHelperType);
 
         // Assert
+        Assert.NotNull(descriptor);
         Assert.False(descriptor.HasErrors);
     }
 
@@ -907,12 +932,14 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
         var syntaxTree = Parse(text);
         var compilation = Compilation.AddSyntaxTrees(syntaxTree);
         var tagHelperType = compilation.GetTypeByMetadataName("DynamicTestTagHelper");
-        var factory = new DefaultTagHelperDescriptorFactory(compilation, includeDocumentation: false, excludeHidden: false);
+        Assert.NotNull(tagHelperType);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
 
         // Act
         var descriptor = factory.CreateDescriptor(tagHelperType);
 
         // Assert
+        Assert.NotNull(descriptor);
         Assert.False(descriptor.HasErrors);
     }
 
@@ -958,10 +985,12 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
         var syntaxTree = Parse(text);
         var compilation = Compilation.AddSyntaxTrees(syntaxTree);
         var tagHelperType = compilation.GetTypeByMetadataName("DynamicTestTagHelper");
-        var factory = new DefaultTagHelperDescriptorFactory(compilation, includeDocumentation: false, excludeHidden: false);
+        Assert.NotNull(tagHelperType);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
 
         // Act
         var descriptor = factory.CreateDescriptor(tagHelperType);
+        Assert.NotNull(descriptor);
 
         // Assert
         var errorMessages = descriptor.GetAllDiagnostics().Select(diagnostic => diagnostic.GetMessage(CultureInfo.CurrentCulture));
@@ -1012,12 +1041,14 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
         var syntaxTree = Parse(text);
         var compilation = Compilation.AddSyntaxTrees(syntaxTree);
         var tagHelperType = compilation.GetTypeByMetadataName("DynamicTestTagHelper");
-        var factory = new DefaultTagHelperDescriptorFactory(compilation, includeDocumentation: false, excludeHidden: false);
+        Assert.NotNull(tagHelperType);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
 
         // Act
         var descriptor = factory.CreateDescriptor(tagHelperType);
 
         // Assert
+        Assert.NotNull(descriptor);
         var errorMessages = descriptor.GetAllDiagnostics().Select(diagnostic => diagnostic.GetMessage(CultureInfo.CurrentCulture));
         Assert.Equal(expectedErrorMessages, errorMessages);
     }
@@ -1052,12 +1083,14 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
         var syntaxTree = Parse(text);
         var compilation = Compilation.AddSyntaxTrees(syntaxTree);
         var tagHelperType = compilation.GetTypeByMetadataName("DynamicTestTagHelper");
-        var factory = new DefaultTagHelperDescriptorFactory(compilation, includeDocumentation: false, excludeHidden: false);
+        Assert.NotNull(tagHelperType);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
 
         // Act
         var descriptor = factory.CreateDescriptor(tagHelperType);
 
         // Assert
+        Assert.NotNull(descriptor);
         var errorMessages = descriptor.GetAllDiagnostics().Select(diagnostic => diagnostic.GetMessage(CultureInfo.CurrentCulture));
         Assert.Equal(expectedErrorMessages, errorMessages);
     }
@@ -1092,12 +1125,14 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
         var syntaxTree = Parse(text);
         var compilation = Compilation.AddSyntaxTrees(syntaxTree);
         var tagHelperType = compilation.GetTypeByMetadataName("DynamicTestTagHelper");
-        var factory = new DefaultTagHelperDescriptorFactory(compilation, includeDocumentation: false, excludeHidden: false);
+        Assert.NotNull(tagHelperType);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
 
         // Act
         var descriptor = factory.CreateDescriptor(tagHelperType);
 
         // Assert
+        Assert.NotNull(descriptor);
         var errorMessages = descriptor.GetAllDiagnostics().Select(diagnostic => diagnostic.GetMessage(CultureInfo.CurrentCulture));
         Assert.Equal(expectedErrorMessages, errorMessages);
     }
@@ -1106,7 +1141,7 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
     public void CreateDescriptor_BuildsDescriptorsFromSimpleTypes()
     {
         // Arrange
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(typeof(Enumerable).FullName);
 
         Assert.NotNull(typeSymbol);
@@ -1249,13 +1284,15 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
         ImmutableArray<RazorDiagnostic> expectedDiagnostics)
     {
         // Arrange
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(tagHelperTypeName);
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
 
         // Assert
+        Assert.NotNull(descriptor);
         Assert.Equal<BoundAttributeDescriptor>(expectedAttributes, descriptor.BoundAttributes);
         Assert.Equal<RazorDiagnostic>(expectedDiagnostics, [.. descriptor.GetAllDiagnostics()]);
     }
@@ -1283,8 +1320,9 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
     public void CreateDescriptor_CreatesDescriptorsWithOutputElementHint(string tagHelperTypeName, TagHelperDescriptor? expectedDescriptor)
     {
         // Arrange
-        var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(tagHelperTypeName);
+        Assert.NotNull(typeSymbol);
 
         // Act
         var descriptor = factory.CreateDescriptor(typeSymbol);
@@ -1312,7 +1350,7 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
             """);
 
         var compilation = Compilation.AddSyntaxTrees(syntaxTree);
-        var factory = new DefaultTagHelperDescriptorFactory(compilation, includeDocumentation: true, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: true, excludeHidden: false);
         var typeSymbol = compilation.GetTypeByMetadataName("DocumentedTagHelper");
 
         Assert.NotNull(typeSymbol);
@@ -1332,6 +1370,7 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
         var descriptor = factory.CreateDescriptor(typeSymbol);
 
         // Assert
+        Assert.NotNull(descriptor);
         Assert.NotNull(descriptor.Documentation);
         Assert.Equal(expectedDocumentation, descriptor.Documentation.Trim());
     }
@@ -1366,7 +1405,7 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
             """);
 
         var compilation = Compilation.AddSyntaxTrees(syntaxTree);
-        var factory = new DefaultTagHelperDescriptorFactory(compilation, includeDocumentation: true, excludeHidden: false);
+        var factory = new DefaultTagHelperDescriptorFactory(includeDocumentation: true, excludeHidden: false);
         var typeSymbol = compilation.GetTypeByMetadataName("DocumentedTagHelper");
 
         Assert.NotNull(typeSymbol);
@@ -1403,6 +1442,7 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
         var descriptor = factory.CreateDescriptor(typeSymbol);
 
         // Assert
+        Assert.NotNull(descriptor);
         var actuaDocumentations = descriptor.BoundAttributes
             .SelectAsArray(boundAttribute =>
             {
