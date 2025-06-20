@@ -204,10 +204,19 @@ internal class ClassifiedSpanVisitor : SyntaxWalker
     {
         using (MarkupBlock(node))
         {
-            var equalsSyntax = SyntaxFactory.MarkupTextLiteral(new SyntaxTokenList(node.EqualsToken), chunkGenerator: null);
-            var mergedAttributePrefix = SyntaxUtilities.MergeTextLiterals(node.NamePrefix, node.Name, node.NameSuffix, equalsSyntax, node.ValuePrefix);
+            // For attributes, we add a single span from the start of the name prefix to the end of the value prefix.
+            var spanComputer = new SourceSpanComputer(_source);
+            spanComputer.Add(node.NamePrefix);
+            spanComputer.Add(node.Name);
+            spanComputer.Add(node.NameSuffix);
+            spanComputer.Add(node.EqualsToken);
+            spanComputer.Add(node.ValuePrefix);
 
-            Visit(mergedAttributePrefix);
+            var sourceSpan = spanComputer.ToSourceSpan();
+
+            AddSpan(sourceSpan, SpanKindInternal.Markup, AcceptedCharactersInternal.Any);
+
+            // Visit the value and value suffix separately.
             Visit(node.Value);
             Visit(node.ValueSuffix);
         }
@@ -235,8 +244,14 @@ internal class ClassifiedSpanVisitor : SyntaxWalker
     {
         using (MarkupBlock(node))
         {
-            var mergedAttributePrefix = SyntaxUtilities.MergeTextLiterals(node.NamePrefix, node.Name);
-            Visit(mergedAttributePrefix);
+            // For minimized attributes, we add a single span for the attribute name along with the name prefix.
+            var spanComputer = new SourceSpanComputer(_source);
+            spanComputer.Add(node.NamePrefix);
+            spanComputer.Add(node.Name);
+
+            var sourceSpan = spanComputer.ToSourceSpan();
+
+            AddSpan(sourceSpan, SpanKindInternal.Markup, AcceptedCharactersInternal.Any);
         }
     }
 
