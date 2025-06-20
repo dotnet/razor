@@ -14,6 +14,8 @@ namespace Roslyn.LanguageServer.Protocol;
 /// because our custom message target gets handled by a JsonRpc connection set up by the editor, that has no Roslyn converters.
 /// Without using this class, we lose VSInternalCompletionContext.InvokeKind property when calling Roslyn or HTML servers from Razor
 /// which results in default value of "Invoked" to be used and can cause overly aggressive completion list.
+///
+/// See original CompletionParams here https://github.com/dotnet/roslyn/blob/98d41b80f6a192230c045a6576e2a283a407980b/src/LanguageServer/Protocol/Protocol/CompletionParams.cs
 /// </remarks>
 internal sealed class RazorVSInternalCompletionParams : TextDocumentPositionParams, IPartialResultParams<SumType<CompletionItem[], CompletionList>?>, IWorkDoneProgressOptions
 {
