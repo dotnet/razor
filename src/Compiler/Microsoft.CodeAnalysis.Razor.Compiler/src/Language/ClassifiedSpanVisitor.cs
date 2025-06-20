@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
@@ -17,8 +17,9 @@ internal class ClassifiedSpanVisitor : SyntaxWalker
     private readonly RazorSourceDocument _source;
     private readonly ImmutableArray<ClassifiedSpanInternal>.Builder _spans;
 
-    private BlockKindInternal _currentBlockKind;
     private SyntaxNode? _currentBlock;
+    private SourceSpan? _currentBlockSpan;
+    private BlockKindInternal _currentBlockKind;
 
     private ClassifiedSpanVisitor(RazorSourceDocument source, ImmutableArray<ClassifiedSpanInternal>.Builder spans)
     {
@@ -42,8 +43,8 @@ internal class ClassifiedSpanVisitor : SyntaxWalker
     {
         using (CommentBlock(node))
         {
-            WriteSpan(node.StartCommentTransition, SpanKindInternal.Transition, AcceptedCharactersInternal.None);
-            WriteSpan(node.StartCommentStar, SpanKindInternal.MetaCode, AcceptedCharactersInternal.None);
+            AddSpan(node.StartCommentTransition, SpanKindInternal.Transition, AcceptedCharactersInternal.None);
+            AddSpan(node.StartCommentStar, SpanKindInternal.MetaCode, AcceptedCharactersInternal.None);
 
             var comment = node.Comment;
 
@@ -53,10 +54,10 @@ internal class ClassifiedSpanVisitor : SyntaxWalker
                 comment = SyntaxFactory.Token(SyntaxKind.Marker, parent: node, position: node.StartCommentStar.EndPosition);
             }
 
-            WriteSpan(comment, SpanKindInternal.Comment, AcceptedCharactersInternal.Any);
+            AddSpan(comment, SpanKindInternal.Comment, AcceptedCharactersInternal.Any);
 
-            WriteSpan(node.EndCommentStar, SpanKindInternal.MetaCode, AcceptedCharactersInternal.None);
-            WriteSpan(node.EndCommentTransition, SpanKindInternal.Transition, AcceptedCharactersInternal.None);
+            AddSpan(node.EndCommentStar, SpanKindInternal.MetaCode, AcceptedCharactersInternal.None);
+            AddSpan(node.EndCommentTransition, SpanKindInternal.Transition, AcceptedCharactersInternal.None);
         }
     }
 
@@ -257,49 +258,49 @@ internal class ClassifiedSpanVisitor : SyntaxWalker
 
     public override void VisitRazorMetaCode(RazorMetaCodeSyntax node)
     {
-        WriteSpan(node, SpanKindInternal.MetaCode);
+        AddSpan(node, SpanKindInternal.MetaCode);
         base.VisitRazorMetaCode(node);
     }
 
     public override void VisitCSharpTransition(CSharpTransitionSyntax node)
     {
-        WriteSpan(node, SpanKindInternal.Transition);
+        AddSpan(node, SpanKindInternal.Transition);
         base.VisitCSharpTransition(node);
     }
 
     public override void VisitMarkupTransition(MarkupTransitionSyntax node)
     {
-        WriteSpan(node, SpanKindInternal.Transition);
+        AddSpan(node, SpanKindInternal.Transition);
         base.VisitMarkupTransition(node);
     }
 
     public override void VisitCSharpStatementLiteral(CSharpStatementLiteralSyntax node)
     {
-        WriteSpan(node, SpanKindInternal.Code);
+        AddSpan(node, SpanKindInternal.Code);
         base.VisitCSharpStatementLiteral(node);
     }
 
     public override void VisitCSharpExpressionLiteral(CSharpExpressionLiteralSyntax node)
     {
-        WriteSpan(node, SpanKindInternal.Code);
+        AddSpan(node, SpanKindInternal.Code);
         base.VisitCSharpExpressionLiteral(node);
     }
 
     public override void VisitCSharpEphemeralTextLiteral(CSharpEphemeralTextLiteralSyntax node)
     {
-        WriteSpan(node, SpanKindInternal.Code);
+        AddSpan(node, SpanKindInternal.Code);
         base.VisitCSharpEphemeralTextLiteral(node);
     }
 
     public override void VisitUnclassifiedTextLiteral(UnclassifiedTextLiteralSyntax node)
     {
-        WriteSpan(node, SpanKindInternal.None);
+        AddSpan(node, SpanKindInternal.None);
         base.VisitUnclassifiedTextLiteral(node);
     }
 
     public override void VisitMarkupLiteralAttributeValue(MarkupLiteralAttributeValueSyntax node)
     {
-        WriteSpan(node, SpanKindInternal.Markup);
+        AddSpan(node, SpanKindInternal.Markup);
         base.VisitMarkupLiteralAttributeValue(node);
     }
 
@@ -311,13 +312,13 @@ internal class ClassifiedSpanVisitor : SyntaxWalker
             return;
         }
 
-        WriteSpan(node, SpanKindInternal.Markup);
+        AddSpan(node, SpanKindInternal.Markup);
         base.VisitMarkupTextLiteral(node);
     }
 
     public override void VisitMarkupEphemeralTextLiteral(MarkupEphemeralTextLiteralSyntax node)
     {
-        WriteSpan(node, SpanKindInternal.Markup);
+        AddSpan(node, SpanKindInternal.Markup);
         base.VisitMarkupEphemeralTextLiteral(node);
     }
 
@@ -352,22 +353,31 @@ internal class ClassifiedSpanVisitor : SyntaxWalker
         _currentBlock = node;
         _currentBlockKind = kind;
 
+        // This is a new block, so we reset the current block span.
+        // It will be computed when the first span is written.
+        _currentBlockSpan = null;
+
         return saver;
     }
 
     private readonly ref struct BlockSaver(ClassifiedSpanVisitor visitor)
     {
         private readonly SyntaxNode? _previousBlock = visitor._currentBlock;
+        private readonly SourceSpan? _previousBlockSpan = visitor._currentBlockSpan;
         private readonly BlockKindInternal _previousKind = visitor._currentBlockKind;
 
         public void Dispose()
         {
             visitor._currentBlock = _previousBlock;
+            visitor._currentBlockSpan = _previousBlockSpan;
             visitor._currentBlockKind = _previousKind;
         }
     }
 
-    private void WriteSpan(SyntaxNode node, SpanKindInternal kind)
+    private SourceSpan CurrentBlockSpan
+        => _currentBlockSpan ??= _currentBlock.AssumeNotNull().GetSourceSpan(_source);
+
+    private void AddSpan(SyntaxNode node, SpanKindInternal kind)
     {
         if (node.IsMissing)
         {
@@ -376,19 +386,16 @@ internal class ClassifiedSpanVisitor : SyntaxWalker
 
         Debug.Assert(_currentBlock != null, "Current block should not be null when writing a span for a node.");
 
-        var spanSource = node.GetSourceSpan(_source);
-        var blockSource = _currentBlock.GetSourceSpan(_source);
+        var nodeSpan = node.GetSourceSpan(_source);
 
         var acceptedCharacters = node.GetEditHandler() is { } context
             ? context.AcceptedCharacters
             : AcceptedCharactersInternal.Any;
 
-        var span = new ClassifiedSpanInternal(spanSource, blockSource, kind, _currentBlockKind, acceptedCharacters);
-
-        _spans.Add(span);
+        AddSpan(nodeSpan, kind, acceptedCharacters);
     }
 
-    private void WriteSpan(SyntaxToken token, SpanKindInternal kind, AcceptedCharactersInternal acceptedCharacters)
+    private void AddSpan(SyntaxToken token, SpanKindInternal kind, AcceptedCharactersInternal acceptedCharacters)
     {
         if (token.IsMissing)
         {
@@ -397,12 +404,13 @@ internal class ClassifiedSpanVisitor : SyntaxWalker
 
         Debug.Assert(_currentBlock != null, "Current block should not be null when writing a span for a token.");
 
-        var spanSource = token.GetSourceSpan(_source);
-        var blockSource = _currentBlock.GetSourceSpan(_source);
-        var span = new ClassifiedSpanInternal(spanSource, blockSource, kind, _currentBlockKind, acceptedCharacters);
+        var tokenSpan = token.GetSourceSpan(_source);
 
-        _spans.Add(span);
+        AddSpan(tokenSpan, kind, acceptedCharacters);
     }
+
+    private void AddSpan(SourceSpan span, SpanKindInternal kind, AcceptedCharactersInternal acceptedCharacters)
+        => _spans.Add(new(span, CurrentBlockSpan, kind, _currentBlockKind, acceptedCharacters));
 
     private sealed class Policy : IPooledObjectPolicy<ImmutableArray<ClassifiedSpanInternal>.Builder>
     {
