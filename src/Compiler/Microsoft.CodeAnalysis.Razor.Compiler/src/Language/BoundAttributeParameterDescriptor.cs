@@ -10,28 +10,25 @@ namespace Microsoft.AspNetCore.Razor.Language;
 public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAttributeParameterDescriptor>
 {
     private readonly BoundAttributeParameterFlags _flags;
-    private readonly DocumentationObject _documentationObject;
-    private readonly TypeNameObject _typeNameObject;
-
     private BoundAttributeDescriptor? _parent;
     private string? _displayName;
 
     public BoundAttributeParameterFlags Flags => _flags;
     public string Name { get; }
     public string PropertyName { get; }
-    public string TypeName => _typeNameObject.GetTypeName().AssumeNotNull();
+    public string TypeName => TypeNameObject.GetTypeName().AssumeNotNull();
     public string DisplayName => _displayName ??= ":" + Name;
 
-    public string? Documentation => _documentationObject.GetText();
+    public string? Documentation => DocumentationObject.GetText();
+
+    internal TypeNameObject TypeNameObject { get; }
+    internal DocumentationObject DocumentationObject { get; }
 
     public bool CaseSensitive => _flags.IsFlagSet(BoundAttributeParameterFlags.CaseSensitive);
     public bool IsEnum => _flags.IsFlagSet(BoundAttributeParameterFlags.IsEnum);
-    public bool IsStringProperty => _typeNameObject.IsString;
-    public bool IsBooleanProperty => _typeNameObject.IsBoolean;
+    public bool IsStringProperty => TypeNameObject.IsString;
+    public bool IsBooleanProperty => TypeNameObject.IsBoolean;
     public bool BindAttributeGetSet => _flags.IsFlagSet(BoundAttributeParameterFlags.BindAttributeGetSet);
-
-    internal TypeNameObject TypeNameObject => _typeNameObject;
-    internal DocumentationObject DocumentationObject => _documentationObject;
 
     internal BoundAttributeParameterDescriptor(
         BoundAttributeParameterFlags flags,
@@ -46,13 +43,13 @@ public sealed class BoundAttributeParameterDescriptor : TagHelperObject<BoundAtt
 
         Name = name;
         PropertyName = propertyName;
-        _typeNameObject = typeNameObject;
-        _documentationObject = documentationObject;
+        TypeNameObject = typeNameObject;
+        DocumentationObject = documentationObject;
     }
 
     private protected override void BuildChecksum(in Checksum.Builder builder)
     {
-        builder.AppendData((byte)Flags);
+        builder.AppendData((byte)_flags);
         builder.AppendData(Name);
         builder.AppendData(PropertyName);
 
