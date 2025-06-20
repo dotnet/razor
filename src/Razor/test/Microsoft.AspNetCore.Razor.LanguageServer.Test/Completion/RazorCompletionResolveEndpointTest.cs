@@ -133,6 +133,7 @@ public class RazorCompletionResolveEndpointTest : LanguageServerTestBase
         await InitializeAsync();
         var clientCapabilities = new VSInternalClientCapabilities
         {
+            SupportsVisualStudioExtensions = true,
             TextDocument = new()
             {
                 Completion = new VSInternalCompletionSetting()
