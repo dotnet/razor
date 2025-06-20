@@ -3,16 +3,16 @@
 
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
 /// <summary>
-///  Helper that can be used to efficiently build up a <see cref="SourceSpan"/> from a set of syntax tokens.
+///  Helper that can be used to efficiently build up a <see cref="SourceSpan"/> or
+///  <see cref="CodeAnalysis.Text.TextSpan"/> from a set of syntax tokens.
 /// </summary>
-internal ref struct SourceSpanComputer(RazorSourceDocument source)
+internal ref struct SpanComputer()
 {
-    private readonly RazorSourceDocument _source = source;
-
     private SyntaxToken _firstToken;
     private SyntaxToken _lastToken;
 
@@ -91,7 +91,7 @@ internal ref struct SourceSpanComputer(RazorSourceDocument source)
         Add(literal?.LiteralTokens);
     }
 
-    public readonly SourceSpan ToSourceSpan()
+    public readonly SourceSpan ToSourceSpan(RazorSourceDocument source)
     {
         if (_firstToken.Kind == SyntaxKind.None)
         {
@@ -107,11 +107,28 @@ internal ref struct SourceSpanComputer(RazorSourceDocument source)
 
         var length = end - start;
 
-        var text = _source.Text;
+        var text = source.Text;
         var startLinePosition = text.Lines.GetLinePosition(start);
         var endLinePosition = text.Lines.GetLinePosition(end);
         var lineCount = endLinePosition.Line - startLinePosition.Line;
 
-        return new SourceSpan(_source.FilePath, absoluteIndex: start, startLinePosition.Line, startLinePosition.Character, length, lineCount, endLinePosition.Character);
+        return new SourceSpan(source.FilePath, absoluteIndex: start, startLinePosition.Line, startLinePosition.Character, length, lineCount, endLinePosition.Character);
+    }
+
+    public readonly TextSpan ToTextSpan()
+    {
+        if (_firstToken.Kind == SyntaxKind.None)
+        {
+            return default;
+        }
+
+        Debug.Assert(_lastToken.Kind != SyntaxKind.None, "Last token should not be None when first token is set.");
+
+        var start = _firstToken.Span.Start;
+        var end = _lastToken.Span.End;
+
+        Debug.Assert(start <= end, "Start position should not be greater than end position.");
+
+        return TextSpan.FromBounds(start, end);
     }
 }

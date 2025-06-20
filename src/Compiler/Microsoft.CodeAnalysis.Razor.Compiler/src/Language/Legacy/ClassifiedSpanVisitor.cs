@@ -211,14 +211,14 @@ internal sealed class ClassifiedSpanVisitor : SyntaxWalker
         using (MarkupBlock(node))
         {
             // For attributes, we add a single span from the start of the name prefix to the end of the value prefix.
-            var spanComputer = new SourceSpanComputer(_source);
+            var spanComputer = new SpanComputer();
             spanComputer.Add(node.NamePrefix);
             spanComputer.Add(node.Name);
             spanComputer.Add(node.NameSuffix);
             spanComputer.Add(node.EqualsToken);
             spanComputer.Add(node.ValuePrefix);
 
-            var sourceSpan = spanComputer.ToSourceSpan();
+            var sourceSpan = spanComputer.ToSourceSpan(_source);
 
             AddSpan(sourceSpan, SpanKindInternal.Markup, AcceptedCharactersInternal.Any);
 
@@ -251,11 +251,11 @@ internal sealed class ClassifiedSpanVisitor : SyntaxWalker
         using (MarkupBlock(node))
         {
             // For minimized attributes, we add a single span for the attribute name along with the name prefix.
-            var spanComputer = new SourceSpanComputer(_source);
+            var spanComputer = new SpanComputer();
             spanComputer.Add(node.NamePrefix);
             spanComputer.Add(node.Name);
 
-            var sourceSpan = spanComputer.ToSourceSpan();
+            var sourceSpan = spanComputer.ToSourceSpan(_source);
 
             AddSpan(sourceSpan, SpanKindInternal.Markup, AcceptedCharactersInternal.Any);
         }
