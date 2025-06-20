@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
@@ -13,12 +14,12 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
-internal class FormattingVisitor : SyntaxWalker
+internal sealed class FormattingVisitor : SyntaxWalker
 {
     private const string HtmlTag = "html";
 
+    private readonly ImmutableArray<FormattingSpan>.Builder _spans;
     private readonly bool _inGlobalNamespace;
-    private readonly List<FormattingSpan> _spans;
     private FormattingBlockKind _currentBlockKind;
     private SyntaxNode? _currentBlock;
     private int _currentHtmlIndentationLevel = 0;
@@ -26,14 +27,19 @@ internal class FormattingVisitor : SyntaxWalker
     private int _currentComponentIndentationLevel = 0;
     private bool _isInClassBody = false;
 
-    public FormattingVisitor(bool inGlobalNamespace)
+    private FormattingVisitor(ImmutableArray<FormattingSpan>.Builder spans, bool inGlobalNamespace)
     {
         _inGlobalNamespace = inGlobalNamespace;
-        _spans = new List<FormattingSpan>();
+        _spans = spans;
         _currentBlockKind = FormattingBlockKind.Markup;
     }
 
-    public IReadOnlyList<FormattingSpan> FormattingSpans => _spans;
+    public static void VisitRoot(
+        RazorSyntaxTree syntaxTree, ImmutableArray<FormattingSpan>.Builder spans, bool inGlobalNamespace)
+    {
+        var visitor = new FormattingVisitor(spans, inGlobalNamespace);
+        visitor.Visit(syntaxTree.Root);
+    }
 
     public override void VisitRazorCommentBlock(RazorCommentBlockSyntax node)
     {
