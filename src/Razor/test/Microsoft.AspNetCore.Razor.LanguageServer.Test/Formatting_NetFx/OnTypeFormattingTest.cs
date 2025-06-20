@@ -9,7 +9,7 @@ using Xunit;
 using Xunit.Abstractions;
 
 #if COHOSTING
-namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 #else
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 #endif
