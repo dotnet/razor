@@ -8,7 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -150,14 +150,14 @@ internal static partial class RazorCodeDocumentExtensions
         return GetLanguageKindCore(classifiedSpans, tagHelperSpans, hostDocumentIndex, documentLength, rightAssociative);
     }
 
-    private static ImmutableArray<ClassifiedSpanInternal> GetClassifiedSpans(RazorCodeDocument document)
+    private static ImmutableArray<ClassifiedSpan> GetClassifiedSpans(RazorCodeDocument document)
         => GetCachedData(document).GetOrComputeClassifiedSpans(CancellationToken.None);
 
     private static ImmutableArray<SourceSpan> GetTagHelperSpans(RazorCodeDocument document)
         => GetCachedData(document).GetOrComputeTagHelperSpans(CancellationToken.None);
 
     private static RazorLanguageKind GetLanguageKindCore(
-        ImmutableArray<ClassifiedSpanInternal> classifiedSpans,
+        ImmutableArray<ClassifiedSpan> classifiedSpans,
         ImmutableArray<SourceSpan> tagHelperSpans,
         int hostDocumentIndex,
         int hostDocumentLength,
@@ -178,7 +178,7 @@ internal static partial class RazorCodeDocumentExtensions
                     {
                         // We're at an edge.
 
-                        if (classifiedSpan.SpanKind is SpanKindInternal.MetaCode or SpanKindInternal.Transition)
+                        if (classifiedSpan.Kind is SpanKind.MetaCode or SpanKind.Transition)
                         {
                             // If we're on an edge of a transition of some kind (MetaCode representing an open or closing piece of syntax such as <|,
                             // and Transition representing an explicit transition to/from razor syntax, such as @|), prefer to classify to the span
@@ -236,13 +236,13 @@ internal static partial class RazorCodeDocumentExtensions
         // Default to Razor
         return RazorLanguageKind.Razor;
 
-        static RazorLanguageKind GetLanguageFromClassifiedSpan(ClassifiedSpanInternal classifiedSpan)
+        static RazorLanguageKind GetLanguageFromClassifiedSpan(ClassifiedSpan classifiedSpan)
         {
             // Overlaps with request
-            return classifiedSpan.SpanKind switch
+            return classifiedSpan.Kind switch
             {
-                SpanKindInternal.Markup => RazorLanguageKind.Html,
-                SpanKindInternal.Code => RazorLanguageKind.CSharp,
+                SpanKind.Markup => RazorLanguageKind.Html,
+                SpanKind.Code => RazorLanguageKind.CSharp,
 
                 // Content type was non-C# or Html or we couldn't find a classified span overlapping the request position.
                 // All other classified span kinds default back to Razor

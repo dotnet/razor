@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
@@ -41,7 +40,7 @@ internal static partial class RazorCodeDocumentExtensions
 
         private readonly SemaphoreSlim _stateLock = new(initialCount: 1);
         private SyntaxTree? _syntaxTree;
-        private ImmutableArray<ClassifiedSpanInternal>? _classifiedSpans;
+        private ImmutableArray<ClassifiedSpan>? _classifiedSpans;
         private ImmutableArray<SourceSpan>? _tagHelperSpans;
 
         public SyntaxTree GetOrParseCSharpSyntaxTree(CancellationToken cancellationToken)
@@ -63,7 +62,7 @@ internal static partial class RazorCodeDocumentExtensions
             }
         }
 
-        public ImmutableArray<ClassifiedSpanInternal> GetOrComputeClassifiedSpans(CancellationToken cancellationToken)
+        public ImmutableArray<ClassifiedSpan> GetOrComputeClassifiedSpans(CancellationToken cancellationToken)
         {
             if (_classifiedSpans is { } classifiedSpans)
             {
@@ -72,7 +71,7 @@ internal static partial class RazorCodeDocumentExtensions
 
             using (_stateLock.DisposableWait(cancellationToken))
             {
-                return _classifiedSpans ??= _codeDocument.GetRequiredSyntaxTree().GetClassifiedSpans();
+                return _classifiedSpans ??= ClassifiedSpanVisitor.VisitRoot(_codeDocument.GetRequiredSyntaxTree());
             }
         }
 
