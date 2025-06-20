@@ -3,14 +3,13 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.ObjectPool;
 
-namespace Microsoft.AspNetCore.Razor.Language;
+namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-internal class ClassifiedSpanVisitor : SyntaxWalker
+internal sealed class ClassifiedSpanVisitor : SyntaxWalker
 {
     private static readonly ObjectPool<ImmutableArray<ClassifiedSpanInternal>.Builder> Pool = DefaultPool.Create(Policy.Instance, size: 5);
 
