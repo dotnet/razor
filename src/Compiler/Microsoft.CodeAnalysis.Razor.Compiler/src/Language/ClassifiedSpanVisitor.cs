@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -366,49 +367,40 @@ internal class ClassifiedSpanVisitor : SyntaxWalker
         }
     }
 
-    private void WriteSpan(SyntaxNode node, SpanKindInternal kind, AcceptedCharactersInternal? acceptedCharacters = null)
+    private void WriteSpan(SyntaxNode node, SpanKindInternal kind)
     {
         if (node.IsMissing)
         {
             return;
         }
 
+        Debug.Assert(_currentBlock != null, "Current block should not be null when writing a span for a node.");
+
         var spanSource = node.GetSourceSpan(_source);
         var blockSource = _currentBlock.GetSourceSpan(_source);
-        if (!acceptedCharacters.HasValue)
-        {
-            acceptedCharacters = AcceptedCharactersInternal.Any;
-            var context = node.GetEditHandler();
-            if (context != null)
-            {
-                acceptedCharacters = context.AcceptedCharacters;
-            }
-        }
 
-        var span = new ClassifiedSpanInternal(spanSource, blockSource, kind, _currentBlockKind, acceptedCharacters.Value);
+        var acceptedCharacters = node.GetEditHandler() is { } context
+            ? context.AcceptedCharacters
+            : AcceptedCharactersInternal.Any;
+
+        var span = new ClassifiedSpanInternal(spanSource, blockSource, kind, _currentBlockKind, acceptedCharacters);
+
         _spans.Add(span);
     }
 
-    private void WriteSpan(SyntaxToken token, SpanKindInternal kind, AcceptedCharactersInternal? acceptedCharacters = null)
+    private void WriteSpan(SyntaxToken token, SpanKindInternal kind, AcceptedCharactersInternal acceptedCharacters)
     {
         if (token.IsMissing)
         {
             return;
         }
 
+        Debug.Assert(_currentBlock != null, "Current block should not be null when writing a span for a token.");
+
         var spanSource = token.GetSourceSpan(_source);
         var blockSource = _currentBlock.GetSourceSpan(_source);
-        if (!acceptedCharacters.HasValue)
-        {
-            acceptedCharacters = AcceptedCharactersInternal.Any;
-            var context = token.GetEditHandler();
-            if (context != null)
-            {
-                acceptedCharacters = context.AcceptedCharacters;
-            }
-        }
+        var span = new ClassifiedSpanInternal(spanSource, blockSource, kind, _currentBlockKind, acceptedCharacters);
 
-        var span = new ClassifiedSpanInternal(spanSource, blockSource, kind, _currentBlockKind, acceptedCharacters.Value);
         _spans.Add(span);
     }
 
