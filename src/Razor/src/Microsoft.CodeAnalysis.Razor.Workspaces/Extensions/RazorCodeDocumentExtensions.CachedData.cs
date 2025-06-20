@@ -7,6 +7,8 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.Threading;
@@ -40,7 +42,7 @@ internal static partial class RazorCodeDocumentExtensions
         private readonly SemaphoreSlim _stateLock = new(initialCount: 1);
         private SyntaxTree? _syntaxTree;
         private ImmutableArray<ClassifiedSpanInternal>? _classifiedSpans;
-        private ImmutableArray<TagHelperSpanInternal>? _tagHelperSpans;
+        private ImmutableArray<SourceSpan>? _tagHelperSpans;
 
         public SyntaxTree GetOrParseCSharpSyntaxTree(CancellationToken cancellationToken)
         {
@@ -74,7 +76,7 @@ internal static partial class RazorCodeDocumentExtensions
             }
         }
 
-        public ImmutableArray<TagHelperSpanInternal> GetOrComputeTagHelperSpans(CancellationToken cancellationToken)
+        public ImmutableArray<SourceSpan> GetOrComputeTagHelperSpans(CancellationToken cancellationToken)
         {
             if (_tagHelperSpans is { } tagHelperSpans)
             {
@@ -83,7 +85,25 @@ internal static partial class RazorCodeDocumentExtensions
 
             using (_stateLock.DisposableWait(cancellationToken))
             {
-                return _tagHelperSpans ??= _codeDocument.GetRequiredSyntaxTree().GetTagHelperSpans();
+                return _tagHelperSpans ??= ComputeTagHelperSpans(_codeDocument.GetRequiredSyntaxTree());
+            }
+
+            static ImmutableArray<SourceSpan> ComputeTagHelperSpans(RazorSyntaxTree syntaxTree)
+            {
+                using var builder = new PooledArrayBuilder<SourceSpan>();
+
+                foreach (var node in syntaxTree.Root.DescendantNodes())
+                {
+                    if (node is not MarkupTagHelperElementSyntax tagHelperElement ||
+                        tagHelperElement.TagHelperInfo is null)
+                    {
+                        continue;
+                    }
+
+                    builder.Add(tagHelperElement.GetSourceSpan(syntaxTree.Source));
+                }
+
+                return builder.ToImmutableAndClear();
             }
         }
 

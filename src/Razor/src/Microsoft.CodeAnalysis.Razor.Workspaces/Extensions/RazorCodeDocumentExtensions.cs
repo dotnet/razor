@@ -153,12 +153,12 @@ internal static partial class RazorCodeDocumentExtensions
     private static ImmutableArray<ClassifiedSpanInternal> GetClassifiedSpans(RazorCodeDocument document)
         => GetCachedData(document).GetOrComputeClassifiedSpans(CancellationToken.None);
 
-    private static ImmutableArray<TagHelperSpanInternal> GetTagHelperSpans(RazorCodeDocument document)
+    private static ImmutableArray<SourceSpan> GetTagHelperSpans(RazorCodeDocument document)
         => GetCachedData(document).GetOrComputeTagHelperSpans(CancellationToken.None);
 
     private static RazorLanguageKind GetLanguageKindCore(
         ImmutableArray<ClassifiedSpanInternal> classifiedSpans,
-        ImmutableArray<TagHelperSpanInternal> tagHelperSpans,
+        ImmutableArray<SourceSpan> tagHelperSpans,
         int hostDocumentIndex,
         int hostDocumentLength,
         bool rightAssociative)
@@ -206,10 +206,8 @@ internal static partial class RazorCodeDocumentExtensions
             }
         }
 
-        foreach (var tagHelperSpan in tagHelperSpans)
+        foreach (var span in tagHelperSpans)
         {
-            var span = tagHelperSpan.Span;
-
             if (span.AbsoluteIndex <= hostDocumentIndex)
             {
                 var end = span.AbsoluteIndex + span.Length;
