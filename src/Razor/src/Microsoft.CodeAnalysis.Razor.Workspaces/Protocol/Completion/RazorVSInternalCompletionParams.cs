@@ -27,11 +27,7 @@ internal sealed class RazorVSInternalCompletionParams : TextDocumentPositionPara
     /// </summary>
     [JsonPropertyName("context")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public VSInternalCompletionContext? Context
-    {
-        get;
-        set;
-    }
+    public VSInternalCompletionContext? Context { get; set; }
 
     /// <inheritdoc/>
     [JsonPropertyName(Methods.PartialResultTokenName)]
