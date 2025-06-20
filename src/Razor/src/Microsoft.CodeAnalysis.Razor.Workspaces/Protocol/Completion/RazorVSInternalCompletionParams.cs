@@ -32,11 +32,7 @@ internal sealed class RazorVSInternalCompletionParams : TextDocumentPositionPara
     /// <inheritdoc/>
     [JsonPropertyName(Methods.PartialResultTokenName)]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public IProgress<SumType<CompletionItem[], CompletionList>?>? PartialResultToken
-    {
-        get;
-        set;
-    }
+    public IProgress<SumType<CompletionItem[], CompletionList>?>? PartialResultToken { get; set; }
 
     /// <inheritdoc/>
     [JsonPropertyName("workDoneProgress")]
