@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -73,7 +73,7 @@ internal class ClassifiedSpanVisitor : SyntaxWalker
             if (comment.IsMissing)
             {
                 // We need to generate a classified span at this position. So insert a marker in its place.
-                comment = new(razorCommentSyntax, Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.Marker, string.Empty), razorCommentSyntax.StartCommentStar.EndPosition, index: 0);
+                comment = SyntaxFactory.Token(SyntaxKind.Marker, parent: node, position: node.StartCommentStar.EndPosition);
             }
 
             WriteSpan(comment, SpanKindInternal.Comment, AcceptedCharactersInternal.Any);
