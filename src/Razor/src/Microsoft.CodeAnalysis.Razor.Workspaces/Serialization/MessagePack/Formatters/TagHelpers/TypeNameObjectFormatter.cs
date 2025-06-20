@@ -9,6 +9,12 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.MessagePack.Formatters.TagH
 
 internal sealed class TypeNameObjectFormatter : ValueFormatter<TypeNameObject>
 {
+    private enum TypeNameKind : byte
+    {
+        Index,
+        String
+    }
+
     private const int PropertyCount = 2;
 
     public static readonly ValueFormatter<TypeNameObject> Instance = new TypeNameObjectFormatter();
@@ -26,7 +32,7 @@ internal sealed class TypeNameObjectFormatter : ValueFormatter<TypeNameObject>
 
         reader.ReadArrayHeaderAndVerify(PropertyCount);
 
-        var typeNameKind = (TypeNameKind)reader.ReadInt32();
+        var typeNameKind = (TypeNameKind)reader.ReadByte();
 
         switch (typeNameKind)
         {
@@ -54,12 +60,12 @@ internal sealed class TypeNameObjectFormatter : ValueFormatter<TypeNameObject>
 
         if (value.Index is int index)
         {
-            writer.Write((int)TypeNameKind.Index);
+            writer.Write((byte)TypeNameKind.Index);
             writer.Write(index);
         }
         else if (value.StringValue is string stringValue)
         {
-            writer.Write((int)TypeNameKind.String);
+            writer.Write((byte)TypeNameKind.String);
             CachedStringFormatter.Instance.Serialize(ref writer, stringValue, options);
         }
         else
@@ -77,7 +83,7 @@ internal sealed class TypeNameObjectFormatter : ValueFormatter<TypeNameObject>
 
         reader.ReadArrayHeaderAndVerify(PropertyCount);
 
-        var typeNameKind = (TypeNameKind)reader.ReadInt32();
+        var typeNameKind = (TypeNameKind)reader.ReadByte();
         switch (typeNameKind)
         {
             case TypeNameKind.Index:
