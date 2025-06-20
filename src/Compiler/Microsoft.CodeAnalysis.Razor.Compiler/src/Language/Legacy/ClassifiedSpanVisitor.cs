@@ -11,32 +11,39 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 internal sealed class ClassifiedSpanVisitor : SyntaxWalker
 {
-    private static readonly ObjectPool<ImmutableArray<ClassifiedSpanInternal>.Builder> Pool = DefaultPool.Create(Policy.Instance, size: 5);
+    private static readonly ObjectPool<ClassifiedSpanVisitor> Pool = DefaultPool.Create(Policy.Instance, size: 5);
 
-    private readonly RazorSourceDocument _source;
     private readonly ImmutableArray<ClassifiedSpanInternal>.Builder _spans;
 
+    private RazorSourceDocument _source = null!;
     private SyntaxNode? _currentBlock;
     private SourceSpan? _currentBlockSpan;
     private BlockKindInternal _currentBlockKind;
 
-    private ClassifiedSpanVisitor(RazorSourceDocument source, ImmutableArray<ClassifiedSpanInternal>.Builder spans)
+    private ClassifiedSpanVisitor()
+    {
+        _spans = ImmutableArray.CreateBuilder<ClassifiedSpanInternal>();
+        _source = null!;
+    }
+
+    private void Initialize(RazorSourceDocument source)
     {
         _source = source;
-        _spans = spans;
-
         _currentBlockKind = BlockKindInternal.Markup;
     }
 
     public static ImmutableArray<ClassifiedSpanInternal> VisitRoot(RazorSyntaxTree syntaxTree)
     {
-        using var _ = Pool.GetPooledObject(out var builder);
+        using var _ = Pool.GetPooledObject(out var visitor);
 
-        var visitor = new ClassifiedSpanVisitor(syntaxTree.Source, builder);
+        visitor.Initialize(syntaxTree.Source);
         visitor.Visit(syntaxTree.Root);
 
-        return builder.ToImmutableAndClear();
+        return visitor.GetSpansAndClear();
     }
+
+    private ImmutableArray<ClassifiedSpanInternal> GetSpansAndClear()
+        => _spans.ToImmutableAndClear();
 
     public override void VisitRazorCommentBlock(RazorCommentBlockSyntax node)
     {
@@ -426,7 +433,23 @@ internal sealed class ClassifiedSpanVisitor : SyntaxWalker
     private void AddSpan(SourceSpan span, SpanKindInternal kind, AcceptedCharactersInternal acceptedCharacters)
         => _spans.Add(new(span, CurrentBlockSpan, kind, _currentBlockKind, acceptedCharacters));
 
-    private sealed class Policy : IPooledObjectPolicy<ImmutableArray<ClassifiedSpanInternal>.Builder>
+    private void Reset()
+    {
+        _spans.Clear();
+
+        if (_spans.Capacity > Policy.MaximumObjectSize)
+        {
+            // Differs from ArrayBuilderPool.Policy's behavior as we allow our array to grow significantly larger
+            _spans.Capacity = 0;
+        }
+
+        _source = null!;
+        _currentBlock = null!;
+        _currentBlockSpan = null;
+        _currentBlockKind = BlockKindInternal.Markup;
+    }
+
+    private sealed class Policy : IPooledObjectPolicy<ClassifiedSpanVisitor>
     {
         public static readonly Policy Instance = new();
 
@@ -438,17 +461,11 @@ internal sealed class ClassifiedSpanVisitor : SyntaxWalker
         {
         }
 
-        public ImmutableArray<ClassifiedSpanInternal>.Builder Create() => ImmutableArray.CreateBuilder<ClassifiedSpanInternal>();
+        public ClassifiedSpanVisitor Create() => new();
 
-        public bool Return(ImmutableArray<ClassifiedSpanInternal>.Builder builder)
+        public bool Return(ClassifiedSpanVisitor visitor)
         {
-            builder.Clear();
-
-            if (builder.Capacity > MaximumObjectSize)
-            {
-                // Differs from ArrayBuilderPool.Policy's behavior as we allow our array to grow significantly larger
-                builder.Capacity = 0;
-            }
+            visitor.Reset();
 
             return true;
         }
