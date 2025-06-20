@@ -219,7 +219,7 @@ internal static partial class ObjectReaders
 
             if (reader.IsInteger)
             {
-                var index = reader.ReadInt32();
+                var index = reader.ReadByte();
                 return new(index);
             }
 

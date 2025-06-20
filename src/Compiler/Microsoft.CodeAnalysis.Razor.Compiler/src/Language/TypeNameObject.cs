@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 internal readonly struct TypeNameObject
 {
     private static readonly ImmutableArray<string> s_knownTypeNames;
-    private static readonly FrozenDictionary<string, int> s_typeNameToIndex;
+    private static readonly FrozenDictionary<string, byte> s_typeNameToIndex;
 
     private static readonly int s_booleanIndex;
     private static readonly int s_stringIndex;
@@ -21,7 +21,7 @@ internal readonly struct TypeNameObject
     static TypeNameObject()
     {
         var knownTypeNames = ImmutableArray.CreateBuilder<string>();
-        var typeNameToIndex = new Dictionary<string, int>(StringComparer.Ordinal);
+        var typeNameToIndex = new Dictionary<string, byte>(StringComparer.Ordinal);
 
         Add<object>("object");
         s_booleanIndex = Add<bool>("bool");
@@ -50,7 +50,8 @@ internal readonly struct TypeNameObject
         int Add<T>(string? alias = null)
         {
             var fullName = typeof(T).FullName!;
-            var index = knownTypeNames.Count;
+            Debug.Assert(knownTypeNames.Count < byte.MaxValue, "Too many known type names to fit in a byte index.");
+            var index = (byte)knownTypeNames.Count;
             knownTypeNames.Add(fullName);
             typeNameToIndex.Add(fullName, index);
 
@@ -63,10 +64,10 @@ internal readonly struct TypeNameObject
         }
     }
 
-    private readonly int? _index;
+    private readonly byte? _index;
     private readonly string? _stringValue;
 
-    public TypeNameObject(int index)
+    public TypeNameObject(byte index)
     {
         Debug.Assert(index >= 0 && index < s_knownTypeNames.Length);
 
@@ -84,7 +85,7 @@ internal readonly struct TypeNameObject
 
     public bool IsNull => _index is null && _stringValue is null;
 
-    public int? Index => _index;
+    public byte? Index => _index;
     public string? StringValue => _stringValue;
 
     public static TypeNameObject From(string? typeName)
@@ -104,7 +105,7 @@ internal readonly struct TypeNameObject
 
     public readonly string? GetTypeName()
     {
-        if (_index is int index)
+        if (_index is byte index)
         {
             return s_knownTypeNames[index];
         }
@@ -114,7 +115,7 @@ internal readonly struct TypeNameObject
 
     public void AppendToChecksum(in Checksum.Builder builder)
     {
-        if (_index is int index)
+        if (_index is byte index)
         {
             builder.AppendData(index);
         }

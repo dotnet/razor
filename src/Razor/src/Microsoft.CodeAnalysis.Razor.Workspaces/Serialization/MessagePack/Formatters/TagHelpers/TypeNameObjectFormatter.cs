@@ -37,7 +37,7 @@ internal sealed class TypeNameObjectFormatter : ValueFormatter<TypeNameObject>
         switch (typeNameKind)
         {
             case TypeNameKind.Index:
-                var index = reader.ReadInt32();
+                var index = reader.ReadByte();
                 return new(index);
             case TypeNameKind.String:
                 var fullName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
@@ -58,7 +58,7 @@ internal sealed class TypeNameObjectFormatter : ValueFormatter<TypeNameObject>
 
         writer.WriteArrayHeader(PropertyCount);
 
-        if (value.Index is int index)
+        if (value.Index is byte index)
         {
             writer.Write((byte)TypeNameKind.Index);
             writer.Write(index);

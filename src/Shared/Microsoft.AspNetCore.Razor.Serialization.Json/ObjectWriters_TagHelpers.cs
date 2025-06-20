@@ -62,7 +62,7 @@ internal static partial class ObjectWriters
 
         static void WriteTypeNameObject(JsonDataWriter writer, string propertyName, TypeNameObject typeNameObject)
         {
-            if (typeNameObject.Index is int index)
+            if (typeNameObject.Index is byte index)
             {
                 writer.Write(propertyName, index);
             }
