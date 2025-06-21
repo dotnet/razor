@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal sealed class FormattingContext
 {
-    private IReadOnlyList<FormattingSpan>? _formattingSpans;
+    private ImmutableArray<FormattingSpan>? _formattingSpans;
     private IReadOnlyDictionary<int, IndentationContext>? _indentations;
     private readonly bool _useNewFormattingEngine;
 
@@ -143,25 +144,27 @@ internal sealed class FormattingContext
         return _indentations;
     }
 
-    private IReadOnlyList<FormattingSpan> GetFormattingSpans()
+    private ImmutableArray<FormattingSpan> GetFormattingSpans()
     {
-        if (_formattingSpans is null)
-        {
-            var syntaxTree = CodeDocument.GetRequiredSyntaxTree();
-            var inGlobalNamespace = CodeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace) &&
-                string.IsNullOrEmpty(@namespace);
-            _formattingSpans = GetFormattingSpans(syntaxTree, inGlobalNamespace: inGlobalNamespace);
-        }
+        return _formattingSpans ??= ComputeFormattingSpans(CodeDocument);
 
-        return _formattingSpans;
+        static ImmutableArray<FormattingSpan> ComputeFormattingSpans(RazorCodeDocument codeDocument)
+        {
+            var syntaxTree = codeDocument.GetRequiredSyntaxTree();
+            var inGlobalNamespace = codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace) &&
+                string.IsNullOrEmpty(@namespace);
+
+            return GetFormattingSpans(syntaxTree, inGlobalNamespace: inGlobalNamespace);
+        }
     }
 
-    private static IReadOnlyList<FormattingSpan> GetFormattingSpans(RazorSyntaxTree syntaxTree, bool inGlobalNamespace)
+    private static ImmutableArray<FormattingSpan> GetFormattingSpans(RazorSyntaxTree syntaxTree, bool inGlobalNamespace)
     {
-        var visitor = new FormattingVisitor(inGlobalNamespace: inGlobalNamespace);
-        visitor.Visit(syntaxTree.Root);
+        using var _ = ArrayBuilderPool<FormattingSpan>.GetPooledObject(out var formattingSpans);
 
-        return visitor.FormattingSpans;
+        FormattingVisitor.VisitRoot(syntaxTree, formattingSpans, inGlobalNamespace);
+
+        return formattingSpans.ToImmutableAndClear();
     }
 
     /// <summary>
