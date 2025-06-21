@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [Fact(Skip = "Roslyn doesn't perform rename in source generated documents")]
+    [Fact]
     public Task CSharp_Method()
         => VerifyRenamesAsync(
             input: """
