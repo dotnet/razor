@@ -85,31 +85,27 @@ internal static class RazorSyntaxNodeExtensions
         return false;
     }
 
-    internal static bool IsCodeDirective(this SyntaxNode node, out SyntaxToken openBraceToken)
+    internal static bool IsCodeDirective(this SyntaxNode node)
     {
         if (IsDirective(node, ComponentCodeDirective.Directive, out var body) &&
             body.CSharpCode is { Children: { Count: > 0 } children } &&
-            children.TryGetOpenBraceToken(out var openBrace))
+            children.TryGetOpenBraceToken(out _))
         {
-            openBraceToken = openBrace;
             return true;
         }
 
-        openBraceToken = default;
         return false;
     }
 
-    internal static bool IsFunctionsDirective(this SyntaxNode node, out SyntaxToken openBraceToken)
+    internal static bool IsFunctionsDirective(this SyntaxNode node)
     {
         if (IsDirective(node, FunctionsDirective.Directive, out var body) &&
             body.CSharpCode is { Children: { Count: > 0 } children } &&
-            children.TryGetOpenBraceToken(out var openBrace))
+            children.TryGetOpenBraceToken(out _))
         {
-            openBraceToken = openBrace;
             return true;
         }
 
-        openBraceToken = default;
         return false;
     }
 
