@@ -6,7 +6,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// <summary>
 /// Acceptable <see cref="RequiredAttributeDescriptor.ValueComparison"/> values.
 /// </summary>
-public enum RequiredAttributeValueComparison
+public enum RequiredAttributeValueComparison : byte
 {
     /// <summary>
     /// HTML attribute value always matches <see cref="RequiredAttributeDescriptor.Value"/>.

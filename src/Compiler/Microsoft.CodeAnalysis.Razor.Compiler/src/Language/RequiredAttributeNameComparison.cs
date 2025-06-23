@@ -6,7 +6,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// <summary>
 /// Acceptable <see cref="RequiredAttributeDescriptor.NameComparison"/> comparison values.
 /// </summary>
-public enum RequiredAttributeNameComparison
+public enum RequiredAttributeNameComparison : byte
 {
     /// <summary>
     /// HTML attribute name case insensitively matches <see cref="RequiredAttributeDescriptor.Name"/>.

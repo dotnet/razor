@@ -6,7 +6,7 @@ using System;
 namespace Microsoft.AspNetCore.Razor.Language;
 
 [Flags]
-internal enum RequiredAttributeDescriptorFlags
+internal enum RequiredAttributeDescriptorFlags : byte
 {
     None = 0,
     CaseSensitive = 1 << 0,

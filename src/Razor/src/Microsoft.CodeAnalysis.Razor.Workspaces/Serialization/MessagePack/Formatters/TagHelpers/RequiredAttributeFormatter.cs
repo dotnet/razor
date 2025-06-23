@@ -21,11 +21,11 @@ internal sealed class RequiredAttributeFormatter : ValueFormatter<RequiredAttrib
     {
         reader.ReadArrayHeaderAndVerify(PropertyCount);
 
-        var flags = (RequiredAttributeDescriptorFlags)reader.ReadInt32();
+        var flags = (RequiredAttributeDescriptorFlags)reader.ReadByte();
         var name = CachedStringFormatter.Instance.Deserialize(ref reader, options);
-        var nameComparison = (RequiredAttributeNameComparison)reader.ReadInt32();
+        var nameComparison = (RequiredAttributeNameComparison)reader.ReadByte();
         var value = CachedStringFormatter.Instance.Deserialize(ref reader, options);
-        var valueComparison = (RequiredAttributeValueComparison)reader.ReadInt32();
+        var valueComparison = (RequiredAttributeValueComparison)reader.ReadByte();
 
         var diagnostics = reader.Deserialize<ImmutableArray<RazorDiagnostic>>(options);
 
@@ -37,11 +37,11 @@ internal sealed class RequiredAttributeFormatter : ValueFormatter<RequiredAttrib
     {
         writer.WriteArrayHeader(PropertyCount);
 
-        writer.Write((int)value.Flags);
+        writer.Write((byte)value.Flags);
         CachedStringFormatter.Instance.Serialize(ref writer, value.Name, options);
-        writer.Write((int)value.NameComparison);
+        writer.Write((byte)value.NameComparison);
         CachedStringFormatter.Instance.Serialize(ref writer, value.Value, options);
-        writer.Write((int)value.ValueComparison);
+        writer.Write((byte)value.ValueComparison);
 
         writer.Serialize(value.Diagnostics, options);
     }
