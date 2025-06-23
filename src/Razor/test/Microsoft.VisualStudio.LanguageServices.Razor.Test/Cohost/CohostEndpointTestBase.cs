@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor;
+using Microsoft.CodeAnalysis.Remote.Razor.Logging;
 using Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
@@ -68,6 +69,9 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         }
 
         AddDisposable(_exportProvider);
+
+        var remoteLogger = _exportProvider.GetExportedValue<RemoteLoggerFactory>();
+        remoteLogger.SetTargetLoggerFactory(LoggerFactory);
 
         _remoteServiceInvoker = new TestRemoteServiceInvoker(JoinableTaskContext, _exportProvider, LoggerFactory);
         AddDisposable(_remoteServiceInvoker);
