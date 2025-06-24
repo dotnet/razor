@@ -28,8 +28,7 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
     private readonly ImmutableArray<SourceMapping>.Builder _sourceMappings;
 
     private bool _isWritingHtml;
-    private SourceSpan _lastOriginalSourceSpan = SourceSpan.Undefined;
-    private SourceSpan _lastGeneratedSourceSpan = SourceSpan.Undefined;
+    private (SourceSpan Original, SourceSpan Generated)? _lastSpans;
 
     // Rather than writing out C# characters as we find them (as '~') we keep a count so that consecutive characters
     // can be written as a block, allowing any block of 4 characters or more to be written as a comment (ie '/**/`)
@@ -73,18 +72,23 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
 
         WriteCSharpContentPlaceholder();
 
-        if (_lastGeneratedSourceSpan != SourceSpan.Undefined)
+        // If we finished up with a source mapping being tracked, then add it to the list now
+        AddLastSourceMappingAndClear();
+    }
+
+    private void AddLastSourceMappingAndClear()
+    {
+        if (_lastSpans is var (original, generated))
         {
-            // If we finished up with a source mapping being tracked, then add it to the list now
-
-            Debug.Assert(_lastOriginalSourceSpan != SourceSpan.Undefined);
-
-            var sourceMapping = new SourceMapping(_lastOriginalSourceSpan, _lastGeneratedSourceSpan);
-            _sourceMappings.Add(sourceMapping);
-
-            _lastOriginalSourceSpan = SourceSpan.Undefined;
-            _lastGeneratedSourceSpan = SourceSpan.Undefined;
+            AddSourceMapping(original, generated);
+            _lastSpans = null;
         }
+    }
+
+    private void AddSourceMapping(SourceSpan original, SourceSpan generated)
+    {
+        var sourceMapping = new SourceMapping(original, generated);
+        _sourceMappings.Add(sourceMapping);
     }
 
     public override void VisitRazorCommentBlock(RazorCommentBlockSyntax node)
@@ -231,72 +235,19 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
 
     private void WriteToken(SyntaxToken token)
     {
-        var content = token.Content;
         if (_isWritingHtml)
         {
-            WriteCSharpContentPlaceholder();
-
-            var source = token.GetSourceSpan(_source);
-
-            // No point source mapping an empty token
-            if (source.Length > 0)
-            {
-                var generatedLocation = new SourceSpan(_codeWriter.Location, source.Length);
-
-                if (_lastGeneratedSourceSpan == SourceSpan.Undefined)
-                {
-                    // Not tracking any current source mapping, so start tracking one
-
-                    Debug.Assert(_lastOriginalSourceSpan == SourceSpan.Undefined);
-
-                    _lastGeneratedSourceSpan = generatedLocation;
-                    _lastOriginalSourceSpan = source;
-                }
-                else if (generatedLocation.AbsoluteIndex == _lastGeneratedSourceSpan.AbsoluteIndex + _lastGeneratedSourceSpan.Length &&
-                    source.AbsoluteIndex == _lastOriginalSourceSpan.AbsoluteIndex + _lastOriginalSourceSpan.Length &&
-                    generatedLocation.LineCount <= 1 &&
-                    source.LineCount <= 1)
-                {
-                    // We're tracking a span, and it ends at the same spot the current token starts, so lets just extend the existing
-                    // source mapping we're tracking, so we produce a minimal set
-                    // eg, in "<div>" there are three tokens that are written (open angle bracket, tag name, close angle bracket)
-                    //     but having three source mappings in unnecessarily complex
-                    _lastGeneratedSourceSpan = _lastGeneratedSourceSpan.With(length: _lastGeneratedSourceSpan.Length + source.Length, endCharacterIndex: source.EndCharacterIndex);
-                    _lastOriginalSourceSpan = _lastOriginalSourceSpan.With(length: _lastOriginalSourceSpan.Length + source.Length, endCharacterIndex: source.EndCharacterIndex);
-                }
-                else
-                {
-                    // New span is not directly next to the previous one, so add the previous to the list, and start tracking the new one
-                    var sourceMapping = new SourceMapping(_lastOriginalSourceSpan, _lastGeneratedSourceSpan);
-                    _sourceMappings.Add(sourceMapping);
-
-                    _lastOriginalSourceSpan = source;
-                    _lastGeneratedSourceSpan = generatedLocation;
-                }
-            }
-
-            // If we're in HTML context, append the content directly.
-            _codeWriter.Write(content);
+            WriteHtmlToken(token);
             return;
         }
 
-        if (_lastGeneratedSourceSpan != SourceSpan.Undefined)
-        {
-            // If we were tracking a source mapping span before now, add it to the list. Importantly there are cases
-            // where there are 0-length C# nodes, so this step is very important if the source mappings are to match
-            // the syntax tree.
-
-            Debug.Assert(_lastOriginalSourceSpan != SourceSpan.Undefined);
-
-            var sourceMapping = new SourceMapping(_lastOriginalSourceSpan, _lastGeneratedSourceSpan);
-            _sourceMappings.Add(sourceMapping);
-
-            _lastGeneratedSourceSpan = SourceSpan.Undefined;
-            _lastOriginalSourceSpan = SourceSpan.Undefined;
-        }
+        // If we were tracking a source mapping span before now, add it to the list. Importantly there are cases
+        // where there are 0-length C# nodes, so this step is very important if the source mappings are to match
+        // the syntax tree.
+        AddLastSourceMappingAndClear();
 
         // We're in non-HTML context. Let's replace all non-whitespace chars with a tilde(~).
-        foreach (var c in content)
+        foreach (var c in token.Content)
         {
             if (char.IsWhiteSpace(c))
             {
@@ -309,6 +260,55 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
             }
         }
     }
+
+    private void WriteHtmlToken(SyntaxToken token)
+    {
+        var content = token.Content;
+        if (content.Length == 0)
+        {
+            // If the token is empty, we don't need to do anything further.
+            return;
+        }
+
+        WriteCSharpContentPlaceholder();
+
+        var newOriginal = token.GetSourceSpan(_source);
+        var newGenerated = new SourceSpan(_codeWriter.Location, newOriginal.Length);
+
+        _codeWriter.Write(content);
+
+        // If we're currently tracking a source mapping, we need to check if the new token is adjacent to the last one.
+        // If so, we can extend the existing source mapping to include the new token.
+        // If not, we need to add the last source mapping to the list and start a new one for the current token.
+        if (_lastSpans is var (lastOriginal, lastGenerated))
+        {
+            if (newGenerated.LineCount <= 1 && TouchesLastSpan(newGenerated, lastGenerated) &&
+                newOriginal.LineCount <= 1 && TouchesLastSpan(newOriginal, lastOriginal))
+            {
+                _lastSpans = (
+                    ExtendSpan(lastOriginal, newOriginal.Length, newOriginal.EndCharacterIndex),
+                    ExtendSpan(lastGenerated, newOriginal.Length, newOriginal.EndCharacterIndex)
+                );
+
+                return;
+            }
+
+            // The new span is not directly next to the previous one, so add the previous to the list.
+            AddSourceMapping(lastOriginal, lastGenerated);
+        }
+
+        // Start tracking the new span.
+        _lastSpans = (newOriginal, newGenerated);
+    }
+
+    /// <summary>
+    ///  Returns <see langword="true"/> if the new span starts after the last span.
+    /// </summary>
+    private static bool TouchesLastSpan(SourceSpan newSpan, SourceSpan lastSpan)
+        => newSpan.AbsoluteIndex == lastSpan.AbsoluteIndex + lastSpan.Length;
+
+    private static SourceSpan ExtendSpan(SourceSpan span, int length, int endCharacterIndex)
+        => new(span.FilePath, span.AbsoluteIndex, span.LineIndex, span.CharacterIndex, length: span.Length + length, span.LineCount, endCharacterIndex);
 
     private void WriteCSharpContentPlaceholder()
     {
