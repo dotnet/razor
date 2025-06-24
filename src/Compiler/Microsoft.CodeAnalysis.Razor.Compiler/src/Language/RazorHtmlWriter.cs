@@ -16,24 +16,9 @@ namespace Microsoft.AspNetCore.Razor.Language;
 // not all characters in the document are included in the ClassifiedSpans.
 internal class RazorHtmlWriter : SyntaxWalker, IDisposable
 {
-    private readonly Action<RazorCommentBlockSyntax> _baseVisitRazorCommentBlock;
-    private readonly Action<RazorMetaCodeSyntax> _baseVisitRazorMetaCode;
-    private readonly Action<MarkupTransitionSyntax> _baseVisitMarkupTransition;
-    private readonly Action<CSharpTransitionSyntax> _baseVisitCSharpTransition;
-    private readonly Action<CSharpEphemeralTextLiteralSyntax> _baseVisitCSharpEphemeralTextLiteral;
-    private readonly Action<CSharpExpressionLiteralSyntax> _baseVisitCSharpExpressionLiteral;
-    private readonly Action<CSharpStatementLiteralSyntax> _baseVisitCSharpStatementLiteral;
-    private readonly Action<MarkupStartTagSyntax> _baseVisitMarkupStartTag;
-    private readonly Action<MarkupEndTagSyntax> _baseVisitMarkupEndTag;
-    private readonly Action<MarkupTagHelperStartTagSyntax> _baseVisitMarkupTagHelperStartTag;
-    private readonly Action<MarkupTagHelperEndTagSyntax> _baseVisitMarkupTagHelperEndTag;
-    private readonly Action<MarkupEphemeralTextLiteralSyntax> _baseVisitMarkupEphemeralTextLiteral;
-    private readonly Action<MarkupTextLiteralSyntax> _baseVisitMarkupTextLiteral;
-    private readonly Action<UnclassifiedTextLiteralSyntax> _baseVisitUnclassifiedTextLiteral;
-
     private readonly PooledObject<ImmutableArray<SourceMapping>.Builder> _sourceMappingsBuilder;
 
-    private bool _isHtml;
+    private bool _isWritingHtml;
     private SourceSpan _lastOriginalSourceSpan = SourceSpan.Undefined;
     private SourceSpan _lastGeneratedSourceSpan = SourceSpan.Undefined;
 
@@ -53,22 +38,7 @@ internal class RazorHtmlWriter : SyntaxWalker, IDisposable
         Source = source;
         Builder = new CodeWriter();
         _sourceMappingsBuilder = ArrayBuilderPool<SourceMapping>.GetPooledObject();
-        _isHtml = true;
-
-        _baseVisitRazorCommentBlock = base.VisitRazorCommentBlock;
-        _baseVisitRazorMetaCode = base.VisitRazorMetaCode;
-        _baseVisitMarkupTransition = base.VisitMarkupTransition;
-        _baseVisitCSharpTransition = base.VisitCSharpTransition;
-        _baseVisitCSharpEphemeralTextLiteral = base.VisitCSharpEphemeralTextLiteral;
-        _baseVisitCSharpExpressionLiteral = base.VisitCSharpExpressionLiteral;
-        _baseVisitCSharpStatementLiteral = base.VisitCSharpStatementLiteral;
-        _baseVisitMarkupStartTag = base.VisitMarkupStartTag;
-        _baseVisitMarkupEndTag = base.VisitMarkupEndTag;
-        _baseVisitMarkupTagHelperStartTag = base.VisitMarkupTagHelperStartTag;
-        _baseVisitMarkupTagHelperEndTag = base.VisitMarkupTagHelperEndTag;
-        _baseVisitMarkupEphemeralTextLiteral = base.VisitMarkupEphemeralTextLiteral;
-        _baseVisitMarkupTextLiteral = base.VisitMarkupTextLiteral;
-        _baseVisitUnclassifiedTextLiteral = base.VisitUnclassifiedTextLiteral;
+        _isWritingHtml = true;
     }
 
     public RazorSourceDocument Source { get; }
@@ -114,72 +84,114 @@ internal class RazorHtmlWriter : SyntaxWalker, IDisposable
 
     public override void VisitRazorCommentBlock(RazorCommentBlockSyntax node)
     {
-        WriteNode(node, isHtml: false, _baseVisitRazorCommentBlock);
+        using (IsNotHtml())
+        {
+            base.VisitRazorCommentBlock(node);
+        }
     }
 
     public override void VisitRazorMetaCode(RazorMetaCodeSyntax node)
     {
-        WriteNode(node, isHtml: false, _baseVisitRazorMetaCode);
+        using (IsNotHtml())
+        {
+            base.VisitRazorMetaCode(node);
+        }
     }
 
     public override void VisitMarkupTransition(MarkupTransitionSyntax node)
     {
-        WriteNode(node, isHtml: false, _baseVisitMarkupTransition);
+        using (IsNotHtml())
+        {
+            base.VisitMarkupTransition(node);
+        }
     }
 
     public override void VisitCSharpTransition(CSharpTransitionSyntax node)
     {
-        WriteNode(node, isHtml: false, _baseVisitCSharpTransition);
+        using (IsNotHtml())
+        {
+            base.VisitCSharpTransition(node);
+        }
     }
 
     public override void VisitCSharpEphemeralTextLiteral(CSharpEphemeralTextLiteralSyntax node)
     {
-        WriteNode(node, isHtml: false, _baseVisitCSharpEphemeralTextLiteral);
+        using (IsNotHtml())
+        {
+            base.VisitCSharpEphemeralTextLiteral(node);
+        }
     }
 
     public override void VisitCSharpExpressionLiteral(CSharpExpressionLiteralSyntax node)
     {
-        WriteNode(node, isHtml: false, _baseVisitCSharpExpressionLiteral);
+        using (IsNotHtml())
+        {
+            base.VisitCSharpExpressionLiteral(node);
+        }
     }
 
     public override void VisitCSharpStatementLiteral(CSharpStatementLiteralSyntax node)
     {
-        WriteNode(node, isHtml: false, _baseVisitCSharpStatementLiteral);
+        using (IsNotHtml())
+        {
+            base.VisitCSharpStatementLiteral(node);
+        }
     }
 
     public override void VisitMarkupStartTag(MarkupStartTagSyntax node)
     {
-        WriteNode(node, isHtml: true, _baseVisitMarkupStartTag);
+        using (IsHtml())
+        {
+            base.VisitMarkupStartTag(node);
+        }
     }
 
     public override void VisitMarkupEndTag(MarkupEndTagSyntax node)
     {
-        WriteNode(node, isHtml: true, _baseVisitMarkupEndTag);
+        using (IsHtml())
+        {
+            base.VisitMarkupEndTag(node);
+        }
     }
 
     public override void VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
     {
-        WriteNode(node, isHtml: true, _baseVisitMarkupTagHelperStartTag);
+        using (IsHtml())
+        {
+            base.VisitMarkupTagHelperStartTag(node);
+        }
     }
 
     public override void VisitMarkupTagHelperEndTag(MarkupTagHelperEndTagSyntax node)
     {
-        WriteNode(node, isHtml: true, _baseVisitMarkupTagHelperEndTag);
+        using (IsHtml())
+        {
+            base.VisitMarkupTagHelperEndTag(node);
+        }
     }
 
     public override void VisitMarkupEphemeralTextLiteral(MarkupEphemeralTextLiteralSyntax node)
     {
-        WriteNode(node, isHtml: true, _baseVisitMarkupEphemeralTextLiteral);
+        using (IsHtml())
+        {
+            base.VisitMarkupEphemeralTextLiteral(node);
+        }
     }
 
     public override void VisitMarkupTextLiteral(MarkupTextLiteralSyntax node)
     {
-        WriteNode(node, isHtml: true, _baseVisitMarkupTextLiteral);
+        using (IsHtml())
+        {
+            base.VisitMarkupTextLiteral(node);
+        }
     }
 
     public override void VisitUnclassifiedTextLiteral(UnclassifiedTextLiteralSyntax node)
     {
-        WriteNode(node, isHtml: true, _baseVisitUnclassifiedTextLiteral);
+        using (IsHtml())
+        {
+            base.VisitUnclassifiedTextLiteral(node);
+        }
     }
 
     public override void VisitToken(SyntaxToken token)
@@ -188,10 +200,34 @@ internal class RazorHtmlWriter : SyntaxWalker, IDisposable
         WriteToken(token);
     }
 
+    private readonly ref struct WriterStateSaver
+    {
+        private readonly RazorHtmlWriter _writer;
+        private readonly bool _oldIsWritingHtml;
+
+        public WriterStateSaver(RazorHtmlWriter writer, bool isWritingHtml)
+        {
+            _writer = writer;
+            _oldIsWritingHtml = writer._isWritingHtml;
+            writer._isWritingHtml = isWritingHtml;
+        }
+
+        public void Dispose()
+        {
+            _writer._isWritingHtml = _oldIsWritingHtml;
+        }
+    }
+
+    private WriterStateSaver IsHtml()
+        => new(this, isWritingHtml: true);
+
+    private WriterStateSaver IsNotHtml()
+        => new(this, isWritingHtml: false);
+
     private void WriteToken(SyntaxToken token)
     {
         var content = token.Content;
-        if (_isHtml)
+        if (_isWritingHtml)
         {
             WriteDeferredCSharpContent();
 
@@ -306,14 +342,6 @@ internal class RazorHtmlWriter : SyntaxWalker, IDisposable
 
             return sourceText[index] == '>';
         }
-    }
-
-    private void WriteNode<TNode>(TNode node, bool isHtml, Action<TNode> handler) where TNode : SyntaxNode
-    {
-        var old = _isHtml;
-        _isHtml = isHtml;
-        handler(node);
-        _isHtml = old;
     }
 
     public void Dispose()
