@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
@@ -14,9 +13,11 @@ namespace Microsoft.AspNetCore.Razor.Language;
 // So we want replace all non-HTML content with whitespace.
 // Ideally we should just use ClassifiedSpans to generate this document but
 // not all characters in the document are included in the ClassifiedSpans.
-internal class RazorHtmlWriter : SyntaxWalker, IDisposable
+internal sealed class RazorHtmlWriter : SyntaxWalker
 {
-    private readonly PooledObject<ImmutableArray<SourceMapping>.Builder> _sourceMappingsBuilder;
+    private readonly RazorSourceDocument _source;
+    private readonly CodeWriter _codeWriter;
+    private readonly ImmutableArray<SourceMapping>.Builder _sourceMappings;
 
     private bool _isWritingHtml;
     private SourceSpan _lastOriginalSourceSpan = SourceSpan.Undefined;
@@ -28,41 +29,37 @@ internal class RazorHtmlWriter : SyntaxWalker, IDisposable
     // "@className" being written as '~/*~~~~~*/', which means Html formatting will insert a space which breaks things.
     private int _csharpCharacterCount;
 
-    private RazorHtmlWriter(RazorSourceDocument source)
+    private RazorHtmlWriter(RazorSourceDocument source, CodeWriter codeWriter, ImmutableArray<SourceMapping>.Builder sourceMappings)
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
-
-        Source = source;
-        Builder = new CodeWriter();
-        _sourceMappingsBuilder = ArrayBuilderPool<SourceMapping>.GetPooledObject();
+        _source = source;
+        _codeWriter = codeWriter;
+        _sourceMappings = sourceMappings;
         _isWritingHtml = true;
     }
 
-    public RazorSourceDocument Source { get; }
-
-    public CodeWriter Builder { get; }
-
-    public ImmutableArray<SourceMapping>.Builder SourceMappings => _sourceMappingsBuilder.Object;
-
     public static RazorHtmlDocument GetHtmlDocument(RazorCodeDocument codeDocument)
     {
-        using var writer = new RazorHtmlWriter(codeDocument.Source);
+        var source = codeDocument.Source;
+        var options = codeDocument.CodeGenerationOptions;
+
+        using var _ = ArrayBuilderPool<SourceMapping>.GetPooledObject(out var sourceMappings);
+        using var codeWriter = new CodeWriter(options);
+
+        var htmlWriter = new RazorHtmlWriter(source, codeWriter, sourceMappings);
         var syntaxTree = codeDocument.GetRequiredSyntaxTree();
 
-        writer.Visit(syntaxTree);
+        htmlWriter.Visit(syntaxTree);
+
+        var text = codeWriter.GetText();
 
         Debug.Assert(
-            writer.Source.Text.Length == writer.Builder.Length,
-            $"The backing HTML document should be the same length as the original document. Expected: {writer.Source.Text.Length} Actual: {writer.Builder.Length}");
-        var text = writer.Builder.GetText();
+            source.Text.Length == text.Length,
+            $"The backing HTML document should be the same length as the original document. Expected: {source.Text.Length} Actual: {text.Length}");
 
-        return new RazorHtmlDocument(codeDocument, text, writer.SourceMappings.ToImmutableAndClear());
+        return new RazorHtmlDocument(codeDocument, text, sourceMappings.ToImmutableAndClear());
     }
 
-    public void Visit(RazorSyntaxTree syntaxTree)
+    private void Visit(RazorSyntaxTree syntaxTree)
     {
         Visit(syntaxTree.Root);
 
@@ -75,7 +72,7 @@ internal class RazorHtmlWriter : SyntaxWalker, IDisposable
             Debug.Assert(_lastOriginalSourceSpan != SourceSpan.Undefined);
 
             var sourceMapping = new SourceMapping(_lastOriginalSourceSpan, _lastGeneratedSourceSpan);
-            SourceMappings.Add(sourceMapping);
+            _sourceMappings.Add(sourceMapping);
 
             _lastOriginalSourceSpan = SourceSpan.Undefined;
             _lastGeneratedSourceSpan = SourceSpan.Undefined;
@@ -231,12 +228,12 @@ internal class RazorHtmlWriter : SyntaxWalker, IDisposable
         {
             WriteDeferredCSharpContent();
 
-            var source = token.GetSourceSpan(Source);
+            var source = token.GetSourceSpan(_source);
 
             // No point source mapping an empty token
             if (source.Length > 0)
             {
-                var generatedLocation = new SourceSpan(Builder.Location, source.Length);
+                var generatedLocation = new SourceSpan(_codeWriter.Location, source.Length);
 
                 if (_lastGeneratedSourceSpan == SourceSpan.Undefined)
                 {
@@ -263,7 +260,7 @@ internal class RazorHtmlWriter : SyntaxWalker, IDisposable
                 {
                     // New span is not directly next to the previous one, so add the previous to the list, and start tracking the new one
                     var sourceMapping = new SourceMapping(_lastOriginalSourceSpan, _lastGeneratedSourceSpan);
-                    SourceMappings.Add(sourceMapping);
+                    _sourceMappings.Add(sourceMapping);
 
                     _lastOriginalSourceSpan = source;
                     _lastGeneratedSourceSpan = generatedLocation;
@@ -271,7 +268,7 @@ internal class RazorHtmlWriter : SyntaxWalker, IDisposable
             }
 
             // If we're in HTML context, append the content directly.
-            Builder.Write(content);
+            _codeWriter.Write(content);
             return;
         }
 
@@ -284,7 +281,7 @@ internal class RazorHtmlWriter : SyntaxWalker, IDisposable
             Debug.Assert(_lastOriginalSourceSpan != SourceSpan.Undefined);
 
             var sourceMapping = new SourceMapping(_lastOriginalSourceSpan, _lastGeneratedSourceSpan);
-            SourceMappings.Add(sourceMapping);
+            _sourceMappings.Add(sourceMapping);
 
             _lastGeneratedSourceSpan = SourceSpan.Undefined;
             _lastOriginalSourceSpan = SourceSpan.Undefined;
@@ -296,7 +293,7 @@ internal class RazorHtmlWriter : SyntaxWalker, IDisposable
             if (char.IsWhiteSpace(c))
             {
                 WriteDeferredCSharpContent();
-                Builder.Write(c.ToString());
+                _codeWriter.Write(c.ToString());
             }
             else
             {
@@ -312,7 +309,7 @@ internal class RazorHtmlWriter : SyntaxWalker, IDisposable
             return;
         }
 
-        Builder.Write(_csharpCharacterCount switch
+        _codeWriter.Write(_csharpCharacterCount switch
         {
             // Less than 4 chars, just use tildes. We can't do anything more fancy in a small space
             1 => "~",
@@ -333,8 +330,8 @@ internal class RazorHtmlWriter : SyntaxWalker, IDisposable
 
         bool NextCharacterIsGreaterThanSymbol()
         {
-            var sourceText = Source.Text;
-            var index = Builder.Location.AbsoluteIndex + _csharpCharacterCount;
+            var sourceText = _source.Text;
+            var index = _codeWriter.Location.AbsoluteIndex + _csharpCharacterCount;
             if (sourceText.Length <= index)
             {
                 return false;
@@ -342,11 +339,5 @@ internal class RazorHtmlWriter : SyntaxWalker, IDisposable
 
             return sourceText[index] == '>';
         }
-    }
-
-    public void Dispose()
-    {
-        _sourceMappingsBuilder.Dispose();
-        Builder.Dispose();
     }
 }
