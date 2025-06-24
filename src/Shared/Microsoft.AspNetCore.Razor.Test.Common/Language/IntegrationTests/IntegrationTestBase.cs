@@ -111,7 +111,7 @@ public abstract class IntegrationTestBase
         return syntaxTree;
     }
 
-    protected RazorProjectItem AddProjectItemFromText(string text, string filePath = "_ViewImports.cshtml", [CallerMemberName]string testName = "")
+    protected RazorProjectItem AddProjectItemFromText(string text, string filePath = "_ViewImports.cshtml", [CallerMemberName] string testName = "")
     {
         var projectItem = CreateProjectItemFromText(text, filePath, GetTestFileName(testName));
         FileSystem.Add(projectItem);
@@ -197,7 +197,7 @@ public abstract class IntegrationTestBase
         return projectItem;
     }
 
-    protected CompiledCSharpCode CompileToCSharp(string text, string path = "test.cshtml", bool? designTime = null, string? cssScope = null, [CallerMemberName]string testName = "")
+    protected CompiledCSharpCode CompileToCSharp(string text, string path = "test.cshtml", bool? designTime = null, string? cssScope = null, [CallerMemberName] string testName = "")
     {
         var projectItem = CreateProjectItemFromText(text, path, GetTestFileName(testName), cssScope);
         return CompileToCSharp(projectItem, designTime);
@@ -338,7 +338,7 @@ public abstract class IntegrationTestBase
         });
     }
 
-    protected void AssertDocumentNodeMatchesBaseline(DocumentIntermediateNode document, [CallerMemberName]string testName = "")
+    protected void AssertDocumentNodeMatchesBaseline(DocumentIntermediateNode document, [CallerMemberName] string testName = "")
     {
         var baselineFileName = Path.ChangeExtension(GetTestFileName(testName), ".ir.txt");
 
@@ -596,22 +596,27 @@ public abstract class IntegrationTestBase
         }
     }
 
-    protected void AssertLinePragmas(RazorCodeDocument codeDocument, bool designTime)
+    protected void AssertLinePragmas(RazorCodeDocument codeDocument)
     {
         var csharpDocument = codeDocument.GetCSharpDocument();
         Assert.NotNull(csharpDocument);
         var linePragmas = csharpDocument.LinePragmas;
-        designTime = false;
-        if (designTime)
+
+        var syntaxTree = codeDocument.GetRequiredSyntaxTree();
+        var sourceContent = syntaxTree.Source.Text.ToString();
+        var classifiedSpans = syntaxTree.GetClassifiedSpans();
+        foreach (var classifiedSpan in classifiedSpans)
         {
-            var sourceMappings = csharpDocument.SourceMappings;
-            foreach (var sourceMapping in sourceMappings)
+            var content = sourceContent.Substring(classifiedSpan.Span.AbsoluteIndex, classifiedSpan.Span.Length);
+            if (!string.IsNullOrWhiteSpace(content) &&
+                classifiedSpan.BlockKind != BlockKindInternal.Directive &&
+                classifiedSpan.SpanKind == SpanKindInternal.Code)
             {
                 var foundMatchingPragma = false;
                 foreach (var linePragma in linePragmas)
                 {
-                    if (sourceMapping.OriginalSpan.LineIndex >= linePragma.StartLineIndex &&
-                        sourceMapping.OriginalSpan.LineIndex <= linePragma.EndLineIndex)
+                    if (classifiedSpan.Span.LineIndex >= linePragma.StartLineIndex &&
+                        classifiedSpan.Span.LineIndex <= linePragma.EndLineIndex)
                     {
                         // Found a match.
                         foundMatchingPragma = true;
@@ -619,35 +624,7 @@ public abstract class IntegrationTestBase
                     }
                 }
 
-                Assert.True(foundMatchingPragma, $"No line pragma found for code at line {sourceMapping.OriginalSpan.LineIndex + 1}.");
-            }
-        }
-        else
-        {
-            var syntaxTree = codeDocument.GetRequiredSyntaxTree();
-            var sourceContent = syntaxTree.Source.Text.ToString();
-            var classifiedSpans = syntaxTree.GetClassifiedSpans();
-            foreach (var classifiedSpan in classifiedSpans)
-            {
-                var content = sourceContent.Substring(classifiedSpan.Span.AbsoluteIndex, classifiedSpan.Span.Length);
-                if (!string.IsNullOrWhiteSpace(content) &&
-                    classifiedSpan.BlockKind != BlockKindInternal.Directive &&
-                    classifiedSpan.SpanKind == SpanKindInternal.Code)
-                {
-                    var foundMatchingPragma = false;
-                    foreach (var linePragma in linePragmas)
-                    {
-                        if (classifiedSpan.Span.LineIndex >= linePragma.StartLineIndex &&
-                            classifiedSpan.Span.LineIndex <= linePragma.EndLineIndex)
-                        {
-                            // Found a match.
-                            foundMatchingPragma = true;
-                            break;
-                        }
-                    }
-
-                    Assert.True(foundMatchingPragma, $"No line pragma found for code '{content}' at line {classifiedSpan.Span.LineIndex + 1}.");
-                }
+                Assert.True(foundMatchingPragma, $"No line pragma found for code '{content}' at line {classifiedSpan.Span.LineIndex + 1}.");
             }
         }
     }
