@@ -168,6 +168,7 @@ public abstract class IntegrationTestBase
         {
             throw new XunitException($"The resource {sourceFileName} was not found.");
         }
+
         var fileContent = testFile.ReadAllText();
 
         var workingDirectory = Path.GetDirectoryName(fileName);
@@ -713,6 +714,7 @@ public abstract class IntegrationTestBase
             {
                 CodeSpans.Add(node);
             }
+
             return base.VisitCSharpStatementLiteral(node);
         }
 
@@ -722,6 +724,7 @@ public abstract class IntegrationTestBase
             {
                 CodeSpans.Add(node);
             }
+
             return base.VisitCSharpExpressionLiteral(node);
         }
 

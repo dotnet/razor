@@ -272,6 +272,7 @@ public static class IntermediateNodeAssert
                 Assert.Equal(TokenKind.CSharp, token.Kind);
                 content.Append(token.Content);
             }
+
             Assert.Equal("EndContext();", content.ToString());
         }
         catch (XunitException e)
