@@ -34,7 +34,7 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
     // can be written as a block, allowing any block of 4 characters or more to be written as a comment (ie '/**/`)
     // which takes pressure off the TypeScript/JavaScript compiler. Doing this per token means we can end up with
     // "@className" being written as '~/*~~~~~*/', which means Html formatting will insert a space which breaks things.
-    private int _tildesToWrite;
+    private int _placeholderSize;
 
     private RazorHtmlWriter(RazorSourceDocument source, CodeWriter codeWriter, ImmutableArray<SourceMapping>.Builder sourceMappings)
     {
@@ -205,8 +205,14 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
 
     public override void VisitToken(SyntaxToken token)
     {
-        base.VisitToken(token);
-        WriteToken(token);
+        if (_isWritingHtml)
+        {
+            WriteHtmlToken(token);
+        }
+        else
+        {
+            WriteNonHtmlToken(token);
+        }
     }
 
     private readonly ref struct WriterStateSaver
@@ -232,35 +238,6 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
 
     private WriterStateSaver IsNotHtml()
         => new(this, isWritingHtml: false);
-
-    private void WriteToken(SyntaxToken token)
-    {
-        if (_isWritingHtml)
-        {
-            WriteHtmlToken(token);
-            return;
-        }
-
-        // If we were tracking a source mapping span before now, add it to the list. Importantly there are cases
-        // where there are 0-length C# nodes, so this step is very important if the source mappings are to match
-        // the syntax tree.
-        AddLastSourceMappingAndClear();
-
-        // We're in non-HTML context. Let's replace all non-whitespace chars with a tilde(~).
-        foreach (var c in token.Content)
-        {
-            if (char.IsWhiteSpace(c))
-            {
-                WriteCSharpContentPlaceholder();
-                _codeWriter.Write(c.ToString());
-            }
-            else
-            {
-                _tildesToWrite++;
-            }
-        }
-    }
-
     private void WriteHtmlToken(SyntaxToken token)
     {
         var content = token.Content;
@@ -301,6 +278,68 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
         _lastSpans = (newOriginal, newGenerated);
     }
 
+    private void WriteNonHtmlToken(SyntaxToken token)
+    {
+        // If we're tracking a source mapping span, add it to the list. There are cases where there
+        // are 0-length C# nodes, so it's important to perform this step before checking the token
+        // content to ensure the source mappings match the syntax tree.
+        AddLastSourceMappingAndClear();
+
+        var content = token.Content.AsMemory();
+        if (content.Length == 0)
+        {
+            // If the token is empty, we don't need to do anything further.
+            return;
+        }
+
+        // To avoid allocating new strings, we want to write whitespace sliced from the original
+        // token content. To achieve this, we track transitions between whitespace and non-whitespace
+        // characters. When we're tracking whitespace, whitespaceIndex will be set to the index of the
+        // last transition to whitespace. When we encounter a non-whitespace character, we write the
+        // C# content placeholder (if any) followed by the whitespace. Then, we reset the whitespaceIndex to -1.
+
+        var whitespaceIndex = -1;
+
+        for (var i = 0; i < content.Length; i++)
+        {
+            var charIsWhitespace = char.IsWhiteSpace(content.Span[i]);
+
+            if (charIsWhitespace)
+            {
+                // If we're transitioning from non-whitespace to whitespace, set the index.
+                if (whitespaceIndex < 0)
+                {
+                    whitespaceIndex = i;
+                }
+
+                continue;
+            }
+
+            // At this point, we have a non-whitespace character. If we were tracking whitespace,
+            // we need to write the C# content placeholder (if any) and the whitespace.
+            if (whitespaceIndex >= 0)
+            {
+                WriteCSharpContentPlaceholder();
+                _codeWriter.Write(content[whitespaceIndex..i]);
+
+                // We're transitioning from whitespace to non-whitespace, so reset the index.
+                whitespaceIndex = -1;
+            }
+
+            // If we didn't transition from whitespace to non-whitespace, be sure to
+            // increment the C# content placeholder size so that we can write it later.
+            _placeholderSize++;
+        }
+
+        // If we finished processing the content but were still tracking whitespace,
+        // we need to write the C# content placeholder and the whitespace content.
+        if (whitespaceIndex >= 0)
+        {
+            WriteCSharpContentPlaceholder();
+            _codeWriter.Write(content[whitespaceIndex..]);
+        }
+    }
+
     /// <summary>
     ///  Returns <see langword="true"/> if the new span starts after the last span.
     /// </summary>
@@ -312,7 +351,7 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
 
     private void WriteCSharpContentPlaceholder()
     {
-        var tildesToWrite = _tildesToWrite;
+        var tildesToWrite = _placeholderSize;
 
         if (tildesToWrite == 0)
         {
@@ -320,7 +359,8 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
             return;
         }
 
-        _tildesToWrite = 0;
+        // Reset the placeholder size.
+        _placeholderSize = 0;
 
         var writeComment = false;
 
