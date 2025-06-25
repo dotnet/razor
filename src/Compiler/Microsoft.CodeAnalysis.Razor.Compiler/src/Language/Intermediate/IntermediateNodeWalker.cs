@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -13,7 +11,7 @@ public abstract class IntermediateNodeWalker : IntermediateNodeVisitor
 
     protected IReadOnlyList<IntermediateNode> Ancestors => _ancestors;
 
-    protected IntermediateNode Parent => _ancestors.Count > 0 ? _ancestors[0] : null;
+    protected IntermediateNode? Parent => _ancestors.Count > 0 ? _ancestors[0] : null;
 
     public override void VisitDefault(IntermediateNode node)
     {
