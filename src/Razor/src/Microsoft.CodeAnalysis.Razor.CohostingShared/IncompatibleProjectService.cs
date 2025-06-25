@@ -23,9 +23,19 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 internal sealed class IncompatibleProjectService(
     ILoggerFactory loggerFactory) : IIncompatibleProjectService
 {
+    private static readonly ProjectId s_miscFilesProject = ProjectId.CreateNewId();
+
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<IncompatibleProjectService>();
 
     private ImmutableHashSet<ProjectId> _incompatibleProjectIds = [];
+
+    public void HandleMiscellaneousFile(TextDocument textDocument)
+    {
+        if (ImmutableInterlocked.Update(ref _incompatibleProjectIds, static set => set.Add(s_miscFilesProject)))
+        {
+            _logger.Log(LogLevel.Error, $"The Razor editor utilizes the Razor Source Generator. {Path.GetFileName(textDocument.FilePath)} appears to not be part of any project, so the source generator is not present and the editing experience will be limited. No more messages will be logged for this scenario.");
+        }
+    }
 
     public void HandleNullDocument(RazorTextDocumentIdentifier? textDocumentIdentifier, RazorCohostRequestContext context)
     {
