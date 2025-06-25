@@ -53,29 +53,34 @@ internal abstract class AbstractEditMappingService(
 
         foreach (var (uriString, edits) in changes)
         {
-            var uri = new Uri(uriString);
+            var generatedDocumentUri = new Uri(uriString);
 
             // Check if the edit is actually for a generated document, because if not we don't need to do anything
-            if (!_filePathService.IsVirtualDocumentUri(uri))
+            if (!_filePathService.IsVirtualDocumentUri(generatedDocumentUri))
             {
                 remappedChanges[uriString] = edits;
                 continue;
             }
 
-            if (!TryGetDocumentContext(contextDocumentSnapshot, uri, projectContext: null, out var documentContext))
+            var razorDocumentUri = await GetRazorDocumentUriAsync(contextDocumentSnapshot, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
+            if (razorDocumentUri is null)
+            {
+                continue;
+            }
+
+            if (!TryGetDocumentContext(contextDocumentSnapshot, razorDocumentUri, projectContext: null, out var documentContext))
             {
                 continue;
             }
 
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-            var remappedEdits = RemapTextEditsCore(uri, codeDocument, edits);
+            var remappedEdits = RemapTextEditsCore(generatedDocumentUri, codeDocument, edits);
             if (remappedEdits.Length == 0)
             {
                 // Nothing to do.
                 continue;
             }
 
-            var razorDocumentUri = _filePathService.GetRazorDocumentUri(uri);
             remappedChanges[razorDocumentUri.AbsoluteUri] = remappedEdits;
         }
 
@@ -123,7 +128,11 @@ internal abstract class AbstractEditMappingService(
                 continue;
             }
 
-            var razorDocumentUri = _filePathService.GetRazorDocumentUri(generatedDocumentUri);
+            var razorDocumentUri = await GetRazorDocumentUriAsync(contextDocumentSnapshot, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
+            if (razorDocumentUri is null)
+            {
+                continue;
+            }
 
             if (!TryGetDocumentContext(contextDocumentSnapshot, razorDocumentUri, entry.TextDocument.GetProjectContext(), out var documentContext))
             {
@@ -154,4 +163,6 @@ internal abstract class AbstractEditMappingService(
     }
 
     protected abstract bool TryGetDocumentContext(IDocumentSnapshot contextDocumentSnapshot, Uri razorDocumentUri, VSProjectContext? projectContext, [NotNullWhen(true)] out DocumentContext? documentContext);
+
+    protected abstract Task<Uri?> GetRazorDocumentUriAsync(IDocumentSnapshot contextDocumentSnapshot, Uri uri, CancellationToken cancellationToken);
 }
