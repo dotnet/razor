@@ -4,9 +4,7 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Xunit;
@@ -64,7 +62,7 @@ public static class IntermediateNodeVerifier
             Assert.True(_baseline.Length == _index, "Not all lines of the baseline were visited!");
         }
 
-        private void AssertNodeEquals(IntermediateNode node, IEnumerable<IntermediateNode> ancestors, string expected, string actual)
+        private void AssertNodeEquals(IntermediateNode node, ReadOnlySpan<IntermediateNode> ancestors, string expected, string actual)
         {
             if (string.Equals(expected, actual))
             {
@@ -89,7 +87,7 @@ public static class IntermediateNodeVerifier
             throw new InvalidOperationException("We can't figure out HOW these two things are different. This is a bug.");
         }
 
-        private static void AssertNestingEqual(IntermediateNode node, IEnumerable<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
+        private static void AssertNestingEqual(IntermediateNode node, ReadOnlySpan<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
         {
             var i = 0;
             for (; i < expected.Length; i++)
@@ -125,7 +123,7 @@ public static class IntermediateNodeVerifier
             charsVerified = j;
         }
 
-        private static void AssertNameEqual(IntermediateNode node, IEnumerable<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
+        private static void AssertNameEqual(IntermediateNode node, ReadOnlySpan<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
         {
             var expectedName = GetName(expected, charsVerified);
             var actualName = GetName(actual, charsVerified);
@@ -174,7 +172,7 @@ public static class IntermediateNodeVerifier
             charsVerified += 3;
         }
 
-        private static void AssertLocationEqual(IntermediateNode node, IEnumerable<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
+        private static void AssertLocationEqual(IntermediateNode node, ReadOnlySpan<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
         {
             var expectedLocation = GetLocation(expected, charsVerified);
             var actualLocation = GetLocation(actual, charsVerified);
@@ -188,7 +186,7 @@ public static class IntermediateNodeVerifier
             charsVerified += expectedLocation.Length;
         }
 
-        private static void AssertContentEqual(IntermediateNode node, IEnumerable<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
+        private static void AssertContentEqual(IntermediateNode node, ReadOnlySpan<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
         {
             var expectedContent = GetContent(expected, charsVerified);
             var actualContent = GetContent(actual, charsVerified);

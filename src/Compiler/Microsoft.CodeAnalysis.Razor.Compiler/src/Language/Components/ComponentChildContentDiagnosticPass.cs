@@ -52,10 +52,11 @@ internal class ComponentChildContentDiagnosticPass : ComponentIntermediateNodePa
             // because the parameter name can be implicit, and it doesn't work well when nested.
             if (node.IsParameterized)
             {
-                for (var i = 0; i < Ancestors.Count - 1; i++)
+                var ancestors = Ancestors;
+
+                for (var i = 0; i < ancestors.Length - 1; i++)
                 {
-                    var ancestor = Ancestors[i] as ComponentChildContentIntermediateNode;
-                    if (ancestor != null &&
+                    if (ancestors[i] is ComponentChildContentIntermediateNode ancestor &&
                         ancestor.IsParameterized &&
                         string.Equals(node.ParameterName, ancestor.ParameterName, StringComparison.Ordinal))
                     {
@@ -64,9 +65,9 @@ internal class ComponentChildContentDiagnosticPass : ComponentIntermediateNodePa
                         node.AddDiagnostic(ComponentDiagnosticFactory.Create_ChildContentRepeatedParameterName(
                             node.Source,
                             node,
-                            (ComponentIntermediateNode)Ancestors[0], // Enclosing component
+                            (ComponentIntermediateNode)ancestors[0], // Enclosing component
                             ancestor, // conflicting child content node
-                            (ComponentIntermediateNode)Ancestors[i + 1]));  // Enclosing component of conflicting child content node
+                            (ComponentIntermediateNode)ancestors[i + 1]));  // Enclosing component of conflicting child content node
                     }
                 }
             }

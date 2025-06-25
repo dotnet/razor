@@ -43,22 +43,12 @@ internal class ComponentTemplateDiagnosticPass : ComponentIntermediateNodePassBa
         public void VisitExtension(TemplateIntermediateNode node)
         {
             // We found a template, let's check where it's located.
-            for (var i = 0; i < Ancestors.Count; i++)
+            foreach (var ancestor in Ancestors)
             {
-                var ancestor = Ancestors[i];
-
-                if (
-                    // Inside markup attribute
-                    ancestor is HtmlAttributeIntermediateNode ||
-
-                    // Inside component attribute
-                    ancestor is ComponentAttributeIntermediateNode ||
-
-                    // Inside malformed ref attribute
-                    ancestor is TagHelperPropertyIntermediateNode ||
-
-                    // Inside a directive attribute
-                    ancestor is TagHelperDirectiveAttributeIntermediateNode)
+                if (ancestor is HtmlAttributeIntermediateNode or // Inside markup attribute
+                                ComponentAttributeIntermediateNode or // Inside component attribute
+                                TagHelperPropertyIntermediateNode or // Inside malformed ref attribute
+                                TagHelperDirectiveAttributeIntermediateNode) // Inside a directive attribute
                 {
                     Candidates.Add(new IntermediateNodeReference(Parent, node));
                 }
