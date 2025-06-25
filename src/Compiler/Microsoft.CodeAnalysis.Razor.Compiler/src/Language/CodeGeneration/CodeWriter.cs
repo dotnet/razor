@@ -435,6 +435,12 @@ public sealed partial class CodeWriter : IDisposable
 
                 foreach (var chunk in chunks)
                 {
+                    if (destination.IsEmpty)
+                    {
+                        // If we have no more space in the destination, we're done.
+                        break;
+                    }
+
                     var source = chunk.Span;
 
                     // Slice if the first chunk is partial. Note that this only occurs for the first chunk.
@@ -470,12 +476,6 @@ public sealed partial class CodeWriter : IDisposable
                     destination = destination[source.Length..];
 
                     charsWritten += source.Length;
-
-                    // Break if we are done writing. chunkIndex and charIndex should have their correct values at this point.
-                    if (destination.IsEmpty)
-                    {
-                        break;
-                    }
                 }
 
                 if (destination.IsEmpty)
