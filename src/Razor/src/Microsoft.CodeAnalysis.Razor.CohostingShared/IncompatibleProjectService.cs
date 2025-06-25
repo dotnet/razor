@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using WorkspacesSR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -33,7 +34,7 @@ internal sealed class IncompatibleProjectService(
     {
         if (ImmutableInterlocked.Update(ref _incompatibleProjectIds, static set => set.Add(s_miscFilesProject)))
         {
-            _logger.Log(LogLevel.Error, $"The Razor editor utilizes the Razor Source Generator. {Path.GetFileName(textDocument.FilePath)} appears to not be part of any project, so the source generator is not present and the editing experience will be limited. No more messages will be logged for this scenario.");
+            _logger.Log(LogLevel.Error, $"{WorkspacesSR.FormatIncompatibleProject_MiscFiles(Path.GetFileName(textDocument.FilePath))}");
         }
     }
 
@@ -81,14 +82,10 @@ internal sealed class IncompatibleProjectService(
         if (ImmutableInterlocked.Update(ref _incompatibleProjectIds, static (set, id) => set.Add(id), project.Id))
         {
             // TODO: In VS, should we abstract these notification out so we can show an info bar?
-            if (project.AdditionalDocuments.Any(d => d.FilePath is not null && d.FilePath.IsRazorFilePath()))
-            {
-                _logger.Log(LogLevel.Error, $"The Razor editor utilizes the Razor Source Generator, which requires *.razor and *.cshtml files to be AdditionalFiles in the project. {Path.GetFileName(filePath)} appears to come from '{project.Name}', which has Razor documents but this file is not an AdditionalFile, so the editing experience will be limited. No more messages will be logged for this project.");
-            }
-            else
-            {
-                _logger.Log(LogLevel.Error, $"The Razor editor utilizes the Razor Source Generator, which requires *.razor and *.cshtml files to be AdditionalFiles in the project. {Path.GetFileName(filePath)} appears to come from '{project.Name}', which has no Razor documents that are AdditionalFiles, so the editing experience will be limited. Is it using the Razor SDK? No more messages will be logged for this project.");
-            }
+            _logger.Log(LogLevel.Error, $"{(
+                project.AdditionalDocuments.Any(d => d.FilePath is not null && d.FilePath.IsRazorFilePath())
+                    ? WorkspacesSR.FormatIncompatibleProject_NotAnAdditionalFile(Path.GetFileName(filePath), project.Name)
+                    : WorkspacesSR.FormatIncompatibleProject_NoAdditionalFiles(Path.GetFileName(filePath), project.Name))}");
         }
     }
 }
