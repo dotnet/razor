@@ -120,6 +120,54 @@ public class PathUtilitiesTests
         Assert.True(PathUtilities.IsPathFullyQualified(path.AsSpan()));
     }
 
+    [Fact]
+    public static void GetDirectoryName_EmptyString()
+    {
+        AssertEqual(@"", PathUtilities.GetDirectoryName(@""));
+    }
+
+    [Fact]
+    public static void GetDirectoryName_FilenameOnly()
+    {
+        AssertEqual(@"", PathUtilities.GetDirectoryName(@"Foo.txt"));
+    }
+
+    [Fact]
+    public static void GetDirectoryName_FileAtRoot_AlternateSeparator()
+    {
+        AssertEqual(@"", PathUtilities.GetDirectoryName(@"//Foo.txt"));
+    }
+
+    [Fact]
+    public static void GetDirectoryName_NetworkPath_AlternateSeparator()
+    {
+        AssertEqual("//Server/Path", PathUtilities.GetDirectoryName("//Server/Path/Foo.txt"));
+    }
+
+    [ConditionalFact(Is.Windows)]
+    public static void GetDirectoryName_FileAtRoot()
+    {
+        AssertEqual(@"", PathUtilities.GetDirectoryName(@"\\Foo.txt"));
+    }
+
+    [ConditionalFact(Is.Windows)]
+    public static void GetDirectoryName_Windows()
+    {
+        AssertEqual(@"C:\Server", PathUtilities.GetDirectoryName(@"C:\Server\Foo.txt"));
+    }
+
+    [ConditionalFact(Is.Windows)]
+    public static void GetDirectoryName_LocalPath_DoubleSlash()
+    {
+        AssertEqual(@"C:\Server", PathUtilities.GetDirectoryName(@"C:\Server\\Foo.txt"));
+    }
+
+    [ConditionalFact(Is.Windows)]
+    public static void GetDirectoryName_NetworkPath()
+    {
+        AssertEqual(@"\\Server\Path", PathUtilities.GetDirectoryName(@"\\Server\Path\Foo.txt"));
+    }
+
     private static void AssertEqual(ReadOnlySpan<char> expected, ReadOnlySpan<char> actual)
     {
         if (!actual.SequenceEqual(expected))

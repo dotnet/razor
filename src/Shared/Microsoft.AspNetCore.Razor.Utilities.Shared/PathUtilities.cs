@@ -26,6 +26,29 @@ internal static class PathUtilities
     public static string? GetExtension(string? path)
         => Path.GetExtension(path);
 
+    public static ReadOnlySpan<char> GetDirectoryName(ReadOnlySpan<char> path)
+    {
+#if NET
+        return Path.GetDirectoryName(path);
+#else
+        // Derived the .NET Runtime:
+        // - https://github.com/dotnet/runtime/blob/850c0ab4519b904a28f2d67abdaba1ac78c955ff/src/libraries/System.Private.CoreLib/src/System/IO/Path.cs#L149-L172
+        if (path.IsEmpty)
+            return [];
+
+        var end = path.Length;
+
+        while (end > 0 && !IsDirectorySeparator(path[--end]))
+            ;
+
+        // Trim off any remaining separators (to deal with C:\foo\\bar)
+        while (end > 0 && IsDirectorySeparator(path[end - 1]))
+            end--;
+
+        return end >= 0 ? path[..end] : [];
+#endif
+    }
+
     public static ReadOnlySpan<char> GetExtension(ReadOnlySpan<char> path)
     {
 #if NET
