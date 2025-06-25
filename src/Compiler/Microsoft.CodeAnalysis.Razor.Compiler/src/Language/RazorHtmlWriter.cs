@@ -326,8 +326,7 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
                 whitespaceIndex = -1;
             }
 
-            // If we didn't transition from whitespace to non-whitespace, be sure to
-            // increment the C# content placeholder size so that we can write it later.
+            // Finally, be sure to increment the C# content placeholder size so that we can write it later.
             _placeholderSize++;
         }
 
