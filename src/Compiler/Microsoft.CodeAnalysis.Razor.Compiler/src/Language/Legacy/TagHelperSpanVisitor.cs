@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
-namespace Microsoft.AspNetCore.Razor.Language;
+namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-internal class TagHelperSpanVisitor : SyntaxWalker
+internal sealed class TagHelperSpanVisitor : SyntaxWalker
 {
     private readonly RazorSourceDocument _source;
     private readonly ImmutableArray<TagHelperSpanInternal>.Builder _spans;
@@ -26,7 +25,7 @@ internal class TagHelperSpanVisitor : SyntaxWalker
         var visitor = new TagHelperSpanVisitor(syntaxTree.Source, builder);
         visitor.Visit(syntaxTree.Root);
 
-        return builder.DrainToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     public override void VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
