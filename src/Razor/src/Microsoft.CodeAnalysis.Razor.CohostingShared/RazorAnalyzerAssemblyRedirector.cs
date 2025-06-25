@@ -2,10 +2,11 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Immutable;
+using System.Composition;
 using System.IO;
 using System.Reflection;
-using System.Composition;
 using IRazorAnalyzerAssemblyRedirector = Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAnalyzerAssemblyRedirector.IRazorAnalyzerAssemblyRedirector;
 
 namespace Microsoft.VisualStudio.Razor;
@@ -15,7 +16,7 @@ namespace Microsoft.VisualStudio.Razor;
 [Export(typeof(IRazorAnalyzerAssemblyRedirector))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
-internal class RazorAnalyzerAssemblyRedirector() : IRazorAnalyzerAssemblyRedirector
+internal sealed class RazorAnalyzerAssemblyRedirector() : IRazorAnalyzerAssemblyRedirector
 {
     private static readonly ImmutableArray<Type> s_compilerAssemblyTypes = [
 
@@ -27,7 +28,7 @@ internal class RazorAnalyzerAssemblyRedirector() : IRazorAnalyzerAssemblyRedirec
         typeof(ImmutableArray) // System.Collections.Immutable.dll
     ];
 
-    private static readonly ImmutableDictionary<string, string> s_compilerAssemblyMap = s_compilerAssemblyTypes.ToImmutableDictionary(t => t.Assembly.GetName().Name!, t => GetAssemblyLocation(t.Assembly));
+    private static readonly FrozenDictionary<string, string> s_compilerAssemblyMap = s_compilerAssemblyTypes.ToFrozenDictionary(t => t.Assembly.GetName().Name!, t => GetAssemblyLocation(t.Assembly));
 
     public string? RedirectPath(string fullPath)
     {
