@@ -22,8 +22,11 @@ internal abstract class AbstractCohostDocumentEndpoint<TRequest, TResponse>(
             return SpecializedTasks.Default<TResponse>();
         }
 
-        return HandleRequestAsync(request, context.TextDocument, cancellationToken);
+        return HandleRequestAsync(request, context, context.TextDocument, cancellationToken);
     }
+
+    protected virtual Task<TResponse?> HandleRequestAsync(TRequest request, RazorCohostRequestContext context, TextDocument razorDocument, CancellationToken cancellationToken)
+        => HandleRequestAsync(request, razorDocument, cancellationToken);
 
     protected abstract Task<TResponse?> HandleRequestAsync(TRequest request, TextDocument razorDocument, CancellationToken cancellationToken);
 }
