@@ -93,7 +93,7 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
 
     public override void VisitRazorCommentBlock(RazorCommentBlockSyntax node)
     {
-        using (IsNotHtml())
+        using (NonHtmlScope())
         {
             base.VisitRazorCommentBlock(node);
         }
@@ -101,7 +101,7 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
 
     public override void VisitRazorMetaCode(RazorMetaCodeSyntax node)
     {
-        using (IsNotHtml())
+        using (NonHtmlScope())
         {
             base.VisitRazorMetaCode(node);
         }
@@ -109,7 +109,7 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
 
     public override void VisitMarkupTransition(MarkupTransitionSyntax node)
     {
-        using (IsNotHtml())
+        using (NonHtmlScope())
         {
             base.VisitMarkupTransition(node);
         }
@@ -117,7 +117,7 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
 
     public override void VisitCSharpTransition(CSharpTransitionSyntax node)
     {
-        using (IsNotHtml())
+        using (NonHtmlScope())
         {
             base.VisitCSharpTransition(node);
         }
@@ -125,7 +125,7 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
 
     public override void VisitCSharpEphemeralTextLiteral(CSharpEphemeralTextLiteralSyntax node)
     {
-        using (IsNotHtml())
+        using (NonHtmlScope())
         {
             base.VisitCSharpEphemeralTextLiteral(node);
         }
@@ -133,7 +133,7 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
 
     public override void VisitCSharpExpressionLiteral(CSharpExpressionLiteralSyntax node)
     {
-        using (IsNotHtml())
+        using (NonHtmlScope())
         {
             base.VisitCSharpExpressionLiteral(node);
         }
@@ -141,7 +141,7 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
 
     public override void VisitCSharpStatementLiteral(CSharpStatementLiteralSyntax node)
     {
-        using (IsNotHtml())
+        using (NonHtmlScope())
         {
             base.VisitCSharpStatementLiteral(node);
         }
@@ -149,7 +149,7 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
 
     public override void VisitMarkupStartTag(MarkupStartTagSyntax node)
     {
-        using (IsHtml())
+        using (HtmlScope())
         {
             base.VisitMarkupStartTag(node);
         }
@@ -157,7 +157,7 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
 
     public override void VisitMarkupEndTag(MarkupEndTagSyntax node)
     {
-        using (IsHtml())
+        using (HtmlScope())
         {
             base.VisitMarkupEndTag(node);
         }
@@ -165,7 +165,7 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
 
     public override void VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
     {
-        using (IsHtml())
+        using (HtmlScope())
         {
             base.VisitMarkupTagHelperStartTag(node);
         }
@@ -173,7 +173,7 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
 
     public override void VisitMarkupTagHelperEndTag(MarkupTagHelperEndTagSyntax node)
     {
-        using (IsHtml())
+        using (HtmlScope())
         {
             base.VisitMarkupTagHelperEndTag(node);
         }
@@ -181,7 +181,7 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
 
     public override void VisitMarkupEphemeralTextLiteral(MarkupEphemeralTextLiteralSyntax node)
     {
-        using (IsHtml())
+        using (HtmlScope())
         {
             base.VisitMarkupEphemeralTextLiteral(node);
         }
@@ -189,7 +189,7 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
 
     public override void VisitMarkupTextLiteral(MarkupTextLiteralSyntax node)
     {
-        using (IsHtml())
+        using (HtmlScope())
         {
             base.VisitMarkupTextLiteral(node);
         }
@@ -197,7 +197,7 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
 
     public override void VisitUnclassifiedTextLiteral(UnclassifiedTextLiteralSyntax node)
     {
-        using (IsHtml())
+        using (HtmlScope())
         {
             base.VisitUnclassifiedTextLiteral(node);
         }
@@ -215,12 +215,12 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
         }
     }
 
-    private readonly ref struct WriterStateSaver
+    private readonly ref struct WriterScope
     {
         private readonly RazorHtmlWriter _writer;
         private readonly bool _oldIsWritingHtml;
 
-        public WriterStateSaver(RazorHtmlWriter writer, bool isWritingHtml)
+        public WriterScope(RazorHtmlWriter writer, bool isWritingHtml)
         {
             _writer = writer;
             _oldIsWritingHtml = writer._isWritingHtml;
@@ -233,11 +233,11 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
         }
     }
 
-    private WriterStateSaver IsHtml()
-        => new(this, isWritingHtml: true);
-
-    private WriterStateSaver IsNotHtml()
+    private WriterScope NonHtmlScope()
         => new(this, isWritingHtml: false);
+
+    private WriterScope HtmlScope()
+        => new(this, isWritingHtml: true);
     private void WriteHtmlToken(SyntaxToken token)
     {
         var content = token.Content;
