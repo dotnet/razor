@@ -74,7 +74,7 @@ public class IntermediateNodeWalkerTest
 
         walker.OnVisiting = (n) =>
         {
-            Assert.Equal(ancestors[((BasicIntermediateNode)n).Name], walker.Ancestors.Cast<BasicIntermediateNode>().Select(b => b.Name));
+            Assert.Equal(ancestors[((BasicIntermediateNode)n).Name], walker.Ancestors.ToArray().Cast<BasicIntermediateNode>().Select(b => b.Name));
             Assert.Equal(ancestors[((BasicIntermediateNode)n).Name].FirstOrDefault(), ((BasicIntermediateNode)walker.Parent)?.Name);
         };
 
@@ -95,7 +95,7 @@ public class IntermediateNodeWalkerTest
 
     private class DerivedIntermediateNodeWalker : IntermediateNodeWalker
     {
-        public new IReadOnlyList<IntermediateNode> Ancestors => base.Ancestors;
+        public new ReadOnlySpan<IntermediateNode> Ancestors => base.Ancestors;
 
         public new IntermediateNode Parent => base.Parent;
 
