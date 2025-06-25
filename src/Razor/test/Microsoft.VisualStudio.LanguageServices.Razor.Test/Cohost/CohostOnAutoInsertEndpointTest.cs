@@ -238,6 +238,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
         var requestInvoker = new TestHtmlRequestInvoker([(VSInternalMethods.OnAutoInsertName, response)]);
 
         var endpoint = new CohostOnAutoInsertEndpoint(
+            IncompatibleProjectService,
             RemoteServiceInvoker,
             clientSettingsManager,
             onAutoInsertTriggerCharacterProviders,

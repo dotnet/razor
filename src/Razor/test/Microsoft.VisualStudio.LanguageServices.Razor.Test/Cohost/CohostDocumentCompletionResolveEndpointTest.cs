@@ -56,6 +56,7 @@ public class CohostDocumentCompletionResolveEndpointTest(ITestOutputHelper testO
         var completionListCache = new CompletionListCache();
         var clientSettingsManager = new ClientSettingsManager(changeTriggers: []);
         var endpoint = new CohostDocumentCompletionResolveEndpoint(
+            IncompatibleProjectService,
             completionListCache,
             RemoteServiceInvoker,
             clientSettingsManager,

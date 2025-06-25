@@ -98,7 +98,7 @@ public class CohostSignatureHelpEndpointTest(ITestOutputHelper testOutputHelper)
 
         var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentSignatureHelpName, null)]);
 
-        var endpoint = new CohostSignatureHelpEndpoint(RemoteServiceInvoker, clientSettingsManager, requestInvoker);
+        var endpoint = new CohostSignatureHelpEndpoint(IncompatibleProjectService, RemoteServiceInvoker, clientSettingsManager, requestInvoker);
 
         var signatureHelpContext = new SignatureHelpContext()
         {
