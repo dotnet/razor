@@ -341,7 +341,7 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
     }
 
     /// <summary>
-    ///  Returns <see langword="true"/> if the new span starts after the last span.
+    ///  Returns <see langword="true"/> if the new span starts immediately after the last span.
     /// </summary>
     private static bool TouchesLastSpan(SourceSpan newSpan, SourceSpan lastSpan)
         => newSpan.AbsoluteIndex == lastSpan.AbsoluteIndex + lastSpan.Length;
