@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
@@ -25,6 +26,8 @@ internal sealed class ProjectCapabilityResolver : IProjectCapabilityResolver, ID
     private readonly ILogger _logger;
     private readonly JoinableTaskFactory _jtf;
     private readonly CancellationTokenSource _disposeTokenSource;
+
+    private ImmutableDictionary<(string, string), bool> _cachedCapabilities = ImmutableDictionary<(string, string), bool>.Empty;
 
     [ImportingConstructor]
     public ProjectCapabilityResolver(
@@ -120,20 +123,31 @@ internal sealed class ProjectCapabilityResolver : IProjectCapabilityResolver, ID
             return false;
         }
 
+        var isMatch = false;
         try
         {
-            return vsHierarchy.IsCapabilityMatch(capability);
+            isMatch = vsHierarchy.IsCapabilityMatch(capability);
+
+            if (vsHierarchy.GetProjectFilePath(_jtf) is { } projectFilePath)
+            {
+                _cachedCapabilities = _cachedCapabilities.SetItem((projectFilePath, capability), isMatch);
+            }
         }
         catch (NotSupportedException)
         {
             // IsCapabilityMatch throws a NotSupportedException if it can't create a
             // BooleanSymbolExpressionEvaluator COM object
-            return false;
         }
         catch (ObjectDisposedException)
         {
             // IsCapabilityMatch throws an ObjectDisposedException if the underlying hierarchy has been disposed
-            return false;
         }
+
+        return isMatch;
+    }
+
+    public bool TryGetCachedCapabilityMatch(string projectFilePath, string capability, out bool isMatch)
+    {
+        return _cachedCapabilities.TryGetValue((projectFilePath, capability), out isMatch);
     }
 }

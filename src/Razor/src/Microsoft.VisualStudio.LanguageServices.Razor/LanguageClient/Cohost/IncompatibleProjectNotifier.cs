@@ -18,8 +18,10 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Export(typeof(IIncompatibleProjectNotifier))]
 [method: ImportingConstructor]
 internal sealed class IncompatibleProjectNotifier(
+    IProjectCapabilityResolver projectCapabilityResolver,
     ILoggerFactory loggerFactory) : IIncompatibleProjectNotifier
 {
+    private readonly IProjectCapabilityResolver _projectCapabilityResolver = projectCapabilityResolver;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<IncompatibleProjectNotifier>();
 
     public void NotifyMiscellaneousFile(TextDocument textDocument)
@@ -29,6 +31,14 @@ internal sealed class IncompatibleProjectNotifier(
 
     public void NotifyNullDocument(Project project, string filePath)
     {
+        // When this document was opened, we will have checked if it was a .NET Framework project. If so, then we can avoid
+        // notifying the user because they are not using the LSP editor, even though we get the odd request.
+        // If this check returns a false positive, the fallout is only one log message, so nothing to be concerned about.
+        if (_projectCapabilityResolver.TryGetCachedCapabilityMatch(project.FilePath.AssumeNotNull(), WellKnownProjectCapabilities.DotNetCoreCSharp, out var isMatch) && !isMatch)
+        {
+            return;
+        }
+
         _logger.Log(LogLevel.Error, $"{(
             project.AdditionalDocuments.Any(d => d.FilePath is not null && d.FilePath.IsRazorFilePath())
                 ? WorkspacesSR.FormatIncompatibleProject_NotAnAdditionalFile(Path.GetFileName(filePath), project.Name)
