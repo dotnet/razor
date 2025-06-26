@@ -133,21 +133,27 @@ public class PathUtilitiesTests
     }
 
     [Fact]
-    public static void GetDirectoryName_FileAtRoot_AlternateSeparator()
-    {
-        AssertEqual(@"", PathUtilities.GetDirectoryName(@"//Foo.txt"));
-    }
-
-    [Fact]
     public static void GetDirectoryName_NetworkPath_AlternateSeparator()
     {
         AssertEqual("//Server/Path", PathUtilities.GetDirectoryName("//Server/Path/Foo.txt"));
+    }
+
+    [ConditionalFact(Is.AnyUnix)]
+    public static void GetDirectoryName_FileAtRoot_Uni()
+    {
+        AssertEqual(@"/", PathUtilities.GetDirectoryName(@"//Foo.txt"));
     }
 
     [ConditionalFact(Is.Windows)]
     public static void GetDirectoryName_FileAtRoot()
     {
         AssertEqual(@"", PathUtilities.GetDirectoryName(@"\\Foo.txt"));
+    }
+
+    [ConditionalFact(Is.Windows)]
+    public static void GetDirectoryName_FileAtRoot_AlternateSeparator()
+    {
+        AssertEqual(@"", PathUtilities.GetDirectoryName(@"//Foo.txt"));
     }
 
     [ConditionalFact(Is.Windows)]
