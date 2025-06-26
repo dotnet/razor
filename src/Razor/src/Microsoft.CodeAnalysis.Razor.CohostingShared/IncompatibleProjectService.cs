@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
+using System.ComponentModel.Composition;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
@@ -12,11 +12,8 @@ using Microsoft.CodeAnalysis.Razor.Cohost;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-#pragma warning disable RS0030 // Do not use banned APIs
-[Shared]
 [Export(typeof(IIncompatibleProjectService))]
 [method: ImportingConstructor]
-#pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class IncompatibleProjectService(
     IIncompatibleProjectNotifier incompatibleProjectNotifier) : IIncompatibleProjectService
 {
