@@ -238,6 +238,7 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
 
     private WriterScope HtmlScope()
         => new(this, isWritingHtml: true);
+
     private void WriteHtmlToken(SyntaxToken token)
     {
         var content = token.Content;
