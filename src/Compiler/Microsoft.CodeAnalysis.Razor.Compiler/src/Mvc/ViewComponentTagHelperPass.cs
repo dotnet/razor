@@ -37,9 +37,8 @@ public class ViewComponentTagHelperPass : IntermediateNodePassBase, IRazorOptimi
         // For each VCTH *usage* we need to rewrite the tag helper node to use the tag helper runtime to construct
         // and set properties on the the correct field, and using the name of the type we will generate.
         var nodes = documentNode.FindDescendantNodes<TagHelperIntermediateNode>();
-        for (var i = 0; i < nodes.Count; i++)
+        foreach (var node in nodes)
         {
-            var node = nodes[i];
             foreach (var tagHelper in node.TagHelpers)
             {
                 RewriteUsage(context, node, tagHelper);

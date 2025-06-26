@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -33,11 +32,10 @@ internal class ComponentLayoutDirectivePass : IntermediateNodePassBase, IRazorDi
         }
 
         var attributeNode = new CSharpCodeIntermediateNode();
-        attributeNode.Children.AddRange([
+        attributeNode.Children.Add(
             IntermediateToken.CreateCSharpToken($"[global::{ComponentsApi.LayoutAttribute.FullTypeName}(typeof("),
             IntermediateToken.CreateCSharpToken(token.Content, documentNode.Options.DesignTime ? null : token.Source),
-            IntermediateToken.CreateCSharpToken("))]")
-        ]);
+            IntermediateToken.CreateCSharpToken("))]"));
 
         // Insert the new attribute on top of the class
         for (var i = 0; i < @namespace.Children.Count; i++)

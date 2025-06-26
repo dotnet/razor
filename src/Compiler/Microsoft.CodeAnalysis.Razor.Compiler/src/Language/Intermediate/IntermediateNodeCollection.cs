@@ -6,6 +6,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -51,40 +52,63 @@ public sealed class IntermediateNodeCollection : IList<IntermediateNode>
 
     public bool IsReadOnly => _inner.IsReadOnly;
 
-    public void Add(IntermediateNode item)
+    public void Add(IntermediateNode node)
     {
-        if (item == null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgHelper.ThrowIfNull(node);
 
-        _inner.Add(item);
+        _inner.Add(node);
     }
 
-    public void AddRange(IEnumerable<IntermediateNode> items)
+    public void Add(IntermediateNode node1, IntermediateNode node2)
     {
-        if (items == null)
-        {
-            throw new ArgumentNullException(nameof(items));
-        }
+        ArgHelper.ThrowIfNull(node1);
+        ArgHelper.ThrowIfNull(node2);
 
-        foreach (var item in items)
+        _inner.Add(node1);
+        _inner.Add(node2);
+    }
+
+    public void Add(IntermediateNode node1, IntermediateNode node2, IntermediateNode node3)
+    {
+        ArgHelper.ThrowIfNull(node1);
+        ArgHelper.ThrowIfNull(node2);
+        ArgHelper.ThrowIfNull(node3);
+
+        _inner.Add(node1);
+        _inner.Add(node2);
+        _inner.Add(node3);
+    }
+
+    public void AddRange<TNode>(ReadOnlySpan<TNode> nodes)
+        where TNode : IntermediateNode
+    {
+        foreach (var node in nodes)
         {
-            _inner.Add(item);
+            _inner.Add(node);
         }
     }
 
-    public void AddRange(IntermediateNodeCollection items)
-    {
-        if (items == null)
-        {
-            throw new ArgumentNullException(nameof(items));
-        }
+    public void AddRange<TNode>(ImmutableArray<TNode> nodes)
+        where TNode : IntermediateNode
+        => AddRange(nodes.AsSpan());
 
-        var count = items.Count;
-        for (var i = 0; i < count; i++)
+    public void AddRange(IEnumerable<IntermediateNode> nodes)
+    {
+        ArgHelper.ThrowIfNull(nodes);
+
+        foreach (var node in nodes)
         {
-            _inner.Add(items[i]);
+            _inner.Add(node);
+        }
+    }
+
+    public void AddRange(IntermediateNodeCollection nodes)
+    {
+        ArgHelper.ThrowIfNull(nodes);
+
+        foreach (var node in nodes)
+        {
+            _inner.Add(node);
         }
     }
 
