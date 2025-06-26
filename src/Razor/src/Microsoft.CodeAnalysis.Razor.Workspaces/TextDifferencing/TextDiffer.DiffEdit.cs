@@ -14,7 +14,7 @@ internal abstract partial class TextDiffer
         public int? NewTextPosition { get; }
         public int Length { get; }
 
-        private DiffEdit(DiffEditKind kind, int position, int? newTextPosition, int length)
+        public DiffEdit(DiffEditKind kind, int position, int? newTextPosition, int length)
         {
             Kind = kind;
             Position = position;
