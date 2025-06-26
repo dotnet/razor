@@ -229,5 +229,5 @@ internal abstract partial class TextDiffer
     }
 
     private bool SourceEqualUsingOffset(int oldSourceIndex, int newSourceIndex)
-        => SourceEqual(oldSourceIndex + _sourceOffsetA, newSourceIndex + _newSourceOffset);
+        => SourceEqual(oldSourceIndex + _oldSourceOffset, newSourceIndex + _newSourceOffset);
 }
