@@ -4,15 +4,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.IO;
-using System.Linq;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
-using Microsoft.CodeAnalysis.Razor.Logging;
-using WorkspacesSR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -22,11 +18,11 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class IncompatibleProjectService(
-    ILoggerFactory loggerFactory) : IIncompatibleProjectService
+    IIncompatibleProjectNotifier incompatibleProjectNotifier) : IIncompatibleProjectService
 {
     private static readonly ProjectId s_miscFilesProject = ProjectId.CreateNewId();
 
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<IncompatibleProjectService>();
+    private readonly IIncompatibleProjectNotifier _incompatibleProjectNotifier = incompatibleProjectNotifier;
 
     private ImmutableHashSet<ProjectId> _incompatibleProjectIds = [];
 
@@ -34,7 +30,7 @@ internal sealed class IncompatibleProjectService(
     {
         if (ImmutableInterlocked.Update(ref _incompatibleProjectIds, static set => set.Add(s_miscFilesProject)))
         {
-            _logger.Log(LogLevel.Error, $"{WorkspacesSR.FormatIncompatibleProject_MiscFiles(Path.GetFileName(textDocument.FilePath))}");
+            _incompatibleProjectNotifier.NotifyMiscellaneousFile(textDocument);
         }
     }
 
@@ -68,24 +64,16 @@ internal sealed class IncompatibleProjectService(
 
             if (filePathSpan.StartsWith(PathUtilities.GetDirectoryName(project.FilePath.AsSpan()), PathUtilities.OSSpecificPathComparison))
             {
-                ReportNullDocument(project, filePath);
-                return;
+                if (ImmutableInterlocked.Update(ref _incompatibleProjectIds, static (set, id) => set.Add(id), project.Id))
+                {
+                    _incompatibleProjectNotifier.NotifyNullDocument(project, filePath);
+                }
+
+                break;
             }
         }
 
         // If we couldn't find a candidate project, then this could be a misc file or linked file from somewhere, but we'll err on the side of not reporting
         // it. In future we could consider a separate hashset for these, so we report once per file.
-    }
-
-    private void ReportNullDocument(Project project, string filePath)
-    {
-        if (ImmutableInterlocked.Update(ref _incompatibleProjectIds, static (set, id) => set.Add(id), project.Id))
-        {
-            // TODO: In VS, should we abstract these notification out so we can show an info bar?
-            _logger.Log(LogLevel.Error, $"{(
-                project.AdditionalDocuments.Any(d => d.FilePath is not null && d.FilePath.IsRazorFilePath())
-                    ? WorkspacesSR.FormatIncompatibleProject_NotAnAdditionalFile(Path.GetFileName(filePath), project.Name)
-                    : WorkspacesSR.FormatIncompatibleProject_NoAdditionalFiles(Path.GetFileName(filePath), project.Name))}");
-        }
     }
 }
