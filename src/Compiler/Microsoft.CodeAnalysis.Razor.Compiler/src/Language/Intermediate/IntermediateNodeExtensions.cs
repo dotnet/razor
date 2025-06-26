@@ -1,9 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -41,30 +38,38 @@ public static class IntermediateNodeExtensions
         }
     }
 
-    public static IReadOnlyList<TNode> FindDescendantNodes<TNode>(this IntermediateNode node)
+    public static ImmutableArray<TNode> FindDescendantNodes<TNode>(this IntermediateNode node)
         where TNode : IntermediateNode
     {
-        var visitor = new Visitor<TNode>();
-        visitor.Visit(node);
+        using var _ = ArrayBuilderPool<TNode>.GetPooledObject(out var results);
+        Visitor<TNode>.Visit(node, results);
 
-        if (visitor.Results.Count > 0 && visitor.Results[0] == node)
-        {
-            // Don't put the node itself in the results
-            visitor.Results.Remove((TNode)node);
-        }
-
-        return visitor.Results;
+        return results.ToImmutableAndClear();
     }
 
-    private class Visitor<TNode> : IntermediateNodeWalker where TNode : IntermediateNode
+    private sealed class Visitor<TNode> : IntermediateNodeWalker
+        where TNode : IntermediateNode
     {
-        public List<TNode> Results { get; } = new List<TNode>();
+        private readonly IntermediateNode _root;
+        private readonly ImmutableArray<TNode>.Builder _results;
+
+        private Visitor(IntermediateNode root, ImmutableArray<TNode>.Builder results)
+        {
+            _root = root;
+            _results = results;
+        }
+
+        public static void Visit(IntermediateNode root, ImmutableArray<TNode>.Builder results)
+        {
+            var visitor = new Visitor<TNode>(root, results);
+            visitor.Visit(root);
+        }
 
         public override void VisitDefault(IntermediateNode node)
         {
-            if (node is TNode match)
+            if (node is TNode match && !ReferenceEquals(_root, node))
             {
-                Results.Add(match);
+                _results.Add(match);
             }
 
             base.VisitDefault(node);

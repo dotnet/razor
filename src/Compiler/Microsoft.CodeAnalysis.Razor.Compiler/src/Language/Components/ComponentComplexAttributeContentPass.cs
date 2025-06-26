@@ -26,9 +26,9 @@ internal class ComponentComplexAttributeContentPass : ComponentIntermediateNodeP
         }
 
         var nodes = documentNode.FindDescendantNodes<TagHelperIntermediateNode>();
-        for (var i = 0; i < nodes.Count; i++)
+        foreach (var node in nodes)
         {
-            ProcessAttributes(nodes[i]);
+            ProcessAttributes(node);
         }
     }
 

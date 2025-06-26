@@ -246,7 +246,7 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
     private static IReadOnlyList<IntermediateToken> GetAttributeContent(IntermediateNode node)
     {
         var nodes = node.FindDescendantNodes<TemplateIntermediateNode>();
-        var template = nodes.Count > 0 ? nodes[0] : default;
+        var template = nodes.Length > 0 ? nodes[0] : default;
         if (template != null)
         {
             // See comments in TemplateDiagnosticPass
