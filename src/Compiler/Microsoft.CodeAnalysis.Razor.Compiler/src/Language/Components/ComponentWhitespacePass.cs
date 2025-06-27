@@ -81,9 +81,9 @@ internal class ComponentWhitespacePass : ComponentIntermediateNodePassBase, IRaz
         // If there's no @preservewhitespace attribute, the default is that we *don't* preserve whitespace
         var shouldPreserveWhitespace = false;
 
-        foreach (var preserveWhitespaceDirective in documentNode.FindDirectiveReferences(ComponentPreserveWhitespaceDirective.Directive))
+        foreach (var (_, preserveWhitespaceDirective) in documentNode.FindDirectiveReferences(ComponentPreserveWhitespaceDirective.Directive))
         {
-            var token = ((DirectiveIntermediateNode)preserveWhitespaceDirective.Node).Tokens.FirstOrDefault();
+            var token = preserveWhitespaceDirective.Tokens.FirstOrDefault();
             var shouldPreserveWhitespaceContent = token?.Content;
             if (shouldPreserveWhitespaceContent != null)
             {

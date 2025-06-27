@@ -29,18 +29,17 @@ internal class ComponentPageDirectivePass : IntermediateNodePassBase, IRazorDire
         }
 
         var directives = documentNode.FindDirectiveReferences(ComponentPageDirective.Directive);
-        if (directives.Count == 0)
+        if (directives.Length == 0)
         {
             return;
         }
 
         // We don't allow @page directives in imports
-        for (var i = 0; i < directives.Count; i++)
+        foreach (var (_, pageDirective) in directives)
         {
-            var directive = directives[i];
-            if (codeDocument.FileKind.IsComponentImport() || directive.Node.IsImported)
+            if (codeDocument.FileKind.IsComponentImport() || pageDirective.IsImported)
             {
-                directive.Node.AddDiagnostic(ComponentDiagnosticFactory.CreatePageDirective_CannotBeImported(directive.Node.Source.GetValueOrDefault()));
+                pageDirective.AddDiagnostic(ComponentDiagnosticFactory.CreatePageDirective_CannotBeImported(pageDirective.Source.GetValueOrDefault()));
             }
         }
 
@@ -54,10 +53,8 @@ internal class ComponentPageDirectivePass : IntermediateNodePassBase, IRazorDire
             }
         }
 
-        for (var i = 0; i < directives.Count; i++)
+        foreach (var (_, pageDirective) in directives)
         {
-            var pageDirective = (DirectiveIntermediateNode)directives[i].Node;
-
             // The parser also adds errors for invalid syntax, we just need to not crash.
             var routeToken = pageDirective.Tokens.First();
 

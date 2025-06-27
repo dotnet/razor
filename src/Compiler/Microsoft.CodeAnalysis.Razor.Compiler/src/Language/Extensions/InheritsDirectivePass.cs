@@ -16,9 +16,9 @@ public sealed class InheritsDirectivePass : IntermediateNodePassBase, IRazorDire
             return;
         }
 
-        foreach (var inherits in documentNode.FindDirectiveReferences(InheritsDirective.Directive))
+        foreach (var (_, inherits) in documentNode.FindDirectiveReferences(InheritsDirective.Directive))
         {
-            var token = ((DirectiveIntermediateNode)inherits.Node).Tokens.FirstOrDefault();
+            var token = inherits.Tokens.FirstOrDefault();
             if (token != null)
             {
                 var source = codeDocument.ParserOptions.DesignTime ? null : token.Source;

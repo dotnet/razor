@@ -22,15 +22,15 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
         }
 
         var directives = documentNode.FindDirectiveReferences(ComponentRenderModeDirective.Directive);
-        if (directives.Count == 0)
+        if (directives.Length == 0)
         {
             return;
         }
 
         // We don't need to worry about duplicate attributes as we have already replaced any multiples with MalformedDirective
-        Debug.Assert(directives.Count == 1);
+        Debug.Assert(directives.Length == 1);
 
-        var child = ((DirectiveIntermediateNode)directives[0].Node).Children.FirstOrDefault();
+        var child = directives[0].Node.Children.FirstOrDefault();
         if (child == null)
         {
             return;
