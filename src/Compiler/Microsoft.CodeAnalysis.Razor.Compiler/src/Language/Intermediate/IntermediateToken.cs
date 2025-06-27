@@ -1,33 +1,29 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
-using System;
-
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
-public class IntermediateToken : IntermediateNode
+public abstract class IntermediateToken : IntermediateNode
 {
-    public override IntermediateNodeCollection Children => IntermediateNodeCollection.ReadOnly;
+    public TokenKind Kind { get; }
+    public virtual string? Content { get; set; }
 
-    public virtual string Content { get; set; }
+    public bool HasContent => Content is not null;
 
     public bool IsCSharp => Kind == TokenKind.CSharp;
-
     public bool IsHtml => Kind == TokenKind.Html;
 
-    public TokenKind Kind { get; set; } = TokenKind.Unknown;
+    public override IntermediateNodeCollection Children => IntermediateNodeCollection.ReadOnly;
 
-    public static IntermediateToken CreateCSharpToken(string content, SourceSpan? location = null) => new IntermediateToken() { Content = content, Kind = TokenKind.CSharp, Source = location };
+    protected IntermediateToken(TokenKind kind, string? content, SourceSpan? span)
+    {
+        Kind = kind;
+        Content = content;
+        Source = span;
+    }
 
     public override void Accept(IntermediateNodeVisitor visitor)
     {
-        if (visitor == null)
-        {
-            throw new ArgumentNullException(nameof(visitor));
-        }
-
         visitor.VisitToken(this);
     }
 
