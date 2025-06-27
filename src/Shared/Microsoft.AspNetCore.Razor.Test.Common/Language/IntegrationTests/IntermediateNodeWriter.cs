@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -24,14 +23,6 @@ public class IntermediateNodeWriter :
     IExtensionIntermediateNodeVisitor<RouteAttributeExtensionNode>
 
 {
-    private static readonly FrozenDictionary<string, string> s_typeNameToShortNameMap = new Dictionary<string, string>(StringComparer.Ordinal)
-    {
-        [nameof(CSharpIntermediateToken)] = "IntermediateToken",
-        [nameof(LazyCSharpIntermediateToken)] = "LazyIntermediateToken",
-        [nameof(HtmlIntermediateToken)] = "IntermediateToken",
-        [nameof(LazyHtmlIntermediateToken)] = "LazyIntermediateToken"
-    }.ToFrozenDictionary();
-
     private readonly TextWriter _writer;
 
     public IntermediateNodeWriter(TextWriter writer)
@@ -293,14 +284,14 @@ public class IntermediateNodeWriter :
     protected void WriteName(IntermediateNode node)
     {
         var typeName = node.GetType().Name;
-        if (s_typeNameToShortNameMap.TryGetValue(typeName, out var shortName))
-        {
-            _writer.Write(shortName);
-            return;
-        }
-        else if (typeName.EndsWith("IntermediateNode", StringComparison.Ordinal))
+
+        if (typeName.EndsWith("IntermediateNode", StringComparison.Ordinal))
         {
             _writer.Write(typeName[..^"IntermediateNode".Length]);
+        }
+        else if (node is IntermediateToken token)
+        {
+            _writer.Write(token.IsLazy ? "LazyIntermediateToken" : "IntermediateToken");
         }
         else
         {
