@@ -7,17 +7,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 internal static class NodeFactory
 {
-    public static IntermediateToken CSharpToken(string content, SourceSpan? span = null)
-        => new CSharpIntermediateToken(content, span);
+    public static CSharpIntermediateToken CSharpToken(string content, SourceSpan? span = null)
+        => new(content, span);
 
-    public static LazyIntermediateToken LazyCSharpToken(
-        object factoryArgument, Func<object, string> contentFactory, SourceSpan? span = null)
-        => new LazyCSharpIntermediateToken(factoryArgument, contentFactory, span);
+    public static CSharpIntermediateToken LazyCSharpToken<T>(
+        Func<T, string> contentCreator, T arg, SourceSpan? span = null)
+        => new(LazyContent.Create(contentCreator, arg), span);
 
-    public static IntermediateToken HtmlToken(string content, SourceSpan? span = null)
-        => new HtmlIntermediateToken(content, span);
+    public static HtmlIntermediateToken HtmlToken(string content, SourceSpan? span = null)
+        => new(content, span);
 
-    public static LazyIntermediateToken LazyHtmlToken(
-        object factoryArgument, Func<object, string> contentFactory, SourceSpan? span = null)
-        => new LazyHtmlIntermediateToken(factoryArgument, contentFactory, span);
+    public static HtmlIntermediateToken LazyHtmlToken<T>(
+        Func<T, string> contentCreater, T arg, SourceSpan? span = null)
+        => new(LazyContent.Create(contentCreater, arg), span);
 }

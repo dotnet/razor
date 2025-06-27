@@ -3,7 +3,15 @@
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
-internal sealed class CSharpIntermediateToken(string? content, SourceSpan? span = null)
-    : IntermediateToken(TokenKind.CSharp, content, span)
+internal sealed class CSharpIntermediateToken : IntermediateToken
 {
+    public CSharpIntermediateToken(string content, SourceSpan? span = null)
+        : base(TokenKind.CSharp, content, span)
+    {
+    }
+
+    public CSharpIntermediateToken(LazyContent lazyContent, SourceSpan? span = null)
+        : base(TokenKind.CSharp, lazyContent, span)
+    {
+    }
 }

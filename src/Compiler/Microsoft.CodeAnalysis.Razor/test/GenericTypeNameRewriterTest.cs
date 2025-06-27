@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Xunit;
@@ -70,11 +68,11 @@ public class GenericTypeNameRewriterTest
     {
         // Arrange
         var visitor = new GenericTypeNameRewriter(new Dictionary<string, ComponentTypeArgumentIntermediateNode>()
-            {
-                { "TItem1", new ComponentTypeArgumentIntermediateNode(new() { Children = { NodeFactory.CSharpToken("Type1") } })},
-                { "TItem2", new ComponentTypeArgumentIntermediateNode(new() { Children = { NodeFactory.CSharpToken("Type2") } })},
-                { "TItem3", new ComponentTypeArgumentIntermediateNode(new() { Children = { NodeFactory.CSharpToken(null) } })},
-            });
+        {
+            { "TItem1", new ComponentTypeArgumentIntermediateNode(new() { Children = { NodeFactory.CSharpToken("Type1") } })},
+            { "TItem2", new ComponentTypeArgumentIntermediateNode(new() { Children = { NodeFactory.CSharpToken("Type2") } })},
+            { "TItem3", new ComponentTypeArgumentIntermediateNode(new() { Children = { NodeFactory.CSharpToken("Type3") } }) { Value = null } },
+        });
 
         // Act
         var actual = visitor.Rewrite(original);
