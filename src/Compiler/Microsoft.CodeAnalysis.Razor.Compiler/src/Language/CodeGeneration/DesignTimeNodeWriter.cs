@@ -60,7 +60,7 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
 
                 for (var i = 0; i < node.Children.Count; i++)
                 {
-                    if (node.Children[i] is IntermediateToken token && token.IsCSharp)
+                    if (node.Children[i] is CSharpIntermediateToken token)
                     {
                         context.AddSourceMappingFor(token);
                         context.CodeWriter.Write(token.Content);
@@ -80,7 +80,7 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
             context.CodeWriter.WriteStartAssignment(DesignTimeDirectivePass.DesignTimeVariable);
             for (var i = 0; i < node.Children.Count; i++)
             {
-                if (node.Children[i] is IntermediateToken token && token.IsCSharp)
+                if (node.Children[i] is CSharpIntermediateToken token)
                 {
                     context.CodeWriter.Write(token.Content);
                 }
@@ -106,7 +106,7 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
 
         for (var i = 0; i < node.Children.Count; i++)
         {
-            if (node.Children[i] is IntermediateToken token && token.IsCSharp)
+            if (node.Children[i] is CSharpIntermediateToken token)
             {
                 context.AddSourceMappingFor(token);
                 context.CodeWriter.Write(token.Content);
@@ -166,7 +166,7 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
 
                 for (var i = 0; i < node.Children.Count; i++)
                 {
-                    if (node.Children[i] is IntermediateToken token && token.IsCSharp)
+                    if (node.Children[i] is CSharpIntermediateToken token)
                     {
                         context.AddSourceMappingFor(token);
                         context.CodeWriter.Write(token.Content);
@@ -186,7 +186,7 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
             context.CodeWriter.WriteStartAssignment(DesignTimeDirectivePass.DesignTimeVariable);
             for (var i = 0; i < node.Children.Count; i++)
             {
-                if (node.Children[i] is IntermediateToken token && token.IsCSharp)
+                if (node.Children[i] is CSharpIntermediateToken token)
                 {
                     if (token.Source != null)
                     {
@@ -209,7 +209,7 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
     {
         for (var i = 0; i < node.Children.Count; i++)
         {
-            if (node.Children[i] is IntermediateToken token && token.IsCSharp)
+            if (node.Children[i] is CSharpIntermediateToken token)
             {
                 IDisposable linePragmaScope = null;
                 var isWhitespaceStatement = string.IsNullOrWhiteSpace(token.Content);

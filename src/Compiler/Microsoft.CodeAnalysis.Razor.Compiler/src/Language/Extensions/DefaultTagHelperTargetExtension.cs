@@ -7,7 +7,6 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -347,7 +346,7 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
                 context.CodeWriter.WriteStartAssignment(GetPropertyAccessor(node));
                 if (node.Children.Count == 1 && node.Children.First() is HtmlContentIntermediateNode htmlNode)
                 {
-                    var content = GetContent(htmlNode);
+                    var content = htmlNode.GetContent();
                     context.CodeWriter.WriteStringLiteral(content);
                 }
                 else
@@ -382,9 +381,7 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
                     var accessor = GetPropertyAccessor(node);
                     var assignmentPrefixLength = accessor.Length + " = ".Length;
                     if (node.BoundAttribute.IsEnum &&
-                        node.Children.Count == 1 &&
-                        node.Children.First() is IntermediateToken token &&
-                        token.IsCSharp)
+                        node.Children is [CSharpIntermediateToken token])
                     {
                         assignmentPrefixLength += $"global::{node.BoundAttribute.TypeName}.".Length;
 
@@ -429,9 +426,7 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
                 context.CodeWriter.WriteStartAssignment(GetPropertyAccessor(node));
 
                 if (node.BoundAttribute.IsEnum &&
-                    node.Children.Count == 1 &&
-                    node.Children.First() is IntermediateToken token &&
-                    token.IsCSharp)
+                    node.Children is [CSharpIntermediateToken token])
                 {
                     context.CodeWriter
                         .Write("global::")
@@ -627,20 +622,6 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
 
         // This is unreachable, we should find 'propertyNode' in the list of children.
         throw new InvalidOperationException();
-    }
-
-    private string GetContent(HtmlContentIntermediateNode node)
-    {
-        var builder = new StringBuilder();
-        for (var i = 0; i < node.Children.Count; i++)
-        {
-            if (node.Children[i] is IntermediateToken token && token.IsHtml)
-            {
-                builder.Append(token.Content);
-            }
-        }
-
-        return builder.ToString();
     }
 
     // Internal for testing

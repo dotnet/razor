@@ -29,20 +29,20 @@ internal class ViewCssScopePass : IntermediateNodePassBase, IRazorOptimizationPa
 
         var scopeWithSeparator = " " + cssScope;
         var nodes = documentNode.FindDescendantNodes<HtmlContentIntermediateNode>();
-        IntermediateToken previousTokenOpt = null;
+        HtmlIntermediateToken previousTokenOpt = null;
+
         foreach (var node in nodes)
         {
             ProcessElement(node, scopeWithSeparator, ref previousTokenOpt);
         }
     }
 
-    private void ProcessElement(HtmlContentIntermediateNode node, string cssScope, ref IntermediateToken previousTokenOpt)
+    private void ProcessElement(HtmlContentIntermediateNode node, string cssScope, ref HtmlIntermediateToken previousTokenOpt)
     {
         // Add a minimized attribute whose name is simply the CSS scope
         for (var i = 0; i < node.Children.Count; i++)
         {
-            var child = node.Children[i];
-            if (child is IntermediateToken token && token.IsHtml)
+            if (node.Children[i] is HtmlIntermediateToken token)
             {
                 if (IsValidElement(token, previousTokenOpt))
                 {
@@ -54,7 +54,7 @@ internal class ViewCssScopePass : IntermediateNodePassBase, IRazorOptimizationPa
             }
         }
 
-        static bool IsValidElement(IntermediateToken token, IntermediateToken previousTokenOpt)
+        static bool IsValidElement(HtmlIntermediateToken token, IntermediateToken previousTokenOpt)
         {
             var content = token.Content.AsSpan();
 

@@ -5,7 +5,6 @@
 
 using System;
 using System.Linq;
-using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -54,7 +53,7 @@ internal class PreallocatedTagHelperAttributeOptimizationPass : IntermediateNode
             }
 
             var htmlContentNode = node.Children.First() as HtmlContentIntermediateNode;
-            var plainTextValue = GetContent(htmlContentNode);
+            var plainTextValue = htmlContentNode.GetContent();
 
             PreallocatedTagHelperHtmlAttributeValueIntermediateNode declaration = null;
 
@@ -107,7 +106,7 @@ internal class PreallocatedTagHelperAttributeOptimizationPass : IntermediateNode
             }
 
             var htmlContentNode = node.Children.First() as HtmlContentIntermediateNode;
-            var plainTextValue = GetContent(htmlContentNode);
+            var plainTextValue = htmlContentNode.GetContent();
 
             PreallocatedTagHelperPropertyValueIntermediateNode declaration = null;
 
@@ -148,20 +147,6 @@ internal class PreallocatedTagHelperAttributeOptimizationPass : IntermediateNode
 
             var nodeIndex = Parent.Children.IndexOf(node);
             Parent.Children[nodeIndex] = setPreallocatedProperty;
-        }
-
-        private string GetContent(HtmlContentIntermediateNode node)
-        {
-            var builder = new StringBuilder();
-            for (var i = 0; i < node.Children.Count; i++)
-            {
-                if (node.Children[i] is IntermediateToken token && token.IsHtml)
-                {
-                    builder.Append(token.Content);
-                }
-            }
-
-            return builder.ToString();
         }
     }
 }

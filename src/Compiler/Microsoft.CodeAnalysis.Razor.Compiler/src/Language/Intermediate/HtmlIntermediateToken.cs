@@ -3,14 +3,14 @@
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
-internal sealed class HtmlIntermediateToken : IntermediateToken
+public sealed class HtmlIntermediateToken : IntermediateToken
 {
-    public HtmlIntermediateToken(string content, SourceSpan? span = null)
+    internal HtmlIntermediateToken(string content, SourceSpan? span = null)
         : base(TokenKind.Html, content, span)
     {
     }
 
-    public HtmlIntermediateToken(LazyContent lazyContent, SourceSpan? span = null)
+    internal HtmlIntermediateToken(LazyContent lazyContent, SourceSpan? span = null)
         : base(TokenKind.Html, lazyContent, span)
     {
     }
