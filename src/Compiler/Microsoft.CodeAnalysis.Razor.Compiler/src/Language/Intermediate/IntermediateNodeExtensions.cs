@@ -8,6 +8,21 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 public static class IntermediateNodeExtensions
 {
+    public static string GetContent(this HtmlContentIntermediateNode node)
+    {
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+
+        foreach (var child in node.Children)
+        {
+            if (child is HtmlIntermediateToken token)
+            {
+                builder.Append(token.Content);
+            }
+        }
+
+        return builder.ToString();
+    }
+
     public static ImmutableArray<RazorDiagnostic> GetAllDiagnostics(this IntermediateNode node)
     {
         ArgHelper.ThrowIfNull(node);
