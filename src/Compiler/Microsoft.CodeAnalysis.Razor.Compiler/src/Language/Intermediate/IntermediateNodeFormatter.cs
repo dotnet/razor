@@ -48,13 +48,18 @@ public sealed class IntermediateNodeFormatter(
 
         static string ComputeShortName(Type type)
         {
-            const string ShortNameSuffix = nameof(IntermediateNode);
+            const string NodeSuffix = nameof(IntermediateNode);
+            const string TokenSuffix = nameof(IntermediateToken);
 
             var shortName = type.Name;
 
-            if (shortName.EndsWith(ShortNameSuffix, StringComparison.Ordinal))
+            if (shortName.EndsWith(NodeSuffix, StringComparison.Ordinal))
             {
-                shortName = shortName[..^ShortNameSuffix.Length];
+                shortName = shortName[..^NodeSuffix.Length];
+            }
+            else if (shortName.EndsWith(TokenSuffix, StringComparison.Ordinal))
+            {
+                shortName = shortName[..^TokenSuffix.Length] + "Token";
             }
 
             return shortName;
