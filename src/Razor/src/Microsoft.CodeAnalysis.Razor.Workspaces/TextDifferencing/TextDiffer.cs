@@ -54,9 +54,7 @@ internal abstract partial class TextDiffer
         // Update the resultant edits with the appropriate offsets
         for (var i = 0; i < edits.Count; i++)
         {
-            var edit = edits[i];
-
-            edits[i] = new DiffEdit(edit.Kind, _oldSourceOffset + edit.Position, _newSourceOffset + edit.NewTextPosition, edit.Length);
+            edits[i] = edits[i].Offset(_oldSourceOffset, _newSourceOffset);
         }
 
         return edits;
