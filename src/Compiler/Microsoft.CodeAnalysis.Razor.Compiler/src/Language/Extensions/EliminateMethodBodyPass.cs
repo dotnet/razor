@@ -44,26 +44,14 @@ internal sealed class EliminateMethodBodyPass : IntermediateNodePassBase, IRazor
             Children =
                 {
                     // Field is assigned but never used
-                    new IntermediateToken()
-                    {
-                        Content = "#pragma warning disable 0414" + Environment.NewLine,
-                        Kind = TokenKind.CSharp,
-                    },
+                    NodeFactory.CSharpToken("#pragma warning disable 0414" + Environment.NewLine),
 
                     // Field is never assigned
-                    new IntermediateToken()
-                    {
-                        Content = "#pragma warning disable 0649" + Environment.NewLine,
-                        Kind = TokenKind.CSharp,
-                    },
+                    NodeFactory.CSharpToken("#pragma warning disable 0649" + Environment.NewLine),
 
                     // Field is never used
-                    new IntermediateToken()
-                    {
-                        Content = "#pragma warning disable 0169" + Environment.NewLine,
-                        Kind = TokenKind.CSharp,
-                    },
-                },
+                    NodeFactory.CSharpToken("#pragma warning disable 0169" + Environment.NewLine)
+            },
         });
     }
 }

@@ -11,10 +11,10 @@ public sealed class BaseTypeWithModel
     {
         if (baseType.EndsWith(ModelGenericParameter, System.StringComparison.Ordinal))
         {
-            BaseType = IntermediateToken.CreateCSharpToken(baseType[0..^ModelGenericParameter.Length]);
-            GreaterThan = IntermediateToken.CreateCSharpToken("<");
-            ModelType = IntermediateToken.CreateCSharpToken("TModel");
-            LessThan = IntermediateToken.CreateCSharpToken(">");
+            BaseType = NodeFactory.CSharpToken(baseType[0..^ModelGenericParameter.Length]);
+            GreaterThan = NodeFactory.CSharpToken("<");
+            ModelType = NodeFactory.CSharpToken("TModel");
+            LessThan = NodeFactory.CSharpToken(">");
 
             if (location.HasValue)
             {
@@ -27,7 +27,7 @@ public sealed class BaseTypeWithModel
         }
         else
         {
-            BaseType = IntermediateToken.CreateCSharpToken(baseType, location);  
+            BaseType = NodeFactory.CSharpToken(baseType, location);  
         }
     }
 

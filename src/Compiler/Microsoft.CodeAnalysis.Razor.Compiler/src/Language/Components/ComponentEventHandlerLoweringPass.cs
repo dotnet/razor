@@ -178,23 +178,14 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
         tokens.SetCapacityIfLarger(original.Count + 2);
 
         tokens.Add(
-            new IntermediateToken()
-            {
-                Content = $"global::{ComponentsApi.EventCallback.FactoryAccessor}.{ComponentsApi.EventCallbackFactory.CreateMethod}<{TypeNameHelper.GetGloballyQualifiedNameIfNeeded(eventArgsType)}>(this, ",
-                Kind = TokenKind.CSharp
-            });
+            NodeFactory.CSharpToken($"global::{ComponentsApi.EventCallback.FactoryAccessor}.{ComponentsApi.EventCallbackFactory.CreateMethod}<{TypeNameHelper.GetGloballyQualifiedNameIfNeeded(eventArgsType)}>(this, "));
 
         for (var i = 0; i < original.Count; i++)
         {
             tokens.Add(original[i]);
         }
 
-        tokens.Add(
-            new IntermediateToken()
-            {
-                Content = $")",
-                Kind = TokenKind.CSharp
-            });
+        tokens.Add(NodeFactory.CSharpToken(")"));
 
         var attributeName = node.AttributeName;
 
@@ -251,7 +242,7 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
         {
             // See comments in TemplateDiagnosticPass
             node.AddDiagnostic(ComponentDiagnosticFactory.Create_TemplateInvalidLocation(template.Source));
-            return new[] { new IntermediateToken() { Kind = TokenKind.CSharp, Content = string.Empty, }, };
+            return [NodeFactory.CSharpToken(string.Empty)];
         }
 
         if (node.Children.Count == 1 && node.Children[0] is HtmlContentIntermediateNode htmlContentNode)
@@ -261,7 +252,7 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
             var tokens = htmlContentNode.FindDescendantNodes<IntermediateToken>();
 
             var content = "\"" + string.Join(string.Empty, tokens.Select(t => t.Content.Replace("\"", "\\\""))) + "\"";
-            return new[] { new IntermediateToken() { Content = content, Kind = TokenKind.CSharp, } };
+            return [NodeFactory.CSharpToken(content)];
         }
         else
         {

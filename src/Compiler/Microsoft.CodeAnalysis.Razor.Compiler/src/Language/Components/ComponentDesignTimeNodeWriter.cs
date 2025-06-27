@@ -1175,11 +1175,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 Children =
                     {
                         node.IdentifierToken,
-                        new IntermediateToken
-                        {
-                            Kind = TokenKind.CSharp,
-                            Content = $" = default({captureTypeName}){nullSuppression};"
-                        }
+                        NodeFactory.CSharpToken($" = default({captureTypeName}){nullSuppression};")
                     }
             });
         }
@@ -1199,11 +1195,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                     Children =
                         {
                             node.IdentifierToken,
-                            new IntermediateToken
-                            {
-                                Kind = TokenKind.CSharp,
-                                Content = $" = {refCaptureParamName};"
-                            }
+                            NodeFactory.CSharpToken($" = {refCaptureParamName};")
                         }
                 });
             }
@@ -1218,21 +1210,13 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         {
             Children =
             {
-                new IntermediateToken
-                {
-                    Kind = TokenKind.CSharp,
-                    Content = $"{DesignTimeVariable} = (global::{ComponentsApi.IComponentRenderMode.FullTypeName})(" 
-                },
+                NodeFactory.CSharpToken($"{DesignTimeVariable} = (global::{ComponentsApi.IComponentRenderMode.FullTypeName})("),
                 new CSharpCodeIntermediateNode
                 {
                     Source = node.Source,
                     Children = { node.Children[0] }
                 },
-                new IntermediateToken
-                {
-                    Kind = TokenKind.CSharp,
-                    Content = ");"
-                }
+                NodeFactory.CSharpToken(");")
             }
         });
     }

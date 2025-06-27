@@ -67,11 +67,7 @@ public class AssemblyAttributeInjectionPass : IntermediateNodePassBase, IRazorOp
         Debug.Assert(index >= 0);
 
         var pageAttribute = new CSharpCodeIntermediateNode();
-        pageAttribute.Children.Add(new IntermediateToken()
-        {
-            Kind = TokenKind.CSharp,
-            Content = attribute,
-        });
+        pageAttribute.Children.Add(NodeFactory.CSharpToken(attribute));
 
         documentNode.Children.Insert(index, pageAttribute);
     }
