@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -11,35 +9,14 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 public static class DocumentIntermediateNodeExtensions
 {
-    public static ClassDeclarationIntermediateNode FindPrimaryClass(this DocumentIntermediateNode node)
-    {
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
+    public static ClassDeclarationIntermediateNode? FindPrimaryClass(this DocumentIntermediateNode document)
+        => FindNode<ClassDeclarationIntermediateNode>(document, static n => n.IsPrimaryClass);
 
-        return FindNode<ClassDeclarationIntermediateNode>(node, static n => n.IsPrimaryClass);
-    }
+    public static MethodDeclarationIntermediateNode? FindPrimaryMethod(this DocumentIntermediateNode document)
+        => FindNode<MethodDeclarationIntermediateNode>(document, static n => n.IsPrimaryMethod);
 
-    public static MethodDeclarationIntermediateNode FindPrimaryMethod(this DocumentIntermediateNode node)
-    {
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
-        return FindNode<MethodDeclarationIntermediateNode>(node, static n => n.IsPrimaryMethod);
-    }
-
-    public static NamespaceDeclarationIntermediateNode FindPrimaryNamespace(this DocumentIntermediateNode node)
-    {
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
-        return FindNode<NamespaceDeclarationIntermediateNode>(node, static n => n.IsPrimaryNamespace);
-    }
+    public static NamespaceDeclarationIntermediateNode? FindPrimaryNamespace(this DocumentIntermediateNode document)
+        => FindNode<NamespaceDeclarationIntermediateNode>(document, static n => n.IsPrimaryNamespace);
 
     public static ImmutableArray<IntermediateNodeReference<DirectiveIntermediateNode>> FindDirectiveReferences(
         this DocumentIntermediateNode document, DirectiveDescriptor directive)
@@ -59,7 +36,7 @@ public static class DocumentIntermediateNodeExtensions
         return results.ToImmutableAndClear();
     }
 
-    private static T FindNode<T>(IntermediateNode node, Func<T, bool> predicate)
+    private static T? FindNode<T>(IntermediateNode node, Func<T, bool> predicate)
         where T : IntermediateNode
     {
         if (node is T target && predicate(target))
@@ -69,7 +46,7 @@ public static class DocumentIntermediateNodeExtensions
 
         foreach (var child in node.Children)
         {
-            var result = FindNode<T>(child, predicate);
+            var result = FindNode(child, predicate);
 
             if (result != null)
             {
@@ -106,7 +83,8 @@ public static class DocumentIntermediateNodeExtensions
         {
             if (_directive == node.Directive)
             {
-                _results.Add(new(Parent, node));
+                // Because we start visiting from a DocumentIntermediateNode, we know Parent isn't null here.
+                _results.Add(new(Parent!, node));
             }
 
             base.VisitDirective(node);
@@ -141,7 +119,8 @@ public static class DocumentIntermediateNodeExtensions
             // This ensures that we always operate on the leaf nodes first.
             if (node is TNode resultNode)
             {
-                _results.Add(new(Parent, resultNode));
+                // Because we start visiting from a DocumentIntermediateNode, we know Parent isn't null here.
+                _results.Add(new(Parent!, resultNode));
             }
         }
     }
