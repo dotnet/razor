@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
@@ -27,7 +27,8 @@ internal sealed class ProjectCapabilityResolver : IProjectCapabilityResolver, ID
     private readonly JoinableTaskFactory _jtf;
     private readonly CancellationTokenSource _disposeTokenSource;
 
-    private ImmutableDictionary<(string, string), bool> _cachedCapabilities = ImmutableDictionary<(string, string), bool>.Empty;
+    private readonly Dictionary<(string ProjectFilePath, string Capability), bool> _cachedCapabilities = [];
+    private readonly object _gate = new();
 
     [ImportingConstructor]
     public ProjectCapabilityResolver(
@@ -130,7 +131,10 @@ internal sealed class ProjectCapabilityResolver : IProjectCapabilityResolver, ID
 
             if (vsHierarchy.GetProjectFilePath(_jtf) is { } projectFilePath)
             {
-                _cachedCapabilities = _cachedCapabilities.SetItem((projectFilePath, capability), isMatch);
+                lock (_gate)
+                {
+                    _cachedCapabilities[(projectFilePath, capability)] = isMatch;
+                }
             }
         }
         catch (NotSupportedException)
@@ -148,6 +152,9 @@ internal sealed class ProjectCapabilityResolver : IProjectCapabilityResolver, ID
 
     public bool TryGetCachedCapabilityMatch(string projectFilePath, string capability, out bool isMatch)
     {
-        return _cachedCapabilities.TryGetValue((projectFilePath, capability), out isMatch);
+        lock (_gate)
+        {
+            return _cachedCapabilities.TryGetValue((projectFilePath, capability), out isMatch);
+        }
     }
 }
