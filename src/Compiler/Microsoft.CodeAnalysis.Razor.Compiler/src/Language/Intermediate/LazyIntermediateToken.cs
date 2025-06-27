@@ -1,25 +1,29 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
-internal class LazyIntermediateToken : IntermediateToken
+internal abstract class LazyIntermediateToken(
+    TokenKind kind,
+    object factoryArgumnet,
+    Func<object, string> contentFactory, SourceSpan? span)
+    : IntermediateToken(kind, content: null, span)
 {
-    public object FactoryArgument { get; set; }
-    public Func<object, string> ContentFactory { get; set; }
+    private object _factoryArgument = factoryArgumnet;
+    private Func<object, string> _contentFactory = contentFactory;
 
-    public override string Content
+    public override string? Content
     {
         get
         {
-            if (base.Content == null && ContentFactory != null)
+            if (base.Content == null && _contentFactory != null)
             {
-                Content = ContentFactory(FactoryArgument);
-                ContentFactory = null;
+                Content = _contentFactory(_factoryArgument);
+
+                _factoryArgument = null!;
+                _contentFactory = null!;
             }
 
             return base.Content;

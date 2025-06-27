@@ -69,9 +69,9 @@ public sealed class IntermediateNodeFormatter(
 
         foreach (var child in children)
         {
-            if (child is IntermediateToken token)
+            if (child is IntermediateToken { Content: string content })
             {
-                WriteEscaped(token.Content);
+                WriteEscaped(content);
             }
         }
 
