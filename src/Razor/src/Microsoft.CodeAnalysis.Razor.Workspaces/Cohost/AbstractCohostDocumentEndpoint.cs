@@ -17,7 +17,7 @@ internal abstract class AbstractCohostDocumentEndpoint<TRequest, TResponse>(
     {
         if (context.TextDocument is null)
         {
-            _incompatibleProjectService.HandleNullDocument(GetRazorTextDocumentIdentifier(request), context);
+            _incompatibleProjectService.HandleMissingDocument(GetRazorTextDocumentIdentifier(request), context);
 
             return SpecializedTasks.Default<TResponse>();
         }
@@ -27,7 +27,7 @@ internal abstract class AbstractCohostDocumentEndpoint<TRequest, TResponse>(
             // If the project file path is null, we can't compute the hint name, so we can't handle the request.
             // This is likely a file in the misc files project, which we don't support yet anyway.
             // TODO: Expose context.TextDocument.Project.Solution.WorkspaceKind through our EA to confirm?
-            _incompatibleProjectService.HandleMiscellaneousFile(context.TextDocument);
+            _incompatibleProjectService.HandleMiscFilesDocument(context.TextDocument);
             return SpecializedTasks.Default<TResponse>();
         }
 

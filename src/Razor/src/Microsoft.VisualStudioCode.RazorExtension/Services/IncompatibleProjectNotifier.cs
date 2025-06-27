@@ -16,17 +16,16 @@ namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 
 [Export(typeof(IIncompatibleProjectNotifier))]
 [method: ImportingConstructor]
-internal sealed class IncompatibleProjectNotifier(
-    ILoggerFactory loggerFactory) : IIncompatibleProjectNotifier
+internal sealed class IncompatibleProjectNotifier(ILoggerFactory loggerFactory) : IIncompatibleProjectNotifier
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<IncompatibleProjectNotifier>();
 
-    public void NotifyMiscellaneousFile(TextDocument textDocument)
+    public void NotifyMiscFilesDocument(TextDocument textDocument)
     {
         _logger.Log(LogLevel.Error, $"{WorkspacesSR.FormatIncompatibleProject_MiscFiles(Path.GetFileName(textDocument.FilePath))}");
     }
 
-    public void NotifyNullDocument(Project project, string filePath)
+    public void NotifyMissingDocument(Project project, string filePath)
     {
         _logger.Log(LogLevel.Error, $"{(
             project.AdditionalDocuments.Any(d => d.FilePath is not null && d.FilePath.IsRazorFilePath())

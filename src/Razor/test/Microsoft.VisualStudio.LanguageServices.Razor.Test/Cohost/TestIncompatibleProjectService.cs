@@ -10,12 +10,12 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 internal class TestIncompatibleProjectService() : IIncompatibleProjectService
 {
-    public void HandleMiscellaneousFile(TextDocument textDocument)
+    public void HandleMiscFilesDocument(TextDocument textDocument)
     {
         Assert.Fail($"Incorrect test setup? No FilePath for the project that {textDocument.Id} is in");
     }
 
-    public void HandleNullDocument(RazorTextDocumentIdentifier? textDocumentIdentifier, RazorCohostRequestContext context)
+    public void HandleMissingDocument(RazorTextDocumentIdentifier? textDocumentIdentifier, RazorCohostRequestContext context)
     {
         Assert.Fail($"Incorrect test setup? No TextDocument for {textDocumentIdentifier} was found");
     }

@@ -14,8 +14,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 [Export(typeof(IIncompatibleProjectService))]
 [method: ImportingConstructor]
-internal sealed class IncompatibleProjectService(
-    IIncompatibleProjectNotifier incompatibleProjectNotifier) : IIncompatibleProjectService
+internal sealed class IncompatibleProjectService(IIncompatibleProjectNotifier incompatibleProjectNotifier) : IIncompatibleProjectService
 {
     private static readonly ProjectId s_miscFilesProject = ProjectId.CreateNewId();
 
@@ -23,15 +22,15 @@ internal sealed class IncompatibleProjectService(
 
     private ImmutableHashSet<ProjectId> _incompatibleProjectIds = [];
 
-    public void HandleMiscellaneousFile(TextDocument textDocument)
+    public void HandleMiscFilesDocument(TextDocument textDocument)
     {
         if (ImmutableInterlocked.Update(ref _incompatibleProjectIds, static set => set.Add(s_miscFilesProject)))
         {
-            _incompatibleProjectNotifier.NotifyMiscellaneousFile(textDocument);
+            _incompatibleProjectNotifier.NotifyMiscFilesDocument(textDocument);
         }
     }
 
-    public void HandleNullDocument(RazorTextDocumentIdentifier? textDocumentIdentifier, RazorCohostRequestContext context)
+    public void HandleMissingDocument(RazorTextDocumentIdentifier? textDocumentIdentifier, RazorCohostRequestContext context)
     {
         if (context.Solution is null)
         {
@@ -63,7 +62,7 @@ internal sealed class IncompatibleProjectService(
             {
                 if (ImmutableInterlocked.Update(ref _incompatibleProjectIds, static (set, id) => set.Add(id), project.Id))
                 {
-                    _incompatibleProjectNotifier.NotifyNullDocument(project, filePath);
+                    _incompatibleProjectNotifier.NotifyMissingDocument(project, filePath);
                 }
 
                 break;

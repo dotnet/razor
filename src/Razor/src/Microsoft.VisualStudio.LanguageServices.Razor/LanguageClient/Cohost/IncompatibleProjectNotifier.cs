@@ -24,12 +24,12 @@ internal sealed class IncompatibleProjectNotifier(
     private readonly IProjectCapabilityResolver _projectCapabilityResolver = projectCapabilityResolver;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<IncompatibleProjectNotifier>();
 
-    public void NotifyMiscellaneousFile(TextDocument textDocument)
+    public void NotifyMiscFilesDocument(TextDocument textDocument)
     {
         _logger.Log(LogLevel.Error, $"{WorkspacesSR.FormatIncompatibleProject_MiscFiles(Path.GetFileName(textDocument.FilePath))}");
     }
 
-    public void NotifyNullDocument(Project project, string filePath)
+    public void NotifyMissingDocument(Project project, string filePath)
     {
         // When this document was opened, we will have checked if it was a .NET Framework project. If so, then we can avoid
         // notifying the user because they are not using the LSP editor, even though we get the odd request.
