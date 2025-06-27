@@ -28,6 +28,57 @@ public class PathUtilitiesTests
         { " file.extension", ".extension"}
     };
 
+    public static TheoryData<string, string?> TestData_GetDirectoryName => new()
+    {
+        { ".", "" },
+        { "..", "" },
+        { "baz", "" },
+        { Path.Combine("dir", "baz"), "dir" },
+        { "dir.foo" + Path.AltDirectorySeparatorChar + "baz.txt", "dir.foo" },
+        { Path.Combine("dir", "baz", "bar"), Path.Combine("dir", "baz") },
+        { Path.Combine("..", "..", "files.txt"), Path.Combine("..", "..") },
+        { Path.DirectorySeparatorChar + "foo", Path.DirectorySeparatorChar.ToString() },
+        { Path.DirectorySeparatorChar.ToString(), null }
+    };
+
+    public static TheoryData<string, string?> TestData_GetDirectoryName_Windows => new()
+    {
+        { @"C:\", null },
+        { @"C:/", null },
+        { @"C:", null },
+        { @"dir\\baz", "dir" },
+        { @"dir//baz", "dir" },
+        { @"C:\foo", @"C:\" },
+        { @"C:foo", "C:" }
+    };
+
+    public static TheoryData<string> TestData_Spaces =>
+    [
+        " ",
+        "   "
+    ];
+
+    public static TheoryData<string> TestData_EmbeddedNull =>
+    [
+        "a\0b"
+    ];
+
+    public static TheoryData<string> TestData_ControlChars =>
+    [
+        "\t",
+        "\r\n",
+        "\b",
+        "\v",
+        "\n"
+    ];
+
+    public static TheoryData<string> TestData_UnicodeWhiteSpace =>
+    [
+        "\u00A0", // Non-breaking Space
+        "\u2028", // Line separator
+        "\u2029", // Paragraph separator
+    ];
+
     [Theory, MemberData(nameof(TestData_GetExtension))]
     public void GetExtension(string path, string expected)
     {
@@ -121,57 +172,100 @@ public class PathUtilitiesTests
     }
 
     [Fact]
-    public static void GetDirectoryName_EmptyString()
+    public void GetDirectoryName_NullReturnsNull()
     {
-        AssertEqual(@"", PathUtilities.GetDirectoryName(@""));
+        Assert.Null(PathUtilities.GetDirectoryName(null));
+    }
+
+    [Theory, MemberData(nameof(TestData_GetDirectoryName))]
+    public void GetDirectoryName(string path, string? expected)
+    {
+        Assert.Equal(expected, PathUtilities.GetDirectoryName(path));
     }
 
     [Fact]
-    public static void GetDirectoryName_FilenameOnly()
+    public void GetDirectoryName_CurrentDirectory()
     {
-        AssertEqual(@"", PathUtilities.GetDirectoryName(@"Foo.txt"));
+        var curDir = Directory.GetCurrentDirectory();
+        Assert.Equal(curDir, PathUtilities.GetDirectoryName(Path.Combine(curDir, "baz")));
+
+        Assert.Null(PathUtilities.GetDirectoryName(Path.GetPathRoot(curDir)));
+        Assert.True(PathUtilities.GetDirectoryName(Path.GetPathRoot(curDir).AsSpan()).IsEmpty);
     }
 
     [Fact]
-    public static void GetDirectoryName_NetworkPath_AlternateSeparator()
+    public void GetDirectoryName_EmptyReturnsNull()
     {
-        AssertEqual("//Server/Path", PathUtilities.GetDirectoryName("//Server/Path/Foo.txt"));
+        // In .NET Framework this throws argument exception
+        Assert.Null(PathUtilities.GetDirectoryName(string.Empty));
     }
 
-    [ConditionalFact(Is.AnyUnix)]
-    public static void GetDirectoryName_FileAtRoot_Uni()
+    [ConditionalTheory(Is.Windows)]
+    [MemberData(nameof(TestData_Spaces))]
+    public void GetDirectoryName_Spaces_Windows(string path)
     {
-        AssertEqual(@"/", PathUtilities.GetDirectoryName(@"//Foo.txt"));
+        // In Windows spaces are eaten by Win32, making them effectively empty
+        Assert.Null(PathUtilities.GetDirectoryName(path));
     }
 
-    [ConditionalFact(Is.Windows)]
-    public static void GetDirectoryName_FileAtRoot()
+    [ConditionalTheory(Is.AnyUnix)]
+    [MemberData(nameof(TestData_Spaces))]
+    public void GetDirectoryName_Spaces_Unix(string path)
     {
-        AssertEqual(@"", PathUtilities.GetDirectoryName(@"\\Foo.txt"));
+        Assert.Empty(PathUtilities.GetDirectoryName(path));
     }
 
-    [ConditionalFact(Is.Windows)]
-    public static void GetDirectoryName_FileAtRoot_AlternateSeparator()
+    [Theory, MemberData(nameof(TestData_Spaces))]
+    public void GetDirectoryName_Span_Spaces(string path)
     {
-        AssertEqual(@"", PathUtilities.GetDirectoryName(@"//Foo.txt"));
+        Assert.True(PathUtilities.GetDirectoryName(path.AsSpan()).IsEmpty);
     }
 
-    [ConditionalFact(Is.Windows)]
-    public static void GetDirectoryName_Windows()
+    [Theory]
+    [MemberData(nameof(TestData_EmbeddedNull))]
+    [MemberData(nameof(TestData_ControlChars))]
+    [MemberData(nameof(TestData_UnicodeWhiteSpace))]
+    public void GetDirectoryName_NetFxInvalid(string path)
     {
-        AssertEqual(@"C:\Server", PathUtilities.GetDirectoryName(@"C:\Server\Foo.txt"));
+        Assert.Empty(PathUtilities.GetDirectoryName(path));
+        Assert.Equal(path, PathUtilities.GetDirectoryName(PathCombine(path, path)));
+        Assert.True(PathUtilities.GetDirectoryName(path.AsSpan()).IsEmpty);
+        AssertEqual(path, PathUtilities.GetDirectoryName(PathCombine(path, path).AsSpan()));
+
+        // Path.Combine on net472 throws on invalid path characters, so have to do this manually.
+        static string PathCombine(string path1, string path2)
+        {
+            return $"""{path1}\{path2}""";
+        }
     }
 
-    [ConditionalFact(Is.Windows)]
-    public static void GetDirectoryName_LocalPath_DoubleSlash()
+    [Theory, MemberData(nameof(TestData_GetDirectoryName))]
+    public void GetDirectoryName_Span(string path, string? expected)
     {
-        AssertEqual(@"C:\Server", PathUtilities.GetDirectoryName(@"C:\Server\\Foo.txt"));
+        AssertEqual(expected ?? ReadOnlySpan<char>.Empty, PathUtilities.GetDirectoryName(path.AsSpan()));
     }
 
-    [ConditionalFact(Is.Windows)]
-    public static void GetDirectoryName_NetworkPath()
+    [Fact]
+    public void GetDirectoryName_Span_CurrentDirectory()
     {
-        AssertEqual(@"\\Server\Path", PathUtilities.GetDirectoryName(@"\\Server\Path\Foo.txt"));
+        var curDir = Directory.GetCurrentDirectory();
+        AssertEqual(curDir, PathUtilities.GetDirectoryName(Path.Combine(curDir, "baz").AsSpan()));
+        Assert.True(PathUtilities.GetDirectoryName(Path.GetPathRoot(curDir).AsSpan()).IsEmpty);
+    }
+
+    [Theory]
+    [InlineData(@" C:\dir/baz", @" C:\dir")]
+    public void GetDirectoryName_SkipSpaces(string path, string expected)
+    {
+        // We no longer trim leading spaces for any path
+        Assert.Equal(expected, PathUtilities.GetDirectoryName(path));
+    }
+
+    [ConditionalTheory(Is.Windows)]
+    [MemberData(nameof(TestData_GetDirectoryName_Windows))]
+    public void GetDirectoryName_Windows(string path, string? expected)
+    {
+        Assert.Equal(expected, Path.GetDirectoryName(path));
     }
 
     private static void AssertEqual(ReadOnlySpan<char> expected, ReadOnlySpan<char> actual)
