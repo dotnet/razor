@@ -24,6 +24,7 @@ public sealed partial class RazorCodeDocument
     public RazorFileKind FileKind => ParserOptions.FileKind;
 
     private readonly PropertyTable _properties = new();
+    private readonly object _htmlDocumentLock = new();
 
     private RazorCodeDocument(
         RazorSourceDocument source,
@@ -182,8 +183,14 @@ public sealed partial class RazorCodeDocument
             return result;
         }
 
-        result = RazorHtmlWriter.GetHtmlDocument(this);
-        _properties.HtmlDocument.SetValue(result);
+        lock (_htmlDocumentLock)
+        {
+            if (!_properties.HtmlDocument.TryGetValue(out result))
+            {
+                result = RazorHtmlWriter.GetHtmlDocument(this);
+                _properties.HtmlDocument.SetValue(result);
+            }
+        }
 
         return result;
     }
