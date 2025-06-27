@@ -28,11 +28,11 @@ internal class DirectiveRemovalOptimizationPass : IntermediateNodePassBase, IRaz
 
     private class Visitor : IntermediateNodeWalker
     {
-        public IList<IntermediateNodeReference> DirectiveNodes { get; } = new List<IntermediateNodeReference>();
+        public IList<IntermediateNodeReference<DirectiveIntermediateNode>> DirectiveNodes { get; } = new List<IntermediateNodeReference<DirectiveIntermediateNode>>();
 
         public override void VisitDirective(DirectiveIntermediateNode node)
         {
-            DirectiveNodes.Add(new IntermediateNodeReference(Parent, node));
+            DirectiveNodes.Add(new(Parent, node));
         }
     }
 }

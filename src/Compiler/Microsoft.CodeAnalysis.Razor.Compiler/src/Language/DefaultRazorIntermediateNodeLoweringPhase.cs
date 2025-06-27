@@ -188,11 +188,12 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
     private static void PostProcessImportedDirectives(DocumentIntermediateNode document)
     {
         var directives = document.FindDescendantReferences<DirectiveIntermediateNode>();
-        using var _ = HashSetPool<DirectiveDescriptor>.GetPooledObject(out var seenDirectives);
-        for (var i = directives.Count - 1; i >= 0; i--)
+        using var _ = ReferenceEqualityHashSetPool<DirectiveDescriptor>.GetPooledObject(out var seenDirectives);
+
+        for (var i = directives.Length - 1; i >= 0; i--)
         {
             var reference = directives[i];
-            var directive = (DirectiveIntermediateNode)reference.Node;
+            var directive = reference.Node;
             var descriptor = directive.Directive;
             var seenDirective = !seenDirectives.Add(descriptor);
 

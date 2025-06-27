@@ -5,6 +5,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -57,17 +59,13 @@ public static class DocumentIntermediateNodeExtensions
         return visitor.Directives;
     }
 
-    public static IReadOnlyList<IntermediateNodeReference> FindDescendantReferences<TNode>(this DocumentIntermediateNode document)
+    public static ImmutableArray<IntermediateNodeReference<TNode>> FindDescendantReferences<TNode>(this DocumentIntermediateNode document)
         where TNode : IntermediateNode
     {
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        using var _ = ArrayBuilderPool<IntermediateNodeReference<TNode>>.GetPooledObject(out var results);
+        ReferenceVisitor<TNode>.Visit(document, results);
 
-        var visitor = new ReferenceVisitor<TNode>();
-        visitor.Visit(document);
-        return visitor.References;
+        return results.ToImmutableAndClear();
     }
 
     private static T FindNode<T>(IntermediateNode node, Func<T, bool> predicate)
@@ -113,10 +111,23 @@ public static class DocumentIntermediateNodeExtensions
         }
     }
 
-    private class ReferenceVisitor<TNode> : IntermediateNodeWalker
+    private sealed class ReferenceVisitor<TNode> : IntermediateNodeWalker
         where TNode : IntermediateNode
     {
-        public List<IntermediateNodeReference> References = new List<IntermediateNodeReference>();
+        private readonly ImmutableArray<IntermediateNodeReference<TNode>>.Builder _results;
+
+        private ReferenceVisitor(ImmutableArray<IntermediateNodeReference<TNode>>.Builder results)
+        {
+            _results = results;
+        }
+
+        public static void Visit(
+            DocumentIntermediateNode document,
+            ImmutableArray<IntermediateNodeReference<TNode>>.Builder results)
+        {
+            var visitor = new ReferenceVisitor<TNode>(results);
+            visitor.Visit(document);
+        }
 
         public override void VisitDefault(IntermediateNode node)
         {
@@ -126,9 +137,9 @@ public static class DocumentIntermediateNodeExtensions
             // change the parent nodes.
             //
             // This ensures that we always operate on the leaf nodes first.
-            if (node is TNode)
+            if (node is TNode resultNode)
             {
-                References.Add(new IntermediateNodeReference(Parent, node));
+                _results.Add(new(Parent, resultNode));
             }
         }
     }

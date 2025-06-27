@@ -36,16 +36,16 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
         var references = documentNode.FindDescendantReferences<TagHelperDirectiveAttributeIntermediateNode>();
         using var _ = ReferenceEqualityHashSetPool<IntermediateNode>.GetPooledObject(out var parents);
 
-        for (var i = 0; i < references.Count; i++)
+        foreach (var reference in references)
         {
-            parents.Add(references[i].Parent);
+            parents.Add(reference.Parent);
         }
 
         // We need to do something similar for directive attribute parameters like @onclick:preventDefault.
         var parameterReferences = documentNode.FindDescendantReferences<TagHelperDirectiveAttributeParameterIntermediateNode>();
-        for (var i = 0; i < parameterReferences.Count; i++)
+        foreach (var parameterReference in parameterReferences)
         {
-            parents.Add(parameterReferences[i].Parent);
+            parents.Add(parameterReference.Parent);
         }
 
         foreach (var parent in parents)
@@ -53,12 +53,11 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
             ProcessDuplicates(parent);
         }
 
-        for (var i = 0; i < references.Count; i++)
+        foreach (var reference in references)
         {
-            var reference = references[i];
-            var node = (TagHelperDirectiveAttributeIntermediateNode)reference.Node;
+            var (parent, node) = reference;
 
-            if (!reference.Parent.Children.Contains(node))
+            if (!parent.Children.Contains(node))
             {
                 // This node was removed as a duplicate, skip it.
                 continue;
@@ -66,16 +65,15 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
 
             if (node.TagHelper.IsEventHandlerTagHelper())
             {
-                reference.Replace(RewriteUsage(reference.Parent, node));
+                reference.Replace(RewriteUsage(parent, node));
             }
         }
 
-        for (var i = 0; i < parameterReferences.Count; i++)
+        foreach (var reference in parameterReferences)
         {
-            var reference = parameterReferences[i];
-            var node = (TagHelperDirectiveAttributeParameterIntermediateNode)reference.Node;
+            var (parent, node) = reference;
 
-            if (!reference.Parent.Children.Contains(node))
+            if (!parent.Children.Contains(node))
             {
                 // This node was removed as a duplicate, skip it.
                 continue;

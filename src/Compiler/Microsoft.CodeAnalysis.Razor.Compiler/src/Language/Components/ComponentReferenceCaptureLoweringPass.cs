@@ -28,10 +28,9 @@ internal class ComponentReferenceCaptureLoweringPass : ComponentIntermediateNode
         }
 
         var references = documentNode.FindDescendantReferences<TagHelperDirectiveAttributeIntermediateNode>();
-        for (var i = 0; i < references.Count; i++)
+        foreach (var reference in references)
         {
-            var reference = references[i];
-            var node = (TagHelperDirectiveAttributeIntermediateNode)reference.Node;
+            var node = reference.Node;
 
             if (node.TagHelper.IsRefTagHelper())
             {

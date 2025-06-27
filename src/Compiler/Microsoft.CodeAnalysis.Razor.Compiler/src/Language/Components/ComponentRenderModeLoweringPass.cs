@@ -30,7 +30,7 @@ internal sealed class ComponentRenderModeLoweringPass : ComponentIntermediateNod
 
                 var expression = node.Children[0] switch
                 {
-                    CSharpExpressionIntermediateNode cSharpNode => cSharpNode.Children[0],
+                    CSharpExpressionIntermediateNode csharpNode => csharpNode.Children[0],
                     IntermediateNode token => token
                 };
 
