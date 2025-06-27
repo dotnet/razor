@@ -153,7 +153,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         // ... so to avoid losing whitespace, convert the prefix to a further token in the list
         if (!string.IsNullOrEmpty(node.Prefix))
         {
-            _currentAttributeValues.Add(new IntermediateToken() { Kind = TokenKind.Html, Content = node.Prefix });
+            _currentAttributeValues.Add(NodeFactory.HtmlToken(node.Prefix));
         }
 
         for (var i = 0; i < node.Children.Count; i++)
@@ -308,7 +308,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         }
 
         var stringContent = ((IntermediateToken)node.Children.Single()).Content;
-        _currentAttributeValues.Add(new IntermediateToken() { Kind = TokenKind.Html, Content = node.Prefix + stringContent, });
+        _currentAttributeValues.Add(NodeFactory.HtmlToken(node.Prefix + stringContent));
     }
 
     public override void WriteHtmlContent(CodeRenderingContext context, HtmlContentIntermediateNode node)
@@ -1044,11 +1044,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 Children =
                     {
                         node.IdentifierToken,
-                        new IntermediateToken
-                        {
-                            Kind = TokenKind.CSharp,
-                            Content = $" = {typecastIfNeeded}{refCaptureParamName};"
-                        }
+                        NodeFactory.CSharpToken($" = {typecastIfNeeded}{refCaptureParamName};")
                     }
             });
         }
@@ -1062,21 +1058,13 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         {
             Children =
             {
-                new IntermediateToken
-                {
-                    Kind = TokenKind.CSharp,
-                    Content = $"global::{ComponentsApi.IComponentRenderMode.FullTypeName} {_scopeStack.RenderModeVarName} = "
-                },
+                NodeFactory.CSharpToken($"global::{ComponentsApi.IComponentRenderMode.FullTypeName} {_scopeStack.RenderModeVarName} = "),
                 new CSharpCodeIntermediateNode
                 {
                     Source = node.Source,
                     Children = { node.Children[0] }
                 },
-                new IntermediateToken
-                {
-                    Kind = TokenKind.CSharp,
-                    Content = ";"
-                }
+                NodeFactory.CSharpToken(";")
             }
         });
     }

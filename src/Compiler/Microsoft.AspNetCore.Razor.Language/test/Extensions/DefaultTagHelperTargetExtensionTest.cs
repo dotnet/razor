@@ -248,11 +248,11 @@ __tagHelperExecutionContext = __tagHelperScopeManager.End();
                 {
                     new HtmlAttributeValueIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.Html, Content = "Blah-" } }
+                        Children = { NodeFactory.HtmlToken("Blah-") }
                     },
                     new CSharpCodeAttributeValueIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "\"Foo\"", } },
+                        Children = { NodeFactory.CSharpToken("\"Foo\"") }
                     }
                 }
         };
@@ -288,7 +288,7 @@ Render Children
                 {
                     new HtmlAttributeIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.Html, Content = "\"value\"", } },
+                        Children = { NodeFactory.HtmlToken("\"value\"") }
                     }
                 }
         };
@@ -326,11 +326,11 @@ __tagHelperExecutionContext.AddHtmlAttribute(""name"", Html.Raw(__tagHelperStrin
                 {
                     new HtmlAttributeValueIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.Html, Content = "Blah-" } }
+                        Children = { NodeFactory.HtmlToken("Blah-") }
                     },
                     new CSharpCodeAttributeValueIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "\"Foo\"", } },
+                        Children = { NodeFactory.CSharpToken("\"Foo\"") }
                     }
                 }
         };
@@ -441,7 +441,7 @@ EndAddHtmlAttributeValues(__tagHelperExecutionContext);
                 {
                     new HtmlContentIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.Html, Content = "value", } },
+                        Children = { NodeFactory.HtmlToken("value") }
                     }
                 }
         };
@@ -482,7 +482,7 @@ __InputTagHelper.StringProp = ""value"";
                 {
                     new CSharpExpressionIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "\"3+5\"", } },
+                        Children = { NodeFactory.CSharpToken("\"3+5\"") }
                     }
                 }
         };
@@ -524,7 +524,7 @@ __InputTagHelper.StringProp = string.Empty;
                 {
                     new CSharpExpressionIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "32", } },
+                        Children = { NodeFactory.CSharpToken("32") }
                     }
                 }
         };
@@ -615,7 +615,7 @@ __InputTagHelper.IntProp = 32;
                 {
                     new CSharpExpressionIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "32", } },
+                        Children = { NodeFactory.CSharpToken("32") }
                     }
                 }
         };
@@ -656,7 +656,7 @@ __InputTagHelper.IntProp = 32;
                 {
                     new CSharpExpressionIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "32", } },
+                        Children = { NodeFactory.CSharpToken("32") }
                     }
                 }
         };
@@ -703,7 +703,7 @@ __InputTagHelper.IntIndexer[""bound""] = 32;
                 {
                     new CSharpExpressionIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "32", } },
+                        Children = { NodeFactory.CSharpToken("32") }
                     }
                 }
         };
@@ -743,7 +743,7 @@ __InputTagHelper.IntIndexer[""bound""] = 32;
                 {
                     new HtmlContentIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.Html, Content = "\"value\"", } },
+                        Children = { NodeFactory.HtmlToken("\"value\"") }
                     }
                 }
         };
@@ -789,7 +789,7 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""bound"", __InputTagHelper.St
                 {
                     new CSharpExpressionIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "32", Source = Span } },
+                        Children = { NodeFactory.CSharpToken("32", Span) }
                     }
                 },
         };
@@ -882,7 +882,7 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""bound"", __InputTagHelper.In
                 {
                     new CSharpExpressionIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "32", } },
+                        Children = { NodeFactory.CSharpToken("32") }
                     }
                 }
         };
@@ -923,7 +923,7 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""bound"", __InputTagHelper.In
                 {
                     new CSharpExpressionIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "32", Source = Span } },
+                        Children = { NodeFactory.CSharpToken("32", Span) }
                     }
                 }
         };
@@ -976,7 +976,7 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""foo-bound"", __InputTagHelpe
                 {
                     new CSharpExpressionIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "17", Source = Span } },
+                        Children = { NodeFactory.CSharpToken("17", Span) }
                     }
                 }
         };
@@ -993,7 +993,7 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""foo-bound"", __InputTagHelpe
                 {
                     new CSharpExpressionIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "32", Source = Span } },
+                        Children = { NodeFactory.CSharpToken("32", Span) }
                     }
                 }
         };
@@ -1043,7 +1043,7 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""foo-bound"", __InputTagHelpe
                 {
                     new CSharpExpressionIntermediateNode()
                     {
-                        Children = { new IntermediateToken { Kind = TokenKind.CSharp, Content = "32", } },
+                        Children = { NodeFactory.CSharpToken("32") }
                     }
                 }
         };

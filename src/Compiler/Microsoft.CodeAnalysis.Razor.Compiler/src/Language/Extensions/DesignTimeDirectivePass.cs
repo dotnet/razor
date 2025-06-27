@@ -39,33 +39,21 @@ internal class DesignTimeDirectivePass : IntermediateNodePassBase, IRazorDirecti
             {
                 Children =
                     {
-                        new IntermediateToken()
-                        {
-                            Kind = TokenKind.CSharp,
-                            Content = "#pragma warning disable 0414",
-                        }
+                        NodeFactory.CSharpToken("#pragma warning disable 0414")
                     }
             });
             node.Children.Insert(1, new CSharpCodeIntermediateNode()
             {
                 Children =
                     {
-                        new IntermediateToken()
-                        {
-                            Kind = TokenKind.CSharp,
-                            Content = $"private static object {DesignTimeVariable} = null;",
-                        }
+                        NodeFactory.CSharpToken($"private static object {DesignTimeVariable} = null;")
                     }
             });
             node.Children.Insert(2, new CSharpCodeIntermediateNode()
             {
                 Children =
                     {
-                        new IntermediateToken()
-                        {
-                            Kind = TokenKind.CSharp,
-                            Content = "#pragma warning restore 0414",
-                        }
+                        NodeFactory.CSharpToken("#pragma warning restore 0414")
                     }
             });
 

@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -40,22 +39,13 @@ public class ModelExpressionPass : IntermediateNodePassBase, IRazorOptimizationP
             {
                 var expression = new CSharpExpressionIntermediateNode();
 
-                expression.Children.Add(new IntermediateToken()
-                {
-                    Kind = TokenKind.CSharp,
-                    Content = "ModelExpressionProvider.CreateModelExpression(ViewData, __model => ",
-                });
+                expression.Children.Add(NodeFactory.CSharpToken("ModelExpressionProvider.CreateModelExpression(ViewData, __model => "));
 
                 if (node.Children.Count == 1 && node.Children[0] is IntermediateToken token && token.IsCSharp)
                 {
                     // A 'simple' expression will look like __model => __model.Foo
 
-                    expression.Children.Add(new IntermediateToken()
-                    {
-                        Kind = TokenKind.CSharp,
-                        Content = "__model."
-                    });
-
+                    expression.Children.Add(NodeFactory.CSharpToken("__model."));
                     expression.Children.Add(token);
                 }
                 else
@@ -78,11 +68,7 @@ public class ModelExpressionPass : IntermediateNodePassBase, IRazorOptimizationP
                     }
                 }
 
-                expression.Children.Add(new IntermediateToken()
-                {
-                    Kind = TokenKind.CSharp,
-                    Content = ")",
-                });
+                expression.Children.Add(NodeFactory.CSharpToken(")"));
 
                 node.Children.Clear();
 

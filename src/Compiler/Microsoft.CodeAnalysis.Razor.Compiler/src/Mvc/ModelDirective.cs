@@ -58,17 +58,17 @@ public static class ModelDirective
             var tokens = directive.Tokens.ToArray();
             if (tokens.Length >= 1)
             {
-                return IntermediateToken.CreateCSharpToken(tokens[0].Content, tokens[0].Source);
+                return NodeFactory.CSharpToken(tokens[0].Content, tokens[0].Source);
             }
         }
 
         if (document.DocumentKind == RazorPageDocumentClassifierPass.RazorPageDocumentKind)
         {
-            return IntermediateToken.CreateCSharpToken(visitor.Class.ClassName);
+            return NodeFactory.CSharpToken(visitor.Class.ClassName);
         }
         else
         {
-            return IntermediateToken.CreateCSharpToken("dynamic");
+            return NodeFactory.CSharpToken("dynamic");
         }
     }
 

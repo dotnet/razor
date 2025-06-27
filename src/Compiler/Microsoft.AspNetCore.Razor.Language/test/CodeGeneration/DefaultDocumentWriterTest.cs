@@ -180,7 +180,7 @@ public class DefaultDocumentWriterTest
                 "internal"
             },
             BaseType = new BaseTypeWithModel("TestBase"),
-            Interfaces = [IntermediateToken.CreateCSharpToken("IFoo"), IntermediateToken.CreateCSharpToken("IBar")],
+            Interfaces = [NodeFactory.CSharpToken("IFoo"), NodeFactory.CSharpToken("IBar")],
             TypeParameters = new List<TypeParameter>
             {
                 new TypeParameter() { ParameterName = "TKey", },
@@ -227,7 +227,7 @@ public class DefaultDocumentWriterTest
                 "internal"
             },
             BaseType = new BaseTypeWithModel("TestBase"),
-            Interfaces = [IntermediateToken.CreateCSharpToken("IFoo"), IntermediateToken.CreateCSharpToken("IBar")],
+            Interfaces = [NodeFactory.CSharpToken("IFoo"), NodeFactory.CSharpToken("IBar")],
             TypeParameters = new List<TypeParameter>
             {
                 new TypeParameter() { ParameterName = "TKey", },
@@ -277,7 +277,7 @@ public class DefaultDocumentWriterTest
                     "internal"
                 },
             BaseType = new BaseTypeWithModel("TestBase"),
-            Interfaces = [IntermediateToken.CreateCSharpToken("IFoo"), IntermediateToken.CreateCSharpToken("IBar")],
+            Interfaces = [NodeFactory.CSharpToken("IFoo"), NodeFactory.CSharpToken("IBar")],
             TypeParameters = new List<TypeParameter>
                 {
                     new TypeParameter() { ParameterName = "TKey", Constraints = "where TKey : class" },
@@ -430,7 +430,7 @@ public class DefaultDocumentWriterTest
                     "virtual",
                 },
             PropertyName = "Foo",
-            PropertyType = IntermediateToken.CreateCSharpToken("string"),
+            PropertyType = NodeFactory.CSharpToken("string"),
             PropertyExpression = "default"
         });
 
