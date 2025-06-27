@@ -24,7 +24,7 @@ public sealed partial class RazorCodeDocument
     public RazorFileKind FileKind => ParserOptions.FileKind;
 
     private readonly PropertyTable _properties = new();
-    private readonly object _htmlDocumentLock = new();
+    private readonly Lazy<RazorHtmlDocument> _lazyHtmlDocument;
 
     private RazorCodeDocument(
         RazorSourceDocument source,
@@ -40,6 +40,7 @@ public sealed partial class RazorCodeDocument
         CodeGenerationOptions = codeGenerationOptions ?? RazorCodeGenerationOptions.Default;
 
         _properties = properties ?? new();
+        _lazyHtmlDocument = new(() => CreateHtmlDocument());
     }
 
     public static RazorCodeDocument Create(
@@ -177,20 +178,17 @@ public sealed partial class RazorCodeDocument
     }
 
     internal RazorHtmlDocument GetHtmlDocument()
+        => _lazyHtmlDocument.Value;
+
+    private RazorHtmlDocument CreateHtmlDocument()
     {
         if (_properties.HtmlDocument.TryGetValue(out var result))
         {
             return result;
         }
 
-        lock (_htmlDocumentLock)
-        {
-            if (!_properties.HtmlDocument.TryGetValue(out result))
-            {
-                result = RazorHtmlWriter.GetHtmlDocument(this);
-                _properties.HtmlDocument.SetValue(result);
-            }
-        }
+        result = RazorHtmlWriter.GetHtmlDocument(this);
+        _properties.HtmlDocument.SetValue(result);
 
         return result;
     }
