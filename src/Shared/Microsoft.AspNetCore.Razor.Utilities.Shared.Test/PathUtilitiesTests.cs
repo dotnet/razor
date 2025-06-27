@@ -235,7 +235,7 @@ public class PathUtilitiesTests
         // Path.Combine on net472 throws on invalid path characters, so have to do this manually.
         static string PathCombine(string path1, string path2)
         {
-            return $"""{path1}{Path.DirectorySeparatorChar}{path2}""";
+            return $"{path1}{Path.DirectorySeparatorChar}{path2}";
         }
     }
 
