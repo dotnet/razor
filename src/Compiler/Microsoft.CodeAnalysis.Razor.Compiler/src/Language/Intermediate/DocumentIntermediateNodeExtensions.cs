@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -42,21 +41,13 @@ public static class DocumentIntermediateNodeExtensions
         return FindNode<NamespaceDeclarationIntermediateNode>(node, static n => n.IsPrimaryNamespace);
     }
 
-    public static IReadOnlyList<IntermediateNodeReference> FindDirectiveReferences(this DocumentIntermediateNode node, DirectiveDescriptor directive)
+    public static ImmutableArray<IntermediateNodeReference<DirectiveIntermediateNode>> FindDirectiveReferences(
+        this DocumentIntermediateNode document, DirectiveDescriptor directive)
     {
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
+        using var _ = ArrayBuilderPool<IntermediateNodeReference<DirectiveIntermediateNode>>.GetPooledObject(out var results);
+        DirectiveVisitor.Visit(document, directive, results);
 
-        if (directive == null)
-        {
-            throw new ArgumentNullException(nameof(directive));
-        }
-
-        var visitor = new DirectiveVisitor(directive);
-        visitor.Visit(node);
-        return visitor.Directives;
+        return results.ToImmutableAndClear();
     }
 
     public static ImmutableArray<IntermediateNodeReference<TNode>> FindDescendantReferences<TNode>(this DocumentIntermediateNode document)
@@ -89,22 +80,33 @@ public static class DocumentIntermediateNodeExtensions
         return null;
     }
 
-    private class DirectiveVisitor : IntermediateNodeWalker
+    private sealed class DirectiveVisitor : IntermediateNodeWalker
     {
         private readonly DirectiveDescriptor _directive;
+        private readonly ImmutableArray<IntermediateNodeReference<DirectiveIntermediateNode>>.Builder _results;
 
-        public DirectiveVisitor(DirectiveDescriptor directive)
+        private DirectiveVisitor(
+            DirectiveDescriptor directive,
+            ImmutableArray<IntermediateNodeReference<DirectiveIntermediateNode>>.Builder results)
         {
             _directive = directive;
+            _results = results;
         }
 
-        public List<IntermediateNodeReference> Directives = new List<IntermediateNodeReference>();
+        public static void Visit(
+            DocumentIntermediateNode document,
+            DirectiveDescriptor directive,
+            ImmutableArray<IntermediateNodeReference<DirectiveIntermediateNode>>.Builder results)
+        {
+            var visitor = new DirectiveVisitor(directive, results);
+            visitor.Visit(document);
+        }
 
         public override void VisitDirective(DirectiveIntermediateNode node)
         {
             if (_directive == node.Directive)
             {
-                Directives.Add(new IntermediateNodeReference(Parent, node));
+                _results.Add(new(Parent, node));
             }
 
             base.VisitDirective(node);

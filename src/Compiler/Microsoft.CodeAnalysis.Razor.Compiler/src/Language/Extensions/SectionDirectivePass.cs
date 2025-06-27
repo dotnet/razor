@@ -21,7 +21,8 @@ public sealed class SectionDirectivePass : IntermediateNodePassBase, IRazorDirec
 
         foreach (var directive in documentNode.FindDirectiveReferences(SectionDirective.Directive))
         {
-            var sectionName = ((DirectiveIntermediateNode)directive.Node).Tokens.FirstOrDefault()?.Content;
+            var directiveNode = directive.Node;
+            var sectionName = directiveNode.Tokens.FirstOrDefault()?.Content;
 
             var section = new SectionIntermediateNode()
             {
@@ -29,19 +30,19 @@ public sealed class SectionDirectivePass : IntermediateNodePassBase, IRazorDirec
             };
 
             var i = 0;
-            for (; i < directive.Node.Children.Count; i++)
+            for (; i < directiveNode.Children.Count; i++)
             {
-                if (!(directive.Node.Children[i] is DirectiveTokenIntermediateNode))
+                if (directiveNode.Children[i] is not DirectiveTokenIntermediateNode)
                 {
                     break;
                 }
             }
 
-            while (i != directive.Node.Children.Count)
+            while (i != directiveNode.Children.Count)
             {
                 // Move non-token children over to the section node so we don't have double references to children nodes.
-                section.Children.Add(directive.Node.Children[i]);
-                directive.Node.Children.RemoveAt(i);
+                section.Children.Add(directiveNode.Children[i]);
+                directiveNode.Children.RemoveAt(i);
             }
 
             directive.InsertAfter(section);

@@ -118,9 +118,9 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
                 ? ComponentConstrainedTypeParamDirective.Directive
                 : ComponentTypeParamDirective.Directive;
             var typeParamReferences = documentNode.FindDirectiveReferences(directiveType);
-            for (var i = 0; i < typeParamReferences.Count; i++)
+
+            foreach (var (_, typeParamNode) in typeParamReferences)
             {
-                var typeParamNode = (DirectiveIntermediateNode)typeParamReferences[i].Node;
                 if (typeParamNode.HasDiagnostics)
                 {
                     continue;
