@@ -3,8 +3,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
@@ -22,16 +20,11 @@ internal class ComponentSplatLoweringPass : ComponentIntermediateNodePassBase, I
         }
 
         var references = documentNode.FindDescendantReferences<TagHelperDirectiveAttributeIntermediateNode>();
-        var parents = new HashSet<IntermediateNode>();
-        for (var i = 0; i < references.Count; i++)
-        {
-            parents.Add(references[i].Parent);
-        }
 
-        for (var i = 0; i < references.Count; i++)
+        foreach (var reference in references)
         {
-            var reference = references[i];
-            var node = (TagHelperDirectiveAttributeIntermediateNode)reference.Node;
+            var node = reference.Node;
+
             if (node.TagHelper.IsSplatTagHelper())
             {
                 reference.Replace(RewriteUsage(reference.Parent, node));

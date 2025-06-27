@@ -38,7 +38,7 @@ internal class ComponentTemplateDiagnosticPass : ComponentIntermediateNodePassBa
 
     private class Visitor : IntermediateNodeWalker, IExtensionIntermediateNodeVisitor<TemplateIntermediateNode>
     {
-        public List<IntermediateNodeReference> Candidates { get; } = new List<IntermediateNodeReference>();
+        public List<IntermediateNodeReference<TemplateIntermediateNode>> Candidates { get; } = new List<IntermediateNodeReference<TemplateIntermediateNode>>();
 
         public void VisitExtension(TemplateIntermediateNode node)
         {
@@ -50,7 +50,7 @@ internal class ComponentTemplateDiagnosticPass : ComponentIntermediateNodePassBa
                                 TagHelperPropertyIntermediateNode or // Inside malformed ref attribute
                                 TagHelperDirectiveAttributeIntermediateNode) // Inside a directive attribute
                 {
-                    Candidates.Add(new IntermediateNodeReference(Parent, node));
+                    Candidates.Add(new(Parent, node));
                 }
             }
         }
