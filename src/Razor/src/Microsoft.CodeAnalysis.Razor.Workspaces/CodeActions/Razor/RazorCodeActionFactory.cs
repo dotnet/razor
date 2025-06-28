@@ -13,6 +13,7 @@ internal static class RazorCodeActionFactory
     private readonly static Guid s_addComponentUsingTelemetryId = new("6c5416b7-7be7-49ee-aa60-904385be676f");
     private readonly static Guid s_fullyQualifyComponentTelemetryId = new("3d9abe36-7d10-4e08-8c18-ad88baa9a923");
     private readonly static Guid s_createComponentFromTagTelemetryId = new("a28e0baa-a4d5-4953-a817-1db586035841");
+    private readonly static Guid s_createExtractToCssTelemetryId = new("a3773518-35ff-455c-a8c2-d6adaf1d2c48");
     private readonly static Guid s_createExtractToCodeBehindTelemetryId = new("f63167f7-fdc6-450f-8b7b-b240892f4a27");
     private readonly static Guid s_createExtractToComponentTelemetryId = new("af67b0a3-f84b-4808-97a7-b53e85b22c64");
     private readonly static Guid s_generateMethodTelemetryId = new("c14fa003-c752-45fc-bb29-3a123ae5ecef");
@@ -79,6 +80,19 @@ internal static class RazorCodeActionFactory
             Data = data,
             TelemetryId = s_createComponentFromTagTelemetryId,
             Name = LanguageServerConstants.CodeActions.CreateComponentFromTag,
+        };
+        return codeAction;
+    }
+
+    public static RazorVSInternalCodeAction CreateExtractToCss(string razorFileName, RazorCodeActionResolutionParams resolutionParams)
+    {
+        var data = JsonSerializer.SerializeToElement(resolutionParams);
+        var codeAction = new RazorVSInternalCodeAction()
+        {
+            Title = SR.FormatExtractTo_Css_Title(razorFileName),
+            Data = data,
+            TelemetryId = s_createExtractToCssTelemetryId,
+            Name = LanguageServerConstants.CodeActions.ExtractToCssAction,
         };
         return codeAction;
     }

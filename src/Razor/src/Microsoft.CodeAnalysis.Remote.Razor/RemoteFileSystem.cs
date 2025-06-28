@@ -19,6 +19,9 @@ internal class RemoteFileSystem : IFileSystem
     public string ReadFile(string filePath)
         => _fileSystem.ReadFile(filePath);
 
+    public Stream ReadStream(string filePath)
+        => _fileSystem.ReadStream(filePath);
+
     public IEnumerable<string> GetDirectories(string workspaceDirectory)
         => _fileSystem.GetDirectories(workspaceDirectory);
 
