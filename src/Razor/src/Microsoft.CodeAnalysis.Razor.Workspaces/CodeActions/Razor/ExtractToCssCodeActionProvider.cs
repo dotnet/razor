@@ -46,9 +46,10 @@ internal class ExtractToCssCodeActionProvider(ILoggerFactory loggerFactory) : IR
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        if (owner is MarkupTextLiteralSyntax { Parent: MarkupStartTagSyntax })
+        // If we're inside an element, move to the start tag so the following checks work as expected
+        if (owner is MarkupTextLiteralSyntax { Parent: MarkupElementSyntax { StartTag: { } startTag } })
         {
-            owner = owner.Parent;
+            owner = startTag;
         }
 
         // We have to be in a style tag (or inside it, but we'll have moved to the parent if so, above)

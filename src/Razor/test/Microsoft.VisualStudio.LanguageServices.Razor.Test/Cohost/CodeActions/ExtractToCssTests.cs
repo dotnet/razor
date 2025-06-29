@@ -263,6 +263,43 @@ public class ExtractToCssTests(ITestOutputHelper testOutputHelper) : CohostCodeA
     }
 
     [Fact]
+    public async Task ExtractToCss_FromInside()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                <style>
+                    body {
+                        back[||]ground-color: red;
+                    }
+                </style>
+
+                @code
+                {
+                    private int x = 1;
+                }
+                """,
+            expected: """
+                <div></div>
+
+
+
+                @code
+                {
+                    private int x = 1;
+                }
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToCssAction,
+            additionalExpectedFiles: [
+                (FileUri("File1.razor.css"), $$$"""
+                    body {
+                            background-color: red;
+                        }
+                    """)]);
+    }
+
+    [Fact]
     public void GetLastLineNumberAndLength()
     {
         var input = """
