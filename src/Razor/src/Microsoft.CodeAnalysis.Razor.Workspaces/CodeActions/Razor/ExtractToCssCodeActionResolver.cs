@@ -101,17 +101,18 @@ internal class ExtractToCssCodeActionResolver(
         };
     }
 
-    /// <summary>
-    /// Finds the last line number and length of the file without reading the whole file into memory.
-    /// </summary>
     private void GetLastLineNumberAndLength(string cssFilePath, out int lastLineNumber, out int lastLineLength)
+    {
+        using var stream = _fileSystem.ReadStream(cssFilePath);
+        GetLastLineNumberAndLength(stream, bufferSize: 4096, out lastLineNumber, out lastLineLength);
+    }
+
+    private static void GetLastLineNumberAndLength(Stream stream, int bufferSize, out int lastLineNumber, out int lastLineLength)
     {
         lastLineNumber = 0;
         lastLineLength = 0;
-        const int BufferSize = 4096;
 
-        using var _ = ArrayPool<char>.Shared.GetPooledArray(BufferSize, out var buffer);
-        using (var stream = _fileSystem.ReadStream(cssFilePath))
+        using var _ = ArrayPool<char>.Shared.GetPooledArray(bufferSize, out var buffer);
         using (var reader = new StreamReader(stream))
         {
             var currLineLength = 0;
@@ -143,6 +144,14 @@ internal class ExtractToCssCodeActionResolver(
 
             lastLineNumber = currLineNumber;
             lastLineLength = currLineLength;
+        }
+    }
+
+    internal readonly struct TestAccessor
+    {
+        public static void GetLastLineNumberAndLength(Stream stream, int bufferSize, out int lastLineNumber, out int lastLineLength)
+        {
+            ExtractToCssCodeActionResolver.GetLastLineNumberAndLength(stream, bufferSize, out lastLineNumber, out lastLineLength);
         }
     }
 }
