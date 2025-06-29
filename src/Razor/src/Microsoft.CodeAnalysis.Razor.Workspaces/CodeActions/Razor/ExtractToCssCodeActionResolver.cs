@@ -46,11 +46,11 @@ internal class ExtractToCssCodeActionResolver(
         var cssFilePath = $"{FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath())}.css";
 
         // VS Code in Windows expects path to start with '/'
-        var updatedCodeBehindPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !cssFilePath.StartsWith("/")
+        cssFilePath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !cssFilePath.StartsWith("/")
             ? '/' + cssFilePath
             : cssFilePath;
 
-        var cssFileUri = LspFactory.CreateFilePathUri(updatedCodeBehindPath);
+        var cssFileUri = LspFactory.CreateFilePathUri(cssFilePath);
 
         var text = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -58,7 +58,7 @@ internal class ExtractToCssCodeActionResolver(
         var removeRange = codeDocument.Source.Text.GetRange(actionParams.RemoveStart, actionParams.RemoveEnd);
 
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new(documentContext.Uri) };
-        var codeBehindDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new(cssFileUri) };
+        var cssDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new(cssFileUri) };
 
         using var changes = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>(capacity: 3);
 
@@ -76,7 +76,7 @@ internal class ExtractToCssCodeActionResolver(
 
             changes.Add(new TextDocumentEdit
             {
-                TextDocument = codeBehindDocumentIdentifier,
+                TextDocument = cssDocumentIdentifier,
                 Edits = [LspFactory.CreateTextEdit(
                     position: (lastLineNumber, lastLineLength),
                     newText: lastLineNumber == 0
@@ -87,10 +87,10 @@ internal class ExtractToCssCodeActionResolver(
         else
         {
             // No CSS file, create it and fill it in
-            changes.Add(new CreateFile { DocumentUri = codeBehindDocumentIdentifier.DocumentUri });
+            changes.Add(new CreateFile { DocumentUri = cssDocumentIdentifier.DocumentUri });
             changes.Add(new TextDocumentEdit
             {
-                TextDocument = codeBehindDocumentIdentifier,
+                TextDocument = cssDocumentIdentifier,
                 Edits = [LspFactory.CreateTextEdit(position: (0, 0), cssContent)]
             });
         }
