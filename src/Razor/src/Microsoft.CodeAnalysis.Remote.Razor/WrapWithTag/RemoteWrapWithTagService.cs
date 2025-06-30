@@ -52,7 +52,7 @@ internal sealed partial class RemoteWrapWithTagService(in ServiceArgs args) : Ra
         CancellationToken cancellationToken)
     {
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var isValid = await WrapWithTagHelper.IsValidWrappingRangeAsync(codeDocument, range, cancellationToken).ConfigureAwait(false);
+        var isValid = WrapWithTagHelper.TryGetValidWrappingRange(codeDocument, range, out var adjustedRange);
         return Response.Results(isValid);
     }
 

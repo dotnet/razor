@@ -3,6 +3,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using ICSharpCode.Decompiler.Util;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
@@ -41,18 +42,20 @@ internal class WrapWithTagEndpoint(IClientConnection clientConnection, ILoggerFa
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-        var validationResult = await WrapWithTagHelper.ValidateAndAdjustRangeAsync(codeDocument, request.Range, cancellationToken).ConfigureAwait(false);
-        if (!validationResult.IsValid)
+        if (request.Range is null)
+        {
+            _logger.LogInformation($"WrapWithTag request for {request.TextDocument.DocumentUri} has a null range.");
+            return null;
+        }
+
+        if (!WrapWithTagHelper.TryGetValidWrappingRange(codeDocument, request.Range.ToLinePositionSpan(), out var adjustedRange))
         {
             _logger.LogInformation($"Unsupported language at the requested range.");
             return null;
         }
 
         // Update the request range if it was adjusted
-        if (validationResult.AdjustedRange is not null)
-        {
-            request.Range = validationResult.AdjustedRange;
-        }
+        request.Range = adjustedRange.ToRange();
 
         cancellationToken.ThrowIfCancellationRequested();
 
