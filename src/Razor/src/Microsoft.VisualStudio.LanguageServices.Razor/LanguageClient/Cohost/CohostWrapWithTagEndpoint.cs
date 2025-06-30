@@ -1,0 +1,95 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.Collections.Immutable;
+using System.Composition;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Razor.LanguageClient.WrapWithTag;
+
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
+
+#pragma warning disable RS0030 // Do not use banned APIs
+[Shared]
+[CohostEndpoint(LanguageServerConstants.RazorWrapWithTagEndpoint)]
+[Export(typeof(IDynamicRegistrationProvider))]
+[ExportCohostStatelessLspService(typeof(CohostWrapWithTagEndpoint))]
+[method: ImportingConstructor]
+#pragma warning restore RS0030 // Do not use banned APIs
+internal sealed class CohostWrapWithTagEndpoint(
+    IRemoteServiceInvoker remoteServiceInvoker,
+    IFilePathService filePathService,
+    IHtmlRequestInvoker requestInvoker)
+    : AbstractRazorCohostDocumentRequestHandler<VSInternalWrapWithTagParams, VSInternalWrapWithTagResponse?>, IDynamicRegistrationProvider
+{
+    private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
+    private readonly IFilePathService _filePathService = filePathService;
+    private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
+
+    protected override bool MutatesSolutionState => false;
+
+    protected override bool RequiresLSPSolution => true;
+
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
+    {
+        if (clientCapabilities.SupportsVisualStudioExtensions)
+        {
+            return [new Registration
+            {
+                Method = LanguageServerConstants.RazorWrapWithTagEndpoint,
+                RegisterOptions = new TextDocumentRegistrationOptions()
+            }];
+        }
+
+        return [];
+    }
+
+    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalWrapWithTagParams request)
+        => request.TextDocument.ToRazorTextDocumentIdentifier();
+
+    protected override Task<VSInternalWrapWithTagResponse?> HandleRequestAsync(VSInternalWrapWithTagParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
+        => HandleRequestAsync(request, context.TextDocument.AssumeNotNull(), cancellationToken);
+
+    private async Task<VSInternalWrapWithTagResponse?> HandleRequestAsync(VSInternalWrapWithTagParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    {
+        // First, check if the position is valid for wrap with tag operation through the remote service
+        var isValidLocation = await _remoteServiceInvoker.TryInvokeAsync<IRemoteWrapWithTagService, RemoteResponse<bool>>(
+            razorDocument.Project.Solution,
+            (service, solutionInfo, cancellationToken) => service.IsValidWrapWithTagLocationAsync(solutionInfo, razorDocument.Id, request.Range, cancellationToken),
+            cancellationToken).ConfigureAwait(false);
+
+        // If the remote service says it's not a valid location or we should stop handling, return null
+        if (!isValidLocation.Result || isValidLocation.StopHandling)
+        {
+            return null;
+        }
+
+        // The location is valid, so delegate to the HTML server
+        var htmlResponse = await _requestInvoker.MakeHtmlLspRequestAsync<VSInternalWrapWithTagParams, VSInternalWrapWithTagResponse>(
+            razorDocument,
+            LanguageServerConstants.RazorWrapWithTagEndpoint,
+            request,
+            cancellationToken).ConfigureAwait(false);
+
+        // TODO: Consider if we need to fix HTML text edits in the cohost scenario
+        // The original language server implementation calls FormattingUtilities.FixHtmlTextEdits
+        // but this might not be necessary in the cohost context
+
+        return htmlResponse;
+    }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(CohostWrapWithTagEndpoint instance)
+    {
+        public Task<VSInternalWrapWithTagResponse?> HandleRequestAsync(VSInternalWrapWithTagParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+            => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
+    }
+}
