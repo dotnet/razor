@@ -78,9 +78,19 @@ internal sealed class CohostWrapWithTagEndpoint(
             request,
             cancellationToken).ConfigureAwait(false);
 
-        // TODO: Consider if we need to fix HTML text edits in the cohost scenario
-        // The original language server implementation calls FormattingUtilities.FixHtmlTextEdits
-        // but this might not be necessary in the cohost context
+        if (htmlResponse?.TextEdits is not null)
+        {
+            // Fix the HTML text edits to handle any tilde characters in the generated document
+            var fixedEdits = await _remoteServiceInvoker.TryInvokeAsync<IRemoteWrapWithTagService, RemoteResponse<TextEdit[]?>>(
+                razorDocument.Project.Solution,
+                (service, solutionInfo, cancellationToken) => service.FixHtmlTextEditsAsync(solutionInfo, razorDocument.Id, htmlResponse.TextEdits, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+
+            if (fixedEdits.Result is not null)
+            {
+                htmlResponse.TextEdits = fixedEdits.Result;
+            }
+        }
 
         return htmlResponse;
     }
