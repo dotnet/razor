@@ -19,7 +19,6 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 #pragma warning disable RS0030 // Do not use banned APIs
 [Shared]
 [CohostEndpoint(LanguageServerConstants.RazorWrapWithTagEndpoint)]
-[Export(typeof(IDynamicRegistrationProvider))]
 [ExportCohostStatelessLspService(typeof(CohostWrapWithTagEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -27,7 +26,7 @@ internal sealed class CohostWrapWithTagEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
     IFilePathService filePathService,
     IHtmlRequestInvoker requestInvoker)
-    : AbstractRazorCohostDocumentRequestHandler<VSInternalWrapWithTagParams, VSInternalWrapWithTagResponse?>, IDynamicRegistrationProvider
+    : AbstractRazorCohostDocumentRequestHandler<VSInternalWrapWithTagParams, VSInternalWrapWithTagResponse?>
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IFilePathService _filePathService = filePathService;
@@ -36,20 +35,6 @@ internal sealed class CohostWrapWithTagEndpoint(
     protected override bool MutatesSolutionState => false;
 
     protected override bool RequiresLSPSolution => true;
-
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
-    {
-        if (clientCapabilities.SupportsVisualStudioExtensions)
-        {
-            return [new Registration
-            {
-                Method = LanguageServerConstants.RazorWrapWithTagEndpoint,
-                RegisterOptions = new TextDocumentRegistrationOptions()
-            }];
-        }
-
-        return [];
-    }
 
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalWrapWithTagParams request)
         => request.TextDocument.ToRazorTextDocumentIdentifier();
