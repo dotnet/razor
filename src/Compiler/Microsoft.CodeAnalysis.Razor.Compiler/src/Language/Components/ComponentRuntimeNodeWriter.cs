@@ -1,7 +1,5 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-
-#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -18,15 +16,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Components;
 /// <summary>
 /// Generates the C# code corresponding to Razor source document contents.
 /// </summary>
-internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
+internal class ComponentRuntimeNodeWriter(CodeRenderingContext context, RazorLanguageVersion version) : ComponentNodeWriter(context, version)
 {
     private readonly ImmutableArray<IntermediateToken>.Builder _currentAttributeValues = ImmutableArray.CreateBuilder<IntermediateToken>();
     private readonly ScopeStack _scopeStack = new ScopeStack();
     private int _sourceSequence;
-
-    public ComponentRuntimeNodeWriter(RazorLanguageVersion version) : base(version)
-    {
-    }
 
     public override void WriteCSharpCode(CodeRenderingContext context, CSharpCodeIntermediateNode node)
     {

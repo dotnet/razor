@@ -88,7 +88,7 @@ public abstract class CodeTarget
 
     }
 
-    public abstract IntermediateNodeWriter CreateNodeWriter();
+    public abstract IntermediateNodeWriter CreateNodeWriter(CodeRenderingContext context);
 
     public abstract TExtension GetExtension<TExtension>() where TExtension : class, ICodeTargetExtension;
 

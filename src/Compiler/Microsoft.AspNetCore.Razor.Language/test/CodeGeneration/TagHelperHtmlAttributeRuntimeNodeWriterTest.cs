@@ -19,16 +19,15 @@ public class TagHelperHtmlAttributeRuntimeNodeWriterTest : RazorProjectEngineTes
     [Fact]
     public void WriteHtmlAttributeValue_RendersCorrectly()
     {
-        var writer = new TagHelperHtmlAttributeRuntimeNodeWriter();
-
         var content = "<input checked=\"hello-world @false\" />";
         var source = TestRazorSourceDocument.Create(content);
         var codeDocument = ProjectEngine.CreateCodeDocument(source);
         var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
-        var node = documentNode.Children.OfType<HtmlAttributeIntermediateNode>().Single().Children[0] as HtmlAttributeValueIntermediateNode;
+        var node = (HtmlAttributeValueIntermediateNode)documentNode.Children.OfType<HtmlAttributeIntermediateNode>().Single().Children[0];
 
         using var context = TestCodeRenderingContext.CreateRuntime();
+        var writer = new TagHelperHtmlAttributeRuntimeNodeWriter(context);
 
         // Act
         writer.WriteHtmlAttributeValue(context, node);
@@ -45,15 +44,15 @@ public class TagHelperHtmlAttributeRuntimeNodeWriterTest : RazorProjectEngineTes
     [Fact]
     public void WriteCSharpExpressionAttributeValue_RendersCorrectly()
     {
-        var writer = new TagHelperHtmlAttributeRuntimeNodeWriter();
         var content = "<input checked=\"hello-world @false\" />";
         var source = TestRazorSourceDocument.Create(content);
         var codeDocument = ProjectEngine.CreateCodeDocument(source);
         var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
-        var node = documentNode.Children.OfType<HtmlAttributeIntermediateNode>().Single().Children[1] as CSharpExpressionAttributeValueIntermediateNode;
+        var node = (CSharpExpressionAttributeValueIntermediateNode)documentNode.Children.OfType<HtmlAttributeIntermediateNode>().Single().Children[1];
 
         using var context = TestCodeRenderingContext.CreateRuntime();
+        var writer = new TagHelperHtmlAttributeRuntimeNodeWriter(context);
 
         // Act
         writer.WriteCSharpExpressionAttributeValue(context, node);
@@ -78,16 +77,15 @@ false
     [Fact]
     public void WriteCSharpCodeAttributeValue_BuffersResult()
     {
-        var writer = new TagHelperHtmlAttributeRuntimeNodeWriter();
-
         var content = "<input checked=\"hello-world @if(@true){ }\" />";
         var source = TestRazorSourceDocument.Create(content);
         var codeDocument = ProjectEngine.CreateCodeDocument(source);
         var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
-        var node = documentNode.Children.OfType<HtmlAttributeIntermediateNode>().Single().Children[1] as CSharpCodeAttributeValueIntermediateNode;
+        var node = (CSharpCodeAttributeValueIntermediateNode)documentNode.Children.OfType<HtmlAttributeIntermediateNode>().Single().Children[1];
 
         using var context = TestCodeRenderingContext.CreateRuntime(source: source);
+        var writer = new TagHelperHtmlAttributeRuntimeNodeWriter(context);
 
         // Act
         writer.WriteCSharpCodeAttributeValue(context, node);

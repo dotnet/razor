@@ -19,7 +19,7 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
         ArgHelper.ThrowIfNull(documentNode);
 
         using var context = new CodeRenderingContext(
-            _codeTarget.CreateNodeWriter(),
+            _codeTarget,
             codeDocument.Source,
             documentNode,
             _options);

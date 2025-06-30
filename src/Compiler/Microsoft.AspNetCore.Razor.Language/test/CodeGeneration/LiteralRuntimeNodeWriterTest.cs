@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Xunit;
 
@@ -14,8 +12,8 @@ public class LiteralRuntimeNodeWriterTest
     public void WriteCSharpExpression_UsesWriteLiteral_WritesLinePragma_WithSource()
     {
         // Arrange
-        var writer = new LiteralRuntimeNodeWriter();
         using var context = TestCodeRenderingContext.CreateRuntime();
+        var writer = new LiteralRuntimeNodeWriter(context);
 
         var node = new CSharpExpressionIntermediateNode();
         var builder = IntermediateNodeBuilder.Create(node);
@@ -45,8 +43,8 @@ i++
     public void WriteCSharpExpression_WithMultipleChildren()
     {
         // Arrange
-        var writer = new LiteralRuntimeNodeWriter();
         using var context = TestCodeRenderingContext.CreateRuntime();
+        var writer = new LiteralRuntimeNodeWriter(context);
 
         var node = new CSharpExpressionIntermediateNode();
         var builder = IntermediateNodeBuilder.Create(node);

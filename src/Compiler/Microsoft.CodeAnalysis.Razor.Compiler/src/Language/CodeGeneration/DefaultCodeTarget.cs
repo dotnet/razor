@@ -20,9 +20,11 @@ internal class DefaultCodeTarget : CodeTarget
 
     public ICodeTargetExtension[] Extensions { get; }
 
-    public override IntermediateNodeWriter CreateNodeWriter()
+    public override IntermediateNodeWriter CreateNodeWriter(CodeRenderingContext context)
     {
-        return _options.DesignTime ? (IntermediateNodeWriter)new DesignTimeNodeWriter() : new RuntimeNodeWriter();
+        return _options.DesignTime
+            ? new DesignTimeNodeWriter(context)
+            : new RuntimeNodeWriter(context);
     }
 
     public override TExtension GetExtension<TExtension>()

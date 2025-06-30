@@ -26,11 +26,11 @@ internal class ComponentCodeTarget : CodeTarget
 
     public ICodeTargetExtension[] Extensions { get; }
 
-    public override IntermediateNodeWriter CreateNodeWriter()
+    public override IntermediateNodeWriter CreateNodeWriter(CodeRenderingContext context)
     {
         return _options.DesignTime
-            ? new ComponentDesignTimeNodeWriter(_version)
-            : new ComponentRuntimeNodeWriter(_version);
+            ? new ComponentDesignTimeNodeWriter(context, _version)
+            : new ComponentRuntimeNodeWriter(context, _version);
     }
 
     public override TExtension GetExtension<TExtension>()

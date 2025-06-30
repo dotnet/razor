@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Globalization;
 using System.Linq;
@@ -11,7 +9,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
-public class RuntimeNodeWriter : IntermediateNodeWriter
+public class RuntimeNodeWriter(CodeRenderingContext context) : IntermediateNodeWriter(context)
 {
     public virtual string WriteCSharpExpressionMethod { get; set; } = "Write";
 
@@ -128,8 +126,10 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
                 child is CSharpCodeAttributeValueIntermediateNode ||
                 child is ExtensionIntermediateNode);
 
-        var prefixLocation = node.Source.Value.AbsoluteIndex;
-        var suffixLocation = node.Source.Value.AbsoluteIndex + node.Source.Value.Length - node.Suffix.Length;
+        var source = node.Source.AssumeNotNull();
+        var prefixLocation = source.AbsoluteIndex;
+        var suffixLocation = source.AbsoluteIndex + source.Length - node.Suffix.Length;
+
         context.CodeWriter
             .WriteStartMethodInvocation(BeginWriteAttributeMethod)
             .WriteStringLiteral(node.AttributeName)
@@ -154,9 +154,11 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
 
     public override void WriteHtmlAttributeValue(CodeRenderingContext context, HtmlAttributeValueIntermediateNode node)
     {
-        var prefixLocation = node.Source.Value.AbsoluteIndex;
-        var valueLocation = node.Source.Value.AbsoluteIndex + node.Prefix.Length;
-        var valueLength = node.Source.Value.Length;
+        var source = node.Source.AssumeNotNull();
+        var prefixLocation = source.AbsoluteIndex;
+        var valueLocation = source.AbsoluteIndex + node.Prefix.Length;
+        var valueLength = source.Length;
+
         context.CodeWriter
             .WriteStartMethodInvocation(WriteAttributeValueMethod)
             .WriteStringLiteral(node.Prefix)
@@ -190,7 +192,9 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
 
     public override void WriteCSharpExpressionAttributeValue(CodeRenderingContext context, CSharpExpressionAttributeValueIntermediateNode node)
     {
-        var prefixLocation = node.Source.Value.AbsoluteIndex.ToString(CultureInfo.InvariantCulture);
+        var source = node.Source.AssumeNotNull();
+        var prefixLocation = source.AbsoluteIndex.ToString(CultureInfo.InvariantCulture);
+
         context.CodeWriter
             .WriteStartMethodInvocation(WriteAttributeValueMethod)
             .WriteStringLiteral(node.Prefix)
@@ -200,8 +204,9 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
 
         WriteCSharpChildren(node.Children, context);
 
-        var valueLocation = node.Source.Value.AbsoluteIndex + node.Prefix.Length;
-        var valueLength = node.Source.Value.Length - node.Prefix.Length;
+        var valueLocation = source.AbsoluteIndex + node.Prefix.Length;
+        var valueLength = source.Length - node.Prefix.Length;
+
         context.CodeWriter
             .WriteParameterSeparator()
             .Write(valueLocation.ToString(CultureInfo.InvariantCulture))
@@ -216,9 +221,11 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
     {
         const string ValueWriterName = "__razor_attribute_value_writer";
 
-        var prefixLocation = node.Source.Value.AbsoluteIndex;
-        var valueLocation = node.Source.Value.AbsoluteIndex + node.Prefix.Length;
-        var valueLength = node.Source.Value.Length - node.Prefix.Length;
+        var source = node.Source.AssumeNotNull();
+        var prefixLocation = source.AbsoluteIndex;
+        var valueLocation = source.AbsoluteIndex + node.Prefix.Length;
+        var valueLength = source.Length - node.Prefix.Length;
+
         context.CodeWriter
             .WriteStartMethodInvocation(WriteAttributeValueMethod)
             .WriteStringLiteral(node.Prefix)

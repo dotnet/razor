@@ -32,12 +32,12 @@ public sealed class CodeRenderingContext : IDisposable
     public string DocumentKind => _documentNode.DocumentKind;
 
     public CodeRenderingContext(
-        IntermediateNodeWriter nodeWriter,
+        CodeTarget codeTarget,
         RazorSourceDocument sourceDocument,
         DocumentIntermediateNode documentNode,
         RazorCodeGenerationOptions options)
     {
-        ArgHelper.ThrowIfNull(nodeWriter);
+        ArgHelper.ThrowIfNull(codeTarget);
         ArgHelper.ThrowIfNull(sourceDocument);
         ArgHelper.ThrowIfNull(documentNode);
         ArgHelper.ThrowIfNull(options);
@@ -48,7 +48,6 @@ public sealed class CodeRenderingContext : IDisposable
 
         _ancestorStack = StackPool<IntermediateNode>.Default.Get();
         _scopeStack = StackPool<ScopeInternal>.Default.Get();
-        _scopeStack.Push(new(nodeWriter));
 
         _diagnostics = ArrayBuilderPool<RazorDiagnostic>.Default.Get();
 
@@ -61,6 +60,9 @@ public sealed class CodeRenderingContext : IDisposable
         _sourceMappings = ArrayBuilderPool<SourceMapping>.Default.Get();
 
         CodeWriter = new CodeWriter(options);
+
+        var nodeWriter = codeTarget.CreateNodeWriter(this);
+        _scopeStack.Push(new(nodeWriter));
     }
 
     public void Dispose()

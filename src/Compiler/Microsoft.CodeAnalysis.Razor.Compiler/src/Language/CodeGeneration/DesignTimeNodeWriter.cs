@@ -1,15 +1,13 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
-public class DesignTimeNodeWriter : IntermediateNodeWriter
+public class DesignTimeNodeWriter(CodeRenderingContext context) : IntermediateNodeWriter(context)
 {
     public override void WriteUsingDirective(CodeRenderingContext context, UsingDirectiveIntermediateNode node)
     {
@@ -96,7 +94,7 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
 
     public override void WriteCSharpCode(CodeRenderingContext context, CSharpCodeIntermediateNode node)
     {
-        IDisposable linePragmaScope = null;
+        IDisposable? linePragmaScope = null;
         if (node.Source != null)
         {
             linePragmaScope = context.CodeWriter.BuildLinePragma(node.Source.Value, context);
@@ -211,7 +209,7 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
         {
             if (node.Children[i] is CSharpIntermediateToken token)
             {
-                IDisposable linePragmaScope = null;
+                IDisposable? linePragmaScope = null;
                 var isWhitespaceStatement = string.IsNullOrWhiteSpace(token.Content);
 
                 if (token.Source != null)

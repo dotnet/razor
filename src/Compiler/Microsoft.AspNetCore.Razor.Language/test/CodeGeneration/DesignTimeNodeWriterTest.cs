@@ -21,8 +21,8 @@ public class DesignTimeNodeWriterTest : RazorProjectEngineTestBase
     public void WriteUsingDirective_NoSource_WritesContent()
     {
         // Arrange
-        var writer = new DesignTimeNodeWriter();
         using var context = TestCodeRenderingContext.CreateDesignTime();
+        var writer = new DesignTimeNodeWriter(context);
 
         var node = new UsingDirectiveIntermediateNode()
         {
@@ -45,8 +45,8 @@ public class DesignTimeNodeWriterTest : RazorProjectEngineTestBase
     public void WriteUsingDirective_WithSource_WritesContentWithLinePragmaAndMapping()
     {
         // Arrange
-        var writer = new DesignTimeNodeWriter();
         using var context = TestCodeRenderingContext.CreateDesignTime();
+        var writer = new DesignTimeNodeWriter(context);
 
         var originalSpan = new SourceSpan("test.cshtml", 0, 0, 0, 6);
         var generatedSpan = new SourceSpan(null, 38 + Environment.NewLine.Length * 3, 3, 0, 6);
@@ -81,8 +81,8 @@ using System;
     public void WriteUsingDirective_WithSourceAndLineDirectives_WritesContentWithLinePragmaAndMapping()
     {
         // Arrange
-        var writer = new DesignTimeNodeWriter();
         using var context = TestCodeRenderingContext.CreateDesignTime();
+        var writer = new DesignTimeNodeWriter(context);
 
         var originalSpan = new SourceSpan("test.cshtml", 0, 0, 0, 6);
         var generatedSpan = new SourceSpan(null, 38 + Environment.NewLine.Length * 3, 3, 0, 6);
@@ -120,8 +120,8 @@ using System;
     public void WriteCSharpExpression_SkipsLinePragma_WithoutSource()
     {
         // Arrange
-        var writer = new DesignTimeNodeWriter();
         using var context = TestCodeRenderingContext.CreateDesignTime();
+        var writer = new DesignTimeNodeWriter(context);
 
         var node = new CSharpExpressionIntermediateNode();
         var builder = IntermediateNodeBuilder.Create(node);
@@ -143,8 +143,8 @@ using System;
     public void WriteCSharpExpression_WritesLinePragma_WithSource()
     {
         // Arrange
-        var writer = new DesignTimeNodeWriter();
         using var context = TestCodeRenderingContext.CreateDesignTime();
+        var writer = new DesignTimeNodeWriter(context);
 
         var node = new CSharpExpressionIntermediateNode()
         {
@@ -178,8 +178,8 @@ __o = i++;
     public void WriteCSharpExpression_WithExtensionNode_WritesPadding()
     {
         // Arrange
-        var writer = new DesignTimeNodeWriter();
         using var context = TestCodeRenderingContext.CreateDesignTime();
+        var writer = new DesignTimeNodeWriter(context);
 
         var node = new CSharpExpressionIntermediateNode();
         var builder = IntermediateNodeBuilder.Create(node);
@@ -207,8 +207,8 @@ __o = i++;
     public void WriteCSharpExpression_WithSource_WritesPadding()
     {
         // Arrange
-        var writer = new DesignTimeNodeWriter();
         using var context = TestCodeRenderingContext.CreateDesignTime();
+        var writer = new DesignTimeNodeWriter(context);
 
         var node = new CSharpExpressionIntermediateNode()
         {
@@ -246,8 +246,8 @@ __o = i++;
     public void WriteCSharpCode_WhitespaceContentWithSource_WritesContent()
     {
         // Arrange
-        var writer = new DesignTimeNodeWriter();
         using var context = TestCodeRenderingContext.CreateDesignTime();
+        var writer = new DesignTimeNodeWriter(context);
 
         var node = new CSharpCodeIntermediateNode()
         {
@@ -280,8 +280,8 @@ __o = i++;
     public void WriteCSharpCode_SkipsLinePragma_WithoutSource()
     {
         // Arrange
-        var writer = new DesignTimeNodeWriter();
         using var context = TestCodeRenderingContext.CreateDesignTime();
+        var writer = new DesignTimeNodeWriter(context);
 
         var node = new CSharpCodeIntermediateNode();
         IntermediateNodeBuilder.Create(node)
@@ -303,8 +303,8 @@ __o = i++;
     public void WriteCSharpCode_WritesLinePragma_WithSource()
     {
         // Arrange
-        var writer = new DesignTimeNodeWriter();
         using var context = TestCodeRenderingContext.CreateDesignTime();
+        var writer = new DesignTimeNodeWriter(context);
 
         var node = new CSharpCodeIntermediateNode()
         {
@@ -337,8 +337,8 @@ if (true) { }
     public void WriteCSharpCode_WritesPadding_WithSource()
     {
         // Arrange
-        var writer = new DesignTimeNodeWriter();
         using var context = TestCodeRenderingContext.CreateDesignTime();
+        var writer = new DesignTimeNodeWriter(context);
 
         var node = new CSharpCodeIntermediateNode()
         {
@@ -370,16 +370,15 @@ if (true) { }
     [Fact]
     public void WriteCSharpExpressionAttributeValue_RendersCorrectly()
     {
-        var writer = new DesignTimeNodeWriter();
-
         var content = "<input checked=\"hello-world @false\" />";
         var source = TestRazorSourceDocument.Create(content);
         var codeDocument = ProjectEngine.CreateCodeDocument(source);
         var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
-        var node = documentNode.Children.OfType<HtmlAttributeIntermediateNode>().Single().Children[1] as CSharpExpressionAttributeValueIntermediateNode;
+        var node = (CSharpExpressionAttributeValueIntermediateNode)documentNode.Children.OfType<HtmlAttributeIntermediateNode>().Single().Children[1];
 
         using var context = TestCodeRenderingContext.CreateDesignTime(source: source);
+        var writer = new DesignTimeNodeWriter(context);
 
         // Act
         writer.WriteCSharpExpressionAttributeValue(context, node);
@@ -403,15 +402,15 @@ if (true) { }
     [Fact]
     public void WriteCSharpCodeAttributeValue_RendersCorrectly()
     {
-        var writer = new DesignTimeNodeWriter();
         var content = "<input checked=\"hello-world @if(@true){ }\" />";
         var sourceDocument = TestRazorSourceDocument.Create(content);
         var codeDocument = ProjectEngine.CreateCodeDocument(sourceDocument);
         var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
-        var node = documentNode.Children.OfType<HtmlAttributeIntermediateNode>().Single().Children[1] as CSharpCodeAttributeValueIntermediateNode;
+        var node = (CSharpCodeAttributeValueIntermediateNode)documentNode.Children.OfType<HtmlAttributeIntermediateNode>().Single().Children[1];
 
         using var context = TestCodeRenderingContext.CreateDesignTime(source: sourceDocument);
+        var writer = new DesignTimeNodeWriter(context);
 
         // Act
         writer.WriteCSharpCodeAttributeValue(context, node);
@@ -435,15 +434,15 @@ if (true) { }
     [Fact]
     public void WriteCSharpCodeAttributeValue_WithExpression_RendersCorrectly()
     {
-        var writer = new DesignTimeNodeWriter();
         var content = "<input checked=\"hello-world @if(@true){ @false }\" />";
         var source = TestRazorSourceDocument.Create(content);
         var codeDocument = ProjectEngine.CreateCodeDocument(source);
         var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
-        var node = documentNode.Children.OfType<HtmlAttributeIntermediateNode>().Single().Children[1] as CSharpCodeAttributeValueIntermediateNode;
+        var node = (CSharpCodeAttributeValueIntermediateNode)documentNode.Children.OfType<HtmlAttributeIntermediateNode>().Single().Children[1];
 
         using var context = TestCodeRenderingContext.CreateDesignTime(source: source);
+        var writer = new DesignTimeNodeWriter(context);
 
         // Act
         writer.WriteCSharpCodeAttributeValue(context, node);
@@ -484,8 +483,8 @@ Render Children
     [InlineData(@"\\SERVER/pages\test.cshtml",      @"\\SERVER\pages\test.cshtml")]
     public void LinePragma_Is_Adjusted_On_Windows(string fileName, string expectedFileName)
     {
-        var writer = new DesignTimeNodeWriter();
         using var context = TestCodeRenderingContext.CreateDesignTime();
+        var writer = new DesignTimeNodeWriter(context);
 
         Assert.True(context.Options.RemapLinePragmaPathsOnWindows);
 
@@ -528,8 +527,8 @@ Render Children
     [InlineData(@"\\SERVER/pages\test.cshtml",      @"\\SERVER\pages\test.cshtml")]
     public void LinePragma_Enhanced_Is_Adjusted_On_Windows(string fileName, string expectedFileName)
     {
-        var writer = new RuntimeNodeWriter();
         using var context = TestCodeRenderingContext.CreateDesignTime(source: RazorSourceDocument.Create("", fileName));
+        var writer = new RuntimeNodeWriter(context);
 
         Assert.True(context.Options.RemapLinePragmaPathsOnWindows);
         Assert.True(context.Options.UseEnhancedLinePragma);

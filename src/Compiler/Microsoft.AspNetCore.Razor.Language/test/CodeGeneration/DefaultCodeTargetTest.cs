@@ -1,9 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
-using System.Linq;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
@@ -34,10 +31,11 @@ public class DefaultCodeTargetTest
     {
         // Arrange
         var options = RazorCodeGenerationOptions.DesignTimeDefault;
-        var target = new DefaultCodeTarget(options, Enumerable.Empty<ICodeTargetExtension>());
+        var target = new DefaultCodeTarget(options, extensions: []);
+        using var context = TestCodeRenderingContext.CreateRuntime();
 
         // Act
-        var writer = target.CreateNodeWriter();
+        var writer = target.CreateNodeWriter(context);
 
         // Assert
         Assert.IsType<DesignTimeNodeWriter>(writer);
@@ -48,10 +46,11 @@ public class DefaultCodeTargetTest
     {
         // Arrange
         var options = RazorCodeGenerationOptions.Default;
-        var target = new DefaultCodeTarget(options, Enumerable.Empty<ICodeTargetExtension>());
+        var target = new DefaultCodeTarget(options, extensions: []);
+        using var context = TestCodeRenderingContext.CreateRuntime();
 
         // Act
-        var writer = target.CreateNodeWriter();
+        var writer = target.CreateNodeWriter(context);
 
         // Assert
         Assert.IsType<RuntimeNodeWriter>(writer);

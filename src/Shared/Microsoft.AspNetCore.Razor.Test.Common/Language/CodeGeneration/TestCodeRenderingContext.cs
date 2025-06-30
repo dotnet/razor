@@ -1,51 +1,60 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
+using System;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 public static class TestCodeRenderingContext
 {
-    public static CodeRenderingContext CreateDesignTime(
-        string newLineString = null,
-        string suppressUniqueIds = "test",
-        RazorSourceDocument source = null,
-        IntermediateNodeWriter nodeWriter = null)
+    private sealed class TestCodeTarget() : CodeTarget
     {
-        nodeWriter ??= new RuntimeNodeWriter();
+        public override IntermediateNodeWriter CreateNodeWriter(CodeRenderingContext context)
+            => new RuntimeNodeWriter(context);
+
+        public override TExtension GetExtension<TExtension>()
+            => throw new NotImplementedException();
+
+        public override bool HasExtension<TExtension>()
+            => throw new NotImplementedException();
+    }
+
+    public static CodeRenderingContext CreateDesignTime(
+        string? newLineString = null,
+        string suppressUniqueIds = "test",
+        RazorSourceDocument? source = null)
+    {
         source ??= TestRazorSourceDocument.Create();
         var documentNode = new DocumentIntermediateNode();
 
         var options = ConfigureOptions(RazorCodeGenerationOptions.DesignTimeDefault, newLineString, suppressUniqueIds);
+        var codeTarget = new TestCodeTarget();
 
-        var context = new CodeRenderingContext(nodeWriter, source, documentNode, options);
+        var context = new CodeRenderingContext(codeTarget, source, documentNode, options);
         context.SetVisitor(new RenderChildrenVisitor(context.CodeWriter));
 
         return context;
     }
 
     public static CodeRenderingContext CreateRuntime(
-        string newLineString = null,
-        string suppressUniqueIds = "test",
-        RazorSourceDocument source = null,
-        IntermediateNodeWriter nodeWriter = null)
+        string? newLineString = null,
+        string? suppressUniqueIds = "test",
+        RazorSourceDocument? source = null)
     {
-        nodeWriter ??= new RuntimeNodeWriter();
         source ??= TestRazorSourceDocument.Create();
         var documentNode = new DocumentIntermediateNode();
 
         var options = ConfigureOptions(RazorCodeGenerationOptions.Default, newLineString, suppressUniqueIds);
+        var codeTarget = new TestCodeTarget();
 
-        var context = new CodeRenderingContext(nodeWriter, source, documentNode, options);
+        var context = new CodeRenderingContext(codeTarget, source, documentNode, options);
         context.SetVisitor(new RenderChildrenVisitor(context.CodeWriter));
 
         return context;
     }
 
-    private static RazorCodeGenerationOptions ConfigureOptions(RazorCodeGenerationOptions options, string newLine, string suppressUniqueIds)
+    private static RazorCodeGenerationOptions ConfigureOptions(RazorCodeGenerationOptions options, string? newLine, string? suppressUniqueIds)
     {
         if (newLine is null && suppressUniqueIds is null)
         {
