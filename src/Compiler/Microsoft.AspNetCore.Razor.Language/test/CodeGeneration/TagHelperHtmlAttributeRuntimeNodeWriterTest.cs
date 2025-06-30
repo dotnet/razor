@@ -30,7 +30,7 @@ public class TagHelperHtmlAttributeRuntimeNodeWriterTest : RazorProjectEngineTes
         var writer = new TagHelperHtmlAttributeRuntimeNodeWriter(context);
 
         // Act
-        writer.WriteHtmlAttributeValue(context, node);
+        writer.WriteHtmlAttributeValue(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -55,7 +55,7 @@ public class TagHelperHtmlAttributeRuntimeNodeWriterTest : RazorProjectEngineTes
         var writer = new TagHelperHtmlAttributeRuntimeNodeWriter(context);
 
         // Act
-        writer.WriteCSharpExpressionAttributeValue(context, node);
+        writer.WriteCSharpExpressionAttributeValue(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -88,7 +88,7 @@ false
         var writer = new TagHelperHtmlAttributeRuntimeNodeWriter(context);
 
         // Act
-        writer.WriteCSharpCodeAttributeValue(context, node);
+        writer.WriteCSharpCodeAttributeValue(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();

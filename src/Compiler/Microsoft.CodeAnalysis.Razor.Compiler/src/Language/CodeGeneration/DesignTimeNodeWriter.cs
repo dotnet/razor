@@ -9,40 +9,30 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 public class DesignTimeNodeWriter(CodeRenderingContext context) : IntermediateNodeWriter(context)
 {
-    public override void WriteUsingDirective(CodeRenderingContext context, UsingDirectiveIntermediateNode node)
+    public override void WriteUsingDirective(UsingDirectiveIntermediateNode node)
     {
         if (node.Source is { FilePath: not null } sourceSpan)
         {
-            using (context.CodeWriter.BuildLinePragma(sourceSpan, context, suppressLineDefaultAndHidden: !node.AppendLineDefaultAndHidden))
+            using (Context.CodeWriter.BuildLinePragma(sourceSpan, Context, suppressLineDefaultAndHidden: !node.AppendLineDefaultAndHidden))
             {
-                context.AddSourceMappingFor(node);
-                context.CodeWriter.WriteUsing(node.Content);
+                Context.AddSourceMappingFor(node);
+                Context.CodeWriter.WriteUsing(node.Content);
             }
         }
         else
         {
-            context.CodeWriter.WriteUsing(node.Content);
+            Context.CodeWriter.WriteUsing(node.Content);
 
             if (node.AppendLineDefaultAndHidden)
             {
-                context.CodeWriter.WriteLine("#line default");
-                context.CodeWriter.WriteLine("#line hidden");
+                Context.CodeWriter.WriteLine("#line default");
+                Context.CodeWriter.WriteLine("#line hidden");
             }
         }
     }
 
-    public override void WriteCSharpExpression(CodeRenderingContext context, CSharpExpressionIntermediateNode node)
+    public override void WriteCSharpExpression(CSharpExpressionIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
         if (node.Children.Count == 0)
         {
             return;
@@ -50,69 +40,69 @@ public class DesignTimeNodeWriter(CodeRenderingContext context) : IntermediateNo
 
         if (node.Source != null)
         {
-            using (context.CodeWriter.BuildLinePragma(node.Source.Value, context))
+            using (Context.CodeWriter.BuildLinePragma(node.Source.Value, Context))
             {
                 var offset = DesignTimeDirectivePass.DesignTimeVariable.Length + " = ".Length;
-                context.CodeWriter.WritePadding(offset, node.Source, context);
-                context.CodeWriter.WriteStartAssignment(DesignTimeDirectivePass.DesignTimeVariable);
+                Context.CodeWriter.WritePadding(offset, node.Source, Context);
+                Context.CodeWriter.WriteStartAssignment(DesignTimeDirectivePass.DesignTimeVariable);
 
                 for (var i = 0; i < node.Children.Count; i++)
                 {
                     if (node.Children[i] is CSharpIntermediateToken token)
                     {
-                        context.AddSourceMappingFor(token);
-                        context.CodeWriter.Write(token.Content);
+                        Context.AddSourceMappingFor(token);
+                        Context.CodeWriter.Write(token.Content);
                     }
                     else
                     {
                         // There may be something else inside the expression like a Template or another extension node.
-                        context.RenderNode(node.Children[i]);
+                        Context.RenderNode(node.Children[i]);
                     }
                 }
 
-                context.CodeWriter.WriteLine(";");
+                Context.CodeWriter.WriteLine(";");
             }
         }
         else
         {
-            context.CodeWriter.WriteStartAssignment(DesignTimeDirectivePass.DesignTimeVariable);
+            Context.CodeWriter.WriteStartAssignment(DesignTimeDirectivePass.DesignTimeVariable);
             for (var i = 0; i < node.Children.Count; i++)
             {
                 if (node.Children[i] is CSharpIntermediateToken token)
                 {
-                    context.CodeWriter.Write(token.Content);
+                    Context.CodeWriter.Write(token.Content);
                 }
                 else
                 {
                     // There may be something else inside the expression like a Template or another extension node.
-                    context.RenderNode(node.Children[i]);
+                    Context.RenderNode(node.Children[i]);
                 }
             }
-            context.CodeWriter.WriteLine(";");
+            Context.CodeWriter.WriteLine(";");
         }
     }
 
-    public override void WriteCSharpCode(CodeRenderingContext context, CSharpCodeIntermediateNode node)
+    public override void WriteCSharpCode(CSharpCodeIntermediateNode node)
     {
         IDisposable? linePragmaScope = null;
         if (node.Source != null)
         {
-            linePragmaScope = context.CodeWriter.BuildLinePragma(node.Source.Value, context);
+            linePragmaScope = Context.CodeWriter.BuildLinePragma(node.Source.Value, Context);
 
-            context.CodeWriter.WritePadding(0, node.Source.Value, context);
+            Context.CodeWriter.WritePadding(0, node.Source.Value, Context);
         }
 
         for (var i = 0; i < node.Children.Count; i++)
         {
             if (node.Children[i] is CSharpIntermediateToken token)
             {
-                context.AddSourceMappingFor(token);
-                context.CodeWriter.Write(token.Content);
+                Context.AddSourceMappingFor(token);
+                Context.CodeWriter.Write(token.Content);
             }
             else
             {
                 // There may be something else inside the statement like an extension node.
-                context.RenderNode(node.Children[i]);
+                Context.RenderNode(node.Children[i]);
             }
         }
 
@@ -122,32 +112,22 @@ public class DesignTimeNodeWriter(CodeRenderingContext context) : IntermediateNo
         }
         else
         {
-            context.CodeWriter.WriteLine();
+            Context.CodeWriter.WriteLine();
         }
     }
 
-    public override void WriteHtmlAttribute(CodeRenderingContext context, HtmlAttributeIntermediateNode node)
+    public override void WriteHtmlAttribute(HtmlAttributeIntermediateNode node)
     {
-        context.RenderChildren(node);
+        Context.RenderChildren(node);
     }
 
-    public override void WriteHtmlAttributeValue(CodeRenderingContext context, HtmlAttributeValueIntermediateNode node)
+    public override void WriteHtmlAttributeValue(HtmlAttributeValueIntermediateNode node)
     {
-        context.RenderChildren(node);
+        Context.RenderChildren(node);
     }
 
-    public override void WriteCSharpExpressionAttributeValue(CodeRenderingContext context, CSharpExpressionAttributeValueIntermediateNode node)
+    public override void WriteCSharpExpressionAttributeValue(CSharpExpressionAttributeValueIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
         if (node.Children.Count == 0)
         {
             return;
@@ -156,54 +136,55 @@ public class DesignTimeNodeWriter(CodeRenderingContext context) : IntermediateNo
         var firstChild = node.Children[0];
         if (firstChild.Source != null)
         {
-            using (context.CodeWriter.BuildLinePragma(firstChild.Source.Value, context))
+            using (Context.CodeWriter.BuildLinePragma(firstChild.Source.Value, Context))
             {
                 var offset = DesignTimeDirectivePass.DesignTimeVariable.Length + " = ".Length;
-                context.CodeWriter.WritePadding(offset, firstChild.Source, context);
-                context.CodeWriter.WriteStartAssignment(DesignTimeDirectivePass.DesignTimeVariable);
+                Context.CodeWriter.WritePadding(offset, firstChild.Source, Context);
+                Context.CodeWriter.WriteStartAssignment(DesignTimeDirectivePass.DesignTimeVariable);
 
                 for (var i = 0; i < node.Children.Count; i++)
                 {
                     if (node.Children[i] is CSharpIntermediateToken token)
                     {
-                        context.AddSourceMappingFor(token);
-                        context.CodeWriter.Write(token.Content);
+                        Context.AddSourceMappingFor(token);
+                        Context.CodeWriter.Write(token.Content);
                     }
                     else
                     {
                         // There may be something else inside the expression like a Template or another extension node.
-                        context.RenderNode(node.Children[i]);
+                        Context.RenderNode(node.Children[i]);
                     }
                 }
 
-                context.CodeWriter.WriteLine(";");
+                Context.CodeWriter.WriteLine(";");
             }
         }
         else
         {
-            context.CodeWriter.WriteStartAssignment(DesignTimeDirectivePass.DesignTimeVariable);
+            Context.CodeWriter.WriteStartAssignment(DesignTimeDirectivePass.DesignTimeVariable);
             for (var i = 0; i < node.Children.Count; i++)
             {
                 if (node.Children[i] is CSharpIntermediateToken token)
                 {
                     if (token.Source != null)
                     {
-                        context.AddSourceMappingFor(token);
+                        Context.AddSourceMappingFor(token);
                     }
 
-                    context.CodeWriter.Write(token.Content);
+                    Context.CodeWriter.Write(token.Content);
                 }
                 else
                 {
                     // There may be something else inside the expression like a Template or another extension node.
-                    context.RenderNode(node.Children[i]);
+                    Context.RenderNode(node.Children[i]);
                 }
             }
-            context.CodeWriter.WriteLine(";");
+
+            Context.CodeWriter.WriteLine(";");
         }
     }
 
-    public override void WriteCSharpCodeAttributeValue(CodeRenderingContext context, CSharpCodeAttributeValueIntermediateNode node)
+    public override void WriteCSharpCodeAttributeValue(CSharpCodeAttributeValueIntermediateNode node)
     {
         for (var i = 0; i < node.Children.Count; i++)
         {
@@ -216,10 +197,10 @@ public class DesignTimeNodeWriter(CodeRenderingContext context) : IntermediateNo
                 {
                     if (!isWhitespaceStatement)
                     {
-                        linePragmaScope = context.CodeWriter.BuildLinePragma(token.Source.Value, context);
+                        linePragmaScope = Context.CodeWriter.BuildLinePragma(token.Source.Value, Context);
                     }
 
-                    context.CodeWriter.WritePadding(0, token.Source.Value, context);
+                    Context.CodeWriter.WritePadding(0, token.Source.Value, Context);
                 }
                 else if (isWhitespaceStatement)
                 {
@@ -227,8 +208,8 @@ public class DesignTimeNodeWriter(CodeRenderingContext context) : IntermediateNo
                     continue;
                 }
 
-                context.AddSourceMappingFor(token);
-                context.CodeWriter.Write(token.Content);
+                Context.AddSourceMappingFor(token);
+                Context.CodeWriter.Write(token.Content);
 
                 if (linePragmaScope != null)
                 {
@@ -236,28 +217,28 @@ public class DesignTimeNodeWriter(CodeRenderingContext context) : IntermediateNo
                 }
                 else
                 {
-                    context.CodeWriter.WriteLine();
+                    Context.CodeWriter.WriteLine();
                 }
             }
             else
             {
                 // There may be something else inside the statement like an extension node.
-                context.RenderNode(node.Children[i]);
+                Context.RenderNode(node.Children[i]);
             }
         }
     }
 
-    public override void WriteHtmlContent(CodeRenderingContext context, HtmlContentIntermediateNode node)
+    public override void WriteHtmlContent(HtmlContentIntermediateNode node)
     {
         // Do nothing
     }
 
-    public override void BeginWriterScope(CodeRenderingContext context, string writer)
+    public override void BeginWriterScope(string writer)
     {
         // Do nothing
     }
 
-    public override void EndWriterScope(CodeRenderingContext context)
+    public override void EndWriterScope()
     {
         // Do nothing
     }

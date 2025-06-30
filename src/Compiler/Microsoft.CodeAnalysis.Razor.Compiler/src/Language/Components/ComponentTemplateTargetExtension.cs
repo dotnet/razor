@@ -14,6 +14,6 @@ internal class ComponentTemplateTargetExtension : ITemplateTargetExtension
     {
         // This is OK because this will only be plugged in by the component code target
         // not globally.
-        ((ComponentNodeWriter)context.NodeWriter).WriteTemplate(context, node);
+        ((ComponentNodeWriter)context.NodeWriter).WriteTemplate(node);
     }
 }

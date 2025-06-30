@@ -21,86 +21,46 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
     private const string DesignTimeVariable = "__o";
 
     // Avoid using `AddComponentParameter` in design time where we currently don't detect its availability.
-    protected override bool CanUseAddComponentParameter(CodeRenderingContext context) => false;
+    protected override bool CanUseAddComponentParameter() => false;
 
-    public override void WriteMarkupBlock(CodeRenderingContext context, MarkupBlockIntermediateNode node)
+    public override void WriteMarkupBlock(MarkupBlockIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
         // Do nothing
     }
 
-    public override void WriteMarkupElement(CodeRenderingContext context, MarkupElementIntermediateNode node)
+    public override void WriteMarkupElement(MarkupElementIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
-        context.RenderChildren(node);
+        Context.RenderChildren(node);
     }
 
-    public override void WriteUsingDirective(CodeRenderingContext context, UsingDirectiveIntermediateNode node)
+    public override void WriteUsingDirective(UsingDirectiveIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
         if (node.Source is { FilePath: not null } sourceSpan)
         {
-            using (context.CodeWriter.BuildLinePragma(sourceSpan, context, suppressLineDefaultAndHidden: !node.AppendLineDefaultAndHidden))
+            using (Context.CodeWriter.BuildLinePragma(sourceSpan, Context, suppressLineDefaultAndHidden: !node.AppendLineDefaultAndHidden))
             {
-                context.AddSourceMappingFor(node);
-                context.CodeWriter.WriteUsing(node.Content);
+                Context.AddSourceMappingFor(node);
+                Context.CodeWriter.WriteUsing(node.Content);
             }
         }
         else
         {
-            context.CodeWriter.WriteUsing(node.Content);
+            Context.CodeWriter.WriteUsing(node.Content);
 
             if (node.AppendLineDefaultAndHidden)
             {
-                context.CodeWriter.WriteLine("#line default");
-                context.CodeWriter.WriteLine("#line hidden");
+                Context.CodeWriter.WriteLine("#line default");
+                Context.CodeWriter.WriteLine("#line hidden");
             }
         }
     }
 
-    public override void WriteCSharpExpression(CodeRenderingContext context, CSharpExpressionIntermediateNode node)
+    public override void WriteCSharpExpression(CSharpExpressionIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
-        WriteCSharpExpressionInnards(context, node);
+        WriteCSharpExpressionInnards(node);
     }
 
-    private void WriteCSharpExpressionInnards(CodeRenderingContext context, CSharpExpressionIntermediateNode node, string? type = null)
+    private void WriteCSharpExpressionInnards(CSharpExpressionIntermediateNode node, string? type = null)
     {
         if (node.Children.Count == 0)
         {
@@ -109,7 +69,7 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
 
         if (node.Source != null)
         {
-            using (context.CodeWriter.BuildLinePragma(node.Source.Value, context))
+            using (Context.CodeWriter.BuildLinePragma(node.Source.Value, Context))
             {
                 var offset = DesignTimeVariable.Length + " = ".Length;
 
@@ -118,64 +78,55 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
                     offset += type.Length + 2; // two parenthesis
                 }
 
-                context.CodeWriter.WritePadding(offset, node.Source, context);
-                context.CodeWriter.WriteStartAssignment(DesignTimeVariable);
+                Context.CodeWriter.WritePadding(offset, node.Source, Context);
+                Context.CodeWriter.WriteStartAssignment(DesignTimeVariable);
 
                 if (type != null)
                 {
-                    context.CodeWriter.Write("(");
-                    TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, type);
-                    context.CodeWriter.Write(")");
+                    Context.CodeWriter.Write("(");
+                    TypeNameHelper.WriteGloballyQualifiedName(Context.CodeWriter, type);
+                    Context.CodeWriter.Write(")");
                 }
 
                 for (var i = 0; i < node.Children.Count; i++)
                 {
                     if (node.Children[i] is CSharpIntermediateToken token)
                     {
-                        context.AddSourceMappingFor(token);
-                        context.CodeWriter.Write(token.Content);
+                        Context.AddSourceMappingFor(token);
+                        Context.CodeWriter.Write(token.Content);
                     }
                     else
                     {
                         // There may be something else inside the expression like a Template or another extension node.
-                        context.RenderNode(node.Children[i]);
+                        Context.RenderNode(node.Children[i]);
                     }
                 }
 
-                context.CodeWriter.WriteLine(";");
+                Context.CodeWriter.WriteLine(";");
             }
         }
         else
         {
-            context.CodeWriter.WriteStartAssignment(DesignTimeVariable);
+            Context.CodeWriter.WriteStartAssignment(DesignTimeVariable);
             for (var i = 0; i < node.Children.Count; i++)
             {
                 if (node.Children[i] is CSharpIntermediateToken token)
                 {
-                    context.CodeWriter.Write(token.Content);
+                    Context.CodeWriter.Write(token.Content);
                 }
                 else
                 {
                     // There may be something else inside the expression like a Template or another extension node.
-                    context.RenderNode(node.Children[i]);
+                    Context.RenderNode(node.Children[i]);
                 }
             }
-            context.CodeWriter.WriteLine(";");
+
+            Context.CodeWriter.WriteLine(";");
         }
     }
 
-    public override void WriteCSharpCode(CodeRenderingContext context, CSharpCodeIntermediateNode node)
+    public override void WriteCSharpCode(CSharpCodeIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
         var isWhitespaceStatement = true;
         for (var i = 0; i < node.Children.Count; i++)
         {
@@ -192,10 +143,10 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
         {
             if (!isWhitespaceStatement)
             {
-                linePragmaScope = context.CodeWriter.BuildLinePragma(node.Source.Value, context);
+                linePragmaScope = Context.CodeWriter.BuildLinePragma(node.Source.Value, Context);
             }
 
-            context.CodeWriter.WritePadding(0, node.Source.Value, context);
+            Context.CodeWriter.WritePadding(0, node.Source.Value, Context);
         }
         else if (isWhitespaceStatement)
         {
@@ -207,13 +158,13 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
         {
             if (node.Children[i] is CSharpIntermediateToken token)
             {
-                context.AddSourceMappingFor(token);
-                context.CodeWriter.Write(token.Content);
+                Context.AddSourceMappingFor(token);
+                Context.CodeWriter.Write(token.Content);
             }
             else
             {
                 // There may be something else inside the statement like an extension node.
-                context.RenderNode(node.Children[i]);
+                Context.RenderNode(node.Children[i]);
             }
         }
 
@@ -223,148 +174,77 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
         }
         else
         {
-            context.CodeWriter.WriteLine();
+            Context.CodeWriter.WriteLine();
         }
     }
 
-    public override void WriteHtmlAttribute(CodeRenderingContext context, HtmlAttributeIntermediateNode node)
+    public override void WriteHtmlAttribute(HtmlAttributeIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
         // This expression may contain code so we have to render it or else the design-time
         // exprience is broken.
         if (node.AttributeNameExpression is CSharpExpressionIntermediateNode expression)
         {
-            WriteCSharpExpressionInnards(context, expression, "string");
+            WriteCSharpExpressionInnards(expression, "string");
         }
 
-        context.RenderChildren(node);
+        Context.RenderChildren(node);
     }
 
-    public override void WriteHtmlAttributeValue(CodeRenderingContext context, HtmlAttributeValueIntermediateNode node)
+    public override void WriteHtmlAttributeValue(HtmlAttributeValueIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
         // Do nothing, this can't contain code.
     }
 
-    public override void WriteCSharpExpressionAttributeValue(CodeRenderingContext context, CSharpExpressionAttributeValueIntermediateNode node)
+    public override void WriteCSharpExpressionAttributeValue(CSharpExpressionAttributeValueIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
         if (node.Children.Count == 0)
         {
             return;
         }
 
-        context.CodeWriter.WriteStartAssignment(DesignTimeVariable);
+        Context.CodeWriter.WriteStartAssignment(DesignTimeVariable);
         for (var i = 0; i < node.Children.Count; i++)
         {
             if (node.Children[i] is CSharpIntermediateToken token)
             {
-                WriteCSharpToken(context, token);
+                WriteCSharpToken(token);
             }
             else
             {
                 // There may be something else inside the expression like a Template or another extension node.
-                context.RenderNode(node.Children[i]);
+                Context.RenderNode(node.Children[i]);
             }
         }
-        context.CodeWriter.WriteLine(";");
+
+        Context.CodeWriter.WriteLine(";");
     }
 
-    public override void WriteHtmlContent(CodeRenderingContext context, HtmlContentIntermediateNode node)
+    public override void WriteHtmlContent(HtmlContentIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
         // Do nothing
     }
 
-    protected override void BeginWriteAttribute(CodeRenderingContext context, string key)
+    protected override void BeginWriteAttribute(string key)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (key == null)
-        {
-            throw new ArgumentNullException(nameof(key));
-        }
-
-        context.CodeWriter
+        Context.CodeWriter
             .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(ComponentsApi.RenderTreeBuilder.AddAttribute)}")
             .Write("-1")
             .WriteParameterSeparator()
             .WriteStringLiteral(key);
     }
 
-    protected override void BeginWriteAttribute(CodeRenderingContext context, IntermediateNode expression)
+    protected override void BeginWriteAttribute(IntermediateNode expression)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        Context.CodeWriter.WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{ComponentsApi.RenderTreeBuilder.AddAttribute}");
+        Context.CodeWriter.Write("-1");
+        Context.CodeWriter.WriteParameterSeparator();
 
-        if (expression == null)
-        {
-            throw new ArgumentNullException(nameof(expression));
-        }
-
-        context.CodeWriter.WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{ComponentsApi.RenderTreeBuilder.AddAttribute}");
-        context.CodeWriter.Write("-1");
-        context.CodeWriter.WriteParameterSeparator();
-
-        foreach (var token in GetCSharpTokens(expression))
-        {
-            context.CodeWriter.Write(token.Content);
-        }
+        var tokens = GetCSharpTokens(expression);
+        WriteCSharpTokens(tokens);
     }
 
-    public override void WriteComponent(CodeRenderingContext context, ComponentIntermediateNode node)
+    public override void WriteComponent(ComponentIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
         // We might need a scope for inferring types,
         CodeWriterExtensions.CSharpCodeWritingScope? typeInferenceCaptureScope = null;
         string? typeInferenceLocalName = null;
@@ -386,7 +266,7 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
 
             foreach (var typeArgument in node.TypeArguments)
             {
-                context.RenderNode(typeArgument);
+                Context.RenderNode(typeArgument);
             }
 
             // We need to preserve order for attributes and attribute splats since the ordering
@@ -396,15 +276,15 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
             {
                 if (child is ComponentAttributeIntermediateNode attribute)
                 {
-                    context.RenderNode(attribute);
+                    Context.RenderNode(attribute);
                 }
                 else if (child is SplatIntermediateNode splat)
                 {
-                    context.RenderNode(splat);
+                    Context.RenderNode(splat);
                 }
                 else if (child is RenderModeIntermediateNode renderMode)
                 {
-                    context.RenderNode(renderMode);
+                    Context.RenderNode(renderMode);
                 }
             }
 
@@ -412,7 +292,7 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
             {
                 foreach (var childContent in node.ChildContents)
                 {
-                    context.RenderNode(childContent);
+                    Context.RenderNode(childContent);
                 }
             }
             else
@@ -423,7 +303,7 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
                 // Consider what would happen if the user's cursor was inside the element. At
                 // design -time we want to render an empty lambda to provide proper scoping
                 // for any code that the user types.
-                context.RenderNode(new ComponentChildContentIntermediateNode()
+                Context.RenderNode(new ComponentChildContentIntermediateNode()
                 {
                     TypeName = ComponentsApi.RenderFragment.FullTypeName,
                 });
@@ -431,12 +311,12 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
 
             foreach (var setKey in node.SetKeys)
             {
-                context.RenderNode(setKey);
+                Context.RenderNode(setKey);
             }
 
             foreach (var capture in node.Captures)
             {
-                context.RenderNode(capture);
+                Context.RenderNode(capture);
             }
         }
         else
@@ -449,12 +329,12 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
             // is so the captured variables can be used by descendants without re-evaluating the expressions.
             if (node.Component.SuppliesCascadingGenericParameters())
             {
-                typeInferenceCaptureScope = context.CodeWriter.BuildScope();
-                context.CodeWriter.Write("global::");
-                context.CodeWriter.Write(node.TypeInferenceNode.FullTypeName);
-                context.CodeWriter.Write(".");
-                context.CodeWriter.Write(node.TypeInferenceNode.MethodName);
-                context.CodeWriter.Write("_CaptureParameters(");
+                typeInferenceCaptureScope = Context.CodeWriter.BuildScope();
+                Context.CodeWriter.Write("global::");
+                Context.CodeWriter.Write(node.TypeInferenceNode.FullTypeName);
+                Context.CodeWriter.Write(".");
+                Context.CodeWriter.Write(node.TypeInferenceNode.MethodName);
+                Context.CodeWriter.Write("_CaptureParameters(");
                 var isFirst = true;
                 foreach (var parameter in parameters.Where(p => p.UsedForTypeInference))
                 {
@@ -464,18 +344,19 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
                     }
                     else
                     {
-                        context.CodeWriter.Write(", ");
+                        Context.CodeWriter.Write(", ");
                     }
 
-                    WriteTypeInferenceMethodParameterInnards(context, parameter);
-                    context.CodeWriter.Write(", out var ");
+                    WriteTypeInferenceMethodParameterInnards(parameter);
+                    Context.CodeWriter.Write(", out var ");
 
                     var variableName = $"__typeInferenceArg_{_scopeStack.Depth}_{parameter.ParameterName}";
-                    context.CodeWriter.Write(variableName);
+                    Context.CodeWriter.Write(variableName);
 
                     UseCapturedCascadingGenericParameterVariable(node, parameter, variableName);
                 }
-                context.CodeWriter.WriteLine(");");
+
+                Context.CodeWriter.WriteLine(");");
             }
 
             // When we're doing type inference, we can't write all of the code inline to initialize
@@ -491,36 +372,36 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
 
             typeInferenceLocalName = $"__typeInference_{node.TypeInferenceNode.MethodName}";
 
-            context.CodeWriter.Write("var ");
-            context.CodeWriter.Write(typeInferenceLocalName);
-            context.CodeWriter.Write(" = ");
+            Context.CodeWriter.Write("var ");
+            Context.CodeWriter.Write(typeInferenceLocalName);
+            Context.CodeWriter.Write(" = ");
 
-            context.CodeWriter.Write("global::");
-            context.CodeWriter.Write(node.TypeInferenceNode.FullTypeName);
-            context.CodeWriter.Write(".");
-            context.CodeWriter.Write(node.TypeInferenceNode.MethodName);
-            context.CodeWriter.Write("(");
+            Context.CodeWriter.Write("global::");
+            Context.CodeWriter.Write(node.TypeInferenceNode.FullTypeName);
+            Context.CodeWriter.Write(".");
+            Context.CodeWriter.Write(node.TypeInferenceNode.MethodName);
+            Context.CodeWriter.Write("(");
 
-            context.CodeWriter.Write(_scopeStack.BuilderVarName);
-            context.CodeWriter.Write(", ");
+            Context.CodeWriter.Write(_scopeStack.BuilderVarName);
+            Context.CodeWriter.Write(", ");
 
-            context.CodeWriter.Write("-1");
+            Context.CodeWriter.Write("-1");
 
             foreach (var parameter in parameters)
             {
-                context.CodeWriter.Write(", ");
+                Context.CodeWriter.Write(", ");
 
                 if (!string.IsNullOrEmpty(parameter.SeqName))
                 {
-                    context.CodeWriter.Write("-1");
-                    context.CodeWriter.Write(", ");
+                    Context.CodeWriter.Write("-1");
+                    Context.CodeWriter.Write(", ");
                 }
 
-                WriteTypeInferenceMethodParameterInnards(context, parameter);
+                WriteTypeInferenceMethodParameterInnards(parameter);
             }
 
-            context.CodeWriter.Write(");");
-            context.CodeWriter.WriteLine();
+            Context.CodeWriter.Write(");");
+            Context.CodeWriter.WriteLine();
         }
 
         // We need to write property access here in case we're in a scope for capturing types, because we need to re-use
@@ -536,7 +417,7 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
             {
                 if (child is ComponentAttributeIntermediateNode attribute)
                 {
-                    WritePropertyAccess(context, attribute, node, typeInferenceLocalName, shouldWriteBL0005Disable: !wrotePragmaDisable, out var wrotePropertyAccess);
+                    WritePropertyAccess(attribute, node, typeInferenceLocalName, shouldWriteBL0005Disable: !wrotePragmaDisable, out var wrotePropertyAccess);
 
                     if (wrotePropertyAccess)
                     {
@@ -548,7 +429,7 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
             if (wrotePragmaDisable)
             {
                 // Restore the warning in case the user has written other code that explicitly sets a property
-                context.CodeWriter.WriteLine("#pragma warning restore BL0005");
+                Context.CodeWriter.WriteLine("#pragma warning restore BL0005");
             }
         }
 
@@ -558,15 +439,15 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
         // the "usings directive is unnecessary" message.
         // Looks like:
         // __o = typeof(SomeNamespace.SomeComponent);
-        using (context.CodeWriter.BuildLinePragma(node.Source.AssumeNotNull(), context))
+        using (Context.CodeWriter.BuildLinePragma(node.Source.AssumeNotNull(), Context))
         {
-            context.CodeWriter.Write(DesignTimeVariable);
-            context.CodeWriter.Write(" = ");
-            context.CodeWriter.Write("typeof(");
-            context.CodeWriter.Write("global::");
+            Context.CodeWriter.Write(DesignTimeVariable);
+            Context.CodeWriter.Write(" = ");
+            Context.CodeWriter.Write("typeof(");
+            Context.CodeWriter.Write("global::");
             if (!node.Component.IsGenericTypedComponent())
             {
-                context.CodeWriter.Write(node.Component.Name);
+                Context.CodeWriter.Write(node.Component.Name);
             }
             else
             {
@@ -576,29 +457,32 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
                 if (!node.TagName.Contains("."))
                 {
                     // The tag is not fully qualified
-                    context.CodeWriter.Write(node.Component.GetTypeNamespace());
-                    context.CodeWriter.Write(".");
+                    Context.CodeWriter.Write(node.Component.GetTypeNamespace());
+                    Context.CodeWriter.Write(".");
                 }
-                context.CodeWriter.Write(node.TagName);
-                context.CodeWriter.Write("<");
+
+                Context.CodeWriter.Write(node.TagName);
+                Context.CodeWriter.Write("<");
                 var typeArgumentCount = node.Component.GetTypeParameters().Count();
                 for (var i = 1; i < typeArgumentCount; i++)
                 {
-                    context.CodeWriter.Write(",");
+                    Context.CodeWriter.Write(",");
                 }
-                context.CodeWriter.Write(">");
+
+                Context.CodeWriter.Write(">");
             }
-            context.CodeWriter.Write(");");
-            context.CodeWriter.WriteLine();
+
+            Context.CodeWriter.Write(");");
+            Context.CodeWriter.WriteLine();
         }
     }
 
-    public override void WriteComponentTypeInferenceMethod(CodeRenderingContext context, ComponentTypeInferenceMethodIntermediateNode node)
+    public override void WriteComponentTypeInferenceMethod(ComponentTypeInferenceMethodIntermediateNode node)
     {
-        base.WriteComponentTypeInferenceMethod(context, node, returnComponentType: true, allowNameof: false);
+        base.WriteComponentTypeInferenceMethod(node, returnComponentType: true, allowNameof: false);
     }
 
-    private void WriteTypeInferenceMethodParameterInnards(CodeRenderingContext context, TypeInferenceMethodParameter parameter)
+    private void WriteTypeInferenceMethodParameterInnards(TypeInferenceMethodParameter parameter)
     {
         switch (parameter.Source)
         {
@@ -606,54 +490,44 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
                 // Don't type check generics, since we can't actually write the type name.
                 // The type checking with happen anyway since we defined a method and we're generating
                 // a call to it.
-                WriteComponentAttributeInnards(context, attribute, canTypeCheck: false);
+                WriteComponentAttributeInnards(attribute, canTypeCheck: false);
                 break;
             case SplatIntermediateNode splat:
-                WriteSplatInnards(context, splat, canTypeCheck: false);
+                WriteSplatInnards(splat, canTypeCheck: false);
                 break;
             case ComponentChildContentIntermediateNode childNode:
-                WriteComponentChildContentInnards(context, childNode);
+                WriteComponentChildContentInnards(childNode);
                 break;
             case SetKeyIntermediateNode setKey:
-                WriteSetKeyInnards(context, setKey);
+                WriteSetKeyInnards(setKey);
                 break;
             case ReferenceCaptureIntermediateNode capture:
-                WriteReferenceCaptureInnards(context, capture, shouldTypeCheck: false);
+                WriteReferenceCaptureInnards(capture, shouldTypeCheck: false);
                 break;
             case CascadingGenericTypeParameter syntheticArg:
                 // The value should be populated before we use it, because we emit code for creating ancestors
                 // first, and that's where it's populated. However if this goes wrong somehow, we don't want to
                 // throw, so use a fallback
                 var valueExpression = syntheticArg.ValueExpression ?? "default";
-                context.CodeWriter.Write(valueExpression);
-                if (!context.Options.SuppressNullabilityEnforcement && IsDefaultExpression(valueExpression))
+                Context.CodeWriter.Write(valueExpression);
+                if (!Context.Options.SuppressNullabilityEnforcement && IsDefaultExpression(valueExpression))
                 {
-                    context.CodeWriter.Write("!");
+                    Context.CodeWriter.Write("!");
                 }
                 break;
             case TypeInferenceCapturedVariable capturedVariable:
-                context.CodeWriter.Write(capturedVariable.VariableName);
+                Context.CodeWriter.Write(capturedVariable.VariableName);
                 break;
             case RenderModeIntermediateNode renderMode:
-                WriteCSharpCode(context, new CSharpCodeIntermediateNode() { Source = renderMode.Source, Children = { renderMode.Children[0] } });
+                WriteCSharpCode(new CSharpCodeIntermediateNode() { Source = renderMode.Source, Children = { renderMode.Children[0] } });
                 break;
             default:
                 throw new InvalidOperationException($"Not implemented: type inference method parameter from source {parameter.Source}");
         }
     }
 
-    public override void WriteComponentAttribute(CodeRenderingContext context, ComponentAttributeIntermediateNode node)
+    public override void WriteComponentAttribute(ComponentAttributeIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
         // This attribute might only be here in order to allow us to generate code in WritePropertyAccess
         if (node.IsDesignTimePropertyAccessHelper)
         {
@@ -662,18 +536,17 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
 
         // Looks like:
         // __o = 17;
-        context.CodeWriter.Write(DesignTimeVariable);
-        context.CodeWriter.Write(" = ");
+        Context.CodeWriter.Write(DesignTimeVariable);
+        Context.CodeWriter.Write(" = ");
 
         // Following the same design pattern as the runtime codegen
-        WriteComponentAttributeInnards(context, node, canTypeCheck: true);
+        WriteComponentAttributeInnards(node, canTypeCheck: true);
 
-        context.CodeWriter.Write(";");
-        context.CodeWriter.WriteLine();
+        Context.CodeWriter.Write(";");
+        Context.CodeWriter.WriteLine();
     }
 
     private void WritePropertyAccess(
-        CodeRenderingContext context,
         ComponentAttributeIntermediateNode node,
         ComponentIntermediateNode componentNode,
         string? typeInferenceLocalName,
@@ -714,7 +587,7 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
 
         if (shouldWriteBL0005Disable)
         {
-            context.CodeWriter.WriteLine("#pragma warning disable BL0005");
+            Context.CodeWriter.WriteLine("#pragma warning disable BL0005");
         }
 
         var attributeSourceSpan = (SourceSpan)node.OriginalAttributeSpan;
@@ -722,9 +595,9 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
 
         if (componentNode.TypeInferenceNode == null)
         {
-            context.CodeWriter.Write("((");
-            TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, componentNode.TypeName);
-            context.CodeWriter.Write(")default)");
+            Context.CodeWriter.Write("((");
+            TypeNameHelper.WriteGloballyQualifiedName(Context.CodeWriter, componentNode.TypeName);
+            Context.CodeWriter.Write(")default)");
         }
         else
         {
@@ -735,27 +608,27 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
 
             // Earlier when we did the type inference stuff, we captured a variable which the compiler would know the type information
             // for explicitly for the purposes of using it now
-            context.CodeWriter.Write(typeInferenceLocalName);
+            Context.CodeWriter.Write(typeInferenceLocalName);
         }
 
-        context.CodeWriter.Write(".");
-        context.CodeWriter.WriteLine();
+        Context.CodeWriter.Write(".");
+        Context.CodeWriter.WriteLine();
 
-        using (context.CodeWriter.BuildLinePragma(attributeSourceSpan, context))
+        using (Context.CodeWriter.BuildLinePragma(attributeSourceSpan, Context))
         {
-            context.CodeWriter.WritePadding(0, attributeSourceSpan, context);
-            context.CodeWriter.WriteIdentifierEscapeIfNeeded(node.PropertyName);
-            context.AddSourceMappingFor(attributeSourceSpan);
-            context.CodeWriter.WriteLine(node.PropertyName);
+            Context.CodeWriter.WritePadding(0, attributeSourceSpan, Context);
+            Context.CodeWriter.WriteIdentifierEscapeIfNeeded(node.PropertyName);
+            Context.AddSourceMappingFor(attributeSourceSpan);
+            Context.CodeWriter.WriteLine(node.PropertyName);
         }
 
-        context.CodeWriter.Write(" = default;");
-        context.CodeWriter.WriteLine();
+        Context.CodeWriter.Write(" = default;");
+        Context.CodeWriter.WriteLine();
 
         wrotePropertyAccess = true;
     }
 
-    private void WriteComponentAttributeInnards(CodeRenderingContext context, ComponentAttributeIntermediateNode node, bool canTypeCheck)
+    private void WriteComponentAttributeInnards(ComponentAttributeIntermediateNode node, bool canTypeCheck)
     {
         if (node.Children.Count > 1)
         {
@@ -770,12 +643,12 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
         if (node.AttributeStructure == AttributeStructure.Minimized)
         {
             // Minimized attributes always map to 'true'
-            context.CodeWriter.Write("true");
+            Context.CodeWriter.Write("true");
         }
         else if (node.Children.Count == 1 && node.Children[0] is HtmlContentIntermediateNode)
         {
             // We don't actually need the content at designtime, an empty string will do.
-            context.CodeWriter.Write("\"\"");
+            Context.CodeWriter.Write("\"\"");
         }
         else
         {
@@ -798,17 +671,18 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
                 // inference inside lambdas, and method group conversion do the right thing.
                 if (canTypeCheck)
                 {
-                    context.CodeWriter.Write("new ");
-                    WriteGloballyQualifiedTypeName(context, node);
-                    context.CodeWriter.Write("(");
+                    Context.CodeWriter.Write("new ");
+                    WriteGloballyQualifiedTypeName(node);
+                    Context.CodeWriter.Write("(");
                 }
-                context.CodeWriter.WriteLine();
 
-                WriteCSharpTokens(context, tokens);
+                Context.CodeWriter.WriteLine();
+
+                WriteCSharpTokens(tokens);
 
                 if (canTypeCheck)
                 {
-                    context.CodeWriter.Write(")");
+                    Context.CodeWriter.Write(")");
                 }
             }
             else if (node.BoundAttribute?.IsEventCallbackProperty() ?? false)
@@ -822,48 +696,49 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
                 var isInferred = node.IsOpenGeneric;
                 if (canTypeCheck && NeedsTypeCheck(node))
                 {
-                    context.CodeWriter.Write(ComponentsApi.RuntimeHelpers.TypeCheck);
-                    context.CodeWriter.Write("<");
-                    QualifyEventCallback(context.CodeWriter, node.TypeName, explicitType);
-                    context.CodeWriter.Write(">");
-                    context.CodeWriter.Write("(");
+                    Context.CodeWriter.Write(ComponentsApi.RuntimeHelpers.TypeCheck);
+                    Context.CodeWriter.Write("<");
+                    QualifyEventCallback(Context.CodeWriter, node.TypeName, explicitType);
+                    Context.CodeWriter.Write(">");
+                    Context.CodeWriter.Write("(");
                 }
 
                 // Microsoft.AspNetCore.Components.EventCallback.Factory.Create(this, ...) OR
                 // Microsoft.AspNetCore.Components.EventCallback.Factory.Create<T>(this, ...)
 
-                context.CodeWriter.Write("global::");
-                context.CodeWriter.Write(ComponentsApi.EventCallback.FactoryAccessor);
-                context.CodeWriter.Write(".");
-                context.CodeWriter.Write(ComponentsApi.EventCallbackFactory.CreateMethod);
+                Context.CodeWriter.Write("global::");
+                Context.CodeWriter.Write(ComponentsApi.EventCallback.FactoryAccessor);
+                Context.CodeWriter.Write(".");
+                Context.CodeWriter.Write(ComponentsApi.EventCallbackFactory.CreateMethod);
 
                 if (isInferred != true && node.TryParseEventCallbackTypeArgument(out ReadOnlyMemory<char> argument))
                 {
-                    context.CodeWriter.Write("<");
+                    Context.CodeWriter.Write("<");
                     if (explicitType)
                     {
-                        context.CodeWriter.Write(argument);
+                        Context.CodeWriter.Write(argument);
                     }
                     else
                     {
-                        TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, argument);
+                        TypeNameHelper.WriteGloballyQualifiedName(Context.CodeWriter, argument);
                     }
-                    context.CodeWriter.Write(">");
+
+                    Context.CodeWriter.Write(">");
                 }
 
-                context.CodeWriter.Write("(");
-                context.CodeWriter.Write("this");
-                context.CodeWriter.Write(", ");
+                Context.CodeWriter.Write("(");
+                Context.CodeWriter.Write("this");
+                Context.CodeWriter.Write(", ");
 
-                context.CodeWriter.WriteLine();
+                Context.CodeWriter.WriteLine();
 
-                WriteCSharpTokens(context, tokens);
+                WriteCSharpTokens(tokens);
 
-                context.CodeWriter.Write(")");
+                Context.CodeWriter.Write(")");
 
                 if (canTypeCheck && NeedsTypeCheck(node))
                 {
-                    context.CodeWriter.Write(")");
+                    Context.CodeWriter.Write(")");
                 }
             }
             else
@@ -873,18 +748,18 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
                 // If we have a parameter type, then add a type check.
                 if (canTypeCheck && NeedsTypeCheck(node))
                 {
-                    context.CodeWriter.Write(ComponentsApi.RuntimeHelpers.TypeCheck);
-                    context.CodeWriter.Write("<");
-                    WriteGloballyQualifiedTypeName(context, node);
-                    context.CodeWriter.Write(">");
-                    context.CodeWriter.Write("(");
+                    Context.CodeWriter.Write(ComponentsApi.RuntimeHelpers.TypeCheck);
+                    Context.CodeWriter.Write("<");
+                    WriteGloballyQualifiedTypeName(node);
+                    Context.CodeWriter.Write(">");
+                    Context.CodeWriter.Write("(");
                 }
 
-                WriteCSharpTokens(context, tokens);
+                WriteCSharpTokens(tokens);
 
                 if (canTypeCheck && NeedsTypeCheck(node))
                 {
-                    context.CodeWriter.Write(")");
+                    Context.CodeWriter.Write(")");
                 }
             }
 
@@ -925,36 +800,26 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
         return node.FindDescendantNodes<CSharpIntermediateToken>();
     }
 
-    public override void WriteComponentChildContent(CodeRenderingContext context, ComponentChildContentIntermediateNode node)
+    public override void WriteComponentChildContent(ComponentChildContentIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
         // Writes something like:
         //
         // __builder.AddAttribute(1, "ChildContent", (RenderFragment)((__builder73) => { ... }));
         // OR
         // __builder.AddAttribute(1, "ChildContent", (RenderFragment<Person>)((person) => (__builder73) => { ... }));
-        BeginWriteAttribute(context, node.AttributeName);
-        context.CodeWriter.WriteParameterSeparator();
-        context.CodeWriter.Write("(");
-        WriteGloballyQualifiedTypeName(context, node);
-        context.CodeWriter.Write(")(");
+        BeginWriteAttribute(node.AttributeName);
+        Context.CodeWriter.WriteParameterSeparator();
+        Context.CodeWriter.Write("(");
+        WriteGloballyQualifiedTypeName(node);
+        Context.CodeWriter.Write(")(");
 
-        WriteComponentChildContentInnards(context, node);
+        WriteComponentChildContentInnards(node);
 
-        context.CodeWriter.Write(")");
-        context.CodeWriter.WriteEndMethodInvocation();
+        Context.CodeWriter.Write(")");
+        Context.CodeWriter.WriteEndMethodInvocation();
     }
 
-    private void WriteComponentChildContentInnards(CodeRenderingContext context, ComponentChildContentIntermediateNode node)
+    private void WriteComponentChildContentInnards(ComponentChildContentIntermediateNode node)
     {
         // Writes something like:
         //
@@ -962,89 +827,59 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
         // OR
         // ((person) => (__builder73) => { })
         _scopeStack.OpenComponentScope(
-            context,
+            Context,
             node.AttributeName,
             node.IsParameterized ? node.ParameterName : null);
         for (var i = 0; i < node.Children.Count; i++)
         {
-            context.RenderNode(node.Children[i]);
+            Context.RenderNode(node.Children[i]);
         }
-        _scopeStack.CloseScope(context);
+        _scopeStack.CloseScope(Context);
     }
 
-    public override void WriteComponentTypeArgument(CodeRenderingContext context, ComponentTypeArgumentIntermediateNode node)
+    public override void WriteComponentTypeArgument(ComponentTypeArgumentIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
         // At design type we want write the equivalent of:
         //
         // __o = typeof(TItem);
-        context.CodeWriter.Write(DesignTimeVariable);
-        context.CodeWriter.Write(" = ");
-        context.CodeWriter.Write("typeof(");
+        Context.CodeWriter.Write(DesignTimeVariable);
+        Context.CodeWriter.Write(" = ");
+        Context.CodeWriter.Write("typeof(");
 
         var tokens = GetCSharpTokens(node);
-        WriteCSharpTokens(context, tokens);
+        WriteCSharpTokens(tokens);
 
-        context.CodeWriter.Write(");");
-        context.CodeWriter.WriteLine();
+        Context.CodeWriter.Write(");");
+        Context.CodeWriter.WriteLine();
     }
 
-    public override void WriteTemplate(CodeRenderingContext context, TemplateIntermediateNode node)
+    public override void WriteTemplate(TemplateIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
         // Looks like:
         //
         // (__builder73) => { ... }
-        _scopeStack.OpenTemplateScope(context);
-        context.RenderChildren(node);
-        _scopeStack.CloseScope(context);
+        _scopeStack.OpenTemplateScope(Context);
+        Context.RenderChildren(node);
+        _scopeStack.CloseScope(Context);
     }
 
-    public override void WriteSetKey(CodeRenderingContext context, SetKeyIntermediateNode node)
+    public override void WriteSetKey(SetKeyIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
         // Looks like:
         //
         // __builder.SetKey(_keyValue);
 
-        var codeWriter = context.CodeWriter;
+        var codeWriter = Context.CodeWriter;
 
         codeWriter
             .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{ComponentsApi.RenderTreeBuilder.SetKey}");
-        WriteSetKeyInnards(context, node);
+        WriteSetKeyInnards(node);
         codeWriter.WriteEndMethodInvocation();
     }
 
-    private void WriteSetKeyInnards(CodeRenderingContext context, SetKeyIntermediateNode node)
+    private void WriteSetKeyInnards(SetKeyIntermediateNode node)
     {
-        WriteCSharpCode(context, new CSharpCodeIntermediateNode
+        WriteCSharpCode(new CSharpCodeIntermediateNode
         {
             Source = node.Source,
             Children =
@@ -1054,51 +889,41 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
         });
     }
 
-    public override void WriteSplat(CodeRenderingContext context, SplatIntermediateNode node)
+    public override void WriteSplat(SplatIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
         // Looks like:
         //
         // __builder.AddMultipleAttributes(2, ...);
-        context.CodeWriter.WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{ComponentsApi.RenderTreeBuilder.AddMultipleAttributes}");
-        context.CodeWriter.Write("-1");
-        context.CodeWriter.WriteParameterSeparator();
+        Context.CodeWriter.WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{ComponentsApi.RenderTreeBuilder.AddMultipleAttributes}");
+        Context.CodeWriter.Write("-1");
+        Context.CodeWriter.WriteParameterSeparator();
 
-        WriteSplatInnards(context, node, canTypeCheck: true);
+        WriteSplatInnards(node, canTypeCheck: true);
 
-        context.CodeWriter.WriteEndMethodInvocation();
+        Context.CodeWriter.WriteEndMethodInvocation();
     }
 
-    private void WriteSplatInnards(CodeRenderingContext context, SplatIntermediateNode node, bool canTypeCheck)
+    private void WriteSplatInnards(SplatIntermediateNode node, bool canTypeCheck)
     {
         if (canTypeCheck)
         {
-            context.CodeWriter.Write(ComponentsApi.RuntimeHelpers.TypeCheck);
-            context.CodeWriter.Write("<");
-            context.CodeWriter.Write(ComponentsApi.AddMultipleAttributesTypeFullName);
-            context.CodeWriter.Write(">");
-            context.CodeWriter.Write("(");
+            Context.CodeWriter.Write(ComponentsApi.RuntimeHelpers.TypeCheck);
+            Context.CodeWriter.Write("<");
+            Context.CodeWriter.Write(ComponentsApi.AddMultipleAttributesTypeFullName);
+            Context.CodeWriter.Write(">");
+            Context.CodeWriter.Write("(");
         }
 
         var tokens = GetCSharpTokens(node);
-        WriteCSharpTokens(context, tokens);
+        WriteCSharpTokens(tokens);
 
         if (canTypeCheck)
         {
-            context.CodeWriter.Write(")");
+            Context.CodeWriter.Write(")");
         }
     }
 
-    public sealed override void WriteFormName(CodeRenderingContext context, FormNameIntermediateNode node)
+    public sealed override void WriteFormName(FormNameIntermediateNode node)
     {
         if (node.Children.Count > 1)
         {
@@ -1107,32 +932,22 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
 
         foreach (var token in GetCSharpTokens(node))
         {
-            context.CodeWriter.Write(ComponentsApi.RuntimeHelpers.TypeCheck);
-            context.CodeWriter.Write("<string>(");
-            WriteCSharpToken(context, token);
-            context.CodeWriter.WriteLine(");");
+            Context.CodeWriter.Write(ComponentsApi.RuntimeHelpers.TypeCheck);
+            Context.CodeWriter.Write("<string>(");
+            WriteCSharpToken(token);
+            Context.CodeWriter.WriteLine(");");
         }
     }
 
-    public override void WriteReferenceCapture(CodeRenderingContext context, ReferenceCaptureIntermediateNode node)
+    public override void WriteReferenceCapture(ReferenceCaptureIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
         // Looks like:
         //
         // __field = default(MyComponent);
-        WriteReferenceCaptureInnards(context, node, shouldTypeCheck: true);
+        WriteReferenceCaptureInnards(node, shouldTypeCheck: true);
     }
 
-    protected override void WriteReferenceCaptureInnards(CodeRenderingContext context, ReferenceCaptureIntermediateNode node, bool shouldTypeCheck)
+    protected override void WriteReferenceCaptureInnards(ReferenceCaptureIntermediateNode node, bool shouldTypeCheck)
     {
         // We specialize this code based on whether or not we can type check. When we're calling into
         // a type-inferenced component, we can't do the type check. See the comments in WriteTypeInferenceMethod.
@@ -1144,8 +959,8 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
             var captureTypeName = node.IsComponentCapture
                 ? TypeNameHelper.GetGloballyQualifiedNameIfNeeded(node.ComponentCaptureTypeName)
                 : ComponentsApi.ElementReference.FullTypeName;
-            var nullSuppression = !context.Options.SuppressNullabilityEnforcement ? "!" : string.Empty;
-            WriteCSharpCode(context, new CSharpCodeIntermediateNode
+            var nullSuppression = !Context.Options.SuppressNullabilityEnforcement ? "!" : string.Empty;
+            WriteCSharpCode(new CSharpCodeIntermediateNode
             {
                 Source = node.Source,
                 Children =
@@ -1163,9 +978,9 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
             // OR
             // (__value) = { _field = (ElementRef)__value; }
             const string refCaptureParamName = "__value";
-            using (var lambdaScope = context.CodeWriter.BuildLambda(refCaptureParamName))
+            using (var lambdaScope = Context.CodeWriter.BuildLambda(refCaptureParamName))
             {
-                WriteCSharpCode(context, new CSharpCodeIntermediateNode
+                WriteCSharpCode(new CSharpCodeIntermediateNode
                 {
                     Source = node.Source,
                     Children =
@@ -1178,11 +993,11 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
         }
     }
 
-    public override void WriteRenderMode(CodeRenderingContext context, RenderModeIntermediateNode node)
+    public override void WriteRenderMode(RenderModeIntermediateNode node)
     {
         // Looks like:
         // __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)(expression);
-        WriteCSharpCode(context, new CSharpCodeIntermediateNode
+        WriteCSharpCode(new CSharpCodeIntermediateNode
         {
             Children =
             {
@@ -1197,15 +1012,15 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
         });
     }
 
-    private static void WriteCSharpTokens(CodeRenderingContext context, ImmutableArray<CSharpIntermediateToken> tokens)
+    private void WriteCSharpTokens(ImmutableArray<CSharpIntermediateToken> tokens)
     {
         foreach (var token in tokens)
         {
-            WriteCSharpToken(context, token);
+            WriteCSharpToken(token);
         }
     }
 
-    private static void WriteCSharpToken(CodeRenderingContext context, IntermediateToken token)
+    private void WriteCSharpToken(IntermediateToken token)
     {
         if (string.IsNullOrWhiteSpace(token.Content))
         {
@@ -1214,15 +1029,15 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
 
         if (token.Source?.FilePath == null)
         {
-            context.CodeWriter.Write(token.Content);
+            Context.CodeWriter.Write(token.Content);
             return;
         }
 
-        using (context.CodeWriter.BuildLinePragma(token.Source, context))
+        using (Context.CodeWriter.BuildLinePragma(token.Source, Context))
         {
-            context.CodeWriter.WritePadding(0, token.Source.Value, context);
-            context.AddSourceMappingFor(token);
-            context.CodeWriter.Write(token.Content);
+            Context.CodeWriter.WritePadding(0, token.Source.Value, Context);
+            Context.AddSourceMappingFor(token);
+            Context.CodeWriter.Write(token.Content);
         }
     }
 }

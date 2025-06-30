@@ -20,7 +20,7 @@ public class LiteralRuntimeNodeWriterTest
         builder.Add(NodeFactory.CSharpToken("i++", new SourceSpan("test.cshtml", 0, 0, 0, 3, 0, 3)));
 
         // Act
-        writer.WriteCSharpExpression(context, node);
+        writer.WriteCSharpExpression(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -53,7 +53,7 @@ i++
         builder.Add(NodeFactory.CSharpToken("k++;", new SourceSpan("test.cshtml", 10, 0, 10, 4, 0, 14)));
 
         // Act
-        writer.WriteCSharpExpression(context, node);
+        writer.WriteCSharpExpression(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();

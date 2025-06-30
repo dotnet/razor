@@ -104,7 +104,7 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
 
         public override void VisitUsingDirective(UsingDirectiveIntermediateNode node)
         {
-            NodeWriter.WriteUsingDirective(_context, node);
+            NodeWriter.WriteUsingDirective(node);
         }
 
         public override void VisitNamespaceDeclaration(NamespaceDeclarationIntermediateNode node)
@@ -209,37 +209,37 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
 
         public override void VisitCSharpExpression(CSharpExpressionIntermediateNode node)
         {
-            NodeWriter.WriteCSharpExpression(_context, node);
+            NodeWriter.WriteCSharpExpression(node);
         }
 
         public override void VisitCSharpCode(CSharpCodeIntermediateNode node)
         {
-            NodeWriter.WriteCSharpCode(_context, node);
+            NodeWriter.WriteCSharpCode(node);
         }
 
         public override void VisitHtmlAttribute(HtmlAttributeIntermediateNode node)
         {
-            NodeWriter.WriteHtmlAttribute(_context, node);
+            NodeWriter.WriteHtmlAttribute(node);
         }
 
         public override void VisitHtmlAttributeValue(HtmlAttributeValueIntermediateNode node)
         {
-            NodeWriter.WriteHtmlAttributeValue(_context, node);
+            NodeWriter.WriteHtmlAttributeValue(node);
         }
 
         public override void VisitCSharpExpressionAttributeValue(CSharpExpressionAttributeValueIntermediateNode node)
         {
-            NodeWriter.WriteCSharpExpressionAttributeValue(_context, node);
+            NodeWriter.WriteCSharpExpressionAttributeValue(node);
         }
 
         public override void VisitCSharpCodeAttributeValue(CSharpCodeAttributeValueIntermediateNode node)
         {
-            NodeWriter.WriteCSharpCodeAttributeValue(_context, node);
+            NodeWriter.WriteCSharpCodeAttributeValue(node);
         }
 
         public override void VisitHtml(HtmlContentIntermediateNode node)
         {
-            NodeWriter.WriteHtmlContent(_context, node);
+            NodeWriter.WriteHtmlContent(node);
         }
 
         public override void VisitTagHelper(TagHelperIntermediateNode node)
@@ -249,62 +249,62 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
 
         public override void VisitComponent(ComponentIntermediateNode node)
         {
-            NodeWriter.WriteComponent(_context, node);
+            NodeWriter.WriteComponent(node);
         }
 
         public override void VisitComponentAttribute(ComponentAttributeIntermediateNode node)
         {
-            NodeWriter.WriteComponentAttribute(_context, node);
+            NodeWriter.WriteComponentAttribute(node);
         }
 
         public override void VisitComponentChildContent(ComponentChildContentIntermediateNode node)
         {
-            NodeWriter.WriteComponentChildContent(_context, node);
+            NodeWriter.WriteComponentChildContent(node);
         }
 
         public override void VisitComponentTypeArgument(ComponentTypeArgumentIntermediateNode node)
         {
-            NodeWriter.WriteComponentTypeArgument(_context, node);
+            NodeWriter.WriteComponentTypeArgument(node);
         }
 
         public override void VisitComponentTypeInferenceMethod(ComponentTypeInferenceMethodIntermediateNode node)
         {
-            NodeWriter.WriteComponentTypeInferenceMethod(_context, node);
+            NodeWriter.WriteComponentTypeInferenceMethod(node);
         }
 
         public override void VisitMarkupElement(MarkupElementIntermediateNode node)
         {
-            NodeWriter.WriteMarkupElement(_context, node);
+            NodeWriter.WriteMarkupElement(node);
         }
 
         public override void VisitMarkupBlock(MarkupBlockIntermediateNode node)
         {
-            NodeWriter.WriteMarkupBlock(_context, node);
+            NodeWriter.WriteMarkupBlock(node);
         }
 
         public override void VisitReferenceCapture(ReferenceCaptureIntermediateNode node)
         {
-            NodeWriter.WriteReferenceCapture(_context, node);
+            NodeWriter.WriteReferenceCapture(node);
         }
 
         public override void VisitSetKey(SetKeyIntermediateNode node)
         {
-            NodeWriter.WriteSetKey(_context, node);
+            NodeWriter.WriteSetKey(node);
         }
 
         public override void VisitSplat(SplatIntermediateNode node)
         {
-            NodeWriter.WriteSplat(_context, node);
+            NodeWriter.WriteSplat(node);
         }
 
         public override void VisitRenderMode(RenderModeIntermediateNode node)
         {
-            NodeWriter.WriteRenderMode(_context, node);
+            NodeWriter.WriteRenderMode(node);
         }
 
         public override void VisitFormName(FormNameIntermediateNode node)
         {
-            NodeWriter.WriteFormName(_context, node);
+            NodeWriter.WriteFormName(node);
         }
 
         public override void VisitDefault(IntermediateNode node)

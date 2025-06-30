@@ -31,7 +31,7 @@ public class RuntimeNodeWriterTest : RazorProjectEngineTestBase
         };
 
         // Act
-        writer.WriteUsingDirective(context, node);
+        writer.WriteUsingDirective(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -56,7 +56,7 @@ public class RuntimeNodeWriterTest : RazorProjectEngineTestBase
         };
 
         // Act
-        writer.WriteUsingDirective(context, node);
+        writer.WriteUsingDirective(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -88,7 +88,7 @@ using System
         };
 
         // Act
-        writer.WriteUsingDirective(context, node);
+        writer.WriteUsingDirective(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -123,7 +123,7 @@ using System
         builder.Add(NodeFactory.CSharpToken("i++"));
 
         // Act
-        writer.WriteCSharpExpression(context, node);
+        writer.WriteCSharpExpression(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -151,7 +151,7 @@ i++);
         builder.Add(NodeFactory.CSharpToken("i++", new SourceSpan("test.cshtml", 0, 0, 0, 3, 0, 3)));
 
         // Act
-        writer.WriteCSharpExpression(context, node);
+        writer.WriteCSharpExpression(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -190,7 +190,7 @@ i++
         builder.Add(NodeFactory.CSharpToken("++"));
 
         // Act
-        writer.WriteCSharpExpression(context, node);
+        writer.WriteCSharpExpression(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -223,7 +223,7 @@ iRender Children
         builder.Add(NodeFactory.CSharpToken("++", new SourceSpan("test.cshtml", 2, 0, 2, 2, 0, 4)));
 
         // Act
-        writer.WriteCSharpExpression(context, node);
+        writer.WriteCSharpExpression(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -262,7 +262,7 @@ Render Children
             .Add(NodeFactory.CSharpToken("  \t"));
 
         // Act
-        writer.WriteCSharpCode(context, node);
+        writer.WriteCSharpCode(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -281,7 +281,7 @@ Render Children
             .Add(NodeFactory.CSharpToken("if (true) { }"));
 
         // Act
-        writer.WriteCSharpCode(context, node);
+        writer.WriteCSharpCode(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -304,7 +304,7 @@ Render Children
             .Add(NodeFactory.CSharpToken("if (true) { }", span: new SourceSpan("test.cshtml", 0, 0, 0, 13)));
 
         // Act
-        writer.WriteCSharpCode(context, node);
+        writer.WriteCSharpCode(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -335,7 +335,7 @@ if (true) { }
             .Add(NodeFactory.CSharpToken("    if (true) { }", span: new SourceSpan("test.cshtml", 0, 0, 0, 17)));
 
         // Act
-        writer.WriteCSharpCode(context, node);
+        writer.WriteCSharpCode(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -446,7 +446,7 @@ WriteLiteral(""👧‍👧"");
         node.Children.Add(NodeFactory.HtmlToken("SomeContent"));
 
         // Act
-        writer.WriteHtmlContent(context, node);
+        writer.WriteHtmlContent(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -468,7 +468,7 @@ WriteLiteral(""👧‍👧"");
         node.Children.Add(NodeFactory.HtmlToken(new string('*', 2000)));
 
         // Act
-        writer.WriteHtmlContent(context, node);
+        writer.WriteHtmlContent(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -496,7 +496,7 @@ WriteLiteral(@""{1}"");
         var writer = new RuntimeNodeWriter(context);
 
         // Act
-        writer.WriteHtmlAttribute(context, node);
+        writer.WriteHtmlAttribute(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -525,7 +525,7 @@ EndWriteAttribute();
         var writer = new RuntimeNodeWriter(context);
 
         // Act
-        writer.WriteHtmlAttributeValue(context, node);
+        writer.WriteHtmlAttributeValue(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -551,7 +551,7 @@ EndWriteAttribute();
         var writer = new RuntimeNodeWriter(context);
 
         // Act
-        writer.WriteCSharpExpressionAttributeValue(context, node);
+        writer.WriteCSharpExpressionAttributeValue(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -585,7 +585,7 @@ false
         var writer = new RuntimeNodeWriter(context);
 
         // Act
-        writer.WriteCSharpCodeAttributeValue(context, node);
+        writer.WriteCSharpCodeAttributeValue(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -619,7 +619,7 @@ if(@true){ }
         };
 
         // Act
-        writer.BeginWriterScope(context, "MyWriter");
+        writer.BeginWriterScope("MyWriter");
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -642,7 +642,7 @@ if(@true){ }
         };
 
         // Act
-        writer.EndWriterScope(context);
+        writer.EndWriterScope();
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();

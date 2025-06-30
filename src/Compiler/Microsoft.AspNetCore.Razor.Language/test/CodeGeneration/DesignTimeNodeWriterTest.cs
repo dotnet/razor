@@ -30,7 +30,7 @@ public class DesignTimeNodeWriterTest : RazorProjectEngineTestBase
         };
 
         // Act
-        writer.WriteUsingDirective(context, node);
+        writer.WriteUsingDirective(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -58,7 +58,7 @@ public class DesignTimeNodeWriterTest : RazorProjectEngineTestBase
         };
 
         // Act
-        writer.WriteUsingDirective(context, node);
+        writer.WriteUsingDirective(node);
 
         // Assert
         var mapping = Assert.Single(context.GetSourceMappings());
@@ -95,7 +95,7 @@ using System;
         };
 
         // Act
-        writer.WriteUsingDirective(context, node);
+        writer.WriteUsingDirective(node);
 
         // Assert
         var mapping = Assert.Single(context.GetSourceMappings());
@@ -128,7 +128,7 @@ using System;
         builder.Add(NodeFactory.CSharpToken("i++"));
 
         // Act
-        writer.WriteCSharpExpression(context, node);
+        writer.WriteCSharpExpression(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -156,7 +156,7 @@ using System;
         builder.Add(NodeFactory.CSharpToken("i++"));
 
         // Act
-        writer.WriteCSharpExpression(context, node);
+        writer.WriteCSharpExpression(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -191,7 +191,7 @@ __o = i++;
         builder.Add(NodeFactory.CSharpToken("++"));
 
         // Act
-        writer.WriteCSharpExpression(context, node);
+        writer.WriteCSharpExpression(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -223,7 +223,7 @@ __o = i++;
         builder.Add(NodeFactory.CSharpToken("++"));
 
         // Act
-        writer.WriteCSharpExpression(context, node);
+        writer.WriteCSharpExpression(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -258,7 +258,7 @@ __o = i++;
             .Add(NodeFactory.CSharpToken("    "));
 
         // Act
-        writer.WriteCSharpCode(context, node);
+        writer.WriteCSharpCode(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -288,7 +288,7 @@ __o = i++;
             .Add(NodeFactory.CSharpToken("if (true) { }"));
 
         // Act
-        writer.WriteCSharpCode(context, node);
+        writer.WriteCSharpCode(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -315,7 +315,7 @@ __o = i++;
             .Add(NodeFactory.CSharpToken("if (true) { }"));
 
         // Act
-        writer.WriteCSharpCode(context, node);
+        writer.WriteCSharpCode(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -349,7 +349,7 @@ if (true) { }
             .Add(NodeFactory.CSharpToken("    if (true) { }"));
 
         // Act
-        writer.WriteCSharpCode(context, node);
+        writer.WriteCSharpCode(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -381,7 +381,7 @@ if (true) { }
         var writer = new DesignTimeNodeWriter(context);
 
         // Act
-        writer.WriteCSharpExpressionAttributeValue(context, node);
+        writer.WriteCSharpExpressionAttributeValue(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -413,7 +413,7 @@ if (true) { }
         var writer = new DesignTimeNodeWriter(context);
 
         // Act
-        writer.WriteCSharpCodeAttributeValue(context, node);
+        writer.WriteCSharpCodeAttributeValue(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -445,7 +445,7 @@ if (true) { }
         var writer = new DesignTimeNodeWriter(context);
 
         // Act
-        writer.WriteCSharpCodeAttributeValue(context, node);
+        writer.WriteCSharpCodeAttributeValue(node);
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -496,7 +496,7 @@ Render Children
         var builder = IntermediateNodeBuilder.Create(node);
         builder.Add(NodeFactory.CSharpToken("i++"));
 
-        writer.WriteCSharpExpression(context, node);
+        writer.WriteCSharpExpression(node);
 
         var csharp = context.CodeWriter.GetText().ToString();
         Assert.Equal(
@@ -539,7 +539,7 @@ Render Children
         // Create a fake source span, so we can check it correctly maps in the #line below
         builder.Add(NodeFactory.CSharpToken("i++", new SourceSpan(fileName, 0, 2, 3, 6, 1, 2)));
 
-        writer.WriteCSharpExpression(context, node);
+        writer.WriteCSharpExpression(node);
 
         var csharp = context.CodeWriter.GetText().ToString();
         Assert.Equal(

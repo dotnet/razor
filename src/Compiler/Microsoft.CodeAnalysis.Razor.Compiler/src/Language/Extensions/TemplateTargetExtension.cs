@@ -24,11 +24,11 @@ public sealed class TemplateTargetExtension : ITemplateTargetExtension
 
         using (context.CodeWriter.BuildAsyncLambda(TemplateWriterName))
         {
-            context.NodeWriter.BeginWriterScope(context, TemplateWriterName);
+            context.NodeWriter.BeginWriterScope(TemplateWriterName);
 
             context.RenderChildren(node);
 
-            context.NodeWriter.EndWriterScope(context);
+            context.NodeWriter.EndWriterScope();
         }
 
         context.CodeWriter.WriteEndMethodInvocation(endLine: false);

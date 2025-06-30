@@ -27,55 +27,45 @@ public class RuntimeNodeWriter(CodeRenderingContext context) : IntermediateNodeW
 
     public string TemplateTypeName { get; set; } = "Microsoft.AspNetCore.Mvc.Razor.HelperResult";
 
-    public override void WriteUsingDirective(CodeRenderingContext context, UsingDirectiveIntermediateNode node)
+    public override void WriteUsingDirective(UsingDirectiveIntermediateNode node)
     {
         if (node.Source is { FilePath: not null } sourceSpan)
         {
-            using (context.CodeWriter.BuildEnhancedLinePragma(sourceSpan, context, suppressLineDefaultAndHidden: true))
+            using (Context.CodeWriter.BuildEnhancedLinePragma(sourceSpan, Context, suppressLineDefaultAndHidden: true))
             {
-                context.CodeWriter.WriteUsing(node.Content, endLine: node.HasExplicitSemicolon);
+                Context.CodeWriter.WriteUsing(node.Content, endLine: node.HasExplicitSemicolon);
             }
             if (!node.HasExplicitSemicolon)
             {
-                context.CodeWriter.WriteLine(";");
+                Context.CodeWriter.WriteLine(";");
             }
             if (node.AppendLineDefaultAndHidden)
             {
-                context.CodeWriter.WriteLine("#line default");
-                context.CodeWriter.WriteLine("#line hidden");
+                Context.CodeWriter.WriteLine("#line default");
+                Context.CodeWriter.WriteLine("#line hidden");
             }
         }
         else
         {
-            context.CodeWriter.WriteUsing(node.Content);
+            Context.CodeWriter.WriteUsing(node.Content);
 
             if (node.AppendLineDefaultAndHidden)
             {
-                context.CodeWriter.WriteLine("#line default");
-                context.CodeWriter.WriteLine("#line hidden");
+                Context.CodeWriter.WriteLine("#line default");
+                Context.CodeWriter.WriteLine("#line hidden");
             }
         }
     }
 
-    public override void WriteCSharpExpression(CodeRenderingContext context, CSharpExpressionIntermediateNode node)
+    public override void WriteCSharpExpression(CSharpExpressionIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
-        context.CodeWriter.WriteStartMethodInvocation(WriteCSharpExpressionMethod);
-        context.CodeWriter.WriteLine();
-        WriteCSharpChildren(node.Children, context);
-        context.CodeWriter.WriteEndMethodInvocation();
+        Context.CodeWriter.WriteStartMethodInvocation(WriteCSharpExpressionMethod);
+        Context.CodeWriter.WriteLine();
+        WriteCSharpChildren(node.Children);
+        Context.CodeWriter.WriteEndMethodInvocation();
     }
 
-    public override void WriteCSharpCode(CodeRenderingContext context, CSharpCodeIntermediateNode node)
+    public override void WriteCSharpCode(CSharpCodeIntermediateNode node)
     {
         var isWhitespaceStatement = true;
         for (var i = 0; i < node.Children.Count; i++)
@@ -93,30 +83,30 @@ public class RuntimeNodeWriter(CodeRenderingContext context) : IntermediateNodeW
             return;
         }
 
-        WriteCSharpChildren(node.Children, context);
-        context.CodeWriter.WriteLine();
+        WriteCSharpChildren(node.Children);
+        Context.CodeWriter.WriteLine();
     }
 
-    private static void WriteCSharpChildren(IntermediateNodeCollection children, CodeRenderingContext context)
+    private void WriteCSharpChildren(IntermediateNodeCollection children)
     {
         for (var i = 0; i < children.Count; i++)
         {
             if (children[i] is CSharpIntermediateToken token)
             {
-                using (context.CodeWriter.BuildEnhancedLinePragma(token.Source, context))
+                using (Context.CodeWriter.BuildEnhancedLinePragma(token.Source, Context))
                 {
-                    context.CodeWriter.Write(token.Content);
+                    Context.CodeWriter.Write(token.Content);
                 }
             }
             else
             {
                 // There may be something else inside the statement like an extension node.
-                context.RenderNode(children[i]);
+                Context.RenderNode(children[i]);
             }
         }
     }
 
-    public override void WriteHtmlAttribute(CodeRenderingContext context, HtmlAttributeIntermediateNode node)
+    public override void WriteHtmlAttribute(HtmlAttributeIntermediateNode node)
     {
         var valuePieceCount = node
             .Children
@@ -130,7 +120,7 @@ public class RuntimeNodeWriter(CodeRenderingContext context) : IntermediateNodeW
         var prefixLocation = source.AbsoluteIndex;
         var suffixLocation = source.AbsoluteIndex + source.Length - node.Suffix.Length;
 
-        context.CodeWriter
+        Context.CodeWriter
             .WriteStartMethodInvocation(BeginWriteAttributeMethod)
             .WriteStringLiteral(node.AttributeName)
             .WriteParameterSeparator()
@@ -145,21 +135,21 @@ public class RuntimeNodeWriter(CodeRenderingContext context) : IntermediateNodeW
             .Write(valuePieceCount.ToString(CultureInfo.InvariantCulture))
             .WriteEndMethodInvocation();
 
-        context.RenderChildren(node);
+        Context.RenderChildren(node);
 
-        context.CodeWriter
+        Context.CodeWriter
             .WriteStartMethodInvocation(EndWriteAttributeMethod)
             .WriteEndMethodInvocation();
     }
 
-    public override void WriteHtmlAttributeValue(CodeRenderingContext context, HtmlAttributeValueIntermediateNode node)
+    public override void WriteHtmlAttributeValue(HtmlAttributeValueIntermediateNode node)
     {
         var source = node.Source.AssumeNotNull();
         var prefixLocation = source.AbsoluteIndex;
         var valueLocation = source.AbsoluteIndex + node.Prefix.Length;
         var valueLength = source.Length;
 
-        context.CodeWriter
+        Context.CodeWriter
             .WriteStartMethodInvocation(WriteAttributeValueMethod)
             .WriteStringLiteral(node.Prefix)
             .WriteParameterSeparator()
@@ -171,16 +161,16 @@ public class RuntimeNodeWriter(CodeRenderingContext context) : IntermediateNodeW
         {
             if (node.Children[i] is HtmlIntermediateToken token)
             {
-                context.CodeWriter.WriteStringLiteral(token.Content);
+                Context.CodeWriter.WriteStringLiteral(token.Content);
             }
             else
             {
                 // There may be something else inside the attribute value like an extension node.
-                context.RenderNode(node.Children[i]);
+                Context.RenderNode(node.Children[i]);
             }
         }
 
-        context.CodeWriter
+        Context.CodeWriter
             .WriteParameterSeparator()
             .Write(valueLocation.ToString(CultureInfo.InvariantCulture))
             .WriteParameterSeparator()
@@ -190,24 +180,24 @@ public class RuntimeNodeWriter(CodeRenderingContext context) : IntermediateNodeW
             .WriteEndMethodInvocation();
     }
 
-    public override void WriteCSharpExpressionAttributeValue(CodeRenderingContext context, CSharpExpressionAttributeValueIntermediateNode node)
+    public override void WriteCSharpExpressionAttributeValue(CSharpExpressionAttributeValueIntermediateNode node)
     {
         var source = node.Source.AssumeNotNull();
         var prefixLocation = source.AbsoluteIndex.ToString(CultureInfo.InvariantCulture);
 
-        context.CodeWriter
+        Context.CodeWriter
             .WriteStartMethodInvocation(WriteAttributeValueMethod)
             .WriteStringLiteral(node.Prefix)
             .WriteParameterSeparator()
             .Write(prefixLocation)
             .WriteParameterSeparator();
 
-        WriteCSharpChildren(node.Children, context);
+        WriteCSharpChildren(node.Children);
 
         var valueLocation = source.AbsoluteIndex + node.Prefix.Length;
         var valueLength = source.Length - node.Prefix.Length;
 
-        context.CodeWriter
+        Context.CodeWriter
             .WriteParameterSeparator()
             .Write(valueLocation.ToString(CultureInfo.InvariantCulture))
             .WriteParameterSeparator()
@@ -217,7 +207,7 @@ public class RuntimeNodeWriter(CodeRenderingContext context) : IntermediateNodeW
             .WriteEndMethodInvocation();
     }
 
-    public override void WriteCSharpCodeAttributeValue(CodeRenderingContext context, CSharpCodeAttributeValueIntermediateNode node)
+    public override void WriteCSharpCodeAttributeValue(CSharpCodeAttributeValueIntermediateNode node)
     {
         const string ValueWriterName = "__razor_attribute_value_writer";
 
@@ -226,25 +216,25 @@ public class RuntimeNodeWriter(CodeRenderingContext context) : IntermediateNodeW
         var valueLocation = source.AbsoluteIndex + node.Prefix.Length;
         var valueLength = source.Length - node.Prefix.Length;
 
-        context.CodeWriter
+        Context.CodeWriter
             .WriteStartMethodInvocation(WriteAttributeValueMethod)
             .WriteStringLiteral(node.Prefix)
             .WriteParameterSeparator()
             .Write(prefixLocation.ToString(CultureInfo.InvariantCulture))
             .WriteParameterSeparator();
 
-        context.CodeWriter.WriteStartNewObject(TemplateTypeName);
+        Context.CodeWriter.WriteStartNewObject(TemplateTypeName);
 
-        using (context.CodeWriter.BuildAsyncLambda(ValueWriterName))
+        using (Context.CodeWriter.BuildAsyncLambda(ValueWriterName))
         {
-            BeginWriterScope(context, ValueWriterName);
-            WriteCSharpChildren(node.Children, context);
-            EndWriterScope(context);
+            BeginWriterScope(ValueWriterName);
+            WriteCSharpChildren(node.Children);
+            EndWriterScope();
         }
 
-        context.CodeWriter.WriteEndMethodInvocation(false);
+        Context.CodeWriter.WriteEndMethodInvocation(false);
 
-        context.CodeWriter
+        Context.CodeWriter
             .WriteParameterSeparator()
             .Write(valueLocation.ToString(CultureInfo.InvariantCulture))
             .WriteParameterSeparator()
@@ -254,7 +244,7 @@ public class RuntimeNodeWriter(CodeRenderingContext context) : IntermediateNodeW
             .WriteEndMethodInvocation();
     }
 
-    public override void WriteHtmlContent(CodeRenderingContext context, HtmlContentIntermediateNode node)
+    public override void WriteHtmlContent(HtmlContentIntermediateNode node)
     {
         const int MaxStringLiteralLength = 1024;
 
@@ -281,7 +271,7 @@ public class RuntimeNodeWriter(CodeRenderingContext context) : IntermediateNodeW
             contentIndex += htmlContent.Length;
         }
 
-        WriteHtmlLiteral(context, MaxStringLiteralLength, content.AsMemory());
+        WriteHtmlLiteral(Context, MaxStringLiteralLength, content.AsMemory());
     }
 
     // Internal for testing
@@ -315,13 +305,13 @@ public class RuntimeNodeWriter(CodeRenderingContext context) : IntermediateNodeW
         }
     }
 
-    public override void BeginWriterScope(CodeRenderingContext context, string writer)
+    public override void BeginWriterScope(string writer)
     {
-        context.CodeWriter.WriteMethodInvocation(PushWriterMethod, writer);
+        Context.CodeWriter.WriteMethodInvocation(PushWriterMethod, writer);
     }
 
-    public override void EndWriterScope(CodeRenderingContext context)
+    public override void EndWriterScope()
     {
-        context.CodeWriter.WriteMethodInvocation(PopWriterMethod);
+        Context.CodeWriter.WriteMethodInvocation(PopWriterMethod);
     }
 }
