@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.LanguageClient.WrapWithTag;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -45,9 +46,10 @@ internal sealed class CohostWrapWithTagEndpoint(
     private async Task<VSInternalWrapWithTagResponse?> HandleRequestAsync(VSInternalWrapWithTagParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         // First, check if the position is valid for wrap with tag operation through the remote service
+        var range = request.Range.ToLinePositionSpan();
         var isValidLocation = await _remoteServiceInvoker.TryInvokeAsync<IRemoteWrapWithTagService, RemoteResponse<bool>>(
             razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.IsValidWrapWithTagLocationAsync(solutionInfo, razorDocument.Id, request.Range, cancellationToken),
+            (service, solutionInfo, cancellationToken) => service.IsValidWrapWithTagLocationAsync(solutionInfo, razorDocument.Id, range, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
         // If the remote service says it's not a valid location or we should stop handling, return null

@@ -4,14 +4,13 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteWrapWithTagService
 {
-    ValueTask<RemoteResponse<bool>> IsValidWrapWithTagLocationAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, LspRange range, CancellationToken cancellationToken);
+    ValueTask<RemoteResponse<bool>> IsValidWrapWithTagLocationAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, LinePositionSpan range, CancellationToken cancellationToken);
     
     ValueTask<RemoteResponse<TextEdit[]?>> FixHtmlTextEditsAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, TextEdit[] textEdits, CancellationToken cancellationToken);
 }
