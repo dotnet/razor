@@ -22,22 +22,22 @@ namespace Microsoft.VisualStudio.Razor;
 internal sealed class ProjectCapabilityResolver : IProjectCapabilityResolver, IDisposable
 {
     private readonly ILiveShareSessionAccessor _liveShareSessionAccessor;
+    private readonly IEnumerable<IProjectCapabilityListener> _projectCapabilityListeners;
     private readonly AsyncLazy<IVsUIShellOpenDocument> _lazyVsUIShellOpenDocument;
     private readonly ILogger _logger;
     private readonly JoinableTaskFactory _jtf;
     private readonly CancellationTokenSource _disposeTokenSource;
 
-    private readonly Dictionary<(string ProjectFilePath, string Capability), bool> _cachedCapabilities = [];
-    private readonly object _gate = new();
-
     [ImportingConstructor]
     public ProjectCapabilityResolver(
         ILiveShareSessionAccessor liveShareSessionAccessor,
         IVsService<SVsUIShellOpenDocument, IVsUIShellOpenDocument> vsUIShellOpenDocumentService,
+        [ImportMany] IEnumerable<IProjectCapabilityListener> projectCapabilityListeners,
         ILoggerFactory loggerFactory,
         JoinableTaskContext joinableTaskContext)
     {
         _liveShareSessionAccessor = liveShareSessionAccessor;
+        _projectCapabilityListeners = projectCapabilityListeners;
         _jtf = joinableTaskContext.Factory;
         _logger = loggerFactory.GetOrCreateLogger<ProjectCapabilityResolver>();
         _disposeTokenSource = new();
@@ -131,9 +131,10 @@ internal sealed class ProjectCapabilityResolver : IProjectCapabilityResolver, ID
 
             if (vsHierarchy.GetProjectFilePath(_jtf) is { } projectFilePath)
             {
-                lock (_gate)
+                foreach (var listener in _projectCapabilityListeners)
                 {
-                    _cachedCapabilities[(projectFilePath, capability)] = isMatch;
+                    // Notify all listeners of the capability match.
+                    listener.OnProjectCapabilityMatched(projectFilePath, capability, isMatch);
                 }
             }
         }
@@ -148,13 +149,5 @@ internal sealed class ProjectCapabilityResolver : IProjectCapabilityResolver, ID
         }
 
         return isMatch;
-    }
-
-    public bool TryGetCachedCapabilityMatch(string projectFilePath, string capability, out bool isMatch)
-    {
-        lock (_gate)
-        {
-            return _cachedCapabilities.TryGetValue((projectFilePath, capability), out isMatch);
-        }
     }
 }

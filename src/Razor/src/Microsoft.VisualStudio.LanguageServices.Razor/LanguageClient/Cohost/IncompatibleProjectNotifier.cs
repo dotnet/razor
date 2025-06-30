@@ -15,14 +15,15 @@ using WorkspacesSR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
+[Export(typeof(IProjectCapabilityListener))]
 [Export(typeof(IIncompatibleProjectNotifier))]
 [method: ImportingConstructor]
 internal sealed class IncompatibleProjectNotifier(
-    IProjectCapabilityResolver projectCapabilityResolver,
-    ILoggerFactory loggerFactory) : IIncompatibleProjectNotifier
+    ILoggerFactory loggerFactory) : IIncompatibleProjectNotifier, IProjectCapabilityListener
 {
-    private readonly IProjectCapabilityResolver _projectCapabilityResolver = projectCapabilityResolver;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<IncompatibleProjectNotifier>();
+
+    private readonly HashSet<string> _frameworkProjects = new(PathUtilities.OSSpecificPathComparer);
 
     public void NotifyMiscFilesDocument(TextDocument textDocument)
     {
@@ -31,17 +32,47 @@ internal sealed class IncompatibleProjectNotifier(
 
     public void NotifyMissingDocument(Project project, string filePath)
     {
-        // When this document was opened, we will have checked if it was a .NET Framework project. If so, then we can avoid
-        // notifying the user because they are not using the LSP editor, even though we get the odd request.
-        // If this check returns a false positive, the fallout is only one log message, so nothing to be concerned about.
-        if (_projectCapabilityResolver.TryGetCachedCapabilityMatch(project.FilePath.AssumeNotNull(), WellKnownProjectCapabilities.DotNetCoreCSharp, out var isMatch) && !isMatch)
+        // When this document was opened, we will have checked if it was a .NET Framework project, and we listened for that below.
+        // Since this method is only called when we receive an LSP request for a document, and LSP only works on open documents,
+        // we know that the capability check must have happened before this method was called, so our cache is as up to date as
+        // possible for the specific file being asked about.
+        lock (_frameworkProjects)
         {
-            return;
+            if (_frameworkProjects.Contains(project.FilePath.AssumeNotNull()))
+            {
+                // This project doesn't have the .NET Core C# capability, so it's a .NET Framework project and we don't want
+                // to notify the user, as those projects use a different editor.
+                return;
+            }
         }
 
         _logger.Log(LogLevel.Error, $"{(
             project.AdditionalDocuments.Any(d => d.FilePath is not null && d.FilePath.IsRazorFilePath())
                 ? WorkspacesSR.FormatIncompatibleProject_NotAnAdditionalFile(Path.GetFileName(filePath), project.Name)
                 : WorkspacesSR.FormatIncompatibleProject_NoAdditionalFiles(Path.GetFileName(filePath), project.Name))}");
+    }
+
+    public void OnProjectCapabilityMatched(string projectFilePath, string capability, bool isMatch)
+    {
+        // We only track the .NET Core capability
+        if (capability != WellKnownProjectCapabilities.DotNetCoreCSharp)
+        {
+            return;
+        }
+
+        lock (_frameworkProjects)
+        {
+            if (isMatch)
+            {
+                // The project is a .NET Core project, so we don't care, but just in case it used to be .NET Framework,
+                // let's clean up.
+                _frameworkProjects.Remove(projectFilePath);
+            }
+            else
+            {
+                // The project is not a .NET Core project, so add it to our list of framework projects.
+                _frameworkProjects.Add(projectFilePath);
+            }
+        }
     }
 }
