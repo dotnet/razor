@@ -10,12 +10,18 @@ internal static class NodeFactory
     public static CSharpIntermediateToken CSharpToken(string content, SourceSpan? span = null)
         => new(content, span);
 
+    public static CSharpIntermediateToken CSharpToken(ref IntermediateToken.ContentInterpolatedStringHandler handler, SourceSpan? span = null)
+        => new(ref handler, span);
+
     public static CSharpIntermediateToken LazyCSharpToken<T>(
         Func<T, string> contentCreator, T arg, SourceSpan? span = null)
         => new(LazyContent.Create(contentCreator, arg), span);
 
     public static HtmlIntermediateToken HtmlToken(string content, SourceSpan? span = null)
         => new(content, span);
+
+    public static HtmlIntermediateToken HtmlToken(ref IntermediateToken.ContentInterpolatedStringHandler handler, SourceSpan? span = null)
+        => new(ref handler, span);
 
     public static HtmlIntermediateToken LazyHtmlToken<T>(
         Func<T, string> contentCreater, T arg, SourceSpan? span = null)

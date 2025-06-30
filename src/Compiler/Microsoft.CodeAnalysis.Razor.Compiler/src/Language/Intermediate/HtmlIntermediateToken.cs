@@ -14,4 +14,9 @@ public sealed class HtmlIntermediateToken : IntermediateToken
         : base(TokenKind.Html, lazyContent, span)
     {
     }
+
+    internal HtmlIntermediateToken(ref ContentInterpolatedStringHandler handler, SourceSpan? span = null)
+        : base(TokenKind.Html, ref handler, span)
+    {
+    }
 }

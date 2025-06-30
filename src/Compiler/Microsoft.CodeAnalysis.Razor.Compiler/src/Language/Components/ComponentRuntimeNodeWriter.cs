@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -305,7 +305,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         }
 
         var stringContent = ((IntermediateToken)node.Children.Single()).Content;
-        _currentAttributeValues.Add(NodeFactory.HtmlToken(node.Prefix + stringContent));
+        _currentAttributeValues.Add(NodeFactory.HtmlToken($"{node.Prefix}{stringContent}"));
     }
 
     public override void WriteHtmlContent(CodeRenderingContext context, HtmlContentIntermediateNode node)
@@ -1203,13 +1203,13 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
     {
         if (token.Source?.FilePath == null)
         {
-            context.CodeWriter.Write(token.Content);
+            context.CodeWriter.Write(token.ContentParts);
             return;
         }
 
         using (context.CodeWriter.BuildEnhancedLinePragma(token.Source, context))
         {
-            context.CodeWriter.Write(token.Content);
+            context.CodeWriter.Write(token.ContentParts);
         }
     }
 }

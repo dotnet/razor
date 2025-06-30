@@ -14,4 +14,9 @@ public sealed class CSharpIntermediateToken : IntermediateToken
         : base(TokenKind.CSharp, lazyContent, span)
     {
     }
+
+    internal CSharpIntermediateToken(ref ContentInterpolatedStringHandler handler, SourceSpan? span = null)
+        : base(TokenKind.CSharp, ref handler, span)
+    {
+    }
 }

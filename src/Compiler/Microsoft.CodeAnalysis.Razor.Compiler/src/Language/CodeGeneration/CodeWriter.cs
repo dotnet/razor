@@ -4,6 +4,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -233,6 +234,16 @@ public sealed partial class CodeWriter : IDisposable
 
     public CodeWriter Write(ReadOnlyMemory<char> value)
         => WriteCore(value);
+
+    public CodeWriter Write(ImmutableArray<ReadOnlyMemory<char>> values)
+    {
+        foreach (var value in values)
+        {
+            WriteCore(value);
+        }
+
+        return this;
+    }
 
     public CodeWriter Write(string value, int startIndex, int count)
     {
