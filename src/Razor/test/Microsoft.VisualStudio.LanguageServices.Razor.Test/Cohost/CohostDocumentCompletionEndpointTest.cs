@@ -670,6 +670,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
 
         var completionListCache = new CompletionListCache();
         var endpoint = new CohostDocumentCompletionEndpoint(
+            IncompatibleProjectService,
             RemoteServiceInvoker,
             clientSettingsManager,
             ClientCapabilitiesService,
@@ -750,6 +751,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
 
         var clientSettingsManager = new ClientSettingsManager(changeTriggers: []);
         var endpoint = new CohostDocumentCompletionResolveEndpoint(
+            IncompatibleProjectService,
             completionListCache,
             RemoteServiceInvoker,
             clientSettingsManager,
