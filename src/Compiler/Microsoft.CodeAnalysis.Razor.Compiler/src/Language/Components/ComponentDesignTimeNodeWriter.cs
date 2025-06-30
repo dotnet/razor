@@ -37,7 +37,7 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
     {
         if (node.Source is { FilePath: not null } sourceSpan)
         {
-            using (Context.CodeWriter.BuildLinePragma(sourceSpan, Context, suppressLineDefaultAndHidden: !node.AppendLineDefaultAndHidden))
+            using (Context.BuildLinePragma(sourceSpan, suppressLineDefaultAndHidden: !node.AppendLineDefaultAndHidden))
             {
                 Context.AddSourceMappingFor(node);
                 Context.CodeWriter.WriteUsing(node.Content);
@@ -67,9 +67,9 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
             return;
         }
 
-        if (node.Source != null)
+        if (node.Source is SourceSpan source)
         {
-            using (Context.CodeWriter.BuildLinePragma(node.Source.Value, Context))
+            using (Context.BuildLinePragma(source))
             {
                 var offset = DesignTimeVariable.Length + " = ".Length;
 
@@ -78,7 +78,7 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
                     offset += type.Length + 2; // two parenthesis
                 }
 
-                Context.CodeWriter.WritePadding(offset, node.Source, Context);
+                Context.CodeWriter.WritePadding(offset, source, Context);
                 Context.CodeWriter.WriteStartAssignment(DesignTimeVariable);
 
                 if (type != null)
@@ -139,14 +139,14 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
         }
 
         IDisposable? linePragmaScope = null;
-        if (node.Source != null)
+        if (node.Source is SourceSpan source)
         {
             if (!isWhitespaceStatement)
             {
-                linePragmaScope = Context.CodeWriter.BuildLinePragma(node.Source.Value, Context);
+                linePragmaScope = Context.BuildLinePragma(source);
             }
 
-            Context.CodeWriter.WritePadding(0, node.Source.Value, Context);
+            Context.CodeWriter.WritePadding(0, source, Context);
         }
         else if (isWhitespaceStatement)
         {
@@ -439,7 +439,7 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
         // the "usings directive is unnecessary" message.
         // Looks like:
         // __o = typeof(SomeNamespace.SomeComponent);
-        using (Context.CodeWriter.BuildLinePragma(node.Source.AssumeNotNull(), Context))
+        using (Context.BuildLinePragma(node.Source.AssumeNotNull()))
         {
             Context.CodeWriter.Write(DesignTimeVariable);
             Context.CodeWriter.Write(" = ");
@@ -590,8 +590,15 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
             Context.CodeWriter.WriteLine("#pragma warning disable BL0005");
         }
 
-        var attributeSourceSpan = (SourceSpan)node.OriginalAttributeSpan;
-        attributeSourceSpan = new SourceSpan(attributeSourceSpan.FilePath, attributeSourceSpan.AbsoluteIndex + offset, attributeSourceSpan.LineIndex, attributeSourceSpan.CharacterIndex + offset, node.PropertyName.Length, attributeSourceSpan.LineCount, attributeSourceSpan.CharacterIndex + offset + node.PropertyName.Length);
+        var originalAttributeSpan = (SourceSpan)node.OriginalAttributeSpan;
+        var attributeSourceSpan = new SourceSpan(
+            originalAttributeSpan.FilePath,
+            originalAttributeSpan.AbsoluteIndex + offset,
+            originalAttributeSpan.LineIndex,
+            originalAttributeSpan.CharacterIndex + offset,
+            node.PropertyName.Length,
+            originalAttributeSpan.LineCount,
+            originalAttributeSpan.CharacterIndex + offset + node.PropertyName.Length);
 
         if (componentNode.TypeInferenceNode == null)
         {
@@ -614,7 +621,7 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
         Context.CodeWriter.Write(".");
         Context.CodeWriter.WriteLine();
 
-        using (Context.CodeWriter.BuildLinePragma(attributeSourceSpan, Context))
+        using (Context.BuildLinePragma(attributeSourceSpan))
         {
             Context.CodeWriter.WritePadding(0, attributeSourceSpan, Context);
             Context.CodeWriter.WriteIdentifierEscapeIfNeeded(node.PropertyName);
@@ -1033,7 +1040,7 @@ internal class ComponentDesignTimeNodeWriter(CodeRenderingContext context, Razor
             return;
         }
 
-        using (Context.CodeWriter.BuildLinePragma(token.Source, Context))
+        using (Context.BuildLinePragma(token.Source))
         {
             Context.CodeWriter.WritePadding(0, token.Source.Value, Context);
             Context.AddSourceMappingFor(token);

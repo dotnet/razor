@@ -74,7 +74,7 @@ internal class ComponentRuntimeNodeWriter(CodeRenderingContext context, RazorLan
         //   such as closing parenthesis.
         // - Error cases: there are no nodes, so we do nothing
         var firstCSharpChild = node.Children.OfType<CSharpIntermediateToken>().FirstOrDefault();
-        using (Context.CodeWriter.BuildEnhancedLinePragma(firstCSharpChild?.Source, Context, characterOffset: methodInvocation.Length + 2))
+        using (Context.BuildEnhancedLinePragma(firstCSharpChild?.Source, characterOffset: methodInvocation.Length + 2))
         {
             Context.CodeWriter
                 .Write(methodInvocation)
@@ -256,7 +256,7 @@ internal class ComponentRuntimeNodeWriter(CodeRenderingContext context, RazorLan
     {
         if (node.Source is { FilePath: not null } sourceSpan)
         {
-            using (Context.CodeWriter.BuildEnhancedLinePragma(sourceSpan, Context, suppressLineDefaultAndHidden: true))
+            using (Context.BuildEnhancedLinePragma(sourceSpan, suppressLineDefaultAndHidden: true))
             {
                 Context.CodeWriter.WriteUsing(node.Content, endLine: node.HasExplicitSemicolon);
             }
@@ -1070,7 +1070,7 @@ internal class ComponentRuntimeNodeWriter(CodeRenderingContext context, RazorLan
             return;
         }
 
-        using (Context.CodeWriter.BuildEnhancedLinePragma(token.Source, Context))
+        using (Context.BuildEnhancedLinePragma(token.Source))
         {
             Context.CodeWriter.Write(token.ContentParts);
         }

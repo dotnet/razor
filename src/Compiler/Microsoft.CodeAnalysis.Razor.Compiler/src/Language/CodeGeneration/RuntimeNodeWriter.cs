@@ -31,7 +31,7 @@ public class RuntimeNodeWriter(CodeRenderingContext context) : IntermediateNodeW
     {
         if (node.Source is { FilePath: not null } sourceSpan)
         {
-            using (Context.CodeWriter.BuildEnhancedLinePragma(sourceSpan, Context, suppressLineDefaultAndHidden: true))
+            using (Context.BuildEnhancedLinePragma(sourceSpan, suppressLineDefaultAndHidden: true))
             {
                 Context.CodeWriter.WriteUsing(node.Content, endLine: node.HasExplicitSemicolon);
             }
@@ -93,7 +93,7 @@ public class RuntimeNodeWriter(CodeRenderingContext context) : IntermediateNodeW
         {
             if (children[i] is CSharpIntermediateToken token)
             {
-                using (Context.CodeWriter.BuildEnhancedLinePragma(token.Source, Context))
+                using (Context.BuildEnhancedLinePragma(token.Source))
                 {
                     Context.CodeWriter.Write(token.Content);
                 }

@@ -13,7 +13,7 @@ public class DesignTimeNodeWriter(CodeRenderingContext context) : IntermediateNo
     {
         if (node.Source is { FilePath: not null } sourceSpan)
         {
-            using (Context.CodeWriter.BuildLinePragma(sourceSpan, Context, suppressLineDefaultAndHidden: !node.AppendLineDefaultAndHidden))
+            using (Context.BuildLinePragma(sourceSpan, suppressLineDefaultAndHidden: !node.AppendLineDefaultAndHidden))
             {
                 Context.AddSourceMappingFor(node);
                 Context.CodeWriter.WriteUsing(node.Content);
@@ -38,12 +38,12 @@ public class DesignTimeNodeWriter(CodeRenderingContext context) : IntermediateNo
             return;
         }
 
-        if (node.Source != null)
+        if (node.Source is SourceSpan source)
         {
-            using (Context.CodeWriter.BuildLinePragma(node.Source.Value, Context))
+            using (Context.BuildLinePragma(source))
             {
                 var offset = DesignTimeDirectivePass.DesignTimeVariable.Length + " = ".Length;
-                Context.CodeWriter.WritePadding(offset, node.Source, Context);
+                Context.CodeWriter.WritePadding(offset, source, Context);
                 Context.CodeWriter.WriteStartAssignment(DesignTimeDirectivePass.DesignTimeVariable);
 
                 for (var i = 0; i < node.Children.Count; i++)
@@ -78,6 +78,7 @@ public class DesignTimeNodeWriter(CodeRenderingContext context) : IntermediateNo
                     Context.RenderNode(node.Children[i]);
                 }
             }
+
             Context.CodeWriter.WriteLine(";");
         }
     }
@@ -85,11 +86,11 @@ public class DesignTimeNodeWriter(CodeRenderingContext context) : IntermediateNo
     public override void WriteCSharpCode(CSharpCodeIntermediateNode node)
     {
         IDisposable? linePragmaScope = null;
-        if (node.Source != null)
+        if (node.Source is SourceSpan source)
         {
-            linePragmaScope = Context.CodeWriter.BuildLinePragma(node.Source.Value, Context);
+            linePragmaScope = Context.BuildLinePragma(source);
 
-            Context.CodeWriter.WritePadding(0, node.Source.Value, Context);
+            Context.CodeWriter.WritePadding(0, source, Context);
         }
 
         for (var i = 0; i < node.Children.Count; i++)
@@ -134,12 +135,12 @@ public class DesignTimeNodeWriter(CodeRenderingContext context) : IntermediateNo
         }
 
         var firstChild = node.Children[0];
-        if (firstChild.Source != null)
+        if (firstChild.Source is SourceSpan source)
         {
-            using (Context.CodeWriter.BuildLinePragma(firstChild.Source.Value, Context))
+            using (Context.BuildLinePragma(source))
             {
                 var offset = DesignTimeDirectivePass.DesignTimeVariable.Length + " = ".Length;
-                Context.CodeWriter.WritePadding(offset, firstChild.Source, Context);
+                Context.CodeWriter.WritePadding(offset, source, Context);
                 Context.CodeWriter.WriteStartAssignment(DesignTimeDirectivePass.DesignTimeVariable);
 
                 for (var i = 0; i < node.Children.Count; i++)
@@ -193,14 +194,14 @@ public class DesignTimeNodeWriter(CodeRenderingContext context) : IntermediateNo
                 IDisposable? linePragmaScope = null;
                 var isWhitespaceStatement = string.IsNullOrWhiteSpace(token.Content);
 
-                if (token.Source != null)
+                if (token.Source is SourceSpan source)
                 {
                     if (!isWhitespaceStatement)
                     {
-                        linePragmaScope = Context.CodeWriter.BuildLinePragma(token.Source.Value, Context);
+                        linePragmaScope = Context.BuildLinePragma(source);
                     }
 
-                    Context.CodeWriter.WritePadding(0, token.Source.Value, Context);
+                    Context.CodeWriter.WritePadding(0, source, Context);
                 }
                 else if (isWhitespaceStatement)
                 {

@@ -366,7 +366,7 @@ internal abstract class ComponentNodeWriter(CodeRenderingContext context, RazorL
             {
                 var attributeSourceSpan = attribute.PropertySpan ?? attribute.OriginalAttributeSpan;
                 var requiresEscaping = attribute.PropertyName.IdentifierRequiresEscaping();
-                using (Context.CodeWriter.BuildEnhancedLinePragma(attributeSourceSpan, Context, characterOffset: requiresEscaping ? 1 : 0))
+                using (Context.BuildEnhancedLinePragma(attributeSourceSpan, characterOffset: requiresEscaping ? 1 : 0))
                 {
                     Context.CodeWriter.WriteIdentifierEscapeIfNeeded(attribute.PropertyName);
                     Context.CodeWriter.WriteLine(attribute.PropertyName);
