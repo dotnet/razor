@@ -183,6 +183,7 @@ public sealed partial class RazorCodeDocument
             return result;
         }
 
+        // Perf: Avoid concurrent requests generating the same html document
         lock (_htmlDocumentLock)
         {
             if (!_properties.HtmlDocument.TryGetValue(out result))
