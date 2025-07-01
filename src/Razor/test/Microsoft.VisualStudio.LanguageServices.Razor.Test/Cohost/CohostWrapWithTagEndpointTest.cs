@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 public class CohostWrapWithTagEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
     [Fact]
-    public async Task ValidHtmlLocation_ReturnsResult()
+    public async Task InsideHtml()
     {
         await VerifyWrapWithTagAsync(
             input: """
@@ -38,7 +38,98 @@ public class CohostWrapWithTagEndpointTest(ITestOutputHelper testOutputHelper) :
     }
 
     [Fact]
-    public async Task CSharpLocation_ReturnsNull()
+    public async Task HtmlInCSharp()
+    {
+        await VerifyWrapWithTagAsync(
+            input: """
+                @if (true)
+                {
+                    [|<p></p>|]
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div><p></p></div>
+                }
+                """,
+            htmlResponse: new VSInternalWrapWithTagResponse(
+                LspFactory.CreateSingleLineRange(start: (1, 4), length: 0),
+                [
+                    LspFactory.CreateTextEdit(position: (2, 4), "<div>"),
+                    LspFactory.CreateTextEdit(position: (2, 11), "</div>")
+                ]
+            ));
+    }
+
+    [Fact]
+    public async Task HtmlInCSharp_WithWhitespace()
+    {
+        await VerifyWrapWithTagAsync(
+            input: """
+                @if (true)
+                {
+                    [| <p></p> |]
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div><p></p></div>
+                }
+                """,
+            htmlResponse: new VSInternalWrapWithTagResponse(
+                LspFactory.CreateSingleLineRange(start: (1, 4), length: 0),
+                [
+                    LspFactory.CreateTextEdit(2, 4, 2, 5, "<div>"),
+                    LspFactory.CreateTextEdit(2, 12, 2, 13, "</div>")
+                ]
+            ));
+    }
+
+    [Fact]
+    public async Task NotInHtmlInCSharp_WithNewline()
+    {
+        await VerifyWrapWithTagAsync(
+            input: """
+                @if (true)
+                {[|
+                    <p></p>|]
+                }
+                """,
+            expected: null,
+            htmlResponse: null);
+    }
+
+    [Fact]
+    public async Task RazorBlockStart()
+    {
+        await VerifyWrapWithTagAsync(
+            input: """
+                [|@if (true) { }
+                <div>
+                </div>|]
+                """,
+            expected: """
+                <div>
+                    @if (true) { }
+                    <div>
+                    </div>
+                </div>
+                """,
+            htmlResponse: new VSInternalWrapWithTagResponse(
+                LspFactory.CreateSingleLineRange(start: (1, 4), length: 0),
+                [
+                    LspFactory.CreateTextEdit(position: (0, 0), $"<div>{Environment.NewLine}    "),
+                    LspFactory.CreateTextEdit(position: (1, 0), "    "),
+                    LspFactory.CreateTextEdit(position: (2, 0), "    "),
+                    LspFactory.CreateTextEdit(position: (2, 6), $"{Environment.NewLine}</div>")
+                ]
+            ));
+    }
+
+    [Fact]
+    public async Task NotInCodeBlock()
     {
         await VerifyWrapWithTagAsync(
             input: """
@@ -51,7 +142,7 @@ public class CohostWrapWithTagEndpointTest(ITestOutputHelper testOutputHelper) :
     }
 
     [Fact]
-    public async Task ImplicitExpression_ReturnsResult()
+    public async Task ImplicitExpression()
     {
         await VerifyWrapWithTagAsync(
             input: """
@@ -71,7 +162,7 @@ public class CohostWrapWithTagEndpointTest(ITestOutputHelper testOutputHelper) :
     }
 
     [Fact]
-    public async Task HtmlWithTildes_FixesTextEdits()
+    public async Task HtmlWithTildes()
     {
         await VerifyWrapWithTagAsync(
             input: """
