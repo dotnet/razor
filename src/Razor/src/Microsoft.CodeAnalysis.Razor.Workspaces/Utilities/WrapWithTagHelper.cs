@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Utilities;
+namespace Microsoft.CodeAnalysis.Razor.Utilities;
 
 internal static class WrapWithTagHelper
 {
@@ -87,12 +87,9 @@ internal static class WrapWithTagHelper
             {
                 // Pretend we're in Html so the rest of the logic can continue
                 wrappingRange = sourceText.GetLinePositionSpan(codeBlock.Span);
-                languageKind = RazorLanguageKind.Html;
+                return true;
             }
-        }
 
-        if (languageKind is not RazorLanguageKind.Html)
-        {
             return false;
         }
 

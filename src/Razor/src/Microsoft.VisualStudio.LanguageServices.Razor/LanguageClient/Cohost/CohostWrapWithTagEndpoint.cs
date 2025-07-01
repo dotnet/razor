@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -72,7 +73,7 @@ internal sealed class CohostWrapWithTagEndpoint(
 
         // If the Html response has ~s in it, then we need to clean them up.
         if (htmlResponse?.TextEdits is { } edits &&
-            edits.Any(static e => e.NewText.Contains("~")))
+            edits.Any(static e => e.NewText.Contains('~')))
         {
             // To do this we don't actually need to go to OOP, we just need a SourceText with the Html document,
             // and we already have that in a virtual buffer, because it's what the above request was made against.
@@ -90,7 +91,7 @@ internal sealed class CohostWrapWithTagEndpoint(
                 return null;
             }
 
-            var htmlSourceText = SourceText.From(htmlDocument.Snapshot.GetText());
+            var htmlSourceText = htmlDocument.Snapshot.AsText();
             htmlResponse.TextEdits = FormattingUtilities.FixHtmlTextEdits(htmlSourceText, edits);
         }
 

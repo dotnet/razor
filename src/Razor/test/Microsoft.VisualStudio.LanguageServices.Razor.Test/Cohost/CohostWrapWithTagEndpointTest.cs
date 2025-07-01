@@ -198,6 +198,7 @@ public class CohostWrapWithTagEndpointTest(ITestOutputHelper testOutputHelper) :
         if (htmlDocument is not null)
         {
             var snapshot = new StringTextSnapshot(htmlDocument);
+            var buffer = new TestTextBuffer(snapshot);
             var htmlSnapshot = new HtmlVirtualDocumentSnapshot(documentUri, snapshot, hostDocumentSyncVersion: 1, state: null);
             var documentSnapshot = new TestLSPDocumentSnapshot(documentUri, version: 1, htmlSnapshot);
             documentManager.AddDocument(documentUri, documentSnapshot);
