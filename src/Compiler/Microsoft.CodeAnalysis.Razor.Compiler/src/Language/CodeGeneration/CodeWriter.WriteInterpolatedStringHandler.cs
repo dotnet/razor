@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
@@ -25,6 +27,12 @@ public sealed partial class CodeWriter
 
         public void AppendFormatted(ReadOnlyMemory<char> value)
             => _writer.Write(value);
+
+        public void AppendFormatted(ImmutableArray<ReadOnlyMemory<char>> value)
+            => _writer.Write(value);
+
+        internal void AppendFormatted(ref readonly PooledArrayBuilder<ReadOnlyMemory<char>> builder)
+            => _writer.Write(in builder);
 
         public void AppendFormatted(string? value)
         {
@@ -49,6 +57,10 @@ public sealed partial class CodeWriter
 
                 case string s:
                     _writer.Write(s);
+                    break;
+
+                case ImmutableArray<ReadOnlyMemory<char>> array:
+                    _writer.Write(array);
                     break;
 
                 default:

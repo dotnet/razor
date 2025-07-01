@@ -3,19 +3,36 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 internal static class CodeWriterExtensions
 {
-    private const string InstanceMethodFormat = "{0}.{1}";
+    private const string True = "true";
+    private const string False = "false";
+    private const string Null = "null";
+    private const string Async = "async";
+    private const string HashLine = "#line";
 
-    private static readonly ReadOnlyMemory<char> s_true = "true".AsMemory();
-    private static readonly ReadOnlyMemory<char> s_false = "false".AsMemory();
+    private const string Semicolon = ";";
+    private const string OpenBrace = "{";
+    private const string CloseBrace = "}";
+    private const string OpenParen = "(";
+    private const string CloseParen = ")";
+    private const string Space = " ";
+
+    private const string EmptyQuotes = "\"\"";
+    private const string DoubleQuote = "\"";
+    private const string VerbatimDoubleQuote = "@\"";
+
+    private const string Assignment = " = ";
+    private const string LambdaArrow = " => ";
+    private const string TypeListSeparator = " : ";
+    private const string CommaSeparator = ", ";
 
     private static readonly char[] CStyleStringLiteralEscapeChars =
     {
@@ -37,13 +54,13 @@ internal static class CodeWriterExtensions
 
     public static CodeWriter WritePadding(this CodeWriter writer, int offset, SourceSpan? span, CodeRenderingContext context)
     {
-        if (span == null)
+        if (span is not SourceSpan spanValue)
         {
             return writer;
         }
 
         if (context.SourceDocument.FilePath != null &&
-            !string.Equals(context.SourceDocument.FilePath, span.Value.FilePath, StringComparison.OrdinalIgnoreCase))
+            !string.Equals(context.SourceDocument.FilePath, spanValue.FilePath, StringComparison.OrdinalIgnoreCase))
         {
             // We don't want to generate padding for nodes from imports.
             return writer;
@@ -79,39 +96,38 @@ internal static class CodeWriterExtensions
 
     public static CodeWriter WriteVariableDeclaration(this CodeWriter writer, string type, string name, string value)
     {
-        writer.Write(type).Write(" ").Write(name);
-        if (!string.IsNullOrEmpty(value))
+        writer.Write($"{type}{Space}{name}{Assignment}");
+
+        if (!value.IsNullOrEmpty())
         {
-            writer.Write(" = ").Write(value);
+            writer.Write(value);
         }
         else
         {
-            writer.Write(" = null");
+            writer.Write(Null);
         }
 
-        writer.WriteLine(";");
-
-        return writer;
+        return writer.WriteLine(Semicolon);
     }
 
     public static CodeWriter WriteBooleanLiteral(this CodeWriter writer, bool value)
     {
-        return writer.Write(value ? s_true : s_false);
+        return writer.Write(value ? True : False);
     }
 
     public static CodeWriter WriteStartAssignment(this CodeWriter writer, string name)
     {
-        return writer.Write(name).Write(" = ");
+        return writer.Write(name).Write(Assignment);
     }
 
     public static CodeWriter WriteParameterSeparator(this CodeWriter writer)
     {
-        return writer.Write(", ");
+        return writer.Write(CommaSeparator);
     }
 
     public static CodeWriter WriteStartNewObject(this CodeWriter writer, string typeName)
     {
-        return writer.Write("new ").Write(typeName).Write("(");
+        return writer.Write($"new{Space}{typeName}{OpenParen}");
     }
 
     public static CodeWriter WriteStringLiteral(this CodeWriter writer, string literal)
@@ -138,12 +154,11 @@ internal static class CodeWriterExtensions
 
     public static CodeWriter WriteUsing(this CodeWriter writer, string name, bool endLine)
     {
-        writer.Write("using ");
-        writer.Write(name);
+        writer.Write($"using{Space}{name}");
 
         if (endLine)
         {
-            writer.WriteLine(";");
+            writer.WriteLine(Semicolon);
         }
 
         return writer;
@@ -156,24 +171,17 @@ internal static class CodeWriterExtensions
         var characterStartAsString = (span.CharacterIndex + 1).ToString(CultureInfo.InvariantCulture);
         var lineEndAsString = (span.LineIndex + 1 + span.LineCount).ToString(CultureInfo.InvariantCulture);
         var characterEndAsString = (span.EndCharacterIndex + 1).ToString(CultureInfo.InvariantCulture);
-        writer.Write("#line (")
-            .Write(lineNumberAsString)
-            .Write(",")
-            .Write(characterStartAsString)
-            .Write(")-(")
-            .Write(lineEndAsString)
-            .Write(",")
-            .Write(characterEndAsString)
-            .Write(") ");
+
+        writer.Write($"{HashLine}{Space}({lineNumberAsString},{characterStartAsString})-({lineEndAsString},{characterEndAsString}){Space}");
 
         // an offset of zero is indicated by its absence.
         if (characterOffset != 0)
         {
             var characterOffsetAsString = characterOffset.ToString(CultureInfo.InvariantCulture);
-            writer.Write(characterOffsetAsString).Write(" ");
+            writer.Write($"{characterOffsetAsString}{Space}");
         }
 
-        return writer.Write("\"").WriteFilePath(span.FilePath, ensurePathBackslashes).WriteLine("\"");
+        return writer.Write(DoubleQuote).WriteFilePath(span.FilePath, ensurePathBackslashes).WriteLine(DoubleQuote);
     }
 
     public static CodeWriter WriteLineNumberDirective(this CodeWriter writer, SourceSpan span, bool ensurePathBackslashes)
@@ -184,7 +192,11 @@ internal static class CodeWriterExtensions
         }
 
         var lineNumberAsString = (span.LineIndex + 1).ToString(CultureInfo.InvariantCulture);
-        return writer.Write("#line ").Write(lineNumberAsString).Write(" \"").WriteFilePath(span.FilePath, ensurePathBackslashes).WriteLine("\"");
+
+        return writer
+            .Write($"{HashLine}{Space}{lineNumberAsString}{Space}{DoubleQuote}")
+            .WriteFilePath(span.FilePath, ensurePathBackslashes)
+            .WriteLine(DoubleQuote);
     }
 
     private static CodeWriter WriteFilePath(this CodeWriter writer, string filePath, bool ensurePathBackslashes)
@@ -217,9 +229,7 @@ internal static class CodeWriterExtensions
 
     public static CodeWriter WriteStartMethodInvocation(this CodeWriter writer, string methodName)
     {
-        writer.Write(methodName);
-
-        return writer.Write("(");
+        return writer.Write($"{methodName}{OpenParen}");
     }
 
     public static CodeWriter WriteEndMethodInvocation(this CodeWriter writer)
@@ -229,10 +239,11 @@ internal static class CodeWriterExtensions
 
     public static CodeWriter WriteEndMethodInvocation(this CodeWriter writer, bool endLine)
     {
-        writer.Write(")");
+        writer.Write(CloseParen);
+
         if (endLine)
         {
-            writer.WriteLine(";");
+            writer.WriteLine(Semicolon);
         }
 
         return writer;
@@ -243,19 +254,9 @@ internal static class CodeWriterExtensions
         this CodeWriter writer,
         string instanceName,
         string methodName,
-        params string[] parameters)
+        params ImmutableArray<string> arguments)
     {
-        if (instanceName == null)
-        {
-            throw new ArgumentNullException(nameof(instanceName));
-        }
-
-        if (methodName == null)
-        {
-            throw new ArgumentNullException(nameof(methodName));
-        }
-
-        return WriteInstanceMethodInvocation(writer, instanceName, methodName, endLine: true, parameters: parameters);
+        return WriteInstanceMethodInvocation(writer, instanceName, methodName, endLine: true, arguments);
     }
 
     // Writes a method invocation for the given instance name.
@@ -264,119 +265,96 @@ internal static class CodeWriterExtensions
         string instanceName,
         string methodName,
         bool endLine,
-        params string[] parameters)
+        params ImmutableArray<string> arguments)
     {
-        if (instanceName == null)
-        {
-            throw new ArgumentNullException(nameof(instanceName));
-        }
-
-        if (methodName == null)
-        {
-            throw new ArgumentNullException(nameof(methodName));
-        }
-
-        return WriteMethodInvocation(
-            writer,
-            string.Format(CultureInfo.InvariantCulture, InstanceMethodFormat, instanceName, methodName),
-            endLine,
-            parameters);
+        return writer.WriteMethodInvocation($"{instanceName}.{methodName}", endLine, arguments);
     }
 
     public static CodeWriter WriteStartInstanceMethodInvocation(this CodeWriter writer, string instanceName, string methodName)
     {
-        if (instanceName == null)
-        {
-            throw new ArgumentNullException(nameof(instanceName));
-        }
-
-        if (methodName == null)
-        {
-            throw new ArgumentNullException(nameof(methodName));
-        }
-
-        return WriteStartMethodInvocation(
-            writer,
-            string.Format(CultureInfo.InvariantCulture, InstanceMethodFormat, instanceName, methodName));
+        return writer.WriteStartMethodInvocation($"{instanceName}.{methodName}");
     }
 
-    public static CodeWriter WriteField(this CodeWriter writer, IList<string> suppressWarnings, IList<string> modifiers, string typeName, string fieldName)
+    public static CodeWriter WriteField(
+        this CodeWriter writer,
+        ImmutableArray<string> suppressWarnings,
+        ImmutableArray<string> modifiers,
+        string typeName,
+        string fieldName)
     {
-        if (suppressWarnings == null)
+        foreach (var supressWarnings in suppressWarnings)
         {
-            throw new ArgumentNullException(nameof(suppressWarnings));
+            writer.WriteLine($"#pragma warning disable {supressWarnings}");
         }
 
-        if (modifiers == null)
+        if (modifiers.Length > 0)
         {
-            throw new ArgumentNullException(nameof(modifiers));
+            writer.WriteSeparatedList(Space, modifiers);
+            writer.Write(Space);
         }
 
-        if (typeName == null)
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
+        writer.WriteLine($"{typeName}{Space}{fieldName}{Semicolon}");
 
-        if (fieldName == null)
+        for (var i = suppressWarnings.Length - 1; i >= 0; i--)
         {
-            throw new ArgumentNullException(nameof(fieldName));
-        }
-
-        for (var i = 0; i < suppressWarnings.Count; i++)
-        {
-            writer.Write("#pragma warning disable ");
-            writer.WriteLine(suppressWarnings[i]);
-        }
-
-        for (var i = 0; i < modifiers.Count; i++)
-        {
-            writer.Write(modifiers[i]);
-            writer.Write(" ");
-        }
-
-        writer.Write(typeName);
-        writer.Write(" ");
-        writer.Write(fieldName);
-        writer.Write(";");
-        writer.WriteLine();
-
-        for (var i = suppressWarnings.Count - 1; i >= 0; i--)
-        {
-            writer.Write("#pragma warning restore ");
-            writer.WriteLine(suppressWarnings[i]);
+            writer.WriteLine($"#pragma warning restore {suppressWarnings[i]}");
         }
 
         return writer;
     }
 
-    public static CodeWriter WriteMethodInvocation(this CodeWriter writer, string methodName, params string[] parameters)
+    public static CodeWriter WriteMethodInvocation(this CodeWriter writer, string methodName, params ImmutableArray<string> arguments)
     {
-        return WriteMethodInvocation(writer, methodName, endLine: true, parameters: parameters);
+        return WriteMethodInvocation(writer, methodName, endLine: true, arguments);
     }
 
-    public static CodeWriter WriteMethodInvocation(this CodeWriter writer, string methodName, bool endLine, params string[] parameters)
+    public static CodeWriter WriteMethodInvocation(this CodeWriter writer, string methodName, bool endLine, params ImmutableArray<string> arguments)
     {
         return
             WriteStartMethodInvocation(writer, methodName)
-            .Write(string.Join(", ", parameters))
+            .WriteSeparatedList(CommaSeparator, arguments)
             .WriteEndMethodInvocation(endLine);
     }
 
-    public static CodeWriter WritePropertyDeclaration(this CodeWriter writer, IList<string> modifiers, IntermediateToken type, string propertyName, string propertyExpression, CodeRenderingContext context)
+    public static CodeWriter WriteSeparatedList(this CodeWriter writer, string separator, ImmutableArray<string> values)
     {
-        WritePropertyDeclarationPreamble(writer, modifiers, type.Content, propertyName, type.Source, propertySpan: null, context);
-        writer.Write(" => ");
-        writer.Write(propertyExpression);
-        writer.WriteLine(";");
+        if (values.Length > 0)
+        {
+            writer.Write(values[0]);
+        }
+
+        for (var i = 1; i < values.Length; i++)
+        {
+            writer.Write(separator);
+            writer.Write(values[i]);
+        }
+
         return writer;
     }
 
-    public static CodeWriter WriteAutoPropertyDeclaration(this CodeWriter writer, IList<string> modifiers, string typeName, string propertyName, SourceSpan? typeSpan = null, SourceSpan? propertySpan = null, CodeRenderingContext? context = null, bool privateSetter = false, bool defaultValue = false)
+    public static CodeWriter WritePropertyDeclaration(
+        this CodeWriter writer,
+        ImmutableArray<string> modifiers,
+        IntermediateToken type,
+        string propertyName,
+        string propertyExpression,
+        CodeRenderingContext context)
     {
-        ArgHelper.ThrowIfNull(modifiers);
-        ArgHelper.ThrowIfNull(typeName);
-        ArgHelper.ThrowIfNull(propertyName);
+        WritePropertyDeclarationPreamble(writer, modifiers, type.Content, propertyName, type.Source, propertySpan: null, context);
+        return writer.WriteLine($"{LambdaArrow}{propertyExpression}{Semicolon}");
+    }
 
+    public static CodeWriter WriteAutoPropertyDeclaration(
+        this CodeWriter writer,
+        ImmutableArray<string> modifiers,
+        string typeName,
+        string propertyName,
+        SourceSpan? typeSpan = null,
+        SourceSpan? propertySpan = null,
+        CodeRenderingContext? context = null,
+        bool privateSetter = false,
+        bool defaultValue = false)
+    {
         WritePropertyDeclarationPreamble(writer, modifiers, typeName, propertyName, typeSpan, propertySpan, context);
 
         writer.Write(" { get;");
@@ -395,16 +373,22 @@ internal static class CodeWriterExtensions
         return writer;
     }
 
-    private static void WritePropertyDeclarationPreamble(CodeWriter writer, IList<string> modifiers, string typeName, string propertyName, SourceSpan? typeSpan, SourceSpan? propertySpan, CodeRenderingContext? context)
+    private static void WritePropertyDeclarationPreamble(
+        CodeWriter writer,
+        ImmutableArray<string> modifiers,
+        string typeName,
+        string propertyName,
+        SourceSpan? typeSpan,
+        SourceSpan? propertySpan,
+        CodeRenderingContext? context)
     {
-        for (var i = 0; i < modifiers.Count; i++)
+        foreach (var modifier in modifiers)
         {
-            writer.Write(modifiers[i]);
-            writer.Write(" ");
+            writer.Write($"{modifier}{Space}");
         }
 
         WriteToken(writer, typeName, typeSpan, context);
-        writer.Write(" ");
+        writer.Write(Space);
         WriteToken(writer, propertyName, propertySpan, context);
 
         static void WriteToken(CodeWriter writer, string content, SourceSpan? span, CodeRenderingContext? context)
@@ -432,6 +416,7 @@ internal static class CodeWriterExtensions
         {
             writer.Write("@");
         }
+
         return writer;
     }
 
@@ -446,31 +431,32 @@ internal static class CodeWriterExtensions
         return new CSharpCodeWritingScope(writer);
     }
 
-    public static CSharpCodeWritingScope BuildLambda(this CodeWriter writer, params string[] parameterNames)
+    public static CSharpCodeWritingScope BuildLambda(this CodeWriter writer, params ImmutableArray<string> parameterNames)
     {
-        return BuildLambda(writer, async: false, parameterNames: parameterNames);
+        return BuildLambda(writer, async: false, parameterNames);
     }
 
-    public static CSharpCodeWritingScope BuildAsyncLambda(this CodeWriter writer, params string[] parameterNames)
+    public static CSharpCodeWritingScope BuildAsyncLambda(this CodeWriter writer, params ImmutableArray<string> parameterNames)
     {
-        return BuildLambda(writer, async: true, parameterNames: parameterNames);
+        return BuildLambda(writer, async: true, parameterNames);
     }
 
-    private static CSharpCodeWritingScope BuildLambda(CodeWriter writer, bool async, string[] parameterNames)
+    private static CSharpCodeWritingScope BuildLambda(CodeWriter writer, bool async, ImmutableArray<string> parameterNames)
     {
         if (async)
         {
-            writer.Write("async");
+            writer.Write(Async);
         }
 
-        writer.Write("(").Write(string.Join(", ", parameterNames)).Write(") => ");
+        writer
+            .Write(OpenParen)
+            .WriteSeparatedList(CommaSeparator, parameterNames)
+            .Write(CloseParen)
+            .Write(LambdaArrow);
 
-        var scope = new CSharpCodeWritingScope(writer);
-
-        return scope;
+        return new CSharpCodeWritingScope(writer);
     }
 
-#nullable enable
     public static CSharpCodeWritingScope BuildNamespace(this CodeWriter writer, string? name, SourceSpan? span, CodeRenderingContext context)
     {
         if (name.IsNullOrEmpty())
@@ -493,19 +479,18 @@ internal static class CodeWriterExtensions
         }
         return new CSharpCodeWritingScope(writer);
     }
-#nullable disable
 
     public static CSharpCodeWritingScope BuildClassDeclaration(
         this CodeWriter writer,
         IList<string> modifiers,
         string name,
-        BaseTypeWithModel baseType,
+        BaseTypeWithModel? baseType,
         IList<IntermediateToken> interfaces,
         IList<TypeParameter> typeParameters,
         CodeRenderingContext context,
         bool useNullableContext = false)
     {
-        Debug.Assert(context == null || context.CodeWriter == writer);
+        Debug.Assert(context.CodeWriter == writer);
 
         if (useNullableContext)
         {
@@ -515,7 +500,7 @@ internal static class CodeWriterExtensions
         for (var i = 0; i < modifiers.Count; i++)
         {
             writer.Write(modifiers[i]);
-            writer.Write(" ");
+            writer.Write(Space);
         }
 
         writer.Write("class ");
@@ -530,7 +515,7 @@ internal static class CodeWriterExtensions
                 var typeParameter = typeParameters[i];
                 if (typeParameter.ParameterNameSource is { } source)
                 {
-                    WriteWithPragma(writer, typeParameter.ParameterName, context, source);
+                    WriteWithPragma(context, typeParameter.ParameterName, source);
                 }
                 else
                 {
@@ -552,10 +537,12 @@ internal static class CodeWriterExtensions
 
         if (hasBaseType || hasInterfaces)
         {
-            writer.Write(" : ");
+            writer.Write(TypeListSeparator);
 
             if (hasBaseType)
             {
+                Assumed.NotNull(baseType);
+
                 WriteToken(baseType.BaseType);
                 WriteOptionalToken(baseType.GreaterThan);
                 WriteOptionalToken(baseType.ModelType);
@@ -563,16 +550,19 @@ internal static class CodeWriterExtensions
 
                 if (hasInterfaces)
                 {
-                    WriteParameterSeparator(writer);
+                    writer.Write(CommaSeparator);
                 }
             }
 
             if (hasInterfaces)
             {
+                Assumed.NotNull(interfaces);
+
                 WriteToken(interfaces[0]);
+
                 for (var i = 1; i < interfaces.Count; i++)
                 {
-                    writer.Write(", ");
+                    writer.Write(CommaSeparator);
                     WriteToken(interfaces[i]);
                 }
             }
@@ -589,7 +579,7 @@ internal static class CodeWriterExtensions
                     if (typeParameter.ConstraintsSource is { } source)
                     {
                         Debug.Assert(context != null);
-                        WriteWithPragma(writer, constraint, context, source);
+                        WriteWithPragma(context, constraint, source);
                     }
                     else
                     {
@@ -607,7 +597,7 @@ internal static class CodeWriterExtensions
 
         return new CSharpCodeWritingScope(writer);
 
-        void WriteOptionalToken(IntermediateToken token)
+        void WriteOptionalToken(IntermediateToken? token)
         {
             if (token is not null)
             {
@@ -619,7 +609,7 @@ internal static class CodeWriterExtensions
         {
             if (token.Source is { } source)
             {
-                WriteWithPragma(writer, token.Content, context, source);
+                WriteWithPragma(context, token.Content, source);
             }
             else
             {
@@ -627,21 +617,21 @@ internal static class CodeWriterExtensions
             }
         }
 
-        static void WriteWithPragma(CodeWriter writer, string content, CodeRenderingContext context, SourceSpan source)
+        static void WriteWithPragma(CodeRenderingContext context, string content, SourceSpan source)
         {
             if (context.Options.DesignTime)
             {
                 using (context.BuildLinePragma(source))
                 {
                     context.AddSourceMappingFor(source);
-                    writer.Write(content);
+                    context.CodeWriter.Write(content);
                 }
             }
             else
             {
                 using (context.BuildEnhancedLinePragma(source))
                 {
-                    writer.Write(content);
+                    context.CodeWriter.Write(content);
                 }
             }
         }
@@ -652,23 +642,34 @@ internal static class CodeWriterExtensions
         string accessibility,
         string returnType,
         string name,
-        IEnumerable<KeyValuePair<string, string>> parameters)
+        params ImmutableArray<(string type, string name)> parameters)
     {
-        writer.Write(accessibility)
-            .Write(" ")
-            .Write(returnType)
-            .Write(" ")
-            .Write(name)
-            .Write("(")
-            .Write(string.Join(", ", parameters.Select(p => p.Key + " " + p.Value)))
-            .WriteLine(")");
+        writer.Write($"{accessibility}{Space}{returnType}{Space}{name}{OpenParen}");
+
+        var first = true;
+
+        foreach (var (paramType, paramName) in parameters)
+        {
+            if (!first)
+            {
+                writer.Write(CommaSeparator);
+            }
+            else
+            {
+                first = false;
+            }
+
+            writer.Write($"{paramType}{Space}{paramName}");
+        }
+
+        writer.WriteLine(OpenBrace);
 
         return new CSharpCodeWritingScope(writer);
     }
 
     private static void WriteVerbatimStringLiteral(CodeWriter writer, ReadOnlyMemory<char> literal)
     {
-        writer.Write("@\"");
+        writer.Write(VerbatimDoubleQuote);
 
         // We need to suppress indenting during the writing of the string's content. A
         // verbatim string literal could contain newlines that don't get escaped.
@@ -680,7 +681,7 @@ internal static class CodeWriterExtensions
         while ((index = literal.Span.IndexOf('"')) >= 0)
         {
             writer.Write(literal[..index]);
-            writer.Write("\"\"");
+            writer.Write(EmptyQuotes);
 
             literal = literal[(index + 1)..];
         }
@@ -690,7 +691,7 @@ internal static class CodeWriterExtensions
         // Write the remainder after the last double-quote.
         writer.Write(literal);
 
-        writer.Write("\"");
+        writer.Write(DoubleQuote);
 
         writer.CurrentIndent = oldIndent;
     }
@@ -698,7 +699,7 @@ internal static class CodeWriterExtensions
     private static void WriteCStyleStringLiteral(CodeWriter writer, ReadOnlyMemory<char> literal)
     {
         // From CSharpCodeGenerator.QuoteSnippetStringCStyle in CodeDOM
-        writer.Write("\"");
+        writer.Write(DoubleQuote);
 
         // We need to find the index of each escapable character to escape it.
         int index;
@@ -748,7 +749,7 @@ internal static class CodeWriterExtensions
         // Write the remainder after the last escaped char.
         writer.Write(literal);
 
-        writer.Write("\"");
+        writer.Write(DoubleQuote);
     }
 
     public struct CSharpCodeWritingScope : IDisposable
@@ -781,7 +782,7 @@ internal static class CodeWriterExtensions
 
             if (_writeBraces)
             {
-                _writer.WriteLine("{");
+                _writer.WriteLine(OpenBrace);
             }
             else
             {
@@ -804,7 +805,7 @@ internal static class CodeWriterExtensions
 
             if (_writeBraces)
             {
-                _writer.WriteLine("}");
+                _writer.WriteLine(CloseBrace);
             }
             else
             {

@@ -1,32 +1,23 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
-using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
-public sealed class PropertyDeclarationIntermediateNode : MemberDeclarationIntermediateNode
+public sealed class PropertyDeclarationIntermediateNode(
+    ImmutableArray<string> modifiers,
+    CSharpIntermediateToken propertyType,
+    string propertyName,
+    string propertyExpression) : MemberDeclarationIntermediateNode
 {
     public override IntermediateNodeCollection Children => IntermediateNodeCollection.ReadOnly;
 
-    public IList<string> Modifiers { get; } = new List<string>();
-
-    public string PropertyName { get; set; }
-
-    public IntermediateToken PropertyType { get; set; }
-
-    public string PropertyExpression { get; set; }
+    public ImmutableArray<string> Modifiers { get; } = modifiers.NullToEmpty();
+    public CSharpIntermediateToken PropertyType { get; } = propertyType;
+    public string PropertyName { get; } = propertyName;
+    public string PropertyExpression { get; } = propertyExpression;
 
     public override void Accept(IntermediateNodeVisitor visitor)
-    {
-        if (visitor == null)
-        {
-            throw new ArgumentNullException(nameof(visitor));
-        }
-
-        visitor.VisitPropertyDeclaration(this);
-    }
+        => visitor.VisitPropertyDeclaration(this);
 }

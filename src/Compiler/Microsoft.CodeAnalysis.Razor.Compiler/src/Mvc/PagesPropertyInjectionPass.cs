@@ -43,13 +43,11 @@ public class PagesPropertyInjectionPass : IntermediateNodePassBase, IRazorOptimi
         }
         else
         {
-            @class.Children.Add(new PropertyDeclarationIntermediateNode()
-            {
-                Modifiers = { "public" },
-                PropertyName = "Model",
-                PropertyType = modelType,
-                PropertyExpression = "ViewData.Model"
-            });
+            @class.Children.Add(new PropertyDeclarationIntermediateNode(
+                modifiers: ["public"],
+                propertyType: modelType,
+                propertyName: "Model",
+                propertyExpression: "ViewData.Model"));
         }
 
         static string nullableEnable(bool nullableEnabled, string code)

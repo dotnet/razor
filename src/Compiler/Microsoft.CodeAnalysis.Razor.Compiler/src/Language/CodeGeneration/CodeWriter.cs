@@ -245,6 +245,16 @@ public sealed partial class CodeWriter : IDisposable
         return this;
     }
 
+    internal CodeWriter Write(ref readonly PooledArrayBuilder<ReadOnlyMemory<char>> builder)
+    {
+        for (var i = 0; i < builder.Count; i++)
+        {
+            WriteCore(builder[i]);
+        }
+
+        return this;
+    }
+
     public CodeWriter Write(string value, int startIndex, int count)
     {
         ArgHelper.ThrowIfNull(value);

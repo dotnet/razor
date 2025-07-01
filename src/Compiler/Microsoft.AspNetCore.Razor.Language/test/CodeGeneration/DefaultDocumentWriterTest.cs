@@ -382,16 +382,10 @@ public class DefaultDocumentWriterTest
         // Arrange
         var document = new DocumentIntermediateNode();
         var builder = IntermediateNodeBuilder.Create(document);
-        builder.Add(new FieldDeclarationIntermediateNode()
-        {
-            Modifiers =
-                {
-                    "internal",
-                    "readonly",
-                },
-            FieldName = "_foo",
-            FieldType = "string",
-        });
+        builder.Add(new FieldDeclarationIntermediateNode(
+            modifiers: ["internal", "readonly"],
+            fieldName: "_foo",
+            fieldType: "string"));
 
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
         var options = RazorCodeGenerationOptions.Default;
@@ -422,17 +416,11 @@ public class DefaultDocumentWriterTest
         // Arrange
         var document = new DocumentIntermediateNode();
         var builder = IntermediateNodeBuilder.Create(document);
-        builder.Add(new PropertyDeclarationIntermediateNode()
-        {
-            Modifiers =
-                {
-                    "internal",
-                    "virtual",
-                },
-            PropertyName = "Foo",
-            PropertyType = NodeFactory.CSharpToken("string"),
-            PropertyExpression = "default"
-        });
+        builder.Add(new PropertyDeclarationIntermediateNode(
+            modifiers: ["internal", "virtual"],
+            propertyType: NodeFactory.CSharpToken("string"),
+            propertyName: "Foo",
+            propertyExpression: "default"));
 
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
         var options = RazorCodeGenerationOptions.Default;

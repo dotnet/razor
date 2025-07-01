@@ -54,6 +54,22 @@ public static class TestCodeRenderingContext
         return context;
     }
 
+    public static CodeRenderingContext Create(
+        RazorCodeGenerationOptions? options = null,
+        RazorSourceDocument? source = null)
+    {
+        source ??= TestRazorSourceDocument.Create();
+        var documentNode = new DocumentIntermediateNode();
+
+        options ??= RazorCodeGenerationOptions.Default;
+        var codeTarget = new TestCodeTarget();
+
+        var context = new CodeRenderingContext(codeTarget, source, documentNode, options);
+        context.SetVisitor(new RenderChildrenVisitor(context.CodeWriter));
+
+        return context;
+    }
+
     private static RazorCodeGenerationOptions ConfigureOptions(RazorCodeGenerationOptions options, string? newLine, string? suppressUniqueIds)
     {
         if (newLine is null && suppressUniqueIds is null)

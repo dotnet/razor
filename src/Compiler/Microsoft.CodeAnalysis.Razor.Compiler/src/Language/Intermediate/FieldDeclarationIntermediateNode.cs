@@ -1,36 +1,31 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
-using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
-public sealed class FieldDeclarationIntermediateNode : MemberDeclarationIntermediateNode
+public sealed class FieldDeclarationIntermediateNode(
+    ImmutableArray<string> modifiers,
+    string fieldName,
+    string fieldType,
+    ImmutableArray<string> suppressWarnings = default,
+    bool isTagHelperField = false) : MemberDeclarationIntermediateNode
 {
     public override IntermediateNodeCollection Children => IntermediateNodeCollection.ReadOnly;
 
-    public IList<string> Modifiers { get; } = new List<string>();
+    public ImmutableArray<string> Modifiers { get; } = modifiers.NullToEmpty();
 
-    public IList<string> SuppressWarnings { get; } = new List<string>();
+    public ImmutableArray<string> SuppressWarnings { get; } = suppressWarnings.NullToEmpty();
 
-    public string FieldName { get; set; }
+    public string FieldName { get; } = fieldName;
 
-    public string FieldType { get; set; }
+    public string FieldType { get; } = fieldType;
 
-    public bool IsTagHelperField { get; set; }
+    public bool IsTagHelperField { get; } = isTagHelperField;
 
     public override void Accept(IntermediateNodeVisitor visitor)
-    {
-        if (visitor == null)
-        {
-            throw new ArgumentNullException(nameof(visitor));
-        }
-
-        visitor.VisitFieldDeclaration(this);
-    }
+        => visitor.VisitFieldDeclaration(this);
 
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {

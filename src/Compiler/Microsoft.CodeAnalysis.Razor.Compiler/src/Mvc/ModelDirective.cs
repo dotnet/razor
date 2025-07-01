@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
@@ -36,18 +35,13 @@ public static class ModelDirective
         return builder;
     }
 
-    public static IntermediateToken GetModelType(DocumentIntermediateNode document)
+    public static CSharpIntermediateToken GetModelType(DocumentIntermediateNode document)
     {
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
         var visitor = new Visitor();
         return GetModelType(document, visitor);
     }
 
-    private static IntermediateToken GetModelType(DocumentIntermediateNode document, Visitor visitor)
+    private static CSharpIntermediateToken GetModelType(DocumentIntermediateNode document, Visitor visitor)
     {
         visitor.Visit(document);
 
