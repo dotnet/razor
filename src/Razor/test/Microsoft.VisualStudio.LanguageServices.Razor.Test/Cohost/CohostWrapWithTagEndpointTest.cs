@@ -203,7 +203,7 @@ public class CohostWrapWithTagEndpointTest(ITestOutputHelper testOutputHelper) :
             documentManager.AddDocument(documentUri, documentSnapshot);
         }
 
-        var endpoint = new CohostWrapWithTagEndpoint(RemoteServiceInvoker, requestInvoker, documentManager, LoggerFactory);
+        var endpoint = new CohostWrapWithTagEndpoint(RemoteServiceInvoker, requestInvoker, documentManager, IncompatibleProjectService, LoggerFactory);
 
         var request = new VSInternalWrapWithTagParams(
             sourceText.GetRange(input.Span),
