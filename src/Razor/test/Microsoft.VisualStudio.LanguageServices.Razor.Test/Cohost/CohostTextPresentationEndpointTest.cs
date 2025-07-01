@@ -57,7 +57,7 @@ public class CohostTextPresentationEndpointTest(ITestOutputHelper testOutputHelp
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = new(document.CreateUri())
+                DocumentUri = document.CreateDocumentUri()
             },
             Range = sourceText.GetRange(span),
             Text = text

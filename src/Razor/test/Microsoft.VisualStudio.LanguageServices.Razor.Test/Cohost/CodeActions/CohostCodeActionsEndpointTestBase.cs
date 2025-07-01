@@ -138,7 +138,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
 
         var request = new VSCodeActionParams
         {
-            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new(document.CreateUri()) },
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() },
             Range = range,
             Context = new VSInternalCodeActionContext() { Diagnostics = diagnostics.ToArray() }
         };
