@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor;
@@ -38,11 +37,6 @@ internal class RazorCompletionListProvider(
         HashSet<string>? existingCompletions,
         RazorCompletionOptions completionOptions)
     {
-        if (!IsApplicableTriggerContext(completionContext))
-        {
-            return null;
-        }
-
         var reason = completionContext.TriggerKind switch
         {
             CompletionTriggerKind.TriggerForIncompleteCompletions => CompletionReason.Invoked,
@@ -261,25 +255,5 @@ internal class RazorCompletionListProvider(
 
         completionItem = null;
         return false;
-    }
-
-    // Internal for testing
-    internal static bool IsApplicableTriggerContext(CompletionContext context)
-    {
-        if (context is not VSInternalCompletionContext vsCompletionContext)
-        {
-            Debug.Fail("Completion context should always be converted into a VSCompletionContext (even in VSCode).");
-
-            // We do not support providing completions on delete.
-            return false;
-        }
-
-        if (vsCompletionContext.TriggerKind == CompletionTriggerKind.TriggerForIncompleteCompletions)
-        {
-            // For incomplete completions we want to re-provide information if we would have originally.
-            return true;
-        }
-
-        return true;
     }
 }
