@@ -124,6 +124,11 @@
         <target state="translated">using ディレクティブを {0} に昇格します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_Tag_To_SelfClosing_Title">
+        <source>Simplify tag to self-closing</source>
+        <target state="new">Simplify tag to self-closing</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
         <source>Razor TagHelper Attribute Glyph</source>
         <target state="translated">Razor TagHelper 属性のグリフ</target>

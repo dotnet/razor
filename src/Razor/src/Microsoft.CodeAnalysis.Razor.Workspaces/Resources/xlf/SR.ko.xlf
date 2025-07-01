@@ -124,6 +124,11 @@
         <target state="translated">using 지시문을 {0} 수준 올리기</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_Tag_To_SelfClosing_Title">
+        <source>Simplify tag to self-closing</source>
+        <target state="new">Simplify tag to self-closing</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
         <source>Razor TagHelper Attribute Glyph</source>
         <target state="translated">Razor TagHelper 특성 문자 모양</target>
