@@ -685,7 +685,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = new(document.CreateUri())
+                DocumentUri = document.CreateDocumentUri()
             },
             Position = sourceText.GetPosition(input.Position),
             Context = completionContext

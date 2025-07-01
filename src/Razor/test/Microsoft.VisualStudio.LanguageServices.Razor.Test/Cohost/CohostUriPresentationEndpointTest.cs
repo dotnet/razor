@@ -252,7 +252,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = new(document.CreateUri())
+                DocumentUri = document.CreateDocumentUri()
             },
             Range = sourceText.GetRange(span),
             Uris = uris

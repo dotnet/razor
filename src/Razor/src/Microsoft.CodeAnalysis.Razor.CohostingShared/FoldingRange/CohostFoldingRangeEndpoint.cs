@@ -93,7 +93,7 @@ internal sealed class CohostFoldingRangeEndpoint(
     {
         var foldingRangeParams = new FoldingRangeParams
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = new(razorDocument.CreateUri()) }
+            TextDocument = new TextDocumentIdentifier { DocumentUri = razorDocument.CreateDocumentUri() }
         };
 
         var result = await _requestInvoker.MakeHtmlLspRequestAsync<FoldingRangeParams, FoldingRange[]>(

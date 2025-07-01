@@ -119,7 +119,7 @@ public class CohostRangeFormattingEndpointTest(HtmlFormattingFixture htmlFormatt
 
         var request = new DocumentRangeFormattingParams()
         {
-            TextDocument = new TextDocumentIdentifier() { DocumentUri = new(document.CreateUri()) },
+            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.CreateDocumentUri() },
             Options = new FormattingOptions()
             {
                 TabSize = 4,

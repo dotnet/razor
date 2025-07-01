@@ -142,7 +142,7 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
 
         var request = new InlayHintParams()
         {
-            TextDocument = new TextDocumentIdentifier() { DocumentUri = new(document.CreateUri()) },
+            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.CreateDocumentUri() },
             Range = LspFactory.CreateRange(startLine, starChar, endLine, endChar)
         };
 
@@ -204,7 +204,7 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
 
         var request = new InlayHintParams()
         {
-            TextDocument = new TextDocumentIdentifier() { DocumentUri = new(document.CreateUri()) },
+            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.CreateDocumentUri() },
             Range = new()
             {
                 Start = new(0, 0),

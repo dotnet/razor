@@ -107,7 +107,7 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
         var textDocumentPositionParams = new TextDocumentPositionParams
         {
             Position = position,
-            TextDocument = new TextDocumentIdentifier { DocumentUri = new(document.CreateUri()) },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() },
         };
 
         var results = await endpoint.GetTestAccessor().HandleRequestAsync(document, position, DisposalToken);
