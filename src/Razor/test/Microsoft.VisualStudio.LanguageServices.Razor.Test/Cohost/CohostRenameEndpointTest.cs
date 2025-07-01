@@ -180,7 +180,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
         var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentRenameName, null)]);
 
-        var endpoint = new CohostRenameEndpoint(RemoteServiceInvoker, requestInvoker);
+        var endpoint = new CohostRenameEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker);
 
         var renameParams = new RenameParams
         {
