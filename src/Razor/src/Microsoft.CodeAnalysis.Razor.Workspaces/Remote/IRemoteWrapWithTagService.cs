@@ -11,6 +11,4 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 internal interface IRemoteWrapWithTagService
 {
     ValueTask<RemoteResponse<LinePositionSpan>> GetValidWrappingRangeAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, LinePositionSpan range, CancellationToken cancellationToken);
-
-    ValueTask<RemoteResponse<TextEdit[]?>> FixHtmlTextEditsAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, TextEdit[] textEdits, CancellationToken cancellationToken);
 }

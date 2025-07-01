@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.Razor.LanguageClient.WrapWithTag;
@@ -74,29 +75,44 @@ public class CohostWrapWithTagEndpointTest(ITestOutputHelper testOutputHelper) :
     {
         await VerifyWrapWithTagAsync(
             input: """
-                        <div>
-                            @[||]currentCount
-                        </div>
-                        """,
+                <div>
+                    @[||]currentCount
+                </div>
+                """,
+            htmlDocument: """
+                <div>
+                    /*~~~~~~~~~*/
+                </div>
+                """,
             expected: """
-                        <div>
-                            <span>@currentCount</span>
-                        </div>
-                        """,
+                <div>
+                    <span>@currentCount</span>
+                </div>
+                """,
             htmlResponse: new VSInternalWrapWithTagResponse(
                 LspFactory.CreateSingleLineRange(start: (1, 5), length: 13),
                 [LspFactory.CreateTextEdit(1, 4, 1, 17, "<span>/*~~~~~~~~~*/</span>")]
             ));
     }
 
-    private async Task VerifyWrapWithTagAsync(TestCode input, string? expected, VSInternalWrapWithTagResponse? htmlResponse)
+    private async Task VerifyWrapWithTagAsync(TestCode input, string? expected, VSInternalWrapWithTagResponse? htmlResponse, string? htmlDocument = null)
     {
         var document = CreateProjectAndRazorDocument(input.Text);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         var requestInvoker = new TestHtmlRequestInvoker([(LanguageServerConstants.RazorWrapWithTagEndpoint, htmlResponse)]);
 
-        var endpoint = new CohostWrapWithTagEndpoint(RemoteServiceInvoker, requestInvoker);
+        var documentUri = document.CreateUri();
+        var documentManager = new TestDocumentManager();
+        if (htmlDocument is not null)
+        {
+            var snapshot = new StringTextSnapshot(htmlDocument);
+            var htmlSnapshot = new HtmlVirtualDocumentSnapshot(documentUri, snapshot, hostDocumentSyncVersion: 1, state: null);
+            var documentSnapshot = new TestLSPDocumentSnapshot(documentUri, version: 1, htmlSnapshot);
+            documentManager.AddDocument(documentUri, documentSnapshot);
+        }
+
+        var endpoint = new CohostWrapWithTagEndpoint(RemoteServiceInvoker, requestInvoker, documentManager, LoggerFactory);
 
         var request = new VSInternalWrapWithTagParams(
             sourceText.GetRange(input.Span),
@@ -104,7 +120,7 @@ public class CohostWrapWithTagEndpointTest(ITestOutputHelper testOutputHelper) :
             new FormattingOptions(),
             new VersionedTextDocumentIdentifier()
             {
-                DocumentUri = new(document.CreateUri())
+                DocumentUri = new(documentUri)
             });
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);

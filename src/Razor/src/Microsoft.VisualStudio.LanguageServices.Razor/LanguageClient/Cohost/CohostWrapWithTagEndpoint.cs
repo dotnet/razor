@@ -2,14 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Razor.LanguageClient.WrapWithTag;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -22,11 +27,15 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostWrapWithTagEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
-    IHtmlRequestInvoker requestInvoker)
+    IHtmlRequestInvoker requestInvoker,
+    LSPDocumentManager documentManager,
+    ILoggerFactory loggerFactory)
     : AbstractRazorCohostDocumentRequestHandler<VSInternalWrapWithTagParams, VSInternalWrapWithTagResponse?>
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
+    private readonly LSPDocumentManager _documentManager = documentManager;
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostWrapWithTagEndpoint>();
 
     protected override bool MutatesSolutionState => false;
 
@@ -62,18 +71,28 @@ internal sealed class CohostWrapWithTagEndpoint(
             request,
             cancellationToken).ConfigureAwait(false);
 
-        if (htmlResponse?.TextEdits is not null)
+        // If the Html response has ~s in it, then we need to clean them up.
+        if (htmlResponse?.TextEdits is { } edits &&
+            edits.Any(static e => e.NewText.Contains("~")))
         {
-            // Fix the HTML text edits to handle any tilde characters in the generated document
-            var fixedEdits = await _remoteServiceInvoker.TryInvokeAsync<IRemoteWrapWithTagService, RemoteResponse<TextEdit[]?>>(
-                razorDocument.Project.Solution,
-                (service, solutionInfo, cancellationToken) => service.FixHtmlTextEditsAsync(solutionInfo, razorDocument.Id, htmlResponse.TextEdits, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
+            // To do this we don't actually need to go to OOP, we just need a SourceText with the Html document,
+            // and we already have that in a virtual buffer, because it's what the above request was made against.
+            // So we can write a little bit of code to grab that, and avoid the extra OOP call.
 
-            if (fixedEdits.Result is not null)
+            if (!_documentManager.TryGetDocument(razorDocument.CreateUri(), out var snapshot))
             {
-                htmlResponse.TextEdits = fixedEdits.Result;
+                _logger.LogError($"Couldn't find document in LSPDocumentManager for {razorDocument.FilePath}");
+                return null;
             }
+
+            if (!snapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocument))
+            {
+                _logger.LogError($"Couldn't find virtual document snapshot for {snapshot.Uri}");
+                return null;
+            }
+
+            var htmlSourceText = SourceText.From(htmlDocument.Snapshot.GetText());
+            htmlResponse.TextEdits = FormattingUtilities.FixHtmlTextEdits(htmlSourceText, edits);
         }
 
         return htmlResponse;

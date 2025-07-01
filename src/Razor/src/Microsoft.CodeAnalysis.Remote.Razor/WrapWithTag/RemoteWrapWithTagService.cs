@@ -3,15 +3,12 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Utilities;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Text.LinePositionSpan>;
-using TextEditResponse = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.TextEdit[]?>;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -34,17 +31,6 @@ internal sealed partial class RemoteWrapWithTagService(in ServiceArgs args) : Ra
             context => GetValidWrappingRangeAsync(context, range, cancellationToken),
             cancellationToken);
 
-    public ValueTask<TextEditResponse> FixHtmlTextEditsAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
-        DocumentId razorDocumentId,
-        TextEdit[] textEdits,
-        CancellationToken cancellationToken)
-        => RunServiceAsync(
-            solutionInfo,
-            razorDocumentId,
-            context => FixHtmlTextEditsAsync(context, textEdits, cancellationToken),
-            cancellationToken);
-
     private static async ValueTask<Response> GetValidWrappingRangeAsync(
         RemoteDocumentContext context,
         LinePositionSpan range,
@@ -57,22 +43,5 @@ internal sealed partial class RemoteWrapWithTagService(in ServiceArgs args) : Ra
         }
 
         return Response.NoFurtherHandling;
-    }
-
-    private async ValueTask<TextEditResponse> FixHtmlTextEditsAsync(
-        RemoteDocumentContext context,
-        TextEdit[] textEdits,
-        CancellationToken cancellationToken)
-    {
-        if (textEdits.Length == 0)
-        {
-            return TextEditResponse.Results(textEdits);
-        }
-
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var htmlSourceText = codeDocument.GetHtmlSourceText();
-
-        var fixedEdits = FormattingUtilities.FixHtmlTextEdits(htmlSourceText, textEdits);
-        return TextEditResponse.Results(fixedEdits);
     }
 }
