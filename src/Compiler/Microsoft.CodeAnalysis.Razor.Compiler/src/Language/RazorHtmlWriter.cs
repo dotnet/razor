@@ -16,12 +16,9 @@ namespace Microsoft.AspNetCore.Razor.Language;
 // not all characters in the document are included in the ClassifiedSpans.
 internal sealed class RazorHtmlWriter : SyntaxWalker
 {
-    // 32 '~' characters followed by comment start and end text.
-    private const string KnownText = "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/**/";
-
-    private static ReadOnlyMemory<char> Tildes => KnownText.AsMemory(0, 32);
-    private static ReadOnlyMemory<char> CommentStart => KnownText.AsMemory(32, 2);
-    private static ReadOnlyMemory<char> CommentEnd => KnownText.AsMemory(34, 2);
+    private static ReadOnlyMemory<char> Tildes => "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~".AsMemory(); // 32 '~' characters
+    private static ReadOnlyMemory<char> CommentStart => "/*".AsMemory();
+    private static ReadOnlyMemory<char> CommentEnd => "*/".AsMemory();
 
     private readonly RazorSourceDocument _source;
     private readonly CodeWriter _codeWriter;
