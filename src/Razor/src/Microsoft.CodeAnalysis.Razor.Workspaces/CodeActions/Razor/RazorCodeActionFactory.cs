@@ -92,7 +92,7 @@ internal static class RazorCodeActionFactory
             Title = SR.FormatExtractTo_Css_Title(razorFileName),
             Data = data,
             TelemetryId = s_createExtractToCssTelemetryId,
-            Name = LanguageServerConstants.CodeActions.ExtractToCssAction,
+            Name = LanguageServerConstants.CodeActions.ExtractToCss,
         };
         return codeAction;
     }
@@ -105,7 +105,7 @@ internal static class RazorCodeActionFactory
             Title = SR.ExtractTo_CodeBehind_Title,
             Data = data,
             TelemetryId = s_createExtractToCodeBehindTelemetryId,
-            Name = LanguageServerConstants.CodeActions.ExtractToCodeBehindAction,
+            Name = LanguageServerConstants.CodeActions.ExtractToCodeBehind,
         };
         return codeAction;
     }
@@ -118,7 +118,7 @@ internal static class RazorCodeActionFactory
             Title = SR.ExtractTo_Component_Title,
             Data = data,
             TelemetryId = s_createExtractToComponentTelemetryId,
-            Name = LanguageServerConstants.CodeActions.ExtractToNewComponentAction,
+            Name = LanguageServerConstants.CodeActions.ExtractToNewComponent,
             // Since Extract to Component is offered basically everywhere, always offer it last
             Order = 9999
         };

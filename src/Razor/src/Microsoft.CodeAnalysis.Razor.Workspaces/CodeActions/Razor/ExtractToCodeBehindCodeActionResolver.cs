@@ -27,17 +27,12 @@ internal class ExtractToCodeBehindCodeActionResolver(
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly IRoslynCodeActionHelpers _roslynCodeActionHelpers = roslynCodeActionHelpers;
 
-    public string Action => LanguageServerConstants.CodeActions.ExtractToCodeBehindAction;
+    public string Action => LanguageServerConstants.CodeActions.ExtractToCodeBehind;
 
     public async Task<WorkspaceEdit?> ResolveAsync(DocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var actionParams = data.Deserialize<ExtractToCodeBehindCodeActionParams>();
         if (actionParams is null)
-        {
-            return null;
-        }
-
-        if (!documentContext.FileKind.IsComponent())
         {
             return null;
         }
@@ -49,7 +44,7 @@ internal class ExtractToCodeBehindCodeActionResolver(
 
         // VS Code in Windows expects path to start with '/'
         var updatedCodeBehindPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !codeBehindPath.StartsWith("/")
-            ? '/' + codeBehindPath
+            ? $"/{codeBehindPath}"
             : codeBehindPath;
 
         var codeBehindUri = LspFactory.CreateFilePathUri(updatedCodeBehindPath);

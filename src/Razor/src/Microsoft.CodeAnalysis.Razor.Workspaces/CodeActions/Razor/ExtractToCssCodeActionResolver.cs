@@ -7,7 +7,6 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
@@ -26,17 +25,12 @@ internal class ExtractToCssCodeActionResolver(
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly IFileSystem _fileSystem = fileSystem;
 
-    public string Action => LanguageServerConstants.CodeActions.ExtractToCssAction;
+    public string Action => LanguageServerConstants.CodeActions.ExtractToCss;
 
     public async Task<WorkspaceEdit?> ResolveAsync(DocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var actionParams = data.Deserialize<ExtractToCssCodeActionParams>();
         if (actionParams is null)
-        {
-            return null;
-        }
-
-        if (!documentContext.FileKind.IsComponent())
         {
             return null;
         }
@@ -47,7 +41,7 @@ internal class ExtractToCssCodeActionResolver(
 
         // VS Code in Windows expects path to start with '/'
         cssFilePath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !cssFilePath.StartsWith("/")
-            ? '/' + cssFilePath
+            ? $"/{cssFilePath}"
             : cssFilePath;
 
         var cssFileUri = LspFactory.CreateFilePathUri(cssFilePath);
@@ -79,7 +73,7 @@ internal class ExtractToCssCodeActionResolver(
                 TextDocument = cssDocumentIdentifier,
                 Edits = [LspFactory.CreateTextEdit(
                     position: (lastLineNumber, lastLineLength),
-                    newText: lastLineNumber == 0
+                    newText: lastLineNumber == 0 && lastLineLength == 0
                         ? cssContent
                         : Environment.NewLine + Environment.NewLine + cssContent)]
             });

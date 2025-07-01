@@ -42,7 +42,7 @@ internal class ExtractToCssCodeActionProvider(ILoggerFactory loggerFactory) : IR
         var owner = root.FindInnermostNode(context.StartAbsoluteIndex);
         if (owner is null)
         {
-            _logger.LogWarning($"Owner should never be null.");
+            _logger.LogWarning("Owner should never be null.");
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
@@ -60,8 +60,14 @@ internal class ExtractToCssCodeActionProvider(ILoggerFactory loggerFactory) : IR
 
         // If there is any C# or Razor in the style tag, we can't offer, so it has to be one big text literal.
         if (owner.Parent is not MarkupElementSyntax { Body: [MarkupTextLiteralSyntax textLiteral] } markupElement ||
-            textLiteral.ChildNodes().Count() > 0)
+            textLiteral.ChildNodes().Any())
         {
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
+        }
+
+        if (textLiteral.LiteralTokens.All(t => t.IsWhitespace()))
+        {
+            // If the text literal is all whitespace, we don't want to offer the action.
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
@@ -82,14 +88,13 @@ internal class ExtractToCssCodeActionProvider(ILoggerFactory loggerFactory) : IR
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
             TextDocument = context.Request.TextDocument,
-            Action = LanguageServerConstants.CodeActions.ExtractToCssAction,
+            Action = LanguageServerConstants.CodeActions.ExtractToCss,
             Language = RazorLanguageKind.Razor,
             DelegatedDocumentUri = context.DelegatedDocumentUri,
             Data = actionParams,
         };
 
         var razorFileName = Path.GetFileName(context.Request.TextDocument.DocumentUri.GetAbsoluteOrUNCPath());
-
         var codeAction = RazorCodeActionFactory.CreateExtractToCss(razorFileName, resolutionParams);
         return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>([codeAction]);
     }

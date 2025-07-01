@@ -42,13 +42,53 @@ public class ExtractToCssTests(ITestOutputHelper testOutputHelper) : CohostCodeA
                     private int x = 1;
                 }
                 """,
-            codeActionName: LanguageServerConstants.CodeActions.ExtractToCssAction,
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToCss,
             additionalExpectedFiles: [
                 (FileUri("File1.razor.css"), $$$"""
                     body {
                             background-color: red;
                         }
                     """)]);
+    }
+
+    [Fact]
+    public async Task ExtractToCss_NotWithEmptyTag()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                <sty[||]le>
+                </style>
+
+                @code
+                {
+                    private int x = 1;
+                }
+                """,
+            expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToCss);
+    }
+
+    [Fact]
+    public async Task ExtractToCss_NotWithWhitespaceOnlyTag()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                <sty[||]le>
+
+
+                </style>
+
+                @code
+                {
+                    private int x = 1;
+                }
+                """,
+            expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToCss);
     }
 
     [Fact]
@@ -70,7 +110,7 @@ public class ExtractToCssTests(ITestOutputHelper testOutputHelper) : CohostCodeA
                 }
                 """,
             expected: null,
-            codeActionName: LanguageServerConstants.CodeActions.ExtractToCssAction);
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToCss);
     }
 
     [Fact]
@@ -101,7 +141,7 @@ public class ExtractToCssTests(ITestOutputHelper testOutputHelper) : CohostCodeA
                     private int x = 1;
                 }
                 """,
-            codeActionName: LanguageServerConstants.CodeActions.ExtractToCssAction,
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToCss,
             additionalFiles: [
                 (FilePath("File1.razor.css"), $$$"""
                     h1 {
@@ -148,7 +188,7 @@ public class ExtractToCssTests(ITestOutputHelper testOutputHelper) : CohostCodeA
                     private int x = 1;
                 }
                 """,
-            codeActionName: LanguageServerConstants.CodeActions.ExtractToCssAction,
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToCss,
             additionalFiles: [
                 (FilePath("File1.razor.css"), $$$"""
                     h1 {
@@ -197,11 +237,52 @@ public class ExtractToCssTests(ITestOutputHelper testOutputHelper) : CohostCodeA
                     private int x = 1;
                 }
                 """,
-            codeActionName: LanguageServerConstants.CodeActions.ExtractToCssAction,
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToCss,
             additionalFiles: [
                 (FilePath("File1.razor.css"), "")],
             additionalExpectedFiles: [
                 (FileUri("File1.razor.css"), $$$"""
+                    body {
+                            background-color: red;
+                        }
+                    """)]);
+    }
+
+    [Fact]
+    public async Task ExtractToCss_ExistingFile_OneNonEmptyLine()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                <sty[||]le>
+                    body {
+                        background-color: red;
+                    }
+                </style>
+
+                @code
+                {
+                    private int x = 1;
+                }
+                """,
+            expected: """
+                <div></div>
+
+
+
+                @code
+                {
+                    private int x = 1;
+                }
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToCss,
+            additionalFiles: [
+                (FilePath("File1.razor.css"), "h1 { color: red }")],
+            additionalExpectedFiles: [
+                (FileUri("File1.razor.css"), $$$"""
+                    h1 { color: red }
+
                     body {
                             background-color: red;
                         }
@@ -253,7 +334,7 @@ public class ExtractToCssTests(ITestOutputHelper testOutputHelper) : CohostCodeA
                     private int x = 1;
                 }
                 """,
-            codeActionName: LanguageServerConstants.CodeActions.ExtractToCssAction,
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToCss,
             additionalExpectedFiles: [
                 (FileUri("File1.razor.css"), $$"""
                     body {
@@ -290,7 +371,7 @@ public class ExtractToCssTests(ITestOutputHelper testOutputHelper) : CohostCodeA
                     private int x = 1;
                 }
                 """,
-            codeActionName: LanguageServerConstants.CodeActions.ExtractToCssAction,
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToCss,
             additionalExpectedFiles: [
                 (FileUri("File1.razor.css"), $$$"""
                     body {
