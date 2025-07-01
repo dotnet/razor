@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Linq;
@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -19,7 +20,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 
 public abstract class FormattingTestBase : CohostEndpointTestBase
 {
@@ -45,7 +46,7 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
         int tabSize = 4,
         bool allowDiagnostics = false,
         bool debugAssertsEnabled = true,
-        Func<SourceText, SourceText>? csharpModifierFunc = null)
+        RazorCSharpSyntaxFormattingOptions? formattingOptionsOverride = null)
     {
         (input, expected) = ProcessFormattingContext(input, expected);
 
@@ -65,10 +66,7 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
         var formattingService = (RazorFormattingService)OOPExportProvider.GetExportedValue<IRazorFormattingService>();
         var accessor = formattingService.GetTestAccessor();
         accessor.SetDebugAssertsEnabled(debugAssertsEnabled);
-        if (csharpModifierFunc is not null)
-        {
-            accessor.SetFormattedCSharpDocumentModifierFunc(csharpModifierFunc);
-        }
+        accessor.SetCSharpSyntaxFormattingOptionsOverride(formattingOptionsOverride);
 
         var generatedHtml = await RemoteServiceInvoker.TryInvokeAsync<IRemoteHtmlDocumentService, string?>(document.Project.Solution,
             (service, solutionInfo, ct) => service.GetHtmlDocumentTextAsync(solutionInfo, document.Id, ct),
@@ -129,11 +127,11 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
 
         var clientSettingsManager = new ClientSettingsManager(changeTriggers: []);
 
-        var endpoint = new CohostOnTypeFormattingEndpoint(RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
+        var endpoint = new CohostOnTypeFormattingEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
 
         var request = new DocumentOnTypeFormattingParams()
         {
-            TextDocument = new TextDocumentIdentifier() { Uri = document.CreateUri() },
+            TextDocument = new TextDocumentIdentifier() { DocumentUri = new(document.CreateUri()) },
             Options = new FormattingOptions()
             {
                 TabSize = tabSize,
@@ -183,10 +181,10 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
     {
         if (span.IsEmpty)
         {
-            var endpoint = new CohostDocumentFormattingEndpoint(RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
+            var endpoint = new CohostDocumentFormattingEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
             var request = new DocumentFormattingParams()
             {
-                TextDocument = new TextDocumentIdentifier() { Uri = document.CreateUri() },
+                TextDocument = new TextDocumentIdentifier() { DocumentUri = new(document.CreateUri()) },
                 Options = new FormattingOptions()
                 {
                     TabSize = tabSize,
@@ -198,10 +196,10 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
         }
 
         var inputText = await document.GetTextAsync(DisposalToken);
-        var rangeEndpoint = new CohostRangeFormattingEndpoint(RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
+        var rangeEndpoint = new CohostRangeFormattingEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
         var rangeRequest = new DocumentRangeFormattingParams()
         {
-            TextDocument = new TextDocumentIdentifier() { Uri = document.CreateUri() },
+            TextDocument = new TextDocumentIdentifier() { DocumentUri = new(document.CreateUri()) },
             Options = new FormattingOptions()
             {
                 TabSize = 4,
