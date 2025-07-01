@@ -360,10 +360,11 @@ public class CSharpCodeWriterTest
     public void WriteAutoPropertyDeclaration_WritesPropertyDeclaration()
     {
         // Arrange
-        using var writer = new CodeWriter();
+        using var context = TestCodeRenderingContext.Create();
+        var writer = context.CodeWriter;
 
         // Act
-        writer.WriteAutoPropertyDeclaration(["public"], "global::System.String", "MyString");
+        context.WriteAutoPropertyDeclaration(["public"], "global::System.String", "MyString");
 
         // Assert
         var output = writer.GetText().ToString();
@@ -377,10 +378,11 @@ public class CSharpCodeWriterTest
     public void WriteAutoPropertyDeclaration_WithModifiers_WritesPropertyDeclaration()
     {
         // Arrange
-        using var writer = new CodeWriter();
+        using var context = TestCodeRenderingContext.Create();
+        var writer = context.CodeWriter;
 
         // Act
-        writer.WriteAutoPropertyDeclaration(["public", "static"], "global::System.String", "MyString");
+        context.WriteAutoPropertyDeclaration(["public", "static"], "global::System.String", "MyString");
 
         // Assert
         var output = writer.GetText().ToString();

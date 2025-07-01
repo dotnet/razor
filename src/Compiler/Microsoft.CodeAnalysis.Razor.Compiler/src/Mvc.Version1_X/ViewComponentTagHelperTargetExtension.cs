@@ -114,14 +114,14 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
           .Write(ViewContextAttributeTypeName)
           .WriteLine("]");
 
-        context.CodeWriter.WriteAutoPropertyDeclaration(
+        context.WriteAutoPropertyDeclaration(
             s_publicModifiers,
             ViewContextTypeName,
             ViewContextPropertyName);
 
         foreach (var attribute in tagHelper.BoundAttributes)
         {
-            context.CodeWriter.WriteAutoPropertyDeclaration(
+            context.WriteAutoPropertyDeclaration(
                 s_publicModifiers,
                 attribute.TypeName,
                 attribute.GetPropertyName());

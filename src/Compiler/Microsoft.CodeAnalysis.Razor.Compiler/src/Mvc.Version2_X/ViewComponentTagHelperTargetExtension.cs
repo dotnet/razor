@@ -81,7 +81,7 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
             WriteConstructorString(context.CodeWriter, node.ClassName);
 
             // Add attributes.
-            WriteAttributeDeclarations(context.CodeWriter, node.TagHelper);
+            WriteAttributeDeclarations(context, node.TagHelper);
 
             // Add process method.
             WriteProcessMethodString(context.CodeWriter, node.TagHelper);
@@ -103,29 +103,29 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
         }
     }
 
-    private void WriteAttributeDeclarations(CodeWriter writer, TagHelperDescriptor tagHelper)
+    private void WriteAttributeDeclarations(CodeRenderingContext context, TagHelperDescriptor tagHelper)
     {
-        writer.Write("[")
+        context.CodeWriter.Write("[")
           .Write(HtmlAttributeNotBoundAttributeTypeName)
           .WriteParameterSeparator()
           .Write(ViewContextAttributeTypeName)
           .WriteLine("]");
 
-        writer.WriteAutoPropertyDeclaration(
+        context.WriteAutoPropertyDeclaration(
             s_publicModifiers,
             ViewContextTypeName,
             ViewContextPropertyName);
 
         foreach (var attribute in tagHelper.BoundAttributes)
         {
-            writer.WriteAutoPropertyDeclaration(
+            context.WriteAutoPropertyDeclaration(
                 s_publicModifiers,
                 attribute.TypeName,
                 attribute.GetPropertyName());
 
             if (attribute.IndexerTypeName != null)
             {
-                writer.Write(" = ")
+                context.CodeWriter.Write(" = ")
                     .WriteStartNewObject(attribute.TypeName)
                     .WriteEndMethodInvocation();
             }

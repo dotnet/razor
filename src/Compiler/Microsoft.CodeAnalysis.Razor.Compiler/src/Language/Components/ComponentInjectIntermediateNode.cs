@@ -73,13 +73,12 @@ internal class ComponentInjectIntermediateNode : ExtensionIntermediateNode
 
             if (!context.Options.DesignTime || !IsMalformed)
             {
-                context.CodeWriter.WriteAutoPropertyDeclaration(
+                context.WriteAutoPropertyDeclaration(
                     s_injectedPropertyModifiers,
                     TypeName,
                     memberName,
                     TypeSpan,
                     MemberSpan,
-                    context,
                     defaultValue: true);
             }
         }

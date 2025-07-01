@@ -2,13 +2,96 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Utilities;
+using static Microsoft.AspNetCore.Razor.Language.CodeGeneration.CSharpStrings;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 internal static class CodeRenderingContextExtensions
 {
+    public static CodeWriter WritePropertyDeclaration(
+        this CodeRenderingContext context,
+        ImmutableArray<string> modifiers,
+        CSharpIntermediateToken typeName,
+        string propertyName,
+        string expressionBody)
+    {
+        context.WritePropertyDeclarationPreamble(modifiers, typeName.Content, propertyName, typeName.Source, propertySpan: null);
+        return context.CodeWriter.WriteMemberExpressionBody(expressionBody);
+    }
+
+    public static CodeWriter WriteAutoPropertyDeclaration(
+        this CodeRenderingContext context,
+        ImmutableArray<string> modifiers,
+        string typeName,
+        string propertyName,
+        SourceSpan? typeSpan = null,
+        SourceSpan? propertySpan = null,
+        bool privateSetter = false,
+        bool defaultValue = false)
+    {
+        var writer = context.CodeWriter;
+        var options = context.Options;
+
+        context.WritePropertyDeclarationPreamble(modifiers, typeName, propertyName, typeSpan, propertySpan);
+
+        writer.Write($"{Space}{OpenBrace}{Space}get{Semicolon}");
+
+        if (privateSetter)
+        {
+            writer.Write($"{Space}private");
+        }
+
+        writer.WriteLine($"{Space}set{Semicolon}{Space}{CloseBrace}");
+
+        if (defaultValue && !options.SuppressNullabilityEnforcement && !options.DesignTime)
+        {
+            writer.WriteLine($"{Assignment}{Default}{Bang}{Semicolon}");
+        }
+
+        return writer;
+    }
+
+    private static void WritePropertyDeclarationPreamble(
+        this CodeRenderingContext context,
+        ImmutableArray<string> modifiers,
+        string typeName,
+        string propertyName,
+        SourceSpan? typeSpan,
+        SourceSpan? propertySpan)
+    {
+        var writer = context.CodeWriter;
+
+        foreach (var modifier in modifiers)
+        {
+            writer.Write($"{modifier}{Space}");
+        }
+
+        WriteToken(context, typeName, typeSpan);
+        writer.Write(Space);
+        WriteToken(context, propertyName, propertySpan);
+
+        static void WriteToken(CodeRenderingContext context, string content, SourceSpan? span)
+        {
+            var writer = context.CodeWriter;
+
+            if (span is not null && !context.Options.DesignTime)
+            {
+                using (context.BuildEnhancedLinePragma(span))
+                {
+                    writer.Write(content);
+                }
+            }
+            else
+            {
+                writer.Write(content);
+            }
+        }
+    }
+
     public static IDisposable BuildLinePragma(
         this CodeRenderingContext context,
         SourceSpan? span,

@@ -7,33 +7,12 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using static Microsoft.AspNetCore.Razor.Language.CodeGeneration.CSharpStrings;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 internal static class CodeWriterExtensions
 {
-    private const string True = "true";
-    private const string False = "false";
-    private const string Null = "null";
-    private const string Async = "async";
-    private const string HashLine = "#line";
-
-    private const string Semicolon = ";";
-    private const string OpenBrace = "{";
-    private const string CloseBrace = "}";
-    private const string OpenParen = "(";
-    private const string CloseParen = ")";
-    private const string Space = " ";
-
-    private const string EmptyQuotes = "\"\"";
-    private const string DoubleQuote = "\"";
-    private const string VerbatimDoubleQuote = "@\"";
-
-    private const string Assignment = " = ";
-    private const string LambdaArrow = " => ";
-    private const string TypeListSeparator = " : ";
-    private const string CommaSeparator = ", ";
-
     private static readonly char[] CStyleStringLiteralEscapeChars =
     {
         '\r',
@@ -94,41 +73,27 @@ internal static class CodeWriterExtensions
         }
     }
 
-    public static CodeWriter WriteVariableDeclaration(this CodeWriter writer, string type, string name, string value)
+    public static CodeWriter WriteVariableDeclaration(this CodeWriter writer, string type, string name, string? value)
     {
-        writer.Write($"{type}{Space}{name}{Assignment}");
-
-        if (!value.IsNullOrEmpty())
+        if (value.IsNullOrEmpty())
         {
-            writer.Write(value);
-        }
-        else
-        {
-            writer.Write(Null);
+            value = Null;
         }
 
-        return writer.WriteLine(Semicolon);
+        return writer.WriteLine($"{type}{Space}{name}{Assignment}{value}{Semicolon}");
     }
 
     public static CodeWriter WriteBooleanLiteral(this CodeWriter writer, bool value)
-    {
-        return writer.Write(value ? True : False);
-    }
+        => writer.Write(value ? True : False);
 
     public static CodeWriter WriteStartAssignment(this CodeWriter writer, string name)
-    {
-        return writer.Write(name).Write(Assignment);
-    }
+        => writer.Write($"{name}{Assignment}");
 
     public static CodeWriter WriteParameterSeparator(this CodeWriter writer)
-    {
-        return writer.Write(CommaSeparator);
-    }
+        => writer.Write(CommaSeparator);
 
     public static CodeWriter WriteStartNewObject(this CodeWriter writer, string typeName)
-    {
-        return writer.Write($"new{Space}{typeName}{OpenParen}");
-    }
+        => writer.Write($"new{Space}{typeName}{OpenParen}");
 
     public static CodeWriter WriteStringLiteral(this CodeWriter writer, string literal)
         => writer.WriteStringLiteral(literal.AsMemory());
@@ -332,80 +297,8 @@ internal static class CodeWriterExtensions
         return writer;
     }
 
-    public static CodeWriter WritePropertyDeclaration(
-        this CodeWriter writer,
-        ImmutableArray<string> modifiers,
-        IntermediateToken type,
-        string propertyName,
-        string propertyExpression,
-        CodeRenderingContext context)
-    {
-        WritePropertyDeclarationPreamble(writer, modifiers, type.Content, propertyName, type.Source, propertySpan: null, context);
-        return writer.WriteLine($"{LambdaArrow}{propertyExpression}{Semicolon}");
-    }
-
-    public static CodeWriter WriteAutoPropertyDeclaration(
-        this CodeWriter writer,
-        ImmutableArray<string> modifiers,
-        string typeName,
-        string propertyName,
-        SourceSpan? typeSpan = null,
-        SourceSpan? propertySpan = null,
-        CodeRenderingContext? context = null,
-        bool privateSetter = false,
-        bool defaultValue = false)
-    {
-        WritePropertyDeclarationPreamble(writer, modifiers, typeName, propertyName, typeSpan, propertySpan, context);
-
-        writer.Write(" { get;");
-        if (privateSetter)
-        {
-            writer.Write(" private");
-        }
-        writer.Write(" set; }");
-        writer.WriteLine();
-
-        if (defaultValue && context?.Options.SuppressNullabilityEnforcement == false && context?.Options.DesignTime == false)
-        {
-            writer.WriteLine(" = default!;");
-        }
-
-        return writer;
-    }
-
-    private static void WritePropertyDeclarationPreamble(
-        CodeWriter writer,
-        ImmutableArray<string> modifiers,
-        string typeName,
-        string propertyName,
-        SourceSpan? typeSpan,
-        SourceSpan? propertySpan,
-        CodeRenderingContext? context)
-    {
-        foreach (var modifier in modifiers)
-        {
-            writer.Write($"{modifier}{Space}");
-        }
-
-        WriteToken(writer, typeName, typeSpan, context);
-        writer.Write(Space);
-        WriteToken(writer, propertyName, propertySpan, context);
-
-        static void WriteToken(CodeWriter writer, string content, SourceSpan? span, CodeRenderingContext? context)
-        {
-            if (span is not null && context?.Options.DesignTime == false)
-            {
-                using (context.BuildEnhancedLinePragma(span))
-                {
-                    writer.Write(content);
-                }
-            }
-            else
-            {
-                writer.Write(content);
-            }
-        }
-    }
+    public static CodeWriter WriteMemberExpressionBody(this CodeWriter writer, string expression)
+        => writer.WriteLine($"{LambdaArrow}{expression}{Semicolon}");
 
     /// <summary>
     /// Writes an "@" character if the provided identifier needs escaping in c#
