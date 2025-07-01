@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Utilities;
-using static Microsoft.AspNetCore.Razor.Language.CodeGeneration.CSharpStrings;
+using static Microsoft.AspNetCore.Razor.Language.CodeGeneration.CSharpCodeSnippets;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 

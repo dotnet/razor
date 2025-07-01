@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
-using static Microsoft.AspNetCore.Razor.Language.CodeGeneration.CSharpStrings;
+using static Microsoft.AspNetCore.Razor.Language.CodeGeneration.CSharpCodeSnippets;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
@@ -219,7 +219,7 @@ internal static class CodeWriterExtensions
         this CodeWriter writer,
         string instanceName,
         string methodName,
-        params ImmutableArray<string> arguments)
+        params ImmutableArray<CodeSnippet> arguments)
     {
         return WriteInstanceMethodInvocation(writer, instanceName, methodName, endLine: true, arguments);
     }
@@ -230,7 +230,7 @@ internal static class CodeWriterExtensions
         string instanceName,
         string methodName,
         bool endLine,
-        params ImmutableArray<string> arguments)
+        params ImmutableArray<CodeSnippet> arguments)
     {
         return writer.WriteMethodInvocation($"{instanceName}.{methodName}", endLine, arguments);
     }
@@ -268,12 +268,12 @@ internal static class CodeWriterExtensions
         return writer;
     }
 
-    public static CodeWriter WriteMethodInvocation(this CodeWriter writer, string methodName, params ImmutableArray<string> arguments)
+    public static CodeWriter WriteMethodInvocation(this CodeWriter writer, string methodName, params ImmutableArray<CodeSnippet> arguments)
     {
         return WriteMethodInvocation(writer, methodName, endLine: true, arguments);
     }
 
-    public static CodeWriter WriteMethodInvocation(this CodeWriter writer, string methodName, bool endLine, params ImmutableArray<string> arguments)
+    public static CodeWriter WriteMethodInvocation(this CodeWriter writer, string methodName, bool endLine, params ImmutableArray<CodeSnippet> arguments)
     {
         return
             WriteStartMethodInvocation(writer, methodName)
@@ -292,6 +292,23 @@ internal static class CodeWriterExtensions
         {
             writer.Write(separator);
             writer.Write(values[i]);
+        }
+
+        return writer;
+    }
+
+
+    public static CodeWriter WriteSeparatedList(this CodeWriter writer, string separator, ImmutableArray<CodeSnippet> values)
+    {
+        if (values.Length > 0)
+        {
+            values[0].WriteTo(writer);
+        }
+
+        for (var i = 1; i < values.Length; i++)
+        {
+            writer.Write(separator);
+            values[i].WriteTo(writer);
         }
 
         return writer;
@@ -555,7 +572,7 @@ internal static class CodeWriterExtensions
             writer.Write($"{paramType}{Space}{paramName}");
         }
 
-        writer.WriteLine(OpenBrace);
+        writer.WriteLine(CloseParen);
 
         return new CSharpCodeWritingScope(writer);
     }

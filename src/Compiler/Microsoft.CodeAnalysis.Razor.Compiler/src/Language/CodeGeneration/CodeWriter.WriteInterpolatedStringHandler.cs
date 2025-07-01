@@ -25,15 +25,6 @@ public sealed partial class CodeWriter
         public void AppendLiteral(string value)
             => _writer.Write(value);
 
-        public void AppendFormatted(ReadOnlyMemory<char> value)
-            => _writer.Write(value);
-
-        public void AppendFormatted(ImmutableArray<ReadOnlyMemory<char>> value)
-            => _writer.Write(value);
-
-        internal void AppendFormatted(ref readonly PooledArrayBuilder<ReadOnlyMemory<char>> builder)
-            => _writer.Write(in builder);
-
         public void AppendFormatted(string? value)
         {
             if (value is not null)
@@ -41,6 +32,18 @@ public sealed partial class CodeWriter
                 _writer.Write(value);
             }
         }
+
+        public void AppendFormatted(ReadOnlyMemory<char> value)
+            => _writer.Write(value);
+
+        public void AppendFormatted(ImmutableArray<ReadOnlyMemory<char>> value)
+            => _writer.Write(value);
+
+        public void AppendFormatted(ImmutableArray<string> value)
+            => _writer.Write(value);
+
+        internal void AppendFormatted(ref readonly PooledArrayBuilder<ReadOnlyMemory<char>> builder)
+            => _writer.Write(in builder);
 
         public void AppendFormatted<T>(T value)
         {
@@ -51,6 +54,18 @@ public sealed partial class CodeWriter
 
             switch (value)
             {
+                case CodeSnippet snippet:
+                    snippet.WriteTo(_writer);
+                    break;
+
+                case ImmutableArray<CodeSnippet> snippetArray:
+                    foreach (var snippet in snippetArray)
+                    {
+                        snippet.WriteTo(_writer);
+                    }
+
+                    break;
+
                 case ReadOnlyMemory<char> memory:
                     _writer.Write(memory);
                     break;
@@ -59,8 +74,12 @@ public sealed partial class CodeWriter
                     _writer.Write(s);
                     break;
 
-                case ImmutableArray<ReadOnlyMemory<char>> array:
-                    _writer.Write(array);
+                case ImmutableArray<ReadOnlyMemory<char>> memoryArray:
+                    _writer.Write(memoryArray);
+                    break;
+
+                case ImmutableArray<string> stringArray:
+                    _writer.Write(stringArray);
                     break;
 
                 default:

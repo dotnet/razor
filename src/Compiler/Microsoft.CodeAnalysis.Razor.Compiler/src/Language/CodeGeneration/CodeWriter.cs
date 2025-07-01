@@ -245,6 +245,16 @@ public sealed partial class CodeWriter : IDisposable
         return this;
     }
 
+    public CodeWriter Write(ImmutableArray<string> values)
+    {
+        foreach (var value in values)
+        {
+            WriteCore(value.AsMemory());
+        }
+
+        return this;
+    }
+
     internal CodeWriter Write(ref readonly PooledArrayBuilder<ReadOnlyMemory<char>> builder)
     {
         for (var i = 0; i < builder.Count; i++)

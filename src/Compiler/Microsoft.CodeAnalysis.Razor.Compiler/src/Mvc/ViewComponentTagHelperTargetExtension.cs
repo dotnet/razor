@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using static Microsoft.AspNetCore.Razor.Language.CodeGeneration.CSharpCodeSnippets;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
 
@@ -155,10 +156,10 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
                 IViewContextAwareContextualizeMethodName,
                 arguments: [ViewContextPropertyName]);
 
-            var methodParameters = GetMethodParameters(tagHelper);
+            var methodArguments = GetMethodArguments(tagHelper);
             writer.Write("var ")
                 .WriteStartAssignment(TagHelperContentVariableName)
-                .WriteInstanceMethodInvocation($"await {ViewComponentHelperVariableName}", ViewComponentInvokeMethodName, methodParameters);
+                .WriteInstanceMethodInvocation($"await {ViewComponentHelperVariableName}", ViewComponentInvokeMethodName, methodArguments);
             writer.WriteStartAssignment($"{TagHelperOutputVariableName}.{TagHelperOutputTagNamePropertyName}")
                 .WriteLine("null;");
             writer.WriteInstanceMethodInvocation(
@@ -187,21 +188,24 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
                 var attributeName = attribute.Name;
                 var parameterName = attribute.GetPropertyName();
                 writer.WriteLine($"if (__context.AllAttributes.ContainsName(\"{attributeName}\"))");
-                writer.WriteLine("{");
-                writer.CurrentIndent += writer.TabSize;
-                writer.WriteLine($"args[nameof({parameterName})] = {parameterName};");
-                writer.CurrentIndent -= writer.TabSize;
-                writer.WriteLine("}");
+                using (writer.BuildScope())
+                {
+                    writer.WriteLine($"args[nameof({parameterName})] = {parameterName};");
+                }
             }
+
             writer.WriteLine("return args;");
         }
     }
 
-    private ImmutableArray<string> GetMethodParameters(TagHelperDescriptor tagHelper)
+    private ImmutableArray<CodeSnippet> GetMethodArguments(TagHelperDescriptor tagHelper)
     {
         var viewComponentName = tagHelper.GetViewComponentName();
 
-        return [$"\"{viewComponentName}\"", $"{TagHelperProcessInvokeAsyncArgsMethodName}({TagHelperContextVariableName})"];
+        return [
+            Snippet($"\"{viewComponentName}\""),
+            Snippet($"{TagHelperProcessInvokeAsyncArgsMethodName}({TagHelperContextVariableName})")
+        ];
     }
 
     private void WriteTargetElementString(CodeWriter writer, TagHelperDescriptor tagHelper)

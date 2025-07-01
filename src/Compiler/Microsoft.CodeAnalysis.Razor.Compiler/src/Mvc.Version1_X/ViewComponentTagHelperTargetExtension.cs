@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using static Microsoft.AspNetCore.Razor.Language.CodeGeneration.CSharpCodeSnippets;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X;
 
@@ -152,10 +153,10 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
                 IViewContextAwareContextualizeMethodName,
                 arguments: [ViewContextPropertyName]);
 
-            var methodParameters = GetMethodParameters(tagHelper);
+            var methodArguments = GetMethodArguments(tagHelper);
             writer.Write("var ")
                 .WriteStartAssignment(TagHelperContentVariableName)
-                .WriteInstanceMethodInvocation($"await {ViewComponentHelperVariableName}", ViewComponentInvokeMethodName, methodParameters);
+                .WriteInstanceMethodInvocation($"await {ViewComponentHelperVariableName}", ViewComponentInvokeMethodName, methodArguments);
             writer.WriteStartAssignment($"{TagHelperOutputVariableName}.{TagHelperOutputTagNamePropertyName}")
                 .WriteLine("null;");
             writer.WriteInstanceMethodInvocation(
@@ -165,14 +166,14 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
         }
     }
 
-    private static ImmutableArray<string> GetMethodParameters(TagHelperDescriptor tagHelper)
+    private static ImmutableArray<CodeSnippet> GetMethodArguments(TagHelperDescriptor tagHelper)
     {
-        var propertyNames = tagHelper.BoundAttributes.Select(attribute => attribute.GetPropertyName());
-        var joinedPropertyNames = string.Join(", ", propertyNames);
-        var parametersString = $"new {{ {joinedPropertyNames} }}";
+        var propertyNames = tagHelper.BoundAttributes.Select(static attribute => attribute.GetPropertyName().AsSnippet());
         var viewComponentName = tagHelper.GetViewComponentName();
 
-        return [$"\"{viewComponentName}\"", parametersString];
+        return [
+            Snippet($"\"{viewComponentName}\""),
+            Snippet($"new {{ {SeparatedList(", ", propertyNames)} }}")];
     }
 
     private void WriteTargetElementString(CodeWriter writer, TagHelperDescriptor tagHelper)
