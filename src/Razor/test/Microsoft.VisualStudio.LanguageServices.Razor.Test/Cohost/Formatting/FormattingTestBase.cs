@@ -127,7 +127,7 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
 
         var clientSettingsManager = new ClientSettingsManager(changeTriggers: []);
 
-        var endpoint = new CohostOnTypeFormattingEndpoint(RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
+        var endpoint = new CohostOnTypeFormattingEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
 
         var request = new DocumentOnTypeFormattingParams()
         {
@@ -181,7 +181,7 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
     {
         if (span.IsEmpty)
         {
-            var endpoint = new CohostDocumentFormattingEndpoint(RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
+            var endpoint = new CohostDocumentFormattingEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
             var request = new DocumentFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier() { DocumentUri = new(document.CreateUri()) },
@@ -196,7 +196,7 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
         }
 
         var inputText = await document.GetTextAsync(DisposalToken);
-        var rangeEndpoint = new CohostRangeFormattingEndpoint(RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
+        var rangeEndpoint = new CohostRangeFormattingEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
         var rangeRequest = new DocumentRangeFormattingParams()
         {
             TextDocument = new TextDocumentIdentifier() { DocumentUri = new(document.CreateUri()) },

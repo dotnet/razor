@@ -152,7 +152,7 @@ public class CohostDocumentHighlightEndpointTest(ITestOutputHelper testOutputHel
 
         var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentDocumentHighlightName, htmlResponse)]);
 
-        var endpoint = new CohostDocumentHighlightEndpoint(RemoteServiceInvoker, requestInvoker);
+        var endpoint = new CohostDocumentHighlightEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker);
 
         var request = new DocumentHighlightParams()
         {
