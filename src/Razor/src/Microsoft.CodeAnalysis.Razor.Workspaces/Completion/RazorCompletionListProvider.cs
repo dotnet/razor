@@ -189,6 +189,23 @@ internal class RazorCompletionListProvider(
                     completionItem = parameterCompletionItem;
                     return true;
                 }
+            case RazorCompletionItemKind.DirectiveAttributeParameterEventValue:
+                {
+                    var eventValueCompletionItem = new VSInternalCompletionItem()
+                    {
+                        Label = razorCompletionItem.DisplayText,
+                        InsertText = razorCompletionItem.InsertText,
+                        FilterText = razorCompletionItem.InsertText,
+                        SortText = razorCompletionItem.SortText,
+                        InsertTextFormat = insertTextFormat,
+                        Kind = CompletionItemKind.Event,
+                    };
+
+                    eventValueCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
+
+                    completionItem = eventValueCompletionItem;
+                    return true;
+                }
             case RazorCompletionItemKind.MarkupTransition:
                 {
                     var markupTransitionCompletionItem = new VSInternalCompletionItem()
