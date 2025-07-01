@@ -45,7 +45,7 @@ internal sealed partial class RemoteWrapWithTagService(in ServiceArgs args) : Ra
             context => FixHtmlTextEditsAsync(context, textEdits, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<Response> GetValidWrappingRangeAsync(
+    private static async ValueTask<Response> GetValidWrappingRangeAsync(
         RemoteDocumentContext context,
         LinePositionSpan range,
         CancellationToken cancellationToken)

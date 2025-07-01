@@ -1,11 +1,14 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.Razor.LanguageClient.WrapWithTag;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -22,13 +25,14 @@ public class CohostWrapWithTagEndpointTest(ITestOutputHelper testOutputHelper) :
                     [||]
                 </div>
                 """,
+            expected: """
+                <div>
+                    <p></p>
+                </div>
+                """,
             htmlResponse: new VSInternalWrapWithTagResponse(
-                LspFactory.CreateSingleLineRange(start: (0, 0), length: 10),
-                [LspFactory.CreateTextEdit(position: (0, 0), "<p></p>")]
-            ),
-            expected: new VSInternalWrapWithTagResponse(
-                LspFactory.CreateSingleLineRange(start: (0, 0), length: 10),
-                [LspFactory.CreateTextEdit(position: (0, 0), "<p></p>")]
+                LspFactory.CreateSingleLineRange(start: (1, 4), length: 0),
+                [LspFactory.CreateTextEdit(position: (1, 4), "<p></p>")]
             ));
     }
 
@@ -54,13 +58,14 @@ public class CohostWrapWithTagEndpointTest(ITestOutputHelper testOutputHelper) :
                     @[||]currentCount
                 </div>
                 """,
+            expected: """
+                <div>
+                    <span>@currentCount</span>
+                </div>
+                """,
             htmlResponse: new VSInternalWrapWithTagResponse(
-                LspFactory.CreateSingleLineRange(start: (1, 4), length: 16),
-                [LspFactory.CreateTextEdit(position: (1, 4), "<span>@currentCount</span>")]
-            ),
-            expected: new VSInternalWrapWithTagResponse(
-                LspFactory.CreateSingleLineRange(start: (1, 4), length: 16),
-                [LspFactory.CreateTextEdit(position: (1, 4), "<span>@currentCount</span>")]
+                LspFactory.CreateSingleLineRange(start: (1, 5), length: 13),
+                [LspFactory.CreateTextEdit(1, 4, 1, 17, "<span>@currentCount</span>")]
             ));
     }
 
@@ -69,32 +74,32 @@ public class CohostWrapWithTagEndpointTest(ITestOutputHelper testOutputHelper) :
     {
         await VerifyWrapWithTagAsync(
             input: """
-                <div>
-                    [||]
-                </div>
-                """,
+                        <div>
+                            @[||]currentCount
+                        </div>
+                        """,
+            expected: """
+                        <div>
+                            <span>@currentCount</span>
+                        </div>
+                        """,
             htmlResponse: new VSInternalWrapWithTagResponse(
-                LspFactory.CreateSingleLineRange(start: (0, 0), length: 10),
-                [LspFactory.CreateTextEdit(position: (0, 0), "~~~<p>~~~~</p>~~~")]
-            ),
-            expected: new VSInternalWrapWithTagResponse(
-                LspFactory.CreateSingleLineRange(start: (0, 0), length: 10),
-                [LspFactory.CreateTextEdit(position: (0, 0), "<p></p>")]
+                LspFactory.CreateSingleLineRange(start: (1, 5), length: 13),
+                [LspFactory.CreateTextEdit(1, 4, 1, 17, "<span>/*~~~~~~~~~*/</span>")]
             ));
     }
 
-    private async Task VerifyWrapWithTagAsync(string input, VSInternalWrapWithTagResponse? htmlResponse, VSInternalWrapWithTagResponse? expected)
+    private async Task VerifyWrapWithTagAsync(TestCode input, string? expected, VSInternalWrapWithTagResponse? htmlResponse)
     {
-        TestFileMarkupParser.GetSpan(input, out input, out var span);
-        var document = CreateProjectAndRazorDocument(input);
+        var document = CreateProjectAndRazorDocument(input.Text);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         var requestInvoker = new TestHtmlRequestInvoker([(LanguageServerConstants.RazorWrapWithTagEndpoint, htmlResponse)]);
 
-        var endpoint = new CohostWrapWithTagEndpoint(RemoteServiceInvoker, FilePathService, requestInvoker);
+        var endpoint = new CohostWrapWithTagEndpoint(RemoteServiceInvoker, requestInvoker);
 
         var request = new VSInternalWrapWithTagParams(
-            sourceText.GetRange(span),
+            sourceText.GetRange(input.Span),
             "div",
             new FormattingOptions(),
             new VersionedTextDocumentIdentifier()
@@ -111,8 +116,9 @@ public class CohostWrapWithTagEndpointTest(ITestOutputHelper testOutputHelper) :
         else
         {
             Assert.NotNull(result);
-            Assert.Equal(expected.TagRange, result.TagRange);
-            Assert.Equal(expected.TextEdits, result.TextEdits);
+
+            var changedDoc = sourceText.WithChanges(result.TextEdits.Select(sourceText.GetTextChange));
+            AssertEx.EqualOrDiff(expected, changedDoc.ToString());
         }
     }
 }
