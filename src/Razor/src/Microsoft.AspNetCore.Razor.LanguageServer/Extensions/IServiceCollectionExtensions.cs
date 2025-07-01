@@ -89,6 +89,7 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IRazorCompletionItemProvider, DirectiveCompletionItemProvider>();
         services.AddSingleton<IRazorCompletionItemProvider, DirectiveAttributeCompletionItemProvider>();
         services.AddSingleton<IRazorCompletionItemProvider, DirectiveAttributeParameterCompletionItemProvider>();
+        services.AddSingleton<IRazorCompletionItemProvider, DirectiveAttributeEventParameterCompletionItemProvider>();
         services.AddSingleton<IRazorCompletionItemProvider, DirectiveAttributeTransitionCompletionItemProvider>();
         services.AddSingleton<IRazorCompletionItemProvider, MarkupTransitionCompletionItemProvider>();
         services.AddSingleton<IRazorCompletionItemProvider, TagHelperCompletionProvider>();
