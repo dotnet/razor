@@ -1,19 +1,16 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.LanguageClient.WrapWithTag;
-using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -25,12 +22,10 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostWrapWithTagEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
-    IFilePathService filePathService,
     IHtmlRequestInvoker requestInvoker)
     : AbstractRazorCohostDocumentRequestHandler<VSInternalWrapWithTagParams, VSInternalWrapWithTagResponse?>
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
-    private readonly IFilePathService _filePathService = filePathService;
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
 
     protected override bool MutatesSolutionState => false;
@@ -47,16 +42,18 @@ internal sealed class CohostWrapWithTagEndpoint(
     {
         // First, check if the position is valid for wrap with tag operation through the remote service
         var range = request.Range.ToLinePositionSpan();
-        var isValidLocation = await _remoteServiceInvoker.TryInvokeAsync<IRemoteWrapWithTagService, RemoteResponse<bool>>(
+        var result = await _remoteServiceInvoker.TryInvokeAsync<IRemoteWrapWithTagService, RemoteResponse<LinePositionSpan>>(
             razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.IsValidWrapWithTagLocationAsync(solutionInfo, razorDocument.Id, range, cancellationToken),
+            (service, solutionInfo, cancellationToken) => service.GetValidWrappingRangeAsync(solutionInfo, razorDocument.Id, range, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
         // If the remote service says it's not a valid location or we should stop handling, return null
-        if (!isValidLocation.Result || isValidLocation.StopHandling)
+        if (result.StopHandling)
         {
             return null;
         }
+
+        request.Range = result.Result.ToRange();
 
         // The location is valid, so delegate to the HTML server
         var htmlResponse = await _requestInvoker.MakeHtmlLspRequestAsync<VSInternalWrapWithTagParams, VSInternalWrapWithTagResponse>(

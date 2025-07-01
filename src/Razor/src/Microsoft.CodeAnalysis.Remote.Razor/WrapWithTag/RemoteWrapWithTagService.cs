@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading;
@@ -7,12 +7,11 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Utilities;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<bool>;
-using TextEditResponse = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Text.TextEdit[]?>;
+using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Text.LinePositionSpan>;
+using TextEditResponse = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.TextEdit[]?>;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -24,7 +23,7 @@ internal sealed partial class RemoteWrapWithTagService(in ServiceArgs args) : Ra
             => new RemoteWrapWithTagService(in args);
     }
 
-    public ValueTask<Response> IsValidWrapWithTagLocationAsync(
+    public ValueTask<Response> GetValidWrappingRangeAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId razorDocumentId,
         LinePositionSpan range,
@@ -32,7 +31,7 @@ internal sealed partial class RemoteWrapWithTagService(in ServiceArgs args) : Ra
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => IsValidWrapWithTagLocationAsync(context, range, cancellationToken),
+            context => GetValidWrappingRangeAsync(context, range, cancellationToken),
             cancellationToken);
 
     public ValueTask<TextEditResponse> FixHtmlTextEditsAsync(
@@ -46,14 +45,18 @@ internal sealed partial class RemoteWrapWithTagService(in ServiceArgs args) : Ra
             context => FixHtmlTextEditsAsync(context, textEdits, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<Response> IsValidWrapWithTagLocationAsync(
+    private async ValueTask<Response> GetValidWrappingRangeAsync(
         RemoteDocumentContext context,
         LinePositionSpan range,
         CancellationToken cancellationToken)
     {
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var isValid = WrapWithTagHelper.TryGetValidWrappingRange(codeDocument, range, out var adjustedRange);
-        return Response.Results(isValid);
+        if (WrapWithTagHelper.TryGetValidWrappingRange(codeDocument, range, out var adjustedRange))
+        {
+            return Response.Results(adjustedRange);
+        }
+
+        return Response.NoFurtherHandling;
     }
 
     private async ValueTask<TextEditResponse> FixHtmlTextEditsAsync(

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading;
@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteWrapWithTagService
 {
-    ValueTask<RemoteResponse<bool>> IsValidWrapWithTagLocationAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, LinePositionSpan range, CancellationToken cancellationToken);
-    
+    ValueTask<RemoteResponse<LinePositionSpan>> GetValidWrappingRangeAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, LinePositionSpan range, CancellationToken cancellationToken);
+
     ValueTask<RemoteResponse<TextEdit[]?>> FixHtmlTextEditsAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, TextEdit[] textEdits, CancellationToken cancellationToken);
 }
