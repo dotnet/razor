@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -44,19 +44,39 @@ public static class DocumentIntermediateNodeExtensions
 
     public static IReadOnlyList<IntermediateNodeReference> FindDirectiveReferences(this DocumentIntermediateNode node, DirectiveDescriptor directive)
     {
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
+        ArgHelper.ThrowIfNull(node);
+        ArgHelper.ThrowIfNull(directive);
 
-        if (directive == null)
-        {
-            throw new ArgumentNullException(nameof(directive));
-        }
+        using var results = new PooledArrayBuilder<IntermediateNodeReference>();
+        node.CollectDirectiveReferences(directive, ref results.AsRef());
 
-        var visitor = new DirectiveVisitor(directive);
-        visitor.Visit(node);
-        return visitor.Directives;
+        return results.ToImmutableAndClear();
+    }
+
+    internal static void CollectDirectiveReferences(this DocumentIntermediateNode document, DirectiveDescriptor directive, ref PooledArrayBuilder<IntermediateNodeReference> references)
+    {
+        using var stack = new PooledArrayBuilder<(IntermediateNode node, IntermediateNode parent)>();
+
+        stack.Push((document, null!));
+
+        while (stack.Count > 0)
+        {
+            var (node, parent) = stack.Pop();
+
+            if (node is DirectiveIntermediateNode directiveNode &&
+                directiveNode.Directive == directive)
+            {
+                references.Add(new IntermediateNodeReference(parent, node));
+            }
+
+            var children = node.Children;
+
+            // Push children on the stack in reverse order so they are processed in the original order.
+            for (var i = children.Count - 1; i >= 0; i--)
+            {
+                stack.Push((children[i], node));
+            }
+        }
     }
 
     public static ImmutableArray<IntermediateNodeReference> FindDescendantReferences<TNode>(this DocumentIntermediateNode document)
@@ -130,27 +150,5 @@ public static class DocumentIntermediateNodeExtensions
         }
 
         return null;
-    }
-
-    private class DirectiveVisitor : IntermediateNodeWalker
-    {
-        private readonly DirectiveDescriptor _directive;
-
-        public DirectiveVisitor(DirectiveDescriptor directive)
-        {
-            _directive = directive;
-        }
-
-        public List<IntermediateNodeReference> Directives = new List<IntermediateNodeReference>();
-
-        public override void VisitDirective(DirectiveIntermediateNode node)
-        {
-            if (_directive == node.Directive)
-            {
-                Directives.Add(new IntermediateNodeReference(Parent, node));
-            }
-
-            base.VisitDirective(node);
-        }
     }
 }
