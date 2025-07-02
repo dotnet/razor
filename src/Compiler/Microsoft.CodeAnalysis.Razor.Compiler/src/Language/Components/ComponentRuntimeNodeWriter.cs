@@ -102,7 +102,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             context.CodeWriter
                 .Write(methodInvocation)
                 .WriteParameterSeparator();
-        
+
             if (firstCSharpChild is not null)
             {
                 context.CodeWriter.Write(firstCSharpChild.Content);
@@ -151,7 +151,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         // ... so to avoid losing whitespace, convert the prefix to a further token in the list
         if (!string.IsNullOrEmpty(node.Prefix))
         {
-            _currentAttributeValues.Add(new IntermediateToken() { Kind = TokenKind.Html, Content = node.Prefix });
+            _currentAttributeValues.Add(IntermediateNodeFactory.HtmlToken(node.Prefix));
         }
 
         for (var i = 0; i < node.Children.Count; i++)
@@ -306,7 +306,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         }
 
         var stringContent = ((IntermediateToken)node.Children.Single()).Content;
-        _currentAttributeValues.Add(new IntermediateToken() { Kind = TokenKind.Html, Content = node.Prefix + stringContent, });
+        _currentAttributeValues.Add(IntermediateNodeFactory.HtmlToken(node.Prefix + stringContent));
     }
 
     public override void WriteHtmlContent(CodeRenderingContext context, HtmlContentIntermediateNode node)
@@ -1040,14 +1040,10 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             {
                 Source = node.Source,
                 Children =
-                    {
-                        node.IdentifierToken,
-                        new IntermediateToken
-                        {
-                            Kind = TokenKind.CSharp,
-                            Content = $" = {typecastIfNeeded}{refCaptureParamName};"
-                        }
-                    }
+                {
+                    node.IdentifierToken,
+                    IntermediateNodeFactory.CSharpToken( $" = {typecastIfNeeded}{refCaptureParamName};")
+                }
             });
         }
     }
@@ -1060,21 +1056,13 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         {
             Children =
             {
-                new IntermediateToken
-                {
-                    Kind = TokenKind.CSharp,
-                    Content = $"global::{ComponentsApi.IComponentRenderMode.FullTypeName} {_scopeStack.RenderModeVarName} = "
-                },
+                IntermediateNodeFactory.CSharpToken($"global::{ComponentsApi.IComponentRenderMode.FullTypeName} {_scopeStack.RenderModeVarName} = "),
                 new CSharpCodeIntermediateNode
                 {
                     Source = node.Source,
                     Children = { node.Children[0] }
                 },
-                new IntermediateToken
-                {
-                    Kind = TokenKind.CSharp,
-                    Content = ";"
-                }
+                IntermediateNodeFactory.CSharpToken(";")
             }
         });
     }

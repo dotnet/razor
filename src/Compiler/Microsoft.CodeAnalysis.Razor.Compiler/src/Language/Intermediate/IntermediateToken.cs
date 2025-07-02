@@ -19,8 +19,6 @@ public class IntermediateToken : IntermediateNode
 
     public TokenKind Kind { get; set; } = TokenKind.Unknown;
 
-    public static IntermediateToken CreateCSharpToken(string content, SourceSpan? location = null) => new IntermediateToken() { Content = content, Kind = TokenKind.CSharp, Source = location };
-
     public override void Accept(IntermediateNodeVisitor visitor)
     {
         if (visitor == null)
