@@ -14,14 +14,12 @@ internal sealed class RazorHtmlDocument : IRazorGeneratedDocument
 
     public RazorHtmlDocument(
         RazorCodeDocument codeDocument,
-        SourceText text,
-        ImmutableArray<SourceMapping> sourceMappings = default)
+        SourceText text)
     {
         ArgHelper.ThrowIfNull(codeDocument);
         ArgHelper.ThrowIfNull(text);
 
         CodeDocument = codeDocument;
         Text = text;
-        SourceMappings = sourceMappings.NullToEmpty();
     }
 }
