@@ -1,12 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Extensions;
 
@@ -20,16 +17,18 @@ public sealed class FunctionsDirectivePass : IntermediateNodePassBase, IRazorDir
             return;
         }
 
-        var directiveNodes = new List<IntermediateNodeReference>();
-        directiveNodes.AddRange(documentNode.FindDirectiveReferences(FunctionsDirective.Directive));
+        using var directiveNodes = new PooledArrayBuilder<IntermediateNodeReference>();
+
+        documentNode.CollectDirectiveReferences(FunctionsDirective.Directive, ref directiveNodes.AsRef());
 
         if (codeDocument.FileKind.IsComponent())
         {
-            directiveNodes.AddRange(documentNode.FindDirectiveReferences(ComponentCodeDirective.Directive));
+            documentNode.CollectDirectiveReferences(ComponentCodeDirective.Directive, ref directiveNodes.AsRef());
         }
 
         // Now we have all the directive nodes, we want to add them to the end of the class node in document order.
-        var orderedDirectives = directiveNodes.OrderBy(n => n.Node.Source?.AbsoluteIndex);
+        var orderedDirectives = directiveNodes.ToImmutableOrderedByAndClear(n => n.Node.Source?.AbsoluteIndex);
+
         foreach (var directiveReference in orderedDirectives)
         {
             var node = directiveReference.Node;
