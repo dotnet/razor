@@ -11,7 +11,7 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 [RazorLanguageServerEndpoint(Methods.InitializeName)]
-internal class RazorInitializeEndpoint() : IRazorDocumentlessRequestHandler<InitializeParams, InitializeResult>
+internal class RazorInitializeEndpoint : IRazorDocumentlessRequestHandler<InitializeParams, InitializeResult>
 {
     public bool MutatesSolutionState { get; } = true;
 
