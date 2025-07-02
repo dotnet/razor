@@ -122,19 +122,19 @@ public class RazorDocumentMappingBenchmark : RazorLanguageServerBenchmarkBase
     }
 
     // old code, copied from RazorDocumentMappingService before making changes
-    private bool TryMapToHostDocumentPosition(IRazorGeneratedDocument generatedDocument, int generatedDocumentIndex, out LinePosition hostDocumentPosition, out int hostDocumentIndex)
+    private bool TryMapToHostDocumentPosition(RazorCSharpDocument csharpDocument, int generatedDocumentIndex, out LinePosition hostDocumentPosition, out int hostDocumentIndex)
     {
-        if (generatedDocument is null)
+        if (csharpDocument is null)
         {
-            throw new ArgumentNullException(nameof(generatedDocument));
+            throw new ArgumentNullException(nameof(csharpDocument));
         }
 
-        if (generatedDocument.CodeDocument is not { } codeDocument)
+        if (csharpDocument.CodeDocument is not { } codeDocument)
         {
             throw new InvalidOperationException("Cannot use document mapping service on a generated document that has a null CodeDocument.");
         }
 
-        foreach (var mapping in generatedDocument.SourceMappings)
+        foreach (var mapping in csharpDocument.SourceMappings)
         {
             var generatedSpan = mapping.GeneratedSpan;
             var generatedAbsoluteIndex = generatedSpan.AbsoluteIndex;

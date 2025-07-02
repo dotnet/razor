@@ -118,11 +118,11 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         LspRange? hostDocumentRange;
         razorDocumentMappingService.Setup(
             r => r.TryMapToHostDocumentRange(
-                It.IsAny<IRazorGeneratedDocument>(),
+                It.IsAny<RazorCSharpDocument>(),
                 InRange,
                 It.IsAny<MappingBehavior>(),
                 out hostDocumentRange))
-            .Returns((IRazorGeneratedDocument generatedDocument, LspRange range, MappingBehavior mappingBehavior, out LspRange? actualOutRange) =>
+            .Returns((RazorCSharpDocument csharpDocument, LspRange range, MappingBehavior mappingBehavior, out LspRange? actualOutRange) =>
             {
                 actualOutRange = OutRange;
                 return true;
@@ -131,11 +131,11 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         LspRange? hostDocumentRange2;
         razorDocumentMappingService.Setup(
             r => r.TryMapToHostDocumentRange(
-                It.IsAny<IRazorGeneratedDocument>(),
+                It.IsAny<RazorCSharpDocument>(),
                 It.IsNotIn(InRange),
                 It.IsAny<MappingBehavior>(),
                 out hostDocumentRange2))
-            .Returns((IRazorGeneratedDocument generatedDocument, LspRange range, MappingBehavior mappingBehavior, out LspRange? actualOutRange) =>
+            .Returns((RazorCSharpDocument csharpDocument, LspRange range, MappingBehavior mappingBehavior, out LspRange? actualOutRange) =>
             {
                 actualOutRange = null;
                 return false;
