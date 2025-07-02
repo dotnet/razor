@@ -18,9 +18,7 @@ internal class ComponentSplatLoweringPass : ComponentIntermediateNodePassBase, I
             return;
         }
 
-        var references = documentNode.FindDescendantReferences<TagHelperDirectiveAttributeIntermediateNode>();
-
-        foreach (var reference in references)
+        foreach (var reference in documentNode.FindDescendantReferences<TagHelperDirectiveAttributeIntermediateNode>())
         {
             var node = (TagHelperDirectiveAttributeIntermediateNode)reference.Node;
             if (node.TagHelper.IsSplatTagHelper())

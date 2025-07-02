@@ -1097,12 +1097,12 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
     private static IntermediateToken GetAttributeContent(IntermediateNode node)
     {
         var nodes = node.FindDescendantNodes<TemplateIntermediateNode>();
-        var template = nodes.Count > 0 ? nodes[0] : default;
+        var template = nodes.Length > 0 ? nodes[0] : default;
         if (template != null)
         {
             // See comments in TemplateDiagnosticPass
             node.AddDiagnostic(ComponentDiagnosticFactory.Create_TemplateInvalidLocation(template.Source));
-            return new IntermediateToken() { Kind = TokenKind.CSharp, Content = string.Empty, };
+            return new IntermediateToken() { Kind = TokenKind.CSharp, Content = string.Empty };
         }
 
         if (node.Children[0] is HtmlContentIntermediateNode htmlContentNode)

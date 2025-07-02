@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -156,7 +157,7 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
     private static IntermediateNode RewriteUsage(IntermediateNode parent, TagHelperDirectiveAttributeIntermediateNode node)
     {
         var original = GetAttributeContent(node);
-        if (original.Count == 0)
+        if (original.Length == 0)
         {
             // This can happen in error cases, the parser will already have flagged this
             // as an error, so ignore it.
@@ -171,8 +172,8 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
         // correct context for intellisense when typing in the attribute.
         var eventArgsType = node.TagHelper.GetEventArgsType();
 
-        using var _ = ListPool<IntermediateToken>.GetPooledObject(out var tokens);
-        tokens.SetCapacityIfLarger(original.Count + 2);
+        using var tokens = new PooledArrayBuilder<IntermediateToken>(original.Length + 2);
+        tokens.SetCapacityIfLarger(original.Length + 2);
 
         tokens.Add(
             new IntermediateToken()
@@ -181,10 +182,7 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
                 Kind = TokenKind.CSharp
             });
 
-        for (var i = 0; i < original.Count; i++)
-        {
-            tokens.Add(original[i]);
-        }
+        tokens.AddRange(original);
 
         tokens.Add(
             new IntermediateToken()
@@ -240,15 +238,15 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
         }
     }
 
-    private static IReadOnlyList<IntermediateToken> GetAttributeContent(IntermediateNode node)
+    private static ImmutableArray<IntermediateToken> GetAttributeContent(IntermediateNode node)
     {
         var nodes = node.FindDescendantNodes<TemplateIntermediateNode>();
-        var template = nodes.Count > 0 ? nodes[0] : default;
+        var template = nodes.Length > 0 ? nodes[0] : null;
         if (template != null)
         {
             // See comments in TemplateDiagnosticPass
             node.AddDiagnostic(ComponentDiagnosticFactory.Create_TemplateInvalidLocation(template.Source));
-            return new[] { new IntermediateToken() { Kind = TokenKind.CSharp, Content = string.Empty, }, };
+            return [new IntermediateToken() { Kind = TokenKind.CSharp, Content = string.Empty }];
         }
 
         if (node.Children.Count == 1 && node.Children[0] is HtmlContentIntermediateNode htmlContentNode)
@@ -258,12 +256,10 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
             var tokens = htmlContentNode.FindDescendantNodes<IntermediateToken>();
 
             var content = "\"" + string.Join(string.Empty, tokens.Select(t => t.Content.Replace("\"", "\\\""))) + "\"";
-            return new[] { new IntermediateToken() { Content = content, Kind = TokenKind.CSharp, } };
+            return [new IntermediateToken() { Content = content, Kind = TokenKind.CSharp }];
         }
-        else
-        {
-            return node.FindDescendantNodes<IntermediateToken>();
-        }
+
+        return node.FindDescendantNodes<IntermediateToken>();
     }
 
     private static IntermediateNode RewriteParameterUsage(TagHelperDirectiveAttributeParameterIntermediateNode node)
