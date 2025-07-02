@@ -61,7 +61,7 @@
 "Description"="Uses the Razor language server that is cohosted in Roslyn to provide some Razor tooling functionality."
 "Value"=dword:00000000
 "Title"="Use Roslyn Cohost server for Razor (requires restart)"
-"PreviewPaneChannels"="IntPreview,int.main"
+"PreviewPaneChannels"="*"
 
 [$RootKey$\FeatureFlags\Razor\LSP\ForceRuntimeCodeGeneration]
 "Description"="Enable combined design time/runtime code generation for Razor files"
