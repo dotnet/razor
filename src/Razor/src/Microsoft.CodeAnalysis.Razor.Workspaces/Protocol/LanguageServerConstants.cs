@@ -45,6 +45,8 @@ internal static class LanguageServerConstants
 
         public const string ExtractToNewComponent = nameof(ExtractToNewComponent);
 
+        public const string SimplifyTagToSelfClosing = nameof(SimplifyTagToSelfClosing);
+
         public const string CreateComponentFromTag = nameof(CreateComponentFromTag);
 
         public const string AddUsing = nameof(AddUsing);
