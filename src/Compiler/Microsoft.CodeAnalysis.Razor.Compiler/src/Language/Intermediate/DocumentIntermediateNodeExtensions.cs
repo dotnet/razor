@@ -1,10 +1,7 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -12,37 +9,54 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 public static class DocumentIntermediateNodeExtensions
 {
-    public static ClassDeclarationIntermediateNode FindPrimaryClass(this DocumentIntermediateNode node)
+    public static ClassDeclarationIntermediateNode? FindPrimaryClass(this DocumentIntermediateNode node)
     {
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
+        ArgHelper.ThrowIfNull(node);
 
         return FindNode<ClassDeclarationIntermediateNode>(node, static n => n.IsPrimaryClass);
     }
 
-    public static MethodDeclarationIntermediateNode FindPrimaryMethod(this DocumentIntermediateNode node)
+    public static MethodDeclarationIntermediateNode? FindPrimaryMethod(this DocumentIntermediateNode node)
     {
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
+        ArgHelper.ThrowIfNull(node);
 
         return FindNode<MethodDeclarationIntermediateNode>(node, static n => n.IsPrimaryMethod);
     }
 
-    public static NamespaceDeclarationIntermediateNode FindPrimaryNamespace(this DocumentIntermediateNode node)
+    public static NamespaceDeclarationIntermediateNode? FindPrimaryNamespace(this DocumentIntermediateNode node)
     {
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
+        ArgHelper.ThrowIfNull(node);
 
         return FindNode<NamespaceDeclarationIntermediateNode>(node, static n => n.IsPrimaryNamespace);
     }
 
-    public static IReadOnlyList<IntermediateNodeReference> FindDirectiveReferences(this DocumentIntermediateNode node, DirectiveDescriptor directive)
+    private static T? FindNode<T>(IntermediateNode node, Func<T, bool> predicate)
+        where T : IntermediateNode
+    {
+        using var stack = new PooledArrayBuilder<IntermediateNode>();
+        stack.Push(node);
+
+        while (stack.Count > 0)
+        {
+            node = stack.Pop();
+
+            if (node is T target && predicate(target))
+            {
+                return target;
+            }
+
+            // Push in reverse order so we process in original order.
+            var children = node.Children;
+            for (var i = children.Count - 1; i >= 0; i--)
+            {
+                stack.Push(children[i]);
+            }
+        }
+
+        return null;
+    }
+
+    public static ImmutableArray<IntermediateNodeReference> FindDirectiveReferences(this DocumentIntermediateNode node, DirectiveDescriptor directive)
     {
         ArgHelper.ThrowIfNull(node);
         ArgHelper.ThrowIfNull(directive);
@@ -129,26 +143,5 @@ public static class DocumentIntermediateNodeExtensions
                 }
             }
         }
-    }
-
-    private static T FindNode<T>(IntermediateNode node, Func<T, bool> predicate)
-        where T : IntermediateNode
-    {
-        if (node is T target && predicate(target))
-        {
-            return target;
-        }
-
-        foreach (var child in node.Children)
-        {
-            var result = FindNode<T>(child, predicate);
-
-            if (result != null)
-            {
-                return result;
-            }
-        }
-
-        return null;
     }
 }
