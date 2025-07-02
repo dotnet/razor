@@ -5,6 +5,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -57,17 +59,56 @@ public static class DocumentIntermediateNodeExtensions
         return visitor.Directives;
     }
 
-    public static IReadOnlyList<IntermediateNodeReference> FindDescendantReferences<TNode>(this DocumentIntermediateNode document)
+    public static ImmutableArray<IntermediateNodeReference> FindDescendantReferences<TNode>(this DocumentIntermediateNode document)
         where TNode : IntermediateNode
     {
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgHelper.ThrowIfNull(document);
 
-        var visitor = new ReferenceVisitor<TNode>();
-        visitor.Visit(document);
-        return visitor.References;
+        using var results = new PooledArrayBuilder<IntermediateNodeReference>();
+        document.CollectDescendantReferences<TNode>(ref results.AsRef());
+
+        return results.ToImmutableAndClear();
+    }
+
+    internal static void CollectDescendantReferences<TNode>(this DocumentIntermediateNode document, ref PooledArrayBuilder<IntermediateNodeReference> references)
+        where TNode : IntermediateNode
+    {
+        // Use a post-order traversal because references are used to replace nodes, and thus
+        // change the parent nodes.
+        //
+        // This ensures that we always operate on the leaf nodes first.
+
+        using var stack = new PooledArrayBuilder<(IntermediateNode node, IntermediateNode parent, bool visited)>();
+
+        stack.Push((document, null!, false));
+
+        while (stack.Count > 0)
+        {
+            // Pop the top of the stack and see if this node has been visited.
+            var (node, parent, visited) = stack.Pop();
+
+            if (visited)
+            {
+                // We've already visited the children, so process this node.
+                if (node is TNode && parent != null)
+                {
+                    references.Add(new IntermediateNodeReference(parent, node));
+                }
+            }
+            else
+            {
+                // Push back on the stack and mark as visited.
+                stack.Push((node, parent, true));
+
+                var children = node.Children;
+
+                // Push the children in reverse order so they are processed in the original order.
+                for (var i = children.Count - 1; i >= 0; i--)
+                {
+                    stack.Push((children[i], node, false));
+                }
+            }
+        }
     }
 
     private static T FindNode<T>(IntermediateNode node, Func<T, bool> predicate)
@@ -110,26 +151,6 @@ public static class DocumentIntermediateNodeExtensions
             }
 
             base.VisitDirective(node);
-        }
-    }
-
-    private class ReferenceVisitor<TNode> : IntermediateNodeWalker
-        where TNode : IntermediateNode
-    {
-        public List<IntermediateNodeReference> References = new List<IntermediateNodeReference>();
-
-        public override void VisitDefault(IntermediateNode node)
-        {
-            base.VisitDefault(node);
-
-            // Use a post-order traversal because references are used to replace nodes, and thus
-            // change the parent nodes.
-            //
-            // This ensures that we always operate on the leaf nodes first.
-            if (node is TNode)
-            {
-                References.Add(new IntermediateNodeReference(Parent, node));
-            }
         }
     }
 }
