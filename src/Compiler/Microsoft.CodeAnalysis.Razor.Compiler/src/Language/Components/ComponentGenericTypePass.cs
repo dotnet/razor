@@ -175,8 +175,13 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
             List<CascadingGenericTypeParameter>? receivesCascadingGenericTypes = null;
             foreach (var uncoveredBindingKey in bindings.Keys.ToList())
             {
-                foreach (var candidateAncestor in Ancestors.OfType<ComponentIntermediateNode>())
+                foreach (var ancestor in Ancestors)
                 {
+                    if (ancestor is not ComponentIntermediateNode candidateAncestor)
+                    {
+                        continue;
+                    }
+
                     if (candidateAncestor.ProvidesCascadingGenericTypes != null
                         && candidateAncestor.ProvidesCascadingGenericTypes.TryGetValue(uncoveredBindingKey, out var genericTypeProvider))
                     {
@@ -247,7 +252,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
             // Next we need to generate a type inference 'method' node. This represents a method that we will codegen that
             // contains all of the operations on the render tree building. Calling a method to operate on the builder
             // will allow the C# compiler to perform type inference.
-            var documentNode = (DocumentIntermediateNode)Ancestors[Ancestors.Count - 1];
+            var documentNode = (DocumentIntermediateNode)Ancestors[^1];
             CreateTypeInferenceMethod(documentNode, node, receivesCascadingGenericTypes);
         }
 
