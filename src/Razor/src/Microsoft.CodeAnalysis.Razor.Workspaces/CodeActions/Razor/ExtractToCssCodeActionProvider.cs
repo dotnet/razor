@@ -65,14 +65,14 @@ internal class ExtractToCssCodeActionProvider(ILoggerFactory loggerFactory) : IR
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        if (textLiteral.LiteralTokens.All(t => t.IsWhitespace()))
+        if (textLiteral.LiteralTokens.All(static t => t.IsWhitespace()))
         {
             // If the text literal is all whitespace, we don't want to offer the action.
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         // If there are diagnostics, we can't trust the tree to be what we expect.
-        if (markupElement.GetDiagnostics().Any(d => d.Severity == RazorDiagnosticSeverity.Error))
+        if (markupElement.GetDiagnostics().Any(static d => d.Severity == RazorDiagnosticSeverity.Error))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }

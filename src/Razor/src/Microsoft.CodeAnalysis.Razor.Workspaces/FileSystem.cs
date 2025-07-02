@@ -20,6 +20,6 @@ internal sealed class FileSystem : IFileSystem
     public string ReadFile(string filePath)
         => File.ReadAllText(filePath);
 
-    public Stream ReadStream(string filePath)
+    public Stream OpenReadStream(string filePath)
         => new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
 }

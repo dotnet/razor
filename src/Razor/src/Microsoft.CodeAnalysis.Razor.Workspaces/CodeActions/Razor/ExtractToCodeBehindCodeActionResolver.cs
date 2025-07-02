@@ -41,13 +41,7 @@ internal class ExtractToCodeBehindCodeActionResolver(
 
         var path = FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath());
         var codeBehindPath = FileUtilities.GenerateUniquePath(path, $"{Path.GetExtension(path)}.cs");
-
-        // VS Code in Windows expects path to start with '/'
-        var updatedCodeBehindPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !codeBehindPath.StartsWith("/")
-            ? $"/{codeBehindPath}"
-            : codeBehindPath;
-
-        var codeBehindUri = LspFactory.CreateFilePathUri(updatedCodeBehindPath);
+        var codeBehindUri = LspFactory.CreateFilePathUri(codeBehindPath, _languageServerFeatureOptions);
 
         var text = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
 

@@ -38,13 +38,7 @@ internal class ExtractToCssCodeActionResolver(
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         var cssFilePath = $"{FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath())}.css";
-
-        // VS Code in Windows expects path to start with '/'
-        cssFilePath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !cssFilePath.StartsWith("/")
-            ? $"/{cssFilePath}"
-            : cssFilePath;
-
-        var cssFileUri = LspFactory.CreateFilePathUri(cssFilePath);
+        var cssFileUri = LspFactory.CreateFilePathUri(cssFilePath, _languageServerFeatureOptions);
 
         var text = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -97,7 +91,7 @@ internal class ExtractToCssCodeActionResolver(
 
     private void GetLastLineNumberAndLength(string cssFilePath, out int lastLineNumber, out int lastLineLength)
     {
-        using var stream = _fileSystem.ReadStream(cssFilePath);
+        using var stream = _fileSystem.OpenReadStream(cssFilePath);
         GetLastLineNumberAndLength(stream, bufferSize: 4096, out lastLineNumber, out lastLineLength);
     }
 
@@ -107,38 +101,35 @@ internal class ExtractToCssCodeActionResolver(
         lastLineLength = 0;
 
         using var _ = ArrayPool<char>.Shared.GetPooledArray(bufferSize, out var buffer);
-        using (var reader = new StreamReader(stream))
+        using var reader = new StreamReader(stream);
+
+        var currLineLength = 0;
+        var currLineNumber = 0;
+
+        int charsRead;
+        while ((charsRead = reader.Read(buffer, 0, buffer.Length)) > 0)
         {
-            var currLineLength = 0;
-            var currLineNumber = 0;
-
-            int charsRead;
-            while ((charsRead = reader.Read(buffer, 0, buffer.Length)) > 0)
+            var chunk = buffer.AsSpan(0, charsRead);
+            while (true)
             {
-                var chunk = buffer.AsSpan()[..charsRead];
-                while (true)
+                // Since we're only concerned with the last line length, we don't need to worry about \r\n. Strictly speaking,
+                // we're incorrectly counting the \r in the line length, but since the last line can't end with a \n (since that
+                // starts a new line) it doesn't actually change the output of the method.
+                var index = chunk.IndexOf('\n');
+                if (index == -1)
                 {
-                    // Since we're only concerned with the last line length, we don't need to worry about \r\n. Strictly speaking,
-                    // we're incorrectly counting the \r in the line length, but since the last line can't end with a \n (since that
-                    // starts a new line) it doesn't actually change the output of the method.
-                    var index = chunk.IndexOf('\n');
-                    if (index == -1)
-                    {
-                        currLineLength += chunk.Length;
-                        break;
-                    }
-                    else
-                    {
-                        currLineNumber++;
-                        currLineLength = 0;
-                        chunk = chunk[(index + 1)..];
-                    }
+                    currLineLength += chunk.Length;
+                    break;
                 }
-            }
 
-            lastLineNumber = currLineNumber;
-            lastLineLength = currLineLength;
+                currLineNumber++;
+                currLineLength = 0;
+                chunk = chunk[(index + 1)..];
+            }
         }
+
+        lastLineNumber = currLineNumber;
+        lastLineLength = currLineLength;
     }
 
     internal readonly struct TestAccessor
