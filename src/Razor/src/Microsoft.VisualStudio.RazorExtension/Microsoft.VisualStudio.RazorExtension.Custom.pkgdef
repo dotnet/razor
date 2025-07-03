@@ -63,12 +63,6 @@
 "Title"="Use Roslyn Cohost server for Razor (requires restart)"
 "PreviewPaneChannels"="IntPreview,int.main"
 
-[$RootKey$\FeatureFlags\Razor\LSP\ForceRuntimeCodeGeneration]
-"Description"="Enable combined design time/runtime code generation for Razor files"
-"Value"=dword:00000001
-"Title"="Force use of runtime code generation for Razor (requires restart)"
-"PreviewPaneChannels"="*"
-
 [$RootKey$\FeatureFlags\Razor\LSP\UseNewFormattingEngine]
 "Description"="Enables the new Razor formatting engine, which provides formatting results that more closely match C# formatting."
 "Value"=dword:00000001
