@@ -178,11 +178,6 @@ internal abstract class AbstractDocumentMappingService(ILogger logger) : IDocume
 
     public bool TryMapToCSharpDocumentRange(RazorCSharpDocument csharpDocument, LinePositionSpan razorRange, out LinePositionSpan csharpRange)
     {
-        if (csharpDocument.CodeDocument is not { } codeDocument)
-        {
-            throw new InvalidOperationException("Cannot use document mapping service on a generated document that has a null CodeDocument.");
-        }
-
         csharpRange = default;
 
         if (razorRange.End.Line < razorRange.Start.Line ||
@@ -194,7 +189,7 @@ internal abstract class AbstractDocumentMappingService(ILogger logger) : IDocume
             return false;
         }
 
-        var sourceText = codeDocument.Source.Text;
+        var sourceText = csharpDocument.CodeDocument.Source.Text;
         var range = razorRange;
         if (!IsRangeWithinDocument(range, sourceText))
         {
@@ -231,11 +226,6 @@ internal abstract class AbstractDocumentMappingService(ILogger logger) : IDocume
 
     public bool TryMapToRazorDocumentPosition(RazorCSharpDocument csharpDocument, int csharpIndex, out LinePosition razorPosition, out int razorIndex)
     {
-        if (csharpDocument.CodeDocument is not { } codeDocument)
-        {
-            throw new InvalidOperationException("Cannot use document mapping service on a generated document that has a null CodeDocument.");
-        }
-
         var sourceMappings = csharpDocument.SourceMappings;
 
         // We expect source mappings to be ordered by their generated document absolute index, because that is how the compiler creates them: As it
@@ -268,7 +258,7 @@ internal abstract class AbstractDocumentMappingService(ILogger logger) : IDocume
             var distanceIntoGeneratedSpan = csharpIndex - generatedAbsoluteIndex;
 
             razorIndex = mapping.OriginalSpan.AbsoluteIndex + distanceIntoGeneratedSpan;
-            razorPosition = codeDocument.Source.Text.GetLinePosition(razorIndex);
+            razorPosition = csharpDocument.CodeDocument.Source.Text.GetLinePosition(razorIndex);
             return true;
         }
 
@@ -285,11 +275,6 @@ internal abstract class AbstractDocumentMappingService(ILogger logger) : IDocume
 
     private static bool TryMapToCSharpDocumentPositionInternal(RazorCSharpDocument csharpDocument, int razorIndex, bool nextCSharpPositionOnFailure, out LinePosition csharpPosition, out int csharpIndex)
     {
-        if (csharpDocument.CodeDocument is not { } codeDocument)
-        {
-            throw new InvalidOperationException("Cannot use document mapping service on a generated document that has a null CodeDocument.");
-        }
-
         foreach (var mapping in csharpDocument.SourceMappings)
         {
             var originalSpan = mapping.OriginalSpan;
@@ -310,7 +295,7 @@ internal abstract class AbstractDocumentMappingService(ILogger logger) : IDocume
             {
                 // The "next" C# location is only valid if it is on the same line in the source document
                 // as the requested position.
-                var hostDocumentLinePosition = codeDocument.Source.Text.GetLinePosition(razorIndex);
+                var hostDocumentLinePosition = csharpDocument.CodeDocument.Source.Text.GetLinePosition(razorIndex);
 
                 if (mapping.OriginalSpan.LineIndex == hostDocumentLinePosition.Line)
                 {
@@ -364,11 +349,6 @@ internal abstract class AbstractDocumentMappingService(ILogger logger) : IDocume
 
     private bool TryMapToRazorDocumentRangeInclusive(RazorCSharpDocument csharpDocument, LinePositionSpan csharpRange, out LinePositionSpan rangeRange)
     {
-        if (csharpDocument.CodeDocument is not { } codeDocument)
-        {
-            throw new InvalidOperationException("Cannot use document mapping service on a generated document that has a null CodeDocument.");
-        }
-
         rangeRange = default;
 
         var csharpSourceText = csharpDocument.Text;
@@ -417,7 +397,7 @@ internal abstract class AbstractDocumentMappingService(ILogger logger) : IDocume
             // We're intersecting or overlapping a single mapping, lets choose that.
 
             var mapping = candidateMappings[0];
-            rangeRange = codeDocument.Source.Text.GetLinePositionSpan(mapping.OriginalSpan);
+            rangeRange = csharpDocument.CodeDocument.Source.Text.GetLinePositionSpan(mapping.OriginalSpan);
             return true;
         }
         else
@@ -442,11 +422,6 @@ internal abstract class AbstractDocumentMappingService(ILogger logger) : IDocume
 
     private bool TryMapToRazorDocumentRangeInferred(RazorCSharpDocument csharpDocument, LinePositionSpan csharpRange, out LinePositionSpan razorRange)
     {
-        if (csharpDocument.CodeDocument is not { } codeDocument)
-        {
-            throw new InvalidOperationException("Cannot use document mapping service on a generated document that has a null CodeDocument.");
-        }
-
         // Inferred mapping behavior is a superset of inclusive mapping behavior so if the range is "inclusive" lets use that mapping.
         if (TryMapToRazorDocumentRangeInclusive(csharpDocument, csharpRange, out razorRange))
         {
@@ -492,7 +467,7 @@ internal abstract class AbstractDocumentMappingService(ILogger logger) : IDocume
             return false;
         }
 
-        var sourceDocument = codeDocument.Source;
+        var sourceDocument = csharpDocument.CodeDocument.Source;
         var originalSpanBeforeGeneratedRange = mappingBeforeGeneratedRange.OriginalSpan;
         var originalEndBeforeGeneratedRange = originalSpanBeforeGeneratedRange.AbsoluteIndex + originalSpanBeforeGeneratedRange.Length;
         var inferredStartPosition = sourceDocument.Text.GetLinePosition(originalEndBeforeGeneratedRange);
