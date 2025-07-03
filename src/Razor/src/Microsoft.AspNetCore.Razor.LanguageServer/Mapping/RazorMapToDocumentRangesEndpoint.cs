@@ -51,7 +51,7 @@ internal sealed class RazorMapToDocumentRangesEndpoint(IDocumentMappingService d
             if (request.Kind is RazorLanguageKind.CSharp)
             {
                 var projectedRange = request.ProjectedRanges[i];
-                if (!_documentMappingService.TryMapToHostDocumentRange(csharpDocument, projectedRange, request.MappingBehavior, out originalRange))
+                if (!_documentMappingService.TryMapToRazorDocumentRange(csharpDocument, projectedRange, request.MappingBehavior, out originalRange))
                 {
                     // All language queries on unsupported documents return Html. This is equivalent to what pre-VSCode Razor was capable of.
                     ranges[i] = LspFactory.UndefinedRange;

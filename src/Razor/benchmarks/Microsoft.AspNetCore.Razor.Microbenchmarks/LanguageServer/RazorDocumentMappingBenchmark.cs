@@ -115,7 +115,7 @@ public class RazorDocumentMappingBenchmark : RazorLanguageServerBenchmarkBase
         LinePosition position = default;
         foreach (var index in Indexes)
         {
-            DocumentMappingService.TryMapToHostDocumentPosition(CSharpDocument, index, out position, out _);
+            DocumentMappingService.TryMapToRazorDocumentPosition(CSharpDocument, index, out position, out _);
         }
 
         return position;

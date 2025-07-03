@@ -10,15 +10,15 @@ namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 internal interface IDocumentMappingService
 {
-    IEnumerable<TextChange> GetHostDocumentEdits(RazorCSharpDocument csharpDocument, ImmutableArray<TextChange> generatedDocumentEdits);
+    IEnumerable<TextChange> GetRazorDocumentEdits(RazorCSharpDocument csharpDocument, ImmutableArray<TextChange> csharpChanges);
 
-    bool TryMapToHostDocumentRange(RazorCSharpDocument csharpDocument, LinePositionSpan generatedDocumentRange, MappingBehavior mappingBehavior, out LinePositionSpan hostDocumentRange);
+    bool TryMapToRazorDocumentRange(RazorCSharpDocument csharpDocument, LinePositionSpan csharpRange, MappingBehavior mappingBehavior, out LinePositionSpan razorRange);
 
-    bool TryMapToGeneratedDocumentRange(RazorCSharpDocument csharpDocument, LinePositionSpan hostDocumentRange, out LinePositionSpan generatedDocumentRange);
+    bool TryMapToCSharpDocumentRange(RazorCSharpDocument csharpDocument, LinePositionSpan razorRange, out LinePositionSpan csharpRange);
 
-    bool TryMapToHostDocumentPosition(RazorCSharpDocument csharpDocument, int generatedDocumentIndex, out LinePosition hostDocumentPosition, out int hostDocumentIndex);
+    bool TryMapToRazorDocumentPosition(RazorCSharpDocument csharpDocument, int csharpIndex, out LinePosition razorPosition, out int razorIndex);
 
-    bool TryMapToGeneratedDocumentPosition(RazorCSharpDocument csharpDocument, int hostDocumentIndex, out LinePosition generatedPosition, out int generatedIndex);
+    bool TryMapToCSharpDocumentPosition(RazorCSharpDocument csharpDocument, int razorIndex, out LinePosition csharpPosition, out int csharpIndex);
 
-    bool TryMapToGeneratedDocumentOrNextCSharpPosition(RazorCSharpDocument csharpDocument, int hostDocumentIndex, out LinePosition generatedPosition, out int generatedIndex);
+    bool TryMapToCSharpPositionOrNext(RazorCSharpDocument csharpDocument, int razorIndex, out LinePosition csharpPosition, out int csharpIndex);
 }

@@ -13,45 +13,45 @@ namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 internal static class IDocumentMappingServiceExtensions
 {
-    public static TextEdit[] GetHostDocumentEdits(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, TextEdit[] generatedDocumentEdits)
+    public static TextEdit[] GetRazorDocumentEdits(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, TextEdit[] csharpEdits)
     {
-        var generatedDocumentSourceText = csharpDocument.Text;
+        var csharpSourceText = csharpDocument.Text;
         var documentText = csharpDocument.CodeDocument.Source.Text;
 
-        var changes = generatedDocumentEdits.SelectAsArray(generatedDocumentSourceText.GetTextChange);
-        var mappedChanges = service.GetHostDocumentEdits(csharpDocument, changes);
+        var changes = csharpEdits.SelectAsArray(csharpSourceText.GetTextChange);
+        var mappedChanges = service.GetRazorDocumentEdits(csharpDocument, changes);
         return [.. mappedChanges.Select(documentText.GetTextEdit)];
     }
 
-    public static bool TryMapToHostDocumentRange(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, LinePositionSpan projectedRange, out LinePositionSpan originalRange)
-        => service.TryMapToHostDocumentRange(csharpDocument, projectedRange, MappingBehavior.Strict, out originalRange);
+    public static bool TryMapToRazorDocumentRange(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, LinePositionSpan csharpRange, out LinePositionSpan razorRange)
+        => service.TryMapToRazorDocumentRange(csharpDocument, csharpRange, MappingBehavior.Strict, out razorRange);
 
-    public static bool TryMapToHostDocumentRange(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, LspRange projectedRange, [NotNullWhen(true)] out LspRange? originalRange)
-        => service.TryMapToHostDocumentRange(csharpDocument, projectedRange, MappingBehavior.Strict, out originalRange);
+    public static bool TryMapToRazorDocumentRange(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, LspRange csharpRange, [NotNullWhen(true)] out LspRange? razorRange)
+        => service.TryMapToRazorDocumentRange(csharpDocument, csharpRange, MappingBehavior.Strict, out razorRange);
 
     public static DocumentPositionInfo GetPositionInfo(
         this IDocumentMappingService service,
         RazorCodeDocument codeDocument,
-        int hostDocumentIndex)
+        int razorIndex)
     {
         var sourceText = codeDocument.Source.Text;
 
         if (sourceText.Length == 0)
         {
-            Debug.Assert(hostDocumentIndex == 0);
+            Debug.Assert(razorIndex == 0);
 
             // Special case for empty documents, to just force Html. When there is no content, then there are no source mappings,
             // so the map call below fails, and we would default to Razor. This is fine for most cases, but empty documents are a
             // special case where Html provides much better results when users first start typing.
-            return new DocumentPositionInfo(RazorLanguageKind.Html, new Position(0, 0), hostDocumentIndex);
+            return new DocumentPositionInfo(RazorLanguageKind.Html, new Position(0, 0), razorIndex);
         }
 
-        var position = sourceText.GetPosition(hostDocumentIndex);
+        var position = sourceText.GetPosition(razorIndex);
 
-        var languageKind = codeDocument.GetLanguageKind(hostDocumentIndex, rightAssociative: false);
+        var languageKind = codeDocument.GetLanguageKind(razorIndex, rightAssociative: false);
         if (languageKind is RazorLanguageKind.CSharp)
         {
-            if (service.TryMapToGeneratedDocumentPosition(codeDocument.GetRequiredCSharpDocument(), hostDocumentIndex, out Position? mappedPosition, out _))
+            if (service.TryMapToCSharpDocumentPosition(codeDocument.GetRequiredCSharpDocument(), razorIndex, out Position? mappedPosition, out _))
             {
                 // For C# locations, we attempt to return the corresponding position
                 // within the projected document
@@ -66,41 +66,41 @@ internal static class IDocumentMappingServiceExtensions
             }
         }
 
-        return new DocumentPositionInfo(languageKind, position, hostDocumentIndex);
+        return new DocumentPositionInfo(languageKind, position, razorIndex);
     }
 
-    public static bool TryMapToHostDocumentRange(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, LspRange generatedDocumentRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out LspRange? hostDocumentRange)
+    public static bool TryMapToRazorDocumentRange(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, LspRange csharpRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out LspRange? razorRange)
     {
-        var result = service.TryMapToHostDocumentRange(csharpDocument, generatedDocumentRange.ToLinePositionSpan(), mappingBehavior, out var hostDocumentLinePositionSpan);
-        hostDocumentRange = result ? hostDocumentLinePositionSpan.ToRange() : null;
+        var result = service.TryMapToRazorDocumentRange(csharpDocument, csharpRange.ToLinePositionSpan(), mappingBehavior, out var razorLinePositionSpan);
+        razorRange = result ? razorLinePositionSpan.ToRange() : null;
         return result;
     }
 
-    public static bool TryMapToGeneratedDocumentRange(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, LspRange hostDocumentRange, [NotNullWhen(true)] out LspRange? generatedDocumentRange)
+    public static bool TryMapToCSharpDocumentRange(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, LspRange razorRange, [NotNullWhen(true)] out LspRange? csharpRange)
     {
-        var result = service.TryMapToGeneratedDocumentRange(csharpDocument, hostDocumentRange.ToLinePositionSpan(), out var generatedDocumentLinePositionSpan);
-        generatedDocumentRange = result ? generatedDocumentLinePositionSpan.ToRange() : null;
+        var result = service.TryMapToCSharpDocumentRange(csharpDocument, razorRange.ToLinePositionSpan(), out var csharpLinePositionSpan);
+        csharpRange = result ? csharpLinePositionSpan.ToRange() : null;
         return result;
     }
 
-    public static bool TryMapToHostDocumentPosition(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, int generatedDocumentIndex, [NotNullWhen(true)] out Position? hostDocumentPosition, out int hostDocumentIndex)
+    public static bool TryMapToRazorDocumentPosition(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, int csharpIndex, [NotNullWhen(true)] out Position? razorPosition, out int razorIndex)
     {
-        var result = service.TryMapToHostDocumentPosition(csharpDocument, generatedDocumentIndex, out var hostDocumentLinePosition, out hostDocumentIndex);
-        hostDocumentPosition = result ? hostDocumentLinePosition.ToPosition() : null;
+        var result = service.TryMapToRazorDocumentPosition(csharpDocument, csharpIndex, out var razorLinePosition, out razorIndex);
+        razorPosition = result ? razorLinePosition.ToPosition() : null;
         return result;
     }
 
-    public static bool TryMapToGeneratedDocumentPosition(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, int hostDocumentIndex, [NotNullWhen(true)] out Position? generatedPosition, out int generatedIndex)
+    public static bool TryMapToCSharpDocumentPosition(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, int razorIndex, [NotNullWhen(true)] out Position? csharpPosition, out int csharpIndex)
     {
-        var result = service.TryMapToGeneratedDocumentPosition(csharpDocument, hostDocumentIndex, out var generatedLinePosition, out generatedIndex);
-        generatedPosition = result ? generatedLinePosition.ToPosition() : null;
+        var result = service.TryMapToCSharpDocumentPosition(csharpDocument, razorIndex, out var csharpLinePosition, out csharpIndex);
+        csharpPosition = result ? csharpLinePosition.ToPosition() : null;
         return result;
     }
 
-    public static bool TryMapToGeneratedDocumentOrNextCSharpPosition(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, int hostDocumentIndex, [NotNullWhen(true)] out Position? generatedPosition, out int generatedIndex)
+    public static bool TryMapToCSharpPositionOrNext(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, int razorIndex, [NotNullWhen(true)] out Position? csharpPosition, out int csharpIndex)
     {
-        var result = service.TryMapToGeneratedDocumentOrNextCSharpPosition(csharpDocument, hostDocumentIndex, out var generatedLinePosition, out generatedIndex);
-        generatedPosition = result ? generatedLinePosition.ToPosition() : null;
+        var result = service.TryMapToCSharpPositionOrNext(csharpDocument, razorIndex, out var csharpLinePosition, out csharpIndex);
+        csharpPosition = result ? csharpLinePosition.ToPosition() : null;
         return result;
     }
 }

@@ -117,7 +117,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
 
         LspRange? hostDocumentRange;
         razorDocumentMappingService.Setup(
-            r => r.TryMapToHostDocumentRange(
+            r => r.TryMapToRazorDocumentRange(
                 It.IsAny<RazorCSharpDocument>(),
                 InRange,
                 It.IsAny<MappingBehavior>(),
@@ -130,7 +130,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
 
         LspRange? hostDocumentRange2;
         razorDocumentMappingService.Setup(
-            r => r.TryMapToHostDocumentRange(
+            r => r.TryMapToRazorDocumentRange(
                 It.IsAny<RazorCSharpDocument>(),
                 It.IsNotIn(InRange),
                 It.IsAny<MappingBehavior>(),

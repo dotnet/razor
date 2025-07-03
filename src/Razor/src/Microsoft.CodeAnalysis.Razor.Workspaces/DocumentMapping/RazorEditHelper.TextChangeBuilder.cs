@@ -59,7 +59,7 @@ internal static partial class RazorEditHelper
 
                 var linePositionSpan = csharpText.GetLinePositionSpan(edit.Span.ToTextSpan());
 
-                if (!_documentMappingService.TryMapToHostDocumentRange(
+                if (!_documentMappingService.TryMapToRazorDocumentRange(
                     csharpDocument,
                     linePositionSpan,
                     MappingBehavior.Strict,

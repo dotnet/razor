@@ -90,7 +90,7 @@ internal abstract class AbstractEditMappingService(
         foreach (var edit in edits)
         {
             var generatedRange = edit.Range;
-            if (!_documentMappingService.TryMapToHostDocumentRange(csharpDocument, generatedRange, MappingBehavior.Strict, out var hostDocumentRange))
+            if (!_documentMappingService.TryMapToRazorDocumentRange(csharpDocument, generatedRange, MappingBehavior.Strict, out var hostDocumentRange))
             {
                 // Can't map range. Discard this edit.
                 continue;
