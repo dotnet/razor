@@ -54,7 +54,7 @@ internal sealed class RazorHtmlWriter : SyntaxWalker
             source.Text.Length == text.Length,
             $"The backing HTML document should be the same length as the original document. Expected: {source.Text.Length} Actual: {text.Length}");
 
-        return new RazorHtmlDocument(codeDocument, text);
+        return new RazorHtmlDocument(text);
     }
 
     private void Visit(RazorSyntaxTree syntaxTree)
