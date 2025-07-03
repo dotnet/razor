@@ -59,6 +59,11 @@
         <target state="translated">Estrarre elemento nel nuovo componente</target>
         <note />
       </trans-unit>
+      <trans-unit id="ExtractTo_Css_Title">
+        <source>Extract to {0}.css</source>
+        <target state="new">Extract to {0}.css</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_operation_changed_diagnostics">
         <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
         <target state="translated">È in corso l'abbandono di un'operazione di formato perché comporterebbe l'introduzione o la rimozione di una o più operazioni di diagnostica.</target>

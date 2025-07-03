@@ -59,6 +59,11 @@
         <target state="translated">Öğeyi yeni bileşene ayıklayın</target>
         <note />
       </trans-unit>
+      <trans-unit id="ExtractTo_Css_Title">
+        <source>Extract to {0}.css</source>
+        <target state="new">Extract to {0}.css</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_operation_changed_diagnostics">
         <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
         <target state="translated">Bir veya daha fazla tanılamayı ortaya çıkarabileceği veya kaldırabileceği için biçimlendirme işlemi bırakılıyor.</target>

@@ -59,6 +59,11 @@
         <target state="translated">새 구성 요소에 요소 추출</target>
         <note />
       </trans-unit>
+      <trans-unit id="ExtractTo_Css_Title">
+        <source>Extract to {0}.css</source>
+        <target state="new">Extract to {0}.css</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_operation_changed_diagnostics">
         <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
         <target state="translated">서식 작업이 중단되는 이유는 진단 중 하나를 더 도입하거나 제거할 수 있기 때문입니다.</target>
