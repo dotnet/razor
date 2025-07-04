@@ -4,11 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Editor.Razor;
+using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
@@ -48,7 +51,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
         // At this point we've determined that completions have been requested for the name portion of the selected attribute.
 
-        var completionItems = GetAttributeCompletions(attributeName, containingTagName, attributes, context.TagHelperDocumentContext);
+        var completionItems = GetAttributeCompletions(owner, attributeName, containingTagName, attributes, context.TagHelperDocumentContext, context.Options);
 
         // We don't provide Directive Attribute completions when we're in the middle of
         // another unrelated (doesn't start with @) partially completed attribute.
@@ -63,10 +66,12 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
     // Internal for testing
     internal static ImmutableArray<RazorCompletionItem> GetAttributeCompletions(
+        RazorSyntaxNode containingAttribute,
         string selectedAttributeName,
         string containingTagName,
         ImmutableArray<string> attributes,
-        TagHelperDocumentContext tagHelperDocumentContext)
+        TagHelperDocumentContext tagHelperDocumentContext,
+        RazorCompletionOptions razorCompletionOptions)
     {
         var descriptorsForTag = TagHelperFacts.GetTagHelpersGivenTag(tagHelperDocumentContext, containingTagName, parentTag: null);
         if (descriptorsForTag.Length == 0)
@@ -123,12 +128,20 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             var startIndex = insertText.StartsWith('@') ? 1 : 0;
 
             // Indexer attribute, we don't want to insert with the triple dot.
-            var endIndex = insertText.EndsWith("...", StringComparison.Ordinal) ? ^3 : ^0;
+            (var endIndex, var attributePrefix) = insertText.EndsWith("...", StringComparison.Ordinal) ? (^3, true) : (^0, false);
 
             // Don't allocate a new string unless we need to make a change.
             if (startIndex > 0 || endIndex.Value > 0)
             {
                 insertText = insertText[startIndex..endIndex];
+            }
+
+            var isSnippet = false;
+            if (!attributePrefix // Don't even try to add snippet to something like "@bind-..."
+                && TryGetSnippetText(containingAttribute, insertText, razorCompletionOptions, out var snippetText))
+            {
+                insertText = snippetText;
+                isSnippet = true;
             }
 
             using var razorCommitCharacters = new PooledArrayBuilder<RazorCommitCharacter>(capacity: commitCharacters.Count);
@@ -142,12 +155,33 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                 displayText,
                 insertText,
                 descriptionInfo: new([.. attributeDescriptions]),
-                commitCharacters: razorCommitCharacters.ToImmutableAndClear());
+                commitCharacters: razorCommitCharacters.ToImmutableAndClear(),
+                isSnippet);
 
             completionItems.Add(razorCompletionItem);
         }
 
         return completionItems.ToImmutableAndClear();
+
+        bool TryGetSnippetText(
+            RazorSyntaxNode owner,
+            string baseText,
+            RazorCompletionOptions razorCompletionOptions,
+            [NotNullWhen(true)] out string? snippetText)
+        {
+            if (razorCompletionOptions.SnippetsSupported
+                // Don't create snippet text when attribute is already in the tag and we are trying to replace it
+                // Otherwise you could have something like @onabort=""=""
+                && containingAttribute is not (MarkupTagHelperDirectiveAttributeSyntax or MarkupAttributeBlockSyntax)
+                && containingAttribute.Parent is not (MarkupTagHelperDirectiveAttributeSyntax or MarkupAttributeBlockSyntax))
+            {
+                snippetText = razorCompletionOptions.AutoInsertAttributeQuotes ? $"{baseText}=\"$0\"" : $"{baseText}=$0";
+                return true;
+            }
+
+            snippetText = null;
+            return false;
+        }
 
         bool TryAddCompletion(string attributeName, BoundAttributeDescriptor boundAttributeDescriptor, TagHelperDescriptor tagHelperDescriptor)
         {
