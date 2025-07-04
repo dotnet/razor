@@ -16,7 +16,6 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
     private readonly Lazy<bool> _showAllCSharpCodeActions;
     private readonly Lazy<bool> _includeProjectKeyInGeneratedFilePath;
     private readonly Lazy<bool> _usePreciseSemanticTokenRanges;
-    private readonly Lazy<bool> _useRazorCohostServer;
     private readonly Lazy<bool> _useNewFormattingEngine;
 
     [ImportingConstructor]
@@ -50,13 +49,6 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
             return usePreciseSemanticTokenRanges;
         });
 
-        _useRazorCohostServer = new Lazy<bool>(() =>
-        {
-            var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var useRazorCohostServer = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.UseRazorCohostServer, defaultValue: false);
-            return useRazorCohostServer;
-        });
-
         _useNewFormattingEngine = new Lazy<bool>(() =>
         {
             var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
@@ -88,7 +80,7 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
 
     public override bool UsePreciseSemanticTokenRanges => _usePreciseSemanticTokenRanges.Value;
 
-    public override bool UseRazorCohostServer => _useRazorCohostServer.Value;
+    public override bool UseRazorCohostServer => true;
 
     public override bool UseNewFormattingEngine => _useNewFormattingEngine.Value;
 
