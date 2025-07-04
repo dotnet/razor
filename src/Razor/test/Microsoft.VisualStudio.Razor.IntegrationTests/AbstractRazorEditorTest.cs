@@ -48,6 +48,8 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutput) : Ab
 
         VisualStudioLogging.AddCustomLoggers();
 
+        await TestServices.Workspace.SetAutomaticSourceGeneratorExecutionAsync(ControlledHangMitigatingCancellationToken);
+
         // Our expected test results have spaces not tabs
         await TestServices.Shell.SetInsertSpacesAsync(ControlledHangMitigatingCancellationToken);
 
