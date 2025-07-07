@@ -54,6 +54,9 @@ internal class ComponentTemplateDiagnosticPass : ComponentIntermediateNodePassBa
                                 TagHelperDirectiveAttributeIntermediateNode) // Inside a directive attribute
                 {
                     _candidates.Add(new IntermediateNodeReference(Parent, node));
+
+                    // We found a candidate and can stop looking. There's no need to report multiple diagnostics for the same node.
+                    break;
                 }
             }
         }
