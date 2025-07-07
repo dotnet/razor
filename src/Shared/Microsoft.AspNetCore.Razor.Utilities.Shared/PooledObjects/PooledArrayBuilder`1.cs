@@ -255,15 +255,19 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     {
         if (value > Capacity)
         {
+            // For pooled arrays, we prefer exponential growth minimize the number of times
+            // the internal array has to be resized.
+            var newCapacity = Math.Max(value, Capacity * 2);
+
             if (TryGetBuilder(out var builder))
             {
-                Debug.Assert(value > builder.Capacity);
-                builder.Capacity = value;
+                Debug.Assert(newCapacity > builder.Capacity);
+                builder.Capacity = newCapacity;
             }
             else
             {
-                Debug.Assert(value > (_capacity ?? InlineCapacity));
-                _capacity = value;
+                Debug.Assert(newCapacity > (_capacity ?? InlineCapacity));
+                _capacity = newCapacity;
             }
         }
     }
