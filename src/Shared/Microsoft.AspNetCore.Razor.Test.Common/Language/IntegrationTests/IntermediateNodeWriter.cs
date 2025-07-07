@@ -21,7 +21,6 @@ public class IntermediateNodeWriter :
     IntermediateNodeVisitor,
     IExtensionIntermediateNodeVisitor<SectionIntermediateNode>,
     IExtensionIntermediateNodeVisitor<RouteAttributeExtensionNode>
-
 {
     private readonly TextWriter _writer;
 
@@ -284,9 +283,14 @@ public class IntermediateNodeWriter :
     protected void WriteName(IntermediateNode node)
     {
         var typeName = node.GetType().Name;
+
         if (typeName.EndsWith("IntermediateNode", StringComparison.Ordinal))
         {
             _writer.Write(typeName[..^"IntermediateNode".Length]);
+        }
+        else if (node is IntermediateToken token)
+        {
+            _writer.Write(token.IsLazy ? "LazyIntermediateToken" : "IntermediateToken");
         }
         else
         {

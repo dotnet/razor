@@ -3,21 +3,39 @@
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
-public class IntermediateToken : IntermediateNode
+public sealed class IntermediateToken : IntermediateNode
 {
     public TokenKind Kind { get; }
 
     public bool IsCSharp => Kind == TokenKind.CSharp;
     public bool IsHtml => Kind == TokenKind.Html;
 
-    public virtual string? Content { get; private set; }
+    public bool IsLazy { get; }
+
+    private object? _content;
+
+    public string? Content
+        => _content is LazyContent lazy ? lazy.Value : (string?)_content;
 
     public override IntermediateNodeCollection Children => IntermediateNodeCollection.ReadOnly;
 
     public IntermediateToken(TokenKind kind, string? content, SourceSpan? source)
     {
         Kind = kind;
-        Content = content;
+        _content = content;
+        IsLazy = false;
+
+        if (source != null)
+        {
+            Source = source;
+        }
+    }
+
+    internal IntermediateToken(TokenKind kind, LazyContent content, SourceSpan? source)
+    {
+        Kind = kind;
+        _content = content;
+        IsLazy = true;
 
         if (source != null)
         {
@@ -27,7 +45,7 @@ public class IntermediateToken : IntermediateNode
 
     public void UpdateContent(string content)
     {
-        Content = content;
+        _content = content;
     }
 
     public override void Accept(IntermediateNodeVisitor visitor)
