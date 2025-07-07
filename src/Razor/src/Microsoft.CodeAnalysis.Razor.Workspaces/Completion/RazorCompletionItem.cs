@@ -65,7 +65,7 @@ internal sealed class RazorCompletionItem
         string displayText, string insertText,
         AggregateBoundAttributeDescription descriptionInfo,
         ImmutableArray<RazorCommitCharacter> commitCharacters,
-        bool isSnippet = false)
+        bool isSnippet)
         => new(RazorCompletionItemKind.DirectiveAttribute, displayText, insertText, sortText: null, descriptionInfo, commitCharacters, isSnippet);
 
     public static RazorCompletionItem CreateDirectiveAttributeParameter(

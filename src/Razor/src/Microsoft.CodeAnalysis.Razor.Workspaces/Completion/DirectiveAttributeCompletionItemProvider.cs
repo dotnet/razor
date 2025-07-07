@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -120,28 +119,30 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
         foreach (var (displayText, (attributeDescriptions, commitCharacters)) in attributeCompletions)
         {
-            var insertText = displayText;
+            var insertTextSpan = displayText.AsSpan();
 
             // Strip off the @ from the insertion text. This change is here to align the insertion text with the
             // completion hooks into VS and VSCode. Basically, completion triggers when `@` is typed so we don't
             // want to insert `@bind` because `@` already exists.
-            var startIndex = insertText.StartsWith('@') ? 1 : 0;
-
-            // Indexer attribute, we don't want to insert with the triple dot.
-            (var endIndex, var attributePrefix) = insertText.EndsWith("...", StringComparison.Ordinal) ? (^3, true) : (^0, false);
-
-            // Don't allocate a new string unless we need to make a change.
-            if (startIndex > 0 || endIndex.Value > 0)
+            if (SpanExtensions.StartsWith(insertTextSpan, '@'))
             {
-                insertText = insertText[startIndex..endIndex];
+                insertTextSpan = insertTextSpan[1..];
             }
 
             var isSnippet = false;
-            if (!attributePrefix // Don't even try to add snippet to something like "@bind-..."
-                && TryGetSnippetText(containingAttribute, insertText, razorCompletionOptions, out var snippetText))
+            // Indexer attribute, we don't want to insert with the triple dot.
+            if (MemoryExtensions.EndsWith(insertTextSpan, "...".AsSpan()))
             {
-                insertText = snippetText;
-                isSnippet = true;
+                insertTextSpan = insertTextSpan[..^3];
+            }
+            else
+            {
+                // We are trying for snippet text only for non-indexer attributes, e.g. *not* something like "@bind-..."
+                if (TryGetSnippetText(containingAttribute, insertTextSpan, razorCompletionOptions, out var snippetTextSpan))
+                {
+                    insertTextSpan = snippetTextSpan;
+                    isSnippet = true;
+                }
             }
 
             using var razorCommitCharacters = new PooledArrayBuilder<RazorCommitCharacter>(capacity: commitCharacters.Count);
@@ -153,7 +154,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
             var razorCompletionItem = RazorCompletionItem.CreateDirectiveAttribute(
                 displayText,
-                insertText,
+                insertTextSpan.ToString(),
                 descriptionInfo: new([.. attributeDescriptions]),
                 commitCharacters: razorCommitCharacters.ToImmutableAndClear(),
                 isSnippet);
@@ -165,9 +166,9 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
         bool TryGetSnippetText(
             RazorSyntaxNode owner,
-            string baseText,
+            ReadOnlySpan<char> baseTextSpan,
             RazorCompletionOptions razorCompletionOptions,
-            [NotNullWhen(true)] out string? snippetText)
+            out ReadOnlySpan<char> snippetTextSpan)
         {
             if (razorCompletionOptions.SnippetsSupported
                 // Don't create snippet text when attribute is already in the tag and we are trying to replace it
@@ -175,11 +176,17 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                 && containingAttribute is not (MarkupTagHelperDirectiveAttributeSyntax or MarkupAttributeBlockSyntax)
                 && containingAttribute.Parent is not (MarkupTagHelperDirectiveAttributeSyntax or MarkupAttributeBlockSyntax))
             {
-                snippetText = razorCompletionOptions.AutoInsertAttributeQuotes ? $"{baseText}=\"$0\"" : $"{baseText}=$0";
+                var suffixTextSpan = razorCompletionOptions.AutoInsertAttributeQuotes ? "=\"$0\"".AsSpan() : "=$0".AsSpan();
+
+                var buffer = new char[baseTextSpan.Length + suffixTextSpan.Length];
+                baseTextSpan.CopyTo(buffer);
+                suffixTextSpan.CopyTo(buffer.AsSpan(baseTextSpan.Length));
+
+                snippetTextSpan = buffer.AsSpan();
                 return true;
             }
 
-            snippetText = null;
+            snippetTextSpan = [];
             return false;
         }
 

@@ -330,9 +330,8 @@ public class DirectiveAttributeCompletionItemProviderTest : RazorToolingIntegrat
                RazorCompletionItemKind.DirectiveAttribute == completion.Kind);
     }
 
-    private RazorCompletionContext CreateRazorCompletionContext(string testCodeText)
+    private RazorCompletionContext CreateRazorCompletionContext(TestCode testCode)
     {
-        var testCode = new TestCode(testCodeText);
         var codeDocument = GetCodeDocument(testCode.Text);
         var syntaxTree = codeDocument.GetRequiredSyntaxTree();
         var tagHelperContext = codeDocument.GetRequiredTagHelperContext();
