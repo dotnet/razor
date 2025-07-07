@@ -3,7 +3,7 @@
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
-public sealed class IntermediateToken : IntermediateNode
+public abstract class IntermediateToken : IntermediateNode
 {
     public TokenKind Kind { get; }
 
@@ -19,7 +19,7 @@ public sealed class IntermediateToken : IntermediateNode
 
     public override IntermediateNodeCollection Children => IntermediateNodeCollection.ReadOnly;
 
-    public IntermediateToken(TokenKind kind, string? content, SourceSpan? source)
+    protected IntermediateToken(TokenKind kind, string? content, SourceSpan? source)
     {
         Kind = kind;
         _content = content;
@@ -31,7 +31,7 @@ public sealed class IntermediateToken : IntermediateNode
         }
     }
 
-    internal IntermediateToken(TokenKind kind, LazyContent content, SourceSpan? source)
+    private protected IntermediateToken(TokenKind kind, LazyContent content, SourceSpan? source)
     {
         Kind = kind;
         _content = content;
