@@ -13,16 +13,16 @@ internal abstract class LazyContent
     {
     }
 
-    public abstract string? Value { get; }
+    public abstract string Value { get; }
 
-    public static LazyContent Create<T>(T arg, Func<T, string?> contentFactory)
+    public static LazyContent Create<T>(T arg, Func<T, string> contentFactory)
     {
         ArgHelper.ThrowIfNull(contentFactory);
 
         return new LazyContentImpl<T>(arg, contentFactory);
     }
 
-    private sealed class LazyContentImpl<T>(T arg, Func<T, string?> contentFactory) : LazyContent
+    private sealed class LazyContentImpl<T>(T arg, Func<T, string> contentFactory) : LazyContent
     {
         private const int Uninitialized = 0;
         private const int Computing = 1;
@@ -31,10 +31,10 @@ internal abstract class LazyContent
         private T _arg = arg;
         private Func<T, string?> _contentFactory = contentFactory;
 
-        private string? _value;
+        private string _value = null!;
         private int _state;
 
-        public override string? Value
+        public override string Value
         {
             get
             {
@@ -45,7 +45,7 @@ internal abstract class LazyContent
             }
         }
 
-        private string? GetOrComputeAndStoreValue()
+        private string GetOrComputeAndStoreValue()
         {
             SpinWait spinner = default;
 
@@ -57,7 +57,7 @@ internal abstract class LazyContent
                         Debug.Assert(_contentFactory is not null, "Content factory should not be null at this point.");
 
                         // This thread gets to compute the value and clear the references for GC.
-                        _value = _contentFactory(_arg);
+                        _value = _contentFactory(_arg) ?? string.Empty;
 
                         _arg = default!;
                         _contentFactory = null!;

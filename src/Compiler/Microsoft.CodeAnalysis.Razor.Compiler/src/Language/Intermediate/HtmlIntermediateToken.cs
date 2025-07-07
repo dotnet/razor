@@ -5,7 +5,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 public sealed class HtmlIntermediateToken : IntermediateToken
 {
-    public HtmlIntermediateToken(string? content, SourceSpan? source)
+    public HtmlIntermediateToken(string content, SourceSpan? source)
         : base(content, source)
     {
     }

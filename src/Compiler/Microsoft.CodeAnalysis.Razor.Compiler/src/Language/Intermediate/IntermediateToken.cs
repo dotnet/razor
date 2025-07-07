@@ -7,14 +7,14 @@ public abstract class IntermediateToken : IntermediateNode
 {
     public bool IsLazy { get; }
 
-    private object? _content;
+    private object _content;
 
-    public string? Content
-        => _content is LazyContent lazy ? lazy.Value : (string?)_content;
+    public string Content
+        => _content is LazyContent lazy ? lazy.Value : (string)_content;
 
     public override IntermediateNodeCollection Children => IntermediateNodeCollection.ReadOnly;
 
-    protected IntermediateToken(string? content, SourceSpan? source)
+    protected IntermediateToken(string content, SourceSpan? source)
     {
         _content = content;
         IsLazy = false;

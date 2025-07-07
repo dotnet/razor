@@ -136,7 +136,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                     if (child is CSharpIntermediateToken token)
                     {
                         context.AddSourceMappingFor(token);
-                        context.CodeWriter.Write(token.Content!);
+                        context.CodeWriter.Write(token.Content);
                     }
                     else
                     {
@@ -156,7 +156,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             {
                 if (child is CSharpIntermediateToken token)
                 {
-                    context.CodeWriter.Write(token.Content!);
+                    context.CodeWriter.Write(token.Content);
                 }
                 else
                 {
@@ -203,7 +203,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             if (child is CSharpIntermediateToken token)
             {
                 context.AddSourceMappingFor(token);
-                context.CodeWriter.Write(token.Content!);
+                context.CodeWriter.Write(token.Content);
             }
             else
             {
