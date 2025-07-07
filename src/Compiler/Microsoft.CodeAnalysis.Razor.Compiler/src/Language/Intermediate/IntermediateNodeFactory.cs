@@ -10,12 +10,12 @@ internal static class IntermediateNodeFactory
     public static CSharpIntermediateToken CSharpToken(string content, SourceSpan? source = null)
         => new(content, source);
 
-    public static CSharpIntermediateToken CSharpToken(object factoryArgument, Func<object, string> contentFactory, SourceSpan? source = null)
-        => new(LazyContent.Create(factoryArgument, contentFactory), source);
+    public static CSharpIntermediateToken CSharpToken<T>(T arg, Func<T, string> contentFactory, SourceSpan? source = null)
+        => new(LazyContent.Create(arg, contentFactory), source);
 
     public static HtmlIntermediateToken HtmlToken(string content, SourceSpan? source = null)
         => new(content, source);
 
-    public static HtmlIntermediateToken HtmlToken(object factoryArgument, Func<object, string> contentFactory, SourceSpan? source = null)
-        => new(LazyContent.Create(factoryArgument, contentFactory), source);
+    public static HtmlIntermediateToken HtmlToken<T>(T arg, Func<T, string> contentFactory, SourceSpan? source = null)
+        => new(LazyContent.Create(arg, contentFactory), source);
 }
