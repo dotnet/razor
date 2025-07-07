@@ -39,7 +39,7 @@ public class ModelExpressionPass : IntermediateNodePassBase, IRazorOptimizationP
 
                 expression.Children.Add(IntermediateNodeFactory.CSharpToken("ModelExpressionProvider.CreateModelExpression(ViewData, __model => "));
 
-                if (node.Children.Count == 1 && node.Children[0] is IntermediateToken token && token.IsCSharp)
+                if (node.Children.Count == 1 && node.Children[0] is CSharpIntermediateToken token)
                 {
                     // A 'simple' expression will look like __model => __model.Foo
 
@@ -55,8 +55,7 @@ public class ModelExpressionPass : IntermediateNodePassBase, IRazorOptimizationP
                         {
                             for (var j = 0; j < nestedExpression.Children.Count; j++)
                             {
-                                if (nestedExpression.Children[j] is IntermediateToken csharpToken &&
-                                    csharpToken.IsCSharp)
+                                if (nestedExpression.Children[j] is CSharpIntermediateToken csharpToken)
                                 {
                                     expression.Children.Add(csharpToken);
                                 }

@@ -67,7 +67,14 @@ public class IntermediateNodeWriter :
 
     public override void VisitToken(IntermediateToken node)
     {
-        WriteContentNode(node, node.Kind.ToString(), node.Content);
+        var kind = node switch
+        {
+            CSharpIntermediateToken => "CSharp",
+            HtmlIntermediateToken => "Html",
+            _ => "Unknown"
+        };
+
+        WriteContentNode(node, kind, node.Content);
     }
 
     public override void VisitMalformedDirective(MalformedDirectiveIntermediateNode node)

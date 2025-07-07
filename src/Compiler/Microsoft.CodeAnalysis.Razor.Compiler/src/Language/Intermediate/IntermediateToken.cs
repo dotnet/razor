@@ -5,11 +5,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 public abstract class IntermediateToken : IntermediateNode
 {
-    public TokenKind Kind { get; }
-
-    public bool IsCSharp => Kind == TokenKind.CSharp;
-    public bool IsHtml => Kind == TokenKind.Html;
-
     public bool IsLazy { get; }
 
     private object? _content;
@@ -19,9 +14,8 @@ public abstract class IntermediateToken : IntermediateNode
 
     public override IntermediateNodeCollection Children => IntermediateNodeCollection.ReadOnly;
 
-    protected IntermediateToken(TokenKind kind, string? content, SourceSpan? source)
+    protected IntermediateToken(string? content, SourceSpan? source)
     {
-        Kind = kind;
         _content = content;
         IsLazy = false;
 
@@ -31,9 +25,8 @@ public abstract class IntermediateToken : IntermediateNode
         }
     }
 
-    private protected IntermediateToken(TokenKind kind, LazyContent content, SourceSpan? source)
+    private protected IntermediateToken(LazyContent content, SourceSpan? source)
     {
-        Kind = kind;
         _content = content;
         IsLazy = true;
 

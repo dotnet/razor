@@ -6,12 +6,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 public sealed class CSharpIntermediateToken : IntermediateToken
 {
     public CSharpIntermediateToken(string? content, SourceSpan? source)
-        : base(TokenKind.CSharp, content, source)
+        : base(content, source)
     {
     }
 
     internal CSharpIntermediateToken(LazyContent content, SourceSpan? source)
-        : base(TokenKind.CSharp, content, source)
+        : base(content, source)
     {
     }
 }
