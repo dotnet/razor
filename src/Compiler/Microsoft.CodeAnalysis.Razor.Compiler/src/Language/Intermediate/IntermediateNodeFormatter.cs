@@ -71,7 +71,7 @@ public sealed class IntermediateNodeFormatter(
         {
             if (child is IntermediateToken token)
             {
-                WriteEscaped(token.Content);
+                WriteEscaped(token.Content!);
             }
         }
 

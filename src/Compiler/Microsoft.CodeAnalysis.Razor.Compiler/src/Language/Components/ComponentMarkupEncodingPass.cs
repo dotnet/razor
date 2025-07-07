@@ -140,7 +140,7 @@ internal class ComponentMarkupEncodingPass : ComponentIntermediateNodePassBase, 
                     continue;
                 }
 
-                token.Content = decodedContent[i];
+                token.UpdateContent(decodedContent[i]);
             }
         }
 
