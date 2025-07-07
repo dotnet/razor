@@ -172,8 +172,7 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
         // correct context for intellisense when typing in the attribute.
         var eventArgsType = node.TagHelper.GetEventArgsType();
 
-        using var tokens = new PooledArrayBuilder<IntermediateToken>(original.Length + 2);
-        tokens.SetCapacityIfLarger(original.Length + 2);
+        using var tokens = new PooledArrayBuilder<IntermediateToken>(capacity: original.Length + 2);
 
         tokens.Add(
             new IntermediateToken()

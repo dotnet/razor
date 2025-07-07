@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.Extensions.ObjectPool;
 
@@ -250,27 +249,6 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
     public readonly int Capacity
         => _builder?.Capacity ?? _capacity ?? InlineCapacity;
-
-    public void SetCapacityIfLarger(int value)
-    {
-        if (value > Capacity)
-        {
-            // For pooled arrays, we prefer exponential growth minimize the number of times
-            // the internal array has to be resized.
-            var newCapacity = Math.Max(value, Capacity * 2);
-
-            if (TryGetBuilder(out var builder))
-            {
-                Debug.Assert(newCapacity > builder.Capacity);
-                builder.Capacity = newCapacity;
-            }
-            else
-            {
-                Debug.Assert(newCapacity > (_capacity ?? InlineCapacity));
-                _capacity = newCapacity;
-            }
-        }
-    }
 
     public void Add(T item)
         => Insert(Count, item);
@@ -1600,7 +1578,11 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
         if (_capacity is int capacity)
         {
-            builder.SetCapacityIfLarger(capacity);
+            builder.Capacity = capacity;
+        }
+        else if (builder.Capacity < InlineCapacity)
+        {
+            builder.Capacity = InlineCapacity;
         }
 
         _builder = builder;
