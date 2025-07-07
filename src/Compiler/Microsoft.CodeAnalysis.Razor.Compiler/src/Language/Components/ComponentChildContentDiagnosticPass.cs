@@ -50,19 +50,16 @@ internal class ComponentChildContentDiagnosticPass : ComponentIntermediateNodePa
             if (node.IsParameterized)
             {
                 var ancestors = Ancestors;
-
                 var parentComponent = (ComponentIntermediateNode)ancestors[0];
-                ancestors = ancestors[1..];
 
-                while (!ancestors.IsEmpty)
+                // Skip the immediate parent component as we've already validated against it.
+                // Loop to ancestors.Length - 1 because we're always checking pairs.
+
+                for (var i = 1; i < ancestors.Length - 1; i++)
                 {
-                    if (ancestors is
-                        [
-                            ComponentChildContentIntermediateNode { IsParameterized: true } ancestor,
-                            ComponentIntermediateNode ancestorParentComponent,
-                            ..
-                        ]
-                        && ancestor.ParameterName == node.ParameterName)
+                    if (ancestors[i] is ComponentChildContentIntermediateNode { IsParameterized: true } ancestor &&
+                        ancestor.ParameterName == node.ParameterName &&
+                        ancestors[i + 1] is ComponentIntermediateNode ancestorParentComponent)
                     {
                         // Duplicate name. We report an error because this will almost certainly also lead to an error
                         // from the C# compiler that's way less clear.
@@ -73,8 +70,6 @@ internal class ComponentChildContentDiagnosticPass : ComponentIntermediateNodePa
                             childContent2: ancestor,
                             component2: ancestorParentComponent));
                     }
-
-                    ancestors = ancestors[1..];
                 }
             }
 
