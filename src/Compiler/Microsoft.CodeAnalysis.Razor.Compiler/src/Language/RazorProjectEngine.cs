@@ -387,7 +387,7 @@ public sealed class RazorProjectEngine
         configurationFeature.ConfigureClass.Add((document, @class) =>
         {
             @class.ClassName = "Template";
-            @class.Modifiers.Add("public");
+            @class.UpdateModifiers("public");
         });
 
         configurationFeature.ConfigureNamespace.Add((document, @namespace) =>

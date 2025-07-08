@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -61,19 +60,18 @@ public static class RazorProjectEngineBuilderExtensions
         feature.ConfigureClass.Clear();
         feature.ConfigureMethod.Clear();
 
-        feature.ConfigureNamespace.Add((RazorCodeDocument codeDocument, NamespaceDeclarationIntermediateNode node) =>
+        feature.ConfigureNamespace.Add((codeDocument, node) =>
         {
             node.Content = "Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles";
         });
 
-        feature.ConfigureClass.Add((RazorCodeDocument codeDocument, ClassDeclarationIntermediateNode node) =>
+        feature.ConfigureClass.Add((codeDocument, node) =>
         {
             node.ClassName = testFileName.Replace('/', '_');
-            node.Modifiers.Clear();
-            node.Modifiers.Add("public");
+            node.UpdateModifiers("public");
         });
 
-        feature.ConfigureMethod.Add((RazorCodeDocument codeDocument, MethodDeclarationIntermediateNode node) =>
+        feature.ConfigureMethod.Add((codeDocument, node) =>
         {
             node.Modifiers.Clear();
             node.Modifiers.Add("public");

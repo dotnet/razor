@@ -75,8 +75,8 @@ public class ComponentDocumentClassifierPassTest : RazorProjectEngineTestBase
         var documentNode = processor.GetDocumentNode();
         var classNode = documentNode.GetClassNode();
 
-        Assert.Equal($"global::{ComponentsApi.ComponentBase.FullTypeName}", classNode.BaseType.BaseType.Content);
-        Assert.Equal(["public", "partial"], classNode.Modifiers);
+        Assert.Equal($"global::{ComponentsApi.ComponentBase.FullTypeName}", classNode.BaseType?.BaseType.Content);
+        Assert.Equal<string>(["public", "partial"], classNode.Modifiers);
         Assert.Equal("Test", classNode.ClassName);
     }
 

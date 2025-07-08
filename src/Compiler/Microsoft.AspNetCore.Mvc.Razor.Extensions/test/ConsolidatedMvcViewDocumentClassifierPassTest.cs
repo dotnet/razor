@@ -53,7 +53,7 @@ public class ConsolidatedMvcViewDocumentClassifierPassTest : RazorProjectEngineT
         Assert.Equal("global::Microsoft.AspNetCore.Mvc.Razor.RazorPage", baseNode.BaseType.Content);
         Assert.NotNull(baseNode.ModelType);
         Assert.Equal("TModel", baseNode.ModelType.Content);
-        Assert.Equal(["internal", "sealed"], classNode.Modifiers);
+        Assert.Equal<string>(["internal", "sealed"], classNode.Modifiers);
         Assert.Equal("Test", classNode.ClassName);
     }
 
@@ -76,7 +76,7 @@ public class ConsolidatedMvcViewDocumentClassifierPassTest : RazorProjectEngineT
         Assert.Equal("global::Microsoft.AspNetCore.Mvc.Razor.RazorPage", baseNode.BaseType.Content);
         Assert.NotNull(baseNode.ModelType);
         Assert.Equal("TModel", baseNode.ModelType.Content);
-        Assert.Equal(["internal", "sealed"], classNode.Modifiers);
+        Assert.Equal<string>(["internal", "sealed"], classNode.Modifiers);
         AssertEx.Equal("AspNetCore_ec563e63d931b806184cb02f79875e4f3b21d1ca043ad06699424459128b58c0", classNode.ClassName);
     }
 
@@ -98,7 +98,7 @@ public class ConsolidatedMvcViewDocumentClassifierPassTest : RazorProjectEngineT
         var classNode = documentNode.GetClassNode();
 
         Assert.Equal(expected, classNode.ClassName);
-        Assert.Equal(["internal", "sealed"], classNode.Modifiers);
+        Assert.Equal<string>(["internal", "sealed"], classNode.Modifiers);
     }
 
     [Fact]

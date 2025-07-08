@@ -41,8 +41,7 @@ public class MvcViewDocumentClassifierPass : DocumentClassifierPassBase
         }
 
         @class.BaseType = new BaseTypeWithModel("global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<TModel>", location: null);
-        @class.Modifiers.Clear();
-        @class.Modifiers.Add("public");
+        @class.UpdateModifiers("public");
 
         method.MethodName = "ExecuteAsync";
         method.Modifiers.Clear();

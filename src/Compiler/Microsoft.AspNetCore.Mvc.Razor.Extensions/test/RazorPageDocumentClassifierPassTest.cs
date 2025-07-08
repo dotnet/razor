@@ -197,8 +197,8 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
         var documentNode = processor.GetDocumentNode();
         var classNode = documentNode.GetClassNode();
 
-        Assert.Equal("global::Microsoft.AspNetCore.Mvc.RazorPages.Page", classNode.BaseType.BaseType.Content);
-        Assert.Equal(["public"], classNode.Modifiers);
+        Assert.Equal("global::Microsoft.AspNetCore.Mvc.RazorPages.Page", classNode.BaseType?.BaseType.Content);
+        Assert.Equal<string>(["public"], classNode.Modifiers);
         Assert.Equal("Test", classNode.ClassName);
     }
 
@@ -217,8 +217,8 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
         var documentNode = processor.GetDocumentNode();
         var classNode = documentNode.GetClassNode();
 
-        Assert.Equal("global::Microsoft.AspNetCore.Mvc.RazorPages.Page", classNode.BaseType.BaseType.Content);
-        Assert.Equal(["public"], classNode.Modifiers);
+        Assert.Equal("global::Microsoft.AspNetCore.Mvc.RazorPages.Page", classNode.BaseType?.BaseType.Content);
+        Assert.Equal<string>(["public"], classNode.Modifiers);
         AssertEx.Equal("AspNetCore_c3b458108610c1a2aa6eede0a5685ede853e036732db515609b2a23ca15359e1", classNode.ClassName);
     }
 

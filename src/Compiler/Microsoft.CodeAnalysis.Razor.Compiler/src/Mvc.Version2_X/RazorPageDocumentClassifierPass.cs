@@ -70,8 +70,7 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
             @class.ClassName = CSharpIdentifier.GetClassNameFromPath(filePath);
         }
 
-        @class.Modifiers.Clear();
-        @class.Modifiers.Add("public");
+        @class.UpdateModifiers("public");
 
         method.MethodName = "ExecuteAsync";
         method.Modifiers.Clear();

@@ -459,11 +459,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
                 classNode = new ClassDeclarationIntermediateNode()
                 {
                     ClassName = "TypeInference",
-                    Modifiers =
-                        {
-                            "internal",
-                            "static",
-                        },
+                    Modifiers = ["internal", "static"],
                 };
                 namespaceNode.Children.Add(classNode);
             }

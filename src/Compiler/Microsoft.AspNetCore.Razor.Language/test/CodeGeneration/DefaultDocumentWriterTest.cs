@@ -1,9 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -175,17 +172,13 @@ public class DefaultDocumentWriterTest
         var builder = IntermediateNodeBuilder.Create(document);
         builder.Add(new ClassDeclarationIntermediateNode()
         {
-            Modifiers =
-            {
-                "internal"
-            },
+            Modifiers = ["internal"],
             BaseType = new BaseTypeWithModel("TestBase"),
             Interfaces = [IntermediateToken.CreateCSharpToken("IFoo"), IntermediateToken.CreateCSharpToken("IBar")],
-            TypeParameters = new List<TypeParameter>
-            {
-                new TypeParameter() { ParameterName = "TKey", },
-                new TypeParameter() { ParameterName = "TValue", },
-            },
+            TypeParameters = [
+                new TypeParameter() { ParameterName = "TKey" },
+                new TypeParameter() { ParameterName = "TValue" }
+            ],
             ClassName = "TestClass",
         });
 
@@ -222,17 +215,13 @@ public class DefaultDocumentWriterTest
         var builder = IntermediateNodeBuilder.Create(document);
         builder.Add(new ClassDeclarationIntermediateNode()
         {
-            Modifiers =
-            {
-                "internal"
-            },
+            Modifiers = ["internal"],
             BaseType = new BaseTypeWithModel("TestBase"),
             Interfaces = [IntermediateToken.CreateCSharpToken("IFoo"), IntermediateToken.CreateCSharpToken("IBar")],
-            TypeParameters = new List<TypeParameter>
-            {
-                new TypeParameter() { ParameterName = "TKey", },
-                new TypeParameter() { ParameterName = "TValue", },
-            },
+            TypeParameters = [
+                new TypeParameter() { ParameterName = "TKey" },
+                new TypeParameter() { ParameterName = "TValue" }
+            ],
             ClassName = "TestClass",
             NullableContext = true,
         });
@@ -272,17 +261,13 @@ public class DefaultDocumentWriterTest
         var builder = IntermediateNodeBuilder.Create(document);
         builder.Add(new ClassDeclarationIntermediateNode()
         {
-            Modifiers =
-                {
-                    "internal"
-                },
+            Modifiers = ["internal"],
             BaseType = new BaseTypeWithModel("TestBase"),
             Interfaces = [IntermediateToken.CreateCSharpToken("IFoo"), IntermediateToken.CreateCSharpToken("IBar")],
-            TypeParameters = new List<TypeParameter>
-                {
-                    new TypeParameter() { ParameterName = "TKey", Constraints = "where TKey : class" },
-                    new TypeParameter() { ParameterName = "TValue", Constraints = "where TValue : class" },
-                },
+            TypeParameters = [
+                new TypeParameter() { ParameterName = "TKey", Constraints = "where TKey : class" },
+                new TypeParameter() { ParameterName = "TValue", Constraints = "where TValue : class" }
+            ],
             ClassName = "TestClass",
         });
 

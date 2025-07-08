@@ -12,10 +12,7 @@ public class DocumentIntermediateNodeExtensionsTest
     {
         // Arrange
         var document = new DocumentIntermediateNode();
-        var @class = new ClassDeclarationIntermediateNode
-        {
-            IsPrimaryClass = true
-        };
+        var @class = new ClassDeclarationIntermediateNode(isPrimaryClass: true);
 
         var builder = IntermediateNodeBuilder.Create(document);
         builder.Add(@class);

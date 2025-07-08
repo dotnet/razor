@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -500,11 +501,11 @@ internal static class CodeWriterExtensions
 
     public static CSharpCodeWritingScope BuildClassDeclaration(
         this CodeWriter writer,
-        IList<string> modifiers,
+        ImmutableArray<string> modifiers,
         string name,
         BaseTypeWithModel baseType,
-        IList<IntermediateToken> interfaces,
-        IList<TypeParameter> typeParameters,
+        ImmutableArray<IntermediateToken> interfaces,
+        ImmutableArray<TypeParameter> typeParameters,
         CodeRenderingContext context,
         bool useNullableContext = false)
     {
@@ -515,35 +516,39 @@ internal static class CodeWriterExtensions
             writer.WriteLine("#nullable restore");
         }
 
-        for (var i = 0; i < modifiers.Count; i++)
+        foreach (var modifier in modifiers)
         {
-            writer.Write(modifiers[i]);
+            writer.Write(modifier);
             writer.Write(" ");
         }
 
         writer.Write("class ");
         writer.Write(name);
 
-        if (typeParameters != null && typeParameters.Count > 0)
+        if (!typeParameters.IsDefaultOrEmpty)
         {
             writer.Write("<");
 
-            for (var i = 0; i < typeParameters.Count; i++)
+            var first = true;
+
+            foreach (var typeParameter in typeParameters)
             {
-                var typeParameter = typeParameters[i];
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    writer.Write(",");
+                }
+
                 if (typeParameter.ParameterNameSource is { } source)
                 {
                     WriteWithPragma(writer, typeParameter.ParameterName, context, source);
                 }
                 else
                 {
-                    writer.Write(typeParameter.ParameterName);
-                }
-
-                // Write ',' between parameters, but not after them
-                if (i < typeParameters.Count - 1)
-                {
-                    writer.Write(",");
+                    writer.Write((string)typeParameter.ParameterName);
                 }
             }
 
@@ -551,7 +556,7 @@ internal static class CodeWriterExtensions
         }
 
         var hasBaseType = !string.IsNullOrWhiteSpace(baseType?.BaseType.Content);
-        var hasInterfaces = interfaces != null && interfaces.Count > 0;
+        var hasInterfaces = !interfaces.IsDefaultOrEmpty;
 
         if (hasBaseType || hasInterfaces)
         {
@@ -573,7 +578,8 @@ internal static class CodeWriterExtensions
             if (hasInterfaces)
             {
                 WriteToken(interfaces[0]);
-                for (var i = 1; i < interfaces.Count; i++)
+
+                for (var i = 1; i < interfaces.Length; i++)
                 {
                     writer.Write(", ");
                     WriteToken(interfaces[i]);
