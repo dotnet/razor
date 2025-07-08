@@ -36,7 +36,7 @@ public class InjectTargetExtension(bool considerNullabilityEnforcement) : IInjec
             {
                 context.CodeWriter.WriteLine(RazorInjectAttribute);
                 var memberName = node.MemberName ?? "Member_" + DefaultTagHelperTargetExtension.GetDeterministicId(context);
-                context.CodeWriter.WriteAutoPropertyDeclaration(["public"], node.TypeName, memberName, node.TypeSource, node.MemberSource, context, privateSetter: true, defaultValue: true);
+                context.WriteAutoPropertyDeclaration(["public"], node.TypeName, memberName, node.TypeSource, node.MemberSource, privateSetter: true, defaultValue: true);
             }
         }
         else if (!node.IsMalformed)

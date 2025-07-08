@@ -78,23 +78,26 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
                 value: null);
 
             // Add constructor.
-            WriteConstructorString(context.CodeWriter, node.ClassName);
+            WriteConstructorString(context, node.ClassName);
 
             // Add attributes.
-            WriteAttributeDeclarations(context.CodeWriter, node.TagHelper);
+            WriteAttributeDeclarations(context, node.TagHelper);
 
             // Add process method.
-            WriteProcessMethodString(context.CodeWriter, node.TagHelper);
+            WriteProcessMethodString(context, node.TagHelper);
         }
     }
 
-    private void WriteConstructorString(CodeWriter writer, string className)
+    private void WriteConstructorString(CodeRenderingContext context, string className)
     {
+        var writer = context.CodeWriter;
+
         writer.Write("public ")
             .Write(className)
             .Write("(")
             .Write($"{ViewComponentHelperTypeName} helper")
             .WriteLine(")");
+
         using (writer.BuildScope())
         {
             writer.WriteStartAssignment(ViewComponentHelperVariableName)
@@ -103,22 +106,24 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
         }
     }
 
-    private void WriteAttributeDeclarations(CodeWriter writer, TagHelperDescriptor tagHelper)
+    private void WriteAttributeDeclarations(CodeRenderingContext context, TagHelperDescriptor tagHelper)
     {
+        var writer = context.CodeWriter;
+
         writer.Write("[")
           .Write(HtmlAttributeNotBoundAttributeTypeName)
           .WriteParameterSeparator()
           .Write(ViewContextAttributeTypeName)
           .WriteLine("]");
 
-        writer.WriteAutoPropertyDeclaration(
+        context.WriteAutoPropertyDeclaration(
             s_modifiers,
             ViewContextTypeName,
             ViewContextPropertyName);
 
         foreach (var attribute in tagHelper.BoundAttributes)
         {
-            writer.WriteAutoPropertyDeclaration(
+            context.WriteAutoPropertyDeclaration(
                 s_modifiers,
                 attribute.TypeName,
                 attribute.GetPropertyName());
@@ -132,17 +137,19 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
         }
     }
 
-    private void WriteProcessMethodString(CodeWriter writer, TagHelperDescriptor tagHelper)
+    private void WriteProcessMethodString(CodeRenderingContext context, TagHelperDescriptor tagHelper)
     {
+        var writer = context.CodeWriter;
+
         using (writer.BuildMethodDeclaration(
-                $"public override async",
-                $"global::{typeof(Task).FullName}",
-                TagHelperProcessMethodName,
-                new Dictionary<string, string>()
-                {
-                        { TagHelperContextTypeName, TagHelperContextVariableName },
-                        { TagHelperOutputTypeName, TagHelperOutputVariableName }
-                }))
+            $"public override async",
+            $"global::{typeof(Task).FullName}",
+            TagHelperProcessMethodName,
+            new Dictionary<string, string>()
+            {
+                { TagHelperContextTypeName, TagHelperContextVariableName },
+                { TagHelperOutputTypeName, TagHelperOutputVariableName }
+            }))
         {
             writer.WriteInstanceMethodInvocation(
                 $"({ViewComponentHelperVariableName} as {IViewContextAwareTypeName})?",

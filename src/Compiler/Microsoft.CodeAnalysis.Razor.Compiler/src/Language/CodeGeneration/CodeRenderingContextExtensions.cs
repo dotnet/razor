@@ -194,4 +194,85 @@ internal static class CodeRenderingContextExtensions
             }
         }
     }
+
+    public static void WritePropertyDeclaration(
+        this CodeRenderingContext context,
+        ImmutableArray<string> modifiers,
+        IntermediateToken type,
+        string propertyName,
+        string propertyExpression)
+    {
+        context.WritePropertyDeclarationPreamble(modifiers, type.Content, propertyName, type.Source, propertySpan: null);
+
+        var writer = context.CodeWriter;
+        writer.Write(" => ");
+        writer.Write(propertyExpression);
+        writer.WriteLine(";");
+    }
+
+    public static void WriteAutoPropertyDeclaration(
+        this CodeRenderingContext context,
+        ImmutableArray<string> modifiers,
+        string typeName,
+        string propertyName,
+        SourceSpan? typeSpan = null,
+        SourceSpan? propertySpan = null,
+        bool privateSetter = false,
+        bool defaultValue = false)
+    {
+        context.WritePropertyDeclarationPreamble(modifiers, typeName, propertyName, typeSpan, propertySpan);
+
+        var writer = context.CodeWriter;
+
+        writer.Write(" { get;");
+
+        if (privateSetter)
+        {
+            writer.Write(" private");
+        }
+
+        writer.Write(" set; }");
+        writer.WriteLine();
+
+        if (defaultValue && context?.Options.SuppressNullabilityEnforcement == false && context?.Options.DesignTime == false)
+        {
+            writer.WriteLine(" = default!;");
+        }
+    }
+
+    private static void WritePropertyDeclarationPreamble(
+        this CodeRenderingContext context,
+        ImmutableArray<string> modifiers,
+        string typeName,
+        string propertyName,
+        SourceSpan? typeSpan,
+        SourceSpan? propertySpan)
+    {
+        var writer = context.CodeWriter;
+
+        foreach (var modifier in modifiers)
+        {
+            writer.Write(modifier);
+            writer.Write(" ");
+        }
+
+        WriteToken(context, typeName, typeSpan);
+        writer.Write(" ");
+        WriteToken(context, propertyName, propertySpan);
+
+        static void WriteToken(CodeRenderingContext context, string content, SourceSpan? span)
+        {
+            if (span is not null && context.Options.DesignTime == false)
+            {
+                using (context.CodeWriter.BuildEnhancedLinePragma(span, context))
+                {
+                    context.CodeWriter.Write(content);
+                }
+            }
+            else
+            {
+                context.CodeWriter.Write(content);
+            }
+        }
+    }
 }

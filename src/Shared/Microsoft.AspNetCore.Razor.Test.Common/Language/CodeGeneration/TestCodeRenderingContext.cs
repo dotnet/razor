@@ -8,14 +8,15 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 public static class TestCodeRenderingContext
 {
     public static CodeRenderingContext Create(
-        RazorCodeGenerationOptions options,
+        RazorCodeGenerationOptions? options = null,
         RazorSourceDocument? source = null,
         IntermediateNodeWriter? nodeWriter = null)
     {
-        nodeWriter ??= new RuntimeNodeWriter();
+        options ??= RazorCodeGenerationOptions.Default;
         source ??= TestRazorSourceDocument.Create();
-        var documentNode = new DocumentIntermediateNode();
+        nodeWriter ??= new RuntimeNodeWriter();
 
+        var documentNode = new DocumentIntermediateNode();
         var context = new CodeRenderingContext(nodeWriter, source, documentNode, options);
         context.SetVisitor(new RenderChildrenVisitor(context.CodeWriter));
 

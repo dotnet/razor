@@ -351,67 +351,6 @@ internal static class CodeWriterExtensions
             .WriteEndMethodInvocation(endLine);
     }
 
-    public static CodeWriter WritePropertyDeclaration(this CodeWriter writer, IList<string> modifiers, IntermediateToken type, string propertyName, string propertyExpression, CodeRenderingContext context)
-    {
-        WritePropertyDeclarationPreamble(writer, modifiers, type.Content, propertyName, type.Source, propertySpan: null, context);
-        writer.Write(" => ");
-        writer.Write(propertyExpression);
-        writer.WriteLine(";");
-        return writer;
-    }
-
-    public static CodeWriter WriteAutoPropertyDeclaration(this CodeWriter writer, IList<string> modifiers, string typeName, string propertyName, SourceSpan? typeSpan = null, SourceSpan? propertySpan = null, CodeRenderingContext context = null, bool privateSetter = false, bool defaultValue = false)
-    {
-        ArgHelper.ThrowIfNull(modifiers);
-        ArgHelper.ThrowIfNull(typeName);
-        ArgHelper.ThrowIfNull(propertyName);
-
-        WritePropertyDeclarationPreamble(writer, modifiers, typeName, propertyName, typeSpan, propertySpan, context);
-
-        writer.Write(" { get;");
-        if (privateSetter)
-        {
-            writer.Write(" private");
-        }
-        writer.Write(" set; }");
-        writer.WriteLine();
-
-        if (defaultValue && context?.Options.SuppressNullabilityEnforcement == false && context?.Options.DesignTime == false)
-        {
-            writer.WriteLine(" = default!;");
-        }
-
-        return writer;
-    }
-
-    private static void WritePropertyDeclarationPreamble(CodeWriter writer, IList<string> modifiers, string typeName, string propertyName, SourceSpan? typeSpan, SourceSpan? propertySpan, CodeRenderingContext context)
-    {
-        for (var i = 0; i < modifiers.Count; i++)
-        {
-            writer.Write(modifiers[i]);
-            writer.Write(" ");
-        }
-
-        WriteToken(writer, typeName, typeSpan, context);
-        writer.Write(" ");
-        WriteToken(writer, propertyName, propertySpan, context);
-
-        static void WriteToken(CodeWriter writer, string content, SourceSpan? span, CodeRenderingContext context)
-        {
-            if (span is not null && context?.Options.DesignTime == false)
-            {
-                using (writer.BuildEnhancedLinePragma(span, context))
-                {
-                    writer.Write(content);
-                }
-            }
-            else
-            {
-                writer.Write(content);
-            }
-        }
-    }
-
     /// <summary>
     /// Writes an "@" character if the provided identifier needs escaping in c#
     /// </summary>
