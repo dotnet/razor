@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
-public sealed partial class CodeWriter : IDisposable
+public partial class CodeWriter : IDisposable
 {
     // This is the size of each "page", which are arrays of ReadOnlyMemory<char>.
     // This number was chosen arbitrarily as a "best guess". If changed, care should be
@@ -32,7 +32,7 @@ public sealed partial class CodeWriter : IDisposable
     // Note that LinkedList<T> was chosen to avoid copying for especially large generated code files.
     // In addition, because LinkedList<T> provides direct access to the last element, appending
     // is extremely efficient.
-    private readonly LinkedList<ReadOnlyMemory<char>[]> _pages;
+    protected readonly LinkedList<ReadOnlyMemory<char>[]> _pages;
     private int _pageOffset;
     private char? _lastChar;
 
@@ -320,7 +320,7 @@ public sealed partial class CodeWriter : IDisposable
     public CodeWriter WriteLine([InterpolatedStringHandlerArgument("")] ref WriteInterpolatedStringHandler handler)
         => WriteLine();
 
-    public SourceText GetText()
+    public virtual SourceText GetText()
     {
         using var reader = new Reader(_pages, Length);
         return SourceText.From(reader, Length, Encoding.UTF8);
@@ -332,74 +332,156 @@ public sealed partial class CodeWriter : IDisposable
         return new Reader(pages, pages.Count);
     }
 
-    private sealed class Reader(LinkedList<ReadOnlyMemory<char>[]> pages, int length) : TextReader
+    internal sealed class Reader(LinkedList<ReadOnlyMemory<char>[]> pages, int length) : TextReader
     {
+        private readonly LinkedList<ReadOnlyMemory<char>[]> _pages = pages;
         private LinkedListNode<ReadOnlyMemory<char>[]>? _page = pages.First;
-        private int _remainingLength = length;
         private int _chunkIndex;
         private int _charIndex;
+        private int _position;
 
-        public override int Read()
+        public int Length => length;
+
+        private void SetPositionToClosestKnownPosition(int position)
         {
-            if (!TryGetNextCharReadLocation(out var page, out var chunkIndex, out var charIndex))
+            if (position < _position / 2)
             {
-                return -1;
+                // Closest to the start
+                _page = _pages.First;
+                _chunkIndex = 0;
+                _charIndex = 0;
+                _position = 0;
+            }
+            else if (position > _position + ((Length - _position) / 2))
+            {
+                // Closest to the end
+                _page = null;
+                _chunkIndex = -1;
+                _charIndex = -1;
+                _position = Length;
+            }
+            else
+            {
+                // Somewhere in the middle, use the current position.
+            }
+        }
+
+        private void EnsurePositionAtOrBefore(int position)
+        {
+            if (_position <= position)
+            {
+                return;
+            }
+
+            var page = _page;
+            var chunkIndex = _chunkIndex;
+            int newPosition;
+
+            if (page is null)
+            {
+                page = _pages.Last!;
+                chunkIndex = page.Value.Length - 1;
+                newPosition = Length - page.Value[chunkIndex].Length;
+            }
+            else
+            {
+                newPosition = _position - _charIndex;
+            }
+
+            while (newPosition > position)
+            {
+                if (chunkIndex > 0)
+                {
+                    chunkIndex--;
+                }
+                else
+                {
+                    page = page.Previous!;
+                    chunkIndex = page.Value.Length - 1;
+                }
+
+                newPosition -= page.Value[chunkIndex].Length;
             }
 
             _page = page;
             _chunkIndex = chunkIndex;
-            _charIndex = charIndex + 1; // Increment the char index for the next read.
-            _remainingLength--;
-
-            return page.Value[chunkIndex].Span[charIndex];
+            _charIndex = 0;
+            _position = newPosition;
         }
 
-        public override int Peek()
+        private void EnsurePositionAt(int position)
         {
-            if (!TryGetNextCharReadLocation(out var page, out var chunkIndex, out var charIndex))
+            Debug.Assert(_page != null);
+
+            if (_position >= position)
+            {
+                return;
+            }
+
+            var page = _page;
+            var chunkIndex = _chunkIndex;
+            var newPosition = _position - _charIndex;
+            var chunkLength = page.Value[chunkIndex].Length;
+            while (newPosition + chunkLength <= position)
+            {
+                if (chunkIndex < page.Value.Length - 1)
+                {
+                    chunkIndex++;
+                }
+                else
+                {
+                    page = page.Next!;
+                    chunkIndex = 0;
+                }
+
+                newPosition += chunkLength;
+                chunkLength = page.Value[chunkIndex].Length;
+            }
+
+            _page = page;
+            _chunkIndex = chunkIndex;
+            _charIndex = position - newPosition;
+            _position = position;
+        }
+
+        public void SetPosition(int position)
+        {
+            ArgHelper.ThrowIfNegative(position);
+            ArgHelper.ThrowIfGreaterThan(position, Length);
+
+            SetPositionToClosestKnownPosition(position);
+            if (position == _position)
+            {
+                // If we are already at the position, no need to change anything.
+                return;
+            }
+
+            EnsurePositionAtOrBefore(position);
+            EnsurePositionAt(position);
+        }
+
+        public override int Read()
+        {
+            if (_page is null)
             {
                 return -1;
             }
 
-            return page.Value[chunkIndex].Span[charIndex];
+            var result = _page.Value[_chunkIndex].Span[_charIndex];
+            EnsurePositionAt(_position + 1);
+
+            return result;
         }
 
-        private bool TryGetNextCharReadLocation([NotNullWhen(true)] out LinkedListNode<ReadOnlyMemory<char>[]>? page, out int chunkIndex, out int charIndex)
+        public override int Peek()
         {
-            page = _page;
-            chunkIndex = _chunkIndex;
-            charIndex = _charIndex;
+            var (page, chunkIndex, charIndex, position) = (_page, _chunkIndex, _charIndex, _position);
 
-            if (page is null)
-            {
-                return false;
-            }
+            var result = Read();
 
-            do
-            {
-                var chunks = page.Value.AsSpan(chunkIndex);
+            (_page, _chunkIndex, _charIndex, _position) = (page, chunkIndex, charIndex, position);
 
-                foreach (var chunk in chunks)
-                {
-                    if (charIndex < chunk.Length)
-                    {
-                        return true;
-                    }
-
-                    chunkIndex++;
-                    charIndex = 0;
-                }
-
-                page = page.Next;
-                chunkIndex = 0;
-                charIndex = 0;
-            }
-            while (page is not null);
-
-            chunkIndex = -1;
-            charIndex = -1;
-
-            return false;
+            return result;
         }
 
         public override int Read(char[] buffer, int index, int count)
@@ -502,7 +584,7 @@ public sealed partial class CodeWriter : IDisposable
                 _charIndex = -1;
             }
 
-            _remainingLength -= charsWritten;
+            _position += charsWritten;
 
             return charsWritten;
         }
@@ -514,7 +596,8 @@ public sealed partial class CodeWriter : IDisposable
                 return string.Empty;
             }
 
-            var result = string.Create(_remainingLength, (_page, _chunkIndex, _charIndex), static (destination, state) =>
+            var remainingLength = Length - _position;
+            var result = string.Create(remainingLength, (_page, _chunkIndex, _charIndex), static (destination, state) =>
             {
                 var (page, chunkIndex, charIndex) = state;
 
@@ -558,7 +641,7 @@ public sealed partial class CodeWriter : IDisposable
             _page = null;
             _chunkIndex = -1;
             _charIndex = 1;
-            _remainingLength = 0;
+            _position = Length;
 
             return result;
         }

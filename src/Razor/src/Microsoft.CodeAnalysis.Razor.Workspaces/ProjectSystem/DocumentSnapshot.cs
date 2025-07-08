@@ -52,7 +52,16 @@ internal sealed class DocumentSnapshot : IDocumentSnapshot, ILegacyDocumentSnaps
         => _generatedOutputSource.TryGetValue(out result);
 
     public ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(CancellationToken cancellationToken)
-        => _generatedOutputSource.GetValueAsync(cancellationToken);
+        => GetGeneratedOutputAsync(previousSnapshot: null, cancellationToken);
+
+    public ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(DocumentSnapshot? previousSnapshot, CancellationToken cancellationToken)
+    {
+        RazorCodeDocument? previousCodeDocument = null;
+        if (previousSnapshot != null)
+            previousSnapshot.TryGetGeneratedOutput(out previousCodeDocument);
+
+        return _generatedOutputSource.GetValueAsync(previousCodeDocument, cancellationToken);
+    }
 
     public IDocumentSnapshot WithText(SourceText text)
     {

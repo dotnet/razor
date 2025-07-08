@@ -35,7 +35,8 @@ public sealed class CodeRenderingContext : IDisposable
         IntermediateNodeWriter nodeWriter,
         RazorSourceDocument sourceDocument,
         DocumentIntermediateNode documentNode,
-        RazorCodeGenerationOptions options)
+        RazorCodeGenerationOptions options,
+        RazorCSharpDocument? previousCSharpDocument = null)
     {
         ArgHelper.ThrowIfNull(nodeWriter);
         ArgHelper.ThrowIfNull(sourceDocument);
@@ -60,7 +61,7 @@ public sealed class CodeRenderingContext : IDisposable
         _linePragmas = ArrayBuilderPool<LinePragma>.Default.Get();
         _sourceMappings = ArrayBuilderPool<SourceMapping>.Default.Get();
 
-        CodeWriter = new CodeWriter(options);
+        CodeWriter = new CSharpCodeWriter(options, previousCSharpDocument);
     }
 
     public void Dispose()

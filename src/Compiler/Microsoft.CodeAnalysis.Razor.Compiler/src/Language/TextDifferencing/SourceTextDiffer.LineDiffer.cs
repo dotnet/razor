@@ -1,14 +1,16 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Text;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.TextDifferencing;
 
 internal partial class SourceTextDiffer
 {
-    private class LineDiffer : SourceTextDiffer
+    private class LineDiffer : TextDiffer
     {
         private readonly TextLineCollection _oldLines;
         private readonly TextLineCollection _newLines;
@@ -17,12 +19,17 @@ internal partial class SourceTextDiffer
         private char[] _newLineBuffer;
         private char[] _appendBuffer;
 
+        protected readonly SourceText OldText;
+        protected readonly SourceText NewText;
+
         protected override int OldSourceLength { get; }
         protected override int NewSourceLength { get; }
 
         public LineDiffer(SourceText oldText, SourceText newText)
-            : base(oldText, newText)
         {
+            OldText = oldText ?? throw new ArgumentNullException(nameof(oldText));
+            NewText = newText ?? throw new ArgumentNullException(nameof(newText));
+
             _oldLineBuffer = RentArray(1024);
             _newLineBuffer = RentArray(1024);
             _appendBuffer = RentArray(1024);
@@ -89,7 +96,7 @@ internal partial class SourceTextDiffer
         {
             if (edit.Kind == DiffEditKind.Insert)
             {
-                Assumes.NotNull(edit.NewTextPosition);
+                Assumed.NotNull(edit.NewTextPosition);
                 var newTextPosition = edit.NewTextPosition.GetValueOrDefault();
 
                 for (var i = 0; i < edit.Length; i++)

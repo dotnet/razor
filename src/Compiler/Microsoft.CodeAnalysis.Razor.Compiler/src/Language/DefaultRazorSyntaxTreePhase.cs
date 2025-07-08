@@ -15,7 +15,7 @@ internal class DefaultRazorSyntaxTreePhase : RazorEnginePhaseBase, IRazorSyntaxT
         Passes = Engine.GetFeatures<IRazorSyntaxTreePass>().OrderByAsArray(static x => x.Order);
     }
 
-    protected override void ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+    protected override void ExecuteCore(RazorCodeDocument codeDocument, RazorCodeDocument? previousCodeDocument, CancellationToken cancellationToken)
     {
         var syntaxTree = codeDocument.GetSyntaxTree();
         ThrowForMissingDocumentDependency(syntaxTree);

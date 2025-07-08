@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase, IRazorIntermediateNodeLoweringPhase
 {
-    protected override void ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+    protected override void ExecuteCore(RazorCodeDocument codeDocument, RazorCodeDocument previousCodeDocument, CancellationToken cancellationToken)
     {
         var syntaxTree = codeDocument.GetSyntaxTree();
         ThrowForMissingDocumentDependency(syntaxTree);

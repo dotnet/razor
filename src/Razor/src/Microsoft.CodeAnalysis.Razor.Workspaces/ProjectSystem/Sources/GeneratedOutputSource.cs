@@ -32,7 +32,7 @@ internal sealed class GeneratedOutputSource(DocumentSnapshot document)
         return output.TryGetTarget(out result);
     }
 
-    public async ValueTask<RazorCodeDocument> GetValueAsync(CancellationToken cancellationToken)
+    public async ValueTask<RazorCodeDocument> GetValueAsync(RazorCodeDocument? previousCodeDocument, CancellationToken cancellationToken)
     {
         if (TryGetValue(out var result))
         {
@@ -51,7 +51,7 @@ internal sealed class GeneratedOutputSource(DocumentSnapshot document)
             var compilerOptions = project.CompilerOptions;
 
             result = await CompilationHelpers
-                .GenerateCodeDocumentAsync(_document, projectEngine, compilerOptions, cancellationToken)
+                .GenerateCodeDocumentAsync(_document, projectEngine, compilerOptions, previousCodeDocument, cancellationToken)
                 .ConfigureAwait(false);
 
             if (_output is null)

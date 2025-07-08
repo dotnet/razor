@@ -32,14 +32,14 @@ public sealed class RazorEngine
         }
     }
 
-    public void Process(RazorCodeDocument codeDocument, CancellationToken cancellationToken = default)
+    public void Process(RazorCodeDocument codeDocument, RazorCodeDocument? previousCodeDocument = null, CancellationToken cancellationToken = default)
     {
         ArgHelper.ThrowIfNull(codeDocument);
 
         foreach (var phase in Phases)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            phase.Execute(codeDocument, cancellationToken);
+            phase.Execute(codeDocument, previousCodeDocument, cancellationToken);
         }
     }
 

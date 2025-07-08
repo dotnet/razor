@@ -16,6 +16,7 @@ internal static class CompilationHelpers
         IDocumentSnapshot document,
         RazorProjectEngine projectEngine,
         RazorCompilerOptions compilerOptions,
+        RazorCodeDocument? previousCodeDocument,
         CancellationToken cancellationToken)
     {
         var importSources = await GetImportSourcesAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);
@@ -23,7 +24,7 @@ internal static class CompilationHelpers
         var source = await document.GetSourceAsync(cancellationToken).ConfigureAwait(false);
 
         var generator = new CodeDocumentGenerator(projectEngine, compilerOptions);
-        return generator.Generate(source, document.FileKind, importSources, tagHelpers, cancellationToken);
+        return generator.Generate(source, document.FileKind, importSources, tagHelpers, previousCodeDocument, cancellationToken);
     }
 
     internal static async Task<RazorCodeDocument> GenerateDesignTimeCodeDocumentAsync(

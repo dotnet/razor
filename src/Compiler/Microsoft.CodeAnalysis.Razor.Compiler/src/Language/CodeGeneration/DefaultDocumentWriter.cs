@@ -13,7 +13,7 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
     private readonly CodeTarget _codeTarget = codeTarget;
     private readonly RazorCodeGenerationOptions _options = options;
 
-    public override RazorCSharpDocument WriteDocument(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
+    public override RazorCSharpDocument WriteDocument(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode, RazorCSharpDocument? previousCSharpDocument = null)
     {
         ArgHelper.ThrowIfNull(codeDocument);
         ArgHelper.ThrowIfNull(documentNode);
@@ -22,7 +22,8 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
             _codeTarget.CreateNodeWriter(),
             codeDocument.Source,
             documentNode,
-            _options);
+            _options,
+            previousCSharpDocument);
 
         context.SetVisitor(new Visitor(_codeTarget, context));
 

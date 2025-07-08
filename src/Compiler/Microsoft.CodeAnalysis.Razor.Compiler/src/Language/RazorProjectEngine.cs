@@ -62,7 +62,7 @@ public sealed class RazorProjectEngine
         ArgHelper.ThrowIfNull(projectItem);
 
         var codeDocument = CreateCodeDocumentCore(projectItem);
-        ProcessCore(codeDocument, cancellationToken);
+        ProcessCore(codeDocument, null, cancellationToken);
         return codeDocument;
     }
 
@@ -71,13 +71,14 @@ public sealed class RazorProjectEngine
         RazorFileKind fileKind,
         ImmutableArray<RazorSourceDocument> importSources,
         IReadOnlyList<TagHelperDescriptor>? tagHelpers,
+        RazorCodeDocument? previousCodeDocument = null,
         CancellationToken cancellationToken = default)
     {
         ArgHelper.ThrowIfNull(source);
         ArgHelper.ThrowIfNull(fileKind);
 
         var codeDocument = CreateCodeDocumentCore(source, fileKind, importSources, tagHelpers, cssScope: null, configureParser: null, configureCodeGeneration: null);
-        ProcessCore(codeDocument, cancellationToken);
+        ProcessCore(codeDocument, previousCodeDocument, cancellationToken);
         return codeDocument;
     }
 
@@ -90,7 +91,7 @@ public sealed class RazorProjectEngine
             builder.SuppressPrimaryMethodBody = true;
         });
 
-        ProcessCore(codeDocument, cancellationToken);
+        ProcessCore(codeDocument, null, cancellationToken);
         return codeDocument;
     }
 
@@ -109,7 +110,7 @@ public sealed class RazorProjectEngine
             builder.SuppressPrimaryMethodBody = true;
         });
 
-        ProcessCore(codeDocument, cancellationToken);
+        ProcessCore(codeDocument, null, cancellationToken);
         return codeDocument;
     }
 
@@ -118,7 +119,7 @@ public sealed class RazorProjectEngine
         ArgHelper.ThrowIfNull(projectItem);
 
         var codeDocument = CreateCodeDocumentDesignTimeCore(projectItem);
-        ProcessCore(codeDocument, cancellationToken);
+        ProcessCore(codeDocument, null, cancellationToken);
         return codeDocument;
     }
 
@@ -133,7 +134,7 @@ public sealed class RazorProjectEngine
         ArgHelper.ThrowIfNull(fileKind);
 
         var codeDocument = CreateCodeDocumentDesignTimeCore(source, fileKind, importSources, tagHelpers, configureParser: null, configureCodeGeneration: null);
-        ProcessCore(codeDocument, cancellationToken);
+        ProcessCore(codeDocument, null, cancellationToken);
         return codeDocument;
     }
 
@@ -277,11 +278,11 @@ public sealed class RazorProjectEngine
         return builder.ToOptions();
     }
 
-    private void ProcessCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+    private void ProcessCore(RazorCodeDocument codeDocument, RazorCodeDocument? previousCodeDocument, CancellationToken cancellationToken)
     {
         ArgHelper.ThrowIfNull(codeDocument);
 
-        Engine.Process(codeDocument, cancellationToken);
+        Engine.Process(codeDocument, previousCodeDocument, cancellationToken);
     }
 
     internal static RazorProjectEngine CreateEmpty(Action<RazorProjectEngineBuilder>? configure = null)

@@ -15,7 +15,7 @@ internal class DefaultRazorDocumentClassifierPhase : RazorEnginePhaseBase, IRazo
         Passes = Engine.GetFeatures<IRazorDocumentClassifierPass>().OrderByAsArray(p => p.Order);
     }
 
-    protected override void ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+    protected override void ExecuteCore(RazorCodeDocument codeDocument, RazorCodeDocument? previousCodeDocument, CancellationToken cancellationToken)
     {
         var documentNode = codeDocument.GetDocumentNode();
         ThrowForMissingDocumentDependency(documentNode);

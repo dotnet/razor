@@ -8,7 +8,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 internal class DefaultRazorParsingPhase : RazorEnginePhaseBase, IRazorParsingPhase
 {
-    protected override void ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+    protected override void ExecuteCore(RazorCodeDocument codeDocument, RazorCodeDocument? previousCodeDocument, CancellationToken cancellationToken)
     {
         var options = codeDocument.ParserOptions;
         var syntaxTree = RazorSyntaxTree.Parse(codeDocument.Source, options);

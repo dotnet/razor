@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
-public sealed partial class CodeWriter
+public partial class CodeWriter
 {
     [EditorBrowsable(EditorBrowsableState.Never)]
     [InterpolatedStringHandler]

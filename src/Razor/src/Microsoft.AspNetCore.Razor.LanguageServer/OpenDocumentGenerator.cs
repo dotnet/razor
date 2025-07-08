@@ -32,9 +32,9 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
     private readonly LanguageServerFeatureOptions _options;
     private readonly ILogger _logger;
 
-    private readonly AsyncBatchingWorkQueue<DocumentKey> _workQueue;
+    private readonly AsyncBatchingWorkQueue<(DocumentKey, DocumentSnapshot?)> _workQueue;
     private readonly CancellationTokenSource _disposeTokenSource;
-    private readonly HashSet<DocumentKey> _workerSet;
+    private readonly HashSet<(DocumentKey, DocumentSnapshot?)> _workerSet;
 
     // Note: This is likely to always be false. Only the Visual Studio ProjectSnapshotManager
     // is notified of the solution opening and closing, so the language server shouldn't
@@ -54,7 +54,7 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
 
         _workerSet = [];
         _disposeTokenSource = new();
-        _workQueue = new AsyncBatchingWorkQueue<DocumentKey>(
+        _workQueue = new AsyncBatchingWorkQueue<(DocumentKey, DocumentSnapshot?)>(
             s_delay,
             ProcessBatchAsync,
             _disposeTokenSource.Token);
@@ -74,11 +74,11 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
         _disposeTokenSource.Dispose();
     }
 
-    private async ValueTask ProcessBatchAsync(ImmutableArray<DocumentKey> items, CancellationToken token)
+    private async ValueTask ProcessBatchAsync(ImmutableArray<(DocumentKey, DocumentSnapshot?)> items, CancellationToken token)
     {
         _workerSet.Clear();
 
-        foreach (var key in items.GetMostRecentUniqueItems(_workerSet))
+        foreach (var (key, previousSnapshot) in items.GetMostRecentUniqueItems(_workerSet))
         {
             if (token.IsCancellationRequested)
             {
@@ -98,7 +98,7 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
 
             _logger.LogDebug($"Generating {key} at version {document.Version}");
 
-            var codeDocument = await document.GetGeneratedOutputAsync(token).ConfigureAwait(false);
+            var codeDocument = await document.GetGeneratedOutputAsync(previousSnapshot, token).ConfigureAwait(false);
 
             foreach (var listener in _listeners)
             {
@@ -134,7 +134,7 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
 
                     foreach (var documentFilePath in newProject.DocumentFilePaths)
                     {
-                        EnqueueIfNecessary(new(newProject.Key, documentFilePath));
+                        EnqueueIfNecessary(new(newProject.Key, documentFilePath), oldDocumentSnapshot: null);
                     }
 
                     break;
@@ -149,11 +149,14 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
                     var newProject = args.Newer.AssumeNotNull();
                     var documentFilePath = args.DocumentFilePath.AssumeNotNull();
 
-                    EnqueueIfNecessary(new(newProject.Key, documentFilePath));
+                    DocumentSnapshot? oldDocumentSnapshot = null;
+                    args.Older?.TryGetDocument(documentFilePath, out oldDocumentSnapshot);
+
+                    EnqueueIfNecessary(new(newProject.Key, documentFilePath), oldDocumentSnapshot);
 
                     foreach (var relatedDocumentFilePath in newProject.GetRelatedDocumentFilePaths(documentFilePath))
                     {
-                        EnqueueIfNecessary(new(newProject.Key, relatedDocumentFilePath));
+                        EnqueueIfNecessary(new(newProject.Key, relatedDocumentFilePath), oldDocumentSnapshot: null);
                     }
 
                     break;
@@ -172,7 +175,7 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
                     {
                         if (newProject.ContainsDocument(relatedDocumentFilePath))
                         {
-                            EnqueueIfNecessary(new(newProject.Key, relatedDocumentFilePath));
+                            EnqueueIfNecessary(new(newProject.Key, relatedDocumentFilePath), oldDocumentSnapshot: null);
                         }
                     }
 
@@ -190,7 +193,7 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
                 break;
         }
 
-        void EnqueueIfNecessary(DocumentKey documentKey)
+        void EnqueueIfNecessary(DocumentKey documentKey, DocumentSnapshot? oldDocumentSnapshot)
         {
             if (!_options.UpdateBuffersForClosedDocuments &&
                 !_projectManager.IsDocumentOpen(documentKey.FilePath))
@@ -198,7 +201,7 @@ internal partial class OpenDocumentGenerator : IRazorStartupService, IDisposable
                 return;
             }
 
-            _workQueue.AddWork(documentKey);
+            _workQueue.AddWork((documentKey, oldDocumentSnapshot));
         }
     }
 }

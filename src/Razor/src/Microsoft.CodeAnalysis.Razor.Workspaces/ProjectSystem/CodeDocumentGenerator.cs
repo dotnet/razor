@@ -15,12 +15,13 @@ internal readonly struct CodeDocumentGenerator(RazorProjectEngine projectEngine,
         RazorFileKind fileKind,
         ImmutableArray<RazorSourceDocument> importSources,
         ImmutableArray<TagHelperDescriptor> tagHelpers,
+        RazorCodeDocument? previousCodeDocument,
         CancellationToken cancellationToken)
     {
         var forceRuntimeCodeGeneration = compilerOptions.IsFlagSet(RazorCompilerOptions.ForceRuntimeCodeGeneration);
 
         return forceRuntimeCodeGeneration
-            ? projectEngine.Process(source, fileKind, importSources, tagHelpers, cancellationToken)
+            ? projectEngine.Process(source, fileKind, importSources, tagHelpers, previousCodeDocument, cancellationToken)
             : projectEngine.ProcessDesignTime(source, fileKind, importSources, tagHelpers, cancellationToken);
     }
 

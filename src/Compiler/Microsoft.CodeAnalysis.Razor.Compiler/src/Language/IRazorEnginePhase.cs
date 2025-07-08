@@ -10,5 +10,5 @@ public interface IRazorEnginePhase
     RazorEngine Engine { get; }
 
     void Initialize(RazorEngine engine);
-    void Execute(RazorCodeDocument codeDocument, CancellationToken cancellationToken = default);
+    void Execute(RazorCodeDocument codeDocument, RazorCodeDocument? previousCodeDocument = null, CancellationToken cancellationToken = default);
 }

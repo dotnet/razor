@@ -15,7 +15,7 @@ internal class DefaultRazorOptimizationPhase : RazorEnginePhaseBase, IRazorOptim
         Passes = Engine.GetFeatures<IRazorOptimizationPass>().OrderByAsArray(static x => x.Order);
     }
 
-    protected override void ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+    protected override void ExecuteCore(RazorCodeDocument codeDocument, RazorCodeDocument? previousCodeDocument, CancellationToken cancellationToken)
     {
         var documentNode = codeDocument.GetDocumentNode();
         ThrowForMissingDocumentDependency(documentNode);

@@ -8,7 +8,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 internal sealed class DefaultRazorTagHelperRewritePhase : RazorEnginePhaseBase
 {
-    protected override void ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+    protected override void ExecuteCore(RazorCodeDocument codeDocument, RazorCodeDocument? previousCodeDocument, CancellationToken cancellationToken)
     {
         if (!codeDocument.TryGetPreTagHelperSyntaxTree(out var syntaxTree) ||
             !codeDocument.TryGetTagHelperContext(out var context) ||

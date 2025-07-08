@@ -15,7 +15,7 @@ internal class DefaultRazorDirectiveClassifierPhase : RazorEnginePhaseBase, IRaz
         Passes = Engine.GetFeatures<IRazorDirectiveClassifierPass>().OrderByAsArray(static x => x.Order);
     }
 
-    protected override void ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+    protected override void ExecuteCore(RazorCodeDocument codeDocument, RazorCodeDocument? previousCodeDocument,CancellationToken cancellationToken)
     {
         var documentNode = codeDocument.GetDocumentNode();
         ThrowForMissingDocumentDependency(documentNode);
