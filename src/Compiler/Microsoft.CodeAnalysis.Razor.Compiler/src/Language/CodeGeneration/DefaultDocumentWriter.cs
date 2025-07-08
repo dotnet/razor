@@ -174,9 +174,9 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
                     codeWriter.Write(", ");
                 }
 
-                for (var j = 0; j < parameter.Modifiers.Count; j++)
+                foreach (var modifier in parameter.Modifiers)
                 {
-                    codeWriter.Write($"{parameter.Modifiers[j]} ");
+                    codeWriter.Write($"{modifier} ");
                 }
 
                 codeWriter.Write($"{parameter.TypeName} {parameter.ParameterName}");
