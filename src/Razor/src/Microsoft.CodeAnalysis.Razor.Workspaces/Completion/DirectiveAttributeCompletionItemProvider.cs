@@ -123,6 +123,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
         foreach (var (displayText, (attributeDescriptions, commitCharacters)) in attributeCompletions)
         {
             var insertTextSpan = displayText.AsSpan();
+            var originalInsertTextSpan = insertTextSpan;
 
             // Strip off the @ from the insertion text. This change is here to align the insertion text with the
             // completion hooks into VS and VSCode. Basically, completion triggers when `@` is typed so we don't
@@ -148,6 +149,9 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                 }
             }
 
+            // Don't create another string annecessarily, even thouth ReadOnlySpan.ToString() special-cases the string to avoid allocation
+            var insertText = insertTextSpan == originalInsertTextSpan ? displayText : insertTextSpan.ToString();
+
             using var razorCommitCharacters = new PooledArrayBuilder<RazorCommitCharacter>(capacity: commitCharacters.Count);
 
             foreach (var c in commitCharacters)
@@ -157,7 +161,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
             var razorCompletionItem = RazorCompletionItem.CreateDirectiveAttribute(
                 displayText,
-                insertTextSpan.ToString(),
+                insertText,
                 descriptionInfo: new([.. attributeDescriptions]),
                 commitCharacters: razorCommitCharacters.ToImmutableAndClear(),
                 isSnippet);
