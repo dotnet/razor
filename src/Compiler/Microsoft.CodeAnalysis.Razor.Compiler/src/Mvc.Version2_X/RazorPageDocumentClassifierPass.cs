@@ -73,10 +73,7 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
         @class.UpdateModifiers("public");
 
         method.MethodName = "ExecuteAsync";
-        method.Modifiers.Clear();
-        method.Modifiers.Add("public");
-        method.Modifiers.Add("async");
-        method.Modifiers.Add("override");
+        method.UpdateModifiers("public", "async", "override");
         method.ReturnType = $"global::{typeof(System.Threading.Tasks.Task).FullName}";
 
         var document = codeDocument.GetRequiredDocumentNode();

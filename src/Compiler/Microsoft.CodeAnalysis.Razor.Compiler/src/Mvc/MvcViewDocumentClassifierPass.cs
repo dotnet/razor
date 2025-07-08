@@ -67,10 +67,7 @@ public class MvcViewDocumentClassifierPass : DocumentClassifierPassBase
         @class.NullableContext = true;
 
         method.MethodName = "ExecuteAsync";
-        method.Modifiers.Clear();
-        method.Modifiers.Add("public");
-        method.Modifiers.Add("async");
-        method.Modifiers.Add("override");
+        method.UpdateModifiers("public", "async", "override");
         method.ReturnType = $"global::{typeof(System.Threading.Tasks.Task).FullName}";
     }
 }

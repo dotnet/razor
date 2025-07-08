@@ -400,9 +400,7 @@ public sealed class RazorProjectEngine
             method.MethodName = "ExecuteAsync";
             method.ReturnType = $"global::{typeof(Task).FullName}";
 
-            method.Modifiers.Add("public");
-            method.Modifiers.Add("async");
-            method.Modifiers.Add("override");
+            method.UpdateModifiers("public", "async", "override");
         });
     }
 

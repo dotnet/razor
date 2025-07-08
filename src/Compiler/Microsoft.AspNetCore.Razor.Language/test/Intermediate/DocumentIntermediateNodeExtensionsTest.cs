@@ -29,10 +29,7 @@ public class DocumentIntermediateNodeExtensionsTest
     {
         // Arrange
         var document = new DocumentIntermediateNode();
-        var method = new MethodDeclarationIntermediateNode
-        {
-            IsPrimaryMethod = true
-        };
+        var method = new MethodDeclarationIntermediateNode(isPrimaryMethod: true);
 
         var builder = IntermediateNodeBuilder.Create(document);
         builder.Add(method);

@@ -1,38 +1,47 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
-using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
-public sealed class MethodDeclarationIntermediateNode : MemberDeclarationIntermediateNode
+public sealed class MethodDeclarationIntermediateNode(bool isPrimaryMethod = false) : MemberDeclarationIntermediateNode
 {
-    public override IntermediateNodeCollection Children { get; } = new IntermediateNodeCollection();
+    private IntermediateNodeCollection? _children;
+    private ImmutableArray<string> _modifiers = [];
+    private ImmutableArray<MethodParameter> _parameters = [];
 
-    public IList<string> Modifiers { get; } = new List<string>();
+    public bool IsPrimaryMethod { get; } = isPrimaryMethod;
 
-    public string MethodName { get; set; }
+    public ImmutableArray<string> Modifiers
+    {
+        get => _modifiers;
+        init => _modifiers = value.NullToEmpty();
+    }
 
-    public IList<MethodParameter> Parameters { get; } = new List<MethodParameter>();
+    public string? MethodName { get; set; }
 
-    public string ReturnType { get; set; }
+    public ImmutableArray<MethodParameter> Parameters
+    {
+        get => _parameters;
+        init => _parameters = value.NullToEmpty();
+    }
 
-    public bool IsPrimaryMethod { get; set; }
+    public string? ReturnType { get; set; }
+
+    public override IntermediateNodeCollection Children
+        => _children ??= [];
+
+    public void UpdateModifiers(params ImmutableArray<string> modifiers)
+        => _modifiers = modifiers.NullToEmpty();
+
+    public void UpdateParameters(params ImmutableArray<MethodParameter> parameters)
+        => _parameters = parameters.NullToEmpty();
 
     public override void Accept(IntermediateNodeVisitor visitor)
-    {
-        if (visitor == null)
-        {
-            throw new ArgumentNullException(nameof(visitor));
-        }
-
-        visitor.VisitMethodDeclaration(this);
-    }
+        => visitor.VisitMethodDeclaration(this);
 
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
@@ -46,10 +55,11 @@ public sealed class MethodDeclarationIntermediateNode : MemberDeclarationInterme
 
     private static string FormatMethodParameter(MethodParameter parameter)
     {
-        var builder = new StringBuilder();
-        for (var i = 0; i < parameter.Modifiers.Count; i++)
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+
+        foreach (var modifier in parameter.Modifiers)
         {
-            builder.Append(parameter.Modifiers[i]);
+            builder.Append(modifier);
             builder.Append(' ');
         }
 

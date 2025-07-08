@@ -148,6 +148,6 @@ public class ComponentDocumentClassifierPassTest : RazorProjectEngineTestBase
 
         Assert.Equal(ComponentsApi.ComponentBase.BuildRenderTree, methodNode.MethodName);
         Assert.Equal("void", methodNode.ReturnType);
-        Assert.Equal(["protected", "override"], methodNode.Modifiers);
+        Assert.Equal<string>(["protected", "override"], methodNode.Modifiers);
     }
 }

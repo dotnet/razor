@@ -101,10 +101,8 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
 
             method.ReturnType = "void";
             method.MethodName = "Execute";
-            method.Modifiers.Clear();
-            method.Modifiers.Add("protected");
-
-            method.Parameters.Clear();
+            method.UpdateModifiers("protected");
+            method.UpdateParameters([]);
         }
         else
         {
@@ -141,12 +139,9 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
 
             method.ReturnType = "void";
             method.MethodName = ComponentsApi.ComponentBase.BuildRenderTree;
-            method.Modifiers.Clear();
-            method.Modifiers.Add("protected");
-            method.Modifiers.Add("override");
+            method.UpdateModifiers("protected", "override");
 
-            method.Parameters.Clear();
-            method.Parameters.Add(new MethodParameter()
+            method.UpdateParameters(new MethodParameter()
             {
                 ParameterName = ComponentsApi.RenderTreeBuilder.BuilderParameter,
                 TypeName = $"global::{ComponentsApi.RenderTreeBuilder.FullTypeName}",

@@ -73,9 +73,7 @@ public static class RazorProjectEngineBuilderExtensions
 
         feature.ConfigureMethod.Add((codeDocument, node) =>
         {
-            node.Modifiers.Clear();
-            node.Modifiers.Add("public");
-            node.Modifiers.Add("async");
+            node.UpdateModifiers("public", "async");
             node.MethodName = "ExecuteAsync";
             node.ReturnType = typeof(Task).FullName;
         });

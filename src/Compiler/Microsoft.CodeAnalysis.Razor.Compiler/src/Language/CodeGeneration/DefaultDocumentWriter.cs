@@ -153,9 +153,9 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
 
             codeWriter.WriteLine("#pragma warning disable 1998");
 
-            for (var i = 0; i < node.Modifiers.Count; i++)
+            foreach (var modifier in node.Modifiers)
             {
-                codeWriter.Write($"{node.Modifiers[i]} ");
+                codeWriter.Write($"{modifier} ");
             }
 
             codeWriter.Write($"{node.ReturnType} ");
@@ -163,10 +163,8 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
 
             var isFirst = true;
 
-            for (var i = 0; i < node.Parameters.Count; i++)
+            foreach (var parameter in node.Parameters)
             {
-                var parameter = node.Parameters[i];
-
                 if (isFirst)
                 {
                     isFirst = false;
