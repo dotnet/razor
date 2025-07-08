@@ -401,17 +401,11 @@ public class DefaultDocumentWriterTest
         // Arrange
         var document = new DocumentIntermediateNode();
         var builder = IntermediateNodeBuilder.Create(document);
-        builder.Add(new PropertyDeclarationIntermediateNode()
-        {
-            Modifiers =
-                {
-                    "internal",
-                    "virtual",
-                },
-            PropertyName = "Foo",
-            PropertyType = IntermediateToken.CreateCSharpToken("string"),
-            PropertyExpression = "default"
-        });
+        builder.Add(new PropertyDeclarationIntermediateNode(
+            propertyName: "Foo",
+            propertyType: IntermediateToken.CreateCSharpToken("string"),
+            propertyExpression: "default",
+            modifiers: ["internal", "virtual"]));
 
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
         var options = RazorCodeGenerationOptions.Default;
