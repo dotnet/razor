@@ -187,7 +187,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
                 var buffer = new char[baseTextSpan.Length + suffixTextSpan.Length];
                 baseTextSpan.CopyTo(buffer);
-                suffixTextSpan.CopyTo(buffer.AsMemory().Slice(baseTextSpan.Length));
+                suffixTextSpan.CopyTo(buffer.AsMemory()[baseTextSpan.Length..]);
 
                 snippetTextSpan = buffer.AsSpan();
                 return true;
