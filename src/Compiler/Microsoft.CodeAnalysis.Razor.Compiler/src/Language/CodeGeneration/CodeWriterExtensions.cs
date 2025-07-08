@@ -474,31 +474,6 @@ internal static class CodeWriterExtensions
         return scope;
     }
 
-#nullable enable
-    public static CSharpCodeWritingScope BuildNamespace(this CodeWriter writer, string? name, SourceSpan? span, CodeRenderingContext context)
-    {
-        if (name.IsNullOrEmpty())
-        {
-            return new CSharpCodeWritingScope(writer, writeBraces: false);
-        }
-
-        writer.Write("namespace ");
-        if (context.Options.DesignTime || span is null)
-        {
-            writer.WriteLine(name);
-        }
-        else
-        {
-            writer.WriteLine();
-            using (writer.BuildEnhancedLinePragma(span, context))
-            {
-                writer.WriteLine(name);
-            }
-        }
-        return new CSharpCodeWritingScope(writer);
-    }
-#nullable disable
-
     public static CSharpCodeWritingScope BuildClassDeclaration(
         this CodeWriter writer,
         ImmutableArray<string> modifiers,

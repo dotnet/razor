@@ -109,21 +109,21 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
 
         public override void VisitNamespaceDeclaration(NamespaceDeclarationIntermediateNode node)
         {
-            var codeWriter = CodeWriter;
-
-            using (codeWriter.BuildNamespace(node.Content, node.Source, _context))
+            using (_context.BuildNamespace(node.Content, node.Source))
             {
+                var writer = CodeWriter;
+
                 if (node.Children.OfType<UsingDirectiveIntermediateNode>().Any())
                 {
                     // Tooling needs at least one line directive before using directives, otherwise Roslyn will
                     // not offer to create a new one. The last using in the group will output a hidden line
                     // directive after itself.
-                    codeWriter.WriteLine("#line default");
+                    writer.WriteLine("#line default");
                 }
                 else
                 {
                     // If there are no using directives, we output the hidden directive here.
-                    codeWriter.WriteLine("#line hidden");
+                    writer.WriteLine("#line hidden");
                 }
 
                 VisitDefault(node);
