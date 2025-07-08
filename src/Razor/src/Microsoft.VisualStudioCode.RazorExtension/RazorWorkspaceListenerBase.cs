@@ -29,6 +29,7 @@ internal abstract class RazorWorkspaceListenerBase : IDisposable
 
     private Stream? _stream;
     private Workspace? _workspace;
+    private WorkspaceEventRegistration? _workspaceChangedRegistration;
     private bool _disposed;
 
     internal record Work(ProjectId ProjectId);
@@ -45,11 +46,6 @@ internal abstract class RazorWorkspaceListenerBase : IDisposable
 
     public void Dispose()
     {
-        if (_workspace is not null)
-        {
-            _workspace.WorkspaceChanged -= Workspace_WorkspaceChanged;
-        }
-
         if (_disposed)
         {
             _logger.LogInformation("Disposal was called twice");
@@ -58,6 +54,8 @@ internal abstract class RazorWorkspaceListenerBase : IDisposable
 
         _disposed = true;
         _logger.LogInformation("Tearing down named pipe for pid {pid}", Process.GetCurrentProcess().Id);
+
+        _workspaceChangedRegistration?.Dispose();
 
         _disposeTokenSource.Cancel();
         _disposeTokenSource.Dispose();
@@ -105,11 +103,11 @@ internal abstract class RazorWorkspaceListenerBase : IDisposable
         }
 
         _workspace = workspace;
-        _workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
+        _workspaceChangedRegistration = _workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
         _stream = createStream();
     }
 
-    private void Workspace_WorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         switch (e.Kind)
         {
