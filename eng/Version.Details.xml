@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <Source Uri="https://github.com/dotnet/dotnet" Mapping="razor" Sha="f5705c8f4c5079bba77bae8698ba1583bde0388c" BarId="269610" />
   <ProductDependencies>
