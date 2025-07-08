@@ -130,13 +130,11 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
                 var typeParameter = typeParamNode.Tokens.First();
                 var constraints = typeParamNode.Tokens.Skip(1).FirstOrDefault();
 
-                typeParameters.Add(new TypeParameter()
-                {
-                    ParameterName = typeParameter.Content,
-                    ParameterNameSource = typeParameter.Source,
-                    Constraints = constraints?.Content,
-                    ConstraintsSource = constraints?.Source,
-                });
+                typeParameters.Add(new TypeParameter(
+                    typeParameter.Content,
+                    typeParameter.Source,
+                    constraints?.Content,
+                    constraints?.Source));
             }
 
             @class.UpdateTypeParameters(typeParameters.ToImmutableAndClear());

@@ -176,8 +176,8 @@ public class DefaultDocumentWriterTest
             BaseType = new BaseTypeWithModel("TestBase"),
             Interfaces = [IntermediateToken.CreateCSharpToken("IFoo"), IntermediateToken.CreateCSharpToken("IBar")],
             TypeParameters = [
-                new TypeParameter() { ParameterName = "TKey" },
-                new TypeParameter() { ParameterName = "TValue" }
+                new TypeParameter("TKey"),
+                new TypeParameter("TValue")
             ],
             ClassName = "TestClass",
         });
@@ -219,8 +219,8 @@ public class DefaultDocumentWriterTest
             BaseType = new BaseTypeWithModel("TestBase"),
             Interfaces = [IntermediateToken.CreateCSharpToken("IFoo"), IntermediateToken.CreateCSharpToken("IBar")],
             TypeParameters = [
-                new TypeParameter() { ParameterName = "TKey" },
-                new TypeParameter() { ParameterName = "TValue" }
+                new TypeParameter("TKey"),
+                new TypeParameter("TValue")
             ],
             ClassName = "TestClass",
             NullableContext = true,
@@ -265,8 +265,8 @@ public class DefaultDocumentWriterTest
             BaseType = new BaseTypeWithModel("TestBase"),
             Interfaces = [IntermediateToken.CreateCSharpToken("IFoo"), IntermediateToken.CreateCSharpToken("IBar")],
             TypeParameters = [
-                new TypeParameter() { ParameterName = "TKey", Constraints = "where TKey : class" },
-                new TypeParameter() { ParameterName = "TValue", Constraints = "where TValue : class" }
+                new TypeParameter("TKey", constraints: "where TKey : class"),
+                new TypeParameter("TValue", constraints: "where TValue : class")
             ],
             ClassName = "TestClass",
         });
