@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeCompletionItemProviderBase
 {
+    private static ReadOnlyMemory<char> QuotedAttributeValueSnippet => "=\"$0\"".AsMemory();
+    private static ReadOnlyMemory<char> UnquotedAttributeValueSnippet => "=$0".AsMemory();
+
     public override ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
         if (!context.SyntaxTree.Options.FileKind.IsComponent())
@@ -176,11 +179,11 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                 && containingAttribute is not (MarkupTagHelperDirectiveAttributeSyntax or MarkupAttributeBlockSyntax)
                 && containingAttribute.Parent is not (MarkupTagHelperDirectiveAttributeSyntax or MarkupAttributeBlockSyntax))
             {
-                var suffixTextSpan = razorCompletionOptions.AutoInsertAttributeQuotes ? "=\"$0\"".AsSpan() : "=$0".AsSpan();
+                var suffixTextSpan = razorCompletionOptions.AutoInsertAttributeQuotes ? QuotedAttributeValueSnippet : UnquotedAttributeValueSnippet;
 
                 var buffer = new char[baseTextSpan.Length + suffixTextSpan.Length];
                 baseTextSpan.CopyTo(buffer);
-                suffixTextSpan.CopyTo(buffer.AsSpan(baseTextSpan.Length));
+                suffixTextSpan.CopyTo(buffer.AsMemory().Slice(baseTextSpan.Length));
 
                 snippetTextSpan = buffer.AsSpan();
                 return true;
