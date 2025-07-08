@@ -398,10 +398,11 @@ public class CSharpCodeWriterTest
             .WithIndentSize(4)
             .WithFlags(indentWithTabs: true);
 
-        using var writer = new CodeWriter(options);
+        using var context = TestCodeRenderingContext.Create(options);
+        var writer = context.CodeWriter;
 
         // Act
-        writer.BuildClassDeclaration(modifiers: [], "C", null, interfaces: [], typeParameters: [], context: null);
+        context.BuildClassDeclaration(modifiers: [], "C", null, interfaces: [], typeParameters: []);
         writer.WriteField(Array.Empty<string>(), Array.Empty<string>(), "int", "f");
 
         // Assert
@@ -422,10 +423,11 @@ public class CSharpCodeWriterTest
             .WithIndentSize(4)
             .WithFlags(indentWithTabs: false);
 
-        using var writer = new CodeWriter(options);
+        using var context = TestCodeRenderingContext.Create(options);
+        var writer = context.CodeWriter;
 
         // Act
-        writer.BuildClassDeclaration(modifiers: [], "C", null, interfaces: [], typeParameters: [], context: null);
+        context.BuildClassDeclaration(modifiers: [], "C", null, interfaces: [], typeParameters: []);
         writer.WriteField(Array.Empty<string>(), Array.Empty<string>(), "int", "f");
 
         // Assert

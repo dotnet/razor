@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -132,13 +133,14 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
 
         public override void VisitClassDeclaration(ClassDeclarationIntermediateNode node)
         {
-            using (CodeWriter.BuildClassDeclaration(
+            Debug.Assert(node.ClassName != null);
+
+            using (_context.BuildClassDeclaration(
                 node.Modifiers,
                 node.ClassName,
                 node.BaseType,
                 node.Interfaces,
                 node.TypeParameters,
-                _context,
                 useNullableContext: !Options.SuppressNullabilityEnforcement && node.NullableContext))
             {
                 VisitDefault(node);

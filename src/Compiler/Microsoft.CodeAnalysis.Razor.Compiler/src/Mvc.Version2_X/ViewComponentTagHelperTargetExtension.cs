@@ -64,13 +64,12 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
         WriteTargetElementString(context.CodeWriter, node.TagHelper);
 
         // Initialize declaration.
-        using (context.CodeWriter.BuildClassDeclaration(
+        using (context.BuildClassDeclaration(
             s_modifiers,
             node.ClassName,
             new BaseTypeWithModel(TagHelperTypeName),
             interfaces: default,
-            typeParameters: default,
-            context))
+            typeParameters: default))
         {
             // Add view component helper.
             context.CodeWriter.WriteVariableDeclaration(
