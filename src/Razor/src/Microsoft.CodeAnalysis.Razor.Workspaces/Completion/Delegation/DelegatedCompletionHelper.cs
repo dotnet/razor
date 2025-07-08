@@ -230,6 +230,14 @@ internal static class DelegatedCompletionHelper
 
         if (startOrEndTag is null)
         {
+            if (RazorSyntaxFacts.IsInStyleBlock(node)
+                || RazorSyntaxFacts.IsInScriptBlock(node)
+                || RazorSyntaxFacts.IsInMarkupCommentBlock(node))
+            {
+                // If we're in a style, script, or HTML comment block, we don't want to include HTML snippets.
+                return false;
+            }
+
             return token.Kind is not (SyntaxKind.OpenAngle or SyntaxKind.CloseAngle);
         }
 
