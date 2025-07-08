@@ -375,10 +375,10 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
         {
             if (context.Options.DesignTime)
             {
-                var firstMappedChild = node.Children.FirstOrDefault(child => child.Source != null) as IntermediateNode;
+                var firstMappedChild = node.Children.FirstOrDefault(child => child.Source != null);
                 var valueStart = firstMappedChild?.Source;
 
-                using (context.CodeWriter.BuildLinePragma(node.Source, context))
+                using (context.BuildLinePragma(node.Source))
                 {
                     var accessor = GetPropertyAccessor(node);
                     var assignmentPrefixLength = accessor.Length + " = ".Length;
@@ -572,7 +572,7 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
             }
             else
             {
-                using (context.CodeWriter.BuildEnhancedLinePragma(token.Source, context))
+                using (context.BuildEnhancedLinePragma(token.Source))
                 {
                     context.CodeWriter.Write(token.Content);
                 }

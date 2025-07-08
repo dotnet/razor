@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 
@@ -30,7 +31,7 @@ public class InjectTargetExtension(bool considerNullabilityEnforcement) : IInjec
             if (node.TypeName == "")
             {
                 // if we don't even have a type name, just emit an empty mapped region so that intellisense still works
-                context.CodeWriter.BuildEnhancedLinePragma(node.TypeSource.Value, context).Dispose();
+                using (context.BuildEnhancedLinePragma(node.TypeSource.Value)) { }
             }
             else
             {
@@ -47,9 +48,9 @@ public class InjectTargetExtension(bool considerNullabilityEnforcement) : IInjec
                 property += " = default!;";
             }
 
-            if (node.Source.HasValue)
+            if (node.Source is SourceSpan source)
             {
-                using (context.CodeWriter.BuildLinePragma(node.Source.Value, context))
+                using (context.BuildLinePragma(source))
                 {
                     WriteProperty();
                 }

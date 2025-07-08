@@ -67,9 +67,9 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             throw new ArgumentNullException(nameof(node));
         }
 
-        if (node.Source is { FilePath: not null } sourceSpan)
+        if (node.Source is { FilePath: not null } source)
         {
-            using (context.CodeWriter.BuildLinePragma(sourceSpan, context, suppressLineDefaultAndHidden: !node.AppendLineDefaultAndHidden))
+            using (context.BuildLinePragma(source, suppressLineDefaultAndHidden: !node.AppendLineDefaultAndHidden))
             {
                 context.AddSourceMappingFor(node);
                 context.CodeWriter.WriteUsing(node.Content);
@@ -109,9 +109,9 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             return;
         }
 
-        if (node.Source != null)
+        if (node.Source is SourceSpan source)
         {
-            using (context.CodeWriter.BuildLinePragma(node.Source.Value, context))
+            using (context.BuildLinePragma(source))
             {
                 var offset = DesignTimeVariable.Length + " = ".Length;
 
@@ -120,7 +120,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                     offset += type.Length + 2; // two parenthesis
                 }
 
-                context.CodeWriter.WritePadding(offset, node.Source, context);
+                context.CodeWriter.WritePadding(offset, source, context);
                 context.CodeWriter.WriteStartAssignment(DesignTimeVariable);
 
                 if (type != null)
@@ -168,36 +168,30 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
     public override void WriteCSharpCode(CodeRenderingContext context, CSharpCodeIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
         var isWhitespaceStatement = true;
-        for (var i = 0; i < node.Children.Count; i++)
+        foreach (var child in node.Children)
         {
-            var token = node.Children[i] as IntermediateToken;
-            if (token == null || !string.IsNullOrWhiteSpace(token.Content))
+            if (child is not IntermediateToken token || !string.IsNullOrWhiteSpace(token.Content))
             {
                 isWhitespaceStatement = false;
                 break;
             }
         }
 
-        IDisposable? linePragmaScope = null;
-        if (node.Source != null)
+        if (node.Source is SourceSpan source)
         {
             if (!isWhitespaceStatement)
             {
-                linePragmaScope = context.CodeWriter.BuildLinePragma(node.Source.Value, context);
+                using (context.BuildLinePragma(source))
+                {
+                    context.CodeWriter.WritePadding(0, source, context);
+                    RenderChildren(context, node);
+                }
+
+                return;
             }
 
-            context.CodeWriter.WritePadding(0, node.Source.Value, context);
+            context.CodeWriter.WritePadding(0, source, context);
         }
         else if (isWhitespaceStatement)
         {
@@ -205,27 +199,24 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             return;
         }
 
-        for (var i = 0; i < node.Children.Count; i++)
-        {
-            if (node.Children[i] is IntermediateToken token && token.IsCSharp)
-            {
-                context.AddSourceMappingFor(token);
-                context.CodeWriter.Write(token.Content);
-            }
-            else
-            {
-                // There may be something else inside the statement like an extension node.
-                context.RenderNode(node.Children[i]);
-            }
-        }
+        RenderChildren(context, node);
+        context.CodeWriter.WriteLine();
 
-        if (linePragmaScope != null)
+        static void RenderChildren(CodeRenderingContext context, CSharpCodeIntermediateNode node)
         {
-            linePragmaScope.Dispose();
-        }
-        else
-        {
-            context.CodeWriter.WriteLine();
+            foreach (var child in node.Children)
+            {
+                if (child is IntermediateToken { IsCSharp: true } token)
+                {
+                    context.AddSourceMappingFor(token);
+                    context.CodeWriter.Write(token.Content);
+                }
+                else
+                {
+                    // There may be something else inside the statement like an extension node.
+                    context.RenderNode(child);
+                }
+            }
         }
     }
 
@@ -561,7 +552,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         // the "usings directive is unnecessary" message.
         // Looks like:
         // __o = typeof(SomeNamespace.SomeComponent);
-        using (context.CodeWriter.BuildLinePragma(node.Source.AssumeNotNull(), context))
+        using (context.BuildLinePragma(node.Source.AssumeNotNull()))
         {
             context.CodeWriter.Write(DesignTimeVariable);
             context.CodeWriter.Write(" = ");
@@ -738,7 +729,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         context.CodeWriter.Write(".");
         context.CodeWriter.WriteLine();
 
-        using (context.CodeWriter.BuildLinePragma(attributeSourceSpan, context))
+        using (context.BuildLinePragma(attributeSourceSpan))
         {
             context.CodeWriter.WritePadding(0, attributeSourceSpan, context);
             context.CodeWriter.WriteIdentifierEscapeIfNeeded(node.PropertyName);
@@ -1219,7 +1210,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 new IntermediateToken
                 {
                     Kind = TokenKind.CSharp,
-                    Content = $"{DesignTimeVariable} = (global::{ComponentsApi.IComponentRenderMode.FullTypeName})(" 
+                    Content = $"{DesignTimeVariable} = (global::{ComponentsApi.IComponentRenderMode.FullTypeName})("
                 },
                 new CSharpCodeIntermediateNode
                 {
@@ -1248,7 +1239,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             return;
         }
 
-        using (context.CodeWriter.BuildLinePragma(token.Source, context))
+        using (context.BuildLinePragma(token.Source))
         {
             context.CodeWriter.WritePadding(0, token.Source.Value, context);
             context.AddSourceMappingFor(token);
