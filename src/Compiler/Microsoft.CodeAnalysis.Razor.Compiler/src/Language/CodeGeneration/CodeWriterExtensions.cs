@@ -304,35 +304,20 @@ internal static class CodeWriterExtensions
             string.Format(CultureInfo.InvariantCulture, InstanceMethodFormat, instanceName, methodName));
     }
 
-    public static CodeWriter WriteField(this CodeWriter writer, IList<string> suppressWarnings, IList<string> modifiers, string typeName, string fieldName)
+    public static CodeWriter WriteField(
+        this CodeWriter writer,
+        ImmutableArray<string> suppressWarnings,
+        ImmutableArray<string> modifiers,
+        string typeName,
+        string fieldName)
     {
-        if (suppressWarnings == null)
-        {
-            throw new ArgumentNullException(nameof(suppressWarnings));
-        }
-
-        if (modifiers == null)
-        {
-            throw new ArgumentNullException(nameof(modifiers));
-        }
-
-        if (typeName == null)
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
-
-        if (fieldName == null)
-        {
-            throw new ArgumentNullException(nameof(fieldName));
-        }
-
-        for (var i = 0; i < suppressWarnings.Count; i++)
+        for (var i = 0; i < suppressWarnings.Length; i++)
         {
             writer.Write("#pragma warning disable ");
             writer.WriteLine(suppressWarnings[i]);
         }
 
-        for (var i = 0; i < modifiers.Count; i++)
+        for (var i = 0; i < modifiers.Length; i++)
         {
             writer.Write(modifiers[i]);
             writer.Write(" ");
@@ -344,7 +329,7 @@ internal static class CodeWriterExtensions
         writer.Write(";");
         writer.WriteLine();
 
-        for (var i = suppressWarnings.Count - 1; i >= 0; i--)
+        for (var i = suppressWarnings.Length - 1; i >= 0; i--)
         {
             writer.Write("#pragma warning restore ");
             writer.WriteLine(suppressWarnings[i]);

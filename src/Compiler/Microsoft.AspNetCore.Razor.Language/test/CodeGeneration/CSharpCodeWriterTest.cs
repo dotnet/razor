@@ -303,7 +303,11 @@ public class CSharpCodeWriterTest
         using var writer = new CodeWriter();
 
         // Act
-        writer.WriteField(Array.Empty<string>(), new[] { "private" }, "global::System.String", "_myString");
+        writer.WriteField(
+            suppressWarnings: [],
+            modifiers: ["private"],
+            typeName: "global::System.String",
+            fieldName: "_myString");
 
         // Assert
         var output = writer.GetText().ToString();
@@ -320,7 +324,11 @@ public class CSharpCodeWriterTest
         using var writer = new CodeWriter();
 
         // Act
-        writer.WriteField(Array.Empty<string>(), new[] { "private", "readonly", "static" }, "global::System.String", "_myString");
+        writer.WriteField(
+            suppressWarnings: [],
+            modifiers: ["private", "readonly", "static"],
+            typeName: "global::System.String",
+            fieldName: "_myString");
 
         // Assert
         var output = writer.GetText().ToString();
@@ -338,10 +346,10 @@ public class CSharpCodeWriterTest
 
         // Act
         writer.WriteField(
-            new[] { "0001", "0002", },
-            new[] { "private", "readonly", "static" },
-            "global::System.String",
-            "_myString");
+            suppressWarnings: ["0001", "0002"],
+            modifiers: ["private", "readonly", "static"],
+            typeName: "global::System.String",
+            fieldName: "_myString");
 
         // Assert
         var output = writer.GetText().ToString();
@@ -403,7 +411,7 @@ public class CSharpCodeWriterTest
 
         // Act
         context.BuildClassDeclaration(modifiers: [], "C", null, interfaces: [], typeParameters: []);
-        writer.WriteField(Array.Empty<string>(), Array.Empty<string>(), "int", "f");
+        writer.WriteField(suppressWarnings: [], modifiers: [], typeName: "int", fieldName: "f");
 
         // Assert
         var output = writer.GetText().ToString();
@@ -428,7 +436,7 @@ public class CSharpCodeWriterTest
 
         // Act
         context.BuildClassDeclaration(modifiers: [], "C", null, interfaces: [], typeParameters: []);
-        writer.WriteField(Array.Empty<string>(), Array.Empty<string>(), "int", "f");
+        writer.WriteField(suppressWarnings: [], modifiers: [], typeName: "int", fieldName: "f");
 
         // Assert
         var output = writer.GetText().ToString();

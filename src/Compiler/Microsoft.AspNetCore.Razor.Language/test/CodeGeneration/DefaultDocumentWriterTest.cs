@@ -367,16 +367,10 @@ public class DefaultDocumentWriterTest
         // Arrange
         var document = new DocumentIntermediateNode();
         var builder = IntermediateNodeBuilder.Create(document);
-        builder.Add(new FieldDeclarationIntermediateNode()
-        {
-            Modifiers =
-                {
-                    "internal",
-                    "readonly",
-                },
-            FieldName = "_foo",
-            FieldType = "string",
-        });
+        builder.Add(new FieldDeclarationIntermediateNode(
+            fieldName: "_foo",
+            fieldType: "string",
+            modifiers: ["internal", "readonly"]));
 
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
         var options = RazorCodeGenerationOptions.Default;

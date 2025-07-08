@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -15,11 +16,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Extensions;
 
 internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetExtension
 {
-    private static readonly string[] FieldUnintializedModifiers = { "0649", };
+    private static readonly ImmutableArray<string> s_fieldUninitializedWarnings = ["0649"];
 
-    private static readonly string[] FieldUnusedModifiers = { "0169", };
+    private static readonly ImmutableArray<string> s_fieldUnusedWarnings = ["0169"];
 
-    private static readonly string[] PrivateModifiers = new string[] { "private" };
+    private static readonly ImmutableArray<string> s_privateModifiers = ["private"];
 
     public string RunnerVariableName { get; set; } = "__tagHelperRunner";
 
@@ -102,7 +103,7 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
             // Assign a unique ID for this instance of the source HTML tag. This must be unique
             // per call site, e.g. if the tag is on the view twice, there should be two IDs.
             var uniqueId = GetDeterministicId(context);
-            
+
             context.CodeWriter.WriteStringLiteral(node.TagName)
                 .WriteParameterSeparator()
                 .Write(TagModeTypeName)
@@ -474,7 +475,7 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
     public void WriteTagHelperRuntime(CodeRenderingContext context, DefaultTagHelperRuntimeIntermediateNode node)
     {
         context.CodeWriter.WriteLine("#line hidden");
-        context.CodeWriter.WriteField(FieldUnintializedModifiers, PrivateModifiers, ExecutionContextTypeName, ExecutionContextVariableName);
+        context.CodeWriter.WriteField(s_fieldUninitializedWarnings, s_privateModifiers, ExecutionContextTypeName, ExecutionContextVariableName);
 
         context.CodeWriter
             .Write("private ")
@@ -487,7 +488,7 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
 
         if (!context.Options.DesignTime)
         {
-            context.CodeWriter.WriteField(FieldUnusedModifiers, PrivateModifiers, "string", StringValueBufferVariableName);
+            context.CodeWriter.WriteField(s_fieldUnusedWarnings, s_privateModifiers, "string", StringValueBufferVariableName);
 
             var backedScopeManageVariableName = "__backed" + ScopeManagerVariableName;
             context.CodeWriter
