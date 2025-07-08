@@ -101,10 +101,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
-        var @namespace = new NamespaceDeclarationIntermediateNode
-        {
-            IsPrimaryNamespace = true,
-        };
+        var @namespace = new NamespaceDeclarationIntermediateNode(isPrimaryNamespace: true);
 
         builder.Push(@namespace);
 
@@ -150,9 +147,8 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
-        var @namespace = new NamespaceDeclarationIntermediateNode
+        var @namespace = new NamespaceDeclarationIntermediateNode(isPrimaryNamespace: true)
         {
-            IsPrimaryNamespace = true,
             Content = "Some.Namespace"
         };
 
@@ -182,9 +178,8 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var documentNode = new DocumentIntermediateNode();
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
-        var @namespace = new NamespaceDeclarationIntermediateNode
+        var @namespace = new NamespaceDeclarationIntermediateNode(isPrimaryNamespace: true)
         {
-            IsPrimaryNamespace = true,
             Content = "Some.Namespace"
         };
 
@@ -219,9 +214,8 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
-        var @namespace = new NamespaceDeclarationIntermediateNode
+        var @namespace = new NamespaceDeclarationIntermediateNode(isPrimaryNamespace: true)
         {
-            IsPrimaryNamespace = true,
             Content = "Some.Namespace"
         };
 
@@ -256,9 +250,8 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
-        var @namespace = new NamespaceDeclarationIntermediateNode
+        var @namespace = new NamespaceDeclarationIntermediateNode(isPrimaryNamespace: true)
         {
-            IsPrimaryNamespace = true,
             Content = "Some.Namespace"
         };
 
@@ -304,9 +297,8 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
-        var @namespace = new NamespaceDeclarationIntermediateNode
+        var @namespace = new NamespaceDeclarationIntermediateNode(isPrimaryNamespace: true)
         {
-            IsPrimaryNamespace = true,
             Content = "Some.Namespace"
         };
 
@@ -364,9 +356,8 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
-        var @namespace = new NamespaceDeclarationIntermediateNode
+        var @namespace = new NamespaceDeclarationIntermediateNode(isPrimaryNamespace: true)
         {
-            IsPrimaryNamespace = true,
             Content = "Some.Namespace"
         };
 
