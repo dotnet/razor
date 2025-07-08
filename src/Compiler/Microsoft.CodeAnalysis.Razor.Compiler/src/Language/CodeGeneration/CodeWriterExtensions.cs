@@ -37,48 +37,6 @@ internal static class CodeWriterExtensions
         return writer.LastChar is '\n';
     }
 
-    public static CodeWriter WritePadding(this CodeWriter writer, int offset, SourceSpan? span, CodeRenderingContext context)
-    {
-        if (span == null)
-        {
-            return writer;
-        }
-
-        if (context.SourceDocument.FilePath != null &&
-            !string.Equals(context.SourceDocument.FilePath, span.Value.FilePath, StringComparison.OrdinalIgnoreCase))
-        {
-            // We don't want to generate padding for nodes from imports.
-            return writer;
-        }
-
-        var basePadding = CalculatePadding();
-        var resolvedPadding = Math.Max(basePadding - offset, 0);
-
-        writer.Indent(resolvedPadding);
-
-        return writer;
-
-        int CalculatePadding()
-        {
-            var spaceCount = 0;
-            for (var i = span.Value.AbsoluteIndex - 1; i >= 0; i--)
-            {
-                var @char = context.SourceDocument.Text[i];
-                if (@char == '\n' || @char == '\r')
-                {
-                    break;
-                }
-                else
-                {
-                    // Note that a tab is also replaced with a single space so character indices match.
-                    spaceCount++;
-                }
-            }
-
-            return spaceCount;
-        }
-    }
-
     public static CodeWriter WriteVariableDeclaration(this CodeWriter writer, string type, string name, string value)
     {
         writer.Write(type).Write(" ").Write(name);

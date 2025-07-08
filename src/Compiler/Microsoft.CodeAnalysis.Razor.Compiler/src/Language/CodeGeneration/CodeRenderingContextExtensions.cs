@@ -6,12 +6,55 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using static Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriterExtensions;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 internal static class CodeRenderingContextExtensions
 {
+    public static void WritePadding(this CodeRenderingContext context, int offset, SourceSpan? span)
+    {
+        if (span is not SourceSpan spanValue)
+        {
+            return;
+        }
+
+        var sourceDocument = context.SourceDocument;
+
+        if (sourceDocument.FilePath != null &&
+            !string.Equals(sourceDocument.FilePath, spanValue.FilePath, StringComparison.OrdinalIgnoreCase))
+        {
+            // We don't want to generate padding for nodes from imports.
+            return;
+        }
+
+        var basePadding = CalculatePadding(sourceDocument.Text, spanValue);
+        var resolvedPadding = Math.Max(basePadding - offset, 0);
+
+        context.CodeWriter.Indent(resolvedPadding);
+
+        static int CalculatePadding(SourceText text, SourceSpan span)
+        {
+            var spaceCount = 0;
+            for (var i = span.AbsoluteIndex - 1; i >= 0; i--)
+            {
+                var @char = text[i];
+                if (@char == '\n' || @char == '\r')
+                {
+                    break;
+                }
+                else
+                {
+                    // Note that a tab is also replaced with a single space so character indices match.
+                    spaceCount++;
+                }
+            }
+
+            return spaceCount;
+        }
+    }
+
     public static CSharpCodeWritingScope BuildNamespace(this CodeRenderingContext context, string? name, SourceSpan? span)
     {
         var writer = context.CodeWriter;
@@ -365,7 +408,7 @@ internal static class CodeRenderingContextExtensions
                 // If the caller requested an enhanced line directive, but we fell back to regular ones, write out the extra padding that is required
                 if (!_context.Options.UseEnhancedLinePragma)
                 {
-                    writer.WritePadding(0, span, context);
+                    context.WritePadding(offset: 0, span);
                     characterOffset = 0;
                 }
 

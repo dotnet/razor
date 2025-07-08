@@ -50,20 +50,22 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
             return;
         }
 
+        var writer = context.CodeWriter;
+
         if (node.Source is SourceSpan source)
         {
             using (context.BuildLinePragma(source))
             {
                 var offset = DesignTimeDirectivePass.DesignTimeVariable.Length + " = ".Length;
-                context.CodeWriter.WritePadding(offset, source, context);
-                context.CodeWriter.WriteStartAssignment(DesignTimeDirectivePass.DesignTimeVariable);
+                context.WritePadding(offset, source);
+                writer.WriteStartAssignment(DesignTimeDirectivePass.DesignTimeVariable);
 
                 foreach (var child in node.Children)
                 {
                     if (child is IntermediateToken { IsCSharp: true } token)
                     {
                         context.AddSourceMappingFor(token);
-                        context.CodeWriter.Write(token.Content);
+                        writer.Write(token.Content);
                     }
                     else
                     {
@@ -72,25 +74,27 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
                     }
                 }
 
-                context.CodeWriter.WriteLine(";");
+                writer.WriteLine(";");
             }
         }
         else
         {
-            context.CodeWriter.WriteStartAssignment(DesignTimeDirectivePass.DesignTimeVariable);
-            for (var i = 0; i < node.Children.Count; i++)
+            writer.WriteStartAssignment(DesignTimeDirectivePass.DesignTimeVariable);
+
+            foreach (var child in node.Children)
             {
-                if (node.Children[i] is IntermediateToken token && token.IsCSharp)
+                if (child is IntermediateToken { IsCSharp: true } token)
                 {
-                    context.CodeWriter.Write(token.Content);
+                    writer.Write(token.Content);
                 }
                 else
                 {
                     // There may be something else inside the expression like a Template or another extension node.
-                    context.RenderNode(node.Children[i]);
+                    context.RenderNode(child);
                 }
             }
-            context.CodeWriter.WriteLine(";");
+
+            writer.WriteLine(";");
         }
     }
 
@@ -102,7 +106,7 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
         {
             using (context.BuildLinePragma(source))
             {
-                writer.WritePadding(0, source, context);
+                context.WritePadding(offset: 0, source);
                 RenderChildren(context, node);
             }
         }
@@ -157,35 +161,38 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
             return;
         }
 
+        var writer = context.CodeWriter;
+
         var firstChild = node.Children[0];
         if (firstChild.Source is SourceSpan source)
         {
             using (context.BuildLinePragma(source))
             {
                 var offset = DesignTimeDirectivePass.DesignTimeVariable.Length + " = ".Length;
-                context.CodeWriter.WritePadding(offset, source, context);
-                context.CodeWriter.WriteStartAssignment(DesignTimeDirectivePass.DesignTimeVariable);
+                context.WritePadding(offset, source);
+                writer.WriteStartAssignment(DesignTimeDirectivePass.DesignTimeVariable);
 
-                for (var i = 0; i < node.Children.Count; i++)
+                foreach (var child in node.Children)
                 {
-                    if (node.Children[i] is IntermediateToken token && token.IsCSharp)
+                    if (child is IntermediateToken { IsCSharp: true } token)
                     {
                         context.AddSourceMappingFor(token);
-                        context.CodeWriter.Write(token.Content);
+                        writer.Write(token.Content);
                     }
                     else
                     {
                         // There may be something else inside the expression like a Template or another extension node.
-                        context.RenderNode(node.Children[i]);
+                        context.RenderNode(child);
                     }
                 }
 
-                context.CodeWriter.WriteLine(";");
+                writer.WriteLine(";");
             }
         }
         else
         {
-            context.CodeWriter.WriteStartAssignment(DesignTimeDirectivePass.DesignTimeVariable);
+            writer.WriteStartAssignment(DesignTimeDirectivePass.DesignTimeVariable);
+
             for (var i = 0; i < node.Children.Count; i++)
             {
                 if (node.Children[i] is IntermediateToken token && token.IsCSharp)
@@ -195,7 +202,7 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
                         context.AddSourceMappingFor(token);
                     }
 
-                    context.CodeWriter.Write(token.Content);
+                    writer.Write(token.Content);
                 }
                 else
                 {
@@ -203,7 +210,8 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
                     context.RenderNode(node.Children[i]);
                 }
             }
-            context.CodeWriter.WriteLine(";");
+
+            writer.WriteLine(";");
         }
     }
 
@@ -221,7 +229,7 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
                     {
                         using (context.BuildLinePragma(source))
                         {
-                            context.CodeWriter.WritePadding(0, source, context);
+                            context.WritePadding(offset: 0, source);
 
                             context.AddSourceMappingFor(token);
                             context.CodeWriter.Write(token.Content);
@@ -230,7 +238,7 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
                         continue;
                     }
 
-                    context.CodeWriter.WritePadding(0, source, context);
+                    context.WritePadding(offset: 0, source);
                 }
                 else if (isWhitespaceStatement)
                 {
