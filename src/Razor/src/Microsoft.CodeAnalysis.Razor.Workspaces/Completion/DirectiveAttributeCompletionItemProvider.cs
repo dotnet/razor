@@ -171,7 +171,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
         return completionItems.ToImmutableAndClear();
 
-        bool TryGetSnippetText(
+        static bool TryGetSnippetText(
             RazorSyntaxNode owner,
             ReadOnlySpan<char> baseTextSpan,
             RazorCompletionOptions razorCompletionOptions,
@@ -180,8 +180,8 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             if (razorCompletionOptions.SnippetsSupported
                 // Don't create snippet text when attribute is already in the tag and we are trying to replace it
                 // Otherwise you could have something like @onabort=""=""
-                && containingAttribute is not (MarkupTagHelperDirectiveAttributeSyntax or MarkupAttributeBlockSyntax)
-                && containingAttribute.Parent is not (MarkupTagHelperDirectiveAttributeSyntax or MarkupAttributeBlockSyntax))
+                && owner is not (MarkupTagHelperDirectiveAttributeSyntax or MarkupAttributeBlockSyntax)
+                && owner.Parent is not (MarkupTagHelperDirectiveAttributeSyntax or MarkupAttributeBlockSyntax))
             {
                 var suffixTextSpan = razorCompletionOptions.AutoInsertAttributeQuotes ? QuotedAttributeValueSnippet : UnquotedAttributeValueSnippet;
 
