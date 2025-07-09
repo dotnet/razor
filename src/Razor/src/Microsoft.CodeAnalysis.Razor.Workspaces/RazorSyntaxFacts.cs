@@ -208,27 +208,18 @@ internal static class RazorSyntaxFacts
         return false;
     }
 
-    internal static bool IsInElementWithName(RazorSyntaxNode? node, string name)
+    internal static bool IsElementWithName(MarkupElementSyntax? element, string name)
     {
-        var element = node?.FirstAncestorOrSelf<MarkupElementSyntax>();
-
         return string.Equals(element?.StartTag.Name.Content, name, StringComparison.OrdinalIgnoreCase);
     }
 
-    internal static bool IsInMarkupCommentBlock(RazorSyntaxNode? node)
+    internal static bool IsStyleBlock(MarkupElementSyntax? node)
     {
-        var element = node?.FirstAncestorOrSelf<MarkupCommentBlockSyntax>();
-
-        return element is not null;
+        return IsElementWithName(node, "style");
     }
 
-    internal static bool IsInStyleBlock(RazorSyntaxNode? node)
+    internal static bool IsScriptBlock(MarkupElementSyntax? node)
     {
-        return IsInElementWithName(node, "style");
-    }
-
-    internal static bool IsInScriptBlock(RazorSyntaxNode? node)
-    {
-        return IsInElementWithName(node, "script");
+        return IsElementWithName(node, "script");
     }
 }
