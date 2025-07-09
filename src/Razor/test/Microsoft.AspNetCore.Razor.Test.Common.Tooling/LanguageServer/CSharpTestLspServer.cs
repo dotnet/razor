@@ -100,7 +100,11 @@ internal sealed class CSharpTestLspServer : IAsyncDisposable
             var capabilitiesProvider = new RazorTestCapabilitiesProvider(serverCapabilities, options);
 
             var registrationService = exportProvider.GetExportedValue<RazorTestWorkspaceRegistrationService>();
-            registrationService.Register(workspace);
+            // If the tests are using the Host workspace kind, it will have already been registered
+            if (!registrationService.GetAllRegistrations().Contains(workspace))
+            {
+                registrationService.Register(workspace);
+            }
 
             var hostServices = workspace.Services.HostServices;
             var languageServer = languageServerFactory.CreateLanguageServer(serverRpc, options, capabilitiesProvider, hostServices);

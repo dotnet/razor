@@ -29,8 +29,14 @@ internal static class CSharpTestLspServerHelpers
         SourceText csharpSourceText,
         Uri csharpDocumentUri,
         VSInternalServerCapabilities serverCapabilities,
-        CancellationToken cancellationToken) =>
-        CreateCSharpLspServerAsync(csharpSourceText, csharpDocumentUri, serverCapabilities, new EmptyMappingService(), capabilitiesUpdater: null, cancellationToken);
+        CancellationToken cancellationToken)
+        => CreateCSharpLspServerAsync(
+            csharpSourceText,
+            csharpDocumentUri,
+            serverCapabilities,
+            new EmptyMappingService(),
+            capabilitiesUpdater: null,
+            cancellationToken);
 
     public static Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
         SourceText csharpSourceText,
@@ -39,14 +45,30 @@ internal static class CSharpTestLspServerHelpers
         IRazorMappingService razorMappingService,
         Action<VSInternalClientCapabilities> capabilitiesUpdater,
         CancellationToken cancellationToken)
-    {
-        var files = new[]
-        {
-            (csharpDocumentUri, csharpSourceText)
-        };
+        => CreateCSharpLspServerAsync(
+            [(csharpDocumentUri, csharpSourceText)],
+            serverCapabilities,
+            razorMappingService,
+            multiTargetProject: true,
+            capabilitiesUpdater,
+            cancellationToken);
 
-        return CreateCSharpLspServerAsync(files, serverCapabilities, razorMappingService, multiTargetProject: true, capabilitiesUpdater, cancellationToken);
-    }
+    public static Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
+        IEnumerable<(Uri Uri, SourceText SourceText)> files,
+        VSInternalServerCapabilities serverCapabilities,
+        IRazorMappingService razorMappingService,
+        bool multiTargetProject,
+        Action<VSInternalClientCapabilities> capabilitiesUpdater,
+        CancellationToken cancellationToken)
+        => CreateCSharpLspServerAsync(
+            files,
+            serverCapabilities,
+            razorMappingService,
+            multiTargetProject,
+            capabilitiesUpdater,
+            compositionUpdater: tc => tc,
+            workspaceKind: null,
+            cancellationToken);
 
     public static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
         IEnumerable<(Uri Uri, SourceText SourceText)> files,
@@ -54,18 +76,21 @@ internal static class CSharpTestLspServerHelpers
         IRazorMappingService razorMappingService,
         bool multiTargetProject,
         Action<VSInternalClientCapabilities> capabilitiesUpdater,
+        Func<TestComposition, TestComposition> compositionUpdater,
+        string workspaceKind,
         CancellationToken cancellationToken)
     {
         var csharpFiles = files.Select(f => new CSharpFile(f.Uri, f.SourceText));
 
-        var exportProvider = TestComposition.RoslynFeatures
-            .AddParts(typeof(RazorTestLanguageServerFactory))
-            .ExportProviderFactory.CreateExportProvider();
+        var composition = TestComposition.RoslynFeatures
+            .AddParts(typeof(RazorTestLanguageServerFactory));
+        composition = compositionUpdater(composition);
+        var exportProvider = composition.ExportProviderFactory.CreateExportProvider();
 
         var metadataReferences = await ReferenceAssemblies.Default.ResolveAsync(language: LanguageNames.CSharp, cancellationToken);
         metadataReferences = metadataReferences.Add(ReferenceUtil.AspNetLatestComponents);
 
-        var workspace = CreateCSharpTestWorkspace(csharpFiles, exportProvider, metadataReferences, razorMappingService, multiTargetProject);
+        var workspace = CreateCSharpTestWorkspace(csharpFiles, exportProvider, metadataReferences, razorMappingService, multiTargetProject, workspaceKind);
 
         var clientCapabilities = new VSInternalClientCapabilities
         {
@@ -106,9 +131,10 @@ internal static class CSharpTestLspServerHelpers
         ExportProvider exportProvider,
         ImmutableArray<MetadataReference> metadataReferences,
         IRazorMappingService razorMappingService,
-        bool multiTargetProject)
+        bool multiTargetProject,
+        string workspaceKind)
     {
-        var workspace = TestWorkspace.CreateWithDiagnosticAnalyzers(exportProvider);
+        var workspace = TestWorkspace.CreateWithDiagnosticAnalyzers(exportProvider, workspaceKind);
 
         // Add project and solution to workspace
         var projectInfoNet60 = ProjectInfo.Create(

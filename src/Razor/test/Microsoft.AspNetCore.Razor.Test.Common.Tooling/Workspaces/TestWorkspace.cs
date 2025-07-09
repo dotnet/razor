@@ -23,24 +23,22 @@ public static class TestWorkspace
     public static Workspace Create(Action<AdhocWorkspace>? configure = null)
         => Create(services: null, configure: configure);
 
-    public static AdhocWorkspace CreateWithDiagnosticAnalyzers(ExportProvider exportProvider)
+    public static AdhocWorkspace CreateWithDiagnosticAnalyzers(ExportProvider exportProvider, string? workspaceKind = null)
     {
         var hostServices = MefHostServices.Create(exportProvider.AsCompositionContext());
 
-        var workspace = Create(hostServices);
+        var workspace = Create(hostServices, configure: null, workspaceKind);
 
-        AddAnalyzersToWorkspace(workspace, exportProvider);
+        AddAnalyzersToWorkspace(workspace);
 
         return workspace;
     }
 
-    public static AdhocWorkspace Create(HostServices? services, Action<AdhocWorkspace>? configure = null)
+    public static AdhocWorkspace Create(HostServices? services, Action<AdhocWorkspace>? configure = null, string? workspaceKind = null)
     {
         lock (s_workspaceLock)
         {
-            var workspace = services is null
-                ? new AdhocWorkspace()
-                : new AdhocWorkspace(services);
+            var workspace = new AdhocWorkspace(services ?? MefHostServices.DefaultHost, workspaceKind ?? "Custom");
 
             configure?.Invoke(workspace);
 
@@ -48,7 +46,7 @@ public static class TestWorkspace
         }
     }
 
-    private static void AddAnalyzersToWorkspace(Workspace workspace, ExportProvider exportProvider)
+    private static void AddAnalyzersToWorkspace(Workspace workspace)
     {
         var analyzerLoader = RazorTestAnalyzerLoader.CreateAnalyzerAssemblyLoader();
 
