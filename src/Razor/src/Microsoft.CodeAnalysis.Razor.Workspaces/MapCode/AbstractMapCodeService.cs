@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
@@ -26,13 +25,13 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
 {
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
-    protected abstract bool TryCreateDocumentContext(Uri uri, [NotNullWhen(true)] out DocumentContext? documentContext);
+    protected abstract bool TryCreateDocumentContext(ISolutionQueryOperations queryOperations, Uri uri, [NotNullWhen(true)] out DocumentContext? documentContext);
 
-    protected abstract Task<(Uri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(Uri generatedDocumentUri, LinePositionSpan generatedDocumentRange, CancellationToken cancellationToken);
+    protected abstract Task<(Uri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(DocumentContext documentContext, Uri generatedDocumentUri, LinePositionSpan generatedDocumentRange, CancellationToken cancellationToken);
 
-    protected abstract Task<WorkspaceEdit?> TryGetCSharpMapCodeEditsAsync(TextDocumentIdentifierAndVersion textDocumentIdentifier, Guid mapCodeCorrelationId, RazorSyntaxNode nodeToMap, LspLocation[][] focusLocations, CancellationToken cancellationToken);
+    protected abstract Task<WorkspaceEdit?> TryGetCSharpMapCodeEditsAsync(DocumentContext documentContext, Guid mapCodeCorrelationId, RazorSyntaxNode nodeToMap, LspLocation[][] focusLocations, CancellationToken cancellationToken);
 
-    public async Task<WorkspaceEdit?> MapCodeAsync(VSInternalMapCodeMapping[] mappings, Guid mapCodeCorrelationId, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> MapCodeAsync(ISolutionQueryOperations queryOperations, VSInternalMapCodeMapping[] mappings, Guid mapCodeCorrelationId, CancellationToken cancellationToken)
     {
         using var _ = ListPool<TextDocumentEdit>.GetPooledObject(out var changes);
         foreach (var mapping in mappings)
@@ -42,7 +41,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
                 continue;
             }
 
-            if (!TryCreateDocumentContext(mapping.TextDocument.DocumentUri.GetRequiredParsedUri(), out var documentContext))
+            if (!TryCreateDocumentContext(queryOperations, mapping.TextDocument.DocumentUri.GetRequiredParsedUri(), out var documentContext))
             {
                 continue;
             }
@@ -65,7 +64,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
                 var codeToMap = await newSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
                 var mappingSuccess = await TryMapCodeAsync(
-                    codeToMap, mapping.FocusLocations, changes, mapCodeCorrelationId, documentContext, cancellationToken).ConfigureAwait(false);
+                    queryOperations, codeToMap, mapping.FocusLocations, changes, mapCodeCorrelationId, documentContext, cancellationToken).ConfigureAwait(false);
 
                 // Mapping failed. Let the client's built-in fallback mapper handle mapping.
                 if (!mappingSuccess)
@@ -84,6 +83,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
     }
 
     private async Task<bool> TryMapCodeAsync(
+        ISolutionQueryOperations queryOperations,
         RazorCodeDocument codeToMap,
         LspLocation[][] locations,
         List<TextDocumentEdit> changes,
@@ -104,7 +104,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
         }
 
         var mappingSuccess = await TryMapCodeAsync(
-            locations, nodesToMap, mapCodeCorrelationId, changes, documentContext, cancellationToken).ConfigureAwait(false);
+            queryOperations, locations, nodesToMap, mapCodeCorrelationId, changes, documentContext, cancellationToken).ConfigureAwait(false);
         if (!mappingSuccess)
         {
             return false;
@@ -115,6 +115,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
     }
 
     private async Task<bool> TryMapCodeAsync(
+        ISolutionQueryOperations queryOperations,
         LspLocation[][] focusLocations,
         ImmutableArray<RazorSyntaxNode> nodesToMap,
         Guid mapCodeCorrelationId,
@@ -154,12 +155,12 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
                     {
                         if (!didCalculateCSharpFocusLocations)
                         {
-                            csharpFocusLocations = await GetCSharpFocusLocationsAsync(focusLocations, cancellationToken).ConfigureAwait(false);
+                            csharpFocusLocations = await GetCSharpFocusLocationsAsync(queryOperations, focusLocations, cancellationToken).ConfigureAwait(false);
                             didCalculateCSharpFocusLocations = true;
                         }
 
                         var csharpMappingSuccessful = await TryMapCSharpCodeAsync(
-                            documentContext.GetTextDocumentIdentifierAndVersion(),
+                            documentContext,
                             csharpBody,
                             csharpFocusLocations,
                             mapCodeCorrelationId,
@@ -259,14 +260,14 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
     ];
 
     private async Task<bool> TryMapCSharpCodeAsync(
-        TextDocumentIdentifierAndVersion textDocumentIdentifier,
+        DocumentContext documentContext,
         RazorSyntaxNode nodeToMap,
         LspLocation[][] focusLocations,
         Guid mapCodeCorrelationId,
         List<TextDocumentEdit> changes,
         CancellationToken cancellationToken)
     {
-        var edits = await TryGetCSharpMapCodeEditsAsync(textDocumentIdentifier, mapCodeCorrelationId, nodeToMap, focusLocations, cancellationToken).ConfigureAwait(false);
+        var edits = await TryGetCSharpMapCodeEditsAsync(documentContext, mapCodeCorrelationId, nodeToMap, focusLocations, cancellationToken).ConfigureAwait(false);
 
         if (edits is null)
         {
@@ -274,11 +275,11 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
             return false;
         }
 
-        var success = await TryHandleDelegatedResponseAsync(edits, changes, cancellationToken).ConfigureAwait(false);
+        var success = await TryHandleDelegatedResponseAsync(documentContext, edits, changes, cancellationToken).ConfigureAwait(false);
         return success;
     }
 
-    private async Task<LspLocation[][]> GetCSharpFocusLocationsAsync(LspLocation[][] focusLocations, CancellationToken cancellationToken)
+    private async Task<LspLocation[][]> GetCSharpFocusLocationsAsync(ISolutionQueryOperations queryOperations, LspLocation[][] focusLocations, CancellationToken cancellationToken)
     {
         // If the focus locations are in a C# context, map them to the C# document.
         var csharpFocusLocations = new LspLocation[focusLocations.Length][];
@@ -295,7 +296,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
                     continue;
                 }
 
-                if (!TryCreateDocumentContext(potentialLocation.DocumentUri.GetRequiredParsedUri(), out var documentContext))
+                if (!TryCreateDocumentContext(queryOperations, potentialLocation.DocumentUri.GetRequiredParsedUri(), out var documentContext))
                 {
                     continue;
                 }
@@ -327,6 +328,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
 
     // Map C# code back to Razor file
     private async Task<bool> TryHandleDelegatedResponseAsync(
+        DocumentContext documentContext,
         WorkspaceEdit edits,
         List<TextDocumentEdit> changes,
         CancellationToken cancellationToken)
@@ -338,7 +340,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
             // into also supporting file creation/deletion/rename.
             foreach (var edit in documentEdits)
             {
-                var success = await TryProcessEditAsync(edit.TextDocument.DocumentUri.GetRequiredParsedUri(), edit.Edits, csharpChanges, cancellationToken).ConfigureAwait(false);
+                var success = await TryProcessEditAsync(documentContext, edit.TextDocument.DocumentUri.GetRequiredParsedUri(), edit.Edits, csharpChanges, cancellationToken).ConfigureAwait(false);
                 if (!success)
                 {
                     return false;
@@ -351,7 +353,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
             foreach (var edit in edits.Changes)
             {
                 var generatedUri = new Uri(edit.Key);
-                var success = await TryProcessEditAsync(generatedUri, [.. edit.Value.Select(e => (SumType<TextEdit, AnnotatedTextEdit>)e)], csharpChanges, cancellationToken).ConfigureAwait(false);
+                var success = await TryProcessEditAsync(documentContext, generatedUri, [.. edit.Value.Select(e => (SumType<TextEdit, AnnotatedTextEdit>)e)], csharpChanges, cancellationToken).ConfigureAwait(false);
                 if (!success)
                 {
                     return false;
@@ -363,6 +365,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
         return true;
 
         async Task<bool> TryProcessEditAsync(
+            DocumentContext documentContext,
             Uri generatedUri,
             SumType<TextEdit, AnnotatedTextEdit>[] textEdits,
             List<TextDocumentEdit> csharpChanges,
@@ -370,7 +373,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
         {
             foreach (TextEdit documentEdit in textEdits)
             {
-                var (hostDocumentUri, hostDocumentRange) = await MapToHostDocumentUriAndRangeAsync(generatedUri, documentEdit.Range.ToLinePositionSpan(), cancellationToken).ConfigureAwait(false);
+                var (hostDocumentUri, hostDocumentRange) = await MapToHostDocumentUriAndRangeAsync(documentContext, generatedUri, documentEdit.Range.ToLinePositionSpan(), cancellationToken).ConfigureAwait(false);
 
                 if (hostDocumentUri == generatedUri)
                 {

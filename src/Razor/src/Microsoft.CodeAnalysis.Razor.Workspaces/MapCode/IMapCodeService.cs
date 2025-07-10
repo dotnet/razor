@@ -4,10 +4,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.MapCode;
 
 internal interface IMapCodeService
 {
-    Task<WorkspaceEdit?> MapCodeAsync(VSInternalMapCodeMapping[] mappings, Guid mapCodeCorrelationId, CancellationToken cancellationToken);
+    Task<WorkspaceEdit?> MapCodeAsync(ISolutionQueryOperations solutionQueryOperations, VSInternalMapCodeMapping[] mappings, Guid mapCodeCorrelationId, CancellationToken cancellationToken);
 }

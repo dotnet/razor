@@ -294,12 +294,13 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
             DisposalToken);
         await csharpServer.OpenDocumentAsync(csharpDocumentUri, csharpSourceText.ToString(), DisposalToken);
 
+        var projectSnapshotManager = CreateProjectSnapshotManager();
         var documentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument);
         var languageServer = new MapCodeServer(csharpServer, csharpDocumentUri);
         var documentMappingService = new LspDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
 
         var service = new LspMapCodeService(documentMappingService, documentContextFactory, languageServer);
-        var endpoint = new MapCodeEndpoint(service, NoOpTelemetryReporter.Instance);
+        var endpoint = new MapCodeEndpoint(service, projectSnapshotManager, NoOpTelemetryReporter.Instance);
 
         var capabilitiesProvider = Assert.IsAssignableFrom<ICapabilitiesProvider>(endpoint);
 

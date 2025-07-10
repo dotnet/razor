@@ -29,16 +29,16 @@ internal sealed class LspMapCodeService(
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
     private readonly IClientConnection _clientConnection = clientConnection;
 
-    protected override bool TryCreateDocumentContext(Uri uri, [NotNullWhen(true)] out DocumentContext? documentContext)
+    protected override bool TryCreateDocumentContext(ISolutionQueryOperations queryOperations, Uri uri, [NotNullWhen(true)] out DocumentContext? documentContext)
         => _documentContextFactory.TryCreate(uri, out documentContext);
 
-    protected override Task<(Uri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(Uri generatedDocumentUri, LinePositionSpan generatedDocumentRange, CancellationToken cancellationToken)
+    protected override Task<(Uri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(DocumentContext documentContext, Uri generatedDocumentUri, LinePositionSpan generatedDocumentRange, CancellationToken cancellationToken)
         => _documentMappingService.MapToHostDocumentUriAndRangeAsync(generatedDocumentUri, generatedDocumentRange, cancellationToken);
 
-    protected override async Task<WorkspaceEdit?> TryGetCSharpMapCodeEditsAsync(TextDocumentIdentifierAndVersion textDocumentIdentifier, Guid mapCodeCorrelationId, SyntaxNode nodeToMap, Location[][] focusLocations, CancellationToken cancellationToken)
+    protected override async Task<WorkspaceEdit?> TryGetCSharpMapCodeEditsAsync(DocumentContext documentContext, Guid mapCodeCorrelationId, SyntaxNode nodeToMap, Location[][] focusLocations, CancellationToken cancellationToken)
     {
         var delegatedRequest = new DelegatedMapCodeParams(
-            textDocumentIdentifier,
+            documentContext.GetTextDocumentIdentifierAndVersion(),
             RazorLanguageKind.CSharp,
             mapCodeCorrelationId,
             [nodeToMap.ToString()],

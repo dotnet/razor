@@ -7,7 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.MapCode;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.MapCode;
@@ -22,9 +24,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.MapCode;
 [RazorLanguageServerEndpoint(VSInternalMethods.WorkspaceMapCodeName)]
 internal sealed class MapCodeEndpoint(
     IMapCodeService mapCodeService,
+    ProjectSnapshotManager projectSnapshotManager,
     ITelemetryReporter telemetryReporter) : IRazorDocumentlessRequestHandler<VSInternalMapCodeParams, WorkspaceEdit?>, ICapabilitiesProvider
 {
     private readonly IMapCodeService _mapCodeService = mapCodeService;
+    private readonly ProjectSnapshotManager _projectSnapshotManager = projectSnapshotManager;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
     public bool MutatesSolutionState => false;
@@ -52,6 +56,6 @@ internal sealed class MapCodeEndpoint(
         var mapCodeCorrelationId = mapperParams.MapCodeCorrelationId ?? Guid.NewGuid();
         using var ts = _telemetryReporter.TrackLspRequest(VSInternalMethods.WorkspaceMapCodeName, LanguageServerConstants.RazorLanguageServerName, TelemetryThresholds.MapCodeRazorTelemetryThreshold, mapCodeCorrelationId);
 
-        return await _mapCodeService.MapCodeAsync(mapperParams.Mappings, mapCodeCorrelationId, cancellationToken).ConfigureAwait(false);
+        return await _mapCodeService.MapCodeAsync(_projectSnapshotManager.GetQueryOperations(), mapperParams.Mappings, mapCodeCorrelationId, cancellationToken).ConfigureAwait(false);
     }
 }
