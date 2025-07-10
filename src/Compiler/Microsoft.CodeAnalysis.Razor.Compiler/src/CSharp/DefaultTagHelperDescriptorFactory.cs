@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -249,6 +249,7 @@ internal sealed class DefaultTagHelperDescriptorFactory(bool includeDocumentatio
         bool hasPublicSetter)
     {
         string? dictionaryAttributePrefix = null;
+        var dictionaryAttributePrefixSet = false;
 
         if (attributeNameAttribute != null)
         {
@@ -257,6 +258,7 @@ internal sealed class DefaultTagHelperDescriptorFactory(bool includeDocumentatio
                 if (name == TagHelperTypes.HtmlAttributeName.DictionaryAttributePrefix)
                 {
                     dictionaryAttributePrefix = (string?)argument.Value;
+                    dictionaryAttributePrefixSet = true;
                     break;
                 }
             }
@@ -266,7 +268,7 @@ internal sealed class DefaultTagHelperDescriptorFactory(bool includeDocumentatio
 
         if (!dictionaryTypeArguments.IsEmpty)
         {
-            var prefix = attributeNameAttribute is null || dictionaryAttributePrefix is null
+            var prefix = attributeNameAttribute is null || !dictionaryAttributePrefixSet
                 ? attributeName + "-"
                 : dictionaryAttributePrefix;
 
@@ -291,7 +293,7 @@ internal sealed class DefaultTagHelperDescriptorFactory(bool includeDocumentatio
             return;
         }
 
-        if (!hasPublicSetter && attributeNameAttribute != null && dictionaryAttributePrefix == null)
+        if (!hasPublicSetter && attributeNameAttribute != null && !dictionaryAttributePrefixSet)
         {
             // Must set DictionaryAttributePrefix when using HtmlAttributeNameAttribute with a dictionary property
             // that lacks a public setter.
