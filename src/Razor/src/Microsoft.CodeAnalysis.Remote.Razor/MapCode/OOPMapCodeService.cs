@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
-using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.MapCode;
 
@@ -51,7 +50,7 @@ internal class OOPMapCodeService(
         return await _documentMappingService.MapToHostDocumentUriAndRangeAsync(snapshot, generatedDocumentUri, generatedDocumentRange, cancellationToken).ConfigureAwait(false);
     }
 
-    protected async override Task<WorkspaceEdit?> TryGetCSharpMapCodeEditsAsync(DocumentContext documentContext, Guid mapCodeCorrelationId, RazorSyntaxNode nodeToMap, LspLocation[][] focusLocations, CancellationToken cancellationToken)
+    protected async override Task<WorkspaceEdit?> TryGetCSharpMapCodeEditsAsync(DocumentContext documentContext, Guid mapCodeCorrelationId, string nodeToMapContents, LspLocation[][] focusLocations, CancellationToken cancellationToken)
     {
         Debug.Assert(_clientCapabilitiesService.CanGetClientCapabilities);
         Debug.Assert(documentContext is RemoteDocumentContext, "This method only works on document snapshots created in the OOP process");
@@ -64,7 +63,7 @@ internal class OOPMapCodeService(
             Mappings = [new VSInternalMapCodeMapping()
             {
                 TextDocument = documentContext.GetTextDocumentIdentifier().WithUri(generatedDocument.CreateUri()),
-                Contents = [nodeToMap.ToString()],
+                Contents = [nodeToMapContents],
                 FocusLocations = focusLocations,
             }],
             MapCodeCorrelationId = mapCodeCorrelationId,

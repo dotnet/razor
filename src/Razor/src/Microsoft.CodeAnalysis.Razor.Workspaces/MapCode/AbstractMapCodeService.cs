@@ -29,7 +29,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
 
     protected abstract Task<(Uri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(DocumentContext documentContext, Uri generatedDocumentUri, LinePositionSpan generatedDocumentRange, CancellationToken cancellationToken);
 
-    protected abstract Task<WorkspaceEdit?> TryGetCSharpMapCodeEditsAsync(DocumentContext documentContext, Guid mapCodeCorrelationId, RazorSyntaxNode nodeToMap, LspLocation[][] focusLocations, CancellationToken cancellationToken);
+    protected abstract Task<WorkspaceEdit?> TryGetCSharpMapCodeEditsAsync(DocumentContext documentContext, Guid mapCodeCorrelationId, string nodeToMapContents, LspLocation[][] focusLocations, CancellationToken cancellationToken);
 
     public async Task<WorkspaceEdit?> MapCodeAsync(ISolutionQueryOperations queryOperations, VSInternalMapCodeMapping[] mappings, Guid mapCodeCorrelationId, CancellationToken cancellationToken)
     {
@@ -161,7 +161,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
 
                         var csharpMappingSuccessful = await TryMapCSharpCodeAsync(
                             documentContext,
-                            csharpBody,
+                            csharpBody.ToString(),
                             csharpFocusLocations,
                             mapCodeCorrelationId,
                             changes,
@@ -261,13 +261,13 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
 
     private async Task<bool> TryMapCSharpCodeAsync(
         DocumentContext documentContext,
-        RazorSyntaxNode nodeToMap,
+        string nodeToMapContents,
         LspLocation[][] focusLocations,
         Guid mapCodeCorrelationId,
         List<TextDocumentEdit> changes,
         CancellationToken cancellationToken)
     {
-        var edits = await TryGetCSharpMapCodeEditsAsync(documentContext, mapCodeCorrelationId, nodeToMap, focusLocations, cancellationToken).ConfigureAwait(false);
+        var edits = await TryGetCSharpMapCodeEditsAsync(documentContext, mapCodeCorrelationId, nodeToMapContents, focusLocations, cancellationToken).ConfigureAwait(false);
 
         if (edits is null)
         {
