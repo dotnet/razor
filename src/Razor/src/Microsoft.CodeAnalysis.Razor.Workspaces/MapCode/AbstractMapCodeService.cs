@@ -65,7 +65,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
         };
     }
 
-    private async Task MapCSharpEditsAndRazorCodeAsync(ISolutionQueryOperations queryOperations, string content, List<TextDocumentEdit> changes, ImmutableArray<WorkspaceEdit> csharpEdits, TextDocumentIdentifier textDocument, LspLocation[][] focusLocations, CancellationToken cancellationToken)
+    public async Task MapCSharpEditsAndRazorCodeAsync(ISolutionQueryOperations queryOperations, string content, List<TextDocumentEdit> changes, ImmutableArray<WorkspaceEdit> csharpEdits, TextDocumentIdentifier textDocument, LspLocation[][] focusLocations, CancellationToken cancellationToken)
     {
         if (!TryCreateDocumentContext(queryOperations, textDocument.DocumentUri.GetRequiredParsedUri(), out var documentContext))
         {
@@ -380,7 +380,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
     }
 
     // Resolve edits that are at the same start location by merging them together.
-    private static void MergeEdits(List<TextDocumentEdit> changes)
+    public static void MergeEdits(List<TextDocumentEdit> changes)
     {
         var groupedChanges = changes.GroupBy(c => c.TextDocument.DocumentUri).ToImmutableArray();
         changes.Clear();
