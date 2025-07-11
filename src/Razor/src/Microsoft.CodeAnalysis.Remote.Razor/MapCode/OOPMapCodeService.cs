@@ -50,7 +50,7 @@ internal class OOPMapCodeService(
         return await _documentMappingService.MapToHostDocumentUriAndRangeAsync(snapshot, generatedDocumentUri, generatedDocumentRange, cancellationToken).ConfigureAwait(false);
     }
 
-    protected async override Task<WorkspaceEdit?> TryGetCSharpMapCodeEditsAsync(DocumentContext documentContext, Guid mapCodeCorrelationId, string nodeToMapContents, LspLocation[][] focusLocations, CancellationToken cancellationToken)
+    protected async override Task<WorkspaceEdit?> GetCSharpMapCodeEditAsync(DocumentContext documentContext, Guid mapCodeCorrelationId, string nodeToMapContents, LspLocation[][] focusLocations, CancellationToken cancellationToken)
     {
         Debug.Assert(_clientCapabilitiesService.CanGetClientCapabilities);
         Debug.Assert(documentContext is RemoteDocumentContext, "This method only works on document snapshots created in the OOP process");

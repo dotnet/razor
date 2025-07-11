@@ -35,7 +35,7 @@ internal sealed class LspMapCodeService(
     protected override Task<(Uri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(DocumentContext documentContext, Uri generatedDocumentUri, LinePositionSpan generatedDocumentRange, CancellationToken cancellationToken)
         => _documentMappingService.MapToHostDocumentUriAndRangeAsync(generatedDocumentUri, generatedDocumentRange, cancellationToken);
 
-    protected override async Task<WorkspaceEdit?> TryGetCSharpMapCodeEditsAsync(DocumentContext documentContext, Guid mapCodeCorrelationId, string nodeToMapContents, Location[][] focusLocations, CancellationToken cancellationToken)
+    protected override async Task<WorkspaceEdit?> GetCSharpMapCodeEditAsync(DocumentContext documentContext, Guid mapCodeCorrelationId, string nodeToMapContents, Location[][] focusLocations, CancellationToken cancellationToken)
     {
         var delegatedRequest = new DelegatedMapCodeParams(
             documentContext.GetTextDocumentIdentifierAndVersion(),

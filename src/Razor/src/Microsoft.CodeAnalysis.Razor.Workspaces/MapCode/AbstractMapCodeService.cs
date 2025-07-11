@@ -27,7 +27,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
 
     protected abstract Task<(Uri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(DocumentContext documentContext, Uri generatedDocumentUri, LinePositionSpan generatedDocumentRange, CancellationToken cancellationToken);
 
-    protected abstract Task<WorkspaceEdit?> TryGetCSharpMapCodeEditsAsync(DocumentContext documentContext, Guid mapCodeCorrelationId, string nodeToMapContents, LspLocation[][] focusLocations, CancellationToken cancellationToken);
+    protected abstract Task<WorkspaceEdit?> GetCSharpMapCodeEditAsync(DocumentContext documentContext, Guid mapCodeCorrelationId, string nodeToMapContents, LspLocation[][] focusLocations, CancellationToken cancellationToken);
 
     public async Task<WorkspaceEdit?> MapCodeAsync(ISolutionQueryOperations queryOperations, VSInternalMapCodeMapping[] mappings, Guid mapCodeCorrelationId, CancellationToken cancellationToken)
     {
@@ -39,52 +39,15 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
                 continue;
             }
 
-            var contents = mapping.Contents;
-            var testDocument = mapping.TextDocument;
-            var focusLocations = mapping.FocusLocations;
-            foreach (var content in contents)
+            foreach (var content in mapping.Contents)
             {
-                if (!TryCreateDocumentContext(queryOperations, testDocument.DocumentUri.GetRequiredParsedUri(), out var documentContext))
-                {
-                    break;
-                }
+                var csharpFocusLocationsAndNodes = await GetCSharpFocusLocationsAndNodesAsync(queryOperations, mapping.TextDocument, mapping.FocusLocations, content, cancellationToken).ConfigureAwait(false);
 
-                if (content is null)
-                {
-                    continue;
-                }
+                var csharpEdits = csharpFocusLocationsAndNodes is not null
+                    ? await GetCSharpMapCodeEditsAsync(queryOperations, mapping.TextDocument, csharpFocusLocationsAndNodes, mapCodeCorrelationId, cancellationToken).ConfigureAwait(false)
+                    : [];
 
-                // We create a new Razor file based on each content in each mapping order to get the syntax tree that we'll later use to map.
-                var newSnapshot = documentContext.Snapshot.WithText(SourceText.From(content));
-                var codeToMap = await newSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-                var syntaxTree = codeToMap.GetSyntaxTree();
-                if (syntaxTree is null)
-                {
-                    return null;
-                }
-
-                var nodesToMap = ExtractValidNodesToMap(syntaxTree.Root);
-                if (nodesToMap.Length == 0)
-                {
-                    return null;
-                }
-
-                var csharpFocusLocationsAndNodes = await GetCSharpFocusLocationsAndNodesAsync(queryOperations, nodesToMap, focusLocations, cancellationToken).ConfigureAwait(false);
-                if (csharpFocusLocationsAndNodes is not null)
-                {
-                    var csharpEdits = await GetCSharpMapCodeEditsAsync(documentContext, csharpFocusLocationsAndNodes, mapCodeCorrelationId, cancellationToken).ConfigureAwait(false);
-
-                    foreach (var edit in csharpEdits)
-                    {
-                        var csharpMappingSuccessful = await TryHandleDelegatedResponseAsync(documentContext, edit, changes, cancellationToken).ConfigureAwait(false);
-                        if (!csharpMappingSuccessful)
-                        {
-                            return null;
-                        }
-                    }
-                }
-
-                await TryMapRazorNodesAsync(documentContext, focusLocations, nodesToMap, changes, cancellationToken).ConfigureAwait(false);
+                await MapCSharpEditsAndRazorCodeAsync(queryOperations, content, changes, csharpEdits, mapping.TextDocument, mapping.FocusLocations, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -102,20 +65,77 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
         };
     }
 
-    private async Task<ImmutableArray<WorkspaceEdit>> GetCSharpMapCodeEditsAsync(DocumentContext documentContext, CSharpFocusLocationsAndNodes csharpFocusLocationsAndNodes, Guid mapCodeCorrelationId, CancellationToken cancellationToken)
+    private async Task MapCSharpEditsAndRazorCodeAsync(ISolutionQueryOperations queryOperations, string content, List<TextDocumentEdit> changes, ImmutableArray<WorkspaceEdit> csharpEdits, TextDocumentIdentifier textDocument, LspLocation[][] focusLocations, CancellationToken cancellationToken)
     {
+        if (!TryCreateDocumentContext(queryOperations, textDocument.DocumentUri.GetRequiredParsedUri(), out var documentContext))
+        {
+            return;
+        }
+
+        foreach (var edit in csharpEdits)
+        {
+            var csharpMappingSuccessful = await TryProcessCSharpEditAsync(documentContext, edit, changes, cancellationToken).ConfigureAwait(false);
+            if (!csharpMappingSuccessful)
+            {
+                return;
+            }
+        }
+
+        await TryMapRazorNodesAsync(documentContext, content, focusLocations, changes, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<CSharpFocusLocationsAndNodes?> GetCSharpFocusLocationsAndNodesAsync(ISolutionQueryOperations queryOperations, TextDocumentIdentifier textDocument, LspLocation[][] focusLocations, string? content, CancellationToken cancellationToken)
+    {
+        if (content is null)
+        {
+            return null;
+        }
+
+        if (!TryCreateDocumentContext(queryOperations, textDocument.DocumentUri.GetRequiredParsedUri(), out var documentContext))
+        {
+            return null;
+        }
+
+        var nodesToMap = await GetNodesToMapAsync(documentContext, content, cancellationToken).ConfigureAwait(false);
+
+        return await GetCSharpFocusLocationsAndNodesAsync(queryOperations, nodesToMap, focusLocations, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<ImmutableArray<RazorSyntaxNode>> GetNodesToMapAsync(DocumentContext documentContext, string content, CancellationToken cancellationToken)
+    {
+        // We create a new Razor file based on each content in each mapping order to get the syntax tree that we'll later use to map.
+        var newSnapshot = documentContext.Snapshot.WithText(SourceText.From(content));
+        var codeToMap = await newSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxTree = codeToMap.GetSyntaxTree();
+        if (syntaxTree is null)
+        {
+            return [];
+        }
+
+        var nodesToMap = ExtractValidNodesToMap(syntaxTree.Root);
+
+        return nodesToMap;
+    }
+
+    private async Task<ImmutableArray<WorkspaceEdit>> GetCSharpMapCodeEditsAsync(ISolutionQueryOperations queryOperations, TextDocumentIdentifier textDocument, CSharpFocusLocationsAndNodes csharpFocusLocationsAndNodes, Guid mapCodeCorrelationId, CancellationToken cancellationToken)
+    {
+        if (!TryCreateDocumentContext(queryOperations, textDocument.DocumentUri.GetRequiredParsedUri(), out var documentContext))
+        {
+            return [];
+        }
+
         using var csharpEdits = new PooledArrayBuilder<WorkspaceEdit>();
 
         foreach (var csharpBody in csharpFocusLocationsAndNodes.CSharpNodeBodies)
         {
-            var edits = await TryGetCSharpMapCodeEditsAsync(documentContext, mapCodeCorrelationId, csharpBody, csharpFocusLocationsAndNodes.FocusLocations, cancellationToken).ConfigureAwait(false);
-            if (edits is null)
+            var csharpEdit = await GetCSharpMapCodeEditAsync(documentContext, mapCodeCorrelationId, csharpBody, csharpFocusLocationsAndNodes.FocusLocations, cancellationToken).ConfigureAwait(false);
+            if (csharpEdit is null)
             {
                 // It's likely an error occurred during C# mapping.
                 return [];
             }
 
-            csharpEdits.Add(edits);
+            csharpEdits.Add(csharpEdit);
         }
 
         return csharpEdits.ToImmutable();
@@ -142,30 +162,29 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
         return null;
     }
 
-    private async Task<bool> TryMapRazorNodesAsync(
-        DocumentContext documentContext,
-        LspLocation[][] focusLocations,
-        ImmutableArray<RazorSyntaxNode> nodesToMap,
-        List<TextDocumentEdit> changes,
-        CancellationToken cancellationToken)
+    private static async Task TryMapRazorNodesAsync(DocumentContext documentContext, string content, LspLocation[][] focusLocations, List<TextDocumentEdit> changes, CancellationToken cancellationToken)
     {
+        var nodesToMap = await GetNodesToMapAsync(documentContext, content, cancellationToken).ConfigureAwait(false);
+        if (nodesToMap.IsDefaultOrEmpty)
+        {
+            // No nodes to map or syntax root is null, nothing to do.
+            return;
+        }
+
+        var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxRoot = syntaxTree.Root;
+
         foreach (var locationByPriority in focusLocations)
         {
             foreach (var location in locationByPriority)
             {
                 Debug.Assert(location.DocumentUri.GetRequiredParsedUri() == documentContext.Uri);
 
-                var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                if (syntaxTree is null)
-                {
-                    continue;
-                }
-
                 using var razorNodesToMap = new PooledArrayBuilder<RazorSyntaxNode>();
                 foreach (var nodeToMap in nodesToMap)
                 {
                     // Only process new, non-C#, nodes
-                    if (nodeToMap.IsCSharpNode(out _) || nodeToMap.ExistsOnTarget(syntaxTree.Root))
+                    if (nodeToMap.IsCSharpNode(out _) || nodeToMap.ExistsOnTarget(syntaxRoot))
                     {
                         continue;
                     }
@@ -178,7 +197,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
                 var mappingSuccess = false;
                 foreach (var nodeToMap in razorNodesToMap)
                 {
-                    var insertionSpan = InsertMapper.GetInsertionPoint(syntaxTree.Root, sourceText, location);
+                    var insertionSpan = InsertMapper.GetInsertionPoint(syntaxRoot, sourceText, location);
                     if (insertionSpan is not null)
                     {
                         var textSpan = new TextSpan(insertionSpan.Value, 0);
@@ -200,12 +219,10 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
 
                 if (mappingSuccess)
                 {
-                    return true;
+                    return;
                 }
             }
         }
-
-        return false;
     }
 
     private static ImmutableArray<RazorSyntaxNode> ExtractValidNodesToMap(RazorSyntaxNode rootNode)
@@ -294,14 +311,14 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
     }
 
     // Map C# code back to Razor file
-    private async Task<bool> TryHandleDelegatedResponseAsync(
+    private async Task<bool> TryProcessCSharpEditAsync(
         DocumentContext documentContext,
-        WorkspaceEdit edits,
+        WorkspaceEdit csharpEdit,
         List<TextDocumentEdit> changes,
         CancellationToken cancellationToken)
     {
         using var _ = ListPool<TextDocumentEdit>.GetPooledObject(out var csharpChanges);
-        if (edits.DocumentChanges is not null && edits.DocumentChanges.Value.TryGetFirst(out var documentEdits))
+        if (csharpEdit.DocumentChanges is not null && csharpEdit.DocumentChanges.Value.TryGetFirst(out var documentEdits))
         {
             // We only support document edits for now. In the future once the client supports it, we should look
             // into also supporting file creation/deletion/rename.
@@ -315,9 +332,9 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
             }
         }
 
-        if (edits.Changes is not null)
+        if (csharpEdit.Changes is not null)
         {
-            foreach (var edit in edits.Changes)
+            foreach (var edit in csharpEdit.Changes)
             {
                 var generatedUri = new Uri(edit.Key);
                 var success = await TryProcessEditAsync(documentContext, generatedUri, [.. edit.Value.Select(e => (SumType<TextEdit, AnnotatedTextEdit>)e)], csharpChanges, cancellationToken).ConfigureAwait(false);
