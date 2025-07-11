@@ -6,11 +6,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
@@ -41,104 +39,120 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
                 continue;
             }
 
-            if (!TryCreateDocumentContext(queryOperations, mapping.TextDocument.DocumentUri.GetRequiredParsedUri(), out var documentContext))
+            var contents = mapping.Contents;
+            var testDocument = mapping.TextDocument;
+            var focusLocations = mapping.FocusLocations;
+            foreach (var content in contents)
             {
-                continue;
-            }
+                if (!TryCreateDocumentContext(queryOperations, testDocument.DocumentUri.GetRequiredParsedUri(), out var documentContext))
+                {
+                    break;
+                }
 
-            var tagHelperContext = await documentContext.GetTagHelperContextAsync(cancellationToken).ConfigureAwait(false);
-            var fileKind = FileKinds.GetFileKindFromPath(documentContext.FilePath);
-            var extension = Path.GetExtension(documentContext.FilePath);
-
-            var snapshot = documentContext.Snapshot;
-
-            foreach (var content in mapping.Contents)
-            {
                 if (content is null)
                 {
                     continue;
                 }
 
                 // We create a new Razor file based on each content in each mapping order to get the syntax tree that we'll later use to map.
-                var newSnapshot = snapshot.WithText(SourceText.From(content));
+                var newSnapshot = documentContext.Snapshot.WithText(SourceText.From(content));
                 var codeToMap = await newSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-
-                var mappingSuccess = await TryMapCodeAsync(
-                    queryOperations, codeToMap, mapping.FocusLocations, changes, mapCodeCorrelationId, documentContext, cancellationToken).ConfigureAwait(false);
-
-                // Mapping failed. Let the client's built-in fallback mapper handle mapping.
-                if (!mappingSuccess)
+                var syntaxTree = codeToMap.GetSyntaxTree();
+                if (syntaxTree is null)
                 {
                     return null;
                 }
+
+                var nodesToMap = ExtractValidNodesToMap(syntaxTree.Root);
+                if (nodesToMap.Length == 0)
+                {
+                    return null;
+                }
+
+                var csharpFocusLocationsAndNodes = await GetCSharpFocusLocationsAndNodesAsync(queryOperations, nodesToMap, focusLocations, cancellationToken).ConfigureAwait(false);
+                if (csharpFocusLocationsAndNodes is not null)
+                {
+                    var csharpEdits = await GetCSharpMapCodeEditsAsync(documentContext, csharpFocusLocationsAndNodes, mapCodeCorrelationId, cancellationToken).ConfigureAwait(false);
+
+                    foreach (var edit in csharpEdits)
+                    {
+                        var csharpMappingSuccessful = await TryHandleDelegatedResponseAsync(documentContext, edit, changes, cancellationToken).ConfigureAwait(false);
+                        if (!csharpMappingSuccessful)
+                        {
+                            return null;
+                        }
+                    }
+                }
+
+                await TryMapRazorNodesAsync(documentContext, focusLocations, nodesToMap, changes, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        var workspaceEdits = new WorkspaceEdit
+        if (changes.Count == 0)
         {
-            DocumentChanges = changes.ToArray()
-        };
-
-        return workspaceEdits;
-    }
-
-    private async Task<bool> TryMapCodeAsync(
-        ISolutionQueryOperations queryOperations,
-        RazorCodeDocument codeToMap,
-        LspLocation[][] locations,
-        List<TextDocumentEdit> changes,
-        Guid mapCodeCorrelationId,
-        DocumentContext documentContext,
-        CancellationToken cancellationToken)
-    {
-        var syntaxTree = codeToMap.GetSyntaxTree();
-        if (syntaxTree is null)
-        {
-            return false;
-        }
-
-        var nodesToMap = ExtractValidNodesToMap(syntaxTree.Root);
-        if (nodesToMap.Length == 0)
-        {
-            return false;
-        }
-
-        var mappingSuccess = await TryMapCodeAsync(
-            queryOperations, locations, nodesToMap, mapCodeCorrelationId, changes, documentContext, cancellationToken).ConfigureAwait(false);
-        if (!mappingSuccess)
-        {
-            return false;
+            // No changes were made, return null to indicate no edits.
+            return null;
         }
 
         MergeEdits(changes);
-        return true;
+
+        return new WorkspaceEdit
+        {
+            DocumentChanges = changes.ToArray()
+        };
     }
 
-    private async Task<bool> TryMapCodeAsync(
-        ISolutionQueryOperations queryOperations,
+    private async Task<ImmutableArray<WorkspaceEdit>> GetCSharpMapCodeEditsAsync(DocumentContext documentContext, CSharpFocusLocationsAndNodes csharpFocusLocationsAndNodes, Guid mapCodeCorrelationId, CancellationToken cancellationToken)
+    {
+        using var csharpEdits = new PooledArrayBuilder<WorkspaceEdit>();
+
+        foreach (var csharpBody in csharpFocusLocationsAndNodes.CSharpNodeBodies)
+        {
+            var edits = await TryGetCSharpMapCodeEditsAsync(documentContext, mapCodeCorrelationId, csharpBody, csharpFocusLocationsAndNodes.FocusLocations, cancellationToken).ConfigureAwait(false);
+            if (edits is null)
+            {
+                // It's likely an error occurred during C# mapping.
+                return [];
+            }
+
+            csharpEdits.Add(edits);
+        }
+
+        return csharpEdits.ToImmutable();
+    }
+
+    private async Task<CSharpFocusLocationsAndNodes?> GetCSharpFocusLocationsAndNodesAsync(ISolutionQueryOperations queryOperations, ImmutableArray<RazorSyntaxNode> nodesToMap, LspLocation[][] locations, CancellationToken cancellationToken)
+    {
+        using var csharpNodes = new PooledArrayBuilder<string>();
+        foreach (var nodeToMap in nodesToMap)
+        {
+            if (nodeToMap.IsCSharpNode(out var csharpBody))
+            {
+                csharpNodes.Add(csharpBody.ToString());
+            }
+        }
+
+        if (csharpNodes.Count > 0)
+        {
+            var csharpFocusLocations = await GetCSharpFocusLocationsAsync(queryOperations, locations, cancellationToken).ConfigureAwait(false);
+
+            return new CSharpFocusLocationsAndNodes(csharpFocusLocations, csharpNodes.ToArray());
+        }
+
+        return null;
+    }
+
+    private async Task<bool> TryMapRazorNodesAsync(
+        DocumentContext documentContext,
         LspLocation[][] focusLocations,
         ImmutableArray<RazorSyntaxNode> nodesToMap,
-        Guid mapCodeCorrelationId,
         List<TextDocumentEdit> changes,
-        DocumentContext documentContext,
         CancellationToken cancellationToken)
     {
-        var didCalculateCSharpFocusLocations = false;
-        var csharpFocusLocations = new LspLocation[focusLocations.Length][];
-
-        // We attempt to map the code using each focus location in order of priority.
-        // The outer array is an ordered priority list (from highest to lowest priority),
-        // and the inner array is a list of locations that have the same priority.
-        // If we can successfully map using the first location, we'll stop and return.
-        var mappingSuccess = false;
         foreach (var locationByPriority in focusLocations)
         {
             foreach (var location in locationByPriority)
             {
-                // The current assumption is that all focus locations will always be in the same document
-                // as the code to map. The client is currently implemented using this behavior, but if it
-                // ever changes, we'll need to update this code to account for it (i.e., take into account
-                // focus location URIs).
                 Debug.Assert(location.DocumentUri.GetRequiredParsedUri() == documentContext.Uri);
 
                 var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -150,35 +164,8 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
                 using var razorNodesToMap = new PooledArrayBuilder<RazorSyntaxNode>();
                 foreach (var nodeToMap in nodesToMap)
                 {
-                    // If node is C#, we send it to their language server to handle and ignore it from our end.
-                    if (nodeToMap.IsCSharpNode(out var csharpBody))
-                    {
-                        if (!didCalculateCSharpFocusLocations)
-                        {
-                            csharpFocusLocations = await GetCSharpFocusLocationsAsync(queryOperations, focusLocations, cancellationToken).ConfigureAwait(false);
-                            didCalculateCSharpFocusLocations = true;
-                        }
-
-                        var csharpMappingSuccessful = await TryMapCSharpCodeAsync(
-                            documentContext,
-                            csharpBody.ToString(),
-                            csharpFocusLocations,
-                            mapCodeCorrelationId,
-                            changes,
-                            cancellationToken).ConfigureAwait(false);
-
-                        // If C# delegation fails, we'll default to the client's fallback mapper.
-                        if (!csharpMappingSuccessful)
-                        {
-                            return false;
-                        }
-
-                        mappingSuccess = true;
-                        continue;
-                    }
-
-                    // If node already exists in the document, we'll ignore it.
-                    if (nodeToMap.ExistsOnTarget(syntaxTree.Root))
+                    // Only process new, non-C#, nodes
+                    if (nodeToMap.IsCSharpNode(out _) || nodeToMap.ExistsOnTarget(syntaxTree.Root))
                     {
                         continue;
                     }
@@ -188,6 +175,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
 
                 var sourceText = await documentContext.Snapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
+                var mappingSuccess = false;
                 foreach (var nodeToMap in razorNodesToMap)
                 {
                     var insertionSpan = InsertMapper.GetInsertionPoint(syntaxTree.Root, sourceText, location);
@@ -210,7 +198,6 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
                     }
                 }
 
-                // We were able to successfully map using this focusLocation.
                 if (mappingSuccess)
                 {
                     return true;
@@ -258,26 +245,6 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
         typeof(MarkupTextLiteralSyntax),
         typeof(RazorDirectiveSyntax),
     ];
-
-    private async Task<bool> TryMapCSharpCodeAsync(
-        DocumentContext documentContext,
-        string nodeToMapContents,
-        LspLocation[][] focusLocations,
-        Guid mapCodeCorrelationId,
-        List<TextDocumentEdit> changes,
-        CancellationToken cancellationToken)
-    {
-        var edits = await TryGetCSharpMapCodeEditsAsync(documentContext, mapCodeCorrelationId, nodeToMapContents, focusLocations, cancellationToken).ConfigureAwait(false);
-
-        if (edits is null)
-        {
-            // It's likely an error occurred during C# mapping.
-            return false;
-        }
-
-        var success = await TryHandleDelegatedResponseAsync(documentContext, edits, changes, cancellationToken).ConfigureAwait(false);
-        return success;
-    }
 
     private async Task<LspLocation[][]> GetCSharpFocusLocationsAsync(ISolutionQueryOperations queryOperations, LspLocation[][] focusLocations, CancellationToken cancellationToken)
     {
