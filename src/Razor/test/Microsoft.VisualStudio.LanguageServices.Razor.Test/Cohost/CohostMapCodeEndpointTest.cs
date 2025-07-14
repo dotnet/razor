@@ -4,7 +4,9 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Testing;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -237,6 +239,11 @@ public class CohostMapCodeEndpointTest(ITestOutputHelper testOutput) : CohostEnd
         await VerifyCodeMappingAsync(originalCode, [codeToMap], expectedCode);
     }
 
+    private protected override TestComposition ConfigureRoslynDevenvComposition(TestComposition composition)
+    {
+        return composition.AddParts(typeof(TestMapCodeService));
+    }
+
     private async Task VerifyCodeMappingAsync(TestCode input, string[] codeToMap, string expected)
     {
         UpdateClientLSPInitializationOptions(c =>
@@ -248,9 +255,9 @@ public class CohostMapCodeEndpointTest(ITestOutputHelper testOutput) : CohostEnd
             return c;
         });
 
-        var document = CreateProjectAndRazorDocument(input.Text);
+        var document = CreateProjectAndRazorDocument(input.Text, createSeparateRemoteAndLocalWorkspaces: true);
 
-        var endpoint = new CohostMapCodeEndpoint(NoOpTelemetryReporter.Instance, RemoteServiceInvoker);
+        var endpoint = new CohostMapCodeEndpoint(ClientCapabilitiesService, NoOpTelemetryReporter.Instance, RemoteServiceInvoker);
 
         var sourceText = await document.GetTextAsync(DisposalToken);
 

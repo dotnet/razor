@@ -27,44 +27,6 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
 
     protected abstract Task<(Uri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(DocumentContext documentContext, Uri generatedDocumentUri, LinePositionSpan generatedDocumentRange, CancellationToken cancellationToken);
 
-    protected abstract Task<WorkspaceEdit?> GetCSharpMapCodeEditAsync(DocumentContext documentContext, Guid mapCodeCorrelationId, string nodeToMapContents, LspLocation[][] focusLocations, CancellationToken cancellationToken);
-
-    public async Task<WorkspaceEdit?> MapCodeAsync(ISolutionQueryOperations queryOperations, VSInternalMapCodeMapping[] mappings, Guid mapCodeCorrelationId, CancellationToken cancellationToken)
-    {
-        using var _ = ListPool<TextDocumentEdit>.GetPooledObject(out var changes);
-        foreach (var mapping in mappings)
-        {
-            if (mapping.TextDocument is null || mapping.FocusLocations is null)
-            {
-                continue;
-            }
-
-            foreach (var content in mapping.Contents)
-            {
-                var csharpFocusLocationsAndNodes = await GetCSharpFocusLocationsAndNodesAsync(queryOperations, mapping.TextDocument, mapping.FocusLocations, content, cancellationToken).ConfigureAwait(false);
-
-                var csharpEdits = csharpFocusLocationsAndNodes is not null
-                    ? await GetCSharpMapCodeEditsAsync(queryOperations, mapping.TextDocument, csharpFocusLocationsAndNodes, mapCodeCorrelationId, cancellationToken).ConfigureAwait(false)
-                    : [];
-
-                await MapCSharpEditsAndRazorCodeAsync(queryOperations, content, changes, csharpEdits, mapping.TextDocument, mapping.FocusLocations, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        if (changes.Count == 0)
-        {
-            // No changes were made, return null to indicate no edits.
-            return null;
-        }
-
-        MergeEdits(changes);
-
-        return new WorkspaceEdit
-        {
-            DocumentChanges = changes.ToArray()
-        };
-    }
-
     public async Task MapCSharpEditsAndRazorCodeAsync(ISolutionQueryOperations queryOperations, string content, List<TextDocumentEdit> changes, ImmutableArray<WorkspaceEdit> csharpEdits, TextDocumentIdentifier textDocument, LspLocation[][] focusLocations, CancellationToken cancellationToken)
     {
         if (!TryCreateDocumentContext(queryOperations, textDocument.DocumentUri.GetRequiredParsedUri(), out var documentContext))
@@ -115,30 +77,6 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
         var nodesToMap = ExtractValidNodesToMap(syntaxTree.Root);
 
         return nodesToMap;
-    }
-
-    private async Task<ImmutableArray<WorkspaceEdit>> GetCSharpMapCodeEditsAsync(ISolutionQueryOperations queryOperations, TextDocumentIdentifier textDocument, CSharpFocusLocationsAndNodes csharpFocusLocationsAndNodes, Guid mapCodeCorrelationId, CancellationToken cancellationToken)
-    {
-        if (!TryCreateDocumentContext(queryOperations, textDocument.DocumentUri.GetRequiredParsedUri(), out var documentContext))
-        {
-            return [];
-        }
-
-        using var csharpEdits = new PooledArrayBuilder<WorkspaceEdit>();
-
-        foreach (var csharpBody in csharpFocusLocationsAndNodes.CSharpNodeBodies)
-        {
-            var csharpEdit = await GetCSharpMapCodeEditAsync(documentContext, mapCodeCorrelationId, csharpBody, csharpFocusLocationsAndNodes.FocusLocations, cancellationToken).ConfigureAwait(false);
-            if (csharpEdit is null)
-            {
-                // It's likely an error occurred during C# mapping.
-                return [];
-            }
-
-            csharpEdits.Add(csharpEdit);
-        }
-
-        return csharpEdits.ToImmutable();
     }
 
     private async Task<CSharpFocusLocationsAndNodes?> GetCSharpFocusLocationsAndNodesAsync(ISolutionQueryOperations queryOperations, ImmutableArray<RazorSyntaxNode> nodesToMap, LspLocation[][] locations, CancellationToken cancellationToken)
@@ -259,6 +197,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
         typeof(CSharpExplicitExpressionSyntax),
         typeof(CSharpImplicitExpressionSyntax),
         typeof(MarkupElementSyntax),
+        typeof(MarkupTagHelperElementSyntax),
         typeof(MarkupTextLiteralSyntax),
         typeof(RazorDirectiveSyntax),
     ];

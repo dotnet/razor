@@ -299,8 +299,8 @@ public class MapCodeTest(ITestOutputHelper testOutput) : LanguageServerTestBase(
         var languageServer = new MapCodeServer(csharpServer, csharpDocumentUri);
         var documentMappingService = new LspDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
 
-        var service = new LspMapCodeService(documentMappingService, documentContextFactory, languageServer);
-        var endpoint = new MapCodeEndpoint(service, projectSnapshotManager, NoOpTelemetryReporter.Instance);
+        var service = new LspMapCodeService(documentMappingService, documentContextFactory);
+        var endpoint = new MapCodeEndpoint(service, projectSnapshotManager, documentContextFactory, languageServer, NoOpTelemetryReporter.Instance);
 
         var capabilitiesProvider = Assert.IsAssignableFrom<ICapabilitiesProvider>(endpoint);
 

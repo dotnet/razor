@@ -22,40 +22,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.MapCode;
 
 internal sealed class LspMapCodeService(
     IDocumentMappingService documentMappingService,
-    IDocumentContextFactory documentContextFactory,
-    IClientConnection clientConnection) : AbstractMapCodeService(documentMappingService)
+    IDocumentContextFactory documentContextFactory) : AbstractMapCodeService(documentMappingService)
 {
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IDocumentContextFactory _documentContextFactory = documentContextFactory;
-    private readonly IClientConnection _clientConnection = clientConnection;
 
     protected override bool TryCreateDocumentContext(ISolutionQueryOperations queryOperations, Uri uri, [NotNullWhen(true)] out DocumentContext? documentContext)
         => _documentContextFactory.TryCreate(uri, out documentContext);
 
     protected override Task<(Uri MappedDocumentUri, LinePositionSpan MappedRange)> MapToHostDocumentUriAndRangeAsync(DocumentContext documentContext, Uri generatedDocumentUri, LinePositionSpan generatedDocumentRange, CancellationToken cancellationToken)
         => _documentMappingService.MapToHostDocumentUriAndRangeAsync(generatedDocumentUri, generatedDocumentRange, cancellationToken);
-
-    protected override async Task<WorkspaceEdit?> GetCSharpMapCodeEditAsync(DocumentContext documentContext, Guid mapCodeCorrelationId, string nodeToMapContents, Location[][] focusLocations, CancellationToken cancellationToken)
-    {
-        var delegatedRequest = new DelegatedMapCodeParams(
-            documentContext.GetTextDocumentIdentifierAndVersion(),
-            RazorLanguageKind.CSharp,
-            mapCodeCorrelationId,
-            [nodeToMapContents],
-            FocusLocations: focusLocations);
-
-        try
-        {
-            return await _clientConnection.SendRequestAsync<DelegatedMapCodeParams, WorkspaceEdit?>(
-                CustomMessageNames.RazorMapCodeEndpoint,
-                delegatedRequest,
-                cancellationToken).ConfigureAwait(false);
-        }
-        catch
-        {
-            // C# hasn't implemented + merged their C# code mapper yet.
-        }
-
-        return null;
-    }
 }
