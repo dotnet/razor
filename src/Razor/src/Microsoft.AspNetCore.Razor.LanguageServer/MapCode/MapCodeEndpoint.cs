@@ -108,11 +108,9 @@ internal sealed class MapCodeEndpoint(
             return null;
         }
 
-        AbstractMapCodeService.MergeEdits(changes);
-
         return new WorkspaceEdit
         {
-            DocumentChanges = changes.ToArray()
+            DocumentChanges = AbstractMapCodeService.GetMergeEdits(changes)
         };
     }
 

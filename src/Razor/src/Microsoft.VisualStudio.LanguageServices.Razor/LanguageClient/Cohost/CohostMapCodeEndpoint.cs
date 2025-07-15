@@ -127,11 +127,9 @@ internal sealed class CohostMapCodeEndpoint(
             return null;
         }
 
-        AbstractMapCodeService.MergeEdits(changes);
-
         return new WorkspaceEdit
         {
-            DocumentChanges = changes.ToArray()
+            DocumentChanges = AbstractMapCodeService.GetMergeEdits(changes)
         };
     }
 

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -130,7 +131,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
                     razorNodesToMap.Add(nodeToMap);
                 }
 
-                var sourceText = await documentContext.Snapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var sourceText = syntaxTree.Source.Text;
 
                 var mappingSuccess = false;
                 foreach (var nodeToMap in razorNodesToMap)
@@ -166,7 +167,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
     private static ImmutableArray<RazorSyntaxNode> ExtractValidNodesToMap(RazorSyntaxNode rootNode)
     {
         using var validNodesToMap = new PooledArrayBuilder<RazorSyntaxNode>();
-        using var _ = StackPool<RazorSyntaxNode>.GetPooledObject(out var stack);
+        using var stack = new PooledArrayBuilder<RazorSyntaxNode>();
         stack.Push(rootNode);
 
         while (stack.Count > 0)
@@ -186,12 +187,12 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
             }
         }
 
-        return validNodesToMap.ToImmutable();
+        return validNodesToMap.ToImmutableAndClear();
     }
 
     // These are the nodes that we currently support for mapping. We should update
     // this list as the client evolves to send more types of nodes.
-    private readonly static List<Type> s_validNodesToMap =
+    private readonly static FrozenSet<Type> s_validNodesToMap = new HashSet<Type>(
     [
         typeof(CSharpCodeBlockSyntax),
         typeof(CSharpExplicitExpressionSyntax),
@@ -200,7 +201,7 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
         typeof(MarkupTagHelperElementSyntax),
         typeof(MarkupTextLiteralSyntax),
         typeof(RazorDirectiveSyntax),
-    ];
+    ]).ToFrozenSet();
 
     private async Task<LspLocation[][]> GetCSharpFocusLocationsAsync(ISolutionQueryOperations queryOperations, LspLocation[][] focusLocations, CancellationToken cancellationToken)
     {
@@ -224,8 +225,8 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
                     continue;
                 }
 
-                var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
                 var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+                var sourceText = codeDocument.Source.Text;
                 var hostDocumentRange = potentialLocation.Range.ToLinePositionSpan();
                 var csharpDocument = codeDocument.GetRequiredCSharpDocument();
 
@@ -319,19 +320,20 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
     }
 
     // Resolve edits that are at the same start location by merging them together.
-    public static void MergeEdits(List<TextDocumentEdit> changes)
+    public static TextDocumentEdit[] GetMergeEdits(List<TextDocumentEdit> changes)
     {
-        var groupedChanges = changes.GroupBy(c => c.TextDocument.DocumentUri).ToImmutableArray();
-        changes.Clear();
+        using var result = new PooledArrayBuilder<TextDocumentEdit>();
+
+        var groupedChanges = changes.GroupBy(c => c.TextDocument.DocumentUri);
         foreach (var documentChanges in groupedChanges)
         {
             var edits = documentChanges.ToList();
-            edits.Sort((x, y) => ((TextEdit)x.Edits.Single()).Range.Start.CompareTo(((TextEdit)y.Edits.Single()).Range.Start));
+            edits.Sort(static (x, y) => ((TextEdit)x.Edits[0]).Range.Start.CompareTo(((TextEdit)y.Edits[0]).Range.Start));
 
-            for (var i = edits.Count - 1; i < edits.Count && i > 0; i--)
+            for (var i = edits.Count - 1; i > 0; i--)
             {
-                var previousEdit = (TextEdit)edits[i - 1].Edits.Single();
-                var currentEdit = (TextEdit)edits[i].Edits.Single();
+                var previousEdit = (TextEdit)edits[i - 1].Edits[0];
+                var currentEdit = (TextEdit)edits[i].Edits[0];
                 if (currentEdit.Range.Start == previousEdit.Range.Start)
                 {
                     // Append the text of the current edit to the previous edit
@@ -350,7 +352,9 @@ internal abstract class AbstractMapCodeService(IDocumentMappingService documentM
                 Edits = [.. edits.SelectMany(e => e.Edits)]
             };
 
-            changes.Add(finalEditsForDoc);
+            result.Add(finalEditsForDoc);
         }
+
+        return result.ToArrayAndClear();
     }
 }
