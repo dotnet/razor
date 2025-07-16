@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
 
@@ -36,6 +36,14 @@ internal static class CSharpTestLspServerHelpers
         SourceText csharpSourceText,
         Uri csharpDocumentUri,
         VSInternalServerCapabilities serverCapabilities,
+        Action<VSInternalClientCapabilities> capabilitiesUpdater,
+        CancellationToken cancellationToken) =>
+        CreateCSharpLspServerAsync(csharpSourceText, csharpDocumentUri, serverCapabilities, new EmptyMappingService(), capabilitiesUpdater, cancellationToken);
+
+    public static Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
+        SourceText csharpSourceText,
+        Uri csharpDocumentUri,
+        VSInternalServerCapabilities serverCapabilities,
         IRazorMappingService razorMappingService,
         Action<VSInternalClientCapabilities> capabilitiesUpdater,
         CancellationToken cancellationToken)
@@ -58,7 +66,7 @@ internal static class CSharpTestLspServerHelpers
     {
         var csharpFiles = files.Select(f => new CSharpFile(f.Uri, f.SourceText));
 
-        var exportProvider = TestComposition.Roslyn
+        var exportProvider = TestComposition.RoslynFeatures
             .AddParts(typeof(RazorTestLanguageServerFactory))
             .ExportProviderFactory.CreateExportProvider();
 

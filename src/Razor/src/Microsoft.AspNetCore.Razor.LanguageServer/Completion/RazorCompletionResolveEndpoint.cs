@@ -1,10 +1,11 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
@@ -13,21 +14,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 internal class RazorCompletionResolveEndpoint(
     AggregateCompletionItemResolver completionItemResolver,
     CompletionListCache completionListCache,
-    IComponentAvailabilityService componentAvailabilityService)
-    : IRazorRequestHandler<VSInternalCompletionItem, VSInternalCompletionItem>, ICapabilitiesProvider
+    IComponentAvailabilityService componentAvailabilityService,
+    IClientCapabilitiesService clientCapabilitiesService)
+    : IRazorRequestHandler<VSInternalCompletionItem, VSInternalCompletionItem>
 {
     private readonly AggregateCompletionItemResolver _completionItemResolver = completionItemResolver;
     private readonly CompletionListCache _completionListCache = completionListCache;
     private readonly IComponentAvailabilityService _componentAvailabilityService = componentAvailabilityService;
-
-    private VSInternalClientCapabilities? _clientCapabilities;
+    private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
 
     public bool MutatesSolutionState => false;
-
-    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
-    {
-        _clientCapabilities = clientCapabilities;
-    }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalCompletionItem request)
     {
@@ -50,7 +46,7 @@ internal class RazorCompletionResolveEndpoint(
                 completionItem,
                 containingCompletionList,
                 originalRequestContext,
-                _clientCapabilities,
+                _clientCapabilitiesService.ClientCapabilities,
                 _componentAvailabilityService,
                 cancellationToken)
             .ConfigureAwait(false);
