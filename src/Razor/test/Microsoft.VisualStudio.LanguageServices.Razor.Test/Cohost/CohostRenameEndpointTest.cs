@@ -198,7 +198,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
             return;
         }
 
-        Assumes.NotNull(result);
+        Assert.NotNull(result);
 
         if (result.DocumentChanges.AssumeNotNull().TryGetSecond(out var changes))
         {
