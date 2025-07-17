@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -317,25 +318,24 @@ internal static class DelegatedCompletionHelper
         // rather than the one LSP knows about.
         if (resolvedCompletionItem.Command is { CommandIdentifier: Constants.CompleteComplexEditCommand, Arguments: var args })
         {
+            // In cohosting case, command parameters will be of the correct types
             if (args is [TextDocumentIdentifier, TextEdit complexEdit, _, int nextCursorPosition])
             {
-                var formattedTextEdit = await FormatTextEditsAsync([complexEdit], documentContext, options, formattingService, cancellationToken).ConfigureAwait(false);
-                if (formattedTextEdit is null)
+                await TryMapComplexEditToRazorAsync(complexEdit, nextCursorPosition).ConfigureAwait(false);
+            }
+            // In LSP case, command parameters will be JsonElement objects and will need to be deserialized
+            else if (args is [JsonElement textDocumentIdentifierData, JsonElement complexEditData, _, int nextCursorPositionValue])
+            {
+                var textDocumentIdentifier = textDocumentIdentifierData.Deserialize<TextDocumentIdentifier>();
+                var complexEditValue = complexEditData.Deserialize<TextEdit>();
+                if (textDocumentIdentifier is null || complexEditValue is null)
                 {
-                    resolvedCompletionItem.Command = null;
+                    logger.LogError($"Unexpected arguments for command '{Constants.CompleteComplexEditCommand}': Expected: [TextDocumentIdentifier, TextEdit, _, int], Actual: {textDocumentIdentifierData} and {complexEditData}");
+                    Debug.Fail($"Unexpected arguments for command '{Constants.CompleteComplexEditCommand}': Expected: [TextDocumentIdentifier, TextEdit, _, int], Actual: {textDocumentIdentifierData} and {complexEditData}");
                 }
                 else
                 {
-                    args[0] = documentContext.GetTextDocumentIdentifier();
-                    args[1] = formattedTextEdit;
-                    if (nextCursorPosition >= 0)
-                    {
-                        // nextCursorPosition is where VS Code will navigate to, so we translate it to our document, or set to 0 to do nothing.
-                        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-                        args[3] = documentMappingService.TryMapToRazorDocumentPosition(codeDocument.GetRequiredCSharpDocument(), nextCursorPosition, out _, out nextCursorPosition)
-                            ? nextCursorPosition
-                            : 0;
-                    }
+                    await TryMapComplexEditToRazorAsync(complexEditValue, nextCursorPositionValue).ConfigureAwait(false);
                 }
             }
             else
@@ -384,6 +384,28 @@ internal static class DelegatedCompletionHelper
             }
 
             return "null";
+        }
+
+        async Task TryMapComplexEditToRazorAsync(TextEdit complexEdit, int nextCursorPosition)
+        {
+            var formattedTextEdit = await FormatTextEditsAsync([complexEdit], documentContext, options, formattingService, cancellationToken).ConfigureAwait(false);
+            if (formattedTextEdit is null)
+            {
+                resolvedCompletionItem.Command = null;
+            }
+            else
+            {
+                args[0] = documentContext.GetTextDocumentIdentifier();
+                args[1] = formattedTextEdit;
+                if (nextCursorPosition >= 0)
+                {
+                    // nextCursorPosition is where VS Code will navigate to, so we translate it to our document, or set to 0 to do nothing.
+                    var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+                    args[3] = documentMappingService.TryMapToRazorDocumentPosition(codeDocument.GetRequiredCSharpDocument(), nextCursorPosition, out _, out nextCursorPosition)
+                        ? nextCursorPosition
+                        : 0;
+                }
+            }
         }
     }
 
