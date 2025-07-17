@@ -54,7 +54,6 @@ internal abstract class AbstractEditMappingService(
         foreach (var (uriString, edits) in changes)
         {
             var generatedDocumentUri = new Uri(uriString);
-
             // For Html we just map the Uri, the range will be the same
             if (_filePathService.IsVirtualHtmlFile(generatedDocumentUri))
             {
@@ -69,7 +68,11 @@ internal abstract class AbstractEditMappingService(
                 continue;
             }
 
-            var razorDocumentUri = _filePathService.GetRazorDocumentUri(generatedDocumentUri);
+            var razorDocumentUri = await GetRazorDocumentUriAsync(contextDocumentSnapshot, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
+            if (razorDocumentUri is null)
+            {
+                continue;
+            }
 
             if (!TryGetDocumentContext(contextDocumentSnapshot, razorDocumentUri, projectContext: null, out var documentContext))
             {
@@ -138,7 +141,11 @@ internal abstract class AbstractEditMappingService(
                 continue;
             }
 
-            var razorDocumentUri = _filePathService.GetRazorDocumentUri(generatedDocumentUri);
+            var razorDocumentUri = await GetRazorDocumentUriAsync(contextDocumentSnapshot, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
+            if (razorDocumentUri is null)
+            {
+                continue;
+            }
 
             if (!TryGetDocumentContext(contextDocumentSnapshot, razorDocumentUri, entry.TextDocument.GetProjectContext(), out var documentContext))
             {
@@ -169,4 +176,6 @@ internal abstract class AbstractEditMappingService(
     }
 
     protected abstract bool TryGetDocumentContext(IDocumentSnapshot contextDocumentSnapshot, Uri razorDocumentUri, VSProjectContext? projectContext, [NotNullWhen(true)] out DocumentContext? documentContext);
+
+    protected abstract Task<Uri?> GetRazorDocumentUriAsync(IDocumentSnapshot contextDocumentSnapshot, Uri uri, CancellationToken cancellationToken);
 }
