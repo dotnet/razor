@@ -170,7 +170,7 @@ internal sealed class RemoteServiceInvoker(
 
             async Task InitializeOOPAsync(RazorRemoteHostClient remoteClient)
             {
-                // The first call to OOP must be to initialize the MEF services, because everything after that relies MEF.
+                // The first call to OOP must be to initialize the MEF services, because everything after that relies on MEF.
                 var localSettingsDirectory = new ShellSettingsManager(_serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
                 var cacheDirectory = Path.Combine(localSettingsDirectory, "Razor", "RemoteMEFCache");
                 await remoteClient.TryInvokeAsync<IRemoteMEFInitializationService>(
