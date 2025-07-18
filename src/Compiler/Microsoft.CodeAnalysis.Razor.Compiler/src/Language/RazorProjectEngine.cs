@@ -387,7 +387,7 @@ public sealed class RazorProjectEngine
         configurationFeature.ConfigureClass.Add((document, @class) =>
         {
             @class.ClassName = "Template";
-            @class.Modifiers.Add("public");
+            @class.UpdateModifiers("public");
         });
 
         configurationFeature.ConfigureNamespace.Add((document, @namespace) =>
@@ -400,9 +400,7 @@ public sealed class RazorProjectEngine
             method.MethodName = "ExecuteAsync";
             method.ReturnType = $"global::{typeof(Task).FullName}";
 
-            method.Modifiers.Add("public");
-            method.Modifiers.Add("async");
-            method.Modifiers.Add("override");
+            method.UpdateModifiers("public", "async", "override");
         });
     }
 

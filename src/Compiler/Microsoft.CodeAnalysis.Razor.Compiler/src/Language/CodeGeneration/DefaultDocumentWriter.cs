@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -109,21 +110,21 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
 
         public override void VisitNamespaceDeclaration(NamespaceDeclarationIntermediateNode node)
         {
-            var codeWriter = CodeWriter;
-
-            using (codeWriter.BuildNamespace(node.Content, node.Source, _context))
+            using (_context.BuildNamespace(node.Content, node.Source))
             {
+                var writer = CodeWriter;
+
                 if (node.Children.OfType<UsingDirectiveIntermediateNode>().Any())
                 {
                     // Tooling needs at least one line directive before using directives, otherwise Roslyn will
                     // not offer to create a new one. The last using in the group will output a hidden line
                     // directive after itself.
-                    codeWriter.WriteLine("#line default");
+                    writer.WriteLine("#line default");
                 }
                 else
                 {
                     // If there are no using directives, we output the hidden directive here.
-                    codeWriter.WriteLine("#line hidden");
+                    writer.WriteLine("#line hidden");
                 }
 
                 VisitDefault(node);
@@ -132,13 +133,14 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
 
         public override void VisitClassDeclaration(ClassDeclarationIntermediateNode node)
         {
-            using (CodeWriter.BuildClassDeclaration(
+            Debug.Assert(node.ClassName != null);
+
+            using (_context.BuildClassDeclaration(
                 node.Modifiers,
                 node.ClassName,
                 node.BaseType,
                 node.Interfaces,
                 node.TypeParameters,
-                _context,
                 useNullableContext: !Options.SuppressNullabilityEnforcement && node.NullableContext))
             {
                 VisitDefault(node);
@@ -151,9 +153,9 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
 
             codeWriter.WriteLine("#pragma warning disable 1998");
 
-            for (var i = 0; i < node.Modifiers.Count; i++)
+            foreach (var modifier in node.Modifiers)
             {
-                codeWriter.Write($"{node.Modifiers[i]} ");
+                codeWriter.Write($"{modifier} ");
             }
 
             codeWriter.Write($"{node.ReturnType} ");
@@ -161,10 +163,8 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
 
             var isFirst = true;
 
-            for (var i = 0; i < node.Parameters.Count; i++)
+            foreach (var parameter in node.Parameters)
             {
-                var parameter = node.Parameters[i];
-
                 if (isFirst)
                 {
                     isFirst = false;
@@ -174,9 +174,9 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
                     codeWriter.Write(", ");
                 }
 
-                for (var j = 0; j < parameter.Modifiers.Count; j++)
+                foreach (var modifier in parameter.Modifiers)
                 {
-                    codeWriter.Write($"{parameter.Modifiers[j]} ");
+                    codeWriter.Write($"{modifier} ");
                 }
 
                 codeWriter.Write($"{parameter.TypeName} {parameter.ParameterName}");
@@ -199,7 +199,7 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
 
         public override void VisitPropertyDeclaration(PropertyDeclarationIntermediateNode node)
         {
-            CodeWriter.WritePropertyDeclaration(node.Modifiers, node.PropertyType, node.PropertyName, node.PropertyExpression, _context);
+            _context.WritePropertyDeclaration(node.Modifiers, node.PropertyType, node.PropertyName, node.PropertyExpression);
         }
 
         public override void VisitExtension(ExtensionIntermediateNode node)

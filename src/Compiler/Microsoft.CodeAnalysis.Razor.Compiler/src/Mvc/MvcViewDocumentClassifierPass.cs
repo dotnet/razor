@@ -54,24 +54,20 @@ public class MvcViewDocumentClassifierPass : DocumentClassifierPassBase
             @class.ClassName = className;
         }
         @class.BaseType = new BaseTypeWithModel("global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<TModel>", location: null);
-        @class.Modifiers.Clear();
+
         if (_useConsolidatedMvcViews)
         {
-            @class.Modifiers.Add("internal");
-            @class.Modifiers.Add("sealed");
+            @class.UpdateModifiers("internal", "sealed");
         }
         else
         {
-            @class.Modifiers.Add("public");
+            @class.UpdateModifiers("public");
         }
 
         @class.NullableContext = true;
 
         method.MethodName = "ExecuteAsync";
-        method.Modifiers.Clear();
-        method.Modifiers.Add("public");
-        method.Modifiers.Add("async");
-        method.Modifiers.Add("override");
+        method.UpdateModifiers("public", "async", "override");
         method.ReturnType = $"global::{typeof(System.Threading.Tasks.Task).FullName}";
     }
 }

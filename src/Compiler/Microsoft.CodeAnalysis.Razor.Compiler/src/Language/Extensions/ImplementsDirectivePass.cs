@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Extensions;
 
@@ -17,14 +18,18 @@ internal class ImplementsDirectivePass : IntermediateNodePassBase, IRazorDirecti
             return;
         }
 
+        using var interfaces = new PooledArrayBuilder<IntermediateToken>();
+
         foreach (var implements in documentNode.FindDirectiveReferences(ImplementsDirective.Directive))
         {
             var token = ((DirectiveIntermediateNode)implements.Node).Tokens.FirstOrDefault();
             if (token != null)
             {
                 var source = codeDocument.ParserOptions.DesignTime ? null : token.Source;
-                @class.Interfaces.Add(IntermediateToken.CreateCSharpToken(token.Content, source));
+                interfaces.Add(IntermediateToken.CreateCSharpToken(token.Content, source));
             }
         }
+
+        @class.UpdateInterfaces(interfaces.ToImmutableAndClear());
     }
 }

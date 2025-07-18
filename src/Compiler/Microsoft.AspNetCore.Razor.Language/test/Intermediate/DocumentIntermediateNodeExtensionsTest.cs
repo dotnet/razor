@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -14,10 +12,7 @@ public class DocumentIntermediateNodeExtensionsTest
     {
         // Arrange
         var document = new DocumentIntermediateNode();
-        var @class = new ClassDeclarationIntermediateNode
-        {
-            IsPrimaryClass = true
-        };
+        var @class = new ClassDeclarationIntermediateNode(isPrimaryClass: true);
 
         var builder = IntermediateNodeBuilder.Create(document);
         builder.Add(@class);
@@ -34,10 +29,7 @@ public class DocumentIntermediateNodeExtensionsTest
     {
         // Arrange
         var document = new DocumentIntermediateNode();
-        var method = new MethodDeclarationIntermediateNode
-        {
-            IsPrimaryMethod = true
-        };
+        var method = new MethodDeclarationIntermediateNode(isPrimaryMethod: true);
 
         var builder = IntermediateNodeBuilder.Create(document);
         builder.Add(method);
@@ -54,10 +46,7 @@ public class DocumentIntermediateNodeExtensionsTest
     {
         // Arrange
         var document = new DocumentIntermediateNode();
-        var @namespace = new NamespaceDeclarationIntermediateNode
-        {
-            IsPrimaryNamespace = true
-        };
+        var @namespace = new NamespaceDeclarationIntermediateNode(isPrimaryNamespace: true);
 
         var builder = IntermediateNodeBuilder.Create(document);
         builder.Add(@namespace);
