@@ -120,8 +120,13 @@ internal sealed class RemoteMefComposition
             var cacheDirectory = Path.GetDirectoryName(compositionCacheFile).AssumeNotNull();
             var directoryInfo = Directory.CreateDirectory(cacheDirectory);
 
-            using var cacheStream = new FileStream(compositionCacheFile, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
-            await cache.SaveAsync(runtimeComposition, cacheStream, cancellationToken).ConfigureAwait(false);
+            var tempFilePath = Path.Combine(cacheDirectory, Path.GetRandomFileName());
+            using (var cacheStream = new FileStream(compositionCacheFile, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true))
+            {
+                await cache.SaveAsync(runtimeComposition, cacheStream, cancellationToken).ConfigureAwait(false);
+            }
+
+            File.Move(tempFilePath, compositionCacheFile);
         }
         catch (Exception)
         {
