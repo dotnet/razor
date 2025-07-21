@@ -62,4 +62,29 @@ public class RemoteMefCompositionTest(ITestOutputHelper testOutputHelper) : Tool
         Assert.Single(Directory.GetFiles(cacheDirectory));
         Assert.True(new FileInfo(cacheFile).Length > 35);
     }
+
+    [Fact]
+    public async Task CleansOldCacheFiles()
+    {
+        using var tempRoot = new TempRoot();
+        var cacheDirectory = tempRoot.CreateDirectory().Path;
+        Directory.CreateDirectory(cacheDirectory);
+
+        File.WriteAllText(Path.Combine(cacheDirectory, Path.GetRandomFileName()), "");
+        File.WriteAllText(Path.Combine(cacheDirectory, Path.GetRandomFileName()), "");
+        File.WriteAllText(Path.Combine(cacheDirectory, Path.GetRandomFileName()), "");
+        File.WriteAllText(Path.Combine(cacheDirectory, Path.GetRandomFileName()), "");
+
+        Assert.Equal(4, Directory.GetFiles(cacheDirectory).Length);
+
+        var cacheFile = RemoteMefComposition.TestAccessor.GetCacheCompositionFile(cacheDirectory);
+
+        var exportProvider = await RemoteMefComposition.CreateExportProviderAsync(cacheDirectory, DisposalToken);
+
+        Assert.NotNull(RemoteMefComposition.TestAccessor.SaveCacheFileTask);
+        await RemoteMefComposition.TestAccessor.SaveCacheFileTask;
+
+        Assert.Single(Directory.GetFiles(cacheDirectory));
+        Assert.True(new FileInfo(cacheFile).Length > 35);
+    }
 }

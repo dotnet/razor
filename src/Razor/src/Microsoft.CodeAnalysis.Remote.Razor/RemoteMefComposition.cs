@@ -120,6 +120,8 @@ internal sealed class RemoteMefComposition
             var cacheDirectory = Path.GetDirectoryName(compositionCacheFile).AssumeNotNull();
             var directoryInfo = Directory.CreateDirectory(cacheDirectory);
 
+            CleanCacheDirectory(directoryInfo, cancellationToken);
+
             var tempFilePath = Path.Combine(cacheDirectory, Path.GetRandomFileName());
             using (var cacheStream = new FileStream(compositionCacheFile, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true))
             {
@@ -131,6 +133,25 @@ internal sealed class RemoteMefComposition
         catch (Exception)
         {
             // We ignore all errors when saving the cache, because if something goes wrong, the next run will just create a new export provider.
+        }
+    }
+
+    private static void CleanCacheDirectory(DirectoryInfo directoryInfo, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Delete any existing cached files.
+            foreach (var fileInfo in directoryInfo.EnumerateFiles())
+            {
+                // Failing to delete any file is fine, we'll just try again the next VS session in which we attempt
+                // to write a new cache
+                fileInfo.Delete();
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+        }
+        catch (Exception)
+        {
+            // We ignore all errors when cleaning the cache directory, because we'll try again if the cache is corrupt.
         }
     }
 
