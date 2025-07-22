@@ -176,7 +176,7 @@ public class DelegatedCompletionItemResolverTest : CompletionTestBase
     public async Task ResolveAsync_CSharp_Resolves()
     {
         // Arrange & Act
-        var resolvedItem = await ResolveCompletionItemAsync("@$$", itemToResolve: "typeof", DisposalToken);
+        var resolvedItem = await ResolveCompletionItemAsync("@$$", itemToResolve: "typeof", supportsVisualStudioExtensions: true, DisposalToken);
 
         // Assert
         Assert.NotNull(resolvedItem.Description);
@@ -208,7 +208,7 @@ public class DelegatedCompletionItemResolverTest : CompletionTestBase
                 """);
 
         // Act
-        var resolvedItem = await ResolveCompletionItemAsync(input, itemToResolve: "await", DisposalToken);
+        var resolvedItem = await ResolveCompletionItemAsync(input, itemToResolve: "await", supportsVisualStudioExtensions: true, DisposalToken);
 
         // Assert
         var textChange = originalSourceText.GetTextChange(resolvedItem.TextEdit.Value.First);
@@ -279,6 +279,37 @@ public class DelegatedCompletionItemResolverTest : CompletionTestBase
     }
 
     [Fact]
+    public async Task ResolveAsync_CSharp_OverrideCompletion()
+    {
+        // Arrange
+        var input =
+            """
+                @code {
+                    override $$
+                }
+                """;
+        TestFileMarkupParser.GetPosition(input, out var documentContent, out _);
+        var originalSourceText = SourceText.From(documentContent);
+        var expectedSourceText = SourceText.From(
+            """
+                @using System.Threading.Tasks
+                @code {
+                    protected override Task OnInitializedAsync()
+                    {
+                        return base.OnInitializedAsync();
+                    }
+                }
+                """);
+
+        // Act
+        var resolvedItem = await ResolveCompletionItemAsync(input, itemToResolve: "OnInitializedAsync()", supportsVisualStudioExtensions: false, DisposalToken);
+
+        var textChange = originalSourceText.GetTextChange((TextEdit)resolvedItem.Command.Arguments[1]);
+        var actualSourceText = originalSourceText.WithChanges(textChange);
+        AssertEx.EqualOrDiff(expectedSourceText.ToString(), actualSourceText.ToString());
+    }
+
+    [Fact]
     public async Task ResolveAsync_Html_Resolves()
     {
         // Arrange
@@ -306,11 +337,11 @@ public class DelegatedCompletionItemResolverTest : CompletionTestBase
         }
     }
 
-    private async Task<VSInternalCompletionItem> ResolveCompletionItemAsync(string content, string itemToResolve, CancellationToken cancellationToken)
+    private async Task<VSInternalCompletionItem> ResolveCompletionItemAsync(string content, string itemToResolve, bool supportsVisualStudioExtensions, CancellationToken cancellationToken)
     {
         TestFileMarkupParser.GetPosition(content, out var documentContent, out var cursorPosition);
         var codeDocument = CreateCodeDocument(documentContent, filePath: "C:/path/to/file.razor");
-        await using var csharpServer = await CreateCSharpServerAsync(codeDocument, supportsVisualStudioExtensions: true);
+        await using var csharpServer = await CreateCSharpServerAsync(codeDocument, supportsVisualStudioExtensions);
 
         var clientConnection = CreateClientConnectionForResolve(csharpServer);
         var documentContextFactory = new TestDocumentContextFactory("C:/path/to/file.razor", codeDocument);
