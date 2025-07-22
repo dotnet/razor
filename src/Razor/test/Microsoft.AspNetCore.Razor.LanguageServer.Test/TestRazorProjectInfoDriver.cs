@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
-internal class TestRazorProjectInfoDriver : IRazorProjectInfoDriver
+internal sealed class TestRazorProjectInfoDriver : IRazorProjectInfoDriver
 {
     public static readonly TestRazorProjectInfoDriver Instance = new();
 
