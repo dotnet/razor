@@ -58,6 +58,7 @@ internal class DesignTimeDirectiveTargetExtension : IDesignTimeDirectiveTargetEx
             .Write("((global::")
             .Write(typeof(Action).FullName)
             .Write(")(");
+
         using (context.CodeWriter.BuildLambda())
         {
             var originalIndent = context.CodeWriter.CurrentIndent;
@@ -74,7 +75,7 @@ internal class DesignTimeDirectiveTargetExtension : IDesignTimeDirectiveTargetEx
                     }
 
                     // {node.Content} __typeHelper = default({node.Content});
-                    using (context.CodeWriter.BuildLinePragma(node.Source, context))
+                    using (context.BuildLinePragma(node.Source))
                     {
                         context.AddSourceMappingFor(node);
                         context.CodeWriter
@@ -90,6 +91,7 @@ internal class DesignTimeDirectiveTargetExtension : IDesignTimeDirectiveTargetEx
 
                         context.CodeWriter.WriteLine(";");
                     }
+
                     break;
 
                 case DirectiveTokenKind.Member:
@@ -108,12 +110,12 @@ internal class DesignTimeDirectiveTargetExtension : IDesignTimeDirectiveTargetEx
                     }
 
                     // global::System.Object {node.content} = null;
-                    using (context.CodeWriter.BuildLinePragma(node.Source, context))
+                    using (context.BuildLinePragma(node.Source))
                     {
                         context.CodeWriter
-                        .Write("global::")
-                        .Write(typeof(object).FullName)
-                        .Write(" ");
+                            .Write("global::")
+                            .Write(typeof(object).FullName)
+                            .Write(" ");
 
                         context.AddSourceMappingFor(node);
                         context.CodeWriter
@@ -127,11 +129,10 @@ internal class DesignTimeDirectiveTargetExtension : IDesignTimeDirectiveTargetEx
 
                         context.CodeWriter.WriteLine(";");
                     }
+
                     break;
 
-                case DirectiveTokenKind.Namespace
-                or DirectiveTokenKind.IdentifierOrExpression:
-
+                case DirectiveTokenKind.Namespace or DirectiveTokenKind.IdentifierOrExpression:
                     if (string.IsNullOrEmpty(node.Content))
                     {
                         // This is most likely a marker token.
@@ -140,13 +141,13 @@ internal class DesignTimeDirectiveTargetExtension : IDesignTimeDirectiveTargetEx
                     }
 
                     // global::System.Object __typeHelper = nameof({node.Content});
-                    using (context.CodeWriter.BuildLinePragma(node.Source, context))
+                    using (context.BuildLinePragma(node.Source))
                     {
                         context.CodeWriter
-                        .Write("global::")
-                        .Write(typeof(object).FullName)
-                        .Write(" ")
-                        .WriteStartAssignment(TypeHelper);
+                            .Write("global::")
+                            .Write(typeof(object).FullName)
+                            .Write(" ")
+                            .WriteStartAssignment(TypeHelper);
 
                         context.CodeWriter.Write("nameof(");
 
@@ -155,6 +156,7 @@ internal class DesignTimeDirectiveTargetExtension : IDesignTimeDirectiveTargetEx
                             .Write(node.Content)
                             .WriteLine(");");
                     }
+
                     break;
 
                 case DirectiveTokenKind.String:
@@ -168,19 +170,20 @@ internal class DesignTimeDirectiveTargetExtension : IDesignTimeDirectiveTargetEx
                         "component.1.0" => "Route,Component",
                         _ => null
                     };
+
                     if (stringSyntax is not null)
                     {
                         context.CodeWriter.Write("// language=").Write(stringSyntax);
                     }
 
                     // global::System.Object __typeHelper = "{node.Content}";
-                    using (context.CodeWriter.BuildLinePragma(node.Source, context))
+                    using (context.BuildLinePragma(node.Source))
                     {
                         context.CodeWriter
-                        .Write("global::")
-                        .Write(typeof(object).FullName)
-                        .Write(" ")
-                        .WriteStartAssignment(TypeHelper);
+                            .Write("global::")
+                            .Write(typeof(object).FullName)
+                            .Write(" ")
+                            .WriteStartAssignment(TypeHelper);
 
                         if (node.Content.StartsWith("\"", StringComparison.Ordinal))
                         {
@@ -198,17 +201,18 @@ internal class DesignTimeDirectiveTargetExtension : IDesignTimeDirectiveTargetEx
 
                         context.CodeWriter.WriteLine(";");
                     }
+
                     break;
 
                 case DirectiveTokenKind.Boolean:
                     // global::System.Boolean __typeHelper = {node.Content};
-                    using (context.CodeWriter.BuildLinePragma(node.Source, context))
+                    using (context.BuildLinePragma(node.Source))
                     {
                         context.CodeWriter
-                        .Write("global::")
-                        .Write(typeof(bool).FullName)
-                        .Write(" ")
-                        .WriteStartAssignment(TypeHelper);
+                            .Write("global::")
+                            .Write(typeof(bool).FullName)
+                            .Write(" ")
+                            .WriteStartAssignment(TypeHelper);
 
                         context.AddSourceMappingFor(node);
                         context.CodeWriter.Write(node.Content);
@@ -231,7 +235,7 @@ internal class DesignTimeDirectiveTargetExtension : IDesignTimeDirectiveTargetEx
         // for consistency so when a C# completion session starts, filling user code doesn't result in
         // a previously non-existent line pragma from being added and destroying the context in which
         // the completion session was started.
-        using (context.CodeWriter.BuildLinePragma(node.Source, context))
+        using (context.BuildLinePragma(node.Source))
         {
             context.AddSourceMappingFor(node);
             context.CodeWriter.Write(" ");

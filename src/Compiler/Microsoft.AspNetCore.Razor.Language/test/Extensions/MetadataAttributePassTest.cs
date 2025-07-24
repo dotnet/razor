@@ -101,16 +101,12 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
-        var @namespace = new NamespaceDeclarationIntermediateNode
-        {
-            IsPrimaryNamespace = true,
-        };
+        var @namespace = new NamespaceDeclarationIntermediateNode(isPrimaryNamespace: true);
 
         builder.Push(@namespace);
 
-        var @class = new ClassDeclarationIntermediateNode
+        var @class = new ClassDeclarationIntermediateNode(isPrimaryClass: true)
         {
-            IsPrimaryClass = true,
             ClassName = "Test"
         };
 
@@ -150,18 +146,14 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
-        var @namespace = new NamespaceDeclarationIntermediateNode
+        var @namespace = new NamespaceDeclarationIntermediateNode(isPrimaryNamespace: true)
         {
-            IsPrimaryNamespace = true,
             Content = "Some.Namespace"
         };
 
         builder.Push(@namespace);
 
-        var @class = new ClassDeclarationIntermediateNode
-        {
-            IsPrimaryClass = true,
-        };
+        var @class = new ClassDeclarationIntermediateNode(isPrimaryClass: true);
 
         builder.Add(@class);
 
@@ -182,17 +174,15 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var documentNode = new DocumentIntermediateNode();
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
-        var @namespace = new NamespaceDeclarationIntermediateNode
+        var @namespace = new NamespaceDeclarationIntermediateNode(isPrimaryNamespace: true)
         {
-            IsPrimaryNamespace = true,
             Content = "Some.Namespace"
         };
 
         builder.Push(@namespace);
 
-        var @class = new ClassDeclarationIntermediateNode
+        var @class = new ClassDeclarationIntermediateNode(isPrimaryClass: true)
         {
-            IsPrimaryClass = true,
             ClassName = "Test"
         };
 
@@ -219,17 +209,15 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
-        var @namespace = new NamespaceDeclarationIntermediateNode
+        var @namespace = new NamespaceDeclarationIntermediateNode(isPrimaryNamespace: true)
         {
-            IsPrimaryNamespace = true,
             Content = "Some.Namespace"
         };
 
         builder.Push(@namespace);
 
-        var @class = new ClassDeclarationIntermediateNode
+        var @class = new ClassDeclarationIntermediateNode(isPrimaryClass: true)
         {
-            IsPrimaryClass = true,
             ClassName = "Test"
         };
 
@@ -256,18 +244,16 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
-        var @namespace = new NamespaceDeclarationIntermediateNode
+        var @namespace = new NamespaceDeclarationIntermediateNode(isPrimaryNamespace: true)
         {
-            IsPrimaryNamespace = true,
             Content = "Some.Namespace"
         };
 
         builder.Push(@namespace);
 
-        var @class = new ClassDeclarationIntermediateNode
+        var @class = new ClassDeclarationIntermediateNode(isPrimaryClass: true)
         {
-            IsPrimaryClass = true,
-            ClassName = "Test",
+            ClassName = "Test"
         };
 
         builder.Add(@class);
@@ -304,18 +290,16 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
-        var @namespace = new NamespaceDeclarationIntermediateNode
+        var @namespace = new NamespaceDeclarationIntermediateNode(isPrimaryNamespace: true)
         {
-            IsPrimaryNamespace = true,
             Content = "Some.Namespace"
         };
 
         builder.Push(@namespace);
 
-        var @class = new ClassDeclarationIntermediateNode
+        var @class = new ClassDeclarationIntermediateNode(isPrimaryClass: true)
         {
-            IsPrimaryClass = true,
-            ClassName = "Test",
+            ClassName = "Test"
         };
 
         builder.Add(@class);
@@ -364,17 +348,15 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         };
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
-        var @namespace = new NamespaceDeclarationIntermediateNode
+        var @namespace = new NamespaceDeclarationIntermediateNode(isPrimaryNamespace: true)
         {
-            IsPrimaryNamespace = true,
             Content = "Some.Namespace"
         };
 
         builder.Push(@namespace);
 
-        var @class = new ClassDeclarationIntermediateNode
+        var @class = new ClassDeclarationIntermediateNode(isPrimaryClass: true)
         {
-            IsPrimaryClass = true,
             ClassName = "Test"
         };
 

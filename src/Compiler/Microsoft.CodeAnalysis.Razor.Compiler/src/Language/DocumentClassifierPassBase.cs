@@ -53,20 +53,9 @@ public abstract class DocumentClassifierPassBase : IntermediateNodePassBase, IRa
         var children = new List<IntermediateNode>(documentNode.Children);
         documentNode.Children.Clear();
 
-        var @namespace = new NamespaceDeclarationIntermediateNode
-        {
-            IsPrimaryNamespace = true
-        };
-
-        var @class = new ClassDeclarationIntermediateNode
-        {
-            IsPrimaryClass = true
-        };
-
-        var method = new MethodDeclarationIntermediateNode
-        {
-            IsPrimaryMethod = true
-        };
+        var @namespace = new NamespaceDeclarationIntermediateNode(isPrimaryNamespace: true);
+        var @class = new ClassDeclarationIntermediateNode(isPrimaryClass: true);
+        var method = new MethodDeclarationIntermediateNode(isPrimaryMethod: true);
 
         var documentBuilder = IntermediateNodeBuilder.Create(documentNode);
 
