@@ -241,6 +241,7 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
         {
             CSSErrorCodes.UnrecognizedBlockType => IsEscapedAtSign(diagnostic, sourceText),
             CSSErrorCodes.MissingOpeningBrace => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree),
+            CSSErrorCodes.MissingClassNameAfterDot => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree),
             CSSErrorCodes.MissingSelectorAfterCombinator => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree),
             CSSErrorCodes.MissingSelectorBeforeCombinatorCode => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree),
             HtmlErrorCodes.UnexpectedEndTagErrorCode => IsHtmlWithBangAndMatchingTags(diagnostic, sourceText, syntaxTree),

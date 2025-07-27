@@ -164,6 +164,40 @@ public class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOutputHelpe
     }
 
     [Fact]
+    public Task FilterMissingClassNameInCss()
+    {
+        TestCode input = """
+            <div>
+
+            <style>
+              .@(className)
+                background-color: lightblue;
+              }
+            </style>
+
+            </div>
+
+            @code
+            {
+                private string className = "foo";
+            }
+            """;
+
+        return VerifyDiagnosticsAsync(input,
+            htmlResponse: [new VSInternalDiagnosticReport
+            {
+                Diagnostics =
+                [
+                    new Diagnostic
+                    {
+                        Code = CSSErrorCodes.MissingClassNameAfterDot,
+                        Range = SourceText.From(input.Text).GetRange(new TextSpan(input.Text.IndexOf("@"), 1))
+                    },
+                ]
+            }]);
+    }
+
+    [Fact]
     public Task CombinedAndNestedDiagnostics()
         => VerifyDiagnosticsAsync("""
             @using System.Threading.Tasks;
