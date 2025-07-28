@@ -93,26 +93,18 @@ internal sealed class HtmlRequestInvoker(
 
     private void UpdateTextDocumentUri<TRequest>(TRequest request, DocumentUri uri, out DocumentUri? originalUri) where TRequest : notnull
     {
-        switch (request)
+        var textDocument = request switch
         {
-            case ITextDocumentParams { TextDocument: { } textDocument }:
-                originalUri = textDocument.DocumentUri;
-                textDocument.DocumentUri = uri;
-                break;
-            case VSInternalDiagnosticParams { TextDocument: { } textDocument }:
-                // VSInternalDiagnosticParams doesn't implement the interface because the TextDocument property is nullable
-                originalUri = textDocument.DocumentUri;
-                textDocument.DocumentUri = uri;
-                break;
-            case VSInternalRelatedDocumentParams { TextDocument: { } textDocument }:
-                // We don't implement the endpoint that uses this, but it's the only other thing, at time of writing, in the LSP
-                // protocol library that isn't handled by the above two cases.
-                originalUri = textDocument.DocumentUri;
-                textDocument.DocumentUri = uri;
-                break;
-            default:
-                originalUri = default;
-                break;
-        }
+            ITextDocumentParams textDocumentParams => textDocumentParams.TextDocument,
+            // VSInternalDiagnosticParams doesn't implement the interface because the TextDocument property is nullable
+            VSInternalDiagnosticParams vsInternalDiagnosticParams => vsInternalDiagnosticParams.TextDocument,
+            // We don't implement the endpoint that uses this, but it's the only other thing, at time of writing, in the LSP
+            // protocol library that isn't handled by the above two cases.
+            VSInternalRelatedDocumentParams vsInternalRelatedDocumentParams => vsInternalRelatedDocumentParams.TextDocument,
+            _ => null
+        };
+
+        originalUri = textDocument?.DocumentUri;
+        textDocument?.DocumentUri = uri;
     }
 }

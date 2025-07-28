@@ -38,25 +38,8 @@ public class HtmlRequestInvokerTest(ITestOutputHelper testOutput) : VisualStudio
         var document = Workspace.CurrentSolution.GetAdditionalDocument(_documentId).AssumeNotNull();
 
         var htmlDocumentUri = new Uri("file://File.razor.html", UriKind.Absolute);
-
-        var htmlTextSnapshot = new StringTextSnapshot("");
-        var htmlTextBuffer = new TestTextBuffer(htmlTextSnapshot);
-        var checksum = await document.GetChecksumAsync(DisposalToken);
-        var requestInvoker = new TestLSPRequestInvoker((VSInternalMethods.DocumentPullDiagnosticName, null));
-        var lspDocumentManager = new TestDocumentManager();
-        var htmlVirtualDocument = new HtmlVirtualDocumentSnapshot(htmlDocumentUri, htmlTextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 1, state: checksum);
-        var documentSnapshot = new TestLSPDocumentSnapshot(document.CreateUri(), version: (int)(htmlVirtualDocument.HostDocumentSyncVersion!.Value + 1), htmlVirtualDocument);
-        lspDocumentManager.AddDocument(documentSnapshot.Uri, documentSnapshot);
-
-        var publisher = new TestHtmlDocumentPublisher();
-        var remoteServiceInvoker = new RemoteServiceInvoker();
-        var htmlDocumentSynchronizer = new HtmlDocumentSynchronizer(remoteServiceInvoker, publisher, LoggerFactory);
-        var invoker = new HtmlRequestInvoker(requestInvoker, lspDocumentManager, htmlDocumentSynchronizer, NoOpTelemetryReporter.Instance, LoggerFactory);
-
-        var validated = false;
-        requestInvoker.RequestAction = request =>
+        var requestValidator = (object request) =>
         {
-            validated = true;
             var diagnosticParams = Assert.IsType<VSInternalDiagnosticParams>(request);
             Assert.Equal(htmlDocumentUri, diagnosticParams.TextDocument!.DocumentUri.GetRequiredParsedUri());
         };
@@ -66,15 +49,9 @@ public class HtmlRequestInvokerTest(ITestOutputHelper testOutput) : VisualStudio
             TextDocument = new TextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() }
         };
 
-        _ = await invoker.MakeHtmlLspRequestAsync<VSInternalDiagnosticParams, object>(
-            document,
-            VSInternalMethods.DocumentPullDiagnosticName,
-            diagnosticRequest,
-            DisposalToken);
+        await MakeHtmlRequestAsync(document, htmlDocumentUri, requestValidator, VSInternalMethods.DocumentPullDiagnosticName, diagnosticRequest);
 
         Assert.Equal(document.CreateDocumentUri(), diagnosticRequest.TextDocument!.DocumentUri);
-
-        Assert.True(validated);
     }
 
     [Fact]
@@ -83,11 +60,29 @@ public class HtmlRequestInvokerTest(ITestOutputHelper testOutput) : VisualStudio
         var document = Workspace.CurrentSolution.GetAdditionalDocument(_documentId).AssumeNotNull();
 
         var htmlDocumentUri = new Uri("file://File.razor.html", UriKind.Absolute);
+        var requestValidator = (object request) =>
+        {
+            var hoverParams = Assert.IsAssignableFrom<ITextDocumentParams>(request);
+            Assert.Equal(htmlDocumentUri, hoverParams.TextDocument!.DocumentUri.GetRequiredParsedUri());
+        };
 
+        var hoverRequest = new HoverParams
+        {
+            TextDocument = new TextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() }
+        };
+
+        await MakeHtmlRequestAsync(document, htmlDocumentUri, requestValidator, Methods.TextDocumentHoverName, hoverRequest);
+
+        Assert.Equal(document.CreateDocumentUri(), hoverRequest.TextDocument!.DocumentUri);
+    }
+
+    private async Task MakeHtmlRequestAsync<TRequest>(TextDocument document, Uri htmlDocumentUri, Action<object> requestValidator, string method, TRequest request)
+       where TRequest : notnull
+    {
         var htmlTextSnapshot = new StringTextSnapshot("");
         var htmlTextBuffer = new TestTextBuffer(htmlTextSnapshot);
         var checksum = await document.GetChecksumAsync(DisposalToken);
-        var requestInvoker = new TestLSPRequestInvoker((Methods.TextDocumentHoverName, null));
+        var requestInvoker = new TestLSPRequestInvoker((method, null));
         var lspDocumentManager = new TestDocumentManager();
         var htmlVirtualDocument = new HtmlVirtualDocumentSnapshot(htmlDocumentUri, htmlTextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 1, state: checksum);
         var documentSnapshot = new TestLSPDocumentSnapshot(document.CreateUri(), version: (int)(htmlVirtualDocument.HostDocumentSyncVersion!.Value + 1), htmlVirtualDocument);
@@ -99,25 +94,17 @@ public class HtmlRequestInvokerTest(ITestOutputHelper testOutput) : VisualStudio
         var invoker = new HtmlRequestInvoker(requestInvoker, lspDocumentManager, htmlDocumentSynchronizer, NoOpTelemetryReporter.Instance, LoggerFactory);
 
         var validated = false;
-        requestInvoker.RequestAction = request =>
+        requestInvoker.RequestAction = r =>
         {
             validated = true;
-            var diagnosticParams = Assert.IsAssignableFrom<ITextDocumentParams>(request);
-            Assert.Equal(htmlDocumentUri, diagnosticParams.TextDocument!.DocumentUri.GetRequiredParsedUri());
+            requestValidator(r);
         };
 
-        var diagnosticRequest = new HoverParams
-        {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() }
-        };
-
-        _ = await invoker.MakeHtmlLspRequestAsync<HoverParams, object>(
+        _ = await invoker.MakeHtmlLspRequestAsync<TRequest, object>(
             document,
-            Methods.TextDocumentHoverName,
-            diagnosticRequest,
+            method,
+            request,
             DisposalToken);
-
-        Assert.Equal(document.CreateDocumentUri(), diagnosticRequest.TextDocument!.DocumentUri);
 
         Assert.True(validated);
     }

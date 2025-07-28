@@ -11,13 +11,11 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 internal sealed class TestHtmlDocumentPublisher : IHtmlDocumentPublisher
 {
-    private readonly List<(TextDocument, string, ChecksumWrapper)> _publishes = [];
-
-    public List<(TextDocument Document, string Text, ChecksumWrapper Checksum)> Publishes => _publishes;
+    public List<(TextDocument Document, string Text, ChecksumWrapper Checksum)> Publishes { get; } = [];
 
     public Task PublishAsync(TextDocument document, SynchronizationResult synchronizationResult, string htmlText, CancellationToken cancellationToken)
     {
-        _publishes.Add((document, htmlText, synchronizationResult.Checksum));
+        Publishes.Add((document, htmlText, synchronizationResult.Checksum));
         return Task.CompletedTask;
     }
 }
