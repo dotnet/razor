@@ -1,9 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -38,49 +38,81 @@ public static class HtmlConventions
     /// ONE1TWO2THREE3 => one1two2three3
     /// First_Second_ThirdHi => first_second_third-hi
     /// </example>
-    public static string ToHtmlCase(string name)
+    public static string ToHtmlCase(string input)
     {
-        if (string.IsNullOrEmpty(name))
+        if (string.IsNullOrEmpty(input))
         {
-            return name;
+            return input;
         }
 
-        var input = name.AsSpan();
+        return TryGetKebabCaseString(input, out var result)
+            ? result
+            : input;
+    }
 
-        using var _ = StringBuilderPool.GetPooledObject(out var result);
-        result.SetCapacityIfLarger(input.Length + 5);
+    private static bool TryGetKebabCaseString(ReadOnlySpan<char> input, [NotNullWhen(true)] out string? result)
+    {
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
-        // It's slightly faster to use a foreach and index manually, than to use a for 🤷‍
+        var allLower = true;
         var i = 0;
-        foreach (var c in name)
+        foreach (var c in input)
         {
             if (char.IsUpper(c))
             {
-                // Insert hyphen if:
-                // - Not the first character, and
-                // - Previous is lowercase or digit, or
-                // - Previous is uppercase and next is lowercase (e.g. CAPSOn → caps-on)
-                if (i > 0)
+                allLower = false;
+
+                if (ShouldInsertHyphenBeforeUppercase(input, i))
                 {
-                    var prev = input[i - 1];
-                    var prevIsLowerOrDigit = char.IsLower(prev) || char.IsDigit(prev);
-                    var prevIsUpper = char.IsUpper(prev);
-                    var nextIsLower = (i + 1 < input.Length) && char.IsLower(input[i + 1]);
-                    if (prevIsLowerOrDigit || (prevIsUpper && nextIsLower))
-                    {
-                        result.Append('-');
-                    }
+                    builder.Append('-');
                 }
-                result.Append(char.ToLowerInvariant(c));
+
+                builder.Append(char.ToLowerInvariant(c));
             }
             else
             {
-                result.Append(c);
+                builder.Append(c);
             }
 
             i++;
         }
 
-        return result.ToString();
+        if (allLower)
+        {
+            // If the input is all lowercase, we don't need to realize the builder,
+            // it will just be cleared when the pooled object is disposed.
+            result = null;
+            return false;
+        }
+
+        result = builder.ToString();
+        return true;
+    }
+
+    private static bool ShouldInsertHyphenBeforeUppercase(ReadOnlySpan<char> input, int i)
+    {
+        Debug.Assert(char.IsUpper(input[i]));
+
+        if (i == 0)
+        {
+            // First character is uppercase, no hyphen needed (e.g. This → this)
+            return false;
+        }
+
+        var prev = input[i - 1];
+        if (char.IsLower(prev))
+        {
+            // Lowercase followed by uppercase (e.g. someThing → some-thing)
+            return true;
+        }
+
+        if ((char.IsUpper(prev) || char.IsDigit(prev)) &&
+            (i + 1 < input.Length) && char.IsLower(input[i + 1]))
+        {
+            // Uppercase or digit followed by lowercase (e.g. CAPSOn → caps-on)
+            return true; ;
+        }
+
+        return false;
     }
 }
