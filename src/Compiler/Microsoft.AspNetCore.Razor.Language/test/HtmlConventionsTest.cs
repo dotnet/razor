@@ -21,7 +21,7 @@ public class HtmlConventionsTest
                     { "CAPSOnOUTSIDE", "caps-on-outside" },
                     { "ALLCAPS", "allcaps" },
                     { "One1Two2Three3", "one1-two2-three3" },
-                    { "ONE1TWO2THREE3", "one1two2three3" },
+                    { "ONE1TWO2THREE3", "one1-two2-three3" },
                     { "First_Second_ThirdHi", "first_second_third-hi" }
                 };
         }
@@ -35,6 +35,6 @@ public class HtmlConventionsTest
         var output = HtmlConventions.ToHtmlCase(input);
 
         // Assert
-        Assert.Equal(output, expectedOutput);
+        Assert.Equal(expectedOutput, output);
     }
 }
