@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
@@ -90,9 +91,7 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
         @namespace.Content = computedNamespace;
         @namespace.Source = computedNamespaceSpan;
         @class.ClassName = computedClass;
-        @class.Modifiers.Clear();
-        @class.Modifiers.Add("public");
-        @class.Modifiers.Add("partial");
+        @class.UpdateModifiers("public", "partial");
 
         if (codeDocument.FileKind.IsComponentImport())
         {
@@ -102,10 +101,8 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
 
             method.ReturnType = "void";
             method.MethodName = "Execute";
-            method.Modifiers.Clear();
-            method.Modifiers.Add("protected");
-
-            method.Parameters.Clear();
+            method.UpdateModifiers("protected");
+            method.UpdateParameters([]);
         }
         else
         {
@@ -116,6 +113,8 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
             var directiveType = razorLanguageVersion >= RazorLanguageVersion.Version_6_0
                 ? ComponentConstrainedTypeParamDirective.Directive
                 : ComponentTypeParamDirective.Directive;
+
+            using var typeParameters = new PooledArrayBuilder<TypeParameter>();
 
             foreach (var typeParamReference in documentNode.FindDirectiveReferences(directiveType))
             {
@@ -129,27 +128,22 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
                 var typeParameter = typeParamNode.Tokens.First();
                 var constraints = typeParamNode.Tokens.Skip(1).FirstOrDefault();
 
-                @class.TypeParameters.Add(new TypeParameter()
-                {
-                    ParameterName = typeParameter.Content,
-                    ParameterNameSource = typeParameter.Source,
-                    Constraints = constraints?.Content,
-                    ConstraintsSource = constraints?.Source,
-                });
+                typeParameters.Add(new TypeParameter(
+                    typeParameter.Content,
+                    typeParameter.Source,
+                    constraints?.Content,
+                    constraints?.Source));
             }
+
+            @class.UpdateTypeParameters(typeParameters.ToImmutableAndClear());
 
             method.ReturnType = "void";
             method.MethodName = ComponentsApi.ComponentBase.BuildRenderTree;
-            method.Modifiers.Clear();
-            method.Modifiers.Add("protected");
-            method.Modifiers.Add("override");
+            method.UpdateModifiers("protected", "override");
 
-            method.Parameters.Clear();
-            method.Parameters.Add(new MethodParameter()
-            {
-                ParameterName = ComponentsApi.RenderTreeBuilder.BuilderParameter,
-                TypeName = $"global::{ComponentsApi.RenderTreeBuilder.FullTypeName}",
-            });
+            method.UpdateParameters(new MethodParameter(
+                typeName: $"global::{ComponentsApi.RenderTreeBuilder.FullTypeName}",
+                parameterName: ComponentsApi.RenderTreeBuilder.BuilderParameter));
         }
     }
 
