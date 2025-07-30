@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -29,7 +31,56 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
     private readonly ITelemetryReporter _telemetryReporter = args.ExportProvider.GetExportedValue<ITelemetryReporter>();
 
     public ValueTask<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId generatedDocumentId, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
-        => throw new NotImplementedException();
+       => RunServiceAsync(
+            solutionInfo,
+            solution => MapSpansAsync(solution, generatedDocumentId, spans, cancellationToken),
+            cancellationToken);
+
+    private async ValueTask<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Solution solution, DocumentId generatedDocumentId, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
+    {
+        var generatedDocument = await solution.GetSourceGeneratedDocumentAsync(generatedDocumentId, cancellationToken).ConfigureAwait(false);
+        if (generatedDocument is null)
+        {
+            return [];
+        }
+
+        if (!generatedDocument.Project.TryGetHintNameFromGeneratedDocumentUri(generatedDocument.CreateUri(), out var hintName))
+        {
+            return [];
+        }
+
+        var projectSnapshot = _snapshotManager.GetSnapshot(generatedDocument.Project);
+
+        var razorDocument = await projectSnapshot.TryGetRazorDocumentFromGeneratedHintNameAsync(hintName, cancellationToken).ConfigureAwait(false);
+        if (razorDocument is null)
+        {
+            return [];
+        }
+
+        var documentSnapshot = _snapshotManager.GetSnapshot(razorDocument);
+        var output = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+
+        var source = output.Source.Text;
+
+        var csharpDocument = output.GetRequiredCSharpDocument();
+        var filePath = output.Source.FilePath.AssumeNotNull();
+
+        using var results = new PooledArrayBuilder<RazorMappedSpanResult>();
+
+        foreach (var span in spans)
+        {
+            if (RazorEditHelper.TryGetMappedSpans(span, source, csharpDocument, out var linePositionSpan, out var mappedSpan))
+            {
+                results.Add(new(filePath, linePositionSpan, mappedSpan));
+            }
+            else
+            {
+                results.Add(default);
+            }
+        }
+
+        return results.ToImmutableAndClear();
+    }
 
     public ValueTask<ImmutableArray<RazorMappedEditResult>> MapTextChangesAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId generatedDocumentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
         => RunServiceAsync(

@@ -17,8 +17,14 @@ internal sealed class RazorSourceGeneratedDocumentSpanMappingService(IRemoteServ
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
 
-    public async Task<ImmutableArray<RazorMappedEditResult>> GetMappedTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<RazorMappedEditResult>> GetMappedTextChangesAsync(SourceGeneratedDocument oldDocument, SourceGeneratedDocument newDocument, CancellationToken cancellationToken)
     {
+        if (!oldDocument.IsRazorSourceGeneratedDocument() || !newDocument.IsRazorSourceGeneratedDocument())
+        {
+            // If either document is not a Razor source generated document, we cannot map text changes.
+            return [];
+        }
+
         // We have to get the text changes on this side, because we're dealing with changed source generated documents, and we can't
         // expect to transfer the Ids over to OOP and see the same changes
         var changes = await newDocument.GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false);
@@ -34,8 +40,17 @@ internal sealed class RazorSourceGeneratedDocumentSpanMappingService(IRemoteServ
             cancellationToken).ConfigureAwait(false);
     }
 
-    public Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(SourceGeneratedDocument document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
     {
-        throw new System.NotImplementedException();
+        if (!document.IsRazorSourceGeneratedDocument())
+        {
+            // If the document is not a Razor source generated document, we cannot map spans.
+            return [];
+        }
+
+        return await _remoteServiceInvoker.TryInvokeAsync<IRemoteSpanMappingService, ImmutableArray<RazorMappedSpanResult>>(
+            document.Project.Solution,
+            (service, solutionInfo, cancellationToken) => service.MapSpansAsync(solutionInfo, document.Id, spans, cancellationToken),
+            cancellationToken).ConfigureAwait(false);
     }
 }
