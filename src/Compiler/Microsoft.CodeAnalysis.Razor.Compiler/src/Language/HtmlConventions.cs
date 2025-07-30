@@ -109,7 +109,7 @@ public static class HtmlConventions
         if ((char.IsUpper(prev) || char.IsDigit(prev)) &&
             (i + 1 < input.Length) && char.IsLower(input[i + 1]))
         {
-            // Uppercase or digit followed by lowercase (e.g. CAPSOn → caps-on)
+            // Uppercase or digit followed by uppercase, followed by lowercase (e.g. CAPSOn → caps-on or ONE1Two → ONE1-Two)
             return true; ;
         }
 
