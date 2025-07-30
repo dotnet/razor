@@ -23,6 +23,7 @@ public class HtmlConventionsTest
                     { "CAPSOnOUTSIDE", "caps-on-outside" },
                     { "ALLCAPS", "allcaps" },
                     { "One1Two2Three3", "one1-two2-three3" },
+                    { "ONE1TWO2THREE3", "one1two2three3" },
                     { "First_Second_ThirdHi", "first_second_third-hi" },
                     { "ONE1Two", "one1-two" },
                     { "One123Two234Three345", "one123-two234-three345" },
