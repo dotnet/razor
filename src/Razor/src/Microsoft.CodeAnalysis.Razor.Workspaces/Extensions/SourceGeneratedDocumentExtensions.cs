@@ -7,11 +7,8 @@ namespace Microsoft.CodeAnalysis;
 
 internal static class SourceGeneratedDocumentExtensions
 {
-    extension(SourceGeneratedDocument sourceGeneratedDocument)
+    public static bool IsRazorSourceGeneratedDocument(this SourceGeneratedDocument sourceGeneratedDocument)
     {
-        public bool IsRazorSourceGeneratedDocument()
-        {
-            return RazorGeneratedDocumentIdentity.Create(sourceGeneratedDocument).IsRazorSourceGeneratedDocument();
-        }
+        return RazorGeneratedDocumentIdentity.Create(sourceGeneratedDocument).IsRazorSourceGeneratedDocument();
     }
 }

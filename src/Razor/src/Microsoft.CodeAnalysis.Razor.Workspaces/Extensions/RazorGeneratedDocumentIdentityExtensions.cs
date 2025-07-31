@@ -8,11 +8,8 @@ namespace Microsoft.CodeAnalysis;
 
 internal static class RazorGeneratedDocumentIdentityExtensions
 {
-    extension(RazorGeneratedDocumentIdentity identity)
+    public static bool IsRazorSourceGeneratedDocument(this RazorGeneratedDocumentIdentity identity)
     {
-        public bool IsRazorSourceGeneratedDocument()
-        {
-            return identity.GeneratorTypeName == typeof(RazorSourceGenerator).FullName;
-        }
+        return identity.GeneratorTypeName == typeof(RazorSourceGenerator).FullName;
     }
 }
