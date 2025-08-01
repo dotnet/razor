@@ -29,6 +29,8 @@ internal class VSCodeRemoteServiceInvoker(
     private readonly Lock _serviceLock = new();
     private readonly VSCodeBrokeredServiceInterceptor _serviceInterceptor = new();
 
+    public ValueTask InitializeAsync() => ValueTask.CompletedTask; // Initialization in VS Code is handled in VSCodeRemoteServicesInitializer
+
     public async ValueTask<TResult?> TryInvokeAsync<TService, TResult>(
         Solution solution,
         Func<TService, RazorPinnedSolutionInfoWrapper, CancellationToken, ValueTask<TResult>> invocation,

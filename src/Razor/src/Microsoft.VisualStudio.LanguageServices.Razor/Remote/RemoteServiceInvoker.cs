@@ -130,7 +130,7 @@ internal sealed class RemoteServiceInvoker(
             ?? throw new InvalidOperationException($"Couldn't retrieve {nameof(RazorRemoteHostClient)} for JSON serialization.");
     }
 
-    private ValueTask InitializeAsync()
+    public ValueTask InitializeAsync()
     {
         var oopInitialized = _initializeOOPTask is { Status: TaskStatus.RanToCompletion };
         var lspInitialized = _initializeLspTask is { Status: TaskStatus.RanToCompletion };
