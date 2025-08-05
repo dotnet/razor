@@ -1,8 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
@@ -25,8 +25,14 @@ internal static class TextDocumentExtensions
             return false;
         }
 
-        var projectBasePath = Path.GetDirectoryName(razorDocument.Project.FilePath).AssumeNotNull();
-        var relativeDocumentPath = razorDocument.FilePath[projectBasePath.Length..].TrimStart('/', '\\');
+        var filePath = razorDocument.Project.FilePath.AsSpanOrDefault();
+        var projectBasePath = PathUtilities.GetDirectoryName(filePath);
+        var relativeDocumentPath = filePath[projectBasePath.Length..];
+        while (relativeDocumentPath[0] is '/' or '\\')
+        {
+            relativeDocumentPath = relativeDocumentPath[1..];
+        }
+
         hintName = RazorSourceGenerator.GetIdentifierFromPath(relativeDocumentPath);
 
         return hintName is not null;

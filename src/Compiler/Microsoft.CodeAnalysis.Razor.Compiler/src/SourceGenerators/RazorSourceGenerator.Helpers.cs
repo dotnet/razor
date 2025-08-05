@@ -1,8 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Buffers;
 using System.Collections.Generic;
-using System.Text;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
@@ -12,9 +13,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
     public partial class RazorSourceGenerator
     {
-        internal static string GetIdentifierFromPath(string filePath)
+        internal static string GetIdentifierFromPath(ReadOnlySpan<char> filePath)
         {
-            var builder = new StringBuilder(filePath.Length);
+            using var _ = ArrayPool<char>.Shared.GetPooledArraySpan(filePath.Length + 5, out var destination);
 
             for (var i = 0; i < filePath.Length; i++)
             {
@@ -22,16 +23,21 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 {
                     case ':' or '\\' or '/':
                     case char ch when !char.IsLetterOrDigit(ch):
-                        builder.Append('_');
+                        destination[i] = '_';
                         break;
                     default:
-                        builder.Append(filePath[i]);
+                        destination[i] = filePath[i];
                         break;
                 }
             }
 
-            builder.Append(".g.cs");
-            return builder.ToString();
+            destination[^5] = '.';
+            destination[^4] = 'g';
+            destination[^3] = '.';
+            destination[^2] = 'c';
+            destination[^1] = 's';
+
+            return destination.ToString();
         }
 
         private static RazorProjectEngine GetDeclarationProjectEngine(
