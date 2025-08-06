@@ -38,20 +38,7 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
 
     private async ValueTask<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Solution solution, DocumentId generatedDocumentId, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
     {
-        var generatedDocument = await solution.GetSourceGeneratedDocumentAsync(generatedDocumentId, cancellationToken).ConfigureAwait(false);
-        if (generatedDocument is null)
-        {
-            return [];
-        }
-
-        if (!generatedDocument.Project.TryGetHintNameFromGeneratedDocumentUri(generatedDocument.CreateUri(), out var hintName))
-        {
-            return [];
-        }
-
-        var projectSnapshot = _snapshotManager.GetSnapshot(generatedDocument.Project);
-
-        var razorDocument = await projectSnapshot.TryGetRazorDocumentFromGeneratedHintNameAsync(hintName, cancellationToken).ConfigureAwait(false);
+        var razorDocument = await TryGetRazorDocumentForGeneratedDocumentIdAsync(generatedDocumentId, solution, cancellationToken).ConfigureAwait(false);
         if (razorDocument is null)
         {
             return [];
@@ -92,20 +79,7 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
     {
         try
         {
-            var generatedDocument = await solution.GetSourceGeneratedDocumentAsync(generatedDocumentId, cancellationToken).ConfigureAwait(false);
-            if (generatedDocument is null)
-            {
-                return [];
-            }
-
-            if (!generatedDocument.Project.TryGetHintNameFromGeneratedDocumentUri(generatedDocument.CreateUri(), out var hintName))
-            {
-                return [];
-            }
-
-            var projectSnapshot = _snapshotManager.GetSnapshot(generatedDocument.Project);
-
-            var razorDocument = await projectSnapshot.TryGetRazorDocumentFromGeneratedHintNameAsync(hintName, cancellationToken).ConfigureAwait(false);
+            var razorDocument = await TryGetRazorDocumentForGeneratedDocumentIdAsync(generatedDocumentId, solution, cancellationToken).ConfigureAwait(false);
             if (razorDocument is null)
             {
                 return [];
@@ -134,5 +108,24 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
             _telemetryReporter.ReportFault(ex, "Failed to map edits");
             return [];
         }
+    }
+
+    private async Task<TextDocument?> TryGetRazorDocumentForGeneratedDocumentIdAsync(DocumentId generatedDocumentId, Solution solution, CancellationToken cancellationToken)
+    {
+        var generatedDocument = await solution.GetSourceGeneratedDocumentAsync(generatedDocumentId, cancellationToken).ConfigureAwait(false);
+        if (generatedDocument is null)
+        {
+            return null;
+        }
+
+        var identity = RazorGeneratedDocumentIdentity.Create(generatedDocument);
+        if (!identity.IsRazorSourceGeneratedDocument())
+        {
+            return null;
+        }
+
+        var projectSnapshot = _snapshotManager.GetSnapshot(generatedDocument.Project);
+
+        return await projectSnapshot.TryGetRazorDocumentFromGeneratedHintNameAsync(identity.HintName, cancellationToken).ConfigureAwait(false);
     }
 }
