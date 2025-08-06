@@ -26,12 +26,8 @@ internal static class TextDocumentExtensions
         }
 
         var filePath = razorDocument.Project.FilePath.AsSpanOrDefault();
-        var projectBasePath = PathUtilities.GetDirectoryName(filePath);
-        var relativeDocumentPath = filePath[projectBasePath.Length..];
-        while (relativeDocumentPath[0] is '/' or '\\')
-        {
-            relativeDocumentPath = relativeDocumentPath[1..];
-        }
+        var containingPath = PathUtilities.GetDirectoryName(filePath);
+        var relativeDocumentPath = filePath[containingPath.Length..].TrimStart(['/', '\\']);
 
         hintName = RazorSourceGenerator.GetIdentifierFromPath(relativeDocumentPath);
 
