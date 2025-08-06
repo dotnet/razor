@@ -25,9 +25,17 @@ internal static class TextDocumentExtensions
             return false;
         }
 
-        var filePath = razorDocument.Project.FilePath.AsSpanOrDefault();
-        var containingPath = PathUtilities.GetDirectoryName(filePath);
-        var relativeDocumentPath = filePath[containingPath.Length..].TrimStart(['/', '\\']);
+        var filePath = razorDocument.FilePath.AsSpanOrDefault();
+        var projectFilePath = razorDocument.Project.FilePath.AsSpanOrDefault();
+        var projectBasePath = PathUtilities.GetDirectoryName(projectFilePath);
+        if (filePath.Length <= projectBasePath.Length)
+        {
+            // File must be from outside the project directory
+            hintName = null;
+            return false;
+        }
+
+        var relativeDocumentPath = filePath[projectBasePath.Length..].TrimStart(['/', '\\']);
 
         hintName = RazorSourceGenerator.GetIdentifierFromPath(relativeDocumentPath);
 
