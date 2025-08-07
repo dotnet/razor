@@ -16,11 +16,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor.Logging;
-using Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Microsoft.VisualStudio.Composition;
@@ -43,8 +43,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     private protected TestRemoteServiceInvoker RemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
     private protected IFilePathService FilePathService => _filePathService.AssumeNotNull();
     private protected RemoteLanguageServerFeatureOptions FeatureOptions => OOPExportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
-    private protected RemoteClientCapabilitiesService ClientCapabilitiesService => OOPExportProvider.GetExportedValue<RemoteClientCapabilitiesService>();
-    private protected RemoteSemanticTokensLegendService SemanticTokensLegendService => OOPExportProvider.GetExportedValue<RemoteSemanticTokensLegendService>();
+    private protected RemoteClientCapabilitiesService ClientCapabilitiesService => (RemoteClientCapabilitiesService)OOPExportProvider.GetExportedValue<IClientCapabilitiesService>();
 
     /// <summary>
     /// The export provider for Razor OOP services (not Roslyn)
@@ -145,8 +144,23 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     private protected void UpdateClientLSPInitializationOptions(Func<RemoteClientLSPInitializationOptions, RemoteClientLSPInitializationOptions> mutation)
     {
         _clientLSPInitializationOptions = mutation(_clientLSPInitializationOptions);
-        ClientCapabilitiesService.SetCapabilities(_clientLSPInitializationOptions.ClientCapabilities);
-        SemanticTokensLegendService.SetLegend(_clientLSPInitializationOptions.TokenTypes, _clientLSPInitializationOptions.TokenModifiers);
+
+        var lifetimeServices = OOPExportProvider.GetExportedValues<ILspLifetimeService>();
+        foreach (var service in lifetimeServices)
+        {
+            service.OnLspInitialized(_clientLSPInitializationOptions);
+        }
+    }
+
+    protected override Task DisposeAsync()
+    {
+        var lifetimeServices = OOPExportProvider.GetExportedValues<ILspLifetimeService>();
+        foreach (var service in lifetimeServices)
+        {
+            service.OnLspUninitialized();
+        }
+
+        return Task.CompletedTask;
     }
 
     private protected virtual TestComposition ConfigureRoslynDevenvComposition(TestComposition composition)
