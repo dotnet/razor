@@ -113,6 +113,8 @@ public class HtmlRequestInvokerTest(ITestOutputHelper testOutput) : VisualStudio
     {
         public ValueTask InitializeAsync() => throw new NotImplementedException();
 
+        public ValueTask UninitializeLspAsync() => throw new NotImplementedException();
+
         public ValueTask<TResult?> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, RazorPinnedSolutionInfoWrapper, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken, [CallerFilePath] string? callerFilePath = null, [CallerMemberName] string? callerMemberName = null) where TService : class
         {
             return new((TResult?)(object)"");

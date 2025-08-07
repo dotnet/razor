@@ -19,5 +19,6 @@ internal sealed class RemoteClientCapabilitiesService : AbstractClientCapabiliti
 
     public void OnLspUninitialized()
     {
+        SetCapabilities(null);
     }
 }

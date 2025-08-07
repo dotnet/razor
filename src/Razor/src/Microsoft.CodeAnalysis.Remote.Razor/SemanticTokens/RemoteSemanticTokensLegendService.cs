@@ -23,16 +23,11 @@ internal sealed class RemoteSemanticTokensLegendService : ISemanticTokensLegendS
 
     public void OnLspInitialized(RemoteClientLSPInitializationOptions options)
     {
-        SetLegend(options.TokenTypes, options.TokenModifiers);
+        _tokenTypes = new SemanticTokenTypes(options.TokenTypes);
+        _tokenModifiers = new SemanticTokenModifiers(options.TokenModifiers);
     }
 
     public void OnLspUninitialized()
     {
-    }
-
-    public void SetLegend(string[] tokenTypes, string[] tokenModifiers)
-    {
-        _tokenTypes = new SemanticTokenTypes(tokenTypes);
-        _tokenModifiers = new SemanticTokenModifiers(tokenModifiers);
     }
 }

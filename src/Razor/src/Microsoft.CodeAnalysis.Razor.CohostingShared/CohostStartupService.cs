@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -60,5 +61,6 @@ internal sealed class CohostStartupService(
 
     public override void Dispose()
     {
+        _remoteServiceInvoker.UninitializeLspAsync().Forget();
     }
 }
