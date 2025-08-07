@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -19,14 +20,24 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 internal sealed class CohostStartupService(
     [ImportMany] IEnumerable<Lazy<IRazorCohostStartupService>> lazyStartupServices,
     IRemoteServiceInvoker remoteServiceInvoker,
+    LanguageServerFeatureOptions featureOptions,
     ILoggerFactory loggerFactory) : AbstractRazorCohostLifecycleService
 {
     private readonly ImmutableArray<Lazy<IRazorCohostStartupService>> _lazyStartupServices = [.. lazyStartupServices];
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
+    private readonly LanguageServerFeatureOptions _featureOptions = featureOptions;
 
     public override Task LspServerIntializedAsync(CancellationToken cancellationToken)
     {
-        return _remoteServiceInvoker.InitializeAsync().AsTask();
+        // If cohosting is on, we have to intialize it early so we can un-suppress the source generator. This can be removed
+        // when the suppression system is removed once cohosting is fully enabled.
+        // Without this operations that might affect Razor files won't work until a Razor file is opened in the editor.
+        if (_featureOptions.UseRazorCohostServer)
+        {
+            return _remoteServiceInvoker.InitializeAsync().AsTask();
+        }
+
+        return Task.CompletedTask;
     }
 
     public override async Task RazorActivatedAsync(ClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
