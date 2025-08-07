@@ -10,7 +10,7 @@ internal interface IRemoteClientInitializationService : IRemoteJsonService
 {
     ValueTask InitializeAsync(RemoteClientInitializationOptions initializationOptions, CancellationToken cancellationToken);
 
-    ValueTask InitializeLSPAsync(RemoteClientLSPInitializationOptions lspInitializationOptions, CancellationToken cancellationToken);
+    ValueTask InitializeLspAsync(RemoteClientLSPInitializationOptions lspInitializationOptions, CancellationToken cancellationToken);
 
     ValueTask UninitializeLspAsync(CancellationToken cancellationToken);
 }
