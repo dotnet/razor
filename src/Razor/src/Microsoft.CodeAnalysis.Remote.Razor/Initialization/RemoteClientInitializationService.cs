@@ -27,7 +27,7 @@ internal sealed class RemoteClientInitializationService(in ServiceArgs args) : R
             },
             cancellationToken);
 
-    public ValueTask InitializeLSPAsync(RemoteClientLSPInitializationOptions options, CancellationToken cancellationToken)
+    public ValueTask InitializeLspAsync(RemoteClientLSPInitializationOptions options, CancellationToken cancellationToken)
         => RunServiceAsync(ct =>
             {
                 foreach (var service in _lspLifetimeServices)
