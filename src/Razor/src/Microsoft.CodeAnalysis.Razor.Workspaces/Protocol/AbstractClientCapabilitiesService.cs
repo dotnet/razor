@@ -13,7 +13,7 @@ internal abstract class AbstractClientCapabilitiesService : IClientCapabilitiesS
 
     public VSInternalClientCapabilities ClientCapabilities => _clientCapabilities ?? throw new InvalidOperationException("Client capabilities requested before initialized.");
 
-    public void SetCapabilities(VSInternalClientCapabilities clientCapabilities)
+    public void SetCapabilities(VSInternalClientCapabilities? clientCapabilities)
     {
         _clientCapabilities = clientCapabilities;
     }
