@@ -213,7 +213,7 @@ internal sealed class RemoteServiceInvoker(
 
                 return remoteClient
                     .TryInvokeAsync<IRemoteClientInitializationService>(
-                        (s, ct) => s.InitializeLSPAsync(initParams, ct),
+                        (s, ct) => s.InitializeLspAsync(initParams, ct),
                         _disposeTokenSource.Token)
                     .AsTask();
             }
