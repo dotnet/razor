@@ -99,7 +99,7 @@ internal class OptionsStorage : IAdvancedSettingsStorage, IDisposable
         Lazy<ITelemetryReporter> telemetryReporter,
         JoinableTaskContext joinableTaskContext)
     {
-        var shellSettingsManager = new ShellSettingsManager(synchronousServiceProvider);
+        var shellSettingsManager = new ShellSettingsManager(serviceProvider);
         _writableSettingsStore = shellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
 
         _writableSettingsStore.CreateCollection(SettingsNames.LegacyCollection);
@@ -115,11 +115,11 @@ internal class OptionsStorage : IAdvancedSettingsStorage, IDisposable
         });
     }
 
-    private async Task GetTaskListDescriptorsAsync(JoinableTaskFactory jtf, SVsServiceProvider synchronousServiceProvider)
+    private async Task GetTaskListDescriptorsAsync(JoinableTaskFactory jtf, IAsyncServiceProvider synchronousServiceProvider)
     {
         await jtf.SwitchToMainThreadAsync();
 
-        var taskListService = synchronousServiceProvider.GetService<IVsTaskList, IVsCommentTaskInfo>();
+        var taskListService = await synchronousServiceProvider.GetServiceAsync<IVsTaskList, IVsCommentTaskInfo>();
         if (taskListService is null)
         {
             return;
