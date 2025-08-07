@@ -30,6 +30,8 @@ internal sealed class TestRemoteServiceInvoker(
 
     public ValueTask InitializeAsync() => throw new NotImplementedException();
 
+    public ValueTask UninitializeLspAsync() => throw new NotImplementedException();
+
     private async Task<TService> GetOrCreateServiceAsync<TService>()
         where TService : class
     {
