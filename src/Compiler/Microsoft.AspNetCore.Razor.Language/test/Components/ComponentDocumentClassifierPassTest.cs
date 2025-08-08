@@ -75,8 +75,8 @@ public class ComponentDocumentClassifierPassTest : RazorProjectEngineTestBase
         var documentNode = processor.GetDocumentNode();
         var classNode = documentNode.GetClassNode();
 
-        Assert.Equal($"global::{ComponentsApi.ComponentBase.FullTypeName}", classNode.BaseType.BaseType.Content);
-        Assert.Equal(["public", "partial"], classNode.Modifiers);
+        Assert.Equal($"global::{ComponentsApi.ComponentBase.FullTypeName}", classNode.BaseType?.BaseType.Content);
+        Assert.Equal<string>(["public", "partial"], classNode.Modifiers);
         Assert.Equal("Test", classNode.ClassName);
     }
 
@@ -148,6 +148,6 @@ public class ComponentDocumentClassifierPassTest : RazorProjectEngineTestBase
 
         Assert.Equal(ComponentsApi.ComponentBase.BuildRenderTree, methodNode.MethodName);
         Assert.Equal("void", methodNode.ReturnType);
-        Assert.Equal(["protected", "override"], methodNode.Modifiers);
+        Assert.Equal<string>(["protected", "override"], methodNode.Modifiers);
     }
 }

@@ -1,19 +1,33 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 public static class TestCodeRenderingContext
 {
+    public static CodeRenderingContext Create(
+        RazorCodeGenerationOptions? options = null,
+        RazorSourceDocument? source = null,
+        IntermediateNodeWriter? nodeWriter = null)
+    {
+        options ??= RazorCodeGenerationOptions.Default;
+        source ??= TestRazorSourceDocument.Create();
+        nodeWriter ??= new RuntimeNodeWriter();
+
+        var documentNode = new DocumentIntermediateNode();
+        var context = new CodeRenderingContext(nodeWriter, source, documentNode, options);
+        context.SetVisitor(new RenderChildrenVisitor(context.CodeWriter));
+
+        return context;
+    }
+
     public static CodeRenderingContext CreateDesignTime(
-        string newLineString = null,
-        string suppressUniqueIds = "test",
-        RazorSourceDocument source = null,
-        IntermediateNodeWriter nodeWriter = null)
+        string? newLineString = null,
+        string? suppressUniqueIds = "test",
+        RazorSourceDocument? source = null,
+        IntermediateNodeWriter? nodeWriter = null)
     {
         nodeWriter ??= new RuntimeNodeWriter();
         source ??= TestRazorSourceDocument.Create();
@@ -28,10 +42,10 @@ public static class TestCodeRenderingContext
     }
 
     public static CodeRenderingContext CreateRuntime(
-        string newLineString = null,
-        string suppressUniqueIds = "test",
-        RazorSourceDocument source = null,
-        IntermediateNodeWriter nodeWriter = null)
+        string? newLineString = null,
+        string? suppressUniqueIds = "test",
+        RazorSourceDocument? source = null,
+        IntermediateNodeWriter? nodeWriter = null)
     {
         nodeWriter ??= new RuntimeNodeWriter();
         source ??= TestRazorSourceDocument.Create();
@@ -45,7 +59,7 @@ public static class TestCodeRenderingContext
         return context;
     }
 
-    private static RazorCodeGenerationOptions ConfigureOptions(RazorCodeGenerationOptions options, string newLine, string suppressUniqueIds)
+    private static RazorCodeGenerationOptions ConfigureOptions(RazorCodeGenerationOptions options, string? newLine, string? suppressUniqueIds)
     {
         if (newLine is null && suppressUniqueIds is null)
         {

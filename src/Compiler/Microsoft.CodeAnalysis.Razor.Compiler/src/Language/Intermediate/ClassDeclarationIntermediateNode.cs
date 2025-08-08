@@ -1,41 +1,58 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
-using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
-public sealed class ClassDeclarationIntermediateNode : MemberDeclarationIntermediateNode
+public sealed class ClassDeclarationIntermediateNode(bool isPrimaryClass = false) : MemberDeclarationIntermediateNode
 {
-    public override IntermediateNodeCollection Children { get; } = new IntermediateNodeCollection();
+    private IntermediateNodeCollection? _children;
+    private ImmutableArray<string> _modifiers = [];
+    private ImmutableArray<IntermediateToken> _interfaces = [];
+    private ImmutableArray<TypeParameter> _typeParameters = [];
 
-    public IList<string> Modifiers { get; } = new List<string>();
+    public bool IsPrimaryClass { get; } = isPrimaryClass;
 
-    public string ClassName { get; set; }
+    public ImmutableArray<string> Modifiers
+    {
+        get => _modifiers;
+        init => _modifiers = value.NullToEmpty();
+    }
 
-    public BaseTypeWithModel BaseType { get; set; }
+    public string? ClassName { get; set; }
 
-    public IList<IntermediateToken> Interfaces { get; set; } = new List<IntermediateToken>();
+    public BaseTypeWithModel? BaseType { get; set; }
 
-    public IList<TypeParameter> TypeParameters { get; set; } = new List<TypeParameter>();
+    public ImmutableArray<IntermediateToken> Interfaces
+    {
+        get => _interfaces;
+        init => _interfaces = value.NullToEmpty();
+    }
 
-    public bool IsPrimaryClass { get; set; }
+    public ImmutableArray<TypeParameter> TypeParameters
+    {
+        get => _typeParameters;
+        init => _typeParameters = value.NullToEmpty();
+    }
 
     public bool NullableContext { get; set; }
 
-    public override void Accept(IntermediateNodeVisitor visitor)
-    {
-        if (visitor == null)
-        {
-            throw new ArgumentNullException(nameof(visitor));
-        }
+    public override IntermediateNodeCollection Children
+        => _children ??= [];
 
-        visitor.VisitClassDeclaration(this);
-    }
+    public void UpdateModifiers(params ImmutableArray<string> modifiers)
+        => _modifiers = modifiers.NullToEmpty();
+
+    public void UpdateInterfaces(params ImmutableArray<IntermediateToken> interfaces)
+        => _interfaces = interfaces.NullToEmpty();
+
+    public void UpdateTypeParameters(params ImmutableArray<TypeParameter> typeParameters)
+        => _typeParameters = typeParameters.NullToEmpty();
+
+    public override void Accept(IntermediateNodeVisitor visitor)
+        => visitor.VisitClassDeclaration(this);
 
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
