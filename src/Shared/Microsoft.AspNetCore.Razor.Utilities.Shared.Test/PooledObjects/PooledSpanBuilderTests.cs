@@ -77,7 +77,7 @@ public class PooledSpanBuilderTests
         builder.AddRange(new[] { 1, 2, 3 });
         var immutable = builder.ToImmutableAndClear();
 
-        Assert.Equal([ 1, 2, 3 ], immutable);
+        Assert.Equal(new[] { 1, 2, 3 }, immutable);
         Assert.Equal(0, builder.Count);
     }
 
