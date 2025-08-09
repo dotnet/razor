@@ -5,12 +5,12 @@ using System;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
-internal static class PooledArrayBuilder
+internal static class PooledSpanBuilder
 {
-    public static PooledArrayBuilder<T> Create<T>(ReadOnlySpan<T> source)
+    public static PooledSpanBuilder<T> Create<T>(ReadOnlySpan<T> source)
     {
-        var pooledArray = new PooledArrayBuilder<T>(source.Length);
-        pooledArray.AddRange(source);
-        return pooledArray;
+        var spanBuilder = new PooledSpanBuilder<T>(source.Length);
+        spanBuilder.AddRange(source);
+        return spanBuilder;
     }
 }
