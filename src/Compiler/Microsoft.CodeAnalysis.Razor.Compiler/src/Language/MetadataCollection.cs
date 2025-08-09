@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -87,17 +88,9 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
         => new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value, pair3.Key, pair3.Value);
 
     public static MetadataCollection Create(params KeyValuePair<string, string?>[] pairs)
-        => pairs switch
-        {
-            [] => Empty,
-            [var pair] => new OneToThreeItems(pair.Key, pair.Value),
-            [var pair1, var pair2] => new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value),
-            [var pair1, var pair2, var pair3] => new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value, pair3.Key, pair3.Value),
-            _ => new FourOrMoreItems(pairs),
-        };
+        => Create(pairs.AsSpan());
 
-    public static MetadataCollection Create<T>(T pairs)
-        where T : IReadOnlyList<KeyValuePair<string, string?>>
+    public static MetadataCollection Create(ReadOnlySpan<KeyValuePair<string, string?>> pairs)
         => pairs switch
         {
             [] => Empty,
@@ -160,18 +153,17 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
             return new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value, pair3.Key, pair3.Value);
         }
 
-        // Finally, if there are four or more items, add the pairs to a list in order to construct
+        // Finally, if there are four or more items, add the pairs to an array in order to construct
         // a FourOrMoreItems instance. Note that the constructor will copy the key-value pairs and won't
-        // hold onto the list we're passing, so it's safe to use a pooled list.
-        using var _ = ListPool<KeyValuePair<string, string?>>.GetPooledObject(out var list);
-        list.SetCapacityIfLarger(count);
+        // hold onto the list we're passing, so it's safe to use a pooled array.
+        using var array = new PooledSpanBuilder<KeyValuePair<string, string?>>(count);
 
         foreach (var pair in map)
         {
-            list.Add(pair);
+            array.Add(pair);
         }
 
-        return Create(list);
+        return Create(array.AsSpan());
     }
 
     public static MetadataCollection Create(IReadOnlyDictionary<string, string?> map)
@@ -188,8 +180,7 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
         return Create(map.ToArray());
     }
 
-    public static MetadataCollection CreateOrEmpty<T>(T? pairs)
-        where T : IReadOnlyList<KeyValuePair<string, string?>>
+    public static MetadataCollection CreateOrEmpty(ReadOnlySpan<KeyValuePair<string, string?>> pairs)
         => pairs is { } realPairs ? Create(realPairs) : Empty;
 
     public static MetadataCollection CreateOrEmpty(Dictionary<string, string?>? map)
@@ -533,14 +524,9 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
 
         private readonly int _count;
 
-        public FourOrMoreItems(IReadOnlyList<KeyValuePair<string, string?>> pairs)
+        public FourOrMoreItems(ReadOnlySpan<KeyValuePair<string, string?>> pairs)
         {
-            if (pairs is null)
-            {
-                throw new ArgumentNullException(nameof(pairs));
-            }
-
-            var count = pairs.Count;
+            var count = pairs.Length;
 
             // Create a sorted array of keys.
             var keys = new string[count];
