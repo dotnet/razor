@@ -4,7 +4,6 @@
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Microsoft.AspNetCore.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
