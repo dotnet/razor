@@ -1,36 +1,38 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
-using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
-public sealed class FieldDeclarationIntermediateNode : MemberDeclarationIntermediateNode
+public sealed class FieldDeclarationIntermediateNode(
+    string fieldName,
+    string fieldType,
+    ImmutableArray<string> modifiers,
+    ImmutableArray<string> suppressWarnings,
+    bool isTagHelperField = false) : MemberDeclarationIntermediateNode
 {
+    public string FieldName { get; } = fieldName;
+    public string FieldType { get; } = fieldType;
+
+    public bool IsTagHelperField { get; } = isTagHelperField;
+
+    public ImmutableArray<string> Modifiers { get; } = modifiers.NullToEmpty();
+    public ImmutableArray<string> SuppressWarnings { get; } = suppressWarnings.NullToEmpty();
+
     public override IntermediateNodeCollection Children => IntermediateNodeCollection.ReadOnly;
 
-    public IList<string> Modifiers { get; } = new List<string>();
-
-    public IList<string> SuppressWarnings { get; } = new List<string>();
-
-    public string FieldName { get; set; }
-
-    public string FieldType { get; set; }
-
-    public bool IsTagHelperField { get; set; }
+    public FieldDeclarationIntermediateNode(
+        string fieldName,
+        string fieldType,
+        ImmutableArray<string> modifiers,
+        bool isTagHelperField = false)
+        : this(fieldName, fieldType, modifiers, suppressWarnings: [], isTagHelperField)
+    {
+    }
 
     public override void Accept(IntermediateNodeVisitor visitor)
-    {
-        if (visitor == null)
-        {
-            throw new ArgumentNullException(nameof(visitor));
-        }
-
-        visitor.VisitFieldDeclaration(this);
-    }
+        => visitor.VisitFieldDeclaration(this);
 
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {

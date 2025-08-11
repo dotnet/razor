@@ -1,9 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -175,17 +172,13 @@ public class DefaultDocumentWriterTest
         var builder = IntermediateNodeBuilder.Create(document);
         builder.Add(new ClassDeclarationIntermediateNode()
         {
-            Modifiers =
-            {
-                "internal"
-            },
+            Modifiers = ["internal"],
             BaseType = new BaseTypeWithModel("TestBase"),
             Interfaces = [IntermediateToken.CreateCSharpToken("IFoo"), IntermediateToken.CreateCSharpToken("IBar")],
-            TypeParameters = new List<TypeParameter>
-            {
-                new TypeParameter() { ParameterName = "TKey", },
-                new TypeParameter() { ParameterName = "TValue", },
-            },
+            TypeParameters = [
+                new TypeParameter("TKey"),
+                new TypeParameter("TValue")
+            ],
             ClassName = "TestClass",
         });
 
@@ -222,17 +215,13 @@ public class DefaultDocumentWriterTest
         var builder = IntermediateNodeBuilder.Create(document);
         builder.Add(new ClassDeclarationIntermediateNode()
         {
-            Modifiers =
-            {
-                "internal"
-            },
+            Modifiers = ["internal"],
             BaseType = new BaseTypeWithModel("TestBase"),
             Interfaces = [IntermediateToken.CreateCSharpToken("IFoo"), IntermediateToken.CreateCSharpToken("IBar")],
-            TypeParameters = new List<TypeParameter>
-            {
-                new TypeParameter() { ParameterName = "TKey", },
-                new TypeParameter() { ParameterName = "TValue", },
-            },
+            TypeParameters = [
+                new TypeParameter("TKey"),
+                new TypeParameter("TValue")
+            ],
             ClassName = "TestClass",
             NullableContext = true,
         });
@@ -272,17 +261,13 @@ public class DefaultDocumentWriterTest
         var builder = IntermediateNodeBuilder.Create(document);
         builder.Add(new ClassDeclarationIntermediateNode()
         {
-            Modifiers =
-                {
-                    "internal"
-                },
+            Modifiers = ["internal"],
             BaseType = new BaseTypeWithModel("TestBase"),
             Interfaces = [IntermediateToken.CreateCSharpToken("IFoo"), IntermediateToken.CreateCSharpToken("IBar")],
-            TypeParameters = new List<TypeParameter>
-                {
-                    new TypeParameter() { ParameterName = "TKey", Constraints = "where TKey : class" },
-                    new TypeParameter() { ParameterName = "TValue", Constraints = "where TValue : class" },
-                },
+            TypeParameters = [
+                new TypeParameter("TKey", constraints: "where TKey : class"),
+                new TypeParameter("TValue", constraints: "where TValue : class")
+            ],
             ClassName = "TestClass",
         });
 
@@ -321,31 +306,12 @@ public class DefaultDocumentWriterTest
         var builder = IntermediateNodeBuilder.Create(document);
         builder.Add(new MethodDeclarationIntermediateNode()
         {
-            Modifiers =
-                {
-                    "internal",
-                    "virtual",
-                    "async",
-                },
+            Modifiers = ["internal", "virtual", "async"],
             MethodName = "TestMethod",
-            Parameters =
-                {
-                    new MethodParameter()
-                    {
-                        Modifiers =
-                        {
-                            "readonly",
-                            "ref",
-                        },
-                        ParameterName = "a",
-                        TypeName = "int",
-                    },
-                    new MethodParameter()
-                    {
-                        ParameterName = "b",
-                        TypeName = "string",
-                    }
-                },
+            Parameters = [
+                new MethodParameter(modifiers: ["readonly", "ref"], typeName: "int", parameterName: "a"),
+                new MethodParameter(typeName: "string", parameterName: "b")
+            ],
             ReturnType = "string",
         });
 
@@ -382,16 +348,10 @@ public class DefaultDocumentWriterTest
         // Arrange
         var document = new DocumentIntermediateNode();
         var builder = IntermediateNodeBuilder.Create(document);
-        builder.Add(new FieldDeclarationIntermediateNode()
-        {
-            Modifiers =
-                {
-                    "internal",
-                    "readonly",
-                },
-            FieldName = "_foo",
-            FieldType = "string",
-        });
+        builder.Add(new FieldDeclarationIntermediateNode(
+            fieldName: "_foo",
+            fieldType: "string",
+            modifiers: ["internal", "readonly"]));
 
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
         var options = RazorCodeGenerationOptions.Default;
@@ -422,17 +382,11 @@ public class DefaultDocumentWriterTest
         // Arrange
         var document = new DocumentIntermediateNode();
         var builder = IntermediateNodeBuilder.Create(document);
-        builder.Add(new PropertyDeclarationIntermediateNode()
-        {
-            Modifiers =
-                {
-                    "internal",
-                    "virtual",
-                },
-            PropertyName = "Foo",
-            PropertyType = IntermediateToken.CreateCSharpToken("string"),
-            PropertyExpression = "default"
-        });
+        builder.Add(new PropertyDeclarationIntermediateNode(
+            propertyName: "Foo",
+            propertyType: IntermediateToken.CreateCSharpToken("string"),
+            propertyExpression: "default",
+            modifiers: ["internal", "virtual"]));
 
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
         var options = RazorCodeGenerationOptions.Default;

@@ -1,11 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -306,7 +303,11 @@ public class CSharpCodeWriterTest
         using var writer = new CodeWriter();
 
         // Act
-        writer.WriteField(Array.Empty<string>(), new[] { "private" }, "global::System.String", "_myString");
+        writer.WriteField(
+            suppressWarnings: [],
+            modifiers: ["private"],
+            typeName: "global::System.String",
+            fieldName: "_myString");
 
         // Assert
         var output = writer.GetText().ToString();
@@ -323,7 +324,11 @@ public class CSharpCodeWriterTest
         using var writer = new CodeWriter();
 
         // Act
-        writer.WriteField(Array.Empty<string>(), new[] { "private", "readonly", "static" }, "global::System.String", "_myString");
+        writer.WriteField(
+            suppressWarnings: [],
+            modifiers: ["private", "readonly", "static"],
+            typeName: "global::System.String",
+            fieldName: "_myString");
 
         // Assert
         var output = writer.GetText().ToString();
@@ -341,10 +346,10 @@ public class CSharpCodeWriterTest
 
         // Act
         writer.WriteField(
-            new[] { "0001", "0002", },
-            new[] { "private", "readonly", "static" },
-            "global::System.String",
-            "_myString");
+            suppressWarnings: ["0001", "0002"],
+            modifiers: ["private", "readonly", "static"],
+            typeName: "global::System.String",
+            fieldName: "_myString");
 
         // Assert
         var output = writer.GetText().ToString();
@@ -363,13 +368,13 @@ public class CSharpCodeWriterTest
     public void WriteAutoPropertyDeclaration_WritesPropertyDeclaration()
     {
         // Arrange
-        using var writer = new CodeWriter();
+        using var context = TestCodeRenderingContext.Create();
 
         // Act
-        writer.WriteAutoPropertyDeclaration(new[] { "public" }, "global::System.String", "MyString");
+        context.WriteAutoPropertyDeclaration(["public"], "global::System.String", "MyString");
 
         // Assert
-        var output = writer.GetText().ToString();
+        var output = context.CodeWriter.GetText().ToString();
         Assert.Equal("""
             public global::System.String MyString { get; set; }
 
@@ -380,13 +385,13 @@ public class CSharpCodeWriterTest
     public void WriteAutoPropertyDeclaration_WithModifiers_WritesPropertyDeclaration()
     {
         // Arrange
-        using var writer = new CodeWriter();
+        using var context = TestCodeRenderingContext.Create();
 
         // Act
-        writer.WriteAutoPropertyDeclaration(new[] { "public", "static" }, "global::System.String", "MyString");
+        context.WriteAutoPropertyDeclaration(["public", "static"], "global::System.String", "MyString");
 
         // Assert
-        var output = writer.GetText().ToString();
+        var output = context.CodeWriter.GetText().ToString();
         Assert.Equal("""
             public static global::System.String MyString { get; set; }
 
@@ -401,11 +406,12 @@ public class CSharpCodeWriterTest
             .WithIndentSize(4)
             .WithFlags(indentWithTabs: true);
 
-        using var writer = new CodeWriter(options);
+        using var context = TestCodeRenderingContext.Create(options);
+        var writer = context.CodeWriter;
 
         // Act
-        writer.BuildClassDeclaration(Array.Empty<string>(), "C", null, Array.Empty<IntermediateToken>(), Array.Empty<TypeParameter>(), context: null);
-        writer.WriteField(Array.Empty<string>(), Array.Empty<string>(), "int", "f");
+        context.BuildClassDeclaration(modifiers: [], "C", null, interfaces: [], typeParameters: []);
+        writer.WriteField(suppressWarnings: [], modifiers: [], typeName: "int", fieldName: "f");
 
         // Assert
         var output = writer.GetText().ToString();
@@ -425,11 +431,12 @@ public class CSharpCodeWriterTest
             .WithIndentSize(4)
             .WithFlags(indentWithTabs: false);
 
-        using var writer = new CodeWriter(options);
+        using var context = TestCodeRenderingContext.Create(options);
+        var writer = context.CodeWriter;
 
         // Act
-        writer.BuildClassDeclaration(Array.Empty<string>(), "C", null, Array.Empty<IntermediateToken>(), Array.Empty<TypeParameter>(), context: null);
-        writer.WriteField(Array.Empty<string>(), Array.Empty<string>(), "int", "f");
+        context.BuildClassDeclaration(modifiers: [], "C", null, interfaces: [], typeParameters: []);
+        writer.WriteField(suppressWarnings: [], modifiers: [], typeName: "int", fieldName: "f");
 
         // Assert
         var output = writer.GetText().ToString();

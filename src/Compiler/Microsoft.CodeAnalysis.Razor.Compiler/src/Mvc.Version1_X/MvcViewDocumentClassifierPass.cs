@@ -4,7 +4,6 @@
 #nullable disable
 
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X;
@@ -41,14 +40,10 @@ public class MvcViewDocumentClassifierPass : DocumentClassifierPassBase
         }
 
         @class.BaseType = new BaseTypeWithModel("global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<TModel>", location: null);
-        @class.Modifiers.Clear();
-        @class.Modifiers.Add("public");
+        @class.UpdateModifiers("public");
 
         method.MethodName = "ExecuteAsync";
-        method.Modifiers.Clear();
-        method.Modifiers.Add("public");
-        method.Modifiers.Add("async");
-        method.Modifiers.Add("override");
+        method.UpdateModifiers("public", "async", "override");
         method.ReturnType = $"global::{typeof(System.Threading.Tasks.Task).FullName}";
     }
 }
