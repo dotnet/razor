@@ -17,6 +17,8 @@ internal static class RazorConstants
 
     public const string RazorCohostingUIContext = "6d5b86dc-6b8a-483b-ae30-098a3c7d6774";
 
+    public const string RazorCapabilityPresentUIContext = "2077a158-ee71-484c-be76-350a1d49eaea";
+
     public static readonly Guid RazorLanguageServiceGuid = new(RazorLanguageServiceString);
 
     public const string VSProjectItemsIdentifier = "CF_VSSTGPROJECTITEMS";
