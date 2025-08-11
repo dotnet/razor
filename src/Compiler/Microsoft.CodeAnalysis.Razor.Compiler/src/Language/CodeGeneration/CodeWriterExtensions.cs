@@ -293,25 +293,20 @@ internal static class CodeWriterExtensions
     public static CodeWriter WriteEnhancedLineNumberDirective(this CodeWriter writer, SourceSpan span, int characterOffset, bool ensurePathBackslashes)
     {
         // All values here need to be offset by 1 since #line uses a 1-indexed numbering system.
-        var lineNumberAsString = (span.LineIndex + 1).ToString(CultureInfo.InvariantCulture);
-        var characterStartAsString = (span.CharacterIndex + 1).ToString(CultureInfo.InvariantCulture);
-        var lineEndAsString = (span.LineIndex + 1 + span.LineCount).ToString(CultureInfo.InvariantCulture);
-        var characterEndAsString = (span.EndCharacterIndex + 1).ToString(CultureInfo.InvariantCulture);
         writer.Write("#line (")
-            .Write(lineNumberAsString)
+            .WriteIntegerLiteral(span.LineIndex + 1)
             .Write(",")
-            .Write(characterStartAsString)
+            .WriteIntegerLiteral(span.CharacterIndex + 1)
             .Write(")-(")
-            .Write(lineEndAsString)
+            .WriteIntegerLiteral(span.LineIndex + 1 + span.LineCount)
             .Write(",")
-            .Write(characterEndAsString)
+            .WriteIntegerLiteral(span.EndCharacterIndex + 1)
             .Write(") ");
 
         // an offset of zero is indicated by its absence.
         if (characterOffset != 0)
         {
-            var characterOffsetAsString = characterOffset.ToString(CultureInfo.InvariantCulture);
-            writer.Write(characterOffsetAsString).Write(" ");
+            writer.WriteIntegerLiteral(characterOffset).Write(" ");
         }
 
         return writer.Write("\"").WriteFilePath(span.FilePath, ensurePathBackslashes).WriteLine("\"");
@@ -324,8 +319,12 @@ internal static class CodeWriterExtensions
             writer.WriteLine();
         }
 
-        var lineNumberAsString = (span.LineIndex + 1).ToString(CultureInfo.InvariantCulture);
-        return writer.Write("#line ").Write(lineNumberAsString).Write(" \"").WriteFilePath(span.FilePath, ensurePathBackslashes).WriteLine("\"");
+        return writer
+            .Write("#line ")
+            .WriteIntegerLiteral(span.LineIndex + 1)
+            .Write(" \"")
+            .WriteFilePath(span.FilePath, ensurePathBackslashes)
+            .WriteLine("\"");
     }
 
     private static CodeWriter WriteFilePath(this CodeWriter writer, string filePath, bool ensurePathBackslashes)
