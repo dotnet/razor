@@ -114,7 +114,16 @@ internal static class ProjectExtensions
             return false;
         }
 
-        hintName = RazorUri.GetHintNameFromGeneratedDocumentUri(project.Solution, generatedDocumentUri);
+        var identity = RazorUri.GetIdentityOfGeneratedDocument(project.Solution, generatedDocumentUri);
+
+        if (!identity.IsRazorSourceGeneratedDocument())
+        {
+            // This is not a Razor source generated document, so we don't know the hint name.
+            hintName = null;
+            return false;
+        }
+
+        hintName = identity.HintName;
         return true;
     }
 }
