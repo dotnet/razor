@@ -1157,7 +1157,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             return;
         }
 
-        // If it's a C# expression, we have to wrap it in parenthesize, otherwise things like ternary
+        // If it's a C# expression, we have to wrap it in parentheses, otherwise things like ternary
         // expressions don't compose with concatenation. However, this is a little complicated
         // because C# tokens themselves aren't guaranteed to be distinct expressions. We want
         // to treat all contiguous C# tokens as a single expression.
