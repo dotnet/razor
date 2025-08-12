@@ -53,8 +53,16 @@ public sealed partial class CodeWriter
                     _writer.Write(s);
                     break;
 
-                case BuilderName builderName:
-                    builderName.WriteTo(_writer);
+                case BuilderVariableName name:
+                    name.WriteTo(_writer);
+                    break;
+
+                case RenderModeVariableName name:
+                    name.WriteTo(_writer);
+                    break;
+
+                case FormNameVariableName name:
+                    name.WriteTo(_writer);
                     break;
 
                 case IWriteableValue writeableValue:

@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
-internal readonly struct BuilderName(int index) : IWriteableValue
+internal readonly struct BuilderVariableName(int index) : IWriteableValue
 {
-    public static BuilderName Default => new(1);
+    public static BuilderVariableName Default => new(1);
 
     public int Index { get; } = index;
 

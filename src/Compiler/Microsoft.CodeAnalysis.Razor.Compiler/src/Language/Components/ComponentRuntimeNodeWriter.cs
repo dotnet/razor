@@ -221,13 +221,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         if (hasFormName)
         {
             // _builder.AddNamedEvent("onsubmit", __formName);
-            context.CodeWriter.Write(_scopeStack.BuilderVarName);
-            context.CodeWriter.Write(".");
-            context.CodeWriter.Write(ComponentsApi.RenderTreeBuilder.AddNamedEvent);
-            context.CodeWriter.Write("(\"onsubmit\", ");
-            context.CodeWriter.Write(_scopeStack.FormNameVarName);
-            context.CodeWriter.Write(");");
-            context.CodeWriter.WriteLine();
+            context.CodeWriter.WriteLine($"{_scopeStack.BuilderVarName}.{ComponentsApi.RenderTreeBuilder.AddNamedEvent}(\"onsubmit\", {_scopeStack.FormNameVarName});");
             _scopeStack.IncrementFormName();
         }
 
@@ -950,14 +944,9 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         }
 
         // string __formName = expression;
-        context.CodeWriter.Write("string ");
-        context.CodeWriter.Write(_scopeStack.FormNameVarName);
-        context.CodeWriter.Write(" = ");
-        context.CodeWriter.Write(ComponentsApi.RuntimeHelpers.TypeCheck);
-        context.CodeWriter.Write("<string>(");
+        context.CodeWriter.Write($"string {_scopeStack.FormNameVarName} = {ComponentsApi.RuntimeHelpers.TypeCheck}<string>(");
         WriteAttributeValue(context, node.FindDescendantNodes<IntermediateToken>());
-        context.CodeWriter.Write(")");
-        context.CodeWriter.WriteLine(";");
+        context.CodeWriter.WriteLine(");");
     }
 
     public override void WriteReferenceCapture(CodeRenderingContext context, ReferenceCaptureIntermediateNode node)
@@ -1009,19 +998,15 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
     {
         // Looks like:
         // global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode0 = expression;
+        context.CodeWriter.Write($"global::{ComponentsApi.IComponentRenderMode.FullTypeName} {_scopeStack.RenderModeVarName} = ");
+
         WriteCSharpCode(context, new CSharpCodeIntermediateNode
         {
-            Children =
-            {
-                IntermediateNodeFactory.CSharpToken($"global::{ComponentsApi.IComponentRenderMode.FullTypeName} {_scopeStack.RenderModeVarName} = "),
-                new CSharpCodeIntermediateNode
-                {
-                    Source = node.Source,
-                    Children = { node.Children[0] }
-                },
-                IntermediateNodeFactory.CSharpToken(";")
-            }
+            Source = node.Source,
+            Children = { node.Children[0] }
         });
+
+        context.CodeWriter.WriteLine(";");
     }
 
     private void WriteAttribute(CodeRenderingContext context, string key, ImmutableArray<IntermediateToken> value)
