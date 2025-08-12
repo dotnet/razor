@@ -322,7 +322,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         }
 
         context.CodeWriter
-            .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(ComponentsApi.RenderTreeBuilder.AddAttribute)}")
+            .WriteStartMethodInvocation($"{_scopeStack.BuilderVariableName}.{nameof(ComponentsApi.RenderTreeBuilder.AddAttribute)}")
             .Write("-1")
             .WriteParameterSeparator()
             .WriteStringLiteral(key);
@@ -330,7 +330,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
     protected override void BeginWriteAttribute(CodeRenderingContext context, IntermediateNode expression)
     {
-        context.CodeWriter.WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{ComponentsApi.RenderTreeBuilder.AddAttribute}");
+        context.CodeWriter.WriteStartMethodInvocation($"{_scopeStack.BuilderVariableName}.{ComponentsApi.RenderTreeBuilder.AddAttribute}");
         context.CodeWriter.Write("-1");
         context.CodeWriter.WriteParameterSeparator();
 
@@ -485,7 +485,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             context.CodeWriter.Write(node.TypeInferenceNode.MethodName);
             context.CodeWriter.Write("(");
 
-            context.CodeWriter.Write(_scopeStack.BuilderVarName);
+            context.CodeWriter.Write(_scopeStack.BuilderVariableName);
             context.CodeWriter.Write(", ");
 
             context.CodeWriter.Write("-1");
@@ -940,15 +940,15 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         // ((__builder73) => { ... })
         // OR
         // ((person) => (__builder73) => { })
-        _scopeStack.OpenComponentScope(
-            context,
-            node.AttributeName,
-            node.IsParameterized ? node.ParameterName : null);
-        for (var i = 0; i < node.Children.Count; i++)
+        var parameterName = node.IsParameterized ? node.ParameterName : null;
+
+        using (_scopeStack.OpenComponentScope(context,  parameterName))
         {
-            context.RenderNode(node.Children[i]);
+            foreach (var child in node.Children)
+            {
+                context.RenderNode(child);
+            }
         }
-        _scopeStack.CloseScope(context);
     }
 
     public override void WriteComponentTypeArgument(CodeRenderingContext context, ComponentTypeArgumentIntermediateNode node)
@@ -991,9 +991,10 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         // Looks like:
         //
         // (__builder73) => { ... }
-        _scopeStack.OpenTemplateScope(context);
-        context.RenderChildren(node);
-        _scopeStack.CloseScope(context);
+        using (_scopeStack.OpenTemplateScope(context))
+        {
+            context.RenderChildren(node);
+        }
     }
 
     public override void WriteSetKey(CodeRenderingContext context, SetKeyIntermediateNode node)
@@ -1014,7 +1015,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
         var codeWriter = context.CodeWriter;
 
-        codeWriter.WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{ComponentsApi.RenderTreeBuilder.SetKey}");
+        codeWriter.WriteStartMethodInvocation($"{_scopeStack.BuilderVariableName}.{ComponentsApi.RenderTreeBuilder.SetKey}");
         WriteSetKeyInnards(context, node);
         codeWriter.WriteEndMethodInvocation();
     }
@@ -1046,7 +1047,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         // Looks like:
         //
         // __builder.AddMultipleAttributes(2, ...);
-        context.CodeWriter.WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{ComponentsApi.RenderTreeBuilder.AddMultipleAttributes}");
+        context.CodeWriter.WriteStartMethodInvocation($"{_scopeStack.BuilderVariableName}.{ComponentsApi.RenderTreeBuilder.AddMultipleAttributes}");
         context.CodeWriter.Write("-1");
         context.CodeWriter.WriteParameterSeparator();
 

@@ -971,6 +971,11 @@ internal static class CodeWriterExtensions
 
         public void Dispose()
         {
+            if (_writer is null)
+            {
+                return;
+            }
+
             WriteEndScope();
         }
 
