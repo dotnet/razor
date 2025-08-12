@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -74,9 +73,12 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             throw new ArgumentNullException(nameof(node));
         }
 
-        var sourceSequenceAsString = _sourceSequence.ToString(CultureInfo.InvariantCulture);
-        var methodInvocation = _scopeStack.BuilderVarName + '.' + ComponentsApi.RenderTreeBuilder.AddContent + '(' + sourceSequenceAsString;
-        _sourceSequence++;
+        var characterOffset = _scopeStack.BuilderVarName.Length // for "__builder"
+            + 1 // for '.'
+            + ComponentsApi.RenderTreeBuilder.AddContent.Length
+            + 1 // for '('
+            + _sourceSequence.CountDigits() // for the sequence number
+            + 2; // for ', '
 
         // Sequence points can only be emitted when the eval stack is empty. That means we can't arbitrarily map everything that could be in
         // the node. Instead we map just the first C# child node by putting the pragma before we start the method invocation and offset it.
@@ -87,10 +89,11 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         //   such as closing parenthesis.
         // - Error cases: there are no nodes, so we do nothing
         var firstCSharpChild = node.Children.OfType<CSharpIntermediateToken>().FirstOrDefault();
-        using (context.CodeWriter.BuildEnhancedLinePragma(firstCSharpChild?.Source, context, characterOffset: methodInvocation.Length + 2))
+        using (context.CodeWriter.BuildEnhancedLinePragma(firstCSharpChild?.Source, context, characterOffset))
         {
             context.CodeWriter
-                .Write(methodInvocation)
+                .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{ComponentsApi.RenderTreeBuilder.AddContent}")
+                .WriteIntegerLiteral(_sourceSequence++)
                 .WriteParameterSeparator();
 
             if (firstCSharpChild is not null)
@@ -879,8 +882,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
         var codeWriter = context.CodeWriter;
 
-        codeWriter
-            .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{ComponentsApi.RenderTreeBuilder.SetKey}");
+        codeWriter.WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{ComponentsApi.RenderTreeBuilder.SetKey}");
         WriteSetKeyInnards(context, node);
         codeWriter.WriteEndMethodInvocation();
     }

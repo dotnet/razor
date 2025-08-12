@@ -18,10 +18,7 @@ internal class ScopeStack
 {
     private readonly Stack<ScopeEntry> _stack = new Stack<ScopeEntry>();
 
-    public string BuilderVarName =>
-        Current.BuilderVarNumber == 1
-            ? ComponentsApi.RenderTreeBuilder.BuilderParameter
-            : $"{ComponentsApi.RenderTreeBuilder.BuilderParameter}{Current.BuilderVarNumber}";
+    public BuilderName BuilderVarName => new(Current.BuilderVarNumber);
 
     public string RenderModeVarName =>
        Current.BuilderVarNumber == 1 && Current.RenderModeCount == 0
