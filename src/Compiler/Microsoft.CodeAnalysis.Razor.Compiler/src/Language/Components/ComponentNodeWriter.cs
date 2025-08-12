@@ -246,7 +246,7 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
 
         if (renderModeParameterName is not null)
         {
-            WriteAddComponentRenderMode(context, BuilderName.Default, renderModeParameterName);
+            WriteAddComponentRenderMode(context, BuilderVariableName.Default, renderModeParameterName);
         }
 
         context.CodeWriter.WriteInstanceMethodInvocation(ComponentsApi.RenderTreeBuilder.BuilderParameter, ComponentsApi.RenderTreeBuilder.CloseComponent);
@@ -488,16 +488,11 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
         return expression == "default" || expression.StartsWith("default(", StringComparison.Ordinal);
     }
 
-    protected static void WriteAddComponentRenderMode(CodeRenderingContext context, BuilderName builderName, string variableName)
-    {
-        context.CodeWriter.Write(builderName);
-        context.CodeWriter.Write(".");
-        context.CodeWriter.Write(ComponentsApi.RenderTreeBuilder.AddComponentRenderMode);
-        context.CodeWriter.Write("(");
-        context.CodeWriter.Write(variableName);
-        context.CodeWriter.Write(");");
-        context.CodeWriter.WriteLine();
-    }
+    protected static void WriteAddComponentRenderMode(CodeRenderingContext context, BuilderVariableName builderName, RenderModeVariableName renderModeName)
+        => context.CodeWriter.WriteLine($"{builderName}.{ComponentsApi.RenderTreeBuilder.AddComponentRenderMode}({renderModeName});");
+
+    protected static void WriteAddComponentRenderMode(CodeRenderingContext context, BuilderVariableName builderName, string renderModeName)
+        => context.CodeWriter.WriteLine($"{builderName}.{ComponentsApi.RenderTreeBuilder.AddComponentRenderMode}({renderModeName});");
 
     protected static void WriteGloballyQualifiedTypeName(CodeRenderingContext context, ComponentAttributeIntermediateNode node)
     {

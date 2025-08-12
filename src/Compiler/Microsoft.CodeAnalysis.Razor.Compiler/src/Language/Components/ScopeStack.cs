@@ -18,17 +18,9 @@ internal class ScopeStack
 {
     private readonly Stack<ScopeEntry> _stack = new Stack<ScopeEntry>();
 
-    public BuilderName BuilderVarName => new(Current.BuilderVarNumber);
-
-    public string RenderModeVarName =>
-       Current.BuilderVarNumber == 1 && Current.RenderModeCount == 0
-            ? ComponentsApi.RenderTreeBuilder.RenderModeVariableName
-            : $"{ComponentsApi.RenderTreeBuilder.RenderModeVariableName}{Current.BuilderVarNumber}_{Current.RenderModeCount}";
-   
-    public string FormNameVarName =>
-       Current.BuilderVarNumber == 1 && Current.FormNameCount == 0
-            ? ComponentsApi.RenderTreeBuilder.FormNameVariableName
-            : $"{ComponentsApi.RenderTreeBuilder.FormNameVariableName}{Current.BuilderVarNumber}_{Current.FormNameCount}";
+    public BuilderVariableName BuilderVarName => new(Current.BuilderVarNumber);
+    public RenderModeVariableName RenderModeVarName => new(Current.RenderModeCount, Current.BuilderVarNumber);
+    public FormNameVariableName FormNameVarName => new(Current.FormNameCount, Current.BuilderVarNumber);
 
     public int Depth => _stack.Count - 1;
 
@@ -75,7 +67,7 @@ internal class ScopeStack
     }
 
     public void IncrementFormName()
-    { 
+    {
         Current.FormNameCount++;
     }
 
