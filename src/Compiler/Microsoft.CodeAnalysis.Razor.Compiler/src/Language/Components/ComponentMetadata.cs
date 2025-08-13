@@ -34,11 +34,6 @@ internal static class ComponentMetadata
         return className?.StartsWith(MangledClassNamePrefix, StringComparison.Ordinal) == true;
     }
 
-    public static class Common
-    {
-        public const string DirectiveAttribute = "Common.DirectiveAttribute";
-    }
-
     public static class Bind
     {
         public const string RuntimeName = "Components.None";

@@ -512,7 +512,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
         var expectedCompletions = AttributeCompletionResult.Create(new()
         {
             ["class"] = [],
-            ["repeat"] = [..documentDescriptors[0].BoundAttributes]
+            ["repeat"] = [.. documentDescriptors[0].BoundAttributes]
         });
 
         var existingCompletions = new[] { "class" };
@@ -628,7 +628,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .BoundAttributeDescriptor(builder =>
                 {
                     builder.Name = "@bind";
-                    builder.Metadata(IsDirectiveAttribute);
+                    builder.IsDirectiveAttribute = true;
                 })
                 .TagOutputHint("table")
                 .Build(),
