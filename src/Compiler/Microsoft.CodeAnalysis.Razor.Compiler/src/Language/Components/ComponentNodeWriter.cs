@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -525,6 +526,7 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
         }
     }
 
+    [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
     protected internal readonly struct SeqName(int index) : IWriteableValue
     {
         public void WriteTo(CodeWriter writer)
@@ -532,8 +534,12 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
             writer.Write("__seq");
             writer.WriteIntegerLiteral(index);
         }
+
+        internal string GetDebuggerDisplay()
+            => $"__seq{index}";
     }
 
+    [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
     protected internal readonly struct ParameterName(int index, bool isSynthetic = false) : IWriteableValue
     {
         public void WriteTo(CodeWriter writer)
@@ -549,8 +555,12 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
 
             writer.WriteIntegerLiteral(index);
         }
+
+        internal string GetDebuggerDisplay()
+            => isSynthetic ? $"__syntheticArg{index}" : $"__arg{index}";
     }
 
+    [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
     protected internal readonly struct TypeInferenceArgName(int depth, ParameterName parameterName) : IWriteableValue
     {
         public void WriteTo(CodeWriter writer)
@@ -559,6 +569,9 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
             writer.WriteIntegerLiteral(depth);
             writer.Write($"_{parameterName}");
         }
+
+        internal string GetDebuggerDisplay()
+            => $"__typeInferenceArg_{depth}_{parameterName.GetDebuggerDisplay()}";
     }
 
     protected class TypeInferenceMethodParameter
