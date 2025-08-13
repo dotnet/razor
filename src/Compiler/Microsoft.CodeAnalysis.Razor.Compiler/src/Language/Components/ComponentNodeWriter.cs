@@ -15,11 +15,16 @@ namespace Microsoft.AspNetCore.Razor.Language.Components;
 internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTargetExtension
 {
     private readonly RazorLanguageVersion _version;
+    protected readonly ScopeStack ScopeStack = new();
 
     protected ComponentNodeWriter(RazorLanguageVersion version)
     {
         _version = version;
     }
+
+    public BuilderVariableName BuilderVariableName => ScopeStack.BuilderVariableName;
+    public RenderModeVariableName RenderModeVariableName => ScopeStack.RenderModeVariableName;
+    public FormNameVariableName FormNameVariableName => ScopeStack.FormNameVariableName;
 
     protected virtual bool CanUseAddComponentParameter(CodeRenderingContext context)
     {

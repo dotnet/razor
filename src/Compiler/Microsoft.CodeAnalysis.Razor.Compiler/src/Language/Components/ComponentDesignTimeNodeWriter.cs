@@ -15,8 +15,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Components;
 // Based on the DesignTimeNodeWriter from Razor repo.
 internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 {
-    private readonly ScopeStack _scopeStack = new ScopeStack();
-
     private const string DesignTimeVariable = "__o";
 
     public ComponentDesignTimeNodeWriter(RazorLanguageVersion version) : base(version)
@@ -322,7 +320,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         }
 
         context.CodeWriter
-            .WriteStartMethodInvocation($"{_scopeStack.BuilderVariableName}.{nameof(ComponentsApi.RenderTreeBuilder.AddAttribute)}")
+            .WriteStartMethodInvocation($"{BuilderVariableName}.{nameof(ComponentsApi.RenderTreeBuilder.AddAttribute)}")
             .Write("-1")
             .WriteParameterSeparator()
             .WriteStringLiteral(key);
@@ -330,7 +328,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
     protected override void BeginWriteAttribute(CodeRenderingContext context, IntermediateNode expression)
     {
-        context.CodeWriter.WriteStartMethodInvocation($"{_scopeStack.BuilderVariableName}.{ComponentsApi.RenderTreeBuilder.AddAttribute}");
+        context.CodeWriter.WriteStartMethodInvocation($"{BuilderVariableName}.{ComponentsApi.RenderTreeBuilder.AddAttribute}");
         context.CodeWriter.Write("-1");
         context.CodeWriter.WriteParameterSeparator();
 
@@ -454,7 +452,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                     WriteTypeInferenceMethodParameterInnards(context, parameter);
                     context.CodeWriter.Write(", out var ");
 
-                    var variableName = $"__typeInferenceArg_{_scopeStack.Depth}_{parameter.ParameterName}";
+                    var variableName = $"__typeInferenceArg_{ScopeStack.Depth}_{parameter.ParameterName}";
                     context.CodeWriter.Write(variableName);
 
                     UseCapturedCascadingGenericParameterVariable(node, parameter, variableName);
@@ -485,7 +483,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             context.CodeWriter.Write(node.TypeInferenceNode.MethodName);
             context.CodeWriter.Write("(");
 
-            context.CodeWriter.Write(_scopeStack.BuilderVariableName);
+            context.CodeWriter.Write(BuilderVariableName);
             context.CodeWriter.Write(", ");
 
             context.CodeWriter.Write("-1");
@@ -942,7 +940,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         // ((person) => (__builder73) => { })
         var parameterName = node.IsParameterized ? node.ParameterName : null;
 
-        using (_scopeStack.OpenComponentScope(context,  parameterName))
+        using (ScopeStack.OpenComponentScope(context,  parameterName))
         {
             foreach (var child in node.Children)
             {
@@ -991,7 +989,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         // Looks like:
         //
         // (__builder73) => { ... }
-        using (_scopeStack.OpenTemplateScope(context))
+        using (ScopeStack.OpenTemplateScope(context))
         {
             context.RenderChildren(node);
         }
@@ -1015,7 +1013,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
         var codeWriter = context.CodeWriter;
 
-        codeWriter.WriteStartMethodInvocation($"{_scopeStack.BuilderVariableName}.{ComponentsApi.RenderTreeBuilder.SetKey}");
+        codeWriter.WriteStartMethodInvocation($"{BuilderVariableName}.{ComponentsApi.RenderTreeBuilder.SetKey}");
         WriteSetKeyInnards(context, node);
         codeWriter.WriteEndMethodInvocation();
     }
@@ -1047,7 +1045,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         // Looks like:
         //
         // __builder.AddMultipleAttributes(2, ...);
-        context.CodeWriter.WriteStartMethodInvocation($"{_scopeStack.BuilderVariableName}.{ComponentsApi.RenderTreeBuilder.AddMultipleAttributes}");
+        context.CodeWriter.WriteStartMethodInvocation($"{BuilderVariableName}.{ComponentsApi.RenderTreeBuilder.AddMultipleAttributes}");
         context.CodeWriter.Write("-1");
         context.CodeWriter.WriteParameterSeparator();
 
