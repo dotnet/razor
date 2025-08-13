@@ -102,18 +102,15 @@ internal static partial class ObjectWriters
         {
             writer.WriteObject(value, static (writer, value) =>
             {
+                writer.Write(nameof(value.Flags), (byte)value.Flags);
                 writer.Write(nameof(value.Name), value.Name);
-                writer.Write(nameof(value.TypeName), value.TypeName);
-                writer.WriteIfNotFalse(nameof(value.IsEnum), value.IsEnum);
-                writer.WriteIfNotFalse(nameof(value.HasIndexer), value.HasIndexer);
+                WriteTypeNameObject(writer, nameof(value.TypeName), value.TypeNameObject);
                 writer.WriteIfNotNull(nameof(value.IndexerNamePrefix), value.IndexerNamePrefix);
-                writer.WriteIfNotNull(nameof(value.IndexerTypeName), value.IndexerTypeName);
+                WriteTypeNameObject(writer, nameof(value.IndexerTypeName), value.IndexerTypeNameObject);
                 writer.WriteIfNotNull(nameof(value.DisplayName), value.DisplayName);
                 writer.WriteIfNotNull(nameof(value.ContainingType), value.ContainingType);
                 WriteDocumentationObject(writer, nameof(value.Documentation), value.DocumentationObject);
-                writer.WriteIfNotTrue(nameof(value.CaseSensitive), value.CaseSensitive);
-                writer.WriteIfNotFalse(nameof(value.IsEditorRequired), value.IsEditorRequired);
-                writer.WriteArrayIfNotDefaultOrEmpty("BoundAttributeParameters", value.Parameters, WriteBoundAttributeParameter);
+                writer.WriteArrayIfNotDefaultOrEmpty(nameof(value.Parameters), value.Parameters, WriteBoundAttributeParameter);
 
                 WriteMetadata(writer, nameof(value.Metadata), value.Metadata);
                 writer.WriteArrayIfNotDefaultOrEmpty(nameof(value.Diagnostics), value.Diagnostics, Write);

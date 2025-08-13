@@ -316,8 +316,7 @@ public abstract class CodeActionEndToEndTestBase(ITestOutputHelper testOutput) :
 
             builder = TagHelperDescriptorBuilder.Create("ref", "Microsoft.AspNetCore.Components");
             builder.SetMetadata(
-                new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.Ref.TagHelperKind),
-                new KeyValuePair<string, string>(ComponentMetadata.Common.DirectiveAttribute, bool.TrueString));
+                new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.Ref.TagHelperKind));
 
             yield return builder.Build();
 

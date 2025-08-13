@@ -22,14 +22,14 @@ public partial class BoundAttributeDescriptorBuilder
     private protected override void Reset()
     {
         _parent = null;
+        _flags = 0;
+        _typeNameObject = default;
+        _indexerTypeNameObject = default;
         _documentationObject = default;
-        _caseSensitive = null;
+        _caseSensitiveSet = false;
 
         Name = null;
         TypeName = null;
-        IsEnum = false;
-        IsDictionary = false;
-        IsEditorRequired = false;
         IndexerAttributeNamePrefix = null;
         IndexerValueTypeName = null;
         DisplayName = null;

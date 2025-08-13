@@ -2190,9 +2190,10 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
                         .IsDirectiveAttribute()))
                 .BoundAttributeDescriptor(attribute => attribute
                     .Name("@bind-...")
-                    .Metadata(PropertyName("Bind"), IsDirectiveAttribute)
+                    .Metadata(PropertyName("Bind"))
                     .AsDictionaryAttribute("@bind-", typeof(object).FullName)
                     .TypeName("System.Collections.Generic.Dictionary<string, object>")
+                    .IsDirectiveAttribute()
                     .BindAttributeParameter(p =>
                     {
                         p.Name = "event";
@@ -2230,10 +2231,10 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
                         .IsDirectiveAttribute()))
                 .BoundAttributeDescriptor(attribute => attribute
                     .Name("@bind-...")
-                    .Metadata(PropertyName("Bind"), IsDirectiveAttribute)
+                    .Metadata(PropertyName("Bind"))
                     .AsDictionaryAttribute("@bind-", typeof(object).FullName)
                     .TypeName("System.Collections.Generic.Dictionary<string, object>")
-                    .Metadata(IsDirectiveAttribute)
+                    .IsDirectiveAttribute()
                     .BindAttributeParameter(p =>
                     {
                         p.Name = "param";

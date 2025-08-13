@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -35,9 +34,12 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBui
 
     [AllowNull]
     private TagHelperDescriptorBuilder _parent;
+    private BoundAttributeFlags _flags;
+    private TypeNameObject _typeNameObject;
+    private TypeNameObject _indexerTypeNameObject;
     private DocumentationObject _documentationObject;
     private MetadataHolder _metadata;
-    private bool? _caseSensitive;
+    private bool _caseSensitiveSet;
 
     private BoundAttributeDescriptorBuilder()
     {
@@ -50,12 +52,44 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBui
 
     [AllowNull]
     public string Name { get; set; }
-    public string? TypeName { get; set; }
-    public bool IsEnum { get; set; }
-    public bool IsDictionary { get; set; }
+
+    public string? TypeName
+    {
+        get => _typeNameObject.GetTypeName();
+        set => _typeNameObject = TypeNameObject.From(value);
+    }
+
+    public bool IsEnum
+    {
+        get => _flags.IsFlagSet(BoundAttributeFlags.IsEnum);
+        set => _flags.UpdateFlag(BoundAttributeFlags.IsEnum, value);
+    }
+
+    public bool IsDictionary
+    {
+        get => _flags.IsFlagSet(BoundAttributeFlags.HasIndexer);
+        set => _flags.UpdateFlag(BoundAttributeFlags.HasIndexer, value);
+    }
+
     public string? IndexerAttributeNamePrefix { get; set; }
-    public string? IndexerValueTypeName { get; set; }
-    internal bool IsEditorRequired { get; set; }
+
+    public string? IndexerValueTypeName
+    {
+        get => _indexerTypeNameObject.GetTypeName();
+        set => _indexerTypeNameObject = TypeNameObject.From(value);
+    }
+
+    internal bool IsEditorRequired
+    {
+        get => _flags.IsFlagSet(BoundAttributeFlags.IsEditorRequired);
+        set => _flags.UpdateFlag(BoundAttributeFlags.IsEditorRequired, value);
+    }
+
+    public bool IsDirectiveAttribute
+    {
+        get => _flags.IsFlagSet(BoundAttributeFlags.IsDirectiveAttribute);
+        set => _flags.UpdateFlag(BoundAttributeFlags.IsDirectiveAttribute, value);
+    }
 
     public string? Documentation
     {
@@ -76,8 +110,12 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBui
 
     internal bool CaseSensitive
     {
-        get => _caseSensitive ?? _parent.CaseSensitive;
-        set => _caseSensitive = value;
+        get => _caseSensitiveSet ? _flags.IsFlagSet(BoundAttributeFlags.CaseSensitive) : _parent.CaseSensitive;
+        set
+        {
+            _flags.UpdateFlag(BoundAttributeFlags.CaseSensitive, value);
+            _caseSensitiveSet = true;
+        }
     }
 
     private TagHelperObjectBuilderCollection<BoundAttributeParameterDescriptor, BoundAttributeParameterDescriptorBuilder> Parameters { get; }
@@ -108,17 +146,14 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBui
     private protected override BoundAttributeDescriptor BuildCore(ImmutableArray<RazorDiagnostic> diagnostics)
     {
         return new BoundAttributeDescriptor(
+            _flags,
             Name ?? string.Empty,
-            TypeName ?? string.Empty,
-            IsEnum,
-            IsDictionary,
+            _typeNameObject,
             IndexerAttributeNamePrefix,
-            IndexerValueTypeName,
+            _indexerTypeNameObject,
             _documentationObject,
             GetDisplayName(),
             ContainingType,
-            CaseSensitive,
-            IsEditorRequired,
             Parameters.ToImmutable(),
             _metadata.GetMetadataCollection(),
             diagnostics);
@@ -157,16 +192,12 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBui
         return Name ?? string.Empty;
     }
 
-    private bool IsDirectiveAttribute()
-        => TryGetMetadataValue(ComponentMetadata.Common.DirectiveAttribute, out var value) &&
-           value == bool.TrueString;
-
     private protected override void CollectDiagnostics(ref PooledHashSet<RazorDiagnostic> diagnostics)
     {
         // data-* attributes are explicitly not implemented by user agents and are not intended for use on
         // the server; therefore it's invalid for TagHelpers to bind to them.
         const string DataDashPrefix = "data-";
-        var isDirectiveAttribute = IsDirectiveAttribute();
+        var isDirectiveAttribute = IsDirectiveAttribute;
 
         if (Name.IsNullOrWhiteSpace())
         {
