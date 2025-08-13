@@ -452,7 +452,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                     WriteTypeInferenceMethodParameterInnards(context, parameter);
                     context.CodeWriter.Write(", out var ");
 
-                    var variableName = $"__typeInferenceArg_{ScopeStack.Depth}_{parameter.ParameterName}";
+                    var variableName = new TypeInferenceArgName(ScopeStack.Depth, parameter.ParameterName);
                     context.CodeWriter.Write(variableName);
 
                     UseCapturedCascadingGenericParameterVariable(node, parameter, variableName);
@@ -492,7 +492,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             {
                 context.CodeWriter.Write(", ");
 
-                if (!string.IsNullOrEmpty(parameter.SeqName))
+                if (parameter.SeqName != null)
                 {
                     context.CodeWriter.Write("-1");
                     context.CodeWriter.Write(", ");
@@ -606,13 +606,23 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 // The value should be populated before we use it, because we emit code for creating ancestors
                 // first, and that's where it's populated. However if this goes wrong somehow, we don't want to
                 // throw, so use a fallback
-                var valueExpression = syntheticArg.ValueExpression ?? "default";
-                context.CodeWriter.Write(valueExpression);
-                if (!context.Options.SuppressNullabilityEnforcement && IsDefaultExpression(valueExpression))
+                if (syntheticArg.ValueExpression is IWriteableValue writeableValue)
                 {
-                    context.CodeWriter.Write("!");
+                    writeableValue.WriteTo(context.CodeWriter);
                 }
+                else
+                {
+                    var valueExpression = syntheticArg.ValueExpression as string ?? "default";
+                    context.CodeWriter.Write(valueExpression);
+
+                    if (!context.Options.SuppressNullabilityEnforcement && IsDefaultExpression(valueExpression))
+                    {
+                        context.CodeWriter.Write("!");
+                    }
+                }
+
                 break;
+
             case TypeInferenceCapturedVariable capturedVariable:
                 context.CodeWriter.Write(capturedVariable.VariableName);
                 break;
