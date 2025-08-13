@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 internal readonly struct BuilderVariableName(int index) : IWriteableValue
 {
     public static BuilderVariableName Default => new(1);
@@ -30,4 +32,9 @@ internal readonly struct BuilderVariableName(int index) : IWriteableValue
             writer.WriteIntegerLiteral(Index);
         }
     }
+
+    internal string GetDebuggerDisplay()
+        => Index == 1
+            ? ComponentsApi.RenderTreeBuilder.BuilderParameter
+            : $"{ComponentsApi.RenderTreeBuilder.BuilderParameter}{Index}";
 }
