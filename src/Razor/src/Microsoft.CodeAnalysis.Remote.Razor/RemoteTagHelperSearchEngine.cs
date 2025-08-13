@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 [Export(typeof(ITagHelperSearchEngine)), Shared]
 internal sealed class RemoteTagHelperSearchEngine : ITagHelperSearchEngine
 {
-    public async Task<LspLocation?> TryLocateTagHelperDefinitionAsync(TagHelperDescriptor boundTagHelper, IDocumentSnapshot documentSnapshot, ISolutionQueryOperations solutionQueryOperations, CancellationToken cancellationToken)
+    public async Task<LspLocation?> TryLocateTagHelperDefinitionAsync(TagHelperDescriptor boundTagHelper, BoundAttributeDescriptor? boundAttribute, IDocumentSnapshot documentSnapshot, ISolutionQueryOperations solutionQueryOperations, CancellationToken cancellationToken)
     {
         if (boundTagHelper.IsComponentTagHelper)
         {
@@ -40,7 +40,15 @@ internal sealed class RemoteTagHelperSearchEngine : ITagHelperSearchEngine
 
         foreach (var type in compilation.GetTypesByMetadataName(typeName))
         {
-            foreach (var location in type.Locations)
+            var locations = type.Locations;
+            if (boundAttribute is not null &&
+                boundAttribute.GetPropertyName() is { } propertyName &&
+                type.GetMembers(propertyName) is [{ } property])
+            {
+                locations = property.Locations;
+            }
+
+            foreach (var location in locations)
             {
                 if (location.IsInSource &&
                     project.Solution.GetDocument(location.SourceTree) is { } document)

@@ -64,7 +64,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
                 context.Snapshot,
                 positionInfo,
                 context.GetSolutionQueryOperations(),
-                ignoreAttributes: true,
+                ignoreComponentAttributes: true,
                 includeMvcTagHelpers: true,
                 cancellationToken)
                 .ConfigureAwait(false);

@@ -29,7 +29,7 @@ internal abstract class AbstractRazorComponentDefinitionService(
         IDocumentSnapshot documentSnapshot,
         DocumentPositionInfo positionInfo,
         ISolutionQueryOperations solutionQueryOperations,
-        bool ignoreAttributes,
+        bool ignoreComponentAttributes,
         bool includeMvcTagHelpers,
         CancellationToken cancellationToken)
     {
@@ -48,7 +48,7 @@ internal abstract class AbstractRazorComponentDefinitionService(
 
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
-        if (!RazorComponentDefinitionHelpers.TryGetBoundTagHelpers(codeDocument, positionInfo.HostDocumentIndex, ignoreAttributes, _logger, out var boundTagHelper, out var boundAttribute))
+        if (!RazorComponentDefinitionHelpers.TryGetBoundTagHelpers(codeDocument, positionInfo.HostDocumentIndex, ignoreComponentAttributes, _logger, out var boundTagHelper, out var boundAttribute))
         {
             _logger.LogInformation($"Could not retrieve bound tag helper information.");
             return null;
@@ -58,7 +58,7 @@ internal abstract class AbstractRazorComponentDefinitionService(
         {
             Debug.Assert(_tagHelperSearchEngine is not null, "If includeMvcTagHelpers is true, _tagHelperSearchEngine must not be null.");
 
-            var tagHelperLocation = await _tagHelperSearchEngine.TryLocateTagHelperDefinitionAsync(boundTagHelper, documentSnapshot, solutionQueryOperations, cancellationToken).ConfigureAwait(false);
+            var tagHelperLocation = await _tagHelperSearchEngine.TryLocateTagHelperDefinitionAsync(boundTagHelper, boundAttribute, documentSnapshot, solutionQueryOperations, cancellationToken).ConfigureAwait(false);
             if (tagHelperLocation is not null)
             {
                 return tagHelperLocation;

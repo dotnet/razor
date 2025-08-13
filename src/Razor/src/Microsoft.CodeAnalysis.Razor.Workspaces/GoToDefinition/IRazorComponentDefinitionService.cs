@@ -17,7 +17,7 @@ internal interface IRazorComponentDefinitionService
         IDocumentSnapshot documentSnapshot,
         DocumentPositionInfo positionInfo,
         ISolutionQueryOperations solutionQueryOperations,
-        bool ignoreAttributes,
+        bool ignoreComponentAttributes,
         bool includeMvcTagHelpers,
         CancellationToken cancellationToken);
 }
