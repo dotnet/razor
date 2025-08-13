@@ -65,6 +65,18 @@ public sealed partial class CodeWriter
                     name.WriteTo(_writer);
                     break;
 
+                case ComponentNodeWriter.SeqName name:
+                    name.WriteTo(_writer);
+                    break;
+
+                case ComponentNodeWriter.ParameterName name:
+                    name.WriteTo(_writer);
+                    break;
+
+                case ComponentNodeWriter.TypeInferenceArgName name:
+                    name.WriteTo(_writer);
+                    break;
+
                 case IWriteableValue writeableValue:
                     Debug.Assert(!typeof(T).IsValueType, $"Handle {typeof(T).FullName} to avoid boxing to {nameof(IWriteableValue)}");
                     writeableValue.WriteTo(_writer);
