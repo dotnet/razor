@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -275,16 +274,11 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
     private static string ApplyDocumentEdits(SourceText inputText, Uri documentUri, WorkspaceEdit result)
     {
         Assert.True(result.TryGetTextDocumentEdits(out var textDocumentEdits));
-        foreach (var textDocumentEdit in textDocumentEdits)
-        {
-            if (textDocumentEdit.TextDocument.DocumentUri.GetRequiredParsedUri() == documentUri)
-            {
-                foreach (var edit in textDocumentEdit.Edits)
-                {
-                    inputText = inputText.WithChanges(inputText.GetTextChange((TextEdit)edit));
-                }
-            }
-        }
+        var changes = textDocumentEdits
+            .Where(e => e.TextDocument.DocumentUri.GetRequiredParsedUri() == documentUri)
+            .SelectMany(e => e.Edits)
+            .Select(e => inputText.GetTextChange((TextEdit)e));
+        inputText = inputText.WithChanges(changes);
 
         return inputText.ToString();
     }
