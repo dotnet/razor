@@ -229,6 +229,43 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         await VerifyGoToDefinitionAsync(input, htmlResponse: htmlResponse);
     }
 
+    [Fact]
+    public async Task TagHelper()
+    {
+        var result = await GetGoToDefinitionResultAsync("""
+            @addTagHelper *, SomeProject
+
+            <dw:abou$$t-box />
+            """,
+            fileKind: RazorFileKind.Legacy,
+            additionalFiles:
+                (FileName("AboutBoxTagHelper.cs"),
+                    """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    [HtmlTargetElement("dw:about-box")]
+                    public class AboutBoxTagHelper : TagHelper
+                    {
+                        public override void Process(TagHelperContext context, TagHelperOutput output)
+                        {
+                            output.TagName = "div";
+                            output.Attributes.SetAttribute("class", "about-box");
+                            output.Content.SetHtmlContent("<strong>About</strong>");
+                        }
+                    }
+                    """));
+
+        Assert.NotNull(result.Value.Second);
+        var locations = result.Value.Second;
+        var location = Assert.Single(locations);
+
+        Assert.Equal(FileUri("AboutBoxTagHelper.cs"), location.DocumentUri.GetRequiredParsedUri());
+        Assert.Equal(3, location.Range.Start.Line);
+        Assert.Equal(13, location.Range.Start.Character);
+        Assert.Equal(3, location.Range.End.Line);
+        Assert.Equal(30, location.Range.End.Character);
+    }
+
     private static string FileName(string projectRelativeFileName)
         => Path.Combine(TestProjectData.SomeProjectPath, projectRelativeFileName);
 
