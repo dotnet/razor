@@ -11,7 +11,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 internal sealed class RazorComponentDefinitionService(
     IRazorComponentSearchEngine componentSearchEngine,
     IDocumentMappingService documentMappingService,
-    ILoggerFactory loggerFactory)
-    : AbstractRazorComponentDefinitionService(componentSearchEngine, documentMappingService, loggerFactory.GetOrCreateLogger<RazorComponentDefinitionService>())
+    ILoggerFactory loggerFactory,
+    ITagHelperSearchEngine? tagHelperSearchEngine = null)
+    : AbstractRazorComponentDefinitionService(componentSearchEngine, tagHelperSearchEngine, documentMappingService, loggerFactory.GetOrCreateLogger<RazorComponentDefinitionService>())
 {
 }

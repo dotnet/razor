@@ -15,10 +15,12 @@ namespace Microsoft.CodeAnalysis.Razor.GoToDefinition;
 
 internal abstract class AbstractRazorComponentDefinitionService(
     IRazorComponentSearchEngine componentSearchEngine,
+    ITagHelperSearchEngine? tagHelperSearchEngine,
     IDocumentMappingService documentMappingService,
     ILogger logger) : IRazorComponentDefinitionService
 {
     private readonly IRazorComponentSearchEngine _componentSearchEngine = componentSearchEngine;
+    private readonly ITagHelperSearchEngine? _tagHelperSearchEngine = tagHelperSearchEngine;
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ILogger _logger = logger;
 
@@ -27,6 +29,7 @@ internal abstract class AbstractRazorComponentDefinitionService(
         DocumentPositionInfo positionInfo,
         ISolutionQueryOperations solutionQueryOperations,
         bool ignoreAttributes,
+        bool includeMvcTagHelpers,
         CancellationToken cancellationToken)
     {
         // If we're in C# then there is no point checking for a component tag, because there won't be one
@@ -35,7 +38,7 @@ internal abstract class AbstractRazorComponentDefinitionService(
             return null;
         }
 
-        if (!documentSnapshot.FileKind.IsComponent())
+        if (!includeMvcTagHelpers && !documentSnapshot.FileKind.IsComponent())
         {
             _logger.LogInformation($"'{documentSnapshot.FileKind}' is not a component type.");
             return null;
@@ -47,6 +50,15 @@ internal abstract class AbstractRazorComponentDefinitionService(
         {
             _logger.LogInformation($"Could not retrieve bound tag helper information.");
             return null;
+        }
+
+        if (includeMvcTagHelpers && _tagHelperSearchEngine is not null)
+        {
+            var tagHelperLocation = await _tagHelperSearchEngine.TryLocateTagHelperDefinitionAsync(boundTagHelper, documentSnapshot, solutionQueryOperations, cancellationToken).ConfigureAwait(false);
+            if (tagHelperLocation is not null)
+            {
+                return tagHelperLocation;
+            }
         }
 
         var componentDocument = await _componentSearchEngine

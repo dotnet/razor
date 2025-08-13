@@ -14,7 +14,8 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.GoToDefinition;
 internal sealed class RazorComponentDefinitionService(
     IRazorComponentSearchEngine componentSearchEngine,
     IDocumentMappingService documentMappingService,
+    ITagHelperSearchEngine tagHelperSearchEngine,
     ILoggerFactory loggerFactory)
-    : AbstractRazorComponentDefinitionService(componentSearchEngine, documentMappingService, loggerFactory.GetOrCreateLogger<RazorComponentDefinitionService>())
+    : AbstractRazorComponentDefinitionService(componentSearchEngine, tagHelperSearchEngine, documentMappingService, loggerFactory.GetOrCreateLogger<RazorComponentDefinitionService>())
 {
 }

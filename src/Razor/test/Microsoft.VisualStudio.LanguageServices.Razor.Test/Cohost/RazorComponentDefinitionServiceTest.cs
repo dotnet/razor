@@ -76,6 +76,7 @@ public class RazorComponentDefinitionServiceTest(ITestOutputHelper testOutputHel
             positionInfo,
             solutionQueryOperations: documentSnapshot.ProjectSnapshot.SolutionSnapshot,
             ignoreAttributes: false,
+            includeMvcTagHelpers: true,
             DisposalToken);
 
         Assert.NotNull(location);
