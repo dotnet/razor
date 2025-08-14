@@ -8,13 +8,8 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public static class CommonMetadata
 {
-    internal static readonly KeyValuePair<string, string?> BindAttributeGetSet
-        = MakeTrue(ComponentMetadata.Bind.BindAttributeGetSet);
-
     internal static KeyValuePair<string, string?> MakeTrue(string key)
         => new(key, bool.TrueString);
-    internal static KeyValuePair<string, string?> GloballyQualifiedTypeName(string value)
-        => new(TagHelperMetadata.Common.GloballyQualifiedTypeName, value);
     internal static KeyValuePair<string, string?> RuntimeName(string value)
         => new(TagHelperMetadata.Runtime.Name, value);
     internal static KeyValuePair<string, string?> SpecialKind(string value)

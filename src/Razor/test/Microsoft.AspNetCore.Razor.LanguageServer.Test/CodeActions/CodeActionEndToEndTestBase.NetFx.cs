@@ -334,12 +334,17 @@ public abstract class CodeActionEndToEndTestBase(ITestOutputHelper testOutput) :
             builder.BoundAttributeDescriptor(configure => configure
                 .Name("OnDragStart")
                 .TypeName("System.Action<Microsoft.AspNetCore.Components.Web.DragEventArgs<TItem>>")
-                .Metadata(new(ComponentMetadata.Component.DelegateSignatureKey, bool.TrueString), new(ComponentMetadata.Component.GenericTypedKey, bool.TrueString)));
+                .Metadata(new PropertyMetadata
+                {
+                    GloballyQualifiedTypeName = "global::System.Action<global::Microsoft.AspNetCore.Components.Web.DragEventArgs<TItem>>",
+                    IsDelegateSignature = true,
+                    IsGenericTyped = true
+                }));
             builder.BoundAttributeDescriptor(configure => configure
                 .Name("TItem")
                 .TypeName(typeof(Type).FullName)
                 .PropertyName("TItem")
-                .Metadata(new(ComponentMetadata.Component.TypeParameterKey, bool.TrueString)));
+                .Metadata(new TypeParameterMetadata()));
             builder.TagMatchingRule(rule => rule.RequireTagName("TestGenericComponent"));
             builder.Metadata(
                 new(TagHelperMetadata.Common.TypeName, "Microsoft.AspNetCore.Components.TestGenericComponent"),
@@ -359,7 +364,11 @@ public abstract class CodeActionEndToEndTestBase(ITestOutputHelper testOutput) :
             builder.BoundAttributeDescriptor(configure => configure
                 .Name("OnDragStart")
                 .TypeName("System.Action<Microsoft.AspNetCore.Components.Web.DragEventArgs>")
-                .Metadata(new(ComponentMetadata.Component.DelegateSignatureKey, bool.TrueString)));
+                .Metadata(new PropertyMetadata
+                {
+                    GloballyQualifiedTypeName = "global::System.Action<global::Microsoft.AspNetCore.Components.Web.DragEventArgs>",
+                    IsDelegateSignature = true
+                }));
             builder.TagMatchingRule(rule => rule.RequireTagName("TestComponent"));
             builder.Metadata(
                 new(TagHelperMetadata.Common.TypeName, "Microsoft.AspNetCore.Components.TestComponent"),
