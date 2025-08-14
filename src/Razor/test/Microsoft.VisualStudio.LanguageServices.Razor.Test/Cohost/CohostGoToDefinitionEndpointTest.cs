@@ -267,6 +267,51 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
     }
 
     [Fact]
+    public async Task TagHelper_Partial()
+    {
+        var result = await GetGoToDefinitionResultAsync("""
+            @addTagHelper *, SomeProject
+
+            <dw:abou$$t-box />
+            """,
+            fileKind: RazorFileKind.Legacy,
+            additionalFiles:
+                [(FileName("AboutBoxTagHelper_1.cs"),
+                    """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    [HtmlTargetElement("dw:about-box")]
+                    public partial class AboutBoxTagHelper : TagHelper
+                    {
+                        public override void Process(TagHelperContext context, TagHelperOutput output)
+                        {
+                            output.TagName = "div";
+                            output.Attributes.SetAttribute("class", "about-box");
+                            output.Content.SetHtmlContent("<strong>About</strong>");
+                        }
+                    }
+                    """),
+                (FileName("AboutBoxTagHelper_2.cs"),
+                    """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    public partial class AboutBoxTagHelper
+                    {
+                    }
+                    """)]);
+
+        Assert.NotNull(result.Value.Second);
+        var locations = result.Value.Second;
+        var location = Assert.Single(locations);
+
+        Assert.Equal(FileUri("AboutBoxTagHelper_1.cs"), location.DocumentUri.GetRequiredParsedUri());
+        Assert.Equal(3, location.Range.Start.Line);
+        Assert.Equal(21, location.Range.Start.Character);
+        Assert.Equal(3, location.Range.End.Line);
+        Assert.Equal(38, location.Range.End.Character);
+    }
+
+    [Fact]
     public async Task TagHelper_Attribute()
     {
         var result = await GetGoToDefinitionResultAsync("""
@@ -302,6 +347,52 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         Assert.Equal(5, location.Range.Start.Line);
         Assert.Equal(18, location.Range.Start.Character);
         Assert.Equal(5, location.Range.End.Line);
+        Assert.Equal(23, location.Range.End.Character);
+    }
+
+    [Fact]
+    public async Task TagHelper_Attribute_Partial()
+    {
+        var result = await GetGoToDefinitionResultAsync("""
+            @addTagHelper *, SomeProject
+
+            <dw:about-box tit$$le="Dave" />
+            """,
+            fileKind: RazorFileKind.Legacy,
+            additionalFiles:
+                [(FileName("AboutBoxTagHelper_1.cs"),
+                    """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    [HtmlTargetElement("dw:about-box")]
+                    public partial class AboutBoxTagHelper : TagHelper
+                    {
+                        public override void Process(TagHelperContext context, TagHelperOutput output)
+                        {
+                            output.TagName = "div";
+                            output.Attributes.SetAttribute("class", "about-box");
+                            output.Content.SetHtmlContent("<strong>About</strong>");
+                        }
+                    }
+                    """),
+                (FileName("AboutBoxTagHelper_2.cs"),
+                    """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    public partial class AboutBoxTagHelper
+                    {
+                        public string Title { get; set; }
+                    }
+                    """)]);
+
+        Assert.NotNull(result.Value.Second);
+        var locations = result.Value.Second;
+        var location = Assert.Single(locations);
+
+        Assert.Equal(FileUri("AboutBoxTagHelper_2.cs"), location.DocumentUri.GetRequiredParsedUri());
+        Assert.Equal(4, location.Range.Start.Line);
+        Assert.Equal(18, location.Range.Start.Character);
+        Assert.Equal(4, location.Range.End.Line);
         Assert.Equal(23, location.Range.End.Character);
     }
 
