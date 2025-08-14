@@ -35,9 +35,6 @@ internal static class TagHelperBoundAttributeDescriptorExtensions
     public static bool IsCascadingTypeParameterProperty(this BoundAttributeDescriptor attribute)
         => attribute.IsTrue(ComponentMetadata.Component.TypeParameterIsCascadingKey);
 
-    public static bool IsWeaklyTyped(this BoundAttributeDescriptor attribute)
-        => attribute.IsTrue(ComponentMetadata.Component.WeaklyTypedKey);
-
     /// <summary>
     /// Gets a value that indicates whether the property is a child content property. Properties are
     /// considered child content if they have the type <c>RenderFragment</c> or <c>RenderFragment{T}</c>.

@@ -524,7 +524,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
             valueNode.BoundAttribute = valueAttribute; // Might be null if it doesn't match a component attribute
             valueNode.PropertyName = valuePropertyName;
             valueNode.TagHelper = valueAttribute == null ? null : bindEntry.GetEffectiveNodeTagHelperDescriptor();
-            valueNode.TypeName = valueAttribute?.IsWeaklyTyped() == false ? valueAttribute.TypeName : null;
+            valueNode.TypeName = valueAttribute?.IsWeaklyTyped == false ? valueAttribute.TypeName : null;
 
             valueNode.Children.Clear();
             valueNode.Children.Add(new CSharpExpressionIntermediateNode());
@@ -543,7 +543,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
             changeNode.BoundAttribute = changeAttribute; // Might be null if it doesn't match a component attribute
             changeNode.PropertyName = changeAttribute?.PropertyName;
             changeNode.TagHelper = changeAttribute == null ? null : bindEntry.GetEffectiveNodeTagHelperDescriptor();
-            changeNode.TypeName = changeAttribute?.IsWeaklyTyped() == false ? changeAttribute.TypeName : null;
+            changeNode.TypeName = changeAttribute?.IsWeaklyTyped == false ? changeAttribute.TypeName : null;
 
             changeNode.Children.Clear();
             changeNode.Children.Add(new CSharpExpressionIntermediateNode());
@@ -566,7 +566,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
                 expressionNode.BoundAttribute = expressionAttribute;
                 expressionNode.PropertyName = expressionAttribute.PropertyName;
                 expressionNode.TagHelper = bindEntry.GetEffectiveNodeTagHelperDescriptor();
-                expressionNode.TypeName = expressionAttribute.IsWeaklyTyped() ? null : expressionAttribute.TypeName;
+                expressionNode.TypeName = expressionAttribute.IsWeaklyTyped ? null : expressionAttribute.TypeName;
 
                 expressionNode.Children.Clear();
                 expressionNode.Children.Add(new CSharpExpressionIntermediateNode());

@@ -3815,10 +3815,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -7781356122984544544,
-          "Data2": -8094711202667292231,
-          "Data3": -6680469567904662091,
-          "Data4": 2688957889755868554
+          "Data1": 1546876407757067488,
+          "Data2": -7624322804343376839,
+          "Data3": -1758042023751703851,
+          "Data4": -1851342684670546842
         },
         "Kind": "Components.EventHandler",
         "Name": "onabort",
@@ -3878,10 +3878,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onabort' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -3894,10 +3891,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 6756734915637872805,
-          "Data2": 620327721088598663,
-          "Data3": -3583493945555126848,
-          "Data4": 7119547977265298757
+          "Data1": 7379768326363574121,
+          "Data2": 8292828635312730746,
+          "Data3": -2461674131325684967,
+          "Data4": -5594534110025552159
         },
         "Kind": "Components.EventHandler",
         "Name": "onactivate",
@@ -3957,10 +3954,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onactivate' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -3973,10 +3967,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 2483782490461899893,
-          "Data2": 7911481174883340394,
-          "Data3": -1020714735899830415,
-          "Data4": 1977460355307162286
+          "Data1": -2226115417724817240,
+          "Data2": -3264678856103471359,
+          "Data3": 5157718106941724744,
+          "Data4": -3656379475717037815
         },
         "Kind": "Components.EventHandler",
         "Name": "onbeforeactivate",
@@ -4036,10 +4030,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onbeforeactivate' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -4052,10 +4043,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -6300186248877703349,
-          "Data2": -5334783404140833119,
-          "Data3": -4863275031323179458,
-          "Data4": -3442326697994864377
+          "Data1": -7936114998965446811,
+          "Data2": -4591862960535184943,
+          "Data3": -9204082493208012447,
+          "Data4": 3128942394005170087
         },
         "Kind": "Components.EventHandler",
         "Name": "onbeforecopy",
@@ -4115,10 +4106,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onbeforecopy' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -4131,10 +4119,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -4048960621951657690,
-          "Data2": -8822603603172419361,
-          "Data3": 1287431788577373604,
-          "Data4": 3435862064229630489
+          "Data1": 6440404548135824146,
+          "Data2": 3684776526978563432,
+          "Data3": 7680660061811172907,
+          "Data4": -2412659183549411118
         },
         "Kind": "Components.EventHandler",
         "Name": "onbeforecut",
@@ -4194,10 +4182,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onbeforecut' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -4210,10 +4195,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 2080127812000367966,
-          "Data2": 6886048803857359375,
-          "Data3": -2403692896695412510,
-          "Data4": 2722281423952878400
+          "Data1": -7809373595575370009,
+          "Data2": -6111217091293927715,
+          "Data3": -8748924750824785681,
+          "Data4": -5898814766713788573
         },
         "Kind": "Components.EventHandler",
         "Name": "onbeforedeactivate",
@@ -4273,10 +4258,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onbeforedeactivate' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -4289,10 +4271,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 66387601394992696,
-          "Data2": 2203932158451533527,
-          "Data3": 7311337328714875373,
-          "Data4": 1204884159696701835
+          "Data1": -7686559352428584489,
+          "Data2": 5624316643044666821,
+          "Data3": -8488393974582946338,
+          "Data4": 1860182251531129441
         },
         "Kind": "Components.EventHandler",
         "Name": "onbeforepaste",
@@ -4352,10 +4334,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onbeforepaste' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -4368,10 +4347,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 3714574555122703076,
-          "Data2": 2390550955300135416,
-          "Data3": -2474122786427533751,
-          "Data4": -1170518535169943055
+          "Data1": 6874489453882517146,
+          "Data2": 8619319538957524185,
+          "Data3": -1817825182998741769,
+          "Data4": -5183381730075371142
         },
         "Kind": "Components.EventHandler",
         "Name": "onblur",
@@ -4431,10 +4410,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onblur' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -4447,10 +4423,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -4855218218129788794,
-          "Data2": -8077885782186430208,
-          "Data3": 2404224481531586333,
-          "Data4": 7896763065563645897
+          "Data1": -8776470930992690462,
+          "Data2": 8510403192571202324,
+          "Data3": -259159228836750957,
+          "Data4": 8801277968127752374
         },
         "Kind": "Components.EventHandler",
         "Name": "oncanplay",
@@ -4510,10 +4486,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@oncanplay' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -4526,10 +4499,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -6700824791905487294,
-          "Data2": 3986474364871898628,
-          "Data3": 7141154443320825405,
-          "Data4": 6180276235408544951
+          "Data1": -4969330998221647651,
+          "Data2": -1528023969052156478,
+          "Data3": 2039113948290993288,
+          "Data4": -8999248638686504213
         },
         "Kind": "Components.EventHandler",
         "Name": "oncanplaythrough",
@@ -4589,10 +4562,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@oncanplaythrough' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -4605,10 +4575,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 3715164106810715209,
-          "Data2": 7034397942471563982,
-          "Data3": -8719495177003237334,
-          "Data4": -971057454737220891
+          "Data1": 6710686143090681419,
+          "Data2": -6598438025932969884,
+          "Data3": -6341116086309020104,
+          "Data4": 3409410632134281106
         },
         "Kind": "Components.EventHandler",
         "Name": "onchange",
@@ -4668,10 +4638,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onchange' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -4684,10 +4651,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -4585108166931215334,
-          "Data2": 7886025836849777140,
-          "Data3": 8607213148688992058,
-          "Data4": -6840241965903474677
+          "Data1": 1034858641390861081,
+          "Data2": -1256064766809947221,
+          "Data3": 1454940865964687141,
+          "Data4": -1413476743963799902
         },
         "Kind": "Components.EventHandler",
         "Name": "onclick",
@@ -4747,10 +4714,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onclick' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -4763,10 +4727,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 5097047183275243819,
-          "Data2": -2545195404426427234,
-          "Data3": -8920394440482678558,
-          "Data4": -7079451109356066257
+          "Data1": -4838795160999526301,
+          "Data2": 983256839593514426,
+          "Data3": -1428017817470718096,
+          "Data4": 4068289771547637655
         },
         "Kind": "Components.EventHandler",
         "Name": "oncontextmenu",
@@ -4826,10 +4790,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@oncontextmenu' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -4842,10 +4803,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 5720363319401399372,
-          "Data2": 2953653168324730954,
-          "Data3": -354067892689139766,
-          "Data4": -7042644533006652789
+          "Data1": 7980249274689502730,
+          "Data2": -6012319102915223088,
+          "Data3": 8375271827912607062,
+          "Data4": -7475455657538708912
         },
         "Kind": "Components.EventHandler",
         "Name": "oncopy",
@@ -4905,10 +4866,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@oncopy' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -4921,10 +4879,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -2502801479977371272,
-          "Data2": 6757122167326338135,
-          "Data3": 165801254088070238,
-          "Data4": -4306957688915988381
+          "Data1": 3863584225171357212,
+          "Data2": -2190507327332991497,
+          "Data3": 6536797659456234750,
+          "Data4": -4302420250486905867
         },
         "Kind": "Components.EventHandler",
         "Name": "oncuechange",
@@ -4984,10 +4942,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@oncuechange' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -5000,10 +4955,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 4119274839161129249,
-          "Data2": -2451153170066270090,
-          "Data3": 6898551500767924946,
-          "Data4": 5054714594969795189
+          "Data1": -6798511312940378777,
+          "Data2": -8433973061199941611,
+          "Data3": 90071483548198585,
+          "Data4": 6701004878971592433
         },
         "Kind": "Components.EventHandler",
         "Name": "oncut",
@@ -5063,10 +5018,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@oncut' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -5079,10 +5031,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -1115436180067446254,
-          "Data2": -7325121657640335738,
-          "Data3": 2226551358181513815,
-          "Data4": 4430991165794102075
+          "Data1": 382516238925663988,
+          "Data2": -9086259821131864283,
+          "Data3": -3737600942364050960,
+          "Data4": 8054405854943112985
         },
         "Kind": "Components.EventHandler",
         "Name": "ondblclick",
@@ -5142,10 +5094,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@ondblclick' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -5158,10 +5107,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -2990229925987883414,
-          "Data2": 2247411856738828685,
-          "Data3": 6848538795414850779,
-          "Data4": -2579859507576604496
+          "Data1": -3725673209736250341,
+          "Data2": 1504334887339990599,
+          "Data3": -6981586668277330374,
+          "Data4": 3666113524855825211
         },
         "Kind": "Components.EventHandler",
         "Name": "ondeactivate",
@@ -5221,10 +5170,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@ondeactivate' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -5237,10 +5183,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 1597682359191267763,
-          "Data2": 6555621486568125955,
-          "Data3": 8702391886682469300,
-          "Data4": -7937217991244793959
+          "Data1": 8253807101615044105,
+          "Data2": 8892317301890980633,
+          "Data3": 2428021450912868951,
+          "Data4": -256442965668581934
         },
         "Kind": "Components.EventHandler",
         "Name": "ondrag",
@@ -5300,10 +5246,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@ondrag' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -5316,10 +5259,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -3399251554018796203,
-          "Data2": -3689621629425108326,
-          "Data3": 5378555539629555519,
-          "Data4": 7469471886290966673
+          "Data1": -3468751800093412131,
+          "Data2": -2717381285132417376,
+          "Data3": -411557850338951976,
+          "Data4": -7240464460796561935
         },
         "Kind": "Components.EventHandler",
         "Name": "ondragend",
@@ -5379,10 +5322,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@ondragend' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -5395,10 +5335,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -4308319214733626749,
-          "Data2": 9214704057638849062,
-          "Data3": -1327251381132760013,
-          "Data4": 3385593630712942146
+          "Data1": 9056146752133099384,
+          "Data2": -8943320528557972220,
+          "Data3": -3451062069118746087,
+          "Data4": 4275388985366502538
         },
         "Kind": "Components.EventHandler",
         "Name": "ondragenter",
@@ -5458,10 +5398,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@ondragenter' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -5474,10 +5411,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -2479091421639557107,
-          "Data2": -3738163883381650415,
-          "Data3": 3767298564952456970,
-          "Data4": 8407822699292631981
+          "Data1": 5311463625986447804,
+          "Data2": 99899797076750694,
+          "Data3": 7378477335317589957,
+          "Data4": -6511431938815116601
         },
         "Kind": "Components.EventHandler",
         "Name": "ondragleave",
@@ -5537,10 +5474,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@ondragleave' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -5553,10 +5487,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 8416403072497894385,
-          "Data2": -8963897020355063384,
-          "Data3": -241832814801041760,
-          "Data4": 7043778503194146300
+          "Data1": 7514088798393832238,
+          "Data2": 9165456244970165155,
+          "Data3": 6152799571552304407,
+          "Data4": -2026595429113088805
         },
         "Kind": "Components.EventHandler",
         "Name": "ondragover",
@@ -5616,10 +5550,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@ondragover' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -5632,10 +5563,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 7314583035064552894,
-          "Data2": -5405307435422983908,
-          "Data3": -8343438958140068983,
-          "Data4": 6703908125997135863
+          "Data1": -8467595558955987761,
+          "Data2": 7007129251773131581,
+          "Data3": -8247055216245994510,
+          "Data4": -3845324512481243252
         },
         "Kind": "Components.EventHandler",
         "Name": "ondragstart",
@@ -5695,10 +5626,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@ondragstart' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -5711,10 +5639,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 804370579841560787,
-          "Data2": 6434306896660868255,
-          "Data3": 1219438540499560788,
-          "Data4": -8269297509942627807
+          "Data1": 2480441604078021538,
+          "Data2": -1469642510862891163,
+          "Data3": -7072478738203647661,
+          "Data4": 518548492279500813
         },
         "Kind": "Components.EventHandler",
         "Name": "ondrop",
@@ -5774,10 +5702,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@ondrop' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -5790,10 +5715,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -2102652877939698196,
-          "Data2": -1326543545673297748,
-          "Data3": -9160968518152075559,
-          "Data4": 3767921419262400080
+          "Data1": 2141169705017872678,
+          "Data2": -4666306439504512327,
+          "Data3": -8035546151653040705,
+          "Data4": 7401227096085510689
         },
         "Kind": "Components.EventHandler",
         "Name": "ondurationchange",
@@ -5853,10 +5778,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@ondurationchange' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -5869,10 +5791,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -3483200539419948914,
-          "Data2": -3944962621316193395,
-          "Data3": 4555702346675387709,
-          "Data4": -6092232165406780213
+          "Data1": -4908982681526559525,
+          "Data2": 2782482731020948900,
+          "Data3": -8661528074284239620,
+          "Data4": -5925844290117284936
         },
         "Kind": "Components.EventHandler",
         "Name": "onemptied",
@@ -5932,10 +5854,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onemptied' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -5948,10 +5867,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 7385154852901501822,
-          "Data2": -8503227602731002947,
-          "Data3": -4464673272646963969,
-          "Data4": 5674792070191777164
+          "Data1": 8278180286636251959,
+          "Data2": 5418950356869960824,
+          "Data3": 3281860254094413380,
+          "Data4": -7855889276121605903
         },
         "Kind": "Components.EventHandler",
         "Name": "onended",
@@ -6011,10 +5930,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onended' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -6027,10 +5943,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 8419041546861831484,
-          "Data2": 8660654713383086402,
-          "Data3": 5498494640868146135,
-          "Data4": -2811134114366046448
+          "Data1": -7645205445748262010,
+          "Data2": -8555984132688742101,
+          "Data3": 6724999519690336482,
+          "Data4": 8023142322270973865
         },
         "Kind": "Components.EventHandler",
         "Name": "onerror",
@@ -6090,10 +6006,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onerror' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -6106,10 +6019,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 3054917845502316367,
-          "Data2": 4164466643068907664,
-          "Data3": 7717752444490172362,
-          "Data4": 9031347587923528075
+          "Data1": -6519749331349587618,
+          "Data2": 51513638617034895,
+          "Data3": -7035797083104015535,
+          "Data4": 4648750007818296989
         },
         "Kind": "Components.EventHandler",
         "Name": "onfocus",
@@ -6169,10 +6082,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onfocus' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -6185,10 +6095,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 1257306669516944288,
-          "Data2": 7245443431771869580,
-          "Data3": -4605604931081316128,
-          "Data4": 2428188494297499505
+          "Data1": -5044567129662975787,
+          "Data2": -801301812224024892,
+          "Data3": 7494326097772928257,
+          "Data4": -2642989447789788585
         },
         "Kind": "Components.EventHandler",
         "Name": "onfocusin",
@@ -6248,10 +6158,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onfocusin' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -6264,10 +6171,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 6412799361965933618,
-          "Data2": 3784973969662246602,
-          "Data3": 3804898922919361104,
-          "Data4": 1160658283756465254
+          "Data1": 1933967845146186231,
+          "Data2": -8396987888776336575,
+          "Data3": 4103499541041290788,
+          "Data4": -1065200376453034348
         },
         "Kind": "Components.EventHandler",
         "Name": "onfocusout",
@@ -6327,10 +6234,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onfocusout' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -6343,10 +6247,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -5970481415019081127,
-          "Data2": 9060383280394021633,
-          "Data3": -8209279082648673053,
-          "Data4": -652659361613609615
+          "Data1": 4343040289148732621,
+          "Data2": 7614792505698606557,
+          "Data3": 2749825034538725209,
+          "Data4": 3800063253866690187
         },
         "Kind": "Components.EventHandler",
         "Name": "onfullscreenchange",
@@ -6406,10 +6310,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onfullscreenchange' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -6422,10 +6323,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 5409065597636188023,
-          "Data2": 6638019465707276330,
-          "Data3": 7488032751562772288,
-          "Data4": 2232478008590240286
+          "Data1": 291276187598789646,
+          "Data2": -6382512902775572595,
+          "Data3": 463626972545813233,
+          "Data4": 7663121247288976319
         },
         "Kind": "Components.EventHandler",
         "Name": "onfullscreenerror",
@@ -6485,10 +6386,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onfullscreenerror' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -6501,10 +6399,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 5385253429723915868,
-          "Data2": -1503032575268304989,
-          "Data3": 800980402016022755,
-          "Data4": 4814403361383758382
+          "Data1": 2383248943143728747,
+          "Data2": 6618376768322967416,
+          "Data3": 1077194018442543835,
+          "Data4": -7944640634566245098
         },
         "Kind": "Components.EventHandler",
         "Name": "ongotpointercapture",
@@ -6564,10 +6462,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@ongotpointercapture' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -6580,10 +6475,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 5681991367401047861,
-          "Data2": -3616148765461328296,
-          "Data3": 3154165203471259367,
-          "Data4": -2714660300371136020
+          "Data1": 6754423521821244638,
+          "Data2": 7808670967739990829,
+          "Data3": 937773367792611941,
+          "Data4": 3865312053072401871
         },
         "Kind": "Components.EventHandler",
         "Name": "oninput",
@@ -6643,10 +6538,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@oninput' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -6659,10 +6551,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 8025377343220066129,
-          "Data2": 8098297830057518365,
-          "Data3": 8592469365864591925,
-          "Data4": -4093250011379245723
+          "Data1": -3743659415716195058,
+          "Data2": 3607179099996616747,
+          "Data3": 7433283872792849593,
+          "Data4": -1048567348703468428
         },
         "Kind": "Components.EventHandler",
         "Name": "oninvalid",
@@ -6722,10 +6614,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@oninvalid' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -6738,10 +6627,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 8760082698262734483,
-          "Data2": -6482947380726989129,
-          "Data3": -5167755738647414988,
-          "Data4": -1930001474707659577
+          "Data1": -2096539589372884814,
+          "Data2": 1804851926484460450,
+          "Data3": -1929931041089002650,
+          "Data4": -3330657186138925952
         },
         "Kind": "Components.EventHandler",
         "Name": "onkeydown",
@@ -6801,10 +6690,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onkeydown' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -6817,10 +6703,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -8161224662698949904,
-          "Data2": -2678313490849939154,
-          "Data3": 4339252769293620051,
-          "Data4": 8998024089426302320
+          "Data1": 3095926339988516957,
+          "Data2": 8003321503878315620,
+          "Data3": -4050162652449572478,
+          "Data4": 5116362356453249513
         },
         "Kind": "Components.EventHandler",
         "Name": "onkeypress",
@@ -6880,10 +6766,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onkeypress' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -6896,10 +6779,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -4863565659983696450,
-          "Data2": -5233108498414778377,
-          "Data3": 3025925526129633338,
-          "Data4": 4747105079841646723
+          "Data1": 7832278421760297636,
+          "Data2": 8276427836057364939,
+          "Data3": -4946522857547445019,
+          "Data4": 5321462071357028868
         },
         "Kind": "Components.EventHandler",
         "Name": "onkeyup",
@@ -6959,10 +6842,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onkeyup' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -6975,10 +6855,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 9187871158807479575,
-          "Data2": -7255855406707205385,
-          "Data3": 766367283984376221,
-          "Data4": -503964173089394446
+          "Data1": -3220201722335358290,
+          "Data2": -2775931267736738328,
+          "Data3": 4280635181288806722,
+          "Data4": -8277328950940822355
         },
         "Kind": "Components.EventHandler",
         "Name": "onload",
@@ -7038,10 +6918,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onload' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -7054,10 +6931,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -3905444988001282799,
-          "Data2": -607975658777181019,
-          "Data3": 9040206696989078984,
-          "Data4": 6801836717518554126
+          "Data1": -5100046850490032975,
+          "Data2": 7514694593575540615,
+          "Data3": 5421895778829805497,
+          "Data4": -1080278648546938922
         },
         "Kind": "Components.EventHandler",
         "Name": "onloadeddata",
@@ -7117,10 +6994,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onloadeddata' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -7133,10 +7007,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 1410808944817125405,
-          "Data2": -7278557754952958138,
-          "Data3": 2780694122395734742,
-          "Data4": 9192109114114485473
+          "Data1": 3969244318163067676,
+          "Data2": -7633557018569416484,
+          "Data3": 8127016954352510130,
+          "Data4": 4918764844843554885
         },
         "Kind": "Components.EventHandler",
         "Name": "onloadedmetadata",
@@ -7196,10 +7070,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onloadedmetadata' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -7212,10 +7083,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -6809174920132893551,
-          "Data2": 4567252976033444739,
-          "Data3": -4545260512673347660,
-          "Data4": -7515777891094990341
+          "Data1": 3319442333241604650,
+          "Data2": 5455440914439990708,
+          "Data3": 3536380549788126605,
+          "Data4": 1734067549768773536
         },
         "Kind": "Components.EventHandler",
         "Name": "onloadend",
@@ -7275,10 +7146,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onloadend' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -7291,10 +7159,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 8020596543268858251,
-          "Data2": 9144738550901999147,
-          "Data3": -1740273294411946761,
-          "Data4": 6501466198183907056
+          "Data1": 1173266539699981519,
+          "Data2": 3524842308153826910,
+          "Data3": -8611228154098204202,
+          "Data4": 2132344645735733304
         },
         "Kind": "Components.EventHandler",
         "Name": "onloadstart",
@@ -7354,10 +7222,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onloadstart' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -7370,10 +7235,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 1748063989816530210,
-          "Data2": -4506505491671111155,
-          "Data3": 8806049349153230800,
-          "Data4": -9160182184280008859
+          "Data1": 7775710915763336432,
+          "Data2": -642869056182167478,
+          "Data3": 7804442733696148270,
+          "Data4": 1908294649321720147
         },
         "Kind": "Components.EventHandler",
         "Name": "onlostpointercapture",
@@ -7433,10 +7298,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onlostpointercapture' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -7449,10 +7311,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 7104163271267408311,
-          "Data2": -4500950197421207765,
-          "Data3": -5819251828497556562,
-          "Data4": -2788140179845115596
+          "Data1": -6472012680721443390,
+          "Data2": 4160533976459316898,
+          "Data3": -2578761870006913696,
+          "Data4": 3581321751852402535
         },
         "Kind": "Components.EventHandler",
         "Name": "onmousedown",
@@ -7512,10 +7374,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onmousedown' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -7528,10 +7387,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 932059280793158311,
-          "Data2": 1563578386632251910,
-          "Data3": 2214698223020877921,
-          "Data4": -7710777215411538287
+          "Data1": 3414677093415431966,
+          "Data2": 4815444535676483437,
+          "Data3": 3422890733417789086,
+          "Data4": 1885704322935268619
         },
         "Kind": "Components.EventHandler",
         "Name": "onmousemove",
@@ -7591,10 +7450,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onmousemove' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -7607,10 +7463,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 1801938010157710420,
-          "Data2": -8045050309555115683,
-          "Data3": 5928871354206157871,
-          "Data4": -4281500332622986662
+          "Data1": 3251389391617733512,
+          "Data2": 3136143140580314157,
+          "Data3": 2716347397013338098,
+          "Data4": -3539993844732219225
         },
         "Kind": "Components.EventHandler",
         "Name": "onmouseout",
@@ -7670,10 +7526,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onmouseout' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -7686,10 +7539,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -5447475308785318001,
-          "Data2": 4326302483232991693,
-          "Data3": 2118180391285872143,
-          "Data4": 4342388000616203504
+          "Data1": -1957822426060153845,
+          "Data2": -6919914030607886558,
+          "Data3": 1091554849402862985,
+          "Data4": 984011889604897325
         },
         "Kind": "Components.EventHandler",
         "Name": "onmouseover",
@@ -7749,10 +7602,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onmouseover' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -7765,10 +7615,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 4414888676590125389,
-          "Data2": 4962264435854774045,
-          "Data3": -2051618446399795648,
-          "Data4": 3369285513585119797
+          "Data1": -5937736035781945286,
+          "Data2": 2671517789517377160,
+          "Data3": -7406268112963691413,
+          "Data4": -5893326147109602960
         },
         "Kind": "Components.EventHandler",
         "Name": "onmouseup",
@@ -7828,10 +7678,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onmouseup' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -7844,10 +7691,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -7527501567906764882,
-          "Data2": -2779795131049400664,
-          "Data3": 1540234454693456444,
-          "Data4": 2832827624361309665
+          "Data1": 938998573089604898,
+          "Data2": -7800215565961090960,
+          "Data3": 3371515870753533581,
+          "Data4": 8498609096397102090
         },
         "Kind": "Components.EventHandler",
         "Name": "onmousewheel",
@@ -7907,10 +7754,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onmousewheel' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -7923,10 +7767,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 8154965988900551475,
-          "Data2": -886335133265360943,
-          "Data3": -6829584976128572854,
-          "Data4": 8399942417659644827
+          "Data1": -9052448118832149264,
+          "Data2": -7923574464549740261,
+          "Data3": 3652166540007343820,
+          "Data4": -9064769702287172672
         },
         "Kind": "Components.EventHandler",
         "Name": "onpaste",
@@ -7986,10 +7830,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onpaste' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -8002,10 +7843,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -2991746763989509666,
-          "Data2": 1592964315275125413,
-          "Data3": 2840785053885564487,
-          "Data4": 5147651777051687792
+          "Data1": 8416361048759378537,
+          "Data2": -3898269486261450872,
+          "Data3": -481129146542585505,
+          "Data4": 1215240466681005490
         },
         "Kind": "Components.EventHandler",
         "Name": "onpause",
@@ -8065,10 +7906,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onpause' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -8081,10 +7919,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -2724559838117839087,
-          "Data2": -3037614387239351833,
-          "Data3": 4782800901076595295,
-          "Data4": -4944443566078248368
+          "Data1": -2528810223367395115,
+          "Data2": 3538474102335757222,
+          "Data3": 2487601780070059603,
+          "Data4": -1106989059036535271
         },
         "Kind": "Components.EventHandler",
         "Name": "onplay",
@@ -8144,10 +7982,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onplay' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -8160,10 +7995,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -2855344615769476612,
-          "Data2": -3637695062904735207,
-          "Data3": 2770642730243876490,
-          "Data4": -8310029985675311243
+          "Data1": 4030051076842158187,
+          "Data2": 1444380990216310859,
+          "Data3": -4997988509369292431,
+          "Data4": -4396701200846927194
         },
         "Kind": "Components.EventHandler",
         "Name": "onplaying",
@@ -8223,10 +8058,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onplaying' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -8239,10 +8071,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 7637895533785869779,
-          "Data2": 2713226617486425097,
-          "Data3": -4459586947154790855,
-          "Data4": -2317770949590892714
+          "Data1": -8789963091655289003,
+          "Data2": -3620028671883890076,
+          "Data3": 7559840096260842442,
+          "Data4": 3979239743848648635
         },
         "Kind": "Components.EventHandler",
         "Name": "onpointercancel",
@@ -8302,10 +8134,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onpointercancel' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -8318,10 +8147,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -444256316509810484,
-          "Data2": -8470156260719926014,
-          "Data3": -976595128260197368,
-          "Data4": 5378418547870655226
+          "Data1": -3322072974461159275,
+          "Data2": -5517261472002743287,
+          "Data3": 208004025617666507,
+          "Data4": 6373034086559901858
         },
         "Kind": "Components.EventHandler",
         "Name": "onpointerdown",
@@ -8381,10 +8210,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onpointerdown' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -8397,10 +8223,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -5621514576979604293,
-          "Data2": -1656236319544263891,
-          "Data3": -1381409806225022352,
-          "Data4": 1566990971519169632
+          "Data1": -8760715956954288986,
+          "Data2": -7912452034070014578,
+          "Data3": 2322640740249954549,
+          "Data4": -2680803123194961310
         },
         "Kind": "Components.EventHandler",
         "Name": "onpointerenter",
@@ -8460,10 +8286,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onpointerenter' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -8476,10 +8299,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -9192558618480307240,
-          "Data2": -8587394682673923046,
-          "Data3": -8799771684619099903,
-          "Data4": -9174206184762362673
+          "Data1": -4167324698697167545,
+          "Data2": -5153394662995175430,
+          "Data3": 4278072614632273066,
+          "Data4": -6699883232401662950
         },
         "Kind": "Components.EventHandler",
         "Name": "onpointerleave",
@@ -8539,10 +8362,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onpointerleave' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -8555,10 +8375,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -4343056752427790647,
-          "Data2": -2212158751593988865,
-          "Data3": 7442345396872783998,
-          "Data4": -608260348055057768
+          "Data1": -601028155368118003,
+          "Data2": -4866513964918084208,
+          "Data3": -7174330636845732973,
+          "Data4": -5201093622385426827
         },
         "Kind": "Components.EventHandler",
         "Name": "onpointerlockchange",
@@ -8618,10 +8438,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onpointerlockchange' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -8634,10 +8451,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 5787330025373680885,
-          "Data2": -4015859536370660852,
-          "Data3": -7083851461558502307,
-          "Data4": 6713753129939574874
+          "Data1": -7843843209093921903,
+          "Data2": -1131953405069560982,
+          "Data3": 104325571231508014,
+          "Data4": 6294061322045197964
         },
         "Kind": "Components.EventHandler",
         "Name": "onpointerlockerror",
@@ -8697,10 +8514,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onpointerlockerror' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -8713,10 +8527,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 8982921123738405189,
-          "Data2": 6311529197598374228,
-          "Data3": 930512919573645513,
-          "Data4": 784425017899585353
+          "Data1": 6273773117393610818,
+          "Data2": -146038494096906798,
+          "Data3": 845043407910577404,
+          "Data4": 3273152741727460238
         },
         "Kind": "Components.EventHandler",
         "Name": "onpointermove",
@@ -8776,10 +8590,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onpointermove' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -8792,10 +8603,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -5577183786056189330,
-          "Data2": 1712924904733520227,
-          "Data3": 7854698819559287532,
-          "Data4": 2203733211122400201
+          "Data1": 2098008687738769369,
+          "Data2": -2072857516796701832,
+          "Data3": -2047363478313875575,
+          "Data4": -3795970554084936591
         },
         "Kind": "Components.EventHandler",
         "Name": "onpointerout",
@@ -8855,10 +8666,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onpointerout' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -8871,10 +8679,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 3057749486168890140,
-          "Data2": -1854461602080608111,
-          "Data3": -6286890857831844306,
-          "Data4": -8125562528135419043
+          "Data1": -7483318227592806205,
+          "Data2": -2481370911635200343,
+          "Data3": 4581118474155314369,
+          "Data4": -5817629011999783571
         },
         "Kind": "Components.EventHandler",
         "Name": "onpointerover",
@@ -8934,10 +8742,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onpointerover' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -8950,10 +8755,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -1621505046321727202,
-          "Data2": -8848273680324549900,
-          "Data3": -2673248640147679362,
-          "Data4": -7970606829549028102
+          "Data1": -2895427836041720084,
+          "Data2": 1045326332841722804,
+          "Data3": -8258345836908436921,
+          "Data4": -2385674716803619256
         },
         "Kind": "Components.EventHandler",
         "Name": "onpointerup",
@@ -9013,10 +8818,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onpointerup' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -9029,10 +8831,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 5114703192532751279,
-          "Data2": 941139861339061121,
-          "Data3": -8414834492226716510,
-          "Data4": -2173495422281201435
+          "Data1": 5130609490304128338,
+          "Data2": 7489917970097292867,
+          "Data3": 5666520603697444707,
+          "Data4": 8984268631674434683
         },
         "Kind": "Components.EventHandler",
         "Name": "onprogress",
@@ -9092,10 +8894,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onprogress' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -9108,10 +8907,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -6254992227513239152,
-          "Data2": -5350157823401625520,
-          "Data3": -4877730100725727815,
-          "Data4": 1888817505070137450
+          "Data1": -8937193123595441124,
+          "Data2": -4219223964930395012,
+          "Data3": 7800665544584784189,
+          "Data4": -9114188136825612250
         },
         "Kind": "Components.EventHandler",
         "Name": "onratechange",
@@ -9171,10 +8970,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onratechange' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -9187,10 +8983,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 2276309609630616533,
-          "Data2": -8871272261943371060,
-          "Data3": 651761017377784051,
-          "Data4": 2673954432886662685
+          "Data1": -947064622275443112,
+          "Data2": 6164810165306842017,
+          "Data3": -1066390308377033433,
+          "Data4": 7022020924762249165
         },
         "Kind": "Components.EventHandler",
         "Name": "onreadystatechange",
@@ -9250,10 +9046,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onreadystatechange' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -9266,10 +9059,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -2146254715880245153,
-          "Data2": 6772128164361277913,
-          "Data3": -2688724620846014448,
-          "Data4": 5606730779674247736
+          "Data1": 4201628032783712506,
+          "Data2": -5644841039526193194,
+          "Data3": 1822403955875542032,
+          "Data4": 8175934471522994029
         },
         "Kind": "Components.EventHandler",
         "Name": "onreset",
@@ -9329,10 +9122,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onreset' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -9345,10 +9135,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 1903287781007213935,
-          "Data2": -195175085763670599,
-          "Data3": -2729708374272884404,
-          "Data4": -5847147791835666161
+          "Data1": -1318463822601313839,
+          "Data2": -1605182175247651697,
+          "Data3": 1765828484580822026,
+          "Data4": 1777755121099252108
         },
         "Kind": "Components.EventHandler",
         "Name": "onscroll",
@@ -9408,10 +9198,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onscroll' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -9424,10 +9211,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 8994342704992064344,
-          "Data2": 4932346364968183522,
-          "Data3": -1222482404214211548,
-          "Data4": -6709705267601983428
+          "Data1": 1096236642820870457,
+          "Data2": -3697198999335323394,
+          "Data3": 1367802159461353797,
+          "Data4": -1553856323554761578
         },
         "Kind": "Components.EventHandler",
         "Name": "onseeked",
@@ -9487,10 +9274,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onseeked' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -9503,10 +9287,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 7660560387664211399,
-          "Data2": 6144338469877018749,
-          "Data3": 6009394054307026319,
-          "Data4": 7764613589871142398
+          "Data1": 9078046673034397483,
+          "Data2": -6364450250764453487,
+          "Data3": -6794460945164317519,
+          "Data4": 2140379754603717028
         },
         "Kind": "Components.EventHandler",
         "Name": "onseeking",
@@ -9566,10 +9350,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onseeking' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -9582,10 +9363,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -4684644751386920041,
-          "Data2": 5531953258398767361,
-          "Data3": -5954299426797416872,
-          "Data4": 2989007755928581442
+          "Data1": -9137831399752036213,
+          "Data2": -8846788288175700018,
+          "Data3": -3225612028309472928,
+          "Data4": -9154654153095409843
         },
         "Kind": "Components.EventHandler",
         "Name": "onselect",
@@ -9645,10 +9426,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onselect' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -9661,10 +9439,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -7551050476779212047,
-          "Data2": 3661420840704538428,
-          "Data3": -1807539188607057717,
-          "Data4": -1993115524495790872
+          "Data1": 5046335408209897069,
+          "Data2": 7589542035016490589,
+          "Data3": -7048192358669981803,
+          "Data4": -7401822924558135848
         },
         "Kind": "Components.EventHandler",
         "Name": "onselectionchange",
@@ -9724,10 +9502,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onselectionchange' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -9740,10 +9515,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -7427726698127528362,
-          "Data2": 4603465168631573679,
-          "Data3": -3016569834354778429,
-          "Data4": -757328967385548983
+          "Data1": -4386317839780634017,
+          "Data2": 7805228811299939706,
+          "Data3": 5977339860936419424,
+          "Data4": -7787854465047263150
         },
         "Kind": "Components.EventHandler",
         "Name": "onselectstart",
@@ -9803,10 +9578,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onselectstart' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -9819,10 +9591,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -3196289698845216608,
-          "Data2": 5652222375520574256,
-          "Data3": 3234955449722885526,
-          "Data4": 1207874911309956404
+          "Data1": 7216795649517758980,
+          "Data2": -3096704614630934900,
+          "Data3": -2311464233126887435,
+          "Data4": 8600472640353422798
         },
         "Kind": "Components.EventHandler",
         "Name": "onstalled",
@@ -9882,10 +9654,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onstalled' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -9898,10 +9667,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -118761730011961310,
-          "Data2": 5634343250245608131,
-          "Data3": -9173566382016643358,
-          "Data4": -735883022659832773
+          "Data1": 3873036455598903376,
+          "Data2": -3479232764913558607,
+          "Data3": -2923857282326457124,
+          "Data4": 1548284031031516411
         },
         "Kind": "Components.EventHandler",
         "Name": "onstop",
@@ -9961,10 +9730,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onstop' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -9977,10 +9743,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 7588174529470435988,
-          "Data2": -2511335901541114548,
-          "Data3": 6802694123357332914,
-          "Data4": -4415017001207244073
+          "Data1": -6517668556238203232,
+          "Data2": -7783856868664176890,
+          "Data3": 6609761425279081771,
+          "Data4": 3373906048338797447
         },
         "Kind": "Components.EventHandler",
         "Name": "onsubmit",
@@ -10040,10 +9806,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onsubmit' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -10056,10 +9819,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -4971279910208770603,
-          "Data2": -1087676334573277115,
-          "Data3": -5905858773069972302,
-          "Data4": -148365916057050530
+          "Data1": -3743687631817771227,
+          "Data2": -2211846372560556911,
+          "Data3": -745478882268714886,
+          "Data4": -8393764105590661835
         },
         "Kind": "Components.EventHandler",
         "Name": "onsuspend",
@@ -10119,10 +9882,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onsuspend' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -10135,10 +9895,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 219542358590180632,
-          "Data2": 2001545884087865973,
-          "Data3": -3751950400188501839,
-          "Data4": -7573391581321773054
+          "Data1": -7682340909658054145,
+          "Data2": -1315421206472741748,
+          "Data3": -4633448469864154395,
+          "Data4": 381749288691118371
         },
         "Kind": "Components.EventHandler",
         "Name": "ontimeout",
@@ -10198,10 +9958,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@ontimeout' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -10214,10 +9971,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -8547845303372150310,
-          "Data2": 5472579578133133987,
-          "Data3": 6754544222090266036,
-          "Data4": 5072848131584551273
+          "Data1": 5932813297759063064,
+          "Data2": -8284237138655367778,
+          "Data3": -1226634091974639532,
+          "Data4": -6253221211881873015
         },
         "Kind": "Components.EventHandler",
         "Name": "ontimeupdate",
@@ -10277,10 +10034,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@ontimeupdate' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -10293,10 +10047,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 3700299578133831227,
-          "Data2": -266367207315386409,
-          "Data3": 362786550146892644,
-          "Data4": 657829042629456980
+          "Data1": 3261723622153066672,
+          "Data2": 3027984703067718563,
+          "Data3": 3877058328514385832,
+          "Data4": -36292571567272745
         },
         "Kind": "Components.EventHandler",
         "Name": "ontouchcancel",
@@ -10356,10 +10110,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@ontouchcancel' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -10372,10 +10123,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 2264064637644895683,
-          "Data2": 5483460917185140086,
-          "Data3": 8128507309318655312,
-          "Data4": -5873059685727772528
+          "Data1": 7258785419212767441,
+          "Data2": 8311982965814675840,
+          "Data3": -7772977853465133193,
+          "Data4": -3035570395383389338
         },
         "Kind": "Components.EventHandler",
         "Name": "ontouchend",
@@ -10435,10 +10186,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@ontouchend' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -10451,10 +10199,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -5570792444811491283,
-          "Data2": 3942180312912039803,
-          "Data3": -2590309324688557337,
-          "Data4": 5947311651985687052
+          "Data1": -8869996137579638312,
+          "Data2": -7867968468974074283,
+          "Data3": -6684824763302582675,
+          "Data4": -2853943693808037425
         },
         "Kind": "Components.EventHandler",
         "Name": "ontouchenter",
@@ -10514,10 +10262,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@ontouchenter' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -10530,10 +10275,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 1639025628317905636,
-          "Data2": 3797415142703140821,
-          "Data3": 6760209451797587962,
-          "Data4": 8303578243656739937
+          "Data1": 4213687478037112423,
+          "Data2": -8031626975169604415,
+          "Data3": 7259857785089144482,
+          "Data4": -8213183652460995500
         },
         "Kind": "Components.EventHandler",
         "Name": "ontouchleave",
@@ -10593,10 +10338,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@ontouchleave' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -10609,10 +10351,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -6529368129556475876,
-          "Data2": 7930772654940905550,
-          "Data3": -8968392740793633066,
-          "Data4": -7772875156571250951
+          "Data1": -2320536727703630205,
+          "Data2": -8685634387172777715,
+          "Data3": -6745959665606396457,
+          "Data4": 1861515468752210411
         },
         "Kind": "Components.EventHandler",
         "Name": "ontouchmove",
@@ -10672,10 +10414,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@ontouchmove' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -10688,10 +10427,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 1134188710036789346,
-          "Data2": -8671484277512833556,
-          "Data3": -2965547124320902197,
-          "Data4": -3646767250957032729
+          "Data1": 5136243744456882889,
+          "Data2": -2990060537602943236,
+          "Data3": 4374617800865573225,
+          "Data4": 1380673828655912068
         },
         "Kind": "Components.EventHandler",
         "Name": "ontouchstart",
@@ -10751,10 +10490,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@ontouchstart' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -10767,10 +10503,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -4479860481965089655,
-          "Data2": 1605055433364341301,
-          "Data3": 3737153764443528928,
-          "Data4": 1443847398250645090
+          "Data1": 6051232155540226990,
+          "Data2": 5518188387033090458,
+          "Data3": -3878219520712401890,
+          "Data4": 2335582364304824867
         },
         "Kind": "Components.EventHandler",
         "Name": "onvolumechange",
@@ -10830,10 +10566,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onvolumechange' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -10846,10 +10579,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 4394686212397968502,
-          "Data2": -468082332157853846,
-          "Data3": -7548567008280705318,
-          "Data4": 3092981672137733672
+          "Data1": 8941839196166018539,
+          "Data2": 8319760484722208487,
+          "Data3": -2662034442337554794,
+          "Data4": 5677464857189507887
         },
         "Kind": "Components.EventHandler",
         "Name": "onwaiting",
@@ -10909,10 +10642,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onwaiting' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {
@@ -10925,10 +10655,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 2583915821394552639,
-          "Data2": 5285183510155596301,
-          "Data3": 6196752063321211655,
-          "Data4": 2752696416318235084
+          "Data1": 4535906515541108944,
+          "Data2": 1833043456993280917,
+          "Data3": 3906376831377342489,
+          "Data4": -7717169943496455187
         },
         "Kind": "Components.EventHandler",
         "Name": "onwheel",
@@ -10988,10 +10718,7 @@
                 "TypeName": 1,
                 "Documentation": "Specifies whether to prevent further propagation of the '@onwheel' event in the capturing and bubbling phases."
               }
-            ],
-            "Metadata": {
-              "Components.IsWeaklyTyped": "True"
-            }
+            ]
           }
         ],
         "Metadata": {

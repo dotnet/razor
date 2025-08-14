@@ -189,7 +189,7 @@ internal static class SimpleTagHelpers
         {
             attribute.Name = "@onclick";
             attribute.PropertyName = "onclick";
-            attribute.SetMetadata(IsWeaklyTyped);
+            attribute.IsWeaklyTyped = true;
             attribute.IsDirectiveAttribute = true;
             attribute.TypeName = "Microsoft.AspNetCore.Components.EventCallback<Microsoft.AspNetCore.Components.Web.MouseEventArgs>";
         });

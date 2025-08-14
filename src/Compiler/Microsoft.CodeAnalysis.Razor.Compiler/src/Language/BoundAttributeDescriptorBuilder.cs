@@ -92,6 +92,12 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBui
         set => _flags.UpdateFlag(BoundAttributeFlags.IsDirectiveAttribute, value);
     }
 
+    public bool IsWeaklyTyped
+    {
+        get => _flags.IsFlagSet(BoundAttributeFlags.IsWeaklyTyped);
+        set => _flags.UpdateFlag(BoundAttributeFlags.IsWeaklyTyped, value);
+    }
+
     public string? Documentation
     {
         get => _documentationObject.GetText();

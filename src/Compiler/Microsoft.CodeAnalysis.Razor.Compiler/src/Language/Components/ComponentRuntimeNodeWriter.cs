@@ -783,7 +783,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
         static bool NeedsTypeCheck(ComponentAttributeIntermediateNode n)
         {
-            return n.BoundAttribute != null && !n.BoundAttribute.IsWeaklyTyped();
+            return n.BoundAttribute != null && !n.BoundAttribute.IsWeaklyTyped;
         }
     }
 

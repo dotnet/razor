@@ -12,5 +12,6 @@ public enum BoundAttributeFlags : byte
     HasIndexer = 1 << 1,
     IsEnum = 1 << 2,
     IsEditorRequired = 1 << 3,
-    IsDirectiveAttribute = 1 << 4
+    IsDirectiveAttribute = 1 << 4,
+    IsWeaklyTyped = 1 << 5
 }

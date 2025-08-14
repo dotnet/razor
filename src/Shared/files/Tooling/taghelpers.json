@@ -84484,10 +84484,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 358902681242794437,
-      "Data2": 6901654063808893685,
-      "Data3": 1045292908483071463,
-      "Data4": -7023288197097599785
+      "Data1": -2170001968882366088,
+      "Data2": 5990454564503784253,
+      "Data3": -3068595072675636209,
+      "Data4": -8520494978404765493
     },
     "Kind": "Components.EventHandler",
     "Name": "onfocus",
@@ -84547,10 +84547,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onfocus'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -84563,10 +84560,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 8948772079276648025,
-      "Data2": -8340154757495022681,
-      "Data3": 1310766345277660494,
-      "Data4": 5273195902079286358
+      "Data1": -146800413495163214,
+      "Data2": -7968315208783149784,
+      "Data3": 3127577248059258828,
+      "Data4": -1402718976666336759
     },
     "Kind": "Components.EventHandler",
     "Name": "onblur",
@@ -84626,10 +84623,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onblur'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -84642,10 +84636,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 4041201406749910054,
-      "Data2": 8613386830702095276,
-      "Data3": 712487219095197253,
-      "Data4": -6650640811007978163
+      "Data1": 3853843285417326693,
+      "Data2": 8019406991203416987,
+      "Data3": -1910143121347238604,
+      "Data4": -8185906814937505876
     },
     "Kind": "Components.EventHandler",
     "Name": "onfocusin",
@@ -84705,10 +84699,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onfocusin'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -84721,10 +84712,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -2935446288267885644,
-      "Data2": 3940721525272783133,
-      "Data3": 5833016732529478282,
-      "Data4": -3397377577428949135
+      "Data1": -564869252475422001,
+      "Data2": -1251768958669342485,
+      "Data3": 2775027121452772412,
+      "Data4": -5727022598012077954
     },
     "Kind": "Components.EventHandler",
     "Name": "onfocusout",
@@ -84784,10 +84775,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onfocusout'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -84800,10 +84788,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -6783880750724623000,
-      "Data2": 7427714107532161418,
-      "Data3": -4811582311411292719,
-      "Data4": -6097627061208117051
+      "Data1": 3766539279161722407,
+      "Data2": 637733505754079410,
+      "Data3": -3905575275641055295,
+      "Data4": -8227053891895389501
     },
     "Kind": "Components.EventHandler",
     "Name": "onmouseover",
@@ -84863,10 +84851,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onmouseover'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -84879,10 +84864,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 8796104948976538529,
-      "Data2": 6233424864854520713,
-      "Data3": -4473678571337886577,
-      "Data4": 1214663641887039279
+      "Data1": -8155234933104389169,
+      "Data2": -2891308397648124876,
+      "Data3": -6469095309300913855,
+      "Data4": 1570127078969082424
     },
     "Kind": "Components.EventHandler",
     "Name": "onmouseout",
@@ -84942,10 +84927,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onmouseout'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -84958,10 +84940,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 176489434654526806,
-      "Data2": -7260818149200456653,
-      "Data3": -6851054013186807955,
-      "Data4": -2388053381124266829
+      "Data1": -6350785417038028866,
+      "Data2": 1866530842471217064,
+      "Data3": 1568618888587786716,
+      "Data4": -8290642617070864003
     },
     "Kind": "Components.EventHandler",
     "Name": "onmousemove",
@@ -85021,10 +85003,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onmousemove'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -85037,10 +85016,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 3642843748089735782,
-      "Data2": 1842683924886778698,
-      "Data3": 767157770845330798,
-      "Data4": 5787410125692420891
+      "Data1": 5486579446148015164,
+      "Data2": -3827088751722440389,
+      "Data3": -4085469043413845475,
+      "Data4": -2298190432921926163
     },
     "Kind": "Components.EventHandler",
     "Name": "onmousedown",
@@ -85100,10 +85079,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onmousedown'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -85116,10 +85092,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 8879929184438031451,
-      "Data2": -6878986900818985244,
-      "Data3": 3836560869230828488,
-      "Data4": 592230470571457090
+      "Data1": 5707348353225741890,
+      "Data2": 4185637974345563654,
+      "Data3": 6135198091441316778,
+      "Data4": 8804076387122332044
     },
     "Kind": "Components.EventHandler",
     "Name": "onmouseup",
@@ -85179,10 +85155,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onmouseup'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -85195,10 +85168,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -8913956342824631818,
-      "Data2": -6316698153331223687,
-      "Data3": -4208215588342254143,
-      "Data4": -317642569618174819
+      "Data1": 6028190241113616807,
+      "Data2": -1311107870345038288,
+      "Data3": -2161637922116257377,
+      "Data4": 5175528558673277860
     },
     "Kind": "Components.EventHandler",
     "Name": "onclick",
@@ -85258,10 +85231,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onclick'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -85274,10 +85244,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -1053551911823467798,
-      "Data2": -4155573229908392505,
-      "Data3": 2492850530225609895,
-      "Data4": -7007458057137243117
+      "Data1": 6878551643040127778,
+      "Data2": -6005601906448504444,
+      "Data3": 5673894207984231171,
+      "Data4": -2227708459039848792
     },
     "Kind": "Components.EventHandler",
     "Name": "ondblclick",
@@ -85337,10 +85307,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@ondblclick'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -85353,10 +85320,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 3059014408717507285,
-      "Data2": -252790291898606836,
-      "Data3": 8822604839526146845,
-      "Data4": -5035951873434566978
+      "Data1": 6870598191416315253,
+      "Data2": 8715808741770585170,
+      "Data3": 8709394947308716597,
+      "Data4": -1909331732727208963
     },
     "Kind": "Components.EventHandler",
     "Name": "onwheel",
@@ -85416,10 +85383,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onwheel'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -85432,10 +85396,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 6998425704859391597,
-      "Data2": 8730375955151241951,
-      "Data3": 784138310809748688,
-      "Data4": -4693208264813012185
+      "Data1": 7466280046620935326,
+      "Data2": -2391891220708595916,
+      "Data3": 5754396087973906142,
+      "Data4": 9134469648546331232
     },
     "Kind": "Components.EventHandler",
     "Name": "onmousewheel",
@@ -85495,10 +85459,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onmousewheel'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -85511,10 +85472,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -3626152383763191140,
-      "Data2": 6354223387783103543,
-      "Data3": -8034122054627003448,
-      "Data4": 6765921633931209391
+      "Data1": -4233770486386650233,
+      "Data2": -6537171746052493688,
+      "Data3": 1836791820514643545,
+      "Data4": -5629747814987645956
     },
     "Kind": "Components.EventHandler",
     "Name": "oncontextmenu",
@@ -85574,10 +85535,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@oncontextmenu'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -85590,10 +85548,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -5822273871514626534,
-      "Data2": -7588993843000699785,
-      "Data3": -326565173824514001,
-      "Data4": -3401353627122251241
+      "Data1": -8079644354105582115,
+      "Data2": -1682204052325895791,
+      "Data3": -917033888127359042,
+      "Data4": 4689116974770510087
     },
     "Kind": "Components.EventHandler",
     "Name": "ondrag",
@@ -85653,10 +85611,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@ondrag'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -85669,10 +85624,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 5547191177300560188,
-      "Data2": -88843205955281701,
-      "Data3": 5715407916810499918,
-      "Data4": -2649485136166837174
+      "Data1": -2982334429706594315,
+      "Data2": 5026176356296172792,
+      "Data3": -8880309740158586670,
+      "Data4": -3768844995973708046
     },
     "Kind": "Components.EventHandler",
     "Name": "ondragend",
@@ -85732,10 +85687,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@ondragend'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -85748,10 +85700,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -5835066598418433359,
-      "Data2": 5904205535083812148,
-      "Data3": -6140136764707511321,
-      "Data4": -6792770430317318612
+      "Data1": 7006101572953431547,
+      "Data2": 2732840700260730440,
+      "Data3": 4831108314310784837,
+      "Data4": 8026587409882810696
     },
     "Kind": "Components.EventHandler",
     "Name": "ondragenter",
@@ -85811,10 +85763,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@ondragenter'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -85827,10 +85776,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -4546669521417581713,
-      "Data2": 590433571939036538,
-      "Data3": 4467745363512864125,
-      "Data4": -1297652590612055896
+      "Data1": -7016290956915926782,
+      "Data2": -7220538436486165436,
+      "Data3": 1864893588164550903,
+      "Data4": -4182644809844182332
     },
     "Kind": "Components.EventHandler",
     "Name": "ondragleave",
@@ -85890,10 +85839,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@ondragleave'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -85906,10 +85852,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 3954104075922119672,
-      "Data2": -6952575269257190440,
-      "Data3": 3125328971815557571,
-      "Data4": 4676183779702825693
+      "Data1": 2351222586171483320,
+      "Data2": -3029510308008124673,
+      "Data3": -263849069701817459,
+      "Data4": -4702391379722193101
     },
     "Kind": "Components.EventHandler",
     "Name": "ondragover",
@@ -85969,10 +85915,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@ondragover'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -85985,10 +85928,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -3863457092888437677,
-      "Data2": 2307936959887973924,
-      "Data3": 5554001601211027613,
-      "Data4": -421559201683007175
+      "Data1": 124687674117042630,
+      "Data2": 3384157552406885406,
+      "Data3": 5685642080938509133,
+      "Data4": -4892342076007539749
     },
     "Kind": "Components.EventHandler",
     "Name": "ondragstart",
@@ -86048,10 +85991,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@ondragstart'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -86064,10 +86004,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 5080070365233556997,
-      "Data2": -3099848371313469755,
-      "Data3": -5596071467727288473,
-      "Data4": 3808955020999569057
+      "Data1": -5072010942972034386,
+      "Data2": -3192303784688518987,
+      "Data3": -1425336652450708569,
+      "Data4": -7749366117923241985
     },
     "Kind": "Components.EventHandler",
     "Name": "ondrop",
@@ -86127,10 +86067,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@ondrop'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -86143,10 +86080,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 1138152568534714421,
-      "Data2": 1754260958194017608,
-      "Data3": -2094883398765407916,
-      "Data4": -3500079181000369897
+      "Data1": 4521015371531302535,
+      "Data2": -5207781046139600900,
+      "Data3": -6961072601448696610,
+      "Data4": 1477473989589810666
     },
     "Kind": "Components.EventHandler",
     "Name": "onkeydown",
@@ -86206,10 +86143,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onkeydown'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -86222,10 +86156,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 6244589059462259361,
-      "Data2": -8555964860187817412,
-      "Data3": -7300202693180136200,
-      "Data4": 5144783433567765839
+      "Data1": 6899714807587356179,
+      "Data2": -7390378784115162624,
+      "Data3": 120905413588172461,
+      "Data4": -5588314063964005026
     },
     "Kind": "Components.EventHandler",
     "Name": "onkeyup",
@@ -86285,10 +86219,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onkeyup'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -86301,10 +86232,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 6019325190317233366,
-      "Data2": -4704075573930148698,
-      "Data3": 7098164895322434067,
-      "Data4": -869785757789777872
+      "Data1": -1638960700132568083,
+      "Data2": -1329746501631121245,
+      "Data3": -933030525164788849,
+      "Data4": 3652544324210620292
     },
     "Kind": "Components.EventHandler",
     "Name": "onkeypress",
@@ -86364,10 +86295,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onkeypress'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -86380,10 +86308,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 145942329645092451,
-      "Data2": -1735882216200507428,
-      "Data3": -7164382404515729359,
-      "Data4": -256292478928903060
+      "Data1": -8684137785781073573,
+      "Data2": -6210812465778088780,
+      "Data3": -3355508275731214310,
+      "Data4": -5770391874025933127
     },
     "Kind": "Components.EventHandler",
     "Name": "onchange",
@@ -86443,10 +86371,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onchange'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -86459,10 +86384,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -7257734115418297404,
-      "Data2": 1498649682349490505,
-      "Data3": -2430833565319757524,
-      "Data4": 6566336034893586961
+      "Data1": 7681099791068800953,
+      "Data2": 3879191748350876202,
+      "Data3": -6089933308406627188,
+      "Data4": 667797274775427258
     },
     "Kind": "Components.EventHandler",
     "Name": "oninput",
@@ -86522,10 +86447,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@oninput'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -86538,10 +86460,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 5863548138328887039,
-      "Data2": 5077836949224725779,
-      "Data3": 8794443599200948394,
-      "Data4": -7482150129521990027
+      "Data1": 736094438406529483,
+      "Data2": 2680830006017643491,
+      "Data3": -681236879733025774,
+      "Data4": 128819670664103295
     },
     "Kind": "Components.EventHandler",
     "Name": "oninvalid",
@@ -86601,10 +86523,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@oninvalid'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -86617,10 +86536,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -7848028907408340,
-      "Data2": -545782237323277419,
-      "Data3": 361088245698137799,
-      "Data4": 2528306584806319078
+      "Data1": 7223341975498576063,
+      "Data2": 3122346338013568021,
+      "Data3": -2634762835657181072,
+      "Data4": 2296012749741176034
     },
     "Kind": "Components.EventHandler",
     "Name": "onreset",
@@ -86680,10 +86599,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onreset'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -86696,10 +86612,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -2223826626167832108,
-      "Data2": -1616410097893200387,
-      "Data3": -382653645793307945,
-      "Data4": -6980405277949498126
+      "Data1": -4218509741539197156,
+      "Data2": -5188064467766270917,
+      "Data3": -8763398342211991058,
+      "Data4": -1516832142747750363
     },
     "Kind": "Components.EventHandler",
     "Name": "onselect",
@@ -86759,10 +86675,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onselect'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -86775,10 +86688,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -4805122479387408179,
-      "Data2": -5411675434256387383,
-      "Data3": 3381186727428083763,
-      "Data4": 8036398228674154675
+      "Data1": 8576164260648015225,
+      "Data2": 4628907801331262069,
+      "Data3": 6956159677877314116,
+      "Data4": -4929408012559069302
     },
     "Kind": "Components.EventHandler",
     "Name": "onselectstart",
@@ -86838,10 +86751,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onselectstart'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -86854,10 +86764,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -989993342287499416,
-      "Data2": -823459809372182506,
-      "Data3": 2650459864855929175,
-      "Data4": -6189061420977709666
+      "Data1": 6899995813188353569,
+      "Data2": 2437754264715866304,
+      "Data3": -6289686745739550670,
+      "Data4": 3311555051682099286
     },
     "Kind": "Components.EventHandler",
     "Name": "onselectionchange",
@@ -86917,10 +86827,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onselectionchange'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -86933,10 +86840,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -4920905547728259011,
-      "Data2": -2630638336668561644,
-      "Data3": 7196992485824638955,
-      "Data4": -7648592186211803520
+      "Data1": -2165264274482983589,
+      "Data2": -1472338489803497112,
+      "Data3": -3769331816458499794,
+      "Data4": -1843943844063323257
     },
     "Kind": "Components.EventHandler",
     "Name": "onsubmit",
@@ -86996,10 +86903,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onsubmit'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -87012,10 +86916,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -9121881059537756445,
-      "Data2": 1541015828603916998,
-      "Data3": 1909063172151231021,
-      "Data4": -3732348228498795098
+      "Data1": -4474939042899649599,
+      "Data2": -1642456614916770064,
+      "Data3": -6647660722664495620,
+      "Data4": 3895462630837932797
     },
     "Kind": "Components.EventHandler",
     "Name": "onbeforecopy",
@@ -87075,10 +86979,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onbeforecopy'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -87091,10 +86992,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 2060549909003443005,
-      "Data2": -7315942565497346456,
-      "Data3": 8921186243378189676,
-      "Data4": -7887872820220977239
+      "Data1": 4781831916614436976,
+      "Data2": -6408569376771554504,
+      "Data3": -5629914647714106527,
+      "Data4": -362270391394034247
     },
     "Kind": "Components.EventHandler",
     "Name": "onbeforecut",
@@ -87154,10 +87055,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onbeforecut'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -87170,10 +87068,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -116628026136135380,
-      "Data2": -866534704550208565,
-      "Data3": -4914044173419106001,
-      "Data4": -4502607903484259799
+      "Data1": -2504300565006845929,
+      "Data2": -157039986462360734,
+      "Data3": -1227646462005033518,
+      "Data4": 6980975392420700745
     },
     "Kind": "Components.EventHandler",
     "Name": "onbeforepaste",
@@ -87233,10 +87131,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onbeforepaste'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -87249,10 +87144,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 2598648547931141422,
-      "Data2": -701998163296452915,
-      "Data3": 2293797639596168786,
-      "Data4": -98713667544561858
+      "Data1": 528571253091532477,
+      "Data2": -1518283097180489720,
+      "Data3": -536155655103696300,
+      "Data4": 8449295724944996734
     },
     "Kind": "Components.EventHandler",
     "Name": "oncopy",
@@ -87312,10 +87207,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@oncopy'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -87328,10 +87220,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 1486775146056912804,
-      "Data2": 8963544735452891518,
-      "Data3": -9188144009139506166,
-      "Data4": -7479287885898731036
+      "Data1": 7859828926016149268,
+      "Data2": -7884588148355055765,
+      "Data3": 1184072199404300061,
+      "Data4": -4581515704954530615
     },
     "Kind": "Components.EventHandler",
     "Name": "oncut",
@@ -87391,10 +87283,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@oncut'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -87407,10 +87296,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 7404549780473669409,
-      "Data2": -5129934734439796006,
-      "Data3": 393165207046606778,
-      "Data4": -3059174883711926402
+      "Data1": -1820364389167449657,
+      "Data2": -7255987101434907377,
+      "Data3": 7150930579285176767,
+      "Data4": -8983656783719336858
     },
     "Kind": "Components.EventHandler",
     "Name": "onpaste",
@@ -87470,10 +87359,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onpaste'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -87486,10 +87372,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 113895754247547789,
-      "Data2": 6009254311819309455,
-      "Data3": 1256559844579964951,
-      "Data4": -1390058117528677866
+      "Data1": -596440120416731059,
+      "Data2": 3827532385603365626,
+      "Data3": -5579184721503097396,
+      "Data4": 8195918173874068056
     },
     "Kind": "Components.EventHandler",
     "Name": "ontouchcancel",
@@ -87549,10 +87435,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@ontouchcancel'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -87565,10 +87448,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 4206350237403484783,
-      "Data2": -1863577054467666477,
-      "Data3": -2164845440322707122,
-      "Data4": -3332127240543781693
+      "Data1": -1602511248375601249,
+      "Data2": 2417400614900497124,
+      "Data3": 2592668827448081741,
+      "Data4": 312188115513416219
     },
     "Kind": "Components.EventHandler",
     "Name": "ontouchend",
@@ -87628,10 +87511,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@ontouchend'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -87644,10 +87524,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -3731082621756706215,
-      "Data2": -1503823579645828441,
-      "Data3": -612817709668306038,
-      "Data4": 4887745475115438929
+      "Data1": 4511006129286194430,
+      "Data2": -1395373603402215475,
+      "Data3": 9119036377210258861,
+      "Data4": 7280187124833192520
     },
     "Kind": "Components.EventHandler",
     "Name": "ontouchmove",
@@ -87707,10 +87587,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@ontouchmove'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -87723,10 +87600,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 4436489840649428729,
-      "Data2": -1972318213758256499,
-      "Data3": 7533197956804683986,
-      "Data4": -378496002935278196
+      "Data1": -979394528667863202,
+      "Data2": -3614866700624530166,
+      "Data3": 4071016624160010657,
+      "Data4": 6013672886129211798
     },
     "Kind": "Components.EventHandler",
     "Name": "ontouchstart",
@@ -87786,10 +87663,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@ontouchstart'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -87802,10 +87676,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 141413601598119613,
-      "Data2": 2831773886986110360,
-      "Data3": 2521949621947325686,
-      "Data4": -1810933986521325210
+      "Data1": -3411260189239007163,
+      "Data2": -5909283622674530883,
+      "Data3": 5257523874891034387,
+      "Data4": -6052257106973854186
     },
     "Kind": "Components.EventHandler",
     "Name": "ontouchenter",
@@ -87865,10 +87739,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@ontouchenter'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -87881,10 +87752,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 7762362158526612006,
-      "Data2": -8426907475849292121,
-      "Data3": 3146607606570298062,
-      "Data4": -4795448348999403105
+      "Data1": -7194954926994493273,
+      "Data2": -8066498358015836675,
+      "Data3": 263804780150966542,
+      "Data4": -5962604475941325465
     },
     "Kind": "Components.EventHandler",
     "Name": "ontouchleave",
@@ -87944,10 +87815,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@ontouchleave'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -87960,10 +87828,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -7031821998583611878,
-      "Data2": -5475322278216980787,
-      "Data3": 8134008325544269862,
-      "Data4": -1982155560377660685
+      "Data1": -3765849472126220395,
+      "Data2": -8217564581233492728,
+      "Data3": -2493382631359657980,
+      "Data4": -499488983047130721
     },
     "Kind": "Components.EventHandler",
     "Name": "ongotpointercapture",
@@ -88023,10 +87891,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@ongotpointercapture'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -88039,10 +87904,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 4232010147290604430,
-      "Data2": 3507670858778084870,
-      "Data3": 6077861764451128388,
-      "Data4": 4632051403481264730
+      "Data1": 3679139572711348712,
+      "Data2": 3718097737465734175,
+      "Data3": 1665419192376876313,
+      "Data4": 5118621110001794726
     },
     "Kind": "Components.EventHandler",
     "Name": "onlostpointercapture",
@@ -88102,10 +87967,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onlostpointercapture'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -88118,10 +87980,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 4408455256715681596,
-      "Data2": 1908387627555376099,
-      "Data3": 8759778614601190674,
-      "Data4": 3414513807567059675
+      "Data1": -7315398187879282357,
+      "Data2": -7821475454279795206,
+      "Data3": -3697282184190970677,
+      "Data4": -890180183445060908
     },
     "Kind": "Components.EventHandler",
     "Name": "onpointercancel",
@@ -88181,10 +88043,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onpointercancel'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -88197,10 +88056,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -5996628303040831191,
-      "Data2": -8672806376067692020,
-      "Data3": 2449408385485411063,
-      "Data4": -8968385863738261737
+      "Data1": -7596442691901320136,
+      "Data2": -7158159755317779031,
+      "Data3": -3056468897221666798,
+      "Data4": 3814256754126365918
     },
     "Kind": "Components.EventHandler",
     "Name": "onpointerdown",
@@ -88260,10 +88119,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onpointerdown'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -88276,10 +88132,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 1852652877964895098,
-      "Data2": 8745314566114631489,
-      "Data3": -6186394797912791816,
-      "Data4": 7071549862422779632
+      "Data1": 1123265019406834059,
+      "Data2": -144029097742489416,
+      "Data3": 2694334800320072654,
+      "Data4": -2199549125350334875
     },
     "Kind": "Components.EventHandler",
     "Name": "onpointerenter",
@@ -88339,10 +88195,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onpointerenter'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -88355,10 +88208,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -7080489279377821040,
-      "Data2": 3034100454953251288,
-      "Data3": -5974025032874020333,
-      "Data4": -9009712944006887889
+      "Data1": 9196988498314108261,
+      "Data2": 76087688058077043,
+      "Data3": 1611611237890297582,
+      "Data4": -1131265050860668400
     },
     "Kind": "Components.EventHandler",
     "Name": "onpointerleave",
@@ -88418,10 +88271,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onpointerleave'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -88434,10 +88284,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -588924155732456115,
-      "Data2": 5206831938188375288,
-      "Data3": 1678952383383961246,
-      "Data4": 728082742779931067
+      "Data1": 7687065905554953732,
+      "Data2": -2614296557030606187,
+      "Data3": 2377326519026341764,
+      "Data4": -4996498382012333180
     },
     "Kind": "Components.EventHandler",
     "Name": "onpointermove",
@@ -88497,10 +88347,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onpointermove'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -88513,10 +88360,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -1931272109210016968,
-      "Data2": 6915634826491580690,
-      "Data3": 4442807106376871060,
-      "Data4": 8517140269147589973
+      "Data1": 1531986870289731337,
+      "Data2": -964010529517061782,
+      "Data3": 4556404809271501689,
+      "Data4": 1894376389844688037
     },
     "Kind": "Components.EventHandler",
     "Name": "onpointerout",
@@ -88576,10 +88423,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onpointerout'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -88592,10 +88436,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -5311903508614557091,
-      "Data2": -4216603455802327366,
-      "Data3": -91893283120598925,
-      "Data4": 1525687365349369109
+      "Data1": -2742857555407313465,
+      "Data2": -874865377425578510,
+      "Data3": 7838167580616670960,
+      "Data4": -1384863684485410969
     },
     "Kind": "Components.EventHandler",
     "Name": "onpointerover",
@@ -88655,10 +88499,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onpointerover'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -88671,10 +88512,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -7898226884506819965,
-      "Data2": -2270749794576273359,
-      "Data3": -8089314359345239362,
-      "Data4": 2725476373363921664
+      "Data1": 3895344004933766882,
+      "Data2": -4740732422088113946,
+      "Data3": -1238178168285202990,
+      "Data4": 973399866962636318
     },
     "Kind": "Components.EventHandler",
     "Name": "onpointerup",
@@ -88734,10 +88575,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onpointerup'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -88750,10 +88588,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -5794226903012545077,
-      "Data2": 8712665531199443028,
-      "Data3": 3944227532330232856,
-      "Data4": 645140369574098084
+      "Data1": -2351065300909379085,
+      "Data2": -6712778583464733726,
+      "Data3": 556390466025934900,
+      "Data4": -7304295144344450628
     },
     "Kind": "Components.EventHandler",
     "Name": "oncanplay",
@@ -88813,10 +88651,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@oncanplay'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -88829,10 +88664,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 4416039883767190401,
-      "Data2": 6199057028055714352,
-      "Data3": -4243796773542459439,
-      "Data4": -2594523937583534514
+      "Data1": 3259994407680507960,
+      "Data2": -424177030342017912,
+      "Data3": 2555156578237138733,
+      "Data4": 5431825425017028004
     },
     "Kind": "Components.EventHandler",
     "Name": "oncanplaythrough",
@@ -88892,10 +88727,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@oncanplaythrough'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -88908,10 +88740,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -7779675268599055254,
-      "Data2": 6899389498828306857,
-      "Data3": -8982845056985409227,
-      "Data4": -1256129159005605956
+      "Data1": 3700582325973641623,
+      "Data2": -3587778958795557199,
+      "Data3": -941469738583073468,
+      "Data4": -8363462092433341343
     },
     "Kind": "Components.EventHandler",
     "Name": "oncuechange",
@@ -88971,10 +88803,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@oncuechange'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -88987,10 +88816,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 2446855797495884238,
-      "Data2": 371767141004737197,
-      "Data3": -6280310754679056561,
-      "Data4": 6304557978050932202
+      "Data1": 336356078934678230,
+      "Data2": -6256204195647431082,
+      "Data3": 8888905209779815180,
+      "Data4": 5683855834261787548
     },
     "Kind": "Components.EventHandler",
     "Name": "ondurationchange",
@@ -89050,10 +88879,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@ondurationchange'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -89066,10 +88892,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -4138324372371753131,
-      "Data2": 7396724399854124156,
-      "Data3": -9219016865099306673,
-      "Data4": -8648356586964720303
+      "Data1": 2341134575521188692,
+      "Data2": 5620876518819028696,
+      "Data3": 6853874390536828261,
+      "Data4": 2361604305516180992
     },
     "Kind": "Components.EventHandler",
     "Name": "onemptied",
@@ -89129,10 +88955,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onemptied'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -89145,10 +88968,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 2848735198074839817,
-      "Data2": -1066665690504751566,
-      "Data3": 4391161311173267423,
-      "Data4": 5133660375670242516
+      "Data1": 3354470015647906493,
+      "Data2": 8323411053445903863,
+      "Data3": -7339970667697659268,
+      "Data4": 4925978425658477235
     },
     "Kind": "Components.EventHandler",
     "Name": "onpause",
@@ -89208,10 +89031,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onpause'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -89224,10 +89044,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 5787716456903505258,
-      "Data2": -8815778468698332098,
-      "Data3": 1313014195993615369,
-      "Data4": -8081923890174472740
+      "Data1": 8571105334732845606,
+      "Data2": -8470228959483691976,
+      "Data3": 6387403583064193961,
+      "Data4": -8882021506127986802
     },
     "Kind": "Components.EventHandler",
     "Name": "onplay",
@@ -89287,10 +89107,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onplay'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -89303,10 +89120,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 3915007370991336641,
-      "Data2": -2813431924455982621,
-      "Data3": -8576976560096213679,
-      "Data4": 8472734613568922539
+      "Data1": 2016997823061818731,
+      "Data2": 4050218542656736750,
+      "Data3": 1383596491968635944,
+      "Data4": 2512129837784043193
     },
     "Kind": "Components.EventHandler",
     "Name": "onplaying",
@@ -89366,10 +89183,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onplaying'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -89382,10 +89196,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 3295756649174417548,
-      "Data2": 6216006422964282059,
-      "Data3": -2692794589455672015,
-      "Data4": -3759653613017377468
+      "Data1": 374706936930354202,
+      "Data2": 2594110600903957216,
+      "Data3": 4354010576503528178,
+      "Data4": -4628704390392268458
     },
     "Kind": "Components.EventHandler",
     "Name": "onratechange",
@@ -89445,10 +89259,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onratechange'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -89461,10 +89272,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 241919398731918089,
-      "Data2": -7819019545601840929,
-      "Data3": -5745943513686468448,
-      "Data4": 1261559299473757113
+      "Data1": -7612266011090450373,
+      "Data2": 1848234881247987958,
+      "Data3": 6879129834948872466,
+      "Data4": -6383810182333957797
     },
     "Kind": "Components.EventHandler",
     "Name": "onseeked",
@@ -89524,10 +89335,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onseeked'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -89540,10 +89348,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -4401094786152940605,
-      "Data2": 4187925728262425128,
-      "Data3": 7758311876798323266,
-      "Data4": 4054961046183558649
+      "Data1": -8719545948532088089,
+      "Data2": 8864586269331364845,
+      "Data3": 8587749453786691576,
+      "Data4": 3421680310937094558
     },
     "Kind": "Components.EventHandler",
     "Name": "onseeking",
@@ -89603,10 +89411,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onseeking'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -89619,10 +89424,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -4205032426419146241,
-      "Data2": -2320984957665106246,
-      "Data3": -5883327204957131449,
-      "Data4": 8175494763153321554
+      "Data1": 4994656982649474803,
+      "Data2": 8727083097189791672,
+      "Data3": 1170291885213989816,
+      "Data4": 4722953235765219203
     },
     "Kind": "Components.EventHandler",
     "Name": "onstalled",
@@ -89682,10 +89487,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onstalled'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -89698,10 +89500,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -1253456720274823041,
-      "Data2": 2696058123985705851,
-      "Data3": 597695990615488011,
-      "Data4": -1810686384069450470
+      "Data1": 5127966978567740367,
+      "Data2": 3431842714472051984,
+      "Data3": -4043571971600865283,
+      "Data4": -1692144282895228527
     },
     "Kind": "Components.EventHandler",
     "Name": "onstop",
@@ -89761,10 +89563,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onstop'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -89777,10 +89576,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -2470609532815630611,
-      "Data2": -3325008251972398078,
-      "Data3": 6702891507853956858,
-      "Data4": 4016612882773988117
+      "Data1": -845157457823133730,
+      "Data2": -7401312832611542028,
+      "Data3": -7825792029310603869,
+      "Data4": 4745880938699922830
     },
     "Kind": "Components.EventHandler",
     "Name": "onsuspend",
@@ -89840,10 +89639,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onsuspend'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -89856,10 +89652,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -5840340182111048617,
-      "Data2": 6877533067993607721,
-      "Data3": -2401987708166275837,
-      "Data4": 7006284849309033609
+      "Data1": -2892777165213803210,
+      "Data2": 473107881050924795,
+      "Data3": -8647481684906679794,
+      "Data4": 7612504967065453166
     },
     "Kind": "Components.EventHandler",
     "Name": "ontimeupdate",
@@ -89919,10 +89715,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@ontimeupdate'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -89935,10 +89728,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -4562896162577587916,
-      "Data2": 5238492974003728026,
-      "Data3": 6428292639469444096,
-      "Data4": -2599068437422367887
+      "Data1": -6939251074518097479,
+      "Data2": -2557663983623589971,
+      "Data3": -4068063198529023232,
+      "Data4": 6219644670790853736
     },
     "Kind": "Components.EventHandler",
     "Name": "onvolumechange",
@@ -89998,10 +89791,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onvolumechange'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -90014,10 +89804,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -2813267017450072237,
-      "Data2": -7410061789846598644,
-      "Data3": -4446960099911576984,
-      "Data4": -9059548535005168557
+      "Data1": -906872284504578639,
+      "Data2": 2527949616988355722,
+      "Data3": 4721972712316716611,
+      "Data4": -9184829139857425477
     },
     "Kind": "Components.EventHandler",
     "Name": "onwaiting",
@@ -90077,10 +89867,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onwaiting'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -90093,10 +89880,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 5338054495866901789,
-      "Data2": 6216522885181981994,
-      "Data3": -2832620704662930762,
-      "Data4": 2335284867870406722
+      "Data1": 4825950140697943292,
+      "Data2": 1679477986987909926,
+      "Data3": -9127544931788066345,
+      "Data4": -6288955933980659787
     },
     "Kind": "Components.EventHandler",
     "Name": "onloadstart",
@@ -90156,10 +89943,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onloadstart'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -90172,10 +89956,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -1246273950988877761,
-      "Data2": -9173960413222681502,
-      "Data3": -3986646429470672523,
-      "Data4": 5589449293296696421
+      "Data1": -2052249570947768160,
+      "Data2": 5836444728349456560,
+      "Data3": -4046636909063457028,
+      "Data4": -535774111281847742
     },
     "Kind": "Components.EventHandler",
     "Name": "ontimeout",
@@ -90235,10 +90019,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@ontimeout'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -90251,10 +90032,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 8749019682955772559,
-      "Data2": -2636031088134733806,
-      "Data3": 6168694037383259334,
-      "Data4": 8214851281691428504
+      "Data1": -3320410272359089585,
+      "Data2": -9203765070020741953,
+      "Data3": -282059899674276435,
+      "Data4": -1022191757656588625
     },
     "Kind": "Components.EventHandler",
     "Name": "onabort",
@@ -90314,10 +90095,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onabort'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -90330,10 +90108,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 216336059318104034,
-      "Data2": 7094143298459435492,
-      "Data3": 6225375703026866495,
-      "Data4": -46674799192137111
+      "Data1": -7134915997777528951,
+      "Data2": -6279353750170268719,
+      "Data3": -2013767076213012539,
+      "Data4": 4318580106442270919
     },
     "Kind": "Components.EventHandler",
     "Name": "onload",
@@ -90393,10 +90171,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onload'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -90409,10 +90184,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 879969287967095272,
-      "Data2": 3514196021630059635,
-      "Data3": -7613025702747466625,
-      "Data4": 6577945921170241705
+      "Data1": 9170361715001517968,
+      "Data2": -5041685216064942241,
+      "Data3": 6405220860324230208,
+      "Data4": 8649535368056407347
     },
     "Kind": "Components.EventHandler",
     "Name": "onloadend",
@@ -90472,10 +90247,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onloadend'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -90488,10 +90260,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 2301240156059719723,
-      "Data2": -9093906898661804623,
-      "Data3": 7026025902224534435,
-      "Data4": -1346402869142202324
+      "Data1": 4795573963779031389,
+      "Data2": 3965445357195538564,
+      "Data3": 4721667584807161287,
+      "Data4": -1186983081612531931
     },
     "Kind": "Components.EventHandler",
     "Name": "onprogress",
@@ -90551,10 +90323,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onprogress'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -90567,10 +90336,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -3967052558509342230,
-      "Data2": 4270246127956595740,
-      "Data3": -6238286210567332318,
-      "Data4": -2518770068349573611
+      "Data1": 4818062742073637775,
+      "Data2": -5925369477704076672,
+      "Data3": 777394318032680700,
+      "Data4": 4075723318421473736
     },
     "Kind": "Components.EventHandler",
     "Name": "onerror",
@@ -90630,10 +90399,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onerror'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -90646,10 +90412,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 7735558059397411865,
-      "Data2": 2812720557790158555,
-      "Data3": -7543145967410739327,
-      "Data4": 9004185758423555021
+      "Data1": -6701470407786592761,
+      "Data2": 4236657527907989374,
+      "Data3": 7057527851763593880,
+      "Data4": -6091555683988312871
     },
     "Kind": "Components.EventHandler",
     "Name": "onactivate",
@@ -90709,10 +90475,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onactivate'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -90725,10 +90488,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 2603039201102364472,
-      "Data2": 8479688425446324176,
-      "Data3": 5616257448795554281,
-      "Data4": 1446479301583396335
+      "Data1": -6412255027791037187,
+      "Data2": 1882438422099503305,
+      "Data3": -1798530657432616424,
+      "Data4": -5260942710168798353
     },
     "Kind": "Components.EventHandler",
     "Name": "onbeforeactivate",
@@ -90788,10 +90551,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onbeforeactivate'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -90804,10 +90564,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 2067574579277427628,
-      "Data2": 7931788351629198537,
-      "Data3": 1410937885099440271,
-      "Data4": 6516696371969141536
+      "Data1": -8935510868451716885,
+      "Data2": -6533699407243954002,
+      "Data3": -141907904015042425,
+      "Data4": -6682397500814009793
     },
     "Kind": "Components.EventHandler",
     "Name": "onbeforedeactivate",
@@ -90867,10 +90627,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onbeforedeactivate'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -90883,10 +90640,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 4526571343231256211,
-      "Data2": -584386778847990006,
-      "Data3": -452373545641916156,
-      "Data4": 4665367503843998271
+      "Data1": 4649784858327050498,
+      "Data2": -5785501810006594664,
+      "Data3": 7987703646465548533,
+      "Data4": 5414879053755707137
     },
     "Kind": "Components.EventHandler",
     "Name": "ondeactivate",
@@ -90946,10 +90703,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@ondeactivate'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -90962,10 +90716,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 5172650300888587704,
-      "Data2": 49258386472161669,
-      "Data3": 5598689810538914481,
-      "Data4": -7693386722047223735
+      "Data1": -4119426648069380785,
+      "Data2": -2155979664904119950,
+      "Data3": -7994590979589457844,
+      "Data4": 5649332931184506069
     },
     "Kind": "Components.EventHandler",
     "Name": "onended",
@@ -91025,10 +90779,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onended'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -91041,10 +90792,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 3051739835774937356,
-      "Data2": 6045769888875016171,
-      "Data3": -6202439900658246476,
-      "Data4": 375002350025439504
+      "Data1": 6370306947813849720,
+      "Data2": 5548034787430995513,
+      "Data3": 5172265338965597335,
+      "Data4": -981565667401951310
     },
     "Kind": "Components.EventHandler",
     "Name": "onfullscreenchange",
@@ -91104,10 +90855,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onfullscreenchange'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -91120,10 +90868,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -6519859847498722988,
-      "Data2": 2847058080621014386,
-      "Data3": -5902975383704107325,
-      "Data4": -3719880577085527640
+      "Data1": 7837955388798638631,
+      "Data2": -6523695747124552350,
+      "Data3": 3307754089759407002,
+      "Data4": -3530785937664032206
     },
     "Kind": "Components.EventHandler",
     "Name": "onfullscreenerror",
@@ -91183,10 +90931,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onfullscreenerror'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -91199,10 +90944,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -2495788936144182498,
-      "Data2": -6681185282245085146,
-      "Data3": 8778168805840985346,
-      "Data4": -577521529138997373
+      "Data1": -5392155566560881603,
+      "Data2": -768580067314002362,
+      "Data3": 4934491889803411043,
+      "Data4": 59673085495199574
     },
     "Kind": "Components.EventHandler",
     "Name": "onloadeddata",
@@ -91262,10 +91007,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onloadeddata'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -91278,10 +91020,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -3573432904576332070,
-      "Data2": 5424939212418105932,
-      "Data3": 1353430714900493262,
-      "Data4": 1615299343505335266
+      "Data1": 6850334297322073979,
+      "Data2": 2532906963123087073,
+      "Data3": -7093697941724231640,
+      "Data4": -7483968341447671345
     },
     "Kind": "Components.EventHandler",
     "Name": "onloadedmetadata",
@@ -91341,10 +91083,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onloadedmetadata'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -91357,10 +91096,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 7397073093583852438,
-      "Data2": -3400331916650038608,
-      "Data3": -4910367339029166613,
-      "Data4": -6312500783342472007
+      "Data1": 7475832060859075001,
+      "Data2": 3768420249876355256,
+      "Data3": -6050734749063535982,
+      "Data4": -2059122830328791588
     },
     "Kind": "Components.EventHandler",
     "Name": "onpointerlockchange",
@@ -91420,10 +91159,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onpointerlockchange'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -91436,10 +91172,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -6066583886739701002,
-      "Data2": -8328163492449774056,
-      "Data3": -4764603834594671495,
-      "Data4": 5587316463742531042
+      "Data1": -5419142295005704746,
+      "Data2": -7693157028566630991,
+      "Data3": 6085473126016909239,
+      "Data4": -4945748202323125127
     },
     "Kind": "Components.EventHandler",
     "Name": "onpointerlockerror",
@@ -91499,10 +91235,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onpointerlockerror'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -91515,10 +91248,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 3970709925225250092,
-      "Data2": 2843574348594578785,
-      "Data3": 3286276952492315632,
-      "Data4": -5884729290273810171
+      "Data1": 6730590354359342127,
+      "Data2": -2320665986288384339,
+      "Data3": 3561803299763084982,
+      "Data4": -5022225766926630645
     },
     "Kind": "Components.EventHandler",
     "Name": "onreadystatechange",
@@ -91578,10 +91311,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onreadystatechange'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -91594,10 +91324,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 4854146957787833942,
-      "Data2": -6959923843991930276,
-      "Data3": 6916306691018551375,
-      "Data4": 7552118412530447269
+      "Data1": -411760920304416658,
+      "Data2": 5419293320668657821,
+      "Data3": 8449435281865504301,
+      "Data4": 1485649751829470069
     },
     "Kind": "Components.EventHandler",
     "Name": "onscroll",
@@ -91657,10 +91387,7 @@
             "TypeName": 1,
             "Documentation": "Specifieswhethertopreventfurtherpropagationofthe'@onscroll'eventinthecapturingandbubblingphases."
           }
-        ],
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        ]
       }
     ],
     "Metadata": {
@@ -91673,10 +91400,10 @@
   },
   {
     "__Checksum": {
-      "Data1": 1195487408280336790,
-      "Data2": 3843609142633744189,
-      "Data3": -1158396766819720871,
-      "Data4": -7374140735843463879
+      "Data1": 132201730822022476,
+      "Data2": -282616607763063373,
+      "Data3": -5021176585656206776,
+      "Data4": 7069331339986460817
     },
     "Kind": "Components.EventHandler",
     "Name": "onmouseenter",
@@ -91702,10 +91429,7 @@
         "PropertyName": "onmouseenter",
         "TypeName": "Microsoft.AspNetCore.Components.EventCallback<System.EventArgs>",
         "DisplayName": "Microsoft.AspNetCore.Components.EventCallback<System.EventArgs> Telerik.Blazor.Common.EventHandlers.onmouseenter",
-        "Documentation": "Setsthe'@onmouseenter'attributetotheprovidedstringordelegatevalue.Adelegatevalueshouldbeoftype'System.EventArgs'.",
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        "Documentation": "Setsthe'@onmouseenter'attributetotheprovidedstringordelegatevalue.Adelegatevalueshouldbeoftype'System.EventArgs'."
       }
     ],
     "Metadata": {
@@ -91718,10 +91442,10 @@
   },
   {
     "__Checksum": {
-      "Data1": -3841403744595820825,
-      "Data2": 1458314085741754895,
-      "Data3": -1780872225589027285,
-      "Data4": -3269118836204612035
+      "Data1": 385305432700870356,
+      "Data2": 4085370907851589113,
+      "Data3": 7349597786877109758,
+      "Data4": -5894714347291405807
     },
     "Kind": "Components.EventHandler",
     "Name": "onmouseleave",
@@ -91747,10 +91471,7 @@
         "PropertyName": "onmouseleave",
         "TypeName": "Microsoft.AspNetCore.Components.EventCallback<System.EventArgs>",
         "DisplayName": "Microsoft.AspNetCore.Components.EventCallback<System.EventArgs> Telerik.Blazor.Common.EventHandlers.onmouseleave",
-        "Documentation": "Setsthe'@onmouseleave'attributetotheprovidedstringordelegatevalue.Adelegatevalueshouldbeoftype'System.EventArgs'.",
-        "Metadata": {
-          "Components.IsWeaklyTyped": "True"
-        }
+        "Documentation": "Setsthe'@onmouseleave'attributetotheprovidedstringordelegatevalue.Adelegatevalueshouldbeoftype'System.EventArgs'."
       }
     ],
     "Metadata": {

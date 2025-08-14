@@ -99,10 +99,7 @@ public class EventHandlerTagHelperDescriptorProviderTest : TagHelperDescriptorPr
         Assert.False(attribute.IsIndexerStringProperty);
         Assert.True(attribute.IsDirectiveAttribute);
         Assert.Equal("onclick", attribute.PropertyName);
-
-        Assert.Collection(
-            attribute.Metadata.OrderBy(kvp => kvp.Key),
-            kvp => Assert.Equal(kvp, new KeyValuePair<string, string?>(ComponentMetadata.Component.WeaklyTypedKey, bool.TrueString)));
+        Assert.True(attribute.IsWeaklyTyped);
 
         Assert.Equal(
             "Sets the '@onclick' attribute to the provided string or delegate value. " +
@@ -239,10 +236,7 @@ public class EventHandlerTagHelperDescriptorProviderTest : TagHelperDescriptorPr
         Assert.False(attribute.IsIndexerStringProperty);
         Assert.True(attribute.IsDirectiveAttribute);
         Assert.Equal("onclick", attribute.PropertyName);
-
-        Assert.Collection(
-            attribute.Metadata.OrderBy(kvp => kvp.Key),
-            kvp => Assert.Equal(kvp, new KeyValuePair<string, string?>(ComponentMetadata.Component.WeaklyTypedKey, bool.TrueString)));
+        Assert.True(attribute.IsWeaklyTyped);
 
         Assert.Equal(
             "Sets the '@onclick' attribute to the provided string or delegate value. " +
