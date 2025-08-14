@@ -56,8 +56,7 @@ public class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOutputHelpe
             {
                 public void IJustMetYou()
                 {
-                    // Roslyn doesn't report CS0103 in misc files
-                    CallMeMaybe();
+                    {|CS0103:CallMeMaybe|}();
                 }
             }
             """,
