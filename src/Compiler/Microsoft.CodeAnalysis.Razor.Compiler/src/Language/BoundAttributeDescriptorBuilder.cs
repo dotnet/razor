@@ -52,6 +52,7 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBui
 
     [AllowNull]
     public string Name { get; set; }
+    public string? PropertyName { get; set; }
 
     public string? TypeName
     {
@@ -148,6 +149,7 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBui
         return new BoundAttributeDescriptor(
             _flags,
             Name ?? string.Empty,
+            PropertyName ?? string.Empty,
             _typeNameObject,
             IndexerAttributeNamePrefix,
             _indexerTypeNameObject,
@@ -171,10 +173,7 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBui
             parentTypeName = null;
         }
 
-        if (!TryGetMetadataValue(TagHelperMetadata.Common.PropertyName, out var propertyName))
-        {
-            propertyName = null;
-        }
+        var propertyName = PropertyName;
 
         if (TypeName != null &&
             propertyName != null &&

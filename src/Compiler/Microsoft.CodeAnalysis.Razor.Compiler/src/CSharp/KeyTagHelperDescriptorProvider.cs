@@ -68,8 +68,7 @@ internal sealed class KeyTagHelperDescriptorProvider() : TagHelperDescriptorProv
 
             attribute.TypeName = typeof(object).FullName;
             attribute.IsDirectiveAttribute = true;
-            attribute.SetMetadata(
-                PropertyName("Key"));
+            attribute.PropertyName = "Key";
         });
 
         return builder.Build();

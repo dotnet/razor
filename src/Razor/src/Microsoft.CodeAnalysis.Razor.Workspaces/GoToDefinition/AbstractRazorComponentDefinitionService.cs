@@ -75,7 +75,7 @@ internal abstract class AbstractRazorComponentDefinitionService(
             _logger.LogInformation($"Attempting to get definition from an attribute directly.");
 
             var range = await RazorComponentDefinitionHelpers
-                .TryGetPropertyRangeAsync(documentSnapshot, attributeDescriptor.GetPropertyName().AssumeNotNull(), _documentMappingService, _logger, cancellationToken)
+                .TryGetPropertyRangeAsync(documentSnapshot, attributeDescriptor.PropertyName, _documentMappingService, _logger, cancellationToken)
                 .ConfigureAwait(false);
 
             if (range is not null)

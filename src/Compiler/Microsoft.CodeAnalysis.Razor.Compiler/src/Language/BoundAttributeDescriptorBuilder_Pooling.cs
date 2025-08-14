@@ -29,9 +29,8 @@ public partial class BoundAttributeDescriptorBuilder
         _caseSensitiveSet = false;
 
         Name = null;
-        TypeName = null;
+        PropertyName = null;
         IndexerAttributeNamePrefix = null;
-        IndexerValueTypeName = null;
         DisplayName = null;
         ContainingType = null;
         Parameters.Clear();

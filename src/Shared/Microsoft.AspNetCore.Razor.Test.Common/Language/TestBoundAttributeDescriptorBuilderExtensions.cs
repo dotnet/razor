@@ -34,6 +34,13 @@ public static class TestBoundAttributeDescriptorBuilderExtensions
         return builder;
     }
 
+    public static BoundAttributeDescriptorBuilder PropertyName(this BoundAttributeDescriptorBuilder builder, string propertyName)
+    {
+        builder.PropertyName = propertyName;
+
+        return builder;
+    }
+
     public static BoundAttributeDescriptorBuilder IsDirectiveAttribute(
         this BoundAttributeDescriptorBuilder builder, bool isDirectiveAttribute = true)
     {

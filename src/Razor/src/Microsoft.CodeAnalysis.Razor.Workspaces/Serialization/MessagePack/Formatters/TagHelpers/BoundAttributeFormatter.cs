@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.MessagePack.Formatters.TagH
 
 internal sealed class BoundAttributeFormatter : ValueFormatter<BoundAttributeDescriptor>
 {
-    private const int PropertyCount = 11;
+    private const int PropertyCount = 12;
 
     public static readonly ValueFormatter<BoundAttributeDescriptor> Instance = new BoundAttributeFormatter();
 
@@ -24,6 +24,7 @@ internal sealed class BoundAttributeFormatter : ValueFormatter<BoundAttributeDes
 
         var flags = (BoundAttributeFlags)reader.ReadByte();
         var name = CachedStringFormatter.Instance.Deserialize(ref reader, options);
+        var propertyName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
         var typeNameObject = reader.Deserialize<TypeNameObject>(options);
         var indexerNamePrefix = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var indexerTypeNameObject = reader.Deserialize<TypeNameObject>(options);
@@ -36,7 +37,7 @@ internal sealed class BoundAttributeFormatter : ValueFormatter<BoundAttributeDes
         var diagnostics = reader.Deserialize<ImmutableArray<RazorDiagnostic>>(options);
 
         return new BoundAttributeDescriptor(
-            flags, name!, typeNameObject,
+            flags, name!, propertyName, typeNameObject,
             indexerNamePrefix, indexerTypeNameObject,
             documentationObject, displayName, containingType,
             parameters, metadata, diagnostics);
@@ -48,6 +49,7 @@ internal sealed class BoundAttributeFormatter : ValueFormatter<BoundAttributeDes
 
         writer.Write((byte)value.Flags);
         CachedStringFormatter.Instance.Serialize(ref writer, value.Name, options);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.PropertyName, options);
         writer.Serialize(value.TypeNameObject, options);
         CachedStringFormatter.Instance.Serialize(ref writer, value.IndexerNamePrefix, options);
         writer.Serialize(value.IndexerTypeNameObject, options);
@@ -66,6 +68,7 @@ internal sealed class BoundAttributeFormatter : ValueFormatter<BoundAttributeDes
 
         reader.Skip(); // Flags
         CachedStringFormatter.Instance.Skim(ref reader, options); // Name
+        CachedStringFormatter.Instance.Skim(ref reader, options); // PropertyName
         TypeNameObjectFormatter.Instance.Skim(ref reader, options); // TypeName
         CachedStringFormatter.Instance.Skim(ref reader, options); // IndexerNamePrefix
         TypeNameObjectFormatter.Instance.Skim(ref reader, options); // IndexerTypeName

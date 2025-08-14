@@ -118,7 +118,7 @@ namespace Test
 
         // Names are trivially derived from the property name
         Assert.Equal("MyProperty", attribute.Name);
-        Assert.Equal("MyProperty", attribute.GetPropertyName());
+        Assert.Equal("MyProperty", attribute.PropertyName);
         Assert.Equal("string Test.MyComponent.MyProperty", attribute.DisplayName);
 
         // Defined from the property type
@@ -131,8 +131,7 @@ namespace Test
         // which is trivial. Verifying it once in detail and then ignoring it.
         Assert.Collection(
             attribute.Metadata.OrderBy(kvp => kvp.Key),
-            kvp => { Assert.Equal(TagHelperMetadata.Common.GloballyQualifiedTypeName, kvp.Key); Assert.Equal("global::System.String", kvp.Value); },
-            kvp => { Assert.Equal(TagHelperMetadata.Common.PropertyName, kvp.Key); Assert.Equal("MyProperty", kvp.Value); });
+            kvp => { Assert.Equal(TagHelperMetadata.Common.GloballyQualifiedTypeName, kvp.Key); Assert.Equal("global::System.String", kvp.Value); });
     }
 
     [Fact]
@@ -190,7 +189,7 @@ namespace Test
             a =>
             {
                 Assert.Equal("MyProperty", a.Name);
-                Assert.Equal("MyProperty", a.GetPropertyName());
+                Assert.Equal("MyProperty", a.PropertyName);
                 Assert.Equal("string Test.MyComponent<T>.MyProperty", a.DisplayName);
                 Assert.Equal("System.String", a.TypeName);
 
@@ -198,7 +197,7 @@ namespace Test
             a =>
             {
                 Assert.Equal("T", a.Name);
-                Assert.Equal("T", a.GetPropertyName());
+                Assert.Equal("T", a.PropertyName);
                 Assert.Equal("T", a.DisplayName);
                 Assert.Equal("System.Type", a.TypeName);
                 Assert.True(a.IsTypeParameterProperty());
@@ -504,7 +503,7 @@ namespace Test
             a =>
             {
                 Assert.Equal("MyProperty", a.Name);
-                Assert.Equal("MyProperty", a.GetPropertyName());
+                Assert.Equal("MyProperty", a.PropertyName);
                 Assert.Equal("T Test.MyComponent<T>.MyProperty", a.DisplayName);
                 Assert.Equal("T", a.TypeName);
                 Assert.True(a.IsGenericTypedProperty());
@@ -513,7 +512,7 @@ namespace Test
             a =>
             {
                 Assert.Equal("T", a.Name);
-                Assert.Equal("T", a.GetPropertyName());
+                Assert.Equal("T", a.PropertyName);
                 Assert.Equal("T", a.DisplayName);
                 Assert.Equal("System.Type", a.TypeName);
                 Assert.True(a.IsTypeParameterProperty());
@@ -700,7 +699,7 @@ namespace Test
             a =>
             {
                 Assert.Equal("T", a.Name);
-                Assert.Equal("T", a.GetPropertyName());
+                Assert.Equal("T", a.PropertyName);
                 Assert.Equal("T", a.DisplayName);
                 Assert.Equal("System.Type", a.TypeName);
                 Assert.True(a.IsTypeParameterProperty());
@@ -863,7 +862,7 @@ namespace Test
             a =>
             {
                 Assert.Equal("T", a.Name);
-                Assert.Equal("T", a.GetPropertyName());
+                Assert.Equal("T", a.PropertyName);
                 Assert.Equal("T", a.DisplayName);
                 Assert.Equal("System.Type", a.TypeName);
                 Assert.True(a.IsTypeParameterProperty());
@@ -1128,7 +1127,7 @@ namespace Test
             a =>
             {
                 Assert.Equal("T", a.Name);
-                Assert.Equal("T", a.GetPropertyName());
+                Assert.Equal("T", a.PropertyName);
                 Assert.Equal("T", a.DisplayName);
                 Assert.Equal("System.Type", a.TypeName);
                 Assert.True(a.IsTypeParameterProperty());
@@ -1208,7 +1207,7 @@ namespace Test
             a =>
             {
                 Assert.Equal("T", a.Name);
-                Assert.Equal("T", a.GetPropertyName());
+                Assert.Equal("T", a.PropertyName);
                 Assert.Equal("T", a.DisplayName);
                 Assert.Equal("System.Type", a.TypeName);
                 Assert.True(a.IsTypeParameterProperty());
@@ -1288,7 +1287,7 @@ namespace Test
             a =>
             {
                 Assert.Equal("T", a.Name);
-                Assert.Equal("T", a.GetPropertyName());
+                Assert.Equal("T", a.PropertyName);
                 Assert.Equal("T", a.DisplayName);
                 Assert.Equal("System.Type", a.TypeName);
                 Assert.True(a.IsTypeParameterProperty());
@@ -1372,7 +1371,7 @@ namespace Test
             a =>
             {
                 Assert.Equal("T", a.Name);
-                Assert.Equal("T", a.GetPropertyName());
+                Assert.Equal("T", a.PropertyName);
                 Assert.Equal("T", a.DisplayName);
                 Assert.Equal("System.Type", a.TypeName);
                 Assert.True(a.IsTypeParameterProperty());

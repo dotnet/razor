@@ -198,12 +198,12 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
                 pb.Name = property.Name;
                 pb.ContainingType = containingSymbol.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat);
                 pb.TypeName = property.Type.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat);
+                pb.PropertyName = property.Name;
                 pb.IsEditorRequired = property.GetAttributes().Any(
                     static a => a.HasFullName("Microsoft.AspNetCore.Components.EditorRequiredAttribute"));
 
                 pb.CaseSensitive = false;
 
-                metadata.Add(PropertyName(property.Name));
                 metadata.Add(GloballyQualifiedTypeName(property.Type.ToDisplayString(GloballyQualifiedFullNameTypeDisplayFormat)));
 
                 if (kind == PropertyKind.Enum)
@@ -397,9 +397,9 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
                 pb.DisplayName = typeParameter.Name;
                 pb.Name = typeParameter.Name;
                 pb.TypeName = typeof(Type).FullName;
+                pb.PropertyName = typeParameter.Name;
 
                 using var _ = ListPool<KeyValuePair<string, string?>>.GetPooledObject(out var metadataPairs);
-                metadataPairs.Add(PropertyName(typeParameter.Name));
                 metadataPairs.Add(MakeTrue(ComponentMetadata.Component.TypeParameterKey));
                 metadataPairs.Add(new(ComponentMetadata.Component.TypeParameterIsCascadingKey, cascade.ToString()));
 
@@ -608,9 +608,9 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
             {
                 b.Name = ComponentMetadata.ChildContent.ParameterAttributeName;
                 b.TypeName = typeof(string).FullName;
+                b.PropertyName = b.Name;
                 b.SetMetadata(
-                    MakeTrue(ComponentMetadata.Component.ChildContentParameterNameKey),
-                    PropertyName(b.Name));
+                    MakeTrue(ComponentMetadata.Component.ChildContentParameterNameKey));
 
                 var documentation = childContentName == null
                     ? DocumentationDescriptor.ChildContentParameterName_TopLevel
