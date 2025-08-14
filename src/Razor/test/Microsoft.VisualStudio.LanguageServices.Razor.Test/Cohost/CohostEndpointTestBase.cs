@@ -232,8 +232,8 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     private TextDocument CreateProjectAndRazorDocument(CodeAnalysis.Workspace workspace, ProjectId projectId, bool miscellaneousFile, DocumentId documentId, string documentFilePath, string contents, (string fileName, string contents)[]? additionalFiles, bool inGlobalNamespace)
     {
         // We simulate a miscellaneous file project by not having a project file path.
-        var projectFilePath = miscellaneousFile ? "" : TestProjectData.SomeProject.FilePath;
-        var projectName = Path.GetFileNameWithoutExtension(projectFilePath);
+        var projectFilePath = miscellaneousFile ? null : TestProjectData.SomeProject.FilePath;
+        var projectName = miscellaneousFile ? "" : Path.GetFileNameWithoutExtension(projectFilePath);
 
         var sgAssembly = typeof(RazorSourceGenerator).Assembly;
 
