@@ -71,8 +71,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
 
             if (componentLocation is not null)
             {
-                // Convert from VS LSP Location to Roslyn. This can be removed when Razor moves fully onto Roslyn's LSP types.
-                return Results([LspFactory.CreateLocation(componentLocation.DocumentUri.GetRequiredParsedUri(), componentLocation.Range.ToLinePositionSpan())]);
+                return Results([componentLocation]);
             }
 
             // If it isn't a Razor component, and it isn't C#, let the server know to delegate to HTML.
