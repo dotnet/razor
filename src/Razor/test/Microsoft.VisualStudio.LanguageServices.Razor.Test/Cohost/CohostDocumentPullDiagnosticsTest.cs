@@ -43,9 +43,8 @@ public class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOutputHelpe
             </div>
             """);
 
-    [Theory]
-    [CombinatorialData]
-    public Task CSharpAndRazor(bool miscellaneousFile)
+    [Fact]
+    public Task CSharpAndRazor_MiscellaneousFile()
         => VerifyDiagnosticsAsync("""
             <div>
 
@@ -57,11 +56,12 @@ public class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOutputHelpe
             {
                 public void IJustMetYou()
                 {
-                    {|CS0103:CallMeMaybe|}();
+                    // Roslyn doesn't report CS0103 in misc files
+                    CallMeMaybe();
                 }
             }
             """,
-            miscellaneousFile: miscellaneousFile);
+            miscellaneousFile: true);
 
     [Fact]
     public Task Html()
