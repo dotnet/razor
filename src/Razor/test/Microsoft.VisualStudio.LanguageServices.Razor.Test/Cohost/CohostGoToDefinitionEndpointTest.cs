@@ -232,6 +232,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
     [Fact]
     public async Task TagHelper()
     {
+        TestCode expected;
         var result = await GetGoToDefinitionResultAsync("""
             @addTagHelper *, SomeProject
 
@@ -240,35 +241,33 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             fileKind: RazorFileKind.Legacy,
             additionalFiles:
                 (FileName("AboutBoxTagHelper.cs"),
-                    """
-                    using Microsoft.AspNetCore.Razor.TagHelpers;
+                    (expected = """
+                        using Microsoft.AspNetCore.Razor.TagHelpers;
 
-                    [HtmlTargetElement("dw:about-box")]
-                    public class AboutBoxTagHelper : TagHelper
-                    {
-                        public override void Process(TagHelperContext context, TagHelperOutput output)
+                        [HtmlTargetElement("dw:about-box")]
+                        public class [|AboutBoxTagHelper|] : TagHelper
                         {
-                            output.TagName = "div";
-                            output.Attributes.SetAttribute("class", "about-box");
-                            output.Content.SetHtmlContent("<strong>About</strong>");
+                            public override void Process(TagHelperContext context, TagHelperOutput output)
+                            {
+                                output.TagName = "div";
+                                output.Attributes.SetAttribute("class", "about-box");
+                                output.Content.SetHtmlContent("<strong>About</strong>");
+                            }
                         }
-                    }
-                    """));
+                        """).Text));
 
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
 
         Assert.Equal(FileUri("AboutBoxTagHelper.cs"), location.DocumentUri.GetRequiredParsedUri());
-        Assert.Equal(3, location.Range.Start.Line);
-        Assert.Equal(13, location.Range.Start.Character);
-        Assert.Equal(3, location.Range.End.Line);
-        Assert.Equal(30, location.Range.End.Character);
+        Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
     [Fact]
     public async Task TagHelper_Partial()
     {
+        TestCode expected;
         var result = await GetGoToDefinitionResultAsync("""
             @addTagHelper *, SomeProject
 
@@ -277,20 +276,20 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             fileKind: RazorFileKind.Legacy,
             additionalFiles:
                 [(FileName("AboutBoxTagHelper_1.cs"),
-                    """
-                    using Microsoft.AspNetCore.Razor.TagHelpers;
+                    (expected = """
+                        using Microsoft.AspNetCore.Razor.TagHelpers;
 
-                    [HtmlTargetElement("dw:about-box")]
-                    public partial class AboutBoxTagHelper : TagHelper
-                    {
-                        public override void Process(TagHelperContext context, TagHelperOutput output)
+                        [HtmlTargetElement("dw:about-box")]
+                        public partial class [|AboutBoxTagHelper|] : TagHelper
                         {
-                            output.TagName = "div";
-                            output.Attributes.SetAttribute("class", "about-box");
-                            output.Content.SetHtmlContent("<strong>About</strong>");
+                            public override void Process(TagHelperContext context, TagHelperOutput output)
+                            {
+                                output.TagName = "div";
+                                output.Attributes.SetAttribute("class", "about-box");
+                                output.Content.SetHtmlContent("<strong>About</strong>");
+                            }
                         }
-                    }
-                    """),
+                        """).Text),
                 (FileName("AboutBoxTagHelper_2.cs"),
                     """
                     using Microsoft.AspNetCore.Razor.TagHelpers;
@@ -305,15 +304,13 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var location = Assert.Single(locations);
 
         Assert.Equal(FileUri("AboutBoxTagHelper_1.cs"), location.DocumentUri.GetRequiredParsedUri());
-        Assert.Equal(3, location.Range.Start.Line);
-        Assert.Equal(21, location.Range.Start.Character);
-        Assert.Equal(3, location.Range.End.Line);
-        Assert.Equal(38, location.Range.End.Character);
+        Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
     [Fact]
     public async Task TagHelper_Attribute()
     {
+        TestCode expected;
         var result = await GetGoToDefinitionResultAsync("""
             @addTagHelper *, SomeProject
 
@@ -322,37 +319,35 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             fileKind: RazorFileKind.Legacy,
             additionalFiles:
                 (FileName("AboutBoxTagHelper.cs"),
-                    """
-                    using Microsoft.AspNetCore.Razor.TagHelpers;
+                    (expected = """
+                        using Microsoft.AspNetCore.Razor.TagHelpers;
 
-                    [HtmlTargetElement("dw:about-box")]
-                    public class AboutBoxTagHelper : TagHelper
-                    {
-                        public string Title { get; set; }
-
-                        public override void Process(TagHelperContext context, TagHelperOutput output)
+                        [HtmlTargetElement("dw:about-box")]
+                        public class AboutBoxTagHelper : TagHelper
                         {
-                            output.TagName = "div";
-                            output.Attributes.SetAttribute("class", "about-box");
-                            output.Content.SetHtmlContent("<strong>About</strong>");
+                            public string [|Title|] { get; set; }
+
+                            public override void Process(TagHelperContext context, TagHelperOutput output)
+                            {
+                                output.TagName = "div";
+                                output.Attributes.SetAttribute("class", "about-box");
+                                output.Content.SetHtmlContent("<strong>About</strong>");
+                            }
                         }
-                    }
-                    """));
+                        """).Text));
 
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
 
         Assert.Equal(FileUri("AboutBoxTagHelper.cs"), location.DocumentUri.GetRequiredParsedUri());
-        Assert.Equal(5, location.Range.Start.Line);
-        Assert.Equal(18, location.Range.Start.Character);
-        Assert.Equal(5, location.Range.End.Line);
-        Assert.Equal(23, location.Range.End.Character);
+        Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
     [Fact]
     public async Task TagHelper_Attribute_Partial()
     {
+        TestCode expected;
         var result = await GetGoToDefinitionResultAsync("""
             @addTagHelper *, SomeProject
 
@@ -376,24 +371,21 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
                     }
                     """),
                 (FileName("AboutBoxTagHelper_2.cs"),
-                    """
-                    using Microsoft.AspNetCore.Razor.TagHelpers;
+                    (expected = """
+                        using Microsoft.AspNetCore.Razor.TagHelpers;
 
-                    public partial class AboutBoxTagHelper
-                    {
-                        public string Title { get; set; }
-                    }
-                    """)]);
+                        public partial class AboutBoxTagHelper
+                        {
+                            public string [|Title|] { get; set; }
+                        }
+                        """).Text)]);
 
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
 
         Assert.Equal(FileUri("AboutBoxTagHelper_2.cs"), location.DocumentUri.GetRequiredParsedUri());
-        Assert.Equal(4, location.Range.Start.Line);
-        Assert.Equal(18, location.Range.Start.Character);
-        Assert.Equal(4, location.Range.End.Line);
-        Assert.Equal(23, location.Range.End.Character);
+        Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
     private static string FileName(string projectRelativeFileName)
