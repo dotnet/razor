@@ -232,10 +232,9 @@ internal sealed class EventHandlerTagHelperDescriptorProvider : TagHelperDescrip
 
                 a.IsDirectiveAttribute = true;
 
-                a.SetMetadata(
-                    // Make this weakly typed (don't type check) - delegates have their own type-checking
-                    // logic that we don't want to interfere with.
-                    IsWeaklyTyped);
+                // Make this weakly typed (don't type check) - delegates have their own type-checking
+                // logic that we don't want to interfere with.
+                a.IsWeaklyTyped = true;
 
                 if (enablePreventDefault)
                 {

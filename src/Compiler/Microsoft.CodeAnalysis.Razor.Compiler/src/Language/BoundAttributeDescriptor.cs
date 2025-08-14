@@ -20,7 +20,7 @@ public sealed class BoundAttributeDescriptor : TagHelperObject<BoundAttributeDes
     public BoundAttributeFlags Flags => _flags;
     public string Name { get; }
     public string PropertyName { get; }
-    public string? TypeName => TypeNameObject.GetTypeName().AssumeNotNull();
+    public string TypeName => TypeNameObject.GetTypeName().AssumeNotNull();
     public string DisplayName { get; }
     public string? ContainingType { get; }
 
@@ -42,6 +42,7 @@ public sealed class BoundAttributeDescriptor : TagHelperObject<BoundAttributeDes
     public bool IsBooleanProperty => TypeNameObject.IsBoolean;
     internal bool IsEditorRequired => _flags.IsFlagSet(BoundAttributeFlags.IsEditorRequired);
     public bool IsDirectiveAttribute => _flags.IsFlagSet(BoundAttributeFlags.IsDirectiveAttribute);
+    public bool IsWeaklyTyped => _flags.IsFlagSet(BoundAttributeFlags.IsWeaklyTyped);
 
     public ImmutableArray<BoundAttributeParameterDescriptor> Parameters { get; }
     public MetadataCollection Metadata { get; }

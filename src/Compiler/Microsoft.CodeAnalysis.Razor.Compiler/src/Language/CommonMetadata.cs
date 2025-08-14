@@ -10,8 +10,6 @@ public static class CommonMetadata
 {
     internal static readonly KeyValuePair<string, string?> BindAttributeGetSet
         = MakeTrue(ComponentMetadata.Bind.BindAttributeGetSet);
-    internal static readonly KeyValuePair<string, string?> IsWeaklyTyped
-        = MakeTrue(ComponentMetadata.Component.WeaklyTypedKey);
 
     internal static KeyValuePair<string, string?> MakeTrue(string key)
         => new(key, bool.TrueString);
