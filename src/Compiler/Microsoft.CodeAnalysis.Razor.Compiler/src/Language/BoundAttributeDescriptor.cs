@@ -19,7 +19,8 @@ public sealed class BoundAttributeDescriptor : TagHelperObject<BoundAttributeDes
 
     public BoundAttributeFlags Flags => _flags;
     public string Name { get; }
-    public string TypeName => TypeNameObject.GetTypeName().AssumeNotNull();
+    public string PropertyName { get; }
+    public string? TypeName => TypeNameObject.GetTypeName().AssumeNotNull();
     public string DisplayName { get; }
     public string? ContainingType { get; }
 
@@ -48,6 +49,7 @@ public sealed class BoundAttributeDescriptor : TagHelperObject<BoundAttributeDes
     internal BoundAttributeDescriptor(
         BoundAttributeFlags flags,
         string name,
+        string propertyName,
         TypeNameObject typeNameObject,
         string? indexerNamePrefix,
         TypeNameObject indexerTypeNameObject,
@@ -60,7 +62,9 @@ public sealed class BoundAttributeDescriptor : TagHelperObject<BoundAttributeDes
         : base(diagnostics)
     {
         _flags = flags;
+
         Name = name;
+        PropertyName = propertyName;
         TypeNameObject = typeNameObject;
         IndexerNamePrefix = indexerNamePrefix;
         IndexerTypeNameObject = indexerTypeNameObject;
@@ -80,6 +84,7 @@ public sealed class BoundAttributeDescriptor : TagHelperObject<BoundAttributeDes
     {
         builder.AppendData((byte)_flags);
         builder.AppendData(Name);
+        builder.AppendData(PropertyName);
         builder.AppendData(IndexerNamePrefix);
         builder.AppendData(DisplayName);
         builder.AppendData(ContainingType);

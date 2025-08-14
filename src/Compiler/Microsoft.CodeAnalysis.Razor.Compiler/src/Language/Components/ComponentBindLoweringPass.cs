@@ -515,7 +515,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
         {
             using var _ = ArrayBuilderPool<IntermediateNode>.GetPooledObject(out var builder);
 
-            var valuePropertyName = valueAttribute?.GetPropertyName();
+            var valuePropertyName = valueAttribute?.PropertyName;
 
             ComponentAttributeIntermediateNode valueNode = node != null ? new ComponentAttributeIntermediateNode(node) : new ComponentAttributeIntermediateNode(getNode);
             valueNode.OriginalAttributeName = bindEntry.GetOriginalAttributeName();
@@ -541,7 +541,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
             changeNode.IsSynthesized = true;
             changeNode.AttributeName = changeAttributeName;
             changeNode.BoundAttribute = changeAttribute; // Might be null if it doesn't match a component attribute
-            changeNode.PropertyName = changeAttribute?.GetPropertyName();
+            changeNode.PropertyName = changeAttribute?.PropertyName;
             changeNode.TagHelper = changeAttribute == null ? null : bindEntry.GetEffectiveNodeTagHelperDescriptor();
             changeNode.TypeName = changeAttribute?.IsWeaklyTyped() == false ? changeAttribute.TypeName : null;
 
@@ -564,7 +564,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
                 expressionNode.IsSynthesized = true;
                 expressionNode.AttributeName = expressionAttributeName;
                 expressionNode.BoundAttribute = expressionAttribute;
-                expressionNode.PropertyName = expressionAttribute.GetPropertyName();
+                expressionNode.PropertyName = expressionAttribute.PropertyName;
                 expressionNode.TagHelper = bindEntry.GetEffectiveNodeTagHelperDescriptor();
                 expressionNode.TypeName = expressionAttribute.IsWeaklyTyped() ? null : expressionAttribute.TypeName;
 
@@ -599,7 +599,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
             IsDesignTimePropertyAccessHelper = true,
             PropertySpan = GetOriginalPropertySpan(intermediateNode),
             BoundAttribute = valueAttribute,
-            PropertyName = valueAttribute.GetPropertyName()
+            PropertyName = valueAttribute.PropertyName
         };
 
         builder.Add(helperNode);

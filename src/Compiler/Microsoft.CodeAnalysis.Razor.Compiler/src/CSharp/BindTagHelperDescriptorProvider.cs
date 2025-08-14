@@ -156,8 +156,7 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
             attribute.AsDictionary("@bind-", typeof(object).FullName);
             attribute.IsDirectiveAttribute = true;
 
-            attribute.SetMetadata(
-                PropertyName("Bind"));
+            attribute.PropertyName = "Bind";
 
             attribute.TypeName = "System.Collections.Generic.Dictionary<string, object>";
 
@@ -458,9 +457,7 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
                 a.Name = attributeName;
                 a.TypeName = typeof(object).FullName;
                 a.IsDirectiveAttribute = true;
-
-                a.SetMetadata(
-                    PropertyName(name));
+                a.PropertyName = name;
 
                 a.BindAttributeParameter(parameter =>
                 {
@@ -528,7 +525,7 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
                         DocumentationId.BindTagHelper_Element_Format,
                         attributeName));
 
-                attribute.SetMetadata(PropertyName(formatName));
+                attribute.PropertyName = formatName;
             });
 
             return builder.Build();
@@ -659,9 +656,7 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
                     attribute.IsEnum = valueAttribute.IsEnum;
                     attribute.ContainingType = valueAttribute.ContainingType;
                     attribute.IsDirectiveAttribute = true;
-
-                    attribute.SetMetadata(
-                        PropertyName(valueAttribute.GetPropertyName()));
+                    attribute.PropertyName = valueAttribute.PropertyName;
 
                     attribute.BindAttributeParameter(parameter =>
                     {
