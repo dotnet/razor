@@ -14,11 +14,11 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Razor.GoToDefinition;
 
-internal abstract class AbstractRazorComponentDefinitionService(
+internal abstract class AbstractDefinitionService(
     IRazorComponentSearchEngine componentSearchEngine,
     ITagHelperSearchEngine? tagHelperSearchEngine,
     IDocumentMappingService documentMappingService,
-    ILogger logger) : IRazorComponentDefinitionService
+    ILogger logger) : IDefinitionService
 {
     private readonly IRazorComponentSearchEngine _componentSearchEngine = componentSearchEngine;
     private readonly ITagHelperSearchEngine? _tagHelperSearchEngine = tagHelperSearchEngine;

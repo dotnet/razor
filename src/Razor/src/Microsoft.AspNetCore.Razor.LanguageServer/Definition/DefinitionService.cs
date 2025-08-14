@@ -8,11 +8,11 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 
-internal sealed class RazorComponentDefinitionService(
+internal sealed class DefinitionService(
     IRazorComponentSearchEngine componentSearchEngine,
     IDocumentMappingService documentMappingService,
     ILoggerFactory loggerFactory,
     ITagHelperSearchEngine? tagHelperSearchEngine = null)
-    : AbstractRazorComponentDefinitionService(componentSearchEngine, tagHelperSearchEngine, documentMappingService, loggerFactory.GetOrCreateLogger<RazorComponentDefinitionService>())
+    : AbstractDefinitionService(componentSearchEngine, tagHelperSearchEngine, documentMappingService, loggerFactory.GetOrCreateLogger<DefinitionService>())
 {
 }

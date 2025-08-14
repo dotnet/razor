@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class RazorComponentDefinitionServiceTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
+public class DefinitionServiceTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
     // PREAMBLE: Right now these tests are about ensuring we don't accidentally introduce a future bug
     //           in the generated document handling code in the RazorComponentDefinitionService in OOP.
@@ -63,7 +63,7 @@ public class RazorComponentDefinitionServiceTest(ITestOutputHelper testOutputHel
     {
         var document = CreateProjectAndRazorDocument(input.Text, RazorFileKind.Component, additionalFiles);
 
-        var service = OOPExportProvider.GetExportedValue<IRazorComponentDefinitionService>();
+        var service = OOPExportProvider.GetExportedValue<IDefinitionService>();
         var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();
         var documentMappingService = OOPExportProvider.GetExportedValue<IDocumentMappingService>();
 
