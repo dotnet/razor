@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -51,29 +50,9 @@ public static class TestBoundAttributeDescriptorBuilderExtensions
 
     public static BoundAttributeDescriptorBuilder Metadata(
         this BoundAttributeDescriptorBuilder builder,
-        KeyValuePair<string, string> pair)
+        MetadataObject metadata)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        builder.SetMetadata(pair);
-
-        return builder;
-    }
-
-    public static BoundAttributeDescriptorBuilder Metadata(
-        this BoundAttributeDescriptorBuilder builder,
-        KeyValuePair<string, string> pair1,
-        KeyValuePair<string, string> pair2)
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        builder.SetMetadata(pair1, pair2);
+        builder.SetMetadata(metadata);
 
         return builder;
     }

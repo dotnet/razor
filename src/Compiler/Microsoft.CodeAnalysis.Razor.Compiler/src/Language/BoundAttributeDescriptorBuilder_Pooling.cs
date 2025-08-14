@@ -26,6 +26,7 @@ public partial class BoundAttributeDescriptorBuilder
         _typeNameObject = default;
         _indexerTypeNameObject = default;
         _documentationObject = default;
+        _metadataObject = null;
         _caseSensitiveSet = false;
 
         Name = null;
@@ -34,7 +35,6 @@ public partial class BoundAttributeDescriptorBuilder
         DisplayName = null;
         ContainingType = null;
         Parameters.Clear();
-        _metadata.Clear();
     }
 
     private sealed class Policy : PooledBuilderPolicy<BoundAttributeDescriptorBuilder>

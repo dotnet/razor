@@ -126,12 +126,7 @@ namespace Test
         Assert.True(attribute.IsStringProperty);
         Assert.False(attribute.IsBooleanProperty);
         Assert.False(attribute.IsEnum);
-
-        // Our use of metadata is also (for now) an invariant for all Component properties - other than the type name
-        // which is trivial. Verifying it once in detail and then ignoring it.
-        Assert.Collection(
-            attribute.Metadata.OrderBy(kvp => kvp.Key),
-            kvp => { Assert.Equal(TagHelperMetadata.Common.GloballyQualifiedTypeName, kvp.Key); Assert.Equal("global::System.String", kvp.Value); });
+        Assert.Equal("global::System.String", attribute.GetGloballyQualifiedTypeName());
     }
 
     [Fact]

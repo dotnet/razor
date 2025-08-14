@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Components;
 #if JSONSERIALIZATION_ENABLETAGHELPERCACHE
 using Microsoft.CodeAnalysis.Razor.Utilities;
 #endif
@@ -159,14 +160,24 @@ internal static partial class ObjectReaders
                 var documentationObject = ReadDocumentationObject(reader, nameof(BoundAttributeDescriptor.Documentation));
                 var parameters = reader.ReadImmutableArrayOrEmpty(nameof(BoundAttributeDescriptor.Parameters), ReadBoundAttributeParameter);
 
-                var metadata = ReadMetadata(reader, nameof(BoundAttributeDescriptor.Metadata));
+                var metadataKind = (MetadataKind)reader.ReadByteOrDefault("MetadataKind", defaultValue: (byte)MetadataKind.None);
+
+                var metadataObject = metadataKind switch
+                {
+                    MetadataKind.None => MetadataObject.None,
+                    MetadataKind.TypeParameter => reader.ReadNonNullObject(nameof(BoundAttributeDescriptor.Metadata), ReadTypeParameterMetadata),
+                    MetadataKind.Property => reader.ReadNonNullObject(nameof(BoundAttributeDescriptor.Metadata), ReadPropertyMetadata),
+                    MetadataKind.ChildContentParameter => ChildContentParameterMetadata.Default,
+                    _ => Assumed.Unreachable<MetadataObject>($"Unexpected MetadataKind '{metadataKind}'."),
+                };
+
                 var diagnostics = reader.ReadImmutableArrayOrEmpty(nameof(BoundAttributeDescriptor.Diagnostics), ReadDiagnostic);
 
                 return new BoundAttributeDescriptor(
                     flags, Cached(name)!, Cached(propertyName), typeNameObject,
                     Cached(indexerNamePrefix), indexerTypeNameObject,
                     documentationObject, Cached(displayName), Cached(containingType),
-                    parameters, metadata, diagnostics);
+                    parameters, metadataObject, diagnostics);
             }
         }
 
@@ -283,6 +294,34 @@ internal static partial class ObjectReaders
 
                 return builder.Build();
             }
+        }
+
+        static TypeParameterMetadata ReadTypeParameterMetadata(JsonDataReader reader)
+        {
+            var builder = new TypeParameterMetadata.Builder
+            {
+                IsCascading = reader.ReadBooleanOrFalse(nameof(TypeParameterMetadata.IsCascading)),
+                Constraints = reader.ReadStringOrNull(nameof(TypeParameterMetadata.Constraints)),
+                NameWithAttributes = reader.ReadStringOrNull(nameof(TypeParameterMetadata.NameWithAttributes))
+            };
+
+            return builder.Build();
+        }
+
+        static PropertyMetadata ReadPropertyMetadata(JsonDataReader reader)
+        {
+            var builder = new PropertyMetadata.Builder
+            {
+                GloballyQualifiedTypeName = reader.ReadStringOrNull(nameof(PropertyMetadata.GloballyQualifiedTypeName)),
+                IsChildContent = reader.ReadBooleanOrFalse(nameof(PropertyMetadata.IsChildContent)),
+                IsEventCallback = reader.ReadBooleanOrFalse(nameof(PropertyMetadata.IsEventCallback)),
+                IsDelegateSignature = reader.ReadBooleanOrFalse(nameof(PropertyMetadata.IsDelegateSignature)),
+                IsDelegateWithAwaitableResult = reader.ReadBooleanOrFalse(nameof(PropertyMetadata.IsDelegateWithAwaitableResult)),
+                IsGenericTyped = reader.ReadBooleanOrFalse(nameof(PropertyMetadata.IsGenericTyped)),
+                IsInitOnlyProperty = reader.ReadBooleanOrFalse(nameof(PropertyMetadata.IsInitOnlyProperty))
+            };
+
+            return builder.Build();
         }
     }
 }

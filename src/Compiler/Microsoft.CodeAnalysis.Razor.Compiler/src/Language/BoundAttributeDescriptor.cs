@@ -45,7 +45,7 @@ public sealed class BoundAttributeDescriptor : TagHelperObject<BoundAttributeDes
     public bool IsWeaklyTyped => _flags.IsFlagSet(BoundAttributeFlags.IsWeaklyTyped);
 
     public ImmutableArray<BoundAttributeParameterDescriptor> Parameters { get; }
-    public MetadataCollection Metadata { get; }
+    public MetadataObject Metadata { get; }
 
     internal BoundAttributeDescriptor(
         BoundAttributeFlags flags,
@@ -58,7 +58,7 @@ public sealed class BoundAttributeDescriptor : TagHelperObject<BoundAttributeDes
         string displayName,
         string? containingType,
         ImmutableArray<BoundAttributeParameterDescriptor> parameters,
-        MetadataCollection metadata,
+        MetadataObject metadataObject,
         ImmutableArray<RazorDiagnostic> diagnostics)
         : base(diagnostics)
     {
@@ -73,7 +73,7 @@ public sealed class BoundAttributeDescriptor : TagHelperObject<BoundAttributeDes
         DisplayName = displayName;
         ContainingType = containingType;
         Parameters = parameters.NullToEmpty();
-        Metadata = metadata ?? MetadataCollection.Empty;
+        Metadata = metadataObject;
 
         foreach (var parameter in Parameters)
         {
@@ -99,7 +99,7 @@ public sealed class BoundAttributeDescriptor : TagHelperObject<BoundAttributeDes
             builder.AppendData(descriptor.Checksum);
         }
 
-        builder.AppendData(Metadata.Checksum);
+        Metadata.AppendToChecksum(in builder);
     }
 
     public TagHelperDescriptor Parent

@@ -33,7 +33,7 @@ internal sealed class BoundAttributeFormatter : ValueFormatter<BoundAttributeDes
         var documentationObject = reader.Deserialize<DocumentationObject>(options);
         var parameters = reader.Deserialize<ImmutableArray<BoundAttributeParameterDescriptor>>(options);
 
-        var metadata = reader.Deserialize<MetadataCollection>(options);
+        var metadata = reader.Deserialize<MetadataObject>(options);
         var diagnostics = reader.Deserialize<ImmutableArray<RazorDiagnostic>>(options);
 
         return new BoundAttributeDescriptor(
@@ -77,7 +77,7 @@ internal sealed class BoundAttributeFormatter : ValueFormatter<BoundAttributeDes
         DocumentationObjectFormatter.Instance.Skim(ref reader, options); // DocumentationObject
         BoundAttributeParameterFormatter.Instance.SkimArray(ref reader, options); // BoundAttributeParameters
 
-        MetadataCollectionFormatter.Instance.Skim(ref reader, options); // Metadata
+        MetadataObjectFormatter.Instance.Skim(ref reader, options); // MetadataObject
         RazorDiagnosticFormatter.Instance.SkimArray(ref reader, options); // Diagnostics
     }
 }
