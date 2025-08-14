@@ -41,7 +41,7 @@ internal record BoundAttributeDescriptionInfo(string ReturnTypeName, string Type
         }
 
         var returnTypeName = isIndexer ? boundAttribute.IndexerTypeName.AssumeNotNull() : boundAttribute.TypeName;
-        var propertyName = boundAttribute.GetPropertyName().AssumeNotNull();
+        var propertyName = boundAttribute.PropertyName;
 
         // The BoundAttributeDescriptor does not directly have the TagHelperTypeName information available.
         // Because of this we need to resolve it from other parts of it.
