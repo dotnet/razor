@@ -398,7 +398,7 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
                 pb.Name = typeParameter.Name;
                 pb.TypeName = typeof(Type).FullName;
 
-                using var _ = ListPool<KeyValuePair<string, string?>>.GetPooledObject(out var metadataPairs);
+                using var metadataPairs = PooledSpanBuilder<KeyValuePair<string, string?>>.Empty;
                 metadataPairs.Add(PropertyName(typeParameter.Name));
                 metadataPairs.Add(MakeTrue(ComponentMetadata.Component.TypeParameterKey));
                 metadataPairs.Add(new(ComponentMetadata.Component.TypeParameterIsCascadingKey, cascade.ToString()));
@@ -504,7 +504,7 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
                     metadataPairs.Add(new(ComponentMetadata.Component.TypeParameterWithAttributesKey, withAttributes.ToString()));
                 }
 
-                pb.SetMetadata(MetadataCollection.Create(metadataPairs));
+                pb.SetMetadata(MetadataCollection.Create(metadataPairs.AsSpan()));
 
                 pb.SetDocumentation(
                     DocumentationDescriptor.From(

@@ -1,25 +1,20 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.Extensions.ObjectPool;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
+[NonCopyable]
 internal ref struct MetadataBuilder
 {
-    private readonly ObjectPool<List<KeyValuePair<string, string?>>> _pool;
-    private List<KeyValuePair<string, string?>>? _list;
+    private PooledSpanBuilder<KeyValuePair<string, string?>> _list;
 
     public MetadataBuilder()
-        : this(ListPool<KeyValuePair<string, string?>>.Default)
     {
-    }
-
-    public MetadataBuilder(ObjectPool<List<KeyValuePair<string, string?>>> pool)
-    {
-        _pool = pool;
+        _list = PooledSpanBuilder<KeyValuePair<string, string?>>.Empty;
     }
 
     public void Dispose()
@@ -28,32 +23,23 @@ internal ref struct MetadataBuilder
     }
 
     public void Add(string key, string? value)
-    {
-        _list ??= _pool.Get();
-        _list.Add(new(key, value));
-    }
+        => _list.Add(new(key, value));
 
     public void Add(KeyValuePair<string, string?> pair)
-    {
-        _list ??= _pool.Get();
-        _list.Add(pair);
-    }
+        => Add(pair.Key, pair.Value);
 
     public MetadataCollection Build()
     {
-        var result = MetadataCollection.CreateOrEmpty(_list);
+        var result = MetadataCollection.CreateOrEmpty(_list.AsSpan());
 
-        _list = null;
+        ClearAndFree();
 
         return result;
     }
 
     public void ClearAndFree()
     {
-        if (_list is { } list)
-        {
-            _pool.Return(list);
-            _list = null;
-        }
+        _list.Dispose();
+        _list = PooledSpanBuilder<KeyValuePair<string, string?>>.Empty;
     }
 }

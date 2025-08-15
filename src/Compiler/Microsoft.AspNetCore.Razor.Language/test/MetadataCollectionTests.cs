@@ -62,7 +62,7 @@ public class MetadataCollectionTests
     [InlineData(64)]
     public void EnumeratorReturnsAllItemsInCollection(int size)
     {
-        var pairs = new List<KeyValuePair<string, string?>>();
+        var pairs = new KeyValuePair<string, string?>[size];
         var map = new Dictionary<string, bool>();
 
         for (var i = 0; i < size; i++)
@@ -70,7 +70,7 @@ public class MetadataCollectionTests
             var key = i.ToString(CultureInfo.InvariantCulture);
             var value = (int.MaxValue - i).ToString(CultureInfo.InvariantCulture);
 
-            pairs.Add(new(key, value));
+            pairs[i] = new(key, value);
             map.Add(key, false);
         }
 
@@ -196,8 +196,8 @@ public class MetadataCollectionTests
     [MemberData(nameof(TwoPairs))]
     public void TestEquality_TwoItems(ImmutableArray<KeyValuePair<string, string?>> pairs1, ImmutableArray<KeyValuePair<string, string?>> pairs2)
     {
-        var collection1 = MetadataCollection.Create(pairs1);
-        var collection2 = MetadataCollection.Create(pairs2);
+        var collection1 = MetadataCollection.Create(pairs1.AsSpan());
+        var collection2 = MetadataCollection.Create(pairs2.AsSpan());
 
         Assert.Equal(collection1, collection2);
         Assert.Equal(collection1.GetHashCode(), collection2.GetHashCode());
@@ -207,8 +207,8 @@ public class MetadataCollectionTests
     [MemberData(nameof(ThreePairs))]
     public void TestEquality_ThreeItems(ImmutableArray<KeyValuePair<string, string?>> pairs1, ImmutableArray<KeyValuePair<string, string?>> pairs2)
     {
-        var collection1 = MetadataCollection.Create(pairs1);
-        var collection2 = MetadataCollection.Create(pairs2);
+        var collection1 = MetadataCollection.Create(pairs1.AsSpan());
+        var collection2 = MetadataCollection.Create(pairs2.AsSpan());
 
         Assert.Equal(collection1, collection2);
         Assert.Equal(collection1.GetHashCode(), collection2.GetHashCode());
@@ -218,8 +218,8 @@ public class MetadataCollectionTests
     [MemberData(nameof(FourPairs))]
     public void TestEquality_FourItems(ImmutableArray<KeyValuePair<string, string?>> pairs1, ImmutableArray<KeyValuePair<string, string?>> pairs2)
     {
-        var collection1 = MetadataCollection.Create(pairs1);
-        var collection2 = MetadataCollection.Create(pairs2);
+        var collection1 = MetadataCollection.Create(pairs1.AsSpan());
+        var collection2 = MetadataCollection.Create(pairs2.AsSpan());
 
         Assert.Equal(collection1, collection2);
         Assert.Equal(collection1.GetHashCode(), collection2.GetHashCode());
