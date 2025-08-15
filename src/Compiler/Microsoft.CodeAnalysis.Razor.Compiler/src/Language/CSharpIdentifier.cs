@@ -73,6 +73,8 @@ internal static class CSharpIdentifier
 
                 // If this is a high surrogate, skip the low surrogate as well
                 // since a surrogate pair represents a single Unicode character
+                // and we need to match the identifier mangling in the template
+                // engine / VS
                 if (char.IsHighSurrogate(ch) && i + 1 < inputName.Length && char.IsLowSurrogate(inputName[i + 1]))
                 {
                     i++; // Skip the low surrogate
