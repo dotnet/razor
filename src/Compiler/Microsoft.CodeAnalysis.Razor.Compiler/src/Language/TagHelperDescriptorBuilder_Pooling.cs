@@ -27,6 +27,7 @@ public partial class TagHelperDescriptorBuilder
 
     private protected override void Reset()
     {
+        _flags = 0;
         _kind = null;
         _name = null;
         _assemblyName = null;

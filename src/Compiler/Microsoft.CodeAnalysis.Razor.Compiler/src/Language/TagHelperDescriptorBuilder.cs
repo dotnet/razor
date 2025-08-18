@@ -10,6 +10,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<TagHelperDescriptor>
 {
+    private TagHelperFlags _flags;
     private string? _kind;
     private string? _name;
     private string? _assemblyName;
@@ -40,7 +41,12 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
     public string AssemblyName => _assemblyName.AssumeNotNull();
     public string? DisplayName { get; set; }
     public string? TagOutputHint { get; set; }
-    public bool CaseSensitive { get; set; }
+
+    public bool CaseSensitive
+    {
+        get => _flags.IsFlagSet(TagHelperFlags.CaseSensitive);
+        set => _flags.UpdateFlag(TagHelperFlags.CaseSensitive, value);
+    }
 
     public string? Documentation
     {
@@ -115,14 +121,16 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
         _metadata.AddIfMissing(TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind);
         var metadata = _metadata.GetMetadataCollection();
 
+        var flags = TagHelperDescriptor.ComputeFlags(Kind, CaseSensitive, metadata);
+
         return new TagHelperDescriptor(
+            flags,
             Kind,
             Name,
             AssemblyName,
             GetDisplayName(),
             _documentationObject,
             TagOutputHint,
-            CaseSensitive,
             TagMatchingRules.ToImmutable(),
             BoundAttributes.ToImmutable(),
             AllowedChildTags.ToImmutable(),
