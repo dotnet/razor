@@ -119,7 +119,7 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
                     r.TagName = fullName;
                 });
 
-                metadata.Add(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch);
+                builder.IsFullyQualifiedNameMatch = true;
             }
             else
             {
@@ -589,9 +589,9 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
                 CreateContextParameter(builder, attribute.Name);
             }
 
-            if (component.IsComponentFullyQualifiedNameMatch)
+            if (component.IsFullyQualifiedNameMatch)
             {
-                metadata.Add(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch);
+                builder.IsFullyQualifiedNameMatch = true;
             }
 
             builder.SetMetadata(metadata.Build());

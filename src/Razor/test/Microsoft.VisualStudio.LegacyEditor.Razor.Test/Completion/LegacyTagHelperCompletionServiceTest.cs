@@ -665,11 +665,11 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
                 .Build(),
             TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly")
                 .TagMatchingRuleDescriptor(rule => rule.RequireTagName("TestAssembly.Test"))
-                .Metadata(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch)
+                .IsFullyQualifiedNameMatch(true)
                 .Build(),
             TagHelperDescriptorBuilder.Create("Test2TagHelper", "TestAssembly")
                 .TagMatchingRuleDescriptor(rule => rule.RequireTagName("Test2Assembly.Test"))
-                .Metadata(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch)
+                .IsFullyQualifiedNameMatch(true)
                 .Build(),
         ];
 

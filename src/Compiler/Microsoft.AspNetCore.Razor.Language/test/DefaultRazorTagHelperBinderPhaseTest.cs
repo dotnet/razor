@@ -1344,7 +1344,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
 
         if (componentFullyQualified)
         {
-            metadata.Add(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch);
+            builder.IsFullyQualifiedNameMatch = true;
         }
 
         if (componentChildContent)

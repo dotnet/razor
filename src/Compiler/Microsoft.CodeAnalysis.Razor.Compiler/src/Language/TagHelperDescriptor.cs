@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
@@ -44,7 +43,7 @@ public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
     /// <summary>
     /// Gets whether the component matches a tag with a fully qualified name.
     /// </summary>
-    internal bool IsComponentFullyQualifiedNameMatch => _flags.IsFlagSet(TagHelperFlags.IsComponentFullyQualifiedNameMatch);
+    internal bool IsFullyQualifiedNameMatch => _flags.IsFlagSet(TagHelperFlags.IsFullyQualifiedNameMatch);
     internal bool IsChildContentTagHelper => _flags.IsFlagSet(TagHelperFlags.IsChildContent);
     internal bool IsComponentOrChildContentTagHelper => IsComponentTagHelper || IsChildContentTagHelper;
 
@@ -89,34 +88,6 @@ public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
         {
             allowedChildTag.SetParent(this);
         }
-    }
-
-    internal static TagHelperFlags ComputeFlags(string kind, bool caseSensitive, MetadataCollection metadata)
-    {
-        TagHelperFlags flags = 0;
-
-        if (caseSensitive)
-        {
-            flags |= TagHelperFlags.CaseSensitive;
-        }
-
-        if (kind == ComponentMetadata.Component.TagHelperKind &&
-            !metadata.ContainsKey(ComponentMetadata.SpecialKindKey))
-        {
-            flags |= TagHelperFlags.IsComponent;
-        }
-
-        if (metadata.Contains(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch))
-        {
-            flags |= TagHelperFlags.IsComponentFullyQualifiedNameMatch;
-        }
-
-        if (metadata.Contains(ComponentMetadata.SpecialKindKey, ComponentMetadata.ChildContent.TagHelperKind))
-        {
-            flags |= TagHelperFlags.IsChildContent;
-        }
-
-        return flags;
     }
 
     private protected override void BuildChecksum(in Checksum.Builder builder)

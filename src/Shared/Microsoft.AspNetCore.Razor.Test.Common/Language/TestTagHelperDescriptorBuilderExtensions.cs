@@ -81,6 +81,13 @@ public static class TestTagHelperDescriptorBuilderExtensions
         return builder;
     }
 
+    public static TagHelperDescriptorBuilder IsFullyQualifiedNameMatch(this TagHelperDescriptorBuilder builder, bool value)
+    {
+        builder.IsFullyQualifiedNameMatch = value;
+
+        return builder;
+    }
+
     public static TagHelperDescriptorBuilder SetCaseSensitive(this TagHelperDescriptorBuilder builder)
     {
         if (builder == null)

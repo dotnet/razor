@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.Language.Components;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -46,6 +47,12 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
     {
         get => _flags.IsFlagSet(TagHelperFlags.CaseSensitive);
         set => _flags.UpdateFlag(TagHelperFlags.CaseSensitive, value);
+    }
+
+    public bool IsFullyQualifiedNameMatch
+    {
+        get => _flags.IsFlagSet(TagHelperFlags.IsFullyQualifiedNameMatch);
+        set => _flags.UpdateFlag(TagHelperFlags.IsFullyQualifiedNameMatch, value);
     }
 
     public string? Documentation
@@ -121,7 +128,18 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
         _metadata.AddIfMissing(TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind);
         var metadata = _metadata.GetMetadataCollection();
 
-        var flags = TagHelperDescriptor.ComputeFlags(Kind, CaseSensitive, metadata);
+        var flags = _flags;
+
+        if (Kind == ComponentMetadata.Component.TagHelperKind &&
+            !metadata.ContainsKey(ComponentMetadata.SpecialKindKey))
+        {
+            flags |= TagHelperFlags.IsComponent;
+        }
+
+        if (metadata.Contains(ComponentMetadata.SpecialKindKey, ComponentMetadata.ChildContent.TagHelperKind))
+        {
+            flags |= TagHelperFlags.IsChildContent;
+        }
 
         return new TagHelperDescriptor(
             flags,

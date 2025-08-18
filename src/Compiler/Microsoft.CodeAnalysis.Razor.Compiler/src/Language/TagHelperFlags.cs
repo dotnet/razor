@@ -10,6 +10,6 @@ public enum TagHelperFlags : byte
 {
     CaseSensitive = 1 << 0,
     IsComponent = 1 << 1,
-    IsComponentFullyQualifiedNameMatch = 1 << 2,
+    IsFullyQualifiedNameMatch = 1 << 2,
     IsChildContent = 1 << 3
 }
