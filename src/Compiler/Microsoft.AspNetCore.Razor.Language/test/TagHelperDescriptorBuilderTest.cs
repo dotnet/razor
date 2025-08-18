@@ -13,7 +13,7 @@ public class TagHelperDescriptorBuilderTest
     {
         // Arrange
         var expectedDisplayName = "ExpectedDisplayName";
-        var builder = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
+        var builder = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly");
 
         // Act
         var descriptor = builder.DisplayName(expectedDisplayName).Build();
@@ -27,7 +27,7 @@ public class TagHelperDescriptorBuilderTest
     {
         // Arrange
         var expectedDisplayName = "TestTagHelper";
-        var builder = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
+        var builder = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly");
 
         // Act
         var descriptor = builder.Build();
@@ -43,11 +43,10 @@ public class TagHelperDescriptorBuilderTest
         // they should share the instance.
 
         // Arrange
-        var builder1 = TagHelperDescriptorBuilder.Create("TestTagHelper1", "TestAssembly1");
-        var builder2 = TagHelperDescriptorBuilder.Create("TestTagHelper1", "TestAssembly1");
+        var builder1 = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper1", "TestAssembly1");
+        var builder2 = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper1", "TestAssembly1");
 
         var metadata = MetadataCollection.Create(
-            RuntimeName("TestRuntime"),
             TypeName("TestTagHelper1"),
             TypeNameIdentifier("TestTagHelper1"));
 
@@ -69,16 +68,12 @@ public class TagHelperDescriptorBuilderTest
         // they do not share the instance.
 
         // Arrange
-        var builder1 = TagHelperDescriptorBuilder.Create("TestTagHelper1", "TestAssembly1");
-        var builder2 = TagHelperDescriptorBuilder.Create("TestTagHelper1", "TestAssembly1");
+        var builder1 = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper1", "TestAssembly1");
+        var builder2 = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper1", "TestAssembly1");
 
-        var runtimeName = RuntimeName("TestRuntime");
-
-        builder1.Metadata[runtimeName.Key] = runtimeName.Value;
         builder1.Metadata.Add(TypeName("TestTagHelper1"));
         builder1.Metadata.Add(TypeNameIdentifier("TestTagHelper1"));
 
-        builder2.Metadata[runtimeName.Key] = runtimeName.Value;
         builder2.Metadata.Add(TypeName("TestTagHelper1"));
         builder2.Metadata.Add(TypeNameIdentifier("TestTagHelper1"));
 

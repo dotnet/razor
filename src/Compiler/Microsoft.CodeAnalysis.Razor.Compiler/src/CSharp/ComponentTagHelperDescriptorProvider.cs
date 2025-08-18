@@ -98,9 +98,9 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
             using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
                 ComponentMetadata.Component.TagHelperKind, typeName, assemblyName, out var builder);
 
-            // This opts out this 'component' tag helper for any processing that's specific to the default
-            // Razor ITagHelper runtime.
-            using var metadata = builder.GetMetadataBuilder(ComponentMetadata.Component.RuntimeName);
+            builder.RuntimeKind = RuntimeKind.IComponent;
+
+            using var metadata = new MetadataBuilder();
 
             metadata.Add(TypeName(typeName));
             metadata.Add(TypeNamespace(type.ContainingNamespace.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat)));
@@ -556,9 +556,7 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
                 ComponentMetadata.ChildContent.TagHelperKind, typeName, assemblyName,
                 out var builder);
 
-            // This opts out this 'component' tag helper for any processing that's specific to the default
-            // Razor ITagHelper runtime.
-            using var metadata = builder.GetMetadataBuilder(ComponentMetadata.ChildContent.RuntimeName);
+            using var metadata = new MetadataBuilder();
 
             metadata.Add(TypeName(typeName));
             metadata.Add(TypeNamespace(component.GetTypeNamespace()));

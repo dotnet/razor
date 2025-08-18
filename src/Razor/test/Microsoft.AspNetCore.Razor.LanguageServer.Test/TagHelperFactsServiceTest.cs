@@ -105,7 +105,7 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
     public void StringifyAttributes_TagHelperAttribute()
     {
         // Arrange
-        var tagHelper = TagHelperDescriptorBuilder.Create("WithBoundAttribute", "TestAssembly");
+        var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("WithBoundAttribute", "TestAssembly");
         tagHelper.TagMatchingRule(rule => rule.TagName = "test");
         tagHelper.BindAttribute(attribute =>
         {
@@ -138,7 +138,7 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
     public void StringifyAttributes_MinimizedTagHelperAttribute()
     {
         // Arrange
-        var tagHelper = TagHelperDescriptorBuilder.Create("WithBoundAttribute", "TestAssembly");
+        var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("WithBoundAttribute", "TestAssembly");
         tagHelper.TagMatchingRule(rule => rule.TagName = "test");
         tagHelper.BindAttribute(attribute =>
         {

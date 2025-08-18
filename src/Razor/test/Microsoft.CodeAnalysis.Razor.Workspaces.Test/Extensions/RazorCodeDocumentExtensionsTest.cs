@@ -17,7 +17,7 @@ public class RazorCodeDocumentExtensionsTest(ITestOutputHelper testOutput) : Too
     public void GetLanguageKind_TagHelperElementOwnsName()
     {
         // Arrange
-        var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
+        var descriptor = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly");
         descriptor.TagMatchingRule(rule => rule.TagName = "test");
         descriptor.SetMetadata(TypeName("TestTagHelper"));
 
@@ -39,7 +39,7 @@ public class RazorCodeDocumentExtensionsTest(ITestOutputHelper testOutput) : Too
     public void GetLanguageKind_TagHelpersDoNotOwnTrailingEdge()
     {
         // Arrange
-        var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
+        var descriptor = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly");
         descriptor.TagMatchingRule(rule => rule.TagName = "test");
         descriptor.SetMetadata(TypeName("TestTagHelper"));
 
@@ -61,7 +61,7 @@ public class RazorCodeDocumentExtensionsTest(ITestOutputHelper testOutput) : Too
     public void GetLanguageKind_TagHelperNestedCSharpAttribute()
     {
         // Arrange
-        var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
+        var descriptor = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly");
         descriptor.TagMatchingRule(rule => rule.TagName = "test");
         descriptor.BindAttribute(builder =>
         {
@@ -303,7 +303,7 @@ public class RazorCodeDocumentExtensionsTest(ITestOutputHelper testOutput) : Too
     public void GetLanguageKind_TagHelperInCSharpRightAssociative()
     {
         // Arrange
-        var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
+        var descriptor = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly");
         descriptor.TagMatchingRule(rule => rule.TagName = "test");
         descriptor.SetMetadata(TypeName("TestTagHelper"));
 

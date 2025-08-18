@@ -21,7 +21,7 @@ public class DefaultTagHelperOptimizationPassTest : RazorProjectEngineTestBase
     public void DefaultTagHelperOptimizationPass_Execute_ReplacesChildren()
     {
         // Arrange
-        var tagHelper = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly")
+        var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly")
             .Metadata(TypeName("TestTagHelper"))
             .BoundAttributeDescriptor(attribute => attribute
                 .Name("Foo")

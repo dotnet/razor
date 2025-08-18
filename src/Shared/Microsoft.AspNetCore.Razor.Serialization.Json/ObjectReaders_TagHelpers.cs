@@ -72,6 +72,7 @@ internal static partial class ObjectReaders
 #endif
 
         var flags = (TagHelperFlags)reader.ReadByte(nameof(TagHelperDescriptor.Flags));
+        var runtimeKind = (RuntimeKind)reader.ReadByteOrDefault(nameof(TagHelperDescriptor.RuntimeKind), defaultValue: (byte)RuntimeKind.IComponent);
         var kind = reader.ReadNonNullString(nameof(TagHelperDescriptor.Kind));
         var name = reader.ReadNonNullString(nameof(TagHelperDescriptor.Name));
         var assemblyName = reader.ReadNonNullString(nameof(TagHelperDescriptor.AssemblyName));
@@ -88,7 +89,7 @@ internal static partial class ObjectReaders
         var diagnostics = reader.ReadImmutableArrayOrEmpty(nameof(TagHelperDescriptor.Diagnostics), ReadDiagnostic);
 
         tagHelper = new TagHelperDescriptor(
-            flags, Cached(kind), Cached(name), Cached(assemblyName),
+            flags, runtimeKind, Cached(kind), Cached(name), Cached(assemblyName),
             Cached(displayName)!, documentationObject, Cached(tagOutputHint),
             tagMatchingRules, boundAttributes, allowedChildTags,
             metadata, diagnostics);

@@ -54,12 +54,8 @@ public static class TagHelperDescriptorExtensions
 
     public static bool KindUsesDefaultTagHelperRuntime(this TagHelperDescriptor tagHelper)
     {
-        if (tagHelper == null)
-        {
-            throw new ArgumentNullException(nameof(tagHelper));
-        }
+        ArgHelper.ThrowIfNull(tagHelper);
 
-        tagHelper.Metadata.TryGetValue(TagHelperMetadata.Runtime.Name, out var value);
-        return string.Equals(TagHelperConventions.DefaultKind, value, StringComparison.Ordinal);
+        return tagHelper.RuntimeKind == RuntimeKind.ITagHelper;
     }
 }

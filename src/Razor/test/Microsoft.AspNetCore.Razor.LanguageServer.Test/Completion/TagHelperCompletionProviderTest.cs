@@ -545,7 +545,7 @@ public class TagHelperCompletionProviderTest(ITestOutputHelper testOutput) : Tag
     public void GetCompletionAt_AtAttributeEdge_IndexerBoolAttribute_ReturnsCompletionsWithDifferentCommitCharacters()
     {
         // Arrange
-        var tagHelper = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
+        var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly");
         tagHelper.TagMatchingRule(rule => rule.TagName = "test");
         tagHelper.SetMetadata(TypeName("TestTagHelper"));
         tagHelper.BindAttribute(attribute =>
@@ -588,7 +588,7 @@ public class TagHelperCompletionProviderTest(ITestOutputHelper testOutput) : Tag
     public void GetCompletionAt_AtAttributeEdge_IndexerAttribute_ReturnsCompletions()
     {
         // Arrange
-        var tagHelper = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
+        var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly");
         tagHelper.TagMatchingRule(rule => rule.TagName = "test");
         tagHelper.SetMetadata(TypeName("TestTagHelper"));
         tagHelper.BindAttribute(attribute =>

@@ -34,8 +34,7 @@ public class ViewComponentTagHelperDescriptorProviderTest
             Engine = RazorProjectEngine.CreateEmpty().Engine,
         };
 
-        var expectedDescriptor = TagHelperDescriptorBuilder.Create(
-            ViewComponentTagHelperConventions.Kind,
+        var expectedDescriptor = TagHelperDescriptorBuilder.CreateViewComponent(
             "__Generated__StringParameterViewComponentTagHelper",
             TestCompilation.AssemblyName)
             .Metadata(

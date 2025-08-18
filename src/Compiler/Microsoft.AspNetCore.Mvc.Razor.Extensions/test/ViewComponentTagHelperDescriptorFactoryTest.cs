@@ -23,8 +23,7 @@ public class ViewComponentTagHelperDescriptorFactoryTest
         var viewComponent = testCompilation.GetTypeByMetadataName("TestNamespace.StringParameterViewComponent");
         var factory = new ViewComponentTagHelperDescriptorFactory(testCompilation);
 
-        var expectedDescriptor = TagHelperDescriptorBuilder.Create(
-            ViewComponentTagHelperConventions.Kind,
+        var expectedDescriptor = TagHelperDescriptorBuilder.CreateViewComponent(
             "__Generated__StringParameterViewComponentTagHelper",
             TestCompilation.AssemblyName)
             .Metadata(
@@ -65,8 +64,7 @@ public class ViewComponentTagHelperDescriptorFactoryTest
         var viewComponent = testCompilation.GetTypeByMetadataName("TestNamespace.VariousParameterViewComponent");
         var factory = new ViewComponentTagHelperDescriptorFactory(testCompilation);
 
-        var expectedDescriptor = TagHelperDescriptorBuilder.Create(
-            ViewComponentTagHelperConventions.Kind,
+        var expectedDescriptor = TagHelperDescriptorBuilder.CreateViewComponent(
             "__Generated__VariousParameterViewComponentTagHelper",
             TestCompilation.AssemblyName)
             .Metadata(
@@ -114,8 +112,7 @@ public class ViewComponentTagHelperDescriptorFactoryTest
         var viewComponent = testCompilation.GetTypeByMetadataName("TestNamespace.GenericParameterViewComponent");
         var factory = new ViewComponentTagHelperDescriptorFactory(testCompilation);
 
-        var expectedDescriptor = TagHelperDescriptorBuilder.Create(
-            ViewComponentTagHelperConventions.Kind,
+        var expectedDescriptor = TagHelperDescriptorBuilder.CreateViewComponent(
             "__Generated__GenericParameterViewComponentTagHelper",
             TestCompilation.AssemblyName)
             .Metadata(
@@ -155,8 +152,7 @@ public class ViewComponentTagHelperDescriptorFactoryTest
         var testCompilation = _compilation;
         var factory = new ViewComponentTagHelperDescriptorFactory(testCompilation);
 
-        var expectedDescriptor = TagHelperDescriptorBuilder.Create(
-            ViewComponentTagHelperConventions.Kind,
+        var expectedDescriptor = TagHelperDescriptorBuilder.CreateViewComponent(
             "__Generated__SyncDerivedViewComponentTagHelper",
             TestCompilation.AssemblyName)
             .Metadata(
@@ -198,8 +194,7 @@ public class ViewComponentTagHelperDescriptorFactoryTest
         var testCompilation = _compilation;
         var factory = new ViewComponentTagHelperDescriptorFactory(testCompilation);
 
-        var expectedDescriptor = TagHelperDescriptorBuilder.Create(
-            ViewComponentTagHelperConventions.Kind,
+        var expectedDescriptor = TagHelperDescriptorBuilder.CreateViewComponent(
             "__Generated__AsyncDerivedViewComponentTagHelper",
             TestCompilation.AssemblyName)
             .Metadata(

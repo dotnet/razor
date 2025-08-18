@@ -14,7 +14,7 @@ internal static class SimpleTagHelpers
 
     static SimpleTagHelpers()
     {
-        var builder1 = TagHelperDescriptorBuilder.Create("Test1TagHelper", "TestAssembly");
+        var builder1 = TagHelperDescriptorBuilder.CreateTagHelper("Test1TagHelper", "TestAssembly");
         builder1.TagMatchingRule(rule => rule.TagName = "test1");
         builder1.SetMetadata(TypeName("Test1TagHelper"));
         builder1.BindAttribute(attribute =>
@@ -30,7 +30,7 @@ internal static class SimpleTagHelpers
             attribute.TypeName = typeof(int).FullName;
         });
 
-        var builder1WithRequiredParent = TagHelperDescriptorBuilder.Create("Test1TagHelper.SomeChild", "TestAssembly");
+        var builder1WithRequiredParent = TagHelperDescriptorBuilder.CreateTagHelper("Test1TagHelper.SomeChild", "TestAssembly");
         builder1WithRequiredParent.TagMatchingRule(rule =>
         {
             rule.TagName = "SomeChild";
@@ -44,7 +44,7 @@ internal static class SimpleTagHelpers
             attribute.TypeName = typeof(string).FullName;
         });
 
-        var builder2 = TagHelperDescriptorBuilder.Create("Test2TagHelper", "TestAssembly");
+        var builder2 = TagHelperDescriptorBuilder.CreateTagHelper("Test2TagHelper", "TestAssembly");
         builder2.TagMatchingRule(rule => rule.TagName = "test2");
         builder2.SetMetadata(TypeName("Test2TagHelper"));
         builder2.BindAttribute(attribute =>
@@ -195,7 +195,6 @@ internal static class SimpleTagHelpers
         });
         directiveAttribute3.IsFullyQualifiedNameMatch = true;
         directiveAttribute3.SetMetadata(
-            RuntimeName(ComponentMetadata.EventHandler.RuntimeName),
             SpecialKind(ComponentMetadata.EventHandler.TagHelperKind),
             new(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.MouseEventArgs"),
             MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
@@ -203,7 +202,7 @@ internal static class SimpleTagHelpers
             TypeNamespace("Microsoft.AspNetCore.Components.Web"),
             TypeNameIdentifier("EventHandlers"));
 
-        var htmlTagMutator = TagHelperDescriptorBuilder.Create("HtmlMutator", "TestAssembly");
+        var htmlTagMutator = TagHelperDescriptorBuilder.CreateTagHelper("HtmlMutator", "TestAssembly");
         htmlTagMutator.TagMatchingRule(rule =>
         {
             rule.TagName = "title";

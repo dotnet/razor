@@ -330,7 +330,7 @@ public abstract class CodeActionEndToEndTestBase(ITestOutputHelper testOutput) :
             // {
             //     void OnDragStart(<Microsoft.AspNetCore.Components.Web.DragEventArgs<string> args) {}
             // }
-            builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestGenericComponent", "Microsoft.AspNetCore.Components");
+            builder = TagHelperDescriptorBuilder.CreateComponent("TestGenericComponent", "Microsoft.AspNetCore.Components");
             builder.BoundAttributeDescriptor(configure => configure
                 .Name("OnDragStart")
                 .TypeName("System.Action<Microsoft.AspNetCore.Components.Web.DragEventArgs<TItem>>")
@@ -360,7 +360,7 @@ public abstract class CodeActionEndToEndTestBase(ITestOutputHelper testOutput) :
             // {
             //     void OnDragStart(<Microsoft.AspNetCore.Components.Web.DragEventArgs args) {}
             // }
-            builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestComponent", "Microsoft.AspNetCore.Components");
+            builder = TagHelperDescriptorBuilder.CreateComponent("TestComponent", "Microsoft.AspNetCore.Components");
             builder.BoundAttributeDescriptor(configure => configure
                 .Name("OnDragStart")
                 .TypeName("System.Action<Microsoft.AspNetCore.Components.Web.DragEventArgs>")

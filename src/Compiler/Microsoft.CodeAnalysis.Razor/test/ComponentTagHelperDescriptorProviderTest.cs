@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Xunit;
+using static Microsoft.AspNetCore.Razor.Language.Components.ComponentMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -62,6 +63,7 @@ namespace Test
         Assert.Empty(component.Diagnostics);
         Assert.False(component.HasErrors);
         Assert.Equal(ComponentMetadata.Component.TagHelperKind, component.Kind);
+        Assert.Equal(RuntimeKind.IComponent, component.RuntimeKind);
         Assert.False(component.IsDefaultKind());
         Assert.False(component.KindUsesDefaultTagHelperRuntime());
         Assert.True(component.IsComponentOrChildContentTagHelper);
@@ -86,14 +88,14 @@ namespace Test
         Assert.Equal("MyComponent", rule.TagName);
         Assert.Equal(TagStructure.Unspecified, rule.TagStructure);
 
+
         // Our use of metadata is also (for now) an invariant for all Components - other than the type name
         // which is trivial. Verifying it once in detail and then ignoring it.
         Assert.Collection(
             component.Metadata.OrderBy(kvp => kvp.Key),
             kvp => { Assert.Equal(TagHelperMetadata.Common.TypeName, kvp.Key); Assert.Equal("Test.MyComponent", kvp.Value); },
             kvp => { Assert.Equal(TagHelperMetadata.Common.TypeNameIdentifier, kvp.Key); Assert.Equal("MyComponent", kvp.Value); },
-            kvp => { Assert.Equal(TagHelperMetadata.Common.TypeNamespace, kvp.Key); Assert.Equal("Test", kvp.Value); },
-            kvp => { Assert.Equal(TagHelperMetadata.Runtime.Name, kvp.Key); Assert.Equal("Components.IComponent", kvp.Value); });
+            kvp => { Assert.Equal(TagHelperMetadata.Common.TypeNamespace, kvp.Key); Assert.Equal("Test", kvp.Value); });
 
         // Our use of bound attributes is what tests will focus on. As you might expect right now, this test
         // is going to cover a lot of trivial stuff that will be true for all components/component-properties.
@@ -966,7 +968,7 @@ namespace Test
                 Assert.False(a.IsEnum);
                 Assert.False(a.IsStringProperty);
                 Assert.False(a.IsDelegateProperty()); // We treat RenderFragment as separate from generalized delegates
-                    Assert.True(a.IsChildContentProperty());
+                Assert.True(a.IsChildContentProperty());
                 Assert.True(a.IsParameterizedChildContentProperty());
                 Assert.False(a.IsGenericTypedProperty());
             },
@@ -1039,7 +1041,7 @@ namespace Test
                 Assert.False(a.IsEnum);
                 Assert.False(a.IsStringProperty);
                 Assert.False(a.IsDelegateProperty()); // We treat RenderFragment as separate from generalized delegates
-                    Assert.True(a.IsChildContentProperty());
+                Assert.True(a.IsChildContentProperty());
                 Assert.True(a.IsParameterizedChildContentProperty());
                 Assert.False(a.IsGenericTypedProperty());
             },
@@ -1109,7 +1111,7 @@ namespace Test
                 Assert.False(a.IsEnum);
                 Assert.False(a.IsStringProperty);
                 Assert.False(a.IsDelegateProperty()); // We treat RenderFragment as separate from generalized delegates
-                    Assert.True(a.IsChildContentProperty());
+                Assert.True(a.IsChildContentProperty());
                 Assert.True(a.IsParameterizedChildContentProperty());
                 Assert.True(a.IsGenericTypedProperty());
 
@@ -1189,7 +1191,7 @@ namespace Test
                 Assert.False(a.IsEnum);
                 Assert.False(a.IsStringProperty);
                 Assert.False(a.IsDelegateProperty()); // We treat RenderFragment as separate from generalized delegates
-                    Assert.True(a.IsChildContentProperty());
+                Assert.True(a.IsChildContentProperty());
                 Assert.True(a.IsParameterizedChildContentProperty());
                 Assert.False(a.IsGenericTypedProperty());
 
@@ -1269,7 +1271,7 @@ namespace Test
                 Assert.False(a.IsEnum);
                 Assert.False(a.IsStringProperty);
                 Assert.False(a.IsDelegateProperty()); // We treat RenderFragment as separate from generalized delegates
-                    Assert.True(a.IsChildContentProperty());
+                Assert.True(a.IsChildContentProperty());
                 Assert.True(a.IsParameterizedChildContentProperty());
                 Assert.True(a.IsGenericTypedProperty());
 
@@ -1353,7 +1355,7 @@ namespace Test
                 Assert.False(a.IsEnum);
                 Assert.False(a.IsStringProperty);
                 Assert.False(a.IsDelegateProperty()); // We treat RenderFragment as separate from generalized delegates
-                    Assert.True(a.IsChildContentProperty());
+                Assert.True(a.IsChildContentProperty());
                 Assert.True(a.IsParameterizedChildContentProperty());
                 Assert.True(a.IsGenericTypedProperty());
 

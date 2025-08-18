@@ -43,6 +43,8 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
     public string? DisplayName { get; set; }
     public string? TagOutputHint { get; set; }
 
+    public RuntimeKind RuntimeKind { get; set; }
+
     public bool CaseSensitive
     {
         get => _flags.IsFlagSet(TagHelperFlags.CaseSensitive);
@@ -125,7 +127,6 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
 
     private protected override TagHelperDescriptor BuildCore(ImmutableArray<RazorDiagnostic> diagnostics)
     {
-        _metadata.AddIfMissing(TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind);
         var metadata = _metadata.GetMetadataCollection();
 
         var flags = _flags;
@@ -143,6 +144,7 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
 
         return new TagHelperDescriptor(
             flags,
+            RuntimeKind,
             Kind,
             Name,
             AssemblyName,
@@ -166,14 +168,5 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
                 ? value
                 : null;
         }
-    }
-
-    internal MetadataBuilder GetMetadataBuilder(string? runtimeName = null)
-    {
-        var metadataBuilder = new MetadataBuilder();
-
-        metadataBuilder.Add(TagHelperMetadata.Runtime.Name, runtimeName ?? TagHelperConventions.DefaultKind);
-
-        return metadataBuilder;
     }
 }

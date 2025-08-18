@@ -10,8 +10,6 @@ public static class CommonMetadata
 {
     internal static KeyValuePair<string, string?> MakeTrue(string key)
         => new(key, bool.TrueString);
-    internal static KeyValuePair<string, string?> RuntimeName(string value)
-        => new(TagHelperMetadata.Runtime.Name, value);
     internal static KeyValuePair<string, string?> SpecialKind(string value)
         => new(ComponentMetadata.SpecialKindKey, value);
     public static KeyValuePair<string, string?> TypeName(string value)

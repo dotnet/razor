@@ -1625,8 +1625,7 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
     {
         var fullName = $"{@namespace}.{typeName}";
 
-        var builder = TagHelperDescriptorBuilder
-            .Create(fullName, assemblyName)
+        var builder = TagHelperDescriptorBuilder.CreateTagHelper(fullName, assemblyName)
             .Metadata(
                 TypeName(fullName),
                 TypeNamespace(@namespace),

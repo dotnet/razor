@@ -17,7 +17,7 @@ public class ViewComponentTagHelperTargetExtensionTest
     {
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder
-            .Create(ViewComponentTagHelperConventions.Kind, "TestTagHelper", "TestAssembly")
+            .CreateViewComponent("TestTagHelper", "TestAssembly")
             .Metadata(
                 TypeName("__Generated__TagCloudViewComponentTagHelper"),
                 new(ViewComponentTagHelperMetadata.Name, "TagCloud"))
@@ -71,7 +71,7 @@ public class __Generated__TagCloudViewComponentTagHelper : Microsoft.AspNetCore.
     {
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder
-            .Create(ViewComponentTagHelperConventions.Kind, "TestTagHelper", "TestAssembly")
+            .CreateViewComponent("TestTagHelper", "TestAssembly")
             .Metadata(
                 TypeName("__Generated__TagCloudViewComponentTagHelper"),
                 new(ViewComponentTagHelperMetadata.Name, "TagCloud"))

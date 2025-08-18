@@ -1311,8 +1311,9 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         bool componentFullyQualified = false,
         bool componentChildContent = false)
     {
-        var builder = TagHelperDescriptorBuilder.Create(kind, typeName, assemblyName);
-        using var metadata = builder.GetMetadataBuilder();
+        var builder = TagHelperDescriptorBuilder.CreateTagHelper(kind, typeName, assemblyName);
+
+        using var metadata = new MetadataBuilder();
 
         metadata.Add(TypeName(typeName));
         metadata.Add(TypeNamespace(typeNamespace ?? (typeName.LastIndexOf('.') == -1 ? "" : typeName[..typeName.LastIndexOf('.')])));

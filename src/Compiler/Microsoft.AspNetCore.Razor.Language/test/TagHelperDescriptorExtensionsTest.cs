@@ -15,7 +15,9 @@ public class TagHelperDescriptorExtensionsTest
     {
         // Arrange
         var expectedTypeName = "TestTagHelper";
-        var descriptor = TagHelperDescriptorBuilder.Create(expectedTypeName, "TestAssembly").Metadata(TypeName(expectedTypeName)).Build();
+        var descriptor = TagHelperDescriptorBuilder.CreateTagHelper(expectedTypeName, "TestAssembly")
+            .Metadata(TypeName(expectedTypeName))
+            .Build();
 
         // Act
         var typeName = descriptor.GetTypeName();
@@ -28,7 +30,7 @@ public class TagHelperDescriptorExtensionsTest
     public void GetTypeName_ReturnsNullIfNoTypeName()
     {
         // Arrange
-        var descriptor = TagHelperDescriptorBuilder.Create("Test", "TestAssembly").Build();
+        var descriptor = TagHelperDescriptorBuilder.CreateTagHelper("Test", "TestAssembly").Build();
 
         // Act
         var typeName = descriptor.GetTypeName();
@@ -41,7 +43,7 @@ public class TagHelperDescriptorExtensionsTest
     public void IsDefaultKind_ReturnsTrue_IfKindIsDefault()
     {
         // Arrange
-        var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build();
+        var descriptor = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly").Build();
 
         // Act
         var isDefault = descriptor.IsDefaultKind();
@@ -54,7 +56,7 @@ public class TagHelperDescriptorExtensionsTest
     public void IsDefaultKind_ReturnsFalse_IfKindIsNotDefault()
     {
         // Arrange
-        var descriptor = TagHelperDescriptorBuilder.Create("other-kind", "TestTagHelper", "TestAssembly").Build();
+        var descriptor = TagHelperDescriptorBuilder.CreateTagHelper("other-kind", "TestTagHelper", "TestAssembly").Build();
 
         // Act
         var isDefault = descriptor.IsDefaultKind();

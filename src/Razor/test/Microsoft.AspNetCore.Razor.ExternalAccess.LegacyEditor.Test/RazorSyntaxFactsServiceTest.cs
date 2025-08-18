@@ -81,7 +81,7 @@ public class RazorSyntaxFactsServiceTest(ITestOutputHelper testOutput) : RazorTo
 
     private IRazorCodeDocument GetCodeDocument(string source)
     {
-        var taghelper = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly")
+        var taghelper = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly")
             .BoundAttributeDescriptor(attr => attr.Name("show").TypeName("System.Boolean"))
             .BoundAttributeDescriptor(attr => attr.Name("id").TypeName("System.Int32"))
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("taghelper"))

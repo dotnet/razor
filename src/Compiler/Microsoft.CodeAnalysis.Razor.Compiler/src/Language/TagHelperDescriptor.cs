@@ -20,6 +20,8 @@ public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
     private ImmutableArray<BoundAttributeDescriptor> _editorRequiredAttributes;
 
     public TagHelperFlags Flags => _flags;
+    public RuntimeKind RuntimeKind { get; }
+
     public string Kind { get; }
     public string Name { get; }
     public string AssemblyName { get; }
@@ -49,6 +51,7 @@ public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
 
     internal TagHelperDescriptor(
         TagHelperFlags flags,
+        RuntimeKind runtimeKind,
         string kind,
         string name,
         string assemblyName,
@@ -63,6 +66,7 @@ public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
         : base(diagnostics)
     {
         _flags = flags;
+        RuntimeKind = runtimeKind;
         Kind = kind;
         Name = name;
         AssemblyName = assemblyName;
@@ -93,6 +97,7 @@ public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
     private protected override void BuildChecksum(in Checksum.Builder builder)
     {
         builder.AppendData((byte)Flags);
+        builder.AppendData((byte)RuntimeKind);
         builder.AppendData(Kind);
         builder.AppendData(Name);
         builder.AppendData(AssemblyName);
@@ -197,7 +202,7 @@ public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
     internal TagHelperDescriptor WithName(string name)
     {
         return new(
-            Flags, Kind, name, AssemblyName, DisplayName,
+            Flags, RuntimeKind, Kind, name, AssemblyName, DisplayName,
             DocumentationObject, TagOutputHint,
             TagMatchingRules, BoundAttributes, AllowedChildTags,
             Metadata, Diagnostics);

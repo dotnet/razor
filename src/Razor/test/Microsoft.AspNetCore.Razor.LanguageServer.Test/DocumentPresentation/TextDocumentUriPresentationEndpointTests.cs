@@ -40,7 +40,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         });
 
         var droppedUri = new Uri("file:///c:/path/MyTagHelper.razor");
-        var builder = TagHelperDescriptorBuilder.Create("MyTagHelper", "MyAssembly");
+        var builder = TagHelperDescriptorBuilder.CreateTagHelper("MyTagHelper", "MyAssembly");
         builder.SetMetadata(TypeNameIdentifier("MyTagHelper"), TypeNamespace("TestRootNamespace"));
 
         await projectManager.UpdateAsync(updater =>
@@ -100,7 +100,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         });
 
         var droppedUri = new Uri("file:///c:/path/MyTagHelper.razor");
-        var builder = TagHelperDescriptorBuilder.Create("MyTagHelper", "MyAssembly");
+        var builder = TagHelperDescriptorBuilder.CreateTagHelper("MyTagHelper", "MyAssembly");
         builder.SetMetadata(TypeNameIdentifier("MyTagHelper"), TypeNamespace("TestRootNamespace"));
 
         await projectManager.UpdateAsync(updater =>
@@ -165,7 +165,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
         });
 
         var droppedUri = new Uri("file:///c:/path/fetchdata.razor");
-        var builder = TagHelperDescriptorBuilder.Create("FetchData", "MyAssembly");
+        var builder = TagHelperDescriptorBuilder.CreateTagHelper("FetchData", "MyAssembly");
         builder.SetMetadata(TypeNameIdentifier("FetchData"), TypeNamespace("TestRootNamespace"));
         builder.BindAttribute(b =>
         {
@@ -326,7 +326,7 @@ public class TextDocumentUriPresentationEndpointTests(ITestOutputHelper testOutp
 
         var droppedUri1 = new Uri("file:///c:/path/fetchdata.razor.cs");
         var droppedUri2 = new Uri("file:///c:/path/fetchdata.razor");
-        var builder = TagHelperDescriptorBuilder.Create("FetchData", "MyAssembly");
+        var builder = TagHelperDescriptorBuilder.CreateTagHelper("FetchData", "MyAssembly");
         builder.SetMetadata(TypeNameIdentifier("FetchData"), TypeNamespace("TestRootNamespace"));
 
         await projectManager.UpdateAsync(updater =>

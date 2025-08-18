@@ -37,8 +37,9 @@ internal sealed class DefaultTagHelperDescriptorFactory(bool includeDocumentatio
             typeName, assemblyName,
             out var descriptorBuilder);
 
+        descriptorBuilder.RuntimeKind = RuntimeKind.ITagHelper;
+
         descriptorBuilder.SetMetadata(
-            RuntimeName(TagHelperConventions.DefaultKind),
             TypeName(typeName),
             TypeNamespace(type.ContainingNamespace.GetFullName()),
             TypeNameIdentifier(type.Name));

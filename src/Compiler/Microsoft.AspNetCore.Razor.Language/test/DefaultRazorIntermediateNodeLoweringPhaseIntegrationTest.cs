@@ -469,7 +469,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest : RazorPro
         string assemblyName,
         params ReadOnlySpan<Action<BoundAttributeDescriptorBuilder>> attributes)
     {
-        var builder = TagHelperDescriptorBuilder.Create(typeName, assemblyName);
+        var builder = TagHelperDescriptorBuilder.CreateTagHelper(typeName, assemblyName);
         builder.Metadata(TypeName(typeName));
 
         foreach (var attributeBuilder in attributes)
