@@ -7,8 +7,9 @@ internal static class Int32Extensions
 {
     public static int CountDigits(this int number)
     {
+        // Avoid overflow when negating Int32.MinValue by using unsigned arithmetic
         var value = number < 0 ? (uint)-(number + 1) + 1 : (uint)number;
-        
+
         // Binary search approach for better branch prediction
         if (value < 100000)
         {
@@ -16,12 +17,12 @@ internal static class Int32Extensions
             {
                 return value < 10 ? 1 : 2;
             }
-            
+
             if (value < 10000)
             {
                 return value < 1000 ? 3 : 4;
             }
-            
+
             return 5;
         }
 
