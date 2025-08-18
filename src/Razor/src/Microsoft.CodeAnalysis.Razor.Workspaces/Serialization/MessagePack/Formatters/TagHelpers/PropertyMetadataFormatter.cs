@@ -48,11 +48,11 @@ internal sealed class PropertyMetadataFormatter : ValueFormatter<PropertyMetadat
         reader.ReadArrayHeaderAndVerify(PropertyCount);
 
         CachedStringFormatter.Instance.Skim(ref reader, options); // GloballyQualifiedTypeName
-        reader.Skip(); // IsCascading
+        reader.Skip(); // IsChildContent
         reader.Skip(); // IsEventCallback
         reader.Skip(); // IsDelegateSignature
         reader.Skip(); // IsDelegateWithAwaitableResult
         reader.Skip(); // IsGenericTyped
-        reader.Skip(); // IsGenericTyped
+        reader.Skip(); // IsInitOnlyProperty
     }
 }
