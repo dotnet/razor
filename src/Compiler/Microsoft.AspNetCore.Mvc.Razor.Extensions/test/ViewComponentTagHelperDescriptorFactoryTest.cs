@@ -190,7 +190,7 @@ public class ViewComponentTagHelperDescriptorFactoryTest
         var factory = new ViewComponentTagHelperDescriptorFactory(testCompilation);
 
         var expectedDescriptor = TagHelperDescriptorBuilder.CreateViewComponent("__Generated__AsyncDerivedViewComponentTagHelper", TestCompilation.AssemblyName)
-            .TypeName("__Generated__SyncDerivedViewComponentTagHelper")
+            .TypeName("__Generated__AsyncDerivedViewComponentTagHelper")
             .Metadata(new ViewComponentMetadata()
             {
                 Name = "AsyncDerived"

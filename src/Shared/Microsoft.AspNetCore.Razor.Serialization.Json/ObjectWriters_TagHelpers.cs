@@ -131,7 +131,7 @@ internal static partial class ObjectWriters
                 WriteDocumentationObject(writer, nameof(value.Documentation), value.DocumentationObject);
                 writer.WriteArrayIfNotDefaultOrEmpty(nameof(value.Parameters), value.Parameters, WriteBoundAttributeParameter);
 
-                WriteMetadata(writer, nameof(value.Metadata), value.Metadata.AssumeNotNull());
+                WriteMetadata(writer, nameof(value.Metadata), value.Metadata);
 
                 writer.WriteArrayIfNotDefaultOrEmpty(nameof(value.Diagnostics), value.Diagnostics, Write);
             });
@@ -168,7 +168,7 @@ internal static partial class ObjectWriters
                 return;
             }
 
-            writer.Write("MetadataKind", (byte)metadata.Kind);
+            writer.Write(WellKnownPropertyNames.MetadataKind, (byte)metadata.Kind);
 
             if (metadata.HasDefaultValue)
             {
