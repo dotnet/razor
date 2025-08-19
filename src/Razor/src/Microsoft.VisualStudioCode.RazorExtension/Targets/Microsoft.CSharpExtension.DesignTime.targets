@@ -1,0 +1,25 @@
+<!--
+***********************************************************************************************
+Microsoft.CSharpExtension.DesignTime.targets
+
+A polyfill for the real Microsoft.CSharp.DesignTime.targets file that is supplied by the .NET
+project system in Visual Studio and the C# Dev Kit extension.
+https://github.com/dotnet/project-system/blob/8ba13c7fa917b86462e0ff32a07ef3e15eb8dfa6/src/Microsoft.VisualStudio.ProjectSystem.Managed/ProjectSystem/DesignTimeTargets/Microsoft.CSharp.DesignTime.targets
+
+WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and have
+          created a backup copy.  Incorrect changes to this file will make it
+          impossible to load or build your projects from the command-line or the IDE.
+
+Copyright (c) .NET Foundation. All rights reserved.
+***********************************************************************************************
+-->
+
+<Project>
+
+  <!--
+    We only want this file to be used when the user is not using the Razor or Web sdks. We can using 'UsingMicrosoftNETSdkRazor' to check this,
+    and rather than putting that condition on everything we do, we just move our work to a separate targets file that is imported conditionally.
+  -->
+  <Import Project="Microsoft.CSharpExtension.DesignTime.Impl.targets" Condition="'Language' == 'C#' And 'TargetRuntime' == 'Managed' And 'UsingMicrosoftNETSdkRazor' != 'true'"/>
+
+</Project>
