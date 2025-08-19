@@ -966,7 +966,7 @@ namespace Test
             },
             a =>
             {
-                Assert.Equal(ComponentMetadata.ChildContent.ParameterAttributeName, a.Name);
+                Assert.Equal(ComponentHelpers.ChildContent.ParameterAttributeName, a.Name);
                 Assert.True(a.IsChildContentParameterNameProperty());
             });
 
@@ -977,7 +977,7 @@ namespace Test
 
         // A RenderFragment<T> tag helper has a parameter to allow you to set the lambda parameter name.
         var contextAttribute = Assert.Single(childContent.BoundAttributes);
-        Assert.Equal(ComponentMetadata.ChildContent.ParameterAttributeName, contextAttribute.Name);
+        Assert.Equal(ComponentHelpers.ChildContent.ParameterAttributeName, contextAttribute.Name);
         Assert.Equal("System.String", contextAttribute.TypeName);
         Assert.Equal("Specifies the parameter name for the 'ChildContent2' child content expression.", contextAttribute.Documentation);
         Assert.True(contextAttribute.IsChildContentParameterNameProperty());
@@ -1039,7 +1039,7 @@ namespace Test
             },
             a =>
             {
-                Assert.Equal(ComponentMetadata.ChildContent.ParameterAttributeName, a.Name);
+                Assert.Equal(ComponentHelpers.ChildContent.ParameterAttributeName, a.Name);
                 Assert.False(a.IsChildContentParameterNameProperty());
             });
 
@@ -1050,7 +1050,7 @@ namespace Test
 
         // A RenderFragment<T> tag helper has a parameter to allow you to set the lambda parameter name.
         var contextAttribute = Assert.Single(childContent.BoundAttributes);
-        Assert.Equal(ComponentMetadata.ChildContent.ParameterAttributeName, contextAttribute.Name);
+        Assert.Equal(ComponentHelpers.ChildContent.ParameterAttributeName, contextAttribute.Name);
         Assert.Equal("System.String", contextAttribute.TypeName);
         Assert.Equal("Specifies the parameter name for the 'ChildContent2' child content expression.", contextAttribute.Documentation);
         Assert.True(contextAttribute.IsChildContentParameterNameProperty());
@@ -1110,7 +1110,7 @@ namespace Test
             },
             a =>
             {
-                Assert.Equal(ComponentMetadata.ChildContent.ParameterAttributeName, a.Name);
+                Assert.Equal(ComponentHelpers.ChildContent.ParameterAttributeName, a.Name);
                 Assert.True(a.IsChildContentParameterNameProperty());
             },
             a =>
@@ -1129,7 +1129,7 @@ namespace Test
 
         // A RenderFragment<T> tag helper has a parameter to allow you to set the lambda parameter name.
         var contextAttribute = Assert.Single(childContent.BoundAttributes);
-        Assert.Equal(ComponentMetadata.ChildContent.ParameterAttributeName, contextAttribute.Name);
+        Assert.Equal(ComponentHelpers.ChildContent.ParameterAttributeName, contextAttribute.Name);
         Assert.Equal("System.String", contextAttribute.TypeName);
         Assert.Equal("Specifies the parameter name for the 'ChildContent2' child content expression.", contextAttribute.Documentation);
         Assert.True(contextAttribute.IsChildContentParameterNameProperty());
@@ -1190,7 +1190,7 @@ namespace Test
             },
             a =>
             {
-                Assert.Equal(ComponentMetadata.ChildContent.ParameterAttributeName, a.Name);
+                Assert.Equal(ComponentHelpers.ChildContent.ParameterAttributeName, a.Name);
                 Assert.True(a.IsChildContentParameterNameProperty());
             },
             a =>
@@ -1209,7 +1209,7 @@ namespace Test
 
         // A RenderFragment<T> tag helper has a parameter to allow you to set the lambda parameter name.
         var contextAttribute = Assert.Single(childContent.BoundAttributes);
-        Assert.Equal(ComponentMetadata.ChildContent.ParameterAttributeName, contextAttribute.Name);
+        Assert.Equal(ComponentHelpers.ChildContent.ParameterAttributeName, contextAttribute.Name);
         Assert.Equal("System.String", contextAttribute.TypeName);
         Assert.Equal("Specifies the parameter name for the 'ChildContent2' child content expression.", contextAttribute.Documentation);
         Assert.True(contextAttribute.IsChildContentParameterNameProperty());
@@ -1270,7 +1270,7 @@ namespace Test
             },
             a =>
             {
-                Assert.Equal(ComponentMetadata.ChildContent.ParameterAttributeName, a.Name);
+                Assert.Equal(ComponentHelpers.ChildContent.ParameterAttributeName, a.Name);
                 Assert.True(a.IsChildContentParameterNameProperty());
             },
             a =>
@@ -1289,7 +1289,7 @@ namespace Test
 
         // A RenderFragment<T> tag helper has a parameter to allow you to set the lambda parameter name.
         var contextAttribute = Assert.Single(childContent.BoundAttributes);
-        Assert.Equal(ComponentMetadata.ChildContent.ParameterAttributeName, contextAttribute.Name);
+        Assert.Equal(ComponentHelpers.ChildContent.ParameterAttributeName, contextAttribute.Name);
         Assert.Equal("System.String", contextAttribute.TypeName);
         Assert.Equal("Specifies the parameter name for the 'ChildContent2' child content expression.", contextAttribute.Documentation);
         Assert.True(contextAttribute.IsChildContentParameterNameProperty());
@@ -1354,7 +1354,7 @@ namespace Test
             },
             a =>
             {
-                Assert.Equal(ComponentMetadata.ChildContent.ParameterAttributeName, a.Name);
+                Assert.Equal(ComponentHelpers.ChildContent.ParameterAttributeName, a.Name);
                 Assert.True(a.IsChildContentParameterNameProperty());
             },
             a =>
@@ -1373,7 +1373,7 @@ namespace Test
 
         // A RenderFragment<T> tag helper has a parameter to allow you to set the lambda parameter name.
         var contextAttribute = Assert.Single(childContent.BoundAttributes);
-        Assert.Equal(ComponentMetadata.ChildContent.ParameterAttributeName, contextAttribute.Name);
+        Assert.Equal(ComponentHelpers.ChildContent.ParameterAttributeName, contextAttribute.Name);
         Assert.Equal("System.String", contextAttribute.TypeName);
         Assert.Equal("Specifies the parameter name for the 'ChildContent2' child content expression.", contextAttribute.Documentation);
     }
@@ -1429,7 +1429,7 @@ namespace Test
             },
             a =>
             {
-                Assert.Equal(ComponentMetadata.ChildContent.ParameterAttributeName, a.Name);
+                Assert.Equal(ComponentHelpers.ChildContent.ParameterAttributeName, a.Name);
                 Assert.True(a.IsChildContentParameterNameProperty());
             },
             a =>

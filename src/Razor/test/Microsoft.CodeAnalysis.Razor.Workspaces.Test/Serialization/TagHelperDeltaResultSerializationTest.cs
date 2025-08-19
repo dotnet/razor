@@ -77,7 +77,6 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
             configureAction: builder =>
             {
                 builder.AllowChildTag("allowed-child-one");
-                builder.Metadata("foo", "bar");
             });
 
         var expectedResult = new TagHelperDeltaResult(
@@ -124,7 +123,6 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
             configureAction: builder =>
             {
                 builder.AllowChildTag("allowed-child-one");
-                builder.Metadata("foo", "bar");
             });
 
         var expectedResult = new TagHelperDeltaResult(
@@ -168,7 +166,6 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
                     .RequireParentTag("parent-name"),
             ],
             configureAction: builder => builder.AllowChildTag("allowed-child-one")
-                .Metadata("foo", "bar")
                 .AddDiagnostic(RazorDiagnostic.Create(
                     new RazorDiagnosticDescriptor("id", "Test Message", RazorDiagnosticSeverity.Error), new SourceSpan(null, 10, 20, 30, 40))));
 
@@ -217,7 +214,6 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
             ],
             configureAction: builder => builder
                 .AllowChildTag("allowed-child-one")
-                .Metadata("foo", "bar")
                 .TagOutputHint("Hint"));
 
         var expectedResult = new TagHelperDeltaResult(

@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -197,8 +196,10 @@ internal static class SimpleTagHelpers
         });
         directiveAttribute3.IsFullyQualifiedNameMatch = true;
         directiveAttribute3.ClassifyAttributesOnly = true;
-        directiveAttribute3.SetMetadata(
-            KeyValuePair.Create<string, string?>(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.MouseEventArgs"));
+        directiveAttribute3.SetMetadata(new EventHandlerMetadata()
+        {
+            EventArgsType = "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
+        });
 
         var htmlTagMutator = TagHelperDescriptorBuilder.CreateTagHelper("HtmlMutator", "TestAssembly");
         htmlTagMutator.TagMatchingRule(rule =>

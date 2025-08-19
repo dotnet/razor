@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Xunit;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -1263,7 +1262,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
     {
         // Arrange
         var className = "Counter";
-        var typeName = $"SomeProject.SomeNamespace.{ComponentMetadata.MangleClassName(className)}";
+        var typeName = $"SomeProject.SomeNamespace.{ComponentHelpers.MangleClassName(className)}";
         var descriptor = CreateComponentDescriptor(
             tagName: "Counter",
             typeName: typeName,

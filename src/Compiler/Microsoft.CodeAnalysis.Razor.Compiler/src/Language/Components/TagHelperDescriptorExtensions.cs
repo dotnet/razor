@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -17,31 +15,19 @@ internal static class TagHelperDescriptorExtensions
     public static bool IsComponentOrChildContentTagHelper(this TagHelperDescriptor tagHelper)
         => tagHelper.Kind is TagHelperKind.Component or TagHelperKind.ChildContent;
 
-    public static bool IsBindTagHelper(this TagHelperDescriptor tagHelper)
-    {
-        return tagHelper.Kind == TagHelperKind.Bind;
-    }
-
     public static bool IsFallbackBindTagHelper(this TagHelperDescriptor tagHelper)
-    {
-        return
-            tagHelper.IsBindTagHelper() &&
-            tagHelper.Metadata.TryGetValue(ComponentMetadata.Bind.FallbackKey, out var fallback) &&
-            string.Equals(bool.TrueString, fallback);
-    }
-
-    public static bool IsFormNameTagHelper(this TagHelperDescriptor tagHelper)
-    {
-        return tagHelper.Kind == TagHelperKind.FormName;
-    }
+        => tagHelper is
+        {
+            Kind: TagHelperKind.Bind,
+            Metadata: BindMetadata { IsFallback: true }
+        };
 
     public static bool IsGenericTypedComponent(this TagHelperDescriptor tagHelper)
-    {
-        return
-            tagHelper.Kind == TagHelperKind.Component &&
-            tagHelper.Metadata.TryGetValue(ComponentMetadata.Component.GenericTypedKey, out var value) &&
-            string.Equals(bool.TrueString, value);
-    }
+        => tagHelper is
+        {
+            Kind: TagHelperKind.Component,
+            Metadata: ComponentMetadata { IsGeneric: true }
+        };
 
     /// <summary>
     /// Given a taghelper binding it finds the BoundAttribute that is a type parameter and then the
@@ -58,7 +44,6 @@ internal static class TagHelperDescriptorExtensions
     /// <remarks>
     /// As of now this method only supports cases where there is a single bound attribute that is a type parameter. If there are multiple this returns false.
     /// </remarks>
-#nullable enable
     public static bool TryGetGenericTypeNameFromComponent(this TagHelperDescriptor tagHelper, TagHelperBinding binding, [NotNullWhen(true)] out string? typeName)
     {
         typeName = null;
@@ -92,40 +77,26 @@ internal static class TagHelperDescriptorExtensions
 
         return typeName is not null;
     }
-#nullable disable
 
     public static bool IsInputElementBindTagHelper(this TagHelperDescriptor tagHelper)
-    {
-        return
-            tagHelper.IsBindTagHelper() &&
-            tagHelper.TagMatchingRules.Length == 2 &&
-            string.Equals("input", tagHelper.TagMatchingRules[0].TagName);
-    }
+        => tagHelper is
+        {
+            Kind: TagHelperKind.Bind,
+            TagMatchingRules: [{ TagName: "input" }, _]
+        };
 
     public static bool IsInputElementFallbackBindTagHelper(this TagHelperDescriptor tagHelper)
-    {
-        return
-            tagHelper.IsInputElementBindTagHelper() &&
-            !tagHelper.Metadata.ContainsKey(ComponentMetadata.Bind.TypeAttribute);
-    }
+        => tagHelper.IsInputElementBindTagHelper() &&
+           tagHelper.Metadata is not BindMetadata { TypeAttribute: not null };
 
-    public static string GetValueAttributeName(this TagHelperDescriptor tagHelper)
-    {
-        tagHelper.Metadata.TryGetValue(ComponentMetadata.Bind.ValueAttribute, out var result);
-        return result;
-    }
+    public static string? GetValueAttributeName(this TagHelperDescriptor tagHelper)
+        => tagHelper.Metadata is BindMetadata { ValueAttribute: var value } ? value : null;
 
-    public static string GetChangeAttributeName(this TagHelperDescriptor tagHelper)
-    {
-        tagHelper.Metadata.TryGetValue(ComponentMetadata.Bind.ChangeAttribute, out var result);
-        return result;
-    }
+    public static string? GetChangeAttributeName(this TagHelperDescriptor tagHelper)
+        => tagHelper.Metadata is BindMetadata { ChangeAttribute: var value } ? value : null;
 
-    public static string GetExpressionAttributeName(this TagHelperDescriptor tagHelper)
-    {
-        tagHelper.Metadata.TryGetValue(ComponentMetadata.Bind.ExpressionAttribute, out var result);
-        return result;
-    }
+    public static string? GetExpressionAttributeName(this TagHelperDescriptor tagHelper)
+        => tagHelper.Metadata is BindMetadata { ExpressionAttribute: var value } ? value : null;
 
     /// <summary>
     /// Gets a value that indicates where the tag helper is a bind tag helper with a default
@@ -136,54 +107,18 @@ internal static class TagHelperDescriptorExtensions
     /// <c>true</c> if this tag helper is a bind tag helper and defaults in <see cref="CultureInfo.InvariantCulture"/>
     /// </returns>
     public static bool IsInvariantCultureBindTagHelper(this TagHelperDescriptor tagHelper)
-    {
-        return
-            tagHelper.Metadata.TryGetValue(ComponentMetadata.Bind.IsInvariantCulture, out var text) &&
-            bool.TryParse(text, out var result) &&
-            result;
-    }
+        => tagHelper.Metadata is BindMetadata { IsInvariantCulture: true };
 
     /// <summary>
     /// Gets the default format value for a bind tag helper.
     /// </summary>
     /// <param name="tagHelper">The <see cref="TagHelperDescriptor"/>.</param>
     /// <returns>The format, or <c>null</c>.</returns>
-    public static string GetFormat(this TagHelperDescriptor tagHelper)
-    {
-        tagHelper.Metadata.TryGetValue(ComponentMetadata.Bind.Format, out var result);
-        return result;
-    }
+    public static string? GetFormat(this TagHelperDescriptor tagHelper)
+        => tagHelper.Metadata is BindMetadata { Format: var value } ? value : null;
 
-    public static bool IsEventHandlerTagHelper(this TagHelperDescriptor tagHelper)
-    {
-        return tagHelper.Kind == TagHelperKind.EventHandler;
-    }
-
-    public static bool IsKeyTagHelper(this TagHelperDescriptor tagHelper)
-    {
-        return tagHelper.Kind == TagHelperKind.Key;
-    }
-
-    public static bool IsSplatTagHelper(this TagHelperDescriptor tagHelper)
-    {
-        return tagHelper.Kind == TagHelperKind.Splat;
-    }
-
-    public static bool IsRefTagHelper(this TagHelperDescriptor tagHelper)
-    {
-        return tagHelper.Kind == TagHelperKind.Ref;
-    }
-
-    public static bool IsRenderModeTagHelper(this TagHelperDescriptor tagHelper)
-    {
-        return tagHelper.Kind == TagHelperKind.RenderMode;
-    }
-
-    public static string GetEventArgsType(this TagHelperDescriptor tagHelper)
-    {
-        tagHelper.Metadata.TryGetValue(ComponentMetadata.EventHandler.EventArgsType, out var result);
-        return result;
-    }
+    public static string? GetEventArgsType(this TagHelperDescriptor tagHelper)
+        => tagHelper.Metadata is EventHandlerMetadata { EventArgsType: var value } ? value : null;
 
     /// <summary>
     /// Gets the set of component attributes that can accept child content (<c>RenderFragment</c> or <c>RenderFragment{T}</c>).

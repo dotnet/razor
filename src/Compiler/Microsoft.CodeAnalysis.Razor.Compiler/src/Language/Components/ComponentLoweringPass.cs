@@ -156,7 +156,7 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
         // because we see the nodes in the wrong order.
         foreach (var childContent in component.ChildContents)
         {
-            childContent.ParameterName ??= component.ChildContentParameterName ?? ComponentMetadata.ChildContent.DefaultParameterName;
+            childContent.ParameterName ??= component.ChildContentParameterName ?? ComponentHelpers.ChildContent.DefaultParameterName;
         }
 
         ValidateRequiredAttributes(node, tagHelper, component);
@@ -166,7 +166,7 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
 
     private static void ValidateRequiredAttributes(TagHelperIntermediateNode node, TagHelperDescriptor tagHelper, ComponentIntermediateNode intermediateNode)
     {
-        if (intermediateNode.Children.Any(c => c is TagHelperDirectiveAttributeIntermediateNode node && (node.TagHelper?.IsSplatTagHelper() ?? false)))
+        if (intermediateNode.Children.Any(static c => c is TagHelperDirectiveAttributeIntermediateNode node && (node.TagHelper?.Kind == TagHelperKind.Splat)))
         {
             // If there are any splat attributes, assume the user may have provided all values.
             // This pass runs earlier than ComponentSplatLoweringPass, so we cannot rely on the presence of SplatIntermediateNode to make this check.

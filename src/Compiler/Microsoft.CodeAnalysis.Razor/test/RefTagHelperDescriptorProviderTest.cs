@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -23,7 +21,7 @@ public class RefTagHelperDescriptorProviderTest : TagHelperDescriptorProviderTes
         provider.Execute(context);
 
         // Assert
-        var matches = context.Results.Where(result => result.IsRefTagHelper());
+        var matches = context.Results.Where(static result => result.Kind == TagHelperKind.Ref);
         var item = Assert.Single(matches);
 
         Assert.Empty(item.AllowedChildTags);

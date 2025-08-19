@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -15,10 +13,9 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
     private TagHelperKind _kind;
     private string? _name;
     private string? _assemblyName;
-
     private TypeNameObject _typeNameObject;
     private DocumentationObject _documentationObject;
-    private MetadataHolder _metadata;
+    private MetadataObject? _metadataObject;
 
     private TagHelperDescriptorBuilder()
     {
@@ -79,12 +76,12 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
         set => _documentationObject = new(value);
     }
 
-    public IDictionary<string, string?> Metadata => _metadata.MetadataDictionary;
+    public void SetMetadata(MetadataObject metadataObject)
+    {
+        _metadataObject = metadataObject;
+    }
 
-    public void SetMetadata(MetadataCollection metadata) => _metadata.SetMetadataCollection(metadata);
-
-    public bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
-        => _metadata.TryGetMetadataValue(key, out value);
+    public MetadataObject MetadataObject => _metadataObject ?? MetadataObject.None;
 
     internal void SetTypeName(TypeNameObject typeName)
     {
@@ -171,7 +168,7 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
             TagMatchingRules.ToImmutable(),
             BoundAttributes.ToImmutable(),
             AllowedChildTags.ToImmutable(),
-            _metadata.GetMetadataCollection(),
+            _metadataObject ?? MetadataObject.None,
             diagnostics);
     }
 

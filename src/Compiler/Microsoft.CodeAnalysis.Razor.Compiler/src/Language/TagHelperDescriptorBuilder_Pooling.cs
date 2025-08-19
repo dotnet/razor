@@ -33,6 +33,7 @@ public partial class TagHelperDescriptorBuilder
         _assemblyName = null;
         _typeNameObject = default;
         _documentationObject = default;
+        _metadataObject = null;
 
         RuntimeKind = 0;
 
@@ -43,8 +44,6 @@ public partial class TagHelperDescriptorBuilder
         AllowedChildTags.Clear();
         BoundAttributes.Clear();
         TagMatchingRules.Clear();
-
-        _metadata.Clear();
     }
 
     private sealed class Policy : PooledBuilderPolicy<TagHelperDescriptorBuilder>

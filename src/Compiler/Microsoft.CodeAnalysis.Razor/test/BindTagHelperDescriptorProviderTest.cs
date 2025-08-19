@@ -80,9 +80,9 @@ namespace Test
         Assert.False(bind.IsComponentOrChildContentTagHelper());
         Assert.True(bind.CaseSensitive);
 
-        Assert.Equal("MyProperty", bind.Metadata[ComponentMetadata.Bind.ValueAttribute]);
-        Assert.Equal("MyPropertyChanged", bind.Metadata[ComponentMetadata.Bind.ChangeAttribute]);
-        Assert.Equal("MyPropertyExpression", bind.Metadata[ComponentMetadata.Bind.ExpressionAttribute]);
+        Assert.Equal("MyProperty", ((BindMetadata)bind.Metadata).ValueAttribute);
+        Assert.Equal("MyPropertyChanged", ((BindMetadata)bind.Metadata).ChangeAttribute);
+        Assert.Equal("MyPropertyExpression", ((BindMetadata)bind.Metadata).ExpressionAttribute);
 
         Assert.Equal(
             "Binds the provided expression to the 'MyProperty' property and a change event " +
@@ -190,7 +190,7 @@ namespace Test
         bindTagHelperProvider.Execute(context);
 
         // Assert
-        var matches = context.Results.Where(t => t.IsBindTagHelper());
+        var matches = context.Results.Where(static t => t.Kind == TagHelperKind.Bind);
         Assert.NotEmpty(matches);
     }
 
@@ -215,7 +215,7 @@ namespace Test
         bindTagHelperProvider.Execute(context);
 
         // Assert
-        var matches = context.Results.Where(t => t.IsBindTagHelper());
+        var matches = context.Results.Where(static t => t.Kind == TagHelperKind.Bind);
         Assert.NotEmpty(matches);
     }
 
@@ -305,8 +305,8 @@ namespace Test
         Assert.False(bind.IsComponentOrChildContentTagHelper());
         Assert.True(bind.CaseSensitive);
 
-        Assert.Equal("MyProperty", bind.Metadata[ComponentMetadata.Bind.ValueAttribute]);
-        Assert.Equal("MyPropertyChanged", bind.Metadata[ComponentMetadata.Bind.ChangeAttribute]);
+        Assert.Equal("MyProperty", ((BindMetadata)bind.Metadata).ValueAttribute);
+        Assert.Equal("MyPropertyChanged", ((BindMetadata)bind.Metadata).ChangeAttribute);
 
         Assert.Equal(
             "Binds the provided expression to the 'MyProperty' property and a change event " +
@@ -486,8 +486,8 @@ namespace Test
         Assert.True(bind.CaseSensitive);
         Assert.True(bind.ClassifyAttributesOnly);
 
-        Assert.Equal("myprop", bind.Metadata[ComponentMetadata.Bind.ValueAttribute]);
-        Assert.Equal("myevent", bind.Metadata[ComponentMetadata.Bind.ChangeAttribute]);
+        Assert.Equal("myprop", ((BindMetadata)bind.Metadata).ValueAttribute);
+        Assert.Equal("myevent", ((BindMetadata)bind.Metadata).ChangeAttribute);
         Assert.False(bind.IsInputElementBindTagHelper());
         Assert.False(bind.IsInputElementFallbackBindTagHelper());
 
@@ -728,8 +728,8 @@ namespace Test
         matches = AssertAndExcludeFullyQualifiedNameMatchComponents(matches, expectedCount: 0);
         var bind = Assert.Single(matches);
 
-        Assert.Equal("myprop", bind.Metadata[ComponentMetadata.Bind.ValueAttribute]);
-        Assert.Equal("myevent", bind.Metadata[ComponentMetadata.Bind.ChangeAttribute]);
+        Assert.Equal("myprop", ((BindMetadata)bind.Metadata).ValueAttribute);
+        Assert.Equal("myevent", ((BindMetadata)bind.Metadata).ChangeAttribute);
         Assert.False(bind.IsInputElementBindTagHelper());
         Assert.False(bind.IsInputElementFallbackBindTagHelper());
 
@@ -811,9 +811,9 @@ namespace Test
         matches = AssertAndExcludeFullyQualifiedNameMatchComponents(matches, expectedCount: 0);
         var bind = Assert.Single(matches);
 
-        Assert.Equal("myprop", bind.Metadata[ComponentMetadata.Bind.ValueAttribute]);
-        Assert.Equal("myevent", bind.Metadata[ComponentMetadata.Bind.ChangeAttribute]);
-        Assert.False(bind.Metadata.ContainsKey(ComponentMetadata.Bind.TypeAttribute));
+        Assert.Equal("myprop", ((BindMetadata)bind.Metadata).ValueAttribute);
+        Assert.Equal("myevent", ((BindMetadata)bind.Metadata).ChangeAttribute);
+        Assert.Null(((BindMetadata)bind.Metadata).TypeAttribute);
         Assert.True(bind.IsInputElementBindTagHelper());
         Assert.True(bind.IsInputElementFallbackBindTagHelper());
 
@@ -885,9 +885,9 @@ namespace Test
         matches = AssertAndExcludeFullyQualifiedNameMatchComponents(matches, expectedCount: 0);
         var bind = Assert.Single(matches);
 
-        Assert.Equal("myprop", bind.Metadata[ComponentMetadata.Bind.ValueAttribute]);
-        Assert.Equal("myevent", bind.Metadata[ComponentMetadata.Bind.ChangeAttribute]);
-        Assert.Equal("checkbox", bind.Metadata[ComponentMetadata.Bind.TypeAttribute]);
+        Assert.Equal("myprop", ((BindMetadata)bind.Metadata).ValueAttribute);
+        Assert.Equal("myevent", ((BindMetadata)bind.Metadata).ChangeAttribute);
+        Assert.Equal("checkbox", ((BindMetadata)bind.Metadata).TypeAttribute);
         Assert.True(bind.IsInputElementBindTagHelper());
         Assert.False(bind.IsInputElementFallbackBindTagHelper());
 
@@ -980,9 +980,9 @@ namespace Test
         matches = AssertAndExcludeFullyQualifiedNameMatchComponents(matches, expectedCount: 0);
         var bind = Assert.Single(matches);
 
-        Assert.Equal("myprop", bind.Metadata[ComponentMetadata.Bind.ValueAttribute]);
-        Assert.Equal("myevent", bind.Metadata[ComponentMetadata.Bind.ChangeAttribute]);
-        Assert.Equal("checkbox", bind.Metadata[ComponentMetadata.Bind.TypeAttribute]);
+        Assert.Equal("myprop", ((BindMetadata)bind.Metadata).ValueAttribute);
+        Assert.Equal("myevent", ((BindMetadata)bind.Metadata).ChangeAttribute);
+        Assert.Equal("checkbox", ((BindMetadata)bind.Metadata).TypeAttribute);
         Assert.True(bind.IsInputElementBindTagHelper());
         Assert.False(bind.IsInputElementFallbackBindTagHelper());
         Assert.False(bind.IsInvariantCultureBindTagHelper());
@@ -1077,9 +1077,9 @@ namespace Test
         matches = AssertAndExcludeFullyQualifiedNameMatchComponents(matches, expectedCount: 0);
         var bind = Assert.Single(matches);
 
-        Assert.Equal("value", bind.Metadata[ComponentMetadata.Bind.ValueAttribute]);
-        Assert.Equal("onchange", bind.Metadata[ComponentMetadata.Bind.ChangeAttribute]);
-        Assert.Equal("number", bind.Metadata[ComponentMetadata.Bind.TypeAttribute]);
+        Assert.Equal("value", ((BindMetadata)bind.Metadata).ValueAttribute);
+        Assert.Equal("onchange", ((BindMetadata)bind.Metadata).ChangeAttribute);
+        Assert.Equal("number", ((BindMetadata)bind.Metadata).TypeAttribute);
         Assert.True(bind.IsInputElementBindTagHelper());
         Assert.False(bind.IsInputElementFallbackBindTagHelper());
         Assert.True(bind.IsInvariantCultureBindTagHelper());
@@ -1119,8 +1119,8 @@ namespace Test
         Assert.True(bind.CaseSensitive);
         Assert.True(bind.ClassifyAttributesOnly);
 
-        Assert.False(bind.Metadata.ContainsKey(ComponentMetadata.Bind.ValueAttribute));
-        Assert.False(bind.Metadata.ContainsKey(ComponentMetadata.Bind.ChangeAttribute));
+        Assert.Null(((BindMetadata)bind.Metadata).ValueAttribute);
+        Assert.Null(((BindMetadata)bind.Metadata).ChangeAttribute);
         Assert.True(bind.IsFallbackBindTagHelper());
 
         Assert.Equal(
@@ -1234,7 +1234,5 @@ namespace Test
     }
 
     private static TagHelperDescriptor[] GetBindTagHelpers(TagHelperDescriptorProviderContext context)
-    {
-        return ExcludeBuiltInComponents(context).Where(t => t.IsBindTagHelper()).ToArray();
-    }
+        => [.. ExcludeBuiltInComponents(context).Where(static t => t.Kind == TagHelperKind.Bind)];
 }

@@ -14,10 +14,10 @@
     "TagHelpers": [
       {
         "__Checksum": {
-          "Data1": 8643196606097186346,
-          "Data2": -50471440991740137,
-          "Data3": -5890952435356461380,
-          "Data4": -6736142421413193621
+          "Data1": 2967496428585671435,
+          "Data2": -3352304232902508242,
+          "Data3": -5998256862876405960,
+          "Data4": 1576807304695571412
         },
         "Flags": 1,
         "Name": "blazorserver.Shared.SurveyPrompt",
@@ -37,14 +37,15 @@
             "TypeName": 14,
             "DisplayName": "string blazorserver.Shared.SurveyPrompt.Title"
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": 3210702174935849835,
-          "Data2": 271756911632843671,
-          "Data3": -7118588441658237189,
-          "Data4": 8209676013568848491
+          "Data1": -2785352229528338082,
+          "Data2": -5906485398496513051,
+          "Data3": -7667234265814695029,
+          "Data4": 4604194166025247914
         },
         "Flags": 3,
         "Name": "blazorserver.Shared.SurveyPrompt",
@@ -64,14 +65,15 @@
             "TypeName": 14,
             "DisplayName": "string blazorserver.Shared.SurveyPrompt.Title"
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -6340836226994386880,
-          "Data2": 1660240918571132882,
-          "Data3": -587017543660611191,
-          "Data4": 5468377647769641201
+          "Data1": -4494269745812731757,
+          "Data2": -396009697833901700,
+          "Data3": 5694788242101333997,
+          "Data4": 8928600972737343296
         },
         "Flags": 1,
         "Name": "blazorserver.Shared.MainLayout",
@@ -96,14 +98,15 @@
               "IsChildContent": true
             }
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -7716575104054705461,
-          "Data2": 1798647759025682152,
-          "Data3": -6560008785161925431,
-          "Data4": -4027838378532113061
+          "Data1": 2988936524480369213,
+          "Data2": 869415287385525809,
+          "Data3": -8313477746080071935,
+          "Data4": 6024837333616298108
         },
         "Flags": 3,
         "Name": "blazorserver.Shared.MainLayout",
@@ -128,14 +131,15 @@
               "IsChildContent": true
             }
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": 4949903714732217289,
-          "Data2": -7453351719376311054,
-          "Data3": 977212230438375376,
-          "Data4": -8338931484936292275
+          "Data1": -5279868902534588823,
+          "Data2": -2536396211718697160,
+          "Data3": -7510347339906015722,
+          "Data4": -1149780816892358149
         },
         "Flags": 1,
         "Kind": 3,
@@ -154,10 +158,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -7029785460668615369,
-          "Data2": -4147684643506611042,
-          "Data3": 4135755411792299885,
-          "Data4": -2437654557524700683
+          "Data1": 3247116541277725763,
+          "Data2": 6140841547071189973,
+          "Data3": -9109014029364976000,
+          "Data4": -497675486824484447
         },
         "Flags": 3,
         "Kind": 3,
@@ -176,10 +180,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -4235755812567040926,
-          "Data2": 5396662381366653259,
-          "Data3": 5148538756333520326,
-          "Data4": 8308335233179541307
+          "Data1": 7637203837437009422,
+          "Data2": 2014132386966516079,
+          "Data3": 6672482613091521041,
+          "Data4": -8921427918501502362
         },
         "Flags": 1,
         "Name": "blazorserver.Shared.NavMenu",
@@ -190,14 +194,15 @@
           {
             "TagName": "NavMenu"
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": 1325494670405270995,
-          "Data2": -3025732708270049909,
-          "Data3": -2181036385593989504,
-          "Data4": -7241465123808974820
+          "Data1": -3367579711069485881,
+          "Data2": 4966391456109454344,
+          "Data3": -6602378923164775930,
+          "Data4": 4637487686812820445
         },
         "Flags": 3,
         "Name": "blazorserver.Shared.NavMenu",
@@ -208,14 +213,15 @@
           {
             "TagName": "blazorserver.Shared.NavMenu"
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": 2248085344425014952,
-          "Data2": -5767610975204296340,
-          "Data3": -1175194733017917729,
-          "Data4": 5496137832024847733
+          "Data1": -50138065022015881,
+          "Data2": -4809702064578194966,
+          "Data3": -6620047368138518864,
+          "Data4": 4905201678367388846
         },
         "Flags": 1,
         "Name": "blazorserver.Pages.Index",
@@ -226,14 +232,15 @@
           {
             "TagName": "Index"
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -771269506519363022,
-          "Data2": -5329592088934487428,
-          "Data3": 4947565769669057524,
-          "Data4": -3280491979694249421
+          "Data1": 738714579104281204,
+          "Data2": -3872042594639485766,
+          "Data3": -8992211901230016914,
+          "Data4": 3145771595227241832
         },
         "Flags": 3,
         "Name": "blazorserver.Pages.Index",
@@ -244,14 +251,15 @@
           {
             "TagName": "blazorserver.Pages.Index"
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": 2699208429907403662,
-          "Data2": -1241642729348859378,
-          "Data3": 3834770689428627447,
-          "Data4": -7045239087198520852
+          "Data1": 5862865889580140845,
+          "Data2": -5735095817311324318,
+          "Data3": -8140407975622718967,
+          "Data4": -4953340369400899037
         },
         "Flags": 1,
         "Name": "blazorserver.Pages.Counter",
@@ -271,14 +279,15 @@
             "TypeName": 2,
             "DisplayName": "int blazorserver.Pages.Counter.IncrementBy"
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -617234312676742733,
-          "Data2": 2612416323682278460,
-          "Data3": 558289003069605753,
-          "Data4": 8069514643512767781
+          "Data1": 4739713036503668449,
+          "Data2": 5266807143877340765,
+          "Data3": 696072208767979266,
+          "Data4": 2631125849518513978
         },
         "Flags": 3,
         "Name": "blazorserver.Pages.Counter",
@@ -298,14 +307,15 @@
             "TypeName": 2,
             "DisplayName": "int blazorserver.Pages.Counter.IncrementBy"
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -931361581031355735,
-          "Data2": 5313777952896289753,
-          "Data3": -7217695201584459138,
-          "Data4": 230284174552142842
+          "Data1": -1834556304691149491,
+          "Data2": -1800664012694859561,
+          "Data3": 9166644664050479509,
+          "Data4": 5889816438111626492
         },
         "Flags": 1,
         "Name": "blazorserver.Pages.Component",
@@ -316,14 +326,15 @@
           {
             "TagName": "Component"
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -9036468094141668183,
-          "Data2": -3278332821929630134,
-          "Data3": -3836936540494905816,
-          "Data4": 5036261016202175298
+          "Data1": 2459936395947378616,
+          "Data2": -3913808081269995535,
+          "Data3": 693581907675913089,
+          "Data4": -3839669694568104823
         },
         "Flags": 3,
         "Name": "blazorserver.Pages.Component",
@@ -334,14 +345,15 @@
           {
             "TagName": "blazorserver.Pages.Component"
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -4972443555181409312,
-          "Data2": -5228555595314917735,
-          "Data3": 8178935508084271630,
-          "Data4": -7296782279110002809
+          "Data1": -3986625398594113596,
+          "Data2": 7597019042719106563,
+          "Data3": -8835507497884682043,
+          "Data4": -5677253629637055316
         },
         "Flags": 1,
         "Name": "blazorserver.Pages.Error",
@@ -352,14 +364,15 @@
           {
             "TagName": "Error"
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": 1596325613106736625,
-          "Data2": 1772820602802129730,
-          "Data3": 5716690995215431685,
-          "Data4": 4122888308931612130
+          "Data1": 3592827453280255774,
+          "Data2": -3805420293903805776,
+          "Data3": -1801084612726070559,
+          "Data4": -4095664554355743743
         },
         "Flags": 3,
         "Name": "blazorserver.Pages.Error",
@@ -370,14 +383,15 @@
           {
             "TagName": "blazorserver.Pages.Error"
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": 323928230610197077,
-          "Data2": -3550259725905966241,
-          "Data3": 7863293464770745257,
-          "Data4": -8409352166283028374
+          "Data1": -8949364025810877686,
+          "Data2": -6204355820266798211,
+          "Data3": -219606740975020820,
+          "Data4": -3752134289918550757
         },
         "Flags": 1,
         "Name": "blazorserver.Pages.Component1",
@@ -388,14 +402,15 @@
           {
             "TagName": "Component1"
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -8834921352564293825,
-          "Data2": 8070608721117660012,
-          "Data3": 5108612251529991373,
-          "Data4": -4465773783696828986
+          "Data1": -4431325011461531308,
+          "Data2": 287197920093845323,
+          "Data3": -5128325585700443038,
+          "Data4": 6346010160324618613
         },
         "Flags": 3,
         "Name": "blazorserver.Pages.Component1",
@@ -406,14 +421,15 @@
           {
             "TagName": "blazorserver.Pages.Component1"
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -5999777163936349435,
-          "Data2": 8225508640121020028,
-          "Data3": -4509231292264890003,
-          "Data4": -9200820802242731769
+          "Data1": -1741687981768769237,
+          "Data2": 8942851191697080900,
+          "Data3": 4282611662812252309,
+          "Data4": 8807166732388517589
         },
         "Flags": 1,
         "Name": "blazorserver.Pages.FetchData",
@@ -424,14 +440,15 @@
           {
             "TagName": "FetchData"
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": 114052105084249469,
-          "Data2": -304100289126946208,
-          "Data3": 2116182279560263273,
-          "Data4": -7145281393156072445
+          "Data1": 1505043996726673842,
+          "Data2": -7321328630868175824,
+          "Data3": 2555886010546322633,
+          "Data4": 3419024817377656440
         },
         "Flags": 3,
         "Name": "blazorserver.Pages.FetchData",
@@ -442,14 +459,15 @@
           {
             "TagName": "blazorserver.Pages.FetchData"
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -6392037261865310568,
-          "Data2": 8340412355531659965,
-          "Data3": -3031845534412323920,
-          "Data4": -9126293579671428845
+          "Data1": -1331252105576337113,
+          "Data2": 8717174405371688956,
+          "Data3": -4157118673360491519,
+          "Data4": 7152176162409214120
         },
         "Flags": 1,
         "Name": "blazorserver.App",
@@ -460,14 +478,15 @@
           {
             "TagName": "App"
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -5624180182602905367,
-          "Data2": 7672139751464284012,
-          "Data3": 4042633132242197609,
-          "Data4": -6333383965748449781
+          "Data1": -5680771175467099372,
+          "Data2": -4260832645550599473,
+          "Data3": 4183706151606174533,
+          "Data4": -6760779926307366717
         },
         "Flags": 3,
         "Name": "blazorserver.App",
@@ -478,14 +497,15 @@
           {
             "TagName": "blazorserver.App"
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": 7206560563608816678,
-          "Data2": 3479319846180577244,
-          "Data3": 5406226314265551338,
-          "Data4": 7149324470925762273
+          "Data1": -8923441839004284958,
+          "Data2": 4769411823726516306,
+          "Data3": -806505506309018545,
+          "Data4": -4278359310839766972
         },
         "Flags": 1,
         "Name": "Microsoft.AspNetCore.Components.CascadingValue<TValue>",
@@ -506,8 +526,7 @@
             "TypeName": 17,
             "DisplayName": "System.Type Microsoft.AspNetCore.Components.CascadingValue<TValue>.TValue",
             "Documentation": "Specifies the type of the type parameter TValue for the Microsoft.AspNetCore.Components.CascadingValue<TValue> component.",
-            "MetadataKind": 1,
-            "Metadata": {}
+            "MetadataKind": 1
           },
           {
             "Flags": 1,
@@ -550,16 +569,17 @@
             }
           }
         ],
+        "MetadataKind": 5,
         "Metadata": {
-          "Components.GenericTyped": "True"
+          "IsGeneric": true
         }
       },
       {
         "__Checksum": {
-          "Data1": -1175292010751086463,
-          "Data2": 8979609123193906440,
-          "Data3": 5719110676890144685,
-          "Data4": -7955392596051355974
+          "Data1": -6766008688608313776,
+          "Data2": 5138714398273893691,
+          "Data3": 9047724423662144362,
+          "Data4": -7037032865618723965
         },
         "Flags": 3,
         "Name": "Microsoft.AspNetCore.Components.CascadingValue<TValue>",
@@ -580,8 +600,7 @@
             "TypeName": 17,
             "DisplayName": "System.Type Microsoft.AspNetCore.Components.CascadingValue<TValue>.TValue",
             "Documentation": "Specifies the type of the type parameter TValue for the Microsoft.AspNetCore.Components.CascadingValue<TValue> component.",
-            "MetadataKind": 1,
-            "Metadata": {}
+            "MetadataKind": 1
           },
           {
             "Flags": 1,
@@ -624,16 +643,17 @@
             }
           }
         ],
+        "MetadataKind": 5,
         "Metadata": {
-          "Components.GenericTyped": "True"
+          "IsGeneric": true
         }
       },
       {
         "__Checksum": {
-          "Data1": 6407021094358168007,
-          "Data2": 8748995324067175387,
-          "Data3": -3719828456477394271,
-          "Data4": 2318492649405453746
+          "Data1": 4635339466156227039,
+          "Data2": -1065953792626740807,
+          "Data3": -8826668428447047349,
+          "Data4": -5927270373448841838
         },
         "Flags": 1,
         "Kind": 3,
@@ -652,10 +672,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -4978351292352901444,
-          "Data2": -8599479954084968877,
-          "Data3": -8162896716192395619,
-          "Data4": 2397646198443084413
+          "Data1": 7858370705389887215,
+          "Data2": -5668278139284567014,
+          "Data3": 4411447068151629085,
+          "Data4": -3291306413907102752
         },
         "Flags": 3,
         "Kind": 3,
@@ -674,10 +694,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -4502721445392603631,
-          "Data2": -4302500714415592932,
-          "Data3": -2172482531286827272,
-          "Data4": 716103901661476436
+          "Data1": -3912520977611523369,
+          "Data2": 1156371943295400740,
+          "Data3": -4103967267333908152,
+          "Data4": 5622494179913620272
         },
         "Flags": 1,
         "Name": "Microsoft.AspNetCore.Components.LayoutView",
@@ -711,14 +731,15 @@
             "DisplayName": "System.Type Microsoft.AspNetCore.Components.LayoutView.Layout",
             "Documentation": "\n            <summary>\n            Gets or sets the type of the layout in which to display the content.\n            The type must implement <see cref=\"T:Microsoft.AspNetCore.Components.IComponent\" /> and accept a parameter named <see cref=\"P:Microsoft.AspNetCore.Components.LayoutComponentBase.Body\" />.\n            </summary>\n        "
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": 3854649841343966798,
-          "Data2": 5283053928231864139,
-          "Data3": 660311671425796470,
-          "Data4": -9193529946655146188
+          "Data1": -1897213462452413078,
+          "Data2": 8041546582577971857,
+          "Data3": 463888285572706207,
+          "Data4": 5221573545058819032
         },
         "Flags": 3,
         "Name": "Microsoft.AspNetCore.Components.LayoutView",
@@ -752,14 +773,15 @@
             "DisplayName": "System.Type Microsoft.AspNetCore.Components.LayoutView.Layout",
             "Documentation": "\n            <summary>\n            Gets or sets the type of the layout in which to display the content.\n            The type must implement <see cref=\"T:Microsoft.AspNetCore.Components.IComponent\" /> and accept a parameter named <see cref=\"P:Microsoft.AspNetCore.Components.LayoutComponentBase.Body\" />.\n            </summary>\n        "
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -7454740913379693492,
-          "Data2": -6538184407900654390,
-          "Data3": 1353088574446637884,
-          "Data4": 1253316792004932406
+          "Data1": 5034966037595596335,
+          "Data2": 807547364719758972,
+          "Data3": -1956842691547773373,
+          "Data4": -8672619676783182518
         },
         "Flags": 1,
         "Kind": 3,
@@ -778,10 +800,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -309027403890723563,
-          "Data2": 8939770286539867871,
-          "Data3": -4147394816691907793,
-          "Data4": -3906293925391595987
+          "Data1": 7070543031295243053,
+          "Data2": 1526306531106698416,
+          "Data3": -7610268657946977561,
+          "Data4": 1109254332500192816
         },
         "Flags": 3,
         "Kind": 3,
@@ -800,10 +822,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -6908268910310404954,
-          "Data2": 1569964426171746109,
-          "Data3": -844099574452033651,
-          "Data4": 3878834976235383765
+          "Data1": 951613705628251085,
+          "Data2": 7552624806635028689,
+          "Data3": -1412886801333125810,
+          "Data4": 3877327318250211511
         },
         "Flags": 1,
         "Name": "Microsoft.AspNetCore.Components.RouteView",
@@ -833,14 +855,15 @@
             "DisplayName": "Microsoft.AspNetCore.Components.RouteData Microsoft.AspNetCore.Components.RouteView.RouteData",
             "Documentation": "\n            <summary>\n            Gets or sets the route data. This determines the page that will be\n            displayed and the parameter values that will be supplied to the page.\n            </summary>\n        "
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -8763350184461792113,
-          "Data2": -6600883955197287951,
-          "Data3": 2428205339184823851,
-          "Data4": 9216450792416584499
+          "Data1": 3509258758839179976,
+          "Data2": -5121966742160122630,
+          "Data3": -191957844994605554,
+          "Data4": -3213047084443607772
         },
         "Flags": 3,
         "Name": "Microsoft.AspNetCore.Components.RouteView",
@@ -870,14 +893,15 @@
             "DisplayName": "Microsoft.AspNetCore.Components.RouteData Microsoft.AspNetCore.Components.RouteView.RouteData",
             "Documentation": "\n            <summary>\n            Gets or sets the route data. This determines the page that will be\n            displayed and the parameter values that will be supplied to the page.\n            </summary>\n        "
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": 7860103317060531112,
-          "Data2": 3862304875425421186,
-          "Data3": 8800510685420020730,
-          "Data4": -6894660206853162013
+          "Data1": -5428193200725512537,
+          "Data2": 1684074524960298629,
+          "Data3": -7396478187797457465,
+          "Data4": 2906072206671305426
         },
         "Flags": 1,
         "Name": "Microsoft.AspNetCore.Components.Routing.Router",
@@ -940,14 +964,15 @@
             "Documentation": "Specifies the parameter name for all child content expressions.",
             "MetadataKind": 3
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": 7708511647442120847,
-          "Data2": -5568347281858758434,
-          "Data3": 1452722930402371768,
-          "Data4": 8777044035153339890
+          "Data1": -1595427273866950119,
+          "Data2": 3927975985454218786,
+          "Data3": 1973138056479141365,
+          "Data4": -8784907609145821297
         },
         "Flags": 3,
         "Name": "Microsoft.AspNetCore.Components.Routing.Router",
@@ -1010,14 +1035,15 @@
             "Documentation": "Specifies the parameter name for all child content expressions.",
             "MetadataKind": 3
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -5868946437670556162,
-          "Data2": -6085828120137168417,
-          "Data3": 6989058700640286058,
-          "Data4": -7088932204332948162
+          "Data1": -2118946516792258703,
+          "Data2": -254305611933539626,
+          "Data3": -341138538772349908,
+          "Data4": 5626424776966263450
         },
         "Flags": 1,
         "Kind": 3,
@@ -1047,10 +1073,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -4089644425778476539,
-          "Data2": -267795179974630660,
-          "Data3": 8810836597885287629,
-          "Data4": 2111405404540239739
+          "Data1": 7954634874991754334,
+          "Data2": -4742598209817304226,
+          "Data3": -6578614555236034501,
+          "Data4": -6433508028592312446
         },
         "Flags": 3,
         "Kind": 3,
@@ -1080,10 +1106,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -8707080532478354671,
-          "Data2": 8598362658344463291,
-          "Data3": 3015303665382852527,
-          "Data4": 3136101996359529152
+          "Data1": 7914737883177932412,
+          "Data2": -6571402817757904949,
+          "Data3": -6261225902331973461,
+          "Data4": 3559727070096310833
         },
         "Flags": 1,
         "Kind": 3,
@@ -1102,10 +1128,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -553635368585470713,
-          "Data2": -1976830683304602322,
-          "Data3": -1039901734270762505,
-          "Data4": 3357526538695870305
+          "Data1": 2756161832110285126,
+          "Data2": 3496932226821148661,
+          "Data3": -755738105324261498,
+          "Data4": 1105383551779969302
         },
         "Flags": 3,
         "Kind": 3,
@@ -1124,10 +1150,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -1131873217245266776,
-          "Data2": 1032526957912397521,
-          "Data3": -1912134812672917749,
-          "Data4": 293346752631130299
+          "Data1": -3605253140095706145,
+          "Data2": -7783738820550854230,
+          "Data3": 3529449950119419225,
+          "Data4": -7565614239959513389
         },
         "Flags": 1,
         "Name": "Microsoft.AspNetCore.Components.Forms.DataAnnotationsValidator",
@@ -1139,14 +1165,15 @@
           {
             "TagName": "DataAnnotationsValidator"
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -8731012578935786443,
-          "Data2": 8634946375935721901,
-          "Data3": 7754841258129851599,
-          "Data4": 2734465420611788318
+          "Data1": -26196016850210749,
+          "Data2": -1315572839647123837,
+          "Data3": 6752814469436411603,
+          "Data4": -2740969863678621831
         },
         "Flags": 3,
         "Name": "Microsoft.AspNetCore.Components.Forms.DataAnnotationsValidator",
@@ -1158,14 +1185,15 @@
           {
             "TagName": "Microsoft.AspNetCore.Components.Forms.DataAnnotationsValidator"
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": 9191702032977917926,
-          "Data2": -5260743982970625068,
-          "Data3": -6236053635097017649,
-          "Data4": 341156022152702917
+          "Data1": -7269751121684257168,
+          "Data2": -4634807799389964601,
+          "Data3": -4672827800506812095,
+          "Data4": -687011021786317648
         },
         "Flags": 1,
         "Name": "Microsoft.AspNetCore.Components.Forms.EditForm",
@@ -1260,14 +1288,15 @@
             "Documentation": "Specifies the parameter name for all child content expressions.",
             "MetadataKind": 3
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -8901581229220992152,
-          "Data2": -161683350209909470,
-          "Data3": -5142405163020688513,
-          "Data4": -7184652656323075129
+          "Data1": -8672271783680923403,
+          "Data2": 2969158928616814279,
+          "Data3": -5738624299718719683,
+          "Data4": 1264822852111943515
         },
         "Flags": 3,
         "Name": "Microsoft.AspNetCore.Components.Forms.EditForm",
@@ -1362,14 +1391,15 @@
             "Documentation": "Specifies the parameter name for all child content expressions.",
             "MetadataKind": 3
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -6336517247566828095,
-          "Data2": -6581519397076024144,
-          "Data3": 6180737892942627341,
-          "Data4": -5532127298803458013
+          "Data1": -2710603700682464660,
+          "Data2": 1694636208525918099,
+          "Data3": -1434628523249262962,
+          "Data4": 258016610383166599
         },
         "Flags": 1,
         "Kind": 3,
@@ -1399,10 +1429,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -8475125561163726423,
-          "Data2": 5972689829097925733,
-          "Data3": -2455629748505239920,
-          "Data4": 2975829858359727239
+          "Data1": 3164473561009703977,
+          "Data2": 2290643052564536454,
+          "Data3": -2575385437456422571,
+          "Data4": 8738748685384655943
         },
         "Flags": 3,
         "Kind": 3,
@@ -1432,10 +1462,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -5458099500140040947,
-          "Data2": -2416545270604593321,
-          "Data3": 3171217897519411612,
-          "Data4": 2453762335326740371
+          "Data1": 2774859700525692936,
+          "Data2": -5755790365627908563,
+          "Data3": -4484690352577740133,
+          "Data4": 4796064450069532852
         },
         "Flags": 1,
         "Name": "Microsoft.AspNetCore.Components.Forms.InputCheckbox",
@@ -1485,14 +1515,15 @@
             "DisplayName": "System.Linq.Expressions.Expression<System.Func<System.Boolean>> Microsoft.AspNetCore.Components.Forms.InputCheckbox.ValueExpression",
             "Documentation": "\n            <summary>\n            Gets or sets an expression that identifies the bound value.\n            </summary>\n        "
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -4688913190337071145,
-          "Data2": -149676737341661929,
-          "Data3": 6584886262110578328,
-          "Data4": -6490839864861799820
+          "Data1": 4107396086773903780,
+          "Data2": -7324917585154161887,
+          "Data3": -1925939485355434834,
+          "Data4": -5781127904673147598
         },
         "Flags": 3,
         "Name": "Microsoft.AspNetCore.Components.Forms.InputCheckbox",
@@ -1542,14 +1573,15 @@
             "DisplayName": "System.Linq.Expressions.Expression<System.Func<System.Boolean>> Microsoft.AspNetCore.Components.Forms.InputCheckbox.ValueExpression",
             "Documentation": "\n            <summary>\n            Gets or sets an expression that identifies the bound value.\n            </summary>\n        "
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": 1333356165539256347,
-          "Data2": 7362086176671579043,
-          "Data3": -4456074396605947650,
-          "Data4": -8032759724796404175
+          "Data1": 7159470186093125312,
+          "Data2": 7902771638439737518,
+          "Data3": -8739332547310531074,
+          "Data4": -874180243825608539
         },
         "Flags": 1,
         "Name": "Microsoft.AspNetCore.Components.Forms.InputDate<TValue>",
@@ -1570,8 +1602,7 @@
             "TypeName": 17,
             "DisplayName": "System.Type Microsoft.AspNetCore.Components.Forms.InputDate<TValue>.TValue",
             "Documentation": "Specifies the type of the type parameter TValue for the Microsoft.AspNetCore.Components.Forms.InputDate<TValue> component.",
-            "MetadataKind": 1,
-            "Metadata": {}
+            "MetadataKind": 1
           },
           {
             "Flags": 1,
@@ -1627,16 +1658,17 @@
             }
           }
         ],
+        "MetadataKind": 5,
         "Metadata": {
-          "Components.GenericTyped": "True"
+          "IsGeneric": true
         }
       },
       {
         "__Checksum": {
-          "Data1": 1788403444905277869,
-          "Data2": -5630552415835117111,
-          "Data3": 5957590148231817875,
-          "Data4": -835271509599800203
+          "Data1": -7330559001798870730,
+          "Data2": 169501102467146098,
+          "Data3": 7170900270445328491,
+          "Data4": -4662299916469560697
         },
         "Flags": 3,
         "Name": "Microsoft.AspNetCore.Components.Forms.InputDate<TValue>",
@@ -1657,8 +1689,7 @@
             "TypeName": 17,
             "DisplayName": "System.Type Microsoft.AspNetCore.Components.Forms.InputDate<TValue>.TValue",
             "Documentation": "Specifies the type of the type parameter TValue for the Microsoft.AspNetCore.Components.Forms.InputDate<TValue> component.",
-            "MetadataKind": 1,
-            "Metadata": {}
+            "MetadataKind": 1
           },
           {
             "Flags": 1,
@@ -1714,16 +1745,17 @@
             }
           }
         ],
+        "MetadataKind": 5,
         "Metadata": {
-          "Components.GenericTyped": "True"
+          "IsGeneric": true
         }
       },
       {
         "__Checksum": {
-          "Data1": 8246714615680437124,
-          "Data2": 2199042537397714849,
-          "Data3": -3588514930848248924,
-          "Data4": 9172735472450442141
+          "Data1": -3854839724268232858,
+          "Data2": 4254267973545795517,
+          "Data3": -2983799823715444260,
+          "Data4": 4361952423511452732
         },
         "Flags": 1,
         "Name": "Microsoft.AspNetCore.Components.Forms.InputNumber<TValue>",
@@ -1744,8 +1776,7 @@
             "TypeName": 17,
             "DisplayName": "System.Type Microsoft.AspNetCore.Components.Forms.InputNumber<TValue>.TValue",
             "Documentation": "Specifies the type of the type parameter TValue for the Microsoft.AspNetCore.Components.Forms.InputNumber<TValue> component.",
-            "MetadataKind": 1,
-            "Metadata": {}
+            "MetadataKind": 1
           },
           {
             "Flags": 1,
@@ -1801,16 +1832,17 @@
             }
           }
         ],
+        "MetadataKind": 5,
         "Metadata": {
-          "Components.GenericTyped": "True"
+          "IsGeneric": true
         }
       },
       {
         "__Checksum": {
-          "Data1": -5792096439016862560,
-          "Data2": -8839509032912695611,
-          "Data3": 3985717902985127715,
-          "Data4": -2121820702482403061
+          "Data1": -2419994022984549610,
+          "Data2": -921511921219072449,
+          "Data3": -7747366700774461822,
+          "Data4": -7884842139303580579
         },
         "Flags": 3,
         "Name": "Microsoft.AspNetCore.Components.Forms.InputNumber<TValue>",
@@ -1831,8 +1863,7 @@
             "TypeName": 17,
             "DisplayName": "System.Type Microsoft.AspNetCore.Components.Forms.InputNumber<TValue>.TValue",
             "Documentation": "Specifies the type of the type parameter TValue for the Microsoft.AspNetCore.Components.Forms.InputNumber<TValue> component.",
-            "MetadataKind": 1,
-            "Metadata": {}
+            "MetadataKind": 1
           },
           {
             "Flags": 1,
@@ -1888,16 +1919,17 @@
             }
           }
         ],
+        "MetadataKind": 5,
         "Metadata": {
-          "Components.GenericTyped": "True"
+          "IsGeneric": true
         }
       },
       {
         "__Checksum": {
-          "Data1": 8340489046298450468,
-          "Data2": -4318261020108776739,
-          "Data3": 1448909990212221530,
-          "Data4": 3643072556170556666
+          "Data1": 4169425916689173523,
+          "Data2": -3240085525328439855,
+          "Data3": 3262916159784248163,
+          "Data4": 6970205669689453954
         },
         "Flags": 1,
         "Name": "Microsoft.AspNetCore.Components.Forms.InputSelect<TValue>",
@@ -1918,8 +1950,7 @@
             "TypeName": 17,
             "DisplayName": "System.Type Microsoft.AspNetCore.Components.Forms.InputSelect<TValue>.TValue",
             "Documentation": "Specifies the type of the type parameter TValue for the Microsoft.AspNetCore.Components.Forms.InputSelect<TValue> component.",
-            "MetadataKind": 1,
-            "Metadata": {}
+            "MetadataKind": 1
           },
           {
             "Flags": 1,
@@ -1979,16 +2010,17 @@
             }
           }
         ],
+        "MetadataKind": 5,
         "Metadata": {
-          "Components.GenericTyped": "True"
+          "IsGeneric": true
         }
       },
       {
         "__Checksum": {
-          "Data1": 8830673422878002742,
-          "Data2": -5082205294652921299,
-          "Data3": -4850720105434020204,
-          "Data4": 3160886876344425526
+          "Data1": 8883602627089886140,
+          "Data2": 2853532360407078303,
+          "Data3": 6981813441270264958,
+          "Data4": 9069065855460886613
         },
         "Flags": 3,
         "Name": "Microsoft.AspNetCore.Components.Forms.InputSelect<TValue>",
@@ -2009,8 +2041,7 @@
             "TypeName": 17,
             "DisplayName": "System.Type Microsoft.AspNetCore.Components.Forms.InputSelect<TValue>.TValue",
             "Documentation": "Specifies the type of the type parameter TValue for the Microsoft.AspNetCore.Components.Forms.InputSelect<TValue> component.",
-            "MetadataKind": 1,
-            "Metadata": {}
+            "MetadataKind": 1
           },
           {
             "Flags": 1,
@@ -2070,16 +2101,17 @@
             }
           }
         ],
+        "MetadataKind": 5,
         "Metadata": {
-          "Components.GenericTyped": "True"
+          "IsGeneric": true
         }
       },
       {
         "__Checksum": {
-          "Data1": -8709283337590883814,
-          "Data2": -8903793887168044893,
-          "Data3": -1230026063891416397,
-          "Data4": -6610934737424892872
+          "Data1": -8869823167034487886,
+          "Data2": 1189484077984142158,
+          "Data3": -613573245387421619,
+          "Data4": -7354253867593229581
         },
         "Flags": 1,
         "Kind": 3,
@@ -2098,10 +2130,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -6190101782839809168,
-          "Data2": -4299750630528452493,
-          "Data3": 157141571656475546,
-          "Data4": 1101564610558409821
+          "Data1": -2432799144906111465,
+          "Data2": 7709730677972569008,
+          "Data3": 7145678753430993597,
+          "Data4": 1618152033834758617
         },
         "Flags": 3,
         "Kind": 3,
@@ -2120,10 +2152,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 3825465551580517274,
-          "Data2": -1059146543879721032,
-          "Data3": 7720081979246554721,
-          "Data4": 7679592379034325465
+          "Data1": -6588036442304836239,
+          "Data2": -3942548721537577766,
+          "Data3": 2177381158118361580,
+          "Data4": -1569304780002832668
         },
         "Flags": 1,
         "Name": "Microsoft.AspNetCore.Components.Forms.InputText",
@@ -2173,14 +2205,15 @@
             "DisplayName": "System.Linq.Expressions.Expression<System.Func<System.String>> Microsoft.AspNetCore.Components.Forms.InputText.ValueExpression",
             "Documentation": "\n            <summary>\n            Gets or sets an expression that identifies the bound value.\n            </summary>\n        "
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": 8975001894905136768,
-          "Data2": -7696883004422945204,
-          "Data3": -255574857359168281,
-          "Data4": 1980493562697433070
+          "Data1": 2088296465902283787,
+          "Data2": -4690163656742060937,
+          "Data3": -4855043727158164768,
+          "Data4": -5150884642868258907
         },
         "Flags": 3,
         "Name": "Microsoft.AspNetCore.Components.Forms.InputText",
@@ -2230,14 +2263,15 @@
             "DisplayName": "System.Linq.Expressions.Expression<System.Func<System.String>> Microsoft.AspNetCore.Components.Forms.InputText.ValueExpression",
             "Documentation": "\n            <summary>\n            Gets or sets an expression that identifies the bound value.\n            </summary>\n        "
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": 8090194496171880946,
-          "Data2": 4394743029045319102,
-          "Data3": 8659055258827387877,
-          "Data4": 2160889118682680
+          "Data1": 1395655334453148131,
+          "Data2": 7026564856819512623,
+          "Data3": 3513854491431870624,
+          "Data4": -263674254741353037
         },
         "Flags": 1,
         "Name": "Microsoft.AspNetCore.Components.Forms.InputTextArea",
@@ -2287,14 +2321,15 @@
             "DisplayName": "System.Linq.Expressions.Expression<System.Func<System.String>> Microsoft.AspNetCore.Components.Forms.InputTextArea.ValueExpression",
             "Documentation": "\n            <summary>\n            Gets or sets an expression that identifies the bound value.\n            </summary>\n        "
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": 7142454209726913729,
-          "Data2": -5797363219490334354,
-          "Data3": -4426280341601294636,
-          "Data4": 4864612214435141705
+          "Data1": -8715611139445380273,
+          "Data2": 601395938206927783,
+          "Data3": 1413827456125800630,
+          "Data4": 7718327778397384577
         },
         "Flags": 3,
         "Name": "Microsoft.AspNetCore.Components.Forms.InputTextArea",
@@ -2344,14 +2379,15 @@
             "DisplayName": "System.Linq.Expressions.Expression<System.Func<System.String>> Microsoft.AspNetCore.Components.Forms.InputTextArea.ValueExpression",
             "Documentation": "\n            <summary>\n            Gets or sets an expression that identifies the bound value.\n            </summary>\n        "
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -7424952230378959118,
-          "Data2": 4215703544900511671,
-          "Data3": -8172467366521662916,
-          "Data4": -7500997382002611162
+          "Data1": 7637813654348998665,
+          "Data2": 5742405936219344316,
+          "Data3": 7362814427106137623,
+          "Data4": -5831230499535242818
         },
         "Flags": 1,
         "Name": "Microsoft.AspNetCore.Components.Forms.ValidationMessage<TValue>",
@@ -2372,8 +2408,7 @@
             "TypeName": 17,
             "DisplayName": "System.Type Microsoft.AspNetCore.Components.Forms.ValidationMessage<TValue>.TValue",
             "Documentation": "Specifies the type of the type parameter TValue for the Microsoft.AspNetCore.Components.Forms.ValidationMessage<TValue> component.",
-            "MetadataKind": 1,
-            "Metadata": {}
+            "MetadataKind": 1
           },
           {
             "Flags": 1,
@@ -2396,16 +2431,17 @@
             }
           }
         ],
+        "MetadataKind": 5,
         "Metadata": {
-          "Components.GenericTyped": "True"
+          "IsGeneric": true
         }
       },
       {
         "__Checksum": {
-          "Data1": 3213007987857239032,
-          "Data2": -2714015705170503578,
-          "Data3": 4038767738578314935,
-          "Data4": -739886482072459313
+          "Data1": -7148881076626321593,
+          "Data2": 4303237500845220105,
+          "Data3": -6859193644043517932,
+          "Data4": -2160102848235949847
         },
         "Flags": 3,
         "Name": "Microsoft.AspNetCore.Components.Forms.ValidationMessage<TValue>",
@@ -2426,8 +2462,7 @@
             "TypeName": 17,
             "DisplayName": "System.Type Microsoft.AspNetCore.Components.Forms.ValidationMessage<TValue>.TValue",
             "Documentation": "Specifies the type of the type parameter TValue for the Microsoft.AspNetCore.Components.Forms.ValidationMessage<TValue> component.",
-            "MetadataKind": 1,
-            "Metadata": {}
+            "MetadataKind": 1
           },
           {
             "Flags": 1,
@@ -2450,16 +2485,17 @@
             }
           }
         ],
+        "MetadataKind": 5,
         "Metadata": {
-          "Components.GenericTyped": "True"
+          "IsGeneric": true
         }
       },
       {
         "__Checksum": {
-          "Data1": -701230891796557880,
-          "Data2": 947962065779939425,
-          "Data3": 4709263996559352800,
-          "Data4": -3071017201388257780
+          "Data1": 6244611474627004365,
+          "Data2": -9120958384583281419,
+          "Data3": 8487604890625983234,
+          "Data4": -759164906330625919
         },
         "Flags": 1,
         "Name": "Microsoft.AspNetCore.Components.Forms.ValidationSummary",
@@ -2489,14 +2525,15 @@
             "DisplayName": "object Microsoft.AspNetCore.Components.Forms.ValidationSummary.Model",
             "Documentation": "\n            <summary>\n            Gets or sets the model to produce the list of validation messages for.\n            When specified, this lists all errors that are associated with the model instance.\n            </summary>\n        "
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": 371101631443422103,
-          "Data2": 2186941204240485049,
-          "Data3": -2481568681260498663,
-          "Data4": 4412087343931859677
+          "Data1": -3449757172970338934,
+          "Data2": -6613589734686313799,
+          "Data3": 10591245970903698,
+          "Data4": -5302577502444596275
         },
         "Flags": 3,
         "Name": "Microsoft.AspNetCore.Components.Forms.ValidationSummary",
@@ -2526,14 +2563,15 @@
             "DisplayName": "object Microsoft.AspNetCore.Components.Forms.ValidationSummary.Model",
             "Documentation": "\n            <summary>\n            Gets or sets the model to produce the list of validation messages for.\n            When specified, this lists all errors that are associated with the model instance.\n            </summary>\n        "
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -1357078410098582465,
-          "Data2": -1227217144891232262,
-          "Data3": -5643337648313390958,
-          "Data4": -2974707596357948474
+          "Data1": 7234246408924613100,
+          "Data2": -4477619350188238985,
+          "Data3": -5517283018677294237,
+          "Data4": -8659119511992860813
         },
         "Flags": 1,
         "Name": "Microsoft.AspNetCore.Components.Routing.NavLink",
@@ -2583,14 +2621,15 @@
             "DisplayName": "Microsoft.AspNetCore.Components.Routing.NavLinkMatch Microsoft.AspNetCore.Components.Routing.NavLink.Match",
             "Documentation": "\n            <summary>\n            Gets or sets a value representing the URL matching behavior.\n            </summary>\n        "
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -7901991969549015864,
-          "Data2": 4920719218022704460,
-          "Data3": 8747485361932777580,
-          "Data4": -4388019404458412551
+          "Data1": 5775999055831763409,
+          "Data2": 4982688411490695555,
+          "Data3": 3874834907476892173,
+          "Data4": -2041705026992106609
         },
         "Flags": 3,
         "Name": "Microsoft.AspNetCore.Components.Routing.NavLink",
@@ -2640,14 +2679,15 @@
             "DisplayName": "Microsoft.AspNetCore.Components.Routing.NavLinkMatch Microsoft.AspNetCore.Components.Routing.NavLink.Match",
             "Documentation": "\n            <summary>\n            Gets or sets a value representing the URL matching behavior.\n            </summary>\n        "
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": 852631032887768801,
-          "Data2": -9092769938431899352,
-          "Data3": 982927919604974379,
-          "Data4": -7482824280502296373
+          "Data1": 8727253830178899011,
+          "Data2": 1159663259696387442,
+          "Data3": -3848416845505823147,
+          "Data4": 2148027690590400161
         },
         "Flags": 1,
         "Kind": 3,
@@ -2666,10 +2706,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -5677665693586916070,
-          "Data2": 4148973825462583360,
-          "Data3": 6471471720001670238,
-          "Data4": -7709134514874286341
+          "Data1": 8445045772570551804,
+          "Data2": 476246335500300242,
+          "Data3": -5715609184455957731,
+          "Data4": 6878933790817714009
         },
         "Flags": 3,
         "Kind": 3,
@@ -2688,10 +2728,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 7832449306672153709,
-          "Data2": 1801905525550918111,
-          "Data3": -6123093518987206356,
-          "Data4": 4152189667215383578
+          "Data1": 4201101476272322287,
+          "Data2": 7604624092389934678,
+          "Data3": 4078263307432135055,
+          "Data4": 29983054857978051
         },
         "Flags": 1,
         "Name": "Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView",
@@ -2754,14 +2794,15 @@
             "Documentation": "Specifies the parameter name for all child content expressions.",
             "MetadataKind": 3
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -661360977066543860,
-          "Data2": 3431541458759828627,
-          "Data3": -747376944850003132,
-          "Data4": 8657943374630443011
+          "Data1": -4189492138328668832,
+          "Data2": 7308679100081131340,
+          "Data3": -8759577889035860822,
+          "Data4": -4169003647348847166
         },
         "Flags": 3,
         "Name": "Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView",
@@ -2824,14 +2865,15 @@
             "Documentation": "Specifies the parameter name for all child content expressions.",
             "MetadataKind": 3
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -6433612327337969405,
-          "Data2": 7076908438644470035,
-          "Data3": -915940289611076632,
-          "Data4": 7741493654701210707
+          "Data1": 1163895305395526021,
+          "Data2": 2651581870567460421,
+          "Data3": 8526937545177119803,
+          "Data4": -5593848051269885685
         },
         "Flags": 1,
         "Kind": 3,
@@ -2850,10 +2892,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -2326658762271583900,
-          "Data2": 81593355469730188,
-          "Data3": -2111434179395208890,
-          "Data4": 5979113619150110219
+          "Data1": -3376464956591014915,
+          "Data2": -6356845768450914615,
+          "Data3": -193839449389756075,
+          "Data4": 1602342531528405080
         },
         "Flags": 3,
         "Kind": 3,
@@ -2872,10 +2914,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -8860510014504003255,
-          "Data2": 7540822671642016580,
-          "Data3": -7442951195946742614,
-          "Data4": 8505805970319682247
+          "Data1": -7521739482396887449,
+          "Data2": -375434061925116478,
+          "Data3": 6638942894331925750,
+          "Data4": -6515688123495083966
         },
         "Flags": 1,
         "Kind": 3,
@@ -2905,10 +2947,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -824558474264024288,
-          "Data2": 2615493723931134690,
-          "Data3": -5552828014430213035,
-          "Data4": 8984934219873995586
+          "Data1": 7296914515686675478,
+          "Data2": 7865637200883828544,
+          "Data3": 8284878711518209154,
+          "Data4": 5320980033719066965
         },
         "Flags": 3,
         "Kind": 3,
@@ -2938,10 +2980,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 6369989704065720824,
-          "Data2": 5715433530188560541,
-          "Data3": -3997076763938126057,
-          "Data4": 3075994660264533534
+          "Data1": -3561061445913341087,
+          "Data2": -7956960177798611723,
+          "Data3": -9008329613495817909,
+          "Data4": 8902747239725001692
         },
         "Flags": 1,
         "Name": "Microsoft.AspNetCore.Components.Authorization.AuthorizeView",
@@ -3036,14 +3078,15 @@
             "Documentation": "Specifies the parameter name for all child content expressions.",
             "MetadataKind": 3
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -8209133881228301686,
-          "Data2": -2328811386619327695,
-          "Data3": 5798689619453435209,
-          "Data4": -2717130749746161646
+          "Data1": -5580468458943431329,
+          "Data2": 9048353802331592611,
+          "Data3": 8207898833650578955,
+          "Data4": 3014246224675242383
         },
         "Flags": 3,
         "Name": "Microsoft.AspNetCore.Components.Authorization.AuthorizeView",
@@ -3138,14 +3181,15 @@
             "Documentation": "Specifies the parameter name for all child content expressions.",
             "MetadataKind": 3
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -4177007746281471772,
-          "Data2": -7917605836849259334,
-          "Data3": -7791017243579247235,
-          "Data4": -1277194944756765990
+          "Data1": 1836891585982002894,
+          "Data2": 5071272740120577757,
+          "Data3": -6048954441542039299,
+          "Data4": 5110823722532546393
         },
         "Flags": 1,
         "Kind": 3,
@@ -3175,10 +3219,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 8919843280135539074,
-          "Data2": -3671753992130384173,
-          "Data3": -7547217623576057555,
-          "Data4": -2896099499357875408
+          "Data1": -1768599629433341710,
+          "Data2": 4087282219106489138,
+          "Data3": -6117282106093242133,
+          "Data4": 3353203284217855882
         },
         "Flags": 3,
         "Kind": 3,
@@ -3208,10 +3252,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 4928080191474464824,
-          "Data2": -970831120552351712,
-          "Data3": 1050503469173623304,
-          "Data4": -7055638071385958345
+          "Data1": -4088410122350951543,
+          "Data2": -1612228289615750412,
+          "Data3": -3800356143724504498,
+          "Data4": -8898185723874624242
         },
         "Flags": 1,
         "Kind": 3,
@@ -3230,10 +3274,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 3998311763015398961,
-          "Data2": -852233459511076716,
-          "Data3": 6562092655341249038,
-          "Data4": 9128950755137165925
+          "Data1": 4415034173764523842,
+          "Data2": 18373030330922266,
+          "Data3": 7252679979489885806,
+          "Data4": -296576580652430764
         },
         "Flags": 3,
         "Kind": 3,
@@ -3252,10 +3296,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 5074150455141715932,
-          "Data2": 4207061451782762121,
-          "Data3": -7485016189576986258,
-          "Data4": -3162227168283557835
+          "Data1": -2953165212740071642,
+          "Data2": 3220173165001439739,
+          "Data3": 420607087305586887,
+          "Data4": 3535451616943686302
         },
         "Flags": 1,
         "Kind": 3,
@@ -3285,10 +3329,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -3652661078905445887,
-          "Data2": -3125374338942082105,
-          "Data3": 3473985984074751878,
-          "Data4": -2704143170287719114
+          "Data1": -5170632609522979239,
+          "Data2": 6811857365853307614,
+          "Data3": -299404776402055992,
+          "Data4": -4218088775173338614
         },
         "Flags": 3,
         "Kind": 3,
@@ -3318,10 +3362,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 8419433316220217384,
-          "Data2": -6594781047229175192,
-          "Data3": 9103982728167240549,
-          "Data4": 1415652923213860267
+          "Data1": -5583245122294057746,
+          "Data2": -8303924423410431708,
+          "Data3": 5675053629757349039,
+          "Data4": -2100406260105492581
         },
         "Flags": 1,
         "Kind": 3,
@@ -3351,10 +3395,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 7286656455687745572,
-          "Data2": 3243510860529944267,
-          "Data3": 1032192349360572400,
-          "Data4": -2737346919011045050
+          "Data1": -8777974710302737265,
+          "Data2": -5954467644406669625,
+          "Data3": -3986188770690757613,
+          "Data4": -5596404865731757598
         },
         "Flags": 3,
         "Kind": 3,
@@ -3384,10 +3428,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 5198469927819344697,
-          "Data2": 6860037494613294299,
-          "Data3": -8993378121282995119,
-          "Data4": 8641819565095842236
+          "Data1": -8512084218692648024,
+          "Data2": 8969854629330204138,
+          "Data3": 7669783073285809360,
+          "Data4": -837635339894828455
         },
         "Flags": 1,
         "Name": "Microsoft.AspNetCore.Components.Authorization.CascadingAuthenticationState",
@@ -3412,14 +3456,15 @@
               "IsChildContent": true
             }
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": 2054731256041662319,
-          "Data2": -565580160928419090,
-          "Data3": 725495147076371250,
-          "Data4": 2705735681516851209
+          "Data1": -306065013418687756,
+          "Data2": -260396175086884882,
+          "Data3": 2714160989509265891,
+          "Data4": -4216380840622262366
         },
         "Flags": 3,
         "Name": "Microsoft.AspNetCore.Components.Authorization.CascadingAuthenticationState",
@@ -3444,14 +3489,15 @@
               "IsChildContent": true
             }
           }
-        ]
+        ],
+        "MetadataKind": 5
       },
       {
         "__Checksum": {
-          "Data1": -7611509008244334937,
-          "Data2": -8698924741260970556,
-          "Data3": 6444088760792898874,
-          "Data4": 7721625609633943956
+          "Data1": -6704396174250687382,
+          "Data2": 5252006729258588950,
+          "Data3": 5566235628716037339,
+          "Data4": 7222917987285520471
         },
         "Flags": 1,
         "Kind": 3,
@@ -3470,10 +3516,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -2191453614020902590,
-          "Data2": -891388557940903116,
-          "Data3": -5600895631704904247,
-          "Data4": -3834373003321249446
+          "Data1": -5442141830023978044,
+          "Data2": -7679738406354059686,
+          "Data3": -8350387858413053758,
+          "Data4": -5115828910320209609
         },
         "Flags": 3,
         "Kind": 3,
@@ -3492,10 +3538,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -7562321856023230034,
-          "Data2": 4154856247602847470,
-          "Data3": 8944770969317320602,
-          "Data4": -3118090835276450250
+          "Data1": -3722971011972317750,
+          "Data2": -592777304361731370,
+          "Data3": 8133611277289279028,
+          "Data4": 300049689859592947
         },
         "Flags": 5,
         "Kind": 4,
@@ -3560,16 +3606,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.ProgressEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.ProgressEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 475312385141668168,
-          "Data2": -1070937144587415541,
-          "Data3": 8496434720167965723,
-          "Data4": 1193213576863428732
+          "Data1": 7043247215502018870,
+          "Data2": 3121671333463192913,
+          "Data3": -571632895408142886,
+          "Data4": -1000808742575077773
         },
         "Flags": 5,
         "Kind": 4,
@@ -3634,16 +3681,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 4680784426964669503,
-          "Data2": 9170550251801992671,
-          "Data3": -6939376016314823221,
-          "Data4": -2658257846233518119
+          "Data1": -8398242758097246755,
+          "Data2": 877032546735171205,
+          "Data3": -6261482753686256731,
+          "Data4": -987073166508807669
         },
         "Flags": 5,
         "Kind": 4,
@@ -3708,16 +3756,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -1751698422972303396,
-          "Data2": 5161998419469309903,
-          "Data3": -3794307712092565214,
-          "Data4": -7145432321570918143
+          "Data1": 6486175198017259833,
+          "Data2": -9045878770970767533,
+          "Data3": 385132702721372256,
+          "Data4": 8518229522095660506
         },
         "Flags": 5,
         "Kind": 4,
@@ -3782,16 +3831,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 1922723857337011811,
-          "Data2": -7671447766087555906,
-          "Data3": 4449520910505172691,
-          "Data4": -5031620204080207107
+          "Data1": -8021312881779370998,
+          "Data2": -6894514747378301706,
+          "Data3": 6990135765323971956,
+          "Data4": 8104304545817447363
         },
         "Flags": 5,
         "Kind": 4,
@@ -3856,16 +3906,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -2720327319503047215,
-          "Data2": 6999327694047114927,
-          "Data3": -1869025779111136563,
-          "Data4": -1368247217544290711
+          "Data1": -3891190013503308541,
+          "Data2": 1846789252772363607,
+          "Data3": 151210813164370833,
+          "Data4": 7272252623055905523
         },
         "Flags": 5,
         "Kind": 4,
@@ -3930,16 +3981,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 7351891731964837548,
-          "Data2": 1862650057472885722,
-          "Data3": -6642730686869688104,
-          "Data4": -317828869005838057
+          "Data1": 6454814231156480668,
+          "Data2": -8318307939505622856,
+          "Data3": -8086148443927495185,
+          "Data4": 8256776907393916604
         },
         "Flags": 5,
         "Kind": 4,
@@ -4004,16 +4056,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 29411626280375995,
-          "Data2": 6354675838215066148,
-          "Data3": -4140378941916730547,
-          "Data4": 5139805456398873862
+          "Data1": 8118417069560010966,
+          "Data2": 2373016150979195533,
+          "Data3": 7801389652673171605,
+          "Data4": -2867046784589541519
         },
         "Flags": 5,
         "Kind": 4,
@@ -4078,16 +4131,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.FocusEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.FocusEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 7131023165401689401,
-          "Data2": -155718002389110547,
-          "Data3": -2567945825328245810,
-          "Data4": -5950823732864617789
+          "Data1": 9101802372438242419,
+          "Data2": 3520896710339914219,
+          "Data3": -7058403135151230520,
+          "Data4": -6051628103781612450
         },
         "Flags": 5,
         "Kind": 4,
@@ -4152,16 +4206,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 6050975906224029701,
-          "Data2": 1682054678861497999,
-          "Data3": -6631909920697010639,
-          "Data4": -5393554738754568634
+          "Data1": 5617082486166732656,
+          "Data2": -2069834419439494720,
+          "Data3": 3115049679856015223,
+          "Data4": -3759275380137406094
         },
         "Flags": 5,
         "Kind": 4,
@@ -4226,16 +4281,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -5387606812152912972,
-          "Data2": 530397084853074671,
-          "Data3": -7968862718325541446,
-          "Data4": -6388290490317440636
+          "Data1": 8040740264241579976,
+          "Data2": 6817379544812678040,
+          "Data3": 2511661885866553112,
+          "Data4": -3721544157668675310
         },
         "Flags": 5,
         "Kind": 4,
@@ -4300,16 +4356,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.ChangeEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.ChangeEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 7338180160697979386,
-          "Data2": -1682853712818337277,
-          "Data3": -1085944052309176923,
-          "Data4": 49173511803344512
+          "Data1": -2880559344786755464,
+          "Data2": -907762085711449062,
+          "Data3": -2518778878999991290,
+          "Data4": -7316749070091308960
         },
         "Flags": 5,
         "Kind": 4,
@@ -4374,16 +4431,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -5029292351802372,
-          "Data2": 1220374288906651326,
-          "Data3": 5356313274270964511,
-          "Data4": -8185647377863661265
+          "Data1": -1210266831355526773,
+          "Data2": -6685446055590984237,
+          "Data3": 7705826145965103335,
+          "Data4": -5249722340010061392
         },
         "Flags": 5,
         "Kind": 4,
@@ -4448,16 +4506,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 5241054441286951649,
-          "Data2": -7226128288578033233,
-          "Data3": 7859982023454885398,
-          "Data4": 3230074899609193895
+          "Data1": 1196314728664085421,
+          "Data2": -4175223616171607843,
+          "Data3": -2411394180253275124,
+          "Data4": -8429440105094350151
         },
         "Flags": 5,
         "Kind": 4,
@@ -4522,16 +4581,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.ClipboardEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.ClipboardEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -8986319622372486391,
-          "Data2": -5916998997087918102,
-          "Data3": -8521984469035583918,
-          "Data4": 5614745193261311325
+          "Data1": 2545645328309131191,
+          "Data2": -3816370184009681381,
+          "Data3": -6702098122574599510,
+          "Data4": 1257481785239839183
         },
         "Flags": 5,
         "Kind": 4,
@@ -4596,16 +4656,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -4794415743407843702,
-          "Data2": 3916825159138518751,
-          "Data3": 1366646695892139334,
-          "Data4": 7748448704793260718
+          "Data1": 301773917002748323,
+          "Data2": -1700981253046273531,
+          "Data3": -7554759648293418335,
+          "Data4": 3376204753815956945
         },
         "Flags": 5,
         "Kind": 4,
@@ -4670,16 +4731,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.ClipboardEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.ClipboardEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 2670946479553670100,
-          "Data2": -1470665128470492990,
-          "Data3": -7231080998208523024,
-          "Data4": 6069564636327712061
+          "Data1": -5787121060434686499,
+          "Data2": 1136763387091270254,
+          "Data3": -8236616689224323157,
+          "Data4": 5943278359397730370
         },
         "Flags": 5,
         "Kind": 4,
@@ -4744,16 +4806,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -7755336122558333220,
-          "Data2": -2166355776074927848,
-          "Data3": -4875114082732668114,
-          "Data4": -6647196760477498360
+          "Data1": 2492509071011142460,
+          "Data2": 2111499312908187687,
+          "Data3": -6442314201107516321,
+          "Data4": -4120318254279265393
         },
         "Flags": 5,
         "Kind": 4,
@@ -4818,16 +4881,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 7450916260408438500,
-          "Data2": -5469283976388793561,
-          "Data3": 4143127486357928933,
-          "Data4": 5355463703537260134
+          "Data1": -5801208420174981865,
+          "Data2": -4608188897143486194,
+          "Data3": 6130984815914808193,
+          "Data4": 8568908901951240052
         },
         "Flags": 5,
         "Kind": 4,
@@ -4892,16 +4956,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.DragEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.DragEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -2850395835627191389,
-          "Data2": -5999161449256707598,
-          "Data3": 185407557438907621,
-          "Data4": -4394575090562476249
+          "Data1": 3279270792329556723,
+          "Data2": -3381279487141676675,
+          "Data3": 808805848996841860,
+          "Data4": 6519654190220938639
         },
         "Flags": 5,
         "Kind": 4,
@@ -4966,16 +5031,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.DragEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.DragEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 3300883483761930673,
-          "Data2": -4566344066570542073,
-          "Data3": 8012505799814388889,
-          "Data4": 1472227695009966567
+          "Data1": 3707377159739595277,
+          "Data2": 7193690639905448201,
+          "Data3": -469322050002951208,
+          "Data4": 4428285077237028248
         },
         "Flags": 5,
         "Kind": 4,
@@ -5040,16 +5106,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.DragEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.DragEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 5489062064780420555,
-          "Data2": -7823129334065539127,
-          "Data3": 2505733477362665971,
-          "Data4": -5956567603458459463
+          "Data1": -753402082081552324,
+          "Data2": -90148350832365845,
+          "Data3": 3194648675318507795,
+          "Data4": 4592675514726319190
         },
         "Flags": 5,
         "Kind": 4,
@@ -5114,16 +5181,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.DragEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.DragEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 2916536329597955453,
-          "Data2": -1518627043689839710,
-          "Data3": 6070589263056795082,
-          "Data4": 7842939489686198503
+          "Data1": 614077131379701420,
+          "Data2": -7376985623620647092,
+          "Data3": -2794949226707642156,
+          "Data4": -1608276079423422961
         },
         "Flags": 5,
         "Kind": 4,
@@ -5188,16 +5256,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.DragEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.DragEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 4730261496059483431,
-          "Data2": -3113310494623917174,
-          "Data3": 4925163658178262451,
-          "Data4": 8665001320450479168
+          "Data1": 3878874248286057788,
+          "Data2": 323012374981105951,
+          "Data3": 1413818538178244637,
+          "Data4": -7560347945426391493
         },
         "Flags": 5,
         "Kind": 4,
@@ -5262,16 +5331,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.DragEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.DragEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 6422616839031556485,
-          "Data2": -224052684447327465,
-          "Data3": -2984408892892805589,
-          "Data4": -3235688087713777256
+          "Data1": -1869901892296251645,
+          "Data2": 4306109085540721455,
+          "Data3": 6116036012770947884,
+          "Data4": -6514593956484246659
         },
         "Flags": 5,
         "Kind": 4,
@@ -5336,16 +5406,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.DragEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.DragEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 2859709448576064442,
-          "Data2": 3164480830763348946,
-          "Data3": -5229771109766473950,
-          "Data4": -3911437964977669960
+          "Data1": -8834894900355434165,
+          "Data2": 5929268956217302716,
+          "Data3": -4873368573097614453,
+          "Data4": -5962358948028173704
         },
         "Flags": 5,
         "Kind": 4,
@@ -5410,16 +5481,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 2664182261080149350,
-          "Data2": 7616634160129732674,
-          "Data3": -2412253897047817175,
-          "Data4": 6235269664406232698
+          "Data1": -3171026755325328238,
+          "Data2": 7779377921132129013,
+          "Data3": -8530952749943609889,
+          "Data4": -1325060369271255720
         },
         "Flags": 5,
         "Kind": 4,
@@ -5484,16 +5556,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 2589769835815383407,
-          "Data2": 335145755848000325,
-          "Data3": -3201777676013862479,
-          "Data4": 446111125090984388
+          "Data1": -7925050506345847540,
+          "Data2": -463872225063765205,
+          "Data3": 7753990551206001879,
+          "Data4": -7371009887407428770
         },
         "Flags": 5,
         "Kind": 4,
@@ -5558,16 +5631,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 2313214128588243400,
-          "Data2": 7057203166482627240,
-          "Data3": 6309161494403969174,
-          "Data4": -5565668469114805680
+          "Data1": 521894069359713506,
+          "Data2": 5595221733557097494,
+          "Data3": -751208756587384855,
+          "Data4": 7627959867642680985
         },
         "Flags": 5,
         "Kind": 4,
@@ -5632,16 +5706,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.ErrorEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.ErrorEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -1723192862194441720,
-          "Data2": -6787360016208923126,
-          "Data3": -8045888229074107350,
-          "Data4": 6062435498415215492
+          "Data1": -2225370554796611107,
+          "Data2": 6529128533861933285,
+          "Data3": 6567738050944149849,
+          "Data4": 1609110514241496222
         },
         "Flags": 5,
         "Kind": 4,
@@ -5706,16 +5781,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.FocusEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.FocusEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 8722044656908144839,
-          "Data2": -4762646267810437922,
-          "Data3": 1408571465925286311,
-          "Data4": 1193542435549430345
+          "Data1": -8841200237376865055,
+          "Data2": 78422614786481826,
+          "Data3": -4672048706258693109,
+          "Data4": -4993758712900100251
         },
         "Flags": 5,
         "Kind": 4,
@@ -5780,16 +5856,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.FocusEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.FocusEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 3990032840398565492,
-          "Data2": -2027473342045178412,
-          "Data3": 4061714279761414604,
-          "Data4": 7484743428578104544
+          "Data1": -7218537233620942533,
+          "Data2": -7131738757307533020,
+          "Data3": 6467112914317417121,
+          "Data4": -310432776204128805
         },
         "Flags": 5,
         "Kind": 4,
@@ -5854,16 +5931,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.FocusEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.FocusEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -12214678901004712,
-          "Data2": 1354938343130617526,
-          "Data3": -8434077009652183897,
-          "Data4": -9122374393317606950
+          "Data1": 6749576066501111895,
+          "Data2": -532846698435059927,
+          "Data3": -2387491221927771190,
+          "Data4": -5136834710519512513
         },
         "Flags": 5,
         "Kind": 4,
@@ -5928,16 +6006,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -8741751269310920383,
-          "Data2": 5527248521662963051,
-          "Data3": 1326656337480939261,
-          "Data4": 6945568312000109966
+          "Data1": 4608449935676089746,
+          "Data2": 4726313655472297453,
+          "Data3": 2683860572147505733,
+          "Data4": -8351261659260571347
         },
         "Flags": 5,
         "Kind": 4,
@@ -6002,16 +6081,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -734123602836205878,
-          "Data2": -2879608166321829994,
-          "Data3": -376910377076488352,
-          "Data4": -6072694114102084862
+          "Data1": -6775730087446001826,
+          "Data2": 6867959566515017250,
+          "Data3": -3867891977696159662,
+          "Data4": -3005991191005247725
         },
         "Flags": 5,
         "Kind": 4,
@@ -6076,16 +6156,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -9061004957516290639,
-          "Data2": 6899826543755008581,
-          "Data3": -8102660990894672607,
-          "Data4": -3257403073096299450
+          "Data1": 1799447568114235478,
+          "Data2": 925319954370289448,
+          "Data3": -8877413442477412039,
+          "Data4": 1222356864358699636
         },
         "Flags": 5,
         "Kind": 4,
@@ -6150,16 +6231,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.ChangeEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.ChangeEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -4838970606700160373,
-          "Data2": -8479239542362964917,
-          "Data3": 694854561350731904,
-          "Data4": -4769668168092417287
+          "Data1": -923620560923294009,
+          "Data2": -8292100725792985342,
+          "Data3": -7481451486902108692,
+          "Data4": -2584571288258879064
         },
         "Flags": 5,
         "Kind": 4,
@@ -6224,16 +6306,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -3905664234144122007,
-          "Data2": 484479478971283996,
-          "Data3": 6380947072567273050,
-          "Data4": -5291712289795608926
+          "Data1": -7452343823908954241,
+          "Data2": 5244854637068748934,
+          "Data3": -4865246052838868246,
+          "Data4": 4154666458616351130
         },
         "Flags": 5,
         "Kind": 4,
@@ -6298,16 +6381,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.KeyboardEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.KeyboardEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 4225806153585382690,
-          "Data2": -5854040666999744336,
-          "Data3": -1589986306686342480,
-          "Data4": -6762712171335627923
+          "Data1": -2608326803756956146,
+          "Data2": -3400424288229436008,
+          "Data3": 7966346588951978617,
+          "Data4": -8234615731986278232
         },
         "Flags": 5,
         "Kind": 4,
@@ -6372,16 +6456,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.KeyboardEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.KeyboardEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -4967603129278420776,
-          "Data2": -3465968616344793749,
-          "Data3": 2388244325959897579,
-          "Data4": 8032155271280962643
+          "Data1": -6396002248059706276,
+          "Data2": 3902092753681529547,
+          "Data3": 4830826328634703520,
+          "Data4": -1502371366177014498
         },
         "Flags": 5,
         "Kind": 4,
@@ -6446,16 +6531,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.KeyboardEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.KeyboardEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 6826982331779890072,
-          "Data2": -8615961383554007005,
-          "Data3": -6934708182722006865,
-          "Data4": 5775565062775588012
+          "Data1": -5677668184206813051,
+          "Data2": -1160365989587340171,
+          "Data3": 8338489250364346393,
+          "Data4": 1326527802479103358
         },
         "Flags": 5,
         "Kind": 4,
@@ -6520,16 +6606,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.ProgressEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.ProgressEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -8232960535239952364,
-          "Data2": 7745533774055804909,
-          "Data3": 789553177469217821,
-          "Data4": -1110126309237873135
+          "Data1": -5530116835509623910,
+          "Data2": 4442818830577288641,
+          "Data3": -4222415714643011657,
+          "Data4": 5802868713773281629
         },
         "Flags": 5,
         "Kind": 4,
@@ -6594,16 +6681,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 1930517435733347785,
-          "Data2": -4028213062231683870,
-          "Data3": -8986715858760745800,
-          "Data4": 8670398490815708717
+          "Data1": -8131529044475215903,
+          "Data2": -2235372294251996603,
+          "Data3": -8382914233801226032,
+          "Data4": -7521796916397988064
         },
         "Flags": 5,
         "Kind": 4,
@@ -6668,16 +6756,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -3314325072345988020,
-          "Data2": -356825776725492114,
-          "Data3": -1094491211309257184,
-          "Data4": -6327598768856968759
+          "Data1": 4308192500518087045,
+          "Data2": -4103184166970792645,
+          "Data3": -3741833222925379743,
+          "Data4": 5435055779732597009
         },
         "Flags": 5,
         "Kind": 4,
@@ -6742,16 +6831,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.ProgressEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.ProgressEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -4209188159326274044,
-          "Data2": -8926948407241292420,
-          "Data3": -3184225341626146927,
-          "Data4": 4363689089615428351
+          "Data1": 8222069999722361090,
+          "Data2": -2142273640886855004,
+          "Data3": 6277927850967194465,
+          "Data4": -422987410663865700
         },
         "Flags": 5,
         "Kind": 4,
@@ -6816,16 +6906,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.ProgressEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.ProgressEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -5628218418012939974,
-          "Data2": -4425668351248785922,
-          "Data3": -131141407714013426,
-          "Data4": -4806808039491902020
+          "Data1": 6329716520147377013,
+          "Data2": -82407282565857478,
+          "Data3": 871045593024432663,
+          "Data4": -2677574743400614828
         },
         "Flags": 5,
         "Kind": 4,
@@ -6890,16 +6981,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -3533942019926929839,
-          "Data2": 2520046590499502000,
-          "Data3": -4512643470180410572,
-          "Data4": -4382722602831145922
+          "Data1": 1017664927534357074,
+          "Data2": 7677528903889742986,
+          "Data3": 919522681420567400,
+          "Data4": -6360077902157564898
         },
         "Flags": 5,
         "Kind": 4,
@@ -6964,16 +7056,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -3798988560629433256,
-          "Data2": 5504119655736836193,
-          "Data3": 710906139515218778,
-          "Data4": 8699573976582403493
+          "Data1": -2875172438558105435,
+          "Data2": -2062019593410994872,
+          "Data3": -5536292090701739930,
+          "Data4": 3840574012881479921
         },
         "Flags": 5,
         "Kind": 4,
@@ -7038,16 +7131,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -1661516986158589466,
-          "Data2": -4737330099072327503,
-          "Data3": -8885283510335571123,
-          "Data4": -7326941610425134686
+          "Data1": 748271377477268709,
+          "Data2": 4828720404480793405,
+          "Data3": 6520958015780664078,
+          "Data4": -1953896336970537808
         },
         "Flags": 5,
         "Kind": 4,
@@ -7112,16 +7206,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 8687452165975854320,
-          "Data2": 420507566843907150,
-          "Data3": -6119065338612673110,
-          "Data4": 7286639452290596919
+          "Data1": 355730719867725152,
+          "Data2": 7272199937761674975,
+          "Data3": -9109474244667185474,
+          "Data4": -4743944335619399564
         },
         "Flags": 5,
         "Kind": 4,
@@ -7186,16 +7281,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -1799986542486765454,
-          "Data2": 8808032728672405402,
-          "Data3": -557128712530708147,
-          "Data4": -812648390428817575
+          "Data1": 1871693315708382376,
+          "Data2": -176190456594548767,
+          "Data3": 1101948725309189788,
+          "Data4": 2547691015676141344
         },
         "Flags": 5,
         "Kind": 4,
@@ -7260,16 +7356,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -616299887602485442,
-          "Data2": 2979182155615903131,
-          "Data3": -3011087362660796634,
-          "Data4": 8751756270866136680
+          "Data1": 5347694836516441538,
+          "Data2": -8193955248803809658,
+          "Data3": -6445265875548805529,
+          "Data4": 5918197142976710795
         },
         "Flags": 5,
         "Kind": 4,
@@ -7334,16 +7431,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.WheelEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.WheelEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 2390565922062823725,
-          "Data2": -6512388623960642148,
-          "Data3": 7336351861756186172,
-          "Data4": -684989746816049037
+          "Data1": -2375610150215622386,
+          "Data2": -1807394710647436313,
+          "Data3": 7754110736459765739,
+          "Data4": -1081466497727647101
         },
         "Flags": 5,
         "Kind": 4,
@@ -7408,16 +7506,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.ClipboardEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.ClipboardEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 1690166512521973832,
-          "Data2": 8362977478190966386,
-          "Data3": 5124838768391921018,
-          "Data4": 1586331210441606183
+          "Data1": 2714058393676124375,
+          "Data2": -2419268378841957758,
+          "Data3": -4450366848560058573,
+          "Data4": -603759298058320356
         },
         "Flags": 5,
         "Kind": 4,
@@ -7482,16 +7581,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 7285249075157214387,
-          "Data2": -128506989084144236,
-          "Data3": -7155305415148507872,
-          "Data4": 2980931081728797744
+          "Data1": -1698489178251348642,
+          "Data2": -2236646257714515123,
+          "Data3": 5463103711020976295,
+          "Data4": 8664518387496319403
         },
         "Flags": 5,
         "Kind": 4,
@@ -7556,16 +7656,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -2240514413896777817,
-          "Data2": 2583363999347760261,
-          "Data3": -1190826313305726004,
-          "Data4": 74406040461183102
+          "Data1": -8605753287790553229,
+          "Data2": 4583444180816975869,
+          "Data3": 489107057096081304,
+          "Data4": 6636818316422457719
         },
         "Flags": 5,
         "Kind": 4,
@@ -7630,16 +7731,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 3067250819240561277,
-          "Data2": -1096706576588852259,
-          "Data3": 6989301684663283836,
-          "Data4": -3840131868583013666
+          "Data1": 6755181845573193132,
+          "Data2": -6226668990911815814,
+          "Data3": 8247467022308653560,
+          "Data4": 5506446239761001477
         },
         "Flags": 5,
         "Kind": 4,
@@ -7704,16 +7806,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -8682399225141911050,
-          "Data2": 1744416246962693199,
-          "Data3": -4951576839422399396,
-          "Data4": -173701652465085735
+          "Data1": 1153518848117228534,
+          "Data2": 2544141282540701661,
+          "Data3": 643293448498267765,
+          "Data4": 4651056190585220208
         },
         "Flags": 5,
         "Kind": 4,
@@ -7778,16 +7881,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 4725697041745881363,
-          "Data2": -7315847022592164059,
-          "Data3": 6793836875352658275,
-          "Data4": 5612161412007980299
+          "Data1": -611322213961094942,
+          "Data2": -2091875469593411548,
+          "Data3": 4830156330130263990,
+          "Data4": 5936496702128262666
         },
         "Flags": 5,
         "Kind": 4,
@@ -7852,16 +7956,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 765251937871031546,
-          "Data2": 3395786649852825129,
-          "Data3": -5526479711038666646,
-          "Data4": -5672074863421864760
+          "Data1": -8634115168719277061,
+          "Data2": 2658711084527857631,
+          "Data3": 1643752626925263298,
+          "Data4": 8670628693104821933
         },
         "Flags": 5,
         "Kind": 4,
@@ -7926,16 +8031,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -7747535222970761038,
-          "Data2": 6063580226158409664,
-          "Data3": 5585048604178544753,
-          "Data4": 3679695898498327443
+          "Data1": 752614433968596785,
+          "Data2": -8597881029512663396,
+          "Data3": -1187248467795797066,
+          "Data4": 9134463434926566475
         },
         "Flags": 5,
         "Kind": 4,
@@ -8000,16 +8106,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -5663238725447601925,
-          "Data2": -4055780937960328979,
-          "Data3": 5421910848213168784,
-          "Data4": -3248270428736670596
+          "Data1": 4926205851776286647,
+          "Data2": -3680305679067875890,
+          "Data3": -4086937842253238448,
+          "Data4": -3022312857845076273
         },
         "Flags": 5,
         "Kind": 4,
@@ -8074,16 +8181,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -7027014404689309506,
-          "Data2": -5318917447981956506,
-          "Data3": 5887217360283677273,
-          "Data4": 5805429470432143822
+          "Data1": -3024063486837072694,
+          "Data2": -7783121144561247815,
+          "Data3": 3426759625230479681,
+          "Data4": 3572908303005879822
         },
         "Flags": 5,
         "Kind": 4,
@@ -8148,16 +8256,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 6125895667101565289,
-          "Data2": 7295262015681091864,
-          "Data3": -7526402977708998843,
-          "Data4": -4425494393186254835
+          "Data1": 1092468484391244582,
+          "Data2": -5411535253738797608,
+          "Data3": 7282990355985691527,
+          "Data4": -3678841552520977282
         },
         "Flags": 5,
         "Kind": 4,
@@ -8222,16 +8331,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 4876795742490220997,
-          "Data2": 3955785687361619463,
-          "Data3": -2222515979148527383,
-          "Data4": -8618367452307192574
+          "Data1": -2284673453611556450,
+          "Data2": 3527246083344576306,
+          "Data3": -8798526974746642549,
+          "Data4": 4263181275928042544
         },
         "Flags": 5,
         "Kind": 4,
@@ -8296,16 +8406,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 3182422362409480165,
-          "Data2": 8147796726163054765,
-          "Data3": -7612430494603892267,
-          "Data4": -6703524709725491864
+          "Data1": -2901981240570037103,
+          "Data2": 1655034224322979467,
+          "Data3": -8712662530274862533,
+          "Data4": 6210734850179199813
         },
         "Flags": 5,
         "Kind": 4,
@@ -8370,16 +8481,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -7431476542892244328,
-          "Data2": 8365252564610321635,
-          "Data3": 3829600394775850410,
-          "Data4": -1923905801577547230
+          "Data1": 1899875720480917275,
+          "Data2": 4408255451889162586,
+          "Data3": -3819493788809080074,
+          "Data4": 5700618382948988995
         },
         "Flags": 5,
         "Kind": 4,
@@ -8444,16 +8556,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.ProgressEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.ProgressEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -8900817163476668274,
-          "Data2": 379130414079801848,
-          "Data3": -3074178060554453067,
-          "Data4": -1275661251179705604
+          "Data1": 558920421096267833,
+          "Data2": -2946271284648148581,
+          "Data3": 1113321658004969137,
+          "Data4": -9045115345852363467
         },
         "Flags": 5,
         "Kind": 4,
@@ -8518,16 +8631,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -1576682032041347489,
-          "Data2": -7295040703696771448,
-          "Data3": -330166956683776871,
-          "Data4": -9063999496024190423
+          "Data1": 6804475845375297153,
+          "Data2": 3758681712147750089,
+          "Data3": 573756825533695163,
+          "Data4": 7019583594949333672
         },
         "Flags": 5,
         "Kind": 4,
@@ -8592,16 +8706,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 514196627637336477,
-          "Data2": -6607119914295665465,
-          "Data3": -7163037939582555185,
-          "Data4": -3564903614584658856
+          "Data1": 2471890551069555414,
+          "Data2": 4003727233882554613,
+          "Data3": 2292297741215272541,
+          "Data4": 7124726965920845397
         },
         "Flags": 5,
         "Kind": 4,
@@ -8666,16 +8781,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 878985739534455928,
-          "Data2": 1607826816049324986,
-          "Data3": 4461333710869274610,
-          "Data4": -3171029863080314230
+          "Data1": 6559798479290576027,
+          "Data2": 4068256468967638595,
+          "Data3": -5038303141827234106,
+          "Data4": 2709270771674672750
         },
         "Flags": 5,
         "Kind": 4,
@@ -8740,16 +8856,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -4362935115093251585,
-          "Data2": -3378188789939019192,
-          "Data3": -7269038362916741380,
-          "Data4": 9090704762489561462
+          "Data1": 7611786990834962400,
+          "Data2": -8795693132908880234,
+          "Data3": 1339602949141427634,
+          "Data4": 2696293435417054614
         },
         "Flags": 5,
         "Kind": 4,
@@ -8814,16 +8931,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -8018346791205655986,
-          "Data2": 5015695760553930387,
-          "Data3": -2461434749976825377,
-          "Data4": -5459108006589556134
+          "Data1": 4321608143451245883,
+          "Data2": -4165250875498179354,
+          "Data3": 8858384112400810540,
+          "Data4": -7907654387658322201
         },
         "Flags": 5,
         "Kind": 4,
@@ -8888,16 +9006,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 843246036342434736,
-          "Data2": -8151539662796776743,
-          "Data3": -1452974517178292705,
-          "Data4": -919794774711850037
+          "Data1": -1903878852267540542,
+          "Data2": -1312111038427956424,
+          "Data3": -7708994890778034203,
+          "Data4": -1513845480138789449
         },
         "Flags": 5,
         "Kind": 4,
@@ -8962,16 +9081,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 951099682950664152,
-          "Data2": -358902479845762398,
-          "Data3": 2892853782555924409,
-          "Data4": 8122373848951566532
+          "Data1": -4860311376579045800,
+          "Data2": 8244756193503003272,
+          "Data3": -1321524324047527523,
+          "Data4": 1957741449665495228
         },
         "Flags": 5,
         "Kind": 4,
@@ -9036,16 +9156,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 2824683788126771957,
-          "Data2": -2618371655926028588,
-          "Data3": -8589423466014824419,
-          "Data4": 7013026881016298967
+          "Data1": 5820841176950301837,
+          "Data2": -1552610923324056806,
+          "Data3": 8666933138246565013,
+          "Data4": -7186374866754593339
         },
         "Flags": 5,
         "Kind": 4,
@@ -9110,16 +9231,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -8208754321704190827,
-          "Data2": 5990638129258257492,
-          "Data3": 3123385663611141133,
-          "Data4": -6495185569158796731
+          "Data1": -1462648617891526611,
+          "Data2": 387734821842041964,
+          "Data3": -188402486984951446,
+          "Data4": -4446247659614306856
         },
         "Flags": 5,
         "Kind": 4,
@@ -9184,16 +9306,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -91106577685645750,
-          "Data2": -7197554027484994832,
-          "Data3": -9096143749124276283,
-          "Data4": 6231581532094751671
+          "Data1": -297543174789246225,
+          "Data2": 6963154913133381119,
+          "Data3": 1364862873568463942,
+          "Data4": -2734561974828113208
         },
         "Flags": 5,
         "Kind": 4,
@@ -9258,16 +9381,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 1677593916707028240,
-          "Data2": 1460524446707820248,
-          "Data3": -7666925088632756593,
-          "Data4": 1246826773586117655
+          "Data1": 2846789949243756607,
+          "Data2": -9217628704530625770,
+          "Data3": 2942760664766630446,
+          "Data4": -3028327176343413837
         },
         "Flags": 5,
         "Kind": 4,
@@ -9332,16 +9456,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 3714187638199215101,
-          "Data2": 3481395083140953504,
-          "Data3": -6438874996914575116,
-          "Data4": 2540798081729900133
+          "Data1": 5717161460526988756,
+          "Data2": 3651570395703216907,
+          "Data3": -1737854100113775589,
+          "Data4": 3534239227410898180
         },
         "Flags": 5,
         "Kind": 4,
@@ -9406,16 +9531,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 602459043011975016,
-          "Data2": 6547423359718201851,
-          "Data3": -5655143883421595722,
-          "Data4": -3229984572840871427
+          "Data1": -8330190191395179159,
+          "Data2": -4388277271409099222,
+          "Data3": -1664659601276503905,
+          "Data4": -8787561090201863277
         },
         "Flags": 5,
         "Kind": 4,
@@ -9480,16 +9606,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.ProgressEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.ProgressEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -7748565675310605347,
-          "Data2": 7117230516977381843,
-          "Data3": 6847474531792214231,
-          "Data4": 7127579786037674636
+          "Data1": 26333900435538337,
+          "Data2": 1390343484352577044,
+          "Data3": -1041591345650616081,
+          "Data4": 3109372766802223751
         },
         "Flags": 5,
         "Kind": 4,
@@ -9554,16 +9681,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -1822620763622015081,
-          "Data2": -6942803198916905488,
-          "Data3": -4722858578241056181,
-          "Data4": 4400287716698672294
+          "Data1": 3302408209994122266,
+          "Data2": 693530869543268579,
+          "Data3": 7481228548890584430,
+          "Data4": 5042269532253437393
         },
         "Flags": 5,
         "Kind": 4,
@@ -9628,16 +9756,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.TouchEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.TouchEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -7539771754926332847,
-          "Data2": 3322343541265421702,
-          "Data3": -8466571568022120226,
-          "Data4": 4020793876779411635
+          "Data1": 8723412861066665131,
+          "Data2": 6398464903414049264,
+          "Data3": -9199431071911092703,
+          "Data4": 6966925566042847785
         },
         "Flags": 5,
         "Kind": 4,
@@ -9702,16 +9831,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.TouchEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.TouchEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -8480352067352176176,
-          "Data2": 8127248931940997165,
-          "Data3": 1597621113042502407,
-          "Data4": 1526460880757026362
+          "Data1": 3852221819262014378,
+          "Data2": 8617818089452162635,
+          "Data3": 453994257865472486,
+          "Data4": 5446521756736866623
         },
         "Flags": 5,
         "Kind": 4,
@@ -9776,16 +9906,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.TouchEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.TouchEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 1574449009905602290,
-          "Data2": 2009662670585138734,
-          "Data3": 8202419003728065391,
-          "Data4": -4941318910317496847
+          "Data1": -6935730167192950291,
+          "Data2": 2066986156327980125,
+          "Data3": -7941069164304607530,
+          "Data4": 2119368248234309028
         },
         "Flags": 5,
         "Kind": 4,
@@ -9850,16 +9981,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.TouchEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.TouchEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 2306619395230343349,
-          "Data2": -3940213938154195899,
-          "Data3": -3558507645266234017,
-          "Data4": -1484070264328741616
+          "Data1": -8473509423859534237,
+          "Data2": 6526721379719575346,
+          "Data3": 3384644771853925493,
+          "Data4": 2893099311267039167
         },
         "Flags": 5,
         "Kind": 4,
@@ -9924,16 +10056,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.TouchEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.TouchEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -3900266493195116515,
-          "Data2": -590776016424625581,
-          "Data3": 9196079640796907096,
-          "Data4": 1954762769357997031
+          "Data1": -3259526421688143033,
+          "Data2": -6524013483011776105,
+          "Data3": -6447065900192650112,
+          "Data4": 6531738038345032457
         },
         "Flags": 5,
         "Kind": 4,
@@ -9998,16 +10131,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.TouchEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.TouchEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 2261444788040532636,
-          "Data2": -411560816805799376,
-          "Data3": -4091930111213469617,
-          "Data4": -2773365543130463747
+          "Data1": -163160812632779238,
+          "Data2": 7428068667145244385,
+          "Data3": 640459010233145959,
+          "Data4": -1358521324002532163
         },
         "Flags": 5,
         "Kind": 4,
@@ -10072,16 +10206,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 7439669285095877528,
-          "Data2": -4206339290502062017,
-          "Data3": 5664940382469339715,
-          "Data4": -5483692134863488161
+          "Data1": 1826216660043293183,
+          "Data2": -8040008894677079642,
+          "Data3": 2518388978381245440,
+          "Data4": 440188563843656143
         },
         "Flags": 5,
         "Kind": 4,
@@ -10146,16 +10281,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "System.EventArgs"
+          "EventArgsType": "System.EventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": 3365355238435994556,
-          "Data2": 4689124728153422002,
-          "Data3": -4887295840778784707,
-          "Data4": 5156656089001501723
+          "Data1": -5757649360120930853,
+          "Data2": -7647371310819405514,
+          "Data3": 6544835439737781820,
+          "Data4": -183318822361488597
         },
         "Flags": 5,
         "Kind": 4,
@@ -10220,16 +10356,17 @@
             ]
           }
         ],
+        "MetadataKind": 6,
         "Metadata": {
-          "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.WheelEventArgs"
+          "EventArgsType": "Microsoft.AspNetCore.Components.Web.WheelEventArgs"
         }
       },
       {
         "__Checksum": {
-          "Data1": -4704032856885583855,
-          "Data2": 2326282424499282629,
-          "Data3": -3769564520309744522,
-          "Data4": 8878515024040515355
+          "Data1": -1215862770330822117,
+          "Data2": 643018294232852998,
+          "Data3": -5652820682740396707,
+          "Data4": 3978619022053042851
         },
         "Flags": 5,
         "Kind": 8,
@@ -10263,10 +10400,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 648949477942553229,
-          "Data2": 1225417707436906184,
-          "Data3": -1798903104584550448,
-          "Data4": 956666469026013130
+          "Data1": -3526484346542141876,
+          "Data2": 156679965715875766,
+          "Data3": -4510482087245272230,
+          "Data4": 5559725602893969154
         },
         "Flags": 0,
         "Kind": 0,
@@ -10476,10 +10613,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 1627320741953521802,
-          "Data2": 890498772368063431,
-          "Data3": -4373752604037408166,
-          "Data4": 8893838492057039311
+          "Data1": 6663231402802918813,
+          "Data2": -432279317505099660,
+          "Data3": -2094452779153982081,
+          "Data4": 3060018017229451779
         },
         "Flags": 0,
         "Kind": 0,
@@ -10596,10 +10733,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 2983655210978649382,
-          "Data2": 6835765115217652410,
-          "Data3": 4477288789723898623,
-          "Data4": -6565120626599261585
+          "Data1": 6105027377050314581,
+          "Data2": 1068597650504644525,
+          "Data3": -8070461633214028543,
+          "Data4": -4923735865111678230
         },
         "Flags": 0,
         "Kind": 0,
@@ -10653,10 +10790,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -2002874385636762971,
-          "Data2": 3789289579060005317,
-          "Data3": -7330193654271099606,
-          "Data4": 2880778594740897006
+          "Data1": -8931559441477150226,
+          "Data2": -4804817119327995133,
+          "Data3": 9009613958204192112,
+          "Data4": 4323622212588382318
         },
         "Flags": 0,
         "Kind": 0,
@@ -10779,10 +10916,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -5349434158708139286,
-          "Data2": -2515287196832244130,
-          "Data3": -8014409955025257608,
-          "Data4": 1524924312346041
+          "Data1": 1783457205245714653,
+          "Data2": -2211443350452386007,
+          "Data3": -5436092871341998585,
+          "Data4": 6333391670818581289
         },
         "Flags": 0,
         "Kind": 0,
@@ -10827,10 +10964,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -3248559991209421371,
-          "Data2": -3151396229102688794,
-          "Data3": 1294899931787747507,
-          "Data4": -7142649676319552969
+          "Data1": -6047372511919749040,
+          "Data2": 6521851240070679570,
+          "Data3": -4843676924627100471,
+          "Data4": 1866571571541969070
         },
         "Flags": 0,
         "Kind": 0,
@@ -11312,10 +11449,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 6854824252074381481,
-          "Data2": -4065859621596578839,
-          "Data3": 5079906220870493584,
-          "Data4": -8151950698425126298
+          "Data1": -1086145317624090840,
+          "Data2": -176242139492884595,
+          "Data3": 3834741403140367372,
+          "Data4": -7864034908140514209
         },
         "Flags": 0,
         "Kind": 0,
@@ -11410,10 +11547,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -1831331591260556626,
-          "Data2": -588395508073583571,
-          "Data3": 1452235683755759621,
-          "Data4": 8505186294167766269
+          "Data1": 2799359396512176759,
+          "Data2": -5743430708970788392,
+          "Data3": -7289628742258610072,
+          "Data4": 8622175351024996328
         },
         "Flags": 0,
         "Kind": 0,
@@ -11461,10 +11598,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -7764839140521795748,
-          "Data2": 1606916740571889735,
-          "Data3": 4393637395146113076,
-          "Data4": -1303925246437245734
+          "Data1": -6116926151440808505,
+          "Data2": 5259831475414365512,
+          "Data3": -3919547526751277309,
+          "Data4": -7211100249069003024
         },
         "Flags": 0,
         "Kind": 0,
@@ -11532,10 +11669,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 4347145013885767633,
-          "Data2": 1143805669255114069,
-          "Data3": -7660414916027044256,
-          "Data4": -1786871615580945212
+          "Data1": -142313285679005271,
+          "Data2": 1089445342822551920,
+          "Data3": -8084806728939271959,
+          "Data4": -4279643832218620498
         },
         "Flags": 0,
         "Kind": 0,
@@ -11570,10 +11707,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 5856076680164934534,
-          "Data2": 8795217328506798197,
-          "Data3": 6710537461200294253,
-          "Data4": -7273418269143213499
+          "Data1": 7619255422216104172,
+          "Data2": -7839311972111200722,
+          "Data3": -4843699465516528561,
+          "Data4": -6076005177774449308
         },
         "Flags": 0,
         "Kind": 0,
@@ -11777,10 +11914,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -1643187812834063348,
-          "Data2": -7566634367818924619,
-          "Data3": -1346801151160501079,
-          "Data4": -3475092923706458306
+          "Data1": 6134434561829283099,
+          "Data2": 3607040203242166579,
+          "Data3": 1924097719308258582,
+          "Data4": -1670903751124174286
         },
         "Flags": 0,
         "Kind": 0,
@@ -11809,10 +11946,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 8358343336340880165,
-          "Data2": 2272229688992230806,
-          "Data3": 1781113198646612825,
-          "Data4": -2337140796200401168
+          "Data1": -4227816670418140381,
+          "Data2": -2769282197323899245,
+          "Data3": 8462708312720501632,
+          "Data4": -4628078330796520755
         },
         "Flags": 0,
         "Kind": 0,
@@ -11890,10 +12027,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 980726757514319096,
-          "Data2": -9190489308610365581,
-          "Data3": -2324784056362131274,
-          "Data4": 8344056557603318167
+          "Data1": -5700275153074244989,
+          "Data2": -6920841969683745532,
+          "Data3": -286726883126686777,
+          "Data4": -3104622056199601103
         },
         "Flags": 0,
         "Kind": 0,
@@ -12052,10 +12189,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 5967152675012204140,
-          "Data2": 3465280878613634067,
-          "Data3": 282038740145060930,
-          "Data4": 4542613913738807445
+          "Data1": -5214601611040432596,
+          "Data2": 2640478681600075877,
+          "Data3": -679076579729984851,
+          "Data4": -7363220701418092307
         },
         "Flags": 0,
         "Kind": 0,
@@ -12116,10 +12253,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -6519815472684330235,
-          "Data2": -6091797189623068874,
-          "Data3": -8360328096987391001,
-          "Data4": -134318091504464644
+          "Data1": 2356479554862556881,
+          "Data2": -8117481914237623446,
+          "Data3": -8924581315544269221,
+          "Data4": -3557662105957777301
         },
         "Flags": 0,
         "Kind": 0,
@@ -12162,10 +12299,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -4579903057009706588,
-          "Data2": -7426701858316617607,
-          "Data3": 2293408424124452921,
-          "Data4": -6445271874880438826
+          "Data1": -1071177787645468809,
+          "Data2": -4543436784975894722,
+          "Data3": -5966674470571997342,
+          "Data4": -3220507948635496966
         },
         "Flags": 0,
         "Kind": 0,
@@ -12200,10 +12337,10 @@
       },
       {
         "__Checksum": {
-          "Data1": 6860855638039780737,
-          "Data2": -5673695498321262185,
-          "Data3": -7384045774318689952,
-          "Data4": -7079982738074638893
+          "Data1": 4534256115393951149,
+          "Data2": -7289415566927565551,
+          "Data3": -3309792021260657549,
+          "Data4": -3320317055258662710
         },
         "Flags": 0,
         "Kind": 0,
@@ -12238,10 +12375,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -3991163612684362789,
-          "Data2": 987329140485558746,
-          "Data3": 3761633132783039986,
-          "Data4": -5934011123803763772
+          "Data1": -8487793437515600697,
+          "Data2": 6338935297654652296,
+          "Data3": 7012082791527042791,
+          "Data4": -4161875269970644183
         },
         "Flags": 0,
         "Kind": 0,
@@ -12615,10 +12752,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -7308386450863432131,
-          "Data2": 5358652177304728372,
-          "Data3": -3025315283890802933,
-          "Data4": 1240955846716050046
+          "Data1": 878951103015882682,
+          "Data2": 5773359248232579895,
+          "Data3": -7766084721576643128,
+          "Data4": 9091826568813198451
         },
         "Flags": 5,
         "Kind": 5,
@@ -12675,16 +12812,17 @@
             ]
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.Fallback": "True"
+          "IsFallback": true
         }
       },
       {
         "__Checksum": {
-          "Data1": -2663359914780313102,
-          "Data2": 2118193737259747797,
-          "Data3": -6775158358329250099,
-          "Data4": 4310030947328109702
+          "Data1": -4261937088157876361,
+          "Data2": 7205037211526471018,
+          "Data3": -504891852384454852,
+          "Data4": 7166711965917951922
         },
         "Flags": 5,
         "Kind": 5,
@@ -12746,19 +12884,19 @@
             "Documentation": "Specifies a format to convert the value specified by the '@bind' attribute. The format string can currently only be used with expressions of type <code>DateTime</code>."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "onchange",
-          "Components.Bind.Format": null,
-          "Components.Bind.IsInvariantCulture": "False",
-          "Components.Bind.ValueAttribute": "value"
+          "ValueAttribute": "value",
+          "ChangeAttribute": "onchange",
+          "IsInvariantCulture": true
         }
       },
       {
         "__Checksum": {
-          "Data1": 2765997903405151308,
-          "Data2": -4789909026334428284,
-          "Data3": -4085683002914764393,
-          "Data4": 6887125542970221663
+          "Data1": 4378598584347667691,
+          "Data2": -524513463008664552,
+          "Data3": -5637825002517940375,
+          "Data4": 1588337159806331678
         },
         "Flags": 5,
         "Kind": 5,
@@ -12820,19 +12958,19 @@
             "Documentation": "Specifies a format to convert the value specified by the '@bind' attribute. The format string can currently only be used with expressions of type <code>DateTime</code>."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "onchange",
-          "Components.Bind.Format": null,
-          "Components.Bind.IsInvariantCulture": "False",
-          "Components.Bind.ValueAttribute": "value"
+          "ValueAttribute": "value",
+          "ChangeAttribute": "onchange",
+          "IsInvariantCulture": true
         }
       },
       {
         "__Checksum": {
-          "Data1": -3266630501986693516,
-          "Data2": 8665613901435796293,
-          "Data3": 6823397535724483387,
-          "Data4": 6926465485392438859
+          "Data1": 8483693915728046694,
+          "Data2": 4586524144367461324,
+          "Data3": 7187552254396406846,
+          "Data4": 5383422155588366798
         },
         "Flags": 5,
         "Kind": 5,
@@ -12900,20 +13038,20 @@
             "Documentation": "Specifies a format to convert the value specified by the '@bind' attribute. The format string can currently only be used with expressions of type <code>DateTime</code>."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "onchange",
-          "Components.Bind.Format": null,
-          "Components.Bind.IsInvariantCulture": "False",
-          "Components.Bind.TypeAttribute": "checkbox",
-          "Components.Bind.ValueAttribute": "checked"
+          "ValueAttribute": "checked",
+          "ChangeAttribute": "onchange",
+          "TypeAttribute": "checkbox",
+          "IsInvariantCulture": true
         }
       },
       {
         "__Checksum": {
-          "Data1": -6587063776821657783,
-          "Data2": 7971012630377069599,
-          "Data3": -1904020253133312654,
-          "Data4": 71967550374651678
+          "Data1": -986506529973504742,
+          "Data2": 2382726630778574395,
+          "Data3": -3565194484223466323,
+          "Data4": -2933177666166846077
         },
         "Flags": 5,
         "Kind": 5,
@@ -12981,20 +13119,21 @@
             "Documentation": "Specifies a format to convert the value specified by the '@bind-value' attribute. The format string can currently only be used with expressions of type <code>DateTime</code>."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "onchange",
-          "Components.Bind.Format": "yyyy-MM-dd",
-          "Components.Bind.IsInvariantCulture": "True",
-          "Components.Bind.TypeAttribute": "date",
-          "Components.Bind.ValueAttribute": "value"
+          "ValueAttribute": "value",
+          "ChangeAttribute": "onchange",
+          "TypeAttribute": "date",
+          "IsInvariantCulture": true,
+          "Format": "yyyy-MM-dd"
         }
       },
       {
         "__Checksum": {
-          "Data1": -4738441734228737723,
-          "Data2": -5991508588573579331,
-          "Data3": 4288945116268382665,
-          "Data4": -502016350920064874
+          "Data1": -830835576797429957,
+          "Data2": 5062436875507630839,
+          "Data3": 8439833351488422020,
+          "Data4": -6194535443969094425
         },
         "Flags": 5,
         "Kind": 5,
@@ -13062,20 +13201,21 @@
             "Documentation": "Specifies a format to convert the value specified by the '@bind' attribute. The format string can currently only be used with expressions of type <code>DateTime</code>."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "onchange",
-          "Components.Bind.Format": "yyyy-MM-dd",
-          "Components.Bind.IsInvariantCulture": "True",
-          "Components.Bind.TypeAttribute": "date",
-          "Components.Bind.ValueAttribute": "value"
+          "ValueAttribute": "value",
+          "ChangeAttribute": "onchange",
+          "TypeAttribute": "date",
+          "IsInvariantCulture": true,
+          "Format": "yyyy-MM-dd"
         }
       },
       {
         "__Checksum": {
-          "Data1": -474919094157384967,
-          "Data2": -6469618997468614080,
-          "Data3": 8529058198253732552,
-          "Data4": -5614085563788085234
+          "Data1": -7530262364307631246,
+          "Data2": -5208507590827913334,
+          "Data3": -4405670534130037070,
+          "Data4": 4952914315408501052
         },
         "Flags": 5,
         "Kind": 5,
@@ -13143,20 +13283,21 @@
             "Documentation": "Specifies a format to convert the value specified by the '@bind-value' attribute. The format string can currently only be used with expressions of type <code>DateTime</code>."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "onchange",
-          "Components.Bind.Format": "yyyy-MM-ddTHH:mm:ss",
-          "Components.Bind.IsInvariantCulture": "True",
-          "Components.Bind.TypeAttribute": "datetime-local",
-          "Components.Bind.ValueAttribute": "value"
+          "ValueAttribute": "value",
+          "ChangeAttribute": "onchange",
+          "TypeAttribute": "datetime-local",
+          "IsInvariantCulture": true,
+          "Format": "yyyy-MM-ddTHH:mm:ss"
         }
       },
       {
         "__Checksum": {
-          "Data1": 486845632578587743,
-          "Data2": -7620980276826523590,
-          "Data3": 9201603966093129217,
-          "Data4": 670724746932240133
+          "Data1": 139814461419154127,
+          "Data2": -240139262347858749,
+          "Data3": -6605618754323349372,
+          "Data4": 3406888470743922277
         },
         "Flags": 5,
         "Kind": 5,
@@ -13224,20 +13365,21 @@
             "Documentation": "Specifies a format to convert the value specified by the '@bind' attribute. The format string can currently only be used with expressions of type <code>DateTime</code>."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "onchange",
-          "Components.Bind.Format": "yyyy-MM-ddTHH:mm:ss",
-          "Components.Bind.IsInvariantCulture": "True",
-          "Components.Bind.TypeAttribute": "datetime-local",
-          "Components.Bind.ValueAttribute": "value"
+          "ValueAttribute": "value",
+          "ChangeAttribute": "onchange",
+          "TypeAttribute": "datetime-local",
+          "IsInvariantCulture": true,
+          "Format": "yyyy-MM-ddTHH:mm:ss"
         }
       },
       {
         "__Checksum": {
-          "Data1": -8122251449765308541,
-          "Data2": 2183315376356626983,
-          "Data3": 8707673358636031920,
-          "Data4": 7409539141100237992
+          "Data1": 5302089231581744398,
+          "Data2": -2829553322146881401,
+          "Data3": -3489002579382565662,
+          "Data4": -1033027474710163686
         },
         "Flags": 5,
         "Kind": 5,
@@ -13305,20 +13447,21 @@
             "Documentation": "Specifies a format to convert the value specified by the '@bind-value' attribute. The format string can currently only be used with expressions of type <code>DateTime</code>."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "onchange",
-          "Components.Bind.Format": "yyyy-MM",
-          "Components.Bind.IsInvariantCulture": "True",
-          "Components.Bind.TypeAttribute": "month",
-          "Components.Bind.ValueAttribute": "value"
+          "ValueAttribute": "value",
+          "ChangeAttribute": "onchange",
+          "TypeAttribute": "month",
+          "IsInvariantCulture": true,
+          "Format": "yyyy-MM"
         }
       },
       {
         "__Checksum": {
-          "Data1": 7276766957563739204,
-          "Data2": 3378070378168994942,
-          "Data3": -7624913753959086289,
-          "Data4": -4985818028426771198
+          "Data1": -1706238592695823817,
+          "Data2": -1969189895532892301,
+          "Data3": 8249984381100599391,
+          "Data4": 2889833945804745541
         },
         "Flags": 5,
         "Kind": 5,
@@ -13386,20 +13529,21 @@
             "Documentation": "Specifies a format to convert the value specified by the '@bind' attribute. The format string can currently only be used with expressions of type <code>DateTime</code>."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "onchange",
-          "Components.Bind.Format": "yyyy-MM",
-          "Components.Bind.IsInvariantCulture": "True",
-          "Components.Bind.TypeAttribute": "month",
-          "Components.Bind.ValueAttribute": "value"
+          "ValueAttribute": "value",
+          "ChangeAttribute": "onchange",
+          "TypeAttribute": "month",
+          "IsInvariantCulture": true,
+          "Format": "yyyy-MM"
         }
       },
       {
         "__Checksum": {
-          "Data1": -946539350672157008,
-          "Data2": 1052732631362518490,
-          "Data3": 9012749305111994782,
-          "Data4": 4525511053364168274
+          "Data1": 7157778027393827252,
+          "Data2": 5058149222223879158,
+          "Data3": 6121970771214429711,
+          "Data4": -2362422628160048644
         },
         "Flags": 5,
         "Kind": 5,
@@ -13467,20 +13611,20 @@
             "Documentation": "Specifies a format to convert the value specified by the '@bind-value' attribute. The format string can currently only be used with expressions of type <code>DateTime</code>."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "onchange",
-          "Components.Bind.Format": null,
-          "Components.Bind.IsInvariantCulture": "True",
-          "Components.Bind.TypeAttribute": "number",
-          "Components.Bind.ValueAttribute": "value"
+          "ValueAttribute": "value",
+          "ChangeAttribute": "onchange",
+          "TypeAttribute": "number",
+          "IsInvariantCulture": true
         }
       },
       {
         "__Checksum": {
-          "Data1": -5089388155304302512,
-          "Data2": 510733454160500983,
-          "Data3": 7837299173251923348,
-          "Data4": 5963375636501797241
+          "Data1": -5630719908149957741,
+          "Data2": -6002531862796321249,
+          "Data3": -3854658893762733308,
+          "Data4": 6413666699784159826
         },
         "Flags": 5,
         "Kind": 5,
@@ -13548,20 +13692,20 @@
             "Documentation": "Specifies a format to convert the value specified by the '@bind' attribute. The format string can currently only be used with expressions of type <code>DateTime</code>."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "onchange",
-          "Components.Bind.Format": null,
-          "Components.Bind.IsInvariantCulture": "True",
-          "Components.Bind.TypeAttribute": "number",
-          "Components.Bind.ValueAttribute": "value"
+          "ValueAttribute": "value",
+          "ChangeAttribute": "onchange",
+          "TypeAttribute": "number",
+          "IsInvariantCulture": true
         }
       },
       {
         "__Checksum": {
-          "Data1": 5721675441364976284,
-          "Data2": 1721396144388559899,
-          "Data3": -2099007860177776038,
-          "Data4": -8119475045620402978
+          "Data1": -5540987684955985298,
+          "Data2": -7261891357055687335,
+          "Data3": 4795942642892449995,
+          "Data4": 2208513722393600971
         },
         "Flags": 5,
         "Kind": 5,
@@ -13629,20 +13773,20 @@
             "Documentation": "Specifies a format to convert the value specified by the '@bind' attribute. The format string can currently only be used with expressions of type <code>DateTime</code>."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "onchange",
-          "Components.Bind.Format": null,
-          "Components.Bind.IsInvariantCulture": "False",
-          "Components.Bind.TypeAttribute": "text",
-          "Components.Bind.ValueAttribute": "value"
+          "ValueAttribute": "value",
+          "ChangeAttribute": "onchange",
+          "TypeAttribute": "text",
+          "IsInvariantCulture": true
         }
       },
       {
         "__Checksum": {
-          "Data1": 5361128576149583586,
-          "Data2": 4662070564570387791,
-          "Data3": 8321468126076475042,
-          "Data4": 5090615133534011326
+          "Data1": 4951000024792845842,
+          "Data2": 7172423306386974723,
+          "Data3": 3773576261458345209,
+          "Data4": -6619800341225533920
         },
         "Flags": 5,
         "Kind": 5,
@@ -13710,20 +13854,21 @@
             "Documentation": "Specifies a format to convert the value specified by the '@bind-value' attribute. The format string can currently only be used with expressions of type <code>DateTime</code>."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "onchange",
-          "Components.Bind.Format": "HH:mm:ss",
-          "Components.Bind.IsInvariantCulture": "True",
-          "Components.Bind.TypeAttribute": "time",
-          "Components.Bind.ValueAttribute": "value"
+          "ValueAttribute": "value",
+          "ChangeAttribute": "onchange",
+          "TypeAttribute": "time",
+          "IsInvariantCulture": true,
+          "Format": "HH:mm:ss"
         }
       },
       {
         "__Checksum": {
-          "Data1": -6819096463984561467,
-          "Data2": -2744343204586749755,
-          "Data3": -3946314647564756252,
-          "Data4": -6072280107557369096
+          "Data1": -74803577687620993,
+          "Data2": -520900708601811481,
+          "Data3": -7103467086716433570,
+          "Data4": -7372881803926479393
         },
         "Flags": 5,
         "Kind": 5,
@@ -13791,20 +13936,21 @@
             "Documentation": "Specifies a format to convert the value specified by the '@bind' attribute. The format string can currently only be used with expressions of type <code>DateTime</code>."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "onchange",
-          "Components.Bind.Format": "HH:mm:ss",
-          "Components.Bind.IsInvariantCulture": "True",
-          "Components.Bind.TypeAttribute": "time",
-          "Components.Bind.ValueAttribute": "value"
+          "ValueAttribute": "value",
+          "ChangeAttribute": "onchange",
+          "TypeAttribute": "time",
+          "IsInvariantCulture": true,
+          "Format": "HH:mm:ss"
         }
       },
       {
         "__Checksum": {
-          "Data1": -8639155813908864631,
-          "Data2": -2663388802296137420,
-          "Data3": 6927110162565112901,
-          "Data4": 1771737029159123563
+          "Data1": 5455419386655034927,
+          "Data2": 2957473262225843591,
+          "Data3": -5144916187087283968,
+          "Data4": 7286048394720785230
         },
         "Flags": 5,
         "Kind": 5,
@@ -13866,19 +14012,19 @@
             "Documentation": "Specifies a format to convert the value specified by the '@bind-value' attribute. The format string can currently only be used with expressions of type <code>DateTime</code>."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "onchange",
-          "Components.Bind.Format": null,
-          "Components.Bind.IsInvariantCulture": "False",
-          "Components.Bind.ValueAttribute": "value"
+          "ValueAttribute": "value",
+          "ChangeAttribute": "onchange",
+          "IsInvariantCulture": true
         }
       },
       {
         "__Checksum": {
-          "Data1": 8301299054666302476,
-          "Data2": 4983588767403194573,
-          "Data3": 7021216245134138541,
-          "Data4": 8977483495737298958
+          "Data1": -4493757197396969501,
+          "Data2": 4518874858231207033,
+          "Data3": 6812147389928875476,
+          "Data4": 6003388765037394106
         },
         "Flags": 5,
         "Kind": 5,
@@ -13940,19 +14086,19 @@
             "Documentation": "Specifies a format to convert the value specified by the '@bind' attribute. The format string can currently only be used with expressions of type <code>DateTime</code>."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "onchange",
-          "Components.Bind.Format": null,
-          "Components.Bind.IsInvariantCulture": "False",
-          "Components.Bind.ValueAttribute": "value"
+          "ValueAttribute": "value",
+          "ChangeAttribute": "onchange",
+          "IsInvariantCulture": true
         }
       },
       {
         "__Checksum": {
-          "Data1": 5420225472767509321,
-          "Data2": 5673480223664091434,
-          "Data3": -187840982928528176,
-          "Data4": 2133389178052538764
+          "Data1": -7547839035330327281,
+          "Data2": -6009805244915295952,
+          "Data3": 6031758469491993599,
+          "Data4": -2305760910458048196
         },
         "Flags": 1,
         "Kind": 5,
@@ -13983,18 +14129,19 @@
             "Documentation": "Binds the provided expression to the 'Value' property and a change event delegate to the 'ValueChanged' property of the component."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "ValueChanged",
-          "Components.Bind.ExpressionAttribute": "ValueExpression",
-          "Components.Bind.ValueAttribute": "Value"
+          "ValueAttribute": "Value",
+          "ChangeAttribute": "ValueChanged",
+          "ExpressionAttribute": "ValueExpression"
         }
       },
       {
         "__Checksum": {
-          "Data1": 5909143452239967520,
-          "Data2": 8135743255491094101,
-          "Data3": -1976952147874844856,
-          "Data4": -1994438177521960955
+          "Data1": -4713792741701860107,
+          "Data2": 3035223984465172645,
+          "Data3": 4407590086734513350,
+          "Data4": 4354355592650378775
         },
         "Flags": 3,
         "Kind": 5,
@@ -14025,18 +14172,19 @@
             "Documentation": "Binds the provided expression to the 'Value' property and a change event delegate to the 'ValueChanged' property of the component."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "ValueChanged",
-          "Components.Bind.ExpressionAttribute": "ValueExpression",
-          "Components.Bind.ValueAttribute": "Value"
+          "ValueAttribute": "Value",
+          "ChangeAttribute": "ValueChanged",
+          "ExpressionAttribute": "ValueExpression"
         }
       },
       {
         "__Checksum": {
-          "Data1": -5401252109898749314,
-          "Data2": 7427416465920183830,
-          "Data3": 6837799884368523766,
-          "Data4": 7634106905009118813
+          "Data1": 6089807836698710017,
+          "Data2": 1923342791773780729,
+          "Data3": -3321113256482880169,
+          "Data4": -4598368170439043719
         },
         "Flags": 1,
         "Kind": 5,
@@ -14067,18 +14215,19 @@
             "Documentation": "Binds the provided expression to the 'Value' property and a change event delegate to the 'ValueChanged' property of the component."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "ValueChanged",
-          "Components.Bind.ExpressionAttribute": "ValueExpression",
-          "Components.Bind.ValueAttribute": "Value"
+          "ValueAttribute": "Value",
+          "ChangeAttribute": "ValueChanged",
+          "ExpressionAttribute": "ValueExpression"
         }
       },
       {
         "__Checksum": {
-          "Data1": 4147051355407194869,
-          "Data2": 7621224610354621063,
-          "Data3": -7649472258204885451,
-          "Data4": 8863637503238302070
+          "Data1": 5013345332785108445,
+          "Data2": -9078802676009314781,
+          "Data3": -1729813463818263278,
+          "Data4": 2252133961174112274
         },
         "Flags": 3,
         "Kind": 5,
@@ -14109,18 +14258,19 @@
             "Documentation": "Binds the provided expression to the 'Value' property and a change event delegate to the 'ValueChanged' property of the component."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "ValueChanged",
-          "Components.Bind.ExpressionAttribute": "ValueExpression",
-          "Components.Bind.ValueAttribute": "Value"
+          "ValueAttribute": "Value",
+          "ChangeAttribute": "ValueChanged",
+          "ExpressionAttribute": "ValueExpression"
         }
       },
       {
         "__Checksum": {
-          "Data1": 724905308545178030,
-          "Data2": 4734439609442126421,
-          "Data3": 1433881606487125601,
-          "Data4": 298778428438647863
+          "Data1": -7906274991127220944,
+          "Data2": -4113750146911802686,
+          "Data3": 7752270427021136582,
+          "Data4": -8643641312693953189
         },
         "Flags": 1,
         "Kind": 5,
@@ -14151,18 +14301,19 @@
             "Documentation": "Binds the provided expression to the 'Value' property and a change event delegate to the 'ValueChanged' property of the component."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "ValueChanged",
-          "Components.Bind.ExpressionAttribute": "ValueExpression",
-          "Components.Bind.ValueAttribute": "Value"
+          "ValueAttribute": "Value",
+          "ChangeAttribute": "ValueChanged",
+          "ExpressionAttribute": "ValueExpression"
         }
       },
       {
         "__Checksum": {
-          "Data1": -6611133669337746683,
-          "Data2": -9211618348506929016,
-          "Data3": -8904879930118856086,
-          "Data4": 3705790420694497698
+          "Data1": 7269758082759047350,
+          "Data2": -7356546443504830295,
+          "Data3": 6050129478013815339,
+          "Data4": -5074600476497029699
         },
         "Flags": 3,
         "Kind": 5,
@@ -14193,18 +14344,19 @@
             "Documentation": "Binds the provided expression to the 'Value' property and a change event delegate to the 'ValueChanged' property of the component."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "ValueChanged",
-          "Components.Bind.ExpressionAttribute": "ValueExpression",
-          "Components.Bind.ValueAttribute": "Value"
+          "ValueAttribute": "Value",
+          "ChangeAttribute": "ValueChanged",
+          "ExpressionAttribute": "ValueExpression"
         }
       },
       {
         "__Checksum": {
-          "Data1": -4738887436415117958,
-          "Data2": -1811863137291553002,
-          "Data3": 7039134672887551680,
-          "Data4": -5052559452027237489
+          "Data1": 7218179540690455941,
+          "Data2": -3951860283471299584,
+          "Data3": 6299457212117816904,
+          "Data4": -8313180315388037910
         },
         "Flags": 1,
         "Kind": 5,
@@ -14235,18 +14387,19 @@
             "Documentation": "Binds the provided expression to the 'Value' property and a change event delegate to the 'ValueChanged' property of the component."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "ValueChanged",
-          "Components.Bind.ExpressionAttribute": "ValueExpression",
-          "Components.Bind.ValueAttribute": "Value"
+          "ValueAttribute": "Value",
+          "ChangeAttribute": "ValueChanged",
+          "ExpressionAttribute": "ValueExpression"
         }
       },
       {
         "__Checksum": {
-          "Data1": -5161291660661758806,
-          "Data2": -7184100592294806946,
-          "Data3": -1358659342562673116,
-          "Data4": 7517356779814811647
+          "Data1": -2056523842478744371,
+          "Data2": 1454554583740579802,
+          "Data3": 8788822717183673333,
+          "Data4": 7009635099139154341
         },
         "Flags": 3,
         "Kind": 5,
@@ -14277,18 +14430,19 @@
             "Documentation": "Binds the provided expression to the 'Value' property and a change event delegate to the 'ValueChanged' property of the component."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "ValueChanged",
-          "Components.Bind.ExpressionAttribute": "ValueExpression",
-          "Components.Bind.ValueAttribute": "Value"
+          "ValueAttribute": "Value",
+          "ChangeAttribute": "ValueChanged",
+          "ExpressionAttribute": "ValueExpression"
         }
       },
       {
         "__Checksum": {
-          "Data1": 4752321163768084316,
-          "Data2": 3601266699146023092,
-          "Data3": 6668126394608693449,
-          "Data4": -810985736067678631
+          "Data1": 5219682153750997928,
+          "Data2": 4538516174744865560,
+          "Data3": 934025114522440588,
+          "Data4": 3807830366126171670
         },
         "Flags": 1,
         "Kind": 5,
@@ -14319,18 +14473,19 @@
             "Documentation": "Binds the provided expression to the 'Value' property and a change event delegate to the 'ValueChanged' property of the component."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "ValueChanged",
-          "Components.Bind.ExpressionAttribute": "ValueExpression",
-          "Components.Bind.ValueAttribute": "Value"
+          "ValueAttribute": "Value",
+          "ChangeAttribute": "ValueChanged",
+          "ExpressionAttribute": "ValueExpression"
         }
       },
       {
         "__Checksum": {
-          "Data1": 2105085057398568392,
-          "Data2": 216742941597011377,
-          "Data3": -8609698059551240733,
-          "Data4": -5043313242252216926
+          "Data1": -2779863032386724895,
+          "Data2": 8733779216003305266,
+          "Data3": 1969741694700435209,
+          "Data4": -1936636121404222205
         },
         "Flags": 3,
         "Kind": 5,
@@ -14361,18 +14516,19 @@
             "Documentation": "Binds the provided expression to the 'Value' property and a change event delegate to the 'ValueChanged' property of the component."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "ValueChanged",
-          "Components.Bind.ExpressionAttribute": "ValueExpression",
-          "Components.Bind.ValueAttribute": "Value"
+          "ValueAttribute": "Value",
+          "ChangeAttribute": "ValueChanged",
+          "ExpressionAttribute": "ValueExpression"
         }
       },
       {
         "__Checksum": {
-          "Data1": 2749892773188228388,
-          "Data2": -8602326072542239671,
-          "Data3": 975206712340772272,
-          "Data4": 3428245350142650731
+          "Data1": 331459240213669981,
+          "Data2": 3873200421291993987,
+          "Data3": 6913134545792648289,
+          "Data4": 8341512001404559307
         },
         "Flags": 1,
         "Kind": 5,
@@ -14403,18 +14559,19 @@
             "Documentation": "Binds the provided expression to the 'Value' property and a change event delegate to the 'ValueChanged' property of the component."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "ValueChanged",
-          "Components.Bind.ExpressionAttribute": "ValueExpression",
-          "Components.Bind.ValueAttribute": "Value"
+          "ValueAttribute": "Value",
+          "ChangeAttribute": "ValueChanged",
+          "ExpressionAttribute": "ValueExpression"
         }
       },
       {
         "__Checksum": {
-          "Data1": 4522560197473084356,
-          "Data2": 2744744290864094781,
-          "Data3": -7572823460695846206,
-          "Data4": -9032977081796260211
+          "Data1": 3724340368892768585,
+          "Data2": 1649755223735979800,
+          "Data3": -1893166174792121162,
+          "Data4": 4618085164613446038
         },
         "Flags": 3,
         "Kind": 5,
@@ -14445,18 +14602,19 @@
             "Documentation": "Binds the provided expression to the 'Value' property and a change event delegate to the 'ValueChanged' property of the component."
           }
         ],
+        "MetadataKind": 4,
         "Metadata": {
-          "Components.Bind.ChangeAttribute": "ValueChanged",
-          "Components.Bind.ExpressionAttribute": "ValueExpression",
-          "Components.Bind.ValueAttribute": "Value"
+          "ValueAttribute": "Value",
+          "ChangeAttribute": "ValueChanged",
+          "ExpressionAttribute": "ValueExpression"
         }
       },
       {
         "__Checksum": {
-          "Data1": -2624749947865134347,
-          "Data2": 5597975928118688442,
-          "Data3": 4457666153234798389,
-          "Data4": 1251583024899031247
+          "Data1": -4789415803525893115,
+          "Data2": -5620185862145100922,
+          "Data3": 2055024854313118396,
+          "Data4": -9194913527402574483
         },
         "Flags": 5,
         "Kind": 7,
@@ -14490,10 +14648,10 @@
       },
       {
         "__Checksum": {
-          "Data1": -5624189059509316879,
-          "Data2": -2976252624994075855,
-          "Data3": 8968120072729997745,
-          "Data4": -2393218812832582439
+          "Data1": 4072456247900910599,
+          "Data2": 6684783366291711703,
+          "Data3": -3478156761428997743,
+          "Data4": 7756048347756860073
         },
         "Flags": 5,
         "Kind": 6,

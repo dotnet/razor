@@ -37,7 +37,7 @@ internal sealed class TagHelperFormatter : ValueFormatter<TagHelperDescriptor>
         var boundAttributes = reader.Deserialize<ImmutableArray<BoundAttributeDescriptor>>(options);
         var allowedChildTags = reader.Deserialize<ImmutableArray<AllowedChildTagDescriptor>>(options);
 
-        var metadata = reader.Deserialize<MetadataCollection>(options);
+        var metadata = reader.Deserialize<MetadataObject>(options);
         var diagnostics = reader.Deserialize<ImmutableArray<RazorDiagnostic>>(options);
 
         return new TagHelperDescriptor(
@@ -89,7 +89,7 @@ internal sealed class TagHelperFormatter : ValueFormatter<TagHelperDescriptor>
         BoundAttributeFormatter.Instance.SkimArray(ref reader, options); // BoundAttributes
         AllowedChildTagFormatter.Instance.SkimArray(ref reader, options); // AllowedChildTags
 
-        MetadataCollectionFormatter.Instance.Skim(ref reader, options); // Metadata
+        MetadataObjectFormatter.Instance.Skim(ref reader, options); // Metadata
         RazorDiagnosticFormatter.Instance.SkimArray(ref reader, options); // Diagnostics
     }
 }

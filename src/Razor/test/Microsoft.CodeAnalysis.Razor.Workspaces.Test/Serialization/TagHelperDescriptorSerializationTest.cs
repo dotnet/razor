@@ -75,7 +75,6 @@ public class TagHelperDescriptorSerializationTest(ITestOutputHelper testOutput) 
             configureAction: builder =>
             {
                 builder.AllowChildTag("allowed-child-one");
-                builder.Metadata("foo", "bar");
             });
 
         // Act
@@ -116,7 +115,6 @@ public class TagHelperDescriptorSerializationTest(ITestOutputHelper testOutput) 
             configureAction: builder =>
             {
                 builder.AllowChildTag("allowed-child-one");
-                builder.Metadata("foo", "bar");
             });
 
         // Act
@@ -155,7 +153,6 @@ public class TagHelperDescriptorSerializationTest(ITestOutputHelper testOutput) 
             ],
             configureAction: builder => builder
                 .AllowChildTag("allowed-child-one")
-                .Metadata("foo", "bar")
                 .AddDiagnostic(RazorDiagnostic.Create(
                     new RazorDiagnosticDescriptor("id", "Test Message", RazorDiagnosticSeverity.Error), new SourceSpan(null, 10, 20, 30, 40))));
 
@@ -198,7 +195,6 @@ public class TagHelperDescriptorSerializationTest(ITestOutputHelper testOutput) 
             ],
             configureAction: builder => builder
                 .AllowChildTag("allowed-child-one")
-                .Metadata("foo", "bar")
                 .TagOutputHint("Hint"));
 
         // Act

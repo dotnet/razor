@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -101,7 +100,7 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
             builder.RuntimeKind = RuntimeKind.IComponent;
             builder.SetTypeName(typeName);
 
-            using var metadata = new MetadataBuilder();
+            var metadata = new ComponentMetadata.Builder();
 
             builder.CaseSensitive = true;
 
@@ -128,7 +127,7 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
 
             if (type.IsGenericType)
             {
-                metadata.Add(MakeTrue(ComponentMetadata.Component.GenericTypedKey));
+                metadata.IsGeneric = true;
 
                 using var cascadeGenericTypeAttributes = new PooledHashSet<string>(StringHashSetPool.Ordinal);
 
@@ -153,7 +152,7 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
 
             if (HasRenderModeDirective(type))
             {
-                metadata.Add(MakeTrue(ComponentMetadata.Component.HasRenderModeDirectiveKey));
+                metadata.HasRenderModeDirective = true;
             }
 
             var xml = type.GetDocumentationCommentXml();
@@ -173,7 +172,7 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
             }
 
             if (builder.BoundAttributes.Any(static a => a.IsParameterizedChildContentProperty()) &&
-                !builder.BoundAttributes.Any(static a => string.Equals(a.Name, ComponentMetadata.ChildContent.ParameterAttributeName, StringComparison.OrdinalIgnoreCase)))
+                !builder.BoundAttributes.Any(static a => string.Equals(a.Name, ComponentHelpers.ChildContent.ParameterAttributeName, StringComparison.OrdinalIgnoreCase)))
             {
                 // If we have any parameterized child content parameters, synthesize a 'Context' parameter to be
                 // able to set the variable name (for all child content). If the developer defined a 'Context' parameter
@@ -591,7 +590,7 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
         {
             builder.BindAttribute(b =>
             {
-                b.Name = ComponentMetadata.ChildContent.ParameterAttributeName;
+                b.Name = ComponentHelpers.ChildContent.ParameterAttributeName;
                 b.TypeName = typeof(string).FullName;
                 b.PropertyName = b.Name;
                 b.SetMetadata(ChildContentParameterMetadata.Default);

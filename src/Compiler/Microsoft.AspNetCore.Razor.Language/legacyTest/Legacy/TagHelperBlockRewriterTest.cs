@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Xunit;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
@@ -2180,7 +2179,10 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
                     typeNamespace: "Microsoft.AspNetCore.Components",
                     typeNameIdentifier: "Bind")
                 .ClassifyAttributesOnly(true)
-                .Metadata(MakeTrue(ComponentMetadata.Bind.FallbackKey))
+                .Metadata(new BindMetadata()
+                {
+                    IsFallback = true
+                })
                 .TagMatchingRuleDescriptor(rule => rule
                     .RequireTagName("*")
                     .RequireAttributeDescriptor(attribute => attribute
@@ -2221,7 +2223,10 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
                     typeNamespace: "Microsoft.AspNetCore.Components",
                     typeNameIdentifier: "Bind")
                 .ClassifyAttributesOnly(true)
-                .Metadata(MakeTrue(ComponentMetadata.Bind.FallbackKey))
+                .Metadata(new BindMetadata()
+                {
+                    IsFallback = true
+                })
                 .TagMatchingRuleDescriptor(rule => rule
                     .RequireTagName("*")
                     .RequireAttributeDescriptor(attribute => attribute

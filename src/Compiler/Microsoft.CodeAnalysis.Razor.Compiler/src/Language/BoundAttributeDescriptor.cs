@@ -58,7 +58,7 @@ public sealed class BoundAttributeDescriptor : TagHelperObject<BoundAttributeDes
         string displayName,
         string? containingType,
         ImmutableArray<BoundAttributeParameterDescriptor> parameters,
-        MetadataObject metadataObject,
+        MetadataObject metadata,
         ImmutableArray<RazorDiagnostic> diagnostics)
         : base(diagnostics)
     {
@@ -73,7 +73,7 @@ public sealed class BoundAttributeDescriptor : TagHelperObject<BoundAttributeDes
         DisplayName = displayName;
         ContainingType = containingType;
         Parameters = parameters.NullToEmpty();
-        Metadata = metadataObject;
+        Metadata = metadata;
 
         foreach (var parameter in Parameters)
         {

@@ -1,10 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -43,24 +40,11 @@ public static class TestTagHelperDescriptorBuilderExtensions
             => TagHelperDescriptorBuilder.Create(TagHelperKind.EventHandler, name, assemblyName);
     }
 
-    public static TagHelperDescriptorBuilder Metadata(this TagHelperDescriptorBuilder builder, string key, string value)
+    public static TagHelperDescriptorBuilder Metadata(
+        this TagHelperDescriptorBuilder builder,
+        MetadataObject metadata)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        return builder.Metadata(new KeyValuePair<string, string>(key, value));
-    }
-
-    public static TagHelperDescriptorBuilder Metadata(this TagHelperDescriptorBuilder builder, params KeyValuePair<string, string>[] pairs)
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        builder.SetMetadata(pairs);
+        builder.SetMetadata(metadata);
 
         return builder;
     }
@@ -137,8 +121,8 @@ public static class TestTagHelperDescriptorBuilderExtensions
     public static TagHelperDescriptorBuilder TypeName(
         this TagHelperDescriptorBuilder builder,
         string fullName,
-        string typeNamespace = null,
-        string typeNameIdentifier = null)
+        string? typeNamespace = null,
+        string? typeNameIdentifier = null)
     {
         builder.SetTypeName(fullName, typeNamespace, typeNameIdentifier);
 

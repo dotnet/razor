@@ -43,7 +43,7 @@ public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
     public ImmutableArray<BoundAttributeDescriptor> BoundAttributes { get; }
     public ImmutableArray<TagMatchingRuleDescriptor> TagMatchingRules { get; }
 
-    public MetadataCollection Metadata { get; }
+    public MetadataObject Metadata { get; }
 
     /// <summary>
     /// Gets whether the component matches a tag with a fully qualified name.
@@ -65,7 +65,7 @@ public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
         ImmutableArray<TagMatchingRuleDescriptor> tagMatchingRules,
         ImmutableArray<BoundAttributeDescriptor> attributeDescriptors,
         ImmutableArray<AllowedChildTagDescriptor> allowedChildTags,
-        MetadataCollection metadata,
+        MetadataObject metadata,
         ImmutableArray<RazorDiagnostic> diagnostics)
         : base(diagnostics)
     {
@@ -81,7 +81,7 @@ public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
         TagMatchingRules = tagMatchingRules.NullToEmpty();
         BoundAttributes = attributeDescriptors.NullToEmpty();
         AllowedChildTags = allowedChildTags.NullToEmpty();
-        Metadata = metadata ?? MetadataCollection.Empty;
+        Metadata = metadata;
 
         foreach (var tagMatchingRule in TagMatchingRules)
         {
@@ -127,7 +127,7 @@ public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
             builder.AppendData(descriptor.Checksum);
         }
 
-        builder.AppendData(Metadata.Checksum);
+        Metadata.AppendToChecksum(in builder);
     }
 
     internal ImmutableArray<BoundAttributeDescriptor> EditorRequiredAttributes

@@ -1,10 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#if !NET
-using System.Collections.Generic;
-#endif
 using System.Diagnostics;
+using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 
@@ -133,7 +131,7 @@ internal static partial class ObjectWriters
                 WriteDocumentationObject(writer, nameof(value.Documentation), value.DocumentationObject);
                 writer.WriteArrayIfNotDefaultOrEmpty(nameof(value.Parameters), value.Parameters, WriteBoundAttributeParameter);
 
-                WriteMetadataObject(writer, nameof(value.Metadata), value.Metadata.AssumeNotNull());
+                WriteMetadata(writer, nameof(value.Metadata), value.Metadata.AssumeNotNull());
 
                 writer.WriteArrayIfNotDefaultOrEmpty(nameof(value.Diagnostics), value.Diagnostics, Write);
             });
@@ -163,24 +161,7 @@ internal static partial class ObjectWriters
             });
         }
 
-        static void WriteMetadata(JsonDataWriter writer, string propertyName, MetadataCollection metadata)
-        {
-            // If there isn't any metadata, don't write the property.
-            if (metadata.Count == 0)
-            {
-                return;
-            }
-
-            writer.WriteObject(propertyName, metadata, static (writer, metadata) =>
-            {
-                foreach (var (key, value) in metadata)
-                {
-                    writer.Write(key, value);
-                }
-            });
-        }
-
-        static void WriteMetadataObject(JsonDataWriter writer, string propertyName, MetadataObject metadata)
+        static void WriteMetadata(JsonDataWriter writer, string propertyName, MetadataObject metadata)
         {
             if (metadata.Kind is MetadataKind.None)
             {
@@ -189,9 +170,9 @@ internal static partial class ObjectWriters
 
             writer.Write("MetadataKind", (byte)metadata.Kind);
 
-            if (metadata.Kind is MetadataKind.ChildContentParameter)
+            if (metadata.HasDefaultValue)
             {
-                // No properties to write for ChildContentParameterMetadata.
+                // No properties to write.
                 return;
             }
 
@@ -205,6 +186,22 @@ internal static partial class ObjectWriters
 
                     case MetadataKind.Property:
                         WritePropertyMetadata(writer, (PropertyMetadata)value);
+                        break;
+
+                    case MetadataKind.Bind:
+                        WriteBindMetadata(writer, (BindMetadata)value);
+                        break;
+
+                    case MetadataKind.Component:
+                        WriteComponentMetadata(writer, (ComponentMetadata)value);
+                        break;
+
+                    case MetadataKind.EventHandler:
+                        WriteEventHandlerMetadata(writer, (EventHandlerMetadata)value);
+                        break;
+
+                    case MetadataKind.ViewComponent:
+                        WriteViewComponentMetadata(writer, (ViewComponentMetadata)value);
                         break;
 
                     default:
@@ -229,6 +226,33 @@ internal static partial class ObjectWriters
                 writer.WriteIfNotFalse(nameof(metadata.IsDelegateWithAwaitableResult), metadata.IsDelegateWithAwaitableResult);
                 writer.WriteIfNotFalse(nameof(metadata.IsGenericTyped), metadata.IsGenericTyped);
                 writer.WriteIfNotFalse(nameof(metadata.IsInitOnlyProperty), metadata.IsInitOnlyProperty);
+            }
+
+            static void WriteBindMetadata(JsonDataWriter writer, BindMetadata metadata)
+            {
+                writer.WriteIfNotFalse(nameof(metadata.IsFallback), metadata.IsFallback);
+                writer.WriteIfNotNull(nameof(metadata.ValueAttribute), metadata.ValueAttribute);
+                writer.WriteIfNotNull(nameof(metadata.ChangeAttribute), metadata.ChangeAttribute);
+                writer.WriteIfNotNull(nameof(metadata.ExpressionAttribute), metadata.ExpressionAttribute);
+                writer.WriteIfNotNull(nameof(metadata.TypeAttribute), metadata.TypeAttribute);
+                writer.WriteIfNotFalse(nameof(metadata.IsInvariantCulture), metadata.IsInvariantCulture);
+                writer.WriteIfNotNull(nameof(metadata.Format), metadata.Format);
+            }
+
+            static void WriteComponentMetadata(JsonDataWriter writer, ComponentMetadata metadata)
+            {
+                writer.WriteIfNotFalse(nameof(metadata.IsGeneric), metadata.IsGeneric);
+                writer.WriteIfNotFalse(nameof(metadata.HasRenderModeDirective), metadata.HasRenderModeDirective);
+            }
+
+            static void WriteEventHandlerMetadata(JsonDataWriter writer, EventHandlerMetadata metadata)
+            {
+                writer.Write(nameof(metadata.EventArgsType), metadata.EventArgsType);
+            }
+
+            static void WriteViewComponentMetadata(JsonDataWriter writer, ViewComponentMetadata metadata)
+            {
+                writer.Write(nameof(metadata.Name), metadata.Name);
             }
         }
     }

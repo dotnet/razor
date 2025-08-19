@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Xml.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -22,7 +23,10 @@ public class ViewComponentTagHelperDescriptorFactoryTest
 
         var expectedDescriptor = TagHelperDescriptorBuilder.CreateViewComponent("__Generated__StringParameterViewComponentTagHelper", TestCompilation.AssemblyName)
             .TypeName("__Generated__StringParameterViewComponentTagHelper")
-            .Metadata(ViewComponentTagHelperMetadata.Name, "StringParameter")
+            .Metadata(new ViewComponentMetadata()
+            {
+                Name = "StringParameter"
+            })
             .DisplayName("StringParameterViewComponentTagHelper")
             .TagMatchingRuleDescriptor(rule => rule
                 .RequireTagName("vc:string-parameter")
@@ -57,7 +61,10 @@ public class ViewComponentTagHelperDescriptorFactoryTest
 
         var expectedDescriptor = TagHelperDescriptorBuilder.CreateViewComponent("__Generated__VariousParameterViewComponentTagHelper", TestCompilation.AssemblyName)
             .TypeName("__Generated__VariousParameterViewComponentTagHelper")
-            .Metadata(ViewComponentTagHelperMetadata.Name, "VariousParameter")
+            .Metadata(new ViewComponentMetadata()
+            {
+                Name = "VariousParameter"
+            })
             .DisplayName("VariousParameterViewComponentTagHelper")
             .TagMatchingRuleDescriptor(rule =>
                 rule
@@ -102,7 +109,10 @@ public class ViewComponentTagHelperDescriptorFactoryTest
 
         var expectedDescriptor = TagHelperDescriptorBuilder.CreateViewComponent("__Generated__GenericParameterViewComponentTagHelper", TestCompilation.AssemblyName)
             .TypeName("__Generated__GenericParameterViewComponentTagHelper")
-            .Metadata(ViewComponentTagHelperMetadata.Name, "GenericParameter")
+            .Metadata(new ViewComponentMetadata()
+            {
+                Name = "GenericParameter"
+            })
             .DisplayName("GenericParameterViewComponentTagHelper")
             .TagMatchingRuleDescriptor(rule =>
                 rule
@@ -139,7 +149,10 @@ public class ViewComponentTagHelperDescriptorFactoryTest
 
         var expectedDescriptor = TagHelperDescriptorBuilder.CreateViewComponent("__Generated__SyncDerivedViewComponentTagHelper", TestCompilation.AssemblyName)
             .TypeName("__Generated__SyncDerivedViewComponentTagHelper")
-            .Metadata(ViewComponentTagHelperMetadata.Name, "SyncDerived")
+            .Metadata(new ViewComponentMetadata()
+            {
+                Name = "SyncDerived"
+            })
             .DisplayName("SyncDerivedViewComponentTagHelper")
             .TagMatchingRuleDescriptor(rule =>
                 rule
@@ -178,7 +191,10 @@ public class ViewComponentTagHelperDescriptorFactoryTest
 
         var expectedDescriptor = TagHelperDescriptorBuilder.CreateViewComponent("__Generated__AsyncDerivedViewComponentTagHelper", TestCompilation.AssemblyName)
             .TypeName("__Generated__SyncDerivedViewComponentTagHelper")
-            .Metadata(ViewComponentTagHelperMetadata.Name, "AsyncDerived")
+            .Metadata(new ViewComponentMetadata()
+            {
+                Name = "AsyncDerived"
+            })
             .DisplayName("AsyncDerivedViewComponentTagHelper")
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("vc:async-derived"))
             .Build();

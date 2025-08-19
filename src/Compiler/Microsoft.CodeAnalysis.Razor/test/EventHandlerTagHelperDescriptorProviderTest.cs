@@ -6,7 +6,6 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Xunit;
-using static Microsoft.AspNetCore.Razor.Language.Components.ComponentMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -349,7 +348,5 @@ public class EventHandlerTagHelperDescriptorProviderTest : TagHelperDescriptorPr
     }
 
     private static TagHelperDescriptor[] GetEventHandlerTagHelpers(TagHelperDescriptorProviderContext context)
-    {
-        return ExcludeBuiltInComponents(context).Where(t => t.IsEventHandlerTagHelper()).ToArray();
-    }
+        => [.. ExcludeBuiltInComponents(context).Where(static t => t.Kind == TagHelperKind.EventHandler)];
 }

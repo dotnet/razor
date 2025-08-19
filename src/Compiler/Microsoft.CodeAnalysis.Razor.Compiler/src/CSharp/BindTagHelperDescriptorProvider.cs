@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -133,8 +132,7 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
         builder.ClassifyAttributesOnly = true;
         builder.SetDocumentation(DocumentationDescriptor.BindTagHelper_Fallback);
 
-        builder.SetMetadata(
-            MakeTrue(ComponentMetadata.Bind.FallbackKey));
+        builder.SetMetadata(new BindMetadata() { IsFallback = true });
 
         builder.TagMatchingRule(rule =>
         {
@@ -357,6 +355,7 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
                 formatAttributeName = "format-" + suffix;
                 eventName = "Event_" + suffix;
             }
+
             using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
                 TagHelperKind.Bind, name, ComponentsApi.AssemblyName,
                 out var builder);
@@ -371,11 +370,13 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
                     valueAttribute,
                     changeAttribute));
 
-            using var metadata = new MetadataBuilder();
-            metadata.Add(ComponentMetadata.Bind.ValueAttribute, valueAttribute);
-            metadata.Add(ComponentMetadata.Bind.ChangeAttribute, changeAttribute);
-            metadata.Add(ComponentMetadata.Bind.IsInvariantCulture, isInvariantCulture ? bool.TrueString : bool.FalseString);
-            metadata.Add(ComponentMetadata.Bind.Format, format);
+            var metadata = new BindMetadata.Builder
+            {
+                ValueAttribute = valueAttribute,
+                ChangeAttribute = changeAttribute,
+                IsInvariantCulture = isInvariantCulture,
+                Format = format
+            };
 
             if (typeAttribute != null)
             {
@@ -388,7 +389,7 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
                 //
                 // Therefore we use this metadata to know which one is more specific when two
                 // tag helpers match.
-                metadata.Add(ComponentMetadata.Bind.TypeAttribute, typeAttribute);
+                metadata.TypeAttribute = typeAttribute;
             }
 
             builder.SetMetadata(metadata.Build());
@@ -599,13 +600,15 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
                         valueAttribute.Name,
                         changeAttribute.Name));
 
-                using var metadata = new MetadataBuilder();
-                metadata.Add(ComponentMetadata.Bind.ValueAttribute, valueAttribute.Name);
-                metadata.Add(ComponentMetadata.Bind.ChangeAttribute, changeAttribute.Name);
+                var metadata = new BindMetadata.Builder
+                {
+                    ValueAttribute = valueAttribute.Name,
+                    ChangeAttribute = changeAttribute.Name
+                };
 
                 if (expressionAttribute != null)
                 {
-                    metadata.Add(ComponentMetadata.Bind.ExpressionAttribute, expressionAttribute.Name);
+                    metadata.ExpressionAttribute = expressionAttribute.Name;
                 }
 
                 // Match the component and attribute name

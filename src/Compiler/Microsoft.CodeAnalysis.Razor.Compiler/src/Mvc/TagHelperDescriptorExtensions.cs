@@ -1,9 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
-using System;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 
@@ -23,14 +20,12 @@ public static class TagHelperDescriptorExtensions
         return tagHelper.Kind == TagHelperKind.ViewComponent;
     }
 
-    public static string GetViewComponentName(this TagHelperDescriptor tagHelper)
+    public static string? GetViewComponentName(this TagHelperDescriptor tagHelper)
     {
-        if (tagHelper == null)
-        {
-            throw new ArgumentNullException(nameof(tagHelper));
-        }
+        ArgHelper.ThrowIfNull(tagHelper);
 
-        tagHelper.Metadata.TryGetValue(ViewComponentTagHelperMetadata.Name, out var result);
-        return result;
+        return tagHelper.Metadata is ViewComponentMetadata { Name: var result }
+            ? result
+            : null;
     }
 }
