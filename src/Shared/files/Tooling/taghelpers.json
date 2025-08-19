@@ -82615,12 +82615,12 @@
   },
   {
     "__Checksum": {
-      "Data1": -6747989968982622479,
-      "Data2": -5807883090575187618,
-      "Data3": -1552755422300204715,
-      "Data4": -868258579292540243
+      "Data1": 7406656083917513658,
+      "Data2": 3636770501482940234,
+      "Data3": 5221809277250559004,
+      "Data4": -8605043061386115776
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onfocus",
@@ -82683,19 +82683,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.FocusEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 609088182467858576,
-      "Data2": -8921945352622251214,
-      "Data3": -8999512901248418591,
-      "Data4": 5217327042496673001
+      "Data1": 2998447045063657737,
+      "Data2": -3239751450682689877,
+      "Data3": 6590650164609542650,
+      "Data4": -4784758217575160494
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onblur",
@@ -82758,19 +82757,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.FocusEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 1119862774182240221,
-      "Data2": 4523617093384711439,
-      "Data3": 7786170554348348920,
-      "Data4": 1120064592106899299
+      "Data1": -3315153291263769171,
+      "Data2": 7893823225778490467,
+      "Data3": 4226015749865133850,
+      "Data4": -2717948832477387141
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onfocusin",
@@ -82833,19 +82831,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.FocusEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 6728031039427755955,
-      "Data2": -5148088805296135597,
-      "Data3": 7724803527793610879,
-      "Data4": 8377343523662502064
+      "Data1": 6002525795011271632,
+      "Data2": 4390014987529089512,
+      "Data3": -8365482349523109267,
+      "Data4": -8725835947757643948
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onfocusout",
@@ -82908,19 +82905,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.FocusEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 1582778232316651801,
-      "Data2": 1032466503981166421,
-      "Data3": -1205598774460322610,
-      "Data4": 2877014448562078478
+      "Data1": -7235412104433717654,
+      "Data2": -3372671293306473256,
+      "Data3": 6147578256087224809,
+      "Data4": 3971267209875112355
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onmouseover",
@@ -82983,19 +82979,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 5650030757350967882,
-      "Data2": 8030277693976025261,
-      "Data3": -6668623493874827139,
-      "Data4": 8673683068005611712
+      "Data1": -1313713693697934334,
+      "Data2": 1698656164634697034,
+      "Data3": -3606644874721145096,
+      "Data4": 5801029554083630497
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onmouseout",
@@ -83058,19 +83053,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -3727235510443142163,
-      "Data2": 7024603612905672423,
-      "Data3": 6300405319134067609,
-      "Data4": -821420215813227535
+      "Data1": -1764606108830074992,
+      "Data2": 3776556524759926719,
+      "Data3": -6142499732240919889,
+      "Data4": -8637784650313653783
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onmousemove",
@@ -83133,19 +83127,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 1227857173525122658,
-      "Data2": -1423768138268409174,
-      "Data3": 3023262347163332881,
-      "Data4": -1700827393530894244
+      "Data1": -1912727522452646751,
+      "Data2": 1770665647467507706,
+      "Data3": 1127600332800979304,
+      "Data4": -1167097338460675059
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onmousedown",
@@ -83208,19 +83201,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -8027198578049344637,
-      "Data2": 5991001004621097625,
-      "Data3": 7185404244026795034,
-      "Data4": -6421810223710172795
+      "Data1": -8880937700426158750,
+      "Data2": 2969118956012803860,
+      "Data3": 8524704464439563209,
+      "Data4": -5991856790351905224
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onmouseup",
@@ -83283,19 +83275,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -6780388066001773021,
-      "Data2": 4255750104735796838,
-      "Data3": -1705263963683556092,
-      "Data4": 8774846652486661843
+      "Data1": 8543625564155538481,
+      "Data2": 4956666473323457708,
+      "Data3": 6959185047255456421,
+      "Data4": -1664207176238843802
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onclick",
@@ -83358,19 +83349,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -8228883322666658479,
-      "Data2": 941874457586272940,
-      "Data3": -5687428237468233381,
-      "Data4": -6125388493805338005
+      "Data1": -8753979526816667112,
+      "Data2": 2703780551514059851,
+      "Data3": 671401944205912596,
+      "Data4": 4592897868410497818
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "ondblclick",
@@ -83433,19 +83423,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -2959430648434938363,
-      "Data2": -6074389251557166805,
-      "Data3": -3078932341268020175,
-      "Data4": 5746849782089678925
+      "Data1": -5295004824795653942,
+      "Data2": -3680010286611535753,
+      "Data3": 4058285421726483942,
+      "Data4": 8871434154575493383
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onwheel",
@@ -83508,19 +83497,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.WheelEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 3410948432183537247,
-      "Data2": 7683453334926700035,
-      "Data3": 6221694738225292880,
-      "Data4": 5093061548242934508
+      "Data1": 6906410660134344603,
+      "Data2": -3987752145539702153,
+      "Data3": 4188556880029450177,
+      "Data4": 5340897666966267595
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onmousewheel",
@@ -83583,19 +83571,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.WheelEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 7996797148899006222,
-      "Data2": -2300288047601990164,
-      "Data3": 3612317124057472095,
-      "Data4": -2511440353169235483
+      "Data1": -7268956209841953955,
+      "Data2": 4991195309877129432,
+      "Data3": 7903550346794127413,
+      "Data4": 3164358901264634865
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "oncontextmenu",
@@ -83658,19 +83645,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 9162655706416630537,
-      "Data2": 2799425283414791971,
-      "Data3": 2883681536400792336,
-      "Data4": -7511685477737339158
+      "Data1": 472011748517337553,
+      "Data2": 4320948884578577662,
+      "Data3": -1326077413083661659,
+      "Data4": 1824219854451179299
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "ondrag",
@@ -83733,19 +83719,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.DragEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -5035264192115585092,
-      "Data2": 1057418680817275096,
-      "Data3": 1629932309104373500,
-      "Data4": -4263968710749192023
+      "Data1": -5557023515994431502,
+      "Data2": -6085237382053127965,
+      "Data3": -8489155219101648701,
+      "Data4": -2477462427289909034
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "ondragend",
@@ -83808,19 +83793,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.DragEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -4948142292484239353,
-      "Data2": -8470535522259532186,
-      "Data3": -3141197574087413846,
-      "Data4": 3674647282827128410
+      "Data1": 1289644574153400430,
+      "Data2": 8787166786139817009,
+      "Data3": 2129723579738195930,
+      "Data4": 4593081833592355234
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "ondragenter",
@@ -83883,19 +83867,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.DragEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 7173437813269591364,
-      "Data2": -459227758358072596,
-      "Data3": -6970603670460826142,
-      "Data4": -789795175097103350
+      "Data1": 7741350268748930256,
+      "Data2": 2712014850521403871,
+      "Data3": -2340473566652290458,
+      "Data4": 5985761819148828106
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "ondragleave",
@@ -83958,19 +83941,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.DragEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 1438338116584418102,
-      "Data2": 2917073819982610479,
-      "Data3": 5247653570616594293,
-      "Data4": 4659101779304009240
+      "Data1": 8612779513173312743,
+      "Data2": 3173947038447813664,
+      "Data3": -6123784863900678637,
+      "Data4": 2210972426120750332
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "ondragover",
@@ -84033,19 +84015,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.DragEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -8315278971780617537,
-      "Data2": 7756868614707049551,
-      "Data3": -4876132761529328886,
-      "Data4": 6208649365350265095
+      "Data1": 5492361095405458383,
+      "Data2": 5817636797489714341,
+      "Data3": -6415998088344270946,
+      "Data4": 4923457684728831016
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "ondragstart",
@@ -84108,19 +84089,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.DragEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -4415700620438690615,
-      "Data2": -5033297615422389302,
-      "Data3": 9101796544864383679,
-      "Data4": -237663649010647117
+      "Data1": 6672088728664188835,
+      "Data2": -5118792668678575393,
+      "Data3": 288056299704091984,
+      "Data4": -2695952138204624053
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "ondrop",
@@ -84183,19 +84163,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.DragEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -5230380018145966108,
-      "Data2": -5257119902907481467,
-      "Data3": -7462123005291245229,
-      "Data4": -6299720752909107899
+      "Data1": 7314484723627083058,
+      "Data2": -7408094555405174194,
+      "Data3": 6654385086317816944,
+      "Data4": -3597000946469973119
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onkeydown",
@@ -84258,19 +84237,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.KeyboardEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -3105514934059803260,
-      "Data2": 3304088302120926455,
-      "Data3": -6461092287693407667,
-      "Data4": -5206007598379554051
+      "Data1": 3885491906667232369,
+      "Data2": -6948336664267624282,
+      "Data3": 8770948559768202383,
+      "Data4": 5752426043753878270
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onkeyup",
@@ -84333,19 +84311,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.KeyboardEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 7187501609246174364,
-      "Data2": 5892398381510807630,
-      "Data3": 2910238278442922912,
-      "Data4": 3273962568955949929
+      "Data1": 2065904285612214293,
+      "Data2": 9140236519128259104,
+      "Data3": -3148501599765790164,
+      "Data4": -7344324519671863034
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onkeypress",
@@ -84408,19 +84385,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.KeyboardEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 1953057295645133050,
-      "Data2": 1747934056045078203,
-      "Data3": -6148479460298318317,
-      "Data4": 1758992806728540864
+      "Data1": 4081784796977992400,
+      "Data2": -481915544560546163,
+      "Data3": -3212449189620537710,
+      "Data4": -1402452114761630959
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onchange",
@@ -84483,19 +84459,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.ChangeEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 5674405252640995607,
-      "Data2": -6731785259088029737,
-      "Data3": -7819293376317739065,
-      "Data4": 563762906941445145
+      "Data1": -2025627136629070930,
+      "Data2": 7731976903131920236,
+      "Data3": 9170443231534906552,
+      "Data4": 5273239265337427334
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "oninput",
@@ -84558,19 +84533,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.ChangeEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 2492321352191050298,
-      "Data2": -4422879596237193767,
-      "Data3": 7359639675404568873,
-      "Data4": -7014057949324191879
+      "Data1": -7711193197593496543,
+      "Data2": 5540259054854000062,
+      "Data3": 7342019398763825435,
+      "Data4": 9009015079211952249
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "oninvalid",
@@ -84633,19 +84607,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -4405059249049870681,
-      "Data2": 6169566776314170066,
-      "Data3": -7043392982062942296,
-      "Data4": 1494662207012002583
+      "Data1": 8686529813794407273,
+      "Data2": 151701794394866190,
+      "Data3": -794531582204366217,
+      "Data4": -6968950243489563900
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onreset",
@@ -84708,19 +84681,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -7279961288517354337,
-      "Data2": -5101569145910769071,
-      "Data3": 5336190081304213128,
-      "Data4": -1884370251183043618
+      "Data1": 4378170690695978164,
+      "Data2": -6859003069233663877,
+      "Data3": -3129759281159400362,
+      "Data4": 1391359207613616022
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onselect",
@@ -84783,19 +84755,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -8754767078712573259,
-      "Data2": -6923890566727985898,
-      "Data3": -8740375506717898800,
-      "Data4": 2798723293623120904
+      "Data1": -5973121054100007089,
+      "Data2": 6074142779523716642,
+      "Data3": -7252331611457562993,
+      "Data4": -4017186571069532573
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onselectstart",
@@ -84858,19 +84829,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 6689313241733753401,
-      "Data2": -1028444984843069414,
-      "Data3": 3699026065561561638,
-      "Data4": 668402431900330484
+      "Data1": 8715345222593778711,
+      "Data2": -2329794942375020546,
+      "Data3": 7618912162875344758,
+      "Data4": -1696541202639386531
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onselectionchange",
@@ -84933,19 +84903,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 1608423209804881692,
-      "Data2": -1987211596733267725,
-      "Data3": -3540048340420122791,
-      "Data4": -553025056951897741
+      "Data1": 1055216491341828106,
+      "Data2": 6957125073391680533,
+      "Data3": 8558454883110748778,
+      "Data4": -5168509591800070352
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onsubmit",
@@ -85008,19 +84977,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 9010353026948755618,
-      "Data2": 8565065484948884442,
-      "Data3": 7984662760032435821,
-      "Data4": -6046079034328957998
+      "Data1": -4574538632402673015,
+      "Data2": -148400039195472425,
+      "Data3": 3623536934221806384,
+      "Data4": 2000808906651720393
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onbeforecopy",
@@ -85083,19 +85051,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 6060363708305880788,
-      "Data2": 8653510859301072925,
-      "Data3": 4440106287945796758,
-      "Data4": -2869894859171172779
+      "Data1": -2101518330906183482,
+      "Data2": -8059355992465998201,
+      "Data3": 4020103193443923915,
+      "Data4": 1630525158422157900
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onbeforecut",
@@ -85158,19 +85125,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 7536495326510722583,
-      "Data2": 7663710281732043443,
-      "Data3": -6350872133282179849,
-      "Data4": -1830714072936802533
+      "Data1": -1966867340338265371,
+      "Data2": 6590219401498069550,
+      "Data3": 8519945604567041713,
+      "Data4": -4297206668015125345
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onbeforepaste",
@@ -85233,19 +85199,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -8127134727745443569,
-      "Data2": -6482618930577513377,
-      "Data3": 148334287494904879,
-      "Data4": -1696295437280535656
+      "Data1": 27107452802770680,
+      "Data2": -8671303263432414813,
+      "Data3": -1000509644238182045,
+      "Data4": -8723155960141282684
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "oncopy",
@@ -85308,19 +85273,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.ClipboardEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -7803327013970155584,
-      "Data2": 5886259402903827316,
-      "Data3": 902518820812295950,
-      "Data4": -6947230747520572166
+      "Data1": 2447479024128156536,
+      "Data2": 2532651487595564173,
+      "Data3": -6829290450233168321,
+      "Data4": 9132096508853311374
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "oncut",
@@ -85383,19 +85347,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.ClipboardEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -1596495734515206656,
-      "Data2": -5416139404462840089,
-      "Data3": 8685570973499389190,
-      "Data4": -8709564475796475642
+      "Data1": -390269277096791212,
+      "Data2": -8386318836061666144,
+      "Data3": 8537358424263318061,
+      "Data4": 5786860486689708164
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onpaste",
@@ -85458,19 +85421,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.ClipboardEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 8168137934133945401,
-      "Data2": 2523371974090680060,
-      "Data3": 8180731298825046302,
-      "Data4": 1365447440061957603
+      "Data1": 8063426894079952922,
+      "Data2": 4235998784773484154,
+      "Data3": 8929806923246325081,
+      "Data4": 8053470563908982205
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "ontouchcancel",
@@ -85533,19 +85495,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.TouchEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -6362163944727296074,
-      "Data2": 158060551072554258,
-      "Data3": -6414298097666489735,
-      "Data4": 7928197425822023900
+      "Data1": -2840840094441673288,
+      "Data2": 280274721626815316,
+      "Data3": -1588744021628101906,
+      "Data4": 8245653592037876541
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "ontouchend",
@@ -85608,19 +85569,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.TouchEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -876994955736074997,
-      "Data2": 7673053538747960182,
-      "Data3": 1665894820919204271,
-      "Data4": -1842181896832425860
+      "Data1": -7370015609149820258,
+      "Data2": 1600015828394948464,
+      "Data3": -1511574008588698145,
+      "Data4": 4839814272683050788
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "ontouchmove",
@@ -85683,19 +85643,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.TouchEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 2279724791622571645,
-      "Data2": 4470373473616990959,
-      "Data3": -162081651073671766,
-      "Data4": -6652211494899909636
+      "Data1": -1349726944502535492,
+      "Data2": 5899342221611297921,
+      "Data3": 5827511909839535859,
+      "Data4": -7404182158854389924
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "ontouchstart",
@@ -85758,19 +85717,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.TouchEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 662777053459891390,
-      "Data2": -1106519400195284086,
-      "Data3": 2179730460442326482,
-      "Data4": -3827649926444735511
+      "Data1": -8483384188999278644,
+      "Data2": 2308832531290583566,
+      "Data3": -6280295678444138571,
+      "Data4": -8724076021809621772
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "ontouchenter",
@@ -85833,19 +85791,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.TouchEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 4842383903623443129,
-      "Data2": 879933217613711496,
-      "Data3": -5667831631849336603,
-      "Data4": 5121714750899358622
+      "Data1": -8401102156406023727,
+      "Data2": -5114171446029080430,
+      "Data3": 8935046014986077406,
+      "Data4": -2125664751455521078
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "ontouchleave",
@@ -85908,19 +85865,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.TouchEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -6941941448516471640,
-      "Data2": 3991869325434271788,
-      "Data3": 7995249565884146923,
-      "Data4": -1863940145732437352
+      "Data1": 5618530402010084954,
+      "Data2": 5738591754860566541,
+      "Data3": -2940295869361749669,
+      "Data4": 7893486155441102823
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "ongotpointercapture",
@@ -85983,19 +85939,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 174548333433059497,
-      "Data2": 5071858881333862479,
-      "Data3": -2688452183408948879,
-      "Data4": 6528357084139849881
+      "Data1": -4083847307277407998,
+      "Data2": 3494760459900159203,
+      "Data3": 2105018036543838165,
+      "Data4": -3252652201948490749
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onlostpointercapture",
@@ -86058,19 +86013,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -4023582585228601046,
-      "Data2": -2888965209805169935,
-      "Data3": -9046860065848413996,
-      "Data4": 4065512885648394118
+      "Data1": 3265268360471566319,
+      "Data2": -1067629341209830777,
+      "Data3": 7581322427010616093,
+      "Data4": -8938554496285984928
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onpointercancel",
@@ -86133,19 +86087,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -1277945493274135645,
-      "Data2": -4900767496359270329,
-      "Data3": -8883599330088496212,
-      "Data4": 3281991184752308673
+      "Data1": 3908985408277343205,
+      "Data2": -2251826688221470228,
+      "Data3": 3357735550880727451,
+      "Data4": 3229350134227585192
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onpointerdown",
@@ -86208,19 +86161,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 2229988152419398139,
-      "Data2": -5053477859157422372,
-      "Data3": -3044949899080114061,
-      "Data4": 5255544055424314362
+      "Data1": 8786750441164914974,
+      "Data2": -3963904474482286066,
+      "Data3": -8352963339633070420,
+      "Data4": -6080263825887952945
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onpointerenter",
@@ -86283,19 +86235,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 4678834795084606460,
-      "Data2": -1788705264368947136,
-      "Data3": -4165412825427799393,
-      "Data4": 2272056083402012924
+      "Data1": -2104658263850455201,
+      "Data2": 7625739475482349071,
+      "Data3": -4440952185945716361,
+      "Data4": 7908335982726472166
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onpointerleave",
@@ -86358,19 +86309,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -8492251403892383422,
-      "Data2": -7637485050475875123,
-      "Data3": 6597481925380387214,
-      "Data4": -2555616197789789259
+      "Data1": -5911892115238127825,
+      "Data2": 2391425995882627639,
+      "Data3": -9170014363792570528,
+      "Data4": -8726092152251600680
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onpointermove",
@@ -86433,19 +86383,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -8229030999319147843,
-      "Data2": 6913079396471276015,
-      "Data3": 6418429271366267175,
-      "Data4": 301402801895643811
+      "Data1": 5188738802254722761,
+      "Data2": 3642358205945417292,
+      "Data3": 3570247642509325463,
+      "Data4": -4371670589916766942
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onpointerout",
@@ -86508,19 +86457,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 8357595166724432075,
-      "Data2": 6166442322003248521,
-      "Data3": -8236482967900514437,
-      "Data4": -1423290869568618698
+      "Data1": -1167913299655849286,
+      "Data2": 1481158472289960603,
+      "Data3": 5538045672085247106,
+      "Data4": -739841705787284076
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onpointerover",
@@ -86583,19 +86531,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 7729816168249544933,
-      "Data2": 5191811085263310685,
-      "Data3": 8582044870697989822,
-      "Data4": 1380210409978276163
+      "Data1": 3849719566674544750,
+      "Data2": 9027769129060993139,
+      "Data3": 6824943881286216309,
+      "Data4": -7225115229233488585
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onpointerup",
@@ -86658,19 +86605,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.PointerEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 6082036392744849814,
-      "Data2": 8249728077018017668,
-      "Data3": 1191141519475176914,
-      "Data4": -8745647887518459565
+      "Data1": -1093317295862859093,
+      "Data2": -7483397120001696810,
+      "Data3": -4561847287806407833,
+      "Data4": 4819916085551133841
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "oncanplay",
@@ -86733,19 +86679,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 5036436945069009485,
-      "Data2": -7305515942246988185,
-      "Data3": -7579731963337262755,
-      "Data4": 756214527020658634
+      "Data1": 3744587355019729008,
+      "Data2": 4631709384446089317,
+      "Data3": -2003949305416647479,
+      "Data4": -6704292459638391510
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "oncanplaythrough",
@@ -86808,19 +86753,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -734127318268868836,
-      "Data2": -3244927580005106703,
-      "Data3": -2070937390890873455,
-      "Data4": -5239345983947595510
+      "Data1": 1042270553173725598,
+      "Data2": -7618968680173181637,
+      "Data3": -1502960419085994125,
+      "Data4": -6786607136148438
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "oncuechange",
@@ -86883,19 +86827,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -2725954173326532100,
-      "Data2": -9221793118411577572,
-      "Data3": 926847341516320185,
-      "Data4": 8281570057430858031
+      "Data1": -7802467293866742529,
+      "Data2": 3005917146315952533,
+      "Data3": -4167820711952270529,
+      "Data4": -2869833496152505302
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "ondurationchange",
@@ -86958,19 +86901,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -8154951791662033925,
-      "Data2": -4163309563156266602,
-      "Data3": -4390828145691223355,
-      "Data4": 7947317467688585710
+      "Data1": -6523153714910390045,
+      "Data2": 6422193504869117002,
+      "Data3": -4765217765905239283,
+      "Data4": -3042887042411976624
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onemptied",
@@ -87033,19 +86975,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -694421098878166301,
-      "Data2": -5627867220036106798,
-      "Data3": -434046710566709792,
-      "Data4": 7041475916372533518
+      "Data1": 6992815539579000145,
+      "Data2": -7015122994323844414,
+      "Data3": 7719143209598166223,
+      "Data4": -7278607334506695142
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onpause",
@@ -87108,19 +87049,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -2861794560805220161,
-      "Data2": 2909142234760306068,
-      "Data3": 6219477952585030640,
-      "Data4": -7392620654461131363
+      "Data1": -5183585240118364063,
+      "Data2": -2543434877440774079,
+      "Data3": -2898107176046613155,
+      "Data4": -7125977172824140868
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onplay",
@@ -87183,19 +87123,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -825306153296702391,
-      "Data2": 75819210414671056,
-      "Data3": 7684110571123962288,
-      "Data4": -5292952478416361997
+      "Data1": -2216819801054309478,
+      "Data2": -5091753896426156912,
+      "Data3": 2656053809527098474,
+      "Data4": -6033539303262851236
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onplaying",
@@ -87258,19 +87197,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 7341200873069834256,
-      "Data2": 6890097633962480457,
-      "Data3": -1436681784137187493,
-      "Data4": 2776276923286345490
+      "Data1": -2742570488775748557,
+      "Data2": 7493813562845706941,
+      "Data3": 6517037699738234407,
+      "Data4": 4794452031209846891
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onratechange",
@@ -87333,19 +87271,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 2318358481449120465,
-      "Data2": 1672930969431535751,
-      "Data3": 3164437453698761819,
-      "Data4": 1336729291536802865
+      "Data1": -2891005754525001359,
+      "Data2": 3912887616788427046,
+      "Data3": -7914626333450617169,
+      "Data4": 1119631455127006189
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onseeked",
@@ -87408,19 +87345,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -1996069446997754510,
-      "Data2": -4682634193458917552,
-      "Data3": 8345964797697871761,
-      "Data4": 5537169029030761748
+      "Data1": -3097811182734643330,
+      "Data2": -5703268155623175907,
+      "Data3": 353254409322647945,
+      "Data4": 5854563058151606877
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onseeking",
@@ -87483,19 +87419,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 6102134606862756475,
-      "Data2": 6213510626078397885,
-      "Data3": -2036224925256604813,
-      "Data4": -6574052756933557607
+      "Data1": -2330768622572655688,
+      "Data2": -2761817106661083000,
+      "Data3": -3173123055818284812,
+      "Data4": -3862339832082497582
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onstalled",
@@ -87558,19 +87493,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 5869533498934425931,
-      "Data2": -3143326222366150834,
-      "Data3": -743457484528359716,
-      "Data4": -3103785020554583259
+      "Data1": -8239336110079490875,
+      "Data2": 6703868125015987289,
+      "Data3": 4046271637331897450,
+      "Data4": 7277142961594214546
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onstop",
@@ -87633,19 +87567,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 3605809049674228215,
-      "Data2": 4843122735203125381,
-      "Data3": -7739436817594832816,
-      "Data4": 4167993997092445310
+      "Data1": 7951830945644890125,
+      "Data2": 1388964253962720275,
+      "Data3": -8060556970750892783,
+      "Data4": -1372712962985008169
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onsuspend",
@@ -87708,19 +87641,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -6563627145641990156,
-      "Data2": 2715753623699067080,
-      "Data3": 8697519602895593110,
-      "Data4": 965450987900809539
+      "Data1": 7605537487521797633,
+      "Data2": 5016401143003230170,
+      "Data3": 6662440271244987951,
+      "Data4": -6047752409908188326
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "ontimeupdate",
@@ -87783,19 +87715,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -1752937850364778354,
-      "Data2": 2018055073780490806,
-      "Data3": 5123043438008892159,
-      "Data4": 4706760027791093804
+      "Data1": 8051517222758183811,
+      "Data2": -3705586771533905380,
+      "Data3": 1083760526879897391,
+      "Data4": -8889670663821157989
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onvolumechange",
@@ -87858,19 +87789,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 3671405564111492430,
-      "Data2": -2845139834101865681,
-      "Data3": 8840513439689261680,
-      "Data4": -3379137616110662996
+      "Data1": 9138058918985930696,
+      "Data2": -4294333557939584136,
+      "Data3": 1057355627908729171,
+      "Data4": 914287015603848276
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onwaiting",
@@ -87933,19 +87863,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -4965836037650534452,
-      "Data2": 916430381533007289,
-      "Data3": -3745770169783993185,
-      "Data4": -1642462232032469087
+      "Data1": 4754797232948738601,
+      "Data2": -7923600471727812750,
+      "Data3": -4019973815727317377,
+      "Data4": -1498988426673795053
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onloadstart",
@@ -88008,19 +87937,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.ProgressEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -2234087618057736107,
-      "Data2": 7751825373395914648,
-      "Data3": -8333838402559686467,
-      "Data4": 5950311097646086637
+      "Data1": -3842115911383961584,
+      "Data2": -2276697698368017944,
+      "Data3": -4801826253429487753,
+      "Data4": -1462363133646242893
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "ontimeout",
@@ -88083,19 +88011,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.ProgressEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 1217035847578549423,
-      "Data2": -4107111435489847713,
-      "Data3": -8893905172687389561,
-      "Data4": 4704898972740348667
+      "Data1": 676102218322505132,
+      "Data2": 6626858748794592321,
+      "Data3": 1799646991774079809,
+      "Data4": 4799838393500017370
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onabort",
@@ -88158,19 +88085,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.ProgressEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 7880626659890025682,
-      "Data2": 6700214659603347812,
-      "Data3": 8933320914319334156,
-      "Data4": -35515516703712902
+      "Data1": 1464252904732060277,
+      "Data2": 4817640471697608856,
+      "Data3": -250667298919546880,
+      "Data4": -514161569316553252
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onload",
@@ -88233,19 +88159,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.ProgressEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 462263170782141242,
-      "Data2": -3221278398766966417,
-      "Data3": 8789987439697387661,
-      "Data4": -6431993062415028692
+      "Data1": -1327908779320170876,
+      "Data2": -1923140738152596943,
+      "Data3": 4634145059857434826,
+      "Data4": -7118222849674545163
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onloadend",
@@ -88308,19 +88233,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.ProgressEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 5024516899092244774,
-      "Data2": 7914400603727460773,
-      "Data3": 4793316554819237249,
-      "Data4": 2966290342734394934
+      "Data1": 2075143133877757974,
+      "Data2": -5128883088822102418,
+      "Data3": -8677533034925021737,
+      "Data4": -7456761419645572892
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onprogress",
@@ -88383,19 +88307,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.ProgressEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -4440795144499269338,
-      "Data2": 5864909589297372451,
-      "Data3": 7881010753627858370,
-      "Data4": -7716501425705839604
+      "Data1": -7124503032193665261,
+      "Data2": 7217142527100971443,
+      "Data3": -4643030443335187346,
+      "Data4": 404664523465314711
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onerror",
@@ -88458,19 +88381,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "Microsoft.AspNetCore.Components.Web.ErrorEventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -6083110073396716707,
-      "Data2": 4673012165709742475,
-      "Data3": 4278836022089865548,
-      "Data4": 3247312056128979828
+      "Data1": -6535275309639791831,
+      "Data2": -2057414841034093940,
+      "Data3": -8986177722551443806,
+      "Data4": -3777423410239967978
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onactivate",
@@ -88533,19 +88455,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 4150762305642771861,
-      "Data2": 5171488130304594898,
-      "Data3": 520330628267792062,
-      "Data4": 5557438821343614232
+      "Data1": 7374117441935161150,
+      "Data2": 7199831093537297740,
+      "Data3": 7338844384908435215,
+      "Data4": 8101292487849756927
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onbeforeactivate",
@@ -88608,19 +88529,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 7715769326011927514,
-      "Data2": -8887452880815966867,
-      "Data3": -9170830725461128938,
-      "Data4": -5552274671148344638
+      "Data1": -468860462565170720,
+      "Data2": 3813775830779114347,
+      "Data3": -4727460396552036879,
+      "Data4": -6297136857821923295
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onbeforedeactivate",
@@ -88683,19 +88603,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 5509125118382550665,
-      "Data2": 3877852933419302106,
-      "Data3": 4914533701248552098,
-      "Data4": -6580462702364052215
+      "Data1": -1625932875004091142,
+      "Data2": 4227709775817906720,
+      "Data3": 7587837353928092979,
+      "Data4": 8739448884399933193
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "ondeactivate",
@@ -88758,19 +88677,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 5278221264211914217,
-      "Data2": -4614886399476521316,
-      "Data3": -1550504659365169608,
-      "Data4": 2898003332317421949
+      "Data1": 6668018988329880773,
+      "Data2": -5256662693234664932,
+      "Data3": -886239841353291902,
+      "Data4": 3012881073679610654
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onended",
@@ -88833,19 +88751,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -4105705051064715479,
-      "Data2": -6055033144705319083,
-      "Data3": 6848600423234605640,
-      "Data4": 6499245573140235522
+      "Data1": -4880561741235735894,
+      "Data2": 2003162207568919805,
+      "Data3": -4870394373227940656,
+      "Data4": 7647069303101290397
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onfullscreenchange",
@@ -88908,19 +88825,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 192801750309427369,
-      "Data2": 610640781516988708,
-      "Data3": 2591578754405702772,
-      "Data4": -3066056292000978524
+      "Data1": 5310351580053648241,
+      "Data2": 4989175277479449563,
+      "Data3": 2197986301942554522,
+      "Data4": -3689679648521916012
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onfullscreenerror",
@@ -88983,19 +88899,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -6648377104762505826,
-      "Data2": 2257768204348422530,
-      "Data3": 8566033569512520075,
-      "Data4": 7013219433867635368
+      "Data1": 8068134955509411702,
+      "Data2": -6253100135901657137,
+      "Data3": 3571723017961727865,
+      "Data4": 2761332343124447147
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onloadeddata",
@@ -89058,19 +88973,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -3380944435080189243,
-      "Data2": -9194183886132225484,
-      "Data3": 9108850435603151087,
-      "Data4": -6364488071498761412
+      "Data1": 6528819750429486313,
+      "Data2": 5562557749800268154,
+      "Data3": -7990153841338102077,
+      "Data4": -3287597199816083514
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onloadedmetadata",
@@ -89133,19 +89047,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -5560292441972705602,
-      "Data2": -5334190975045171600,
-      "Data3": 7091023146101873257,
-      "Data4": 4387485951109753859
+      "Data1": -8158892849577802112,
+      "Data2": -3424551670587204212,
+      "Data3": -9071047358371989588,
+      "Data4": 2821301349070862729
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onpointerlockchange",
@@ -89208,19 +89121,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -1215745844926785526,
-      "Data2": -5305648238649784833,
-      "Data3": 2459878094937260149,
-      "Data4": 5210276705391582171
+      "Data1": 1585834516471627709,
+      "Data2": 7460428352323786887,
+      "Data3": -1560221075599975674,
+      "Data4": -5051191934774180755
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onpointerlockerror",
@@ -89283,19 +89195,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -8236630009072204952,
-      "Data2": 6623249118509314096,
-      "Data3": 8119324346423679586,
-      "Data4": -2793878165391491127
+      "Data1": 1896485325033408653,
+      "Data2": -3284688046314855198,
+      "Data3": 7419868124317433260,
+      "Data4": 2124703658701790432
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onreadystatechange",
@@ -89358,19 +89269,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 157289343549128974,
-      "Data2": -6943966427964608161,
-      "Data3": -2650483597304827842,
-      "Data4": -6370933238035785003
+      "Data1": 826150232966987627,
+      "Data2": -3291269996197942301,
+      "Data3": -756721205170684244,
+      "Data4": 602082259465354259
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onscroll",
@@ -89433,19 +89343,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -6266278936918861877,
-      "Data2": -5271755323699905010,
-      "Data3": 7681114199793782515,
-      "Data4": -2156826780156199304
+      "Data1": 6039638665336804089,
+      "Data2": -7088823159366288420,
+      "Data3": 6154864730619312535,
+      "Data4": -2587386012373422563
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onmouseenter",
@@ -89474,19 +89383,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Telerik.Blazor.Common.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": -4341749900341293453,
-      "Data2": -7787163129597661325,
-      "Data3": -8713871174321848501,
-      "Data4": -3254791653529324260
+      "Data1": 8760193166596083261,
+      "Data2": 8468107891398367904,
+      "Data3": -2322480268852554569,
+      "Data4": 7132585364126142922
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 4,
     "RuntimeKind": 0,
     "Name": "onmouseleave",
@@ -89515,19 +89423,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Telerik.Blazor.Common.EventHandlers",
       "Components.EventHandler.EventArgs": "System.EventArgs"
     }
   },
   {
     "__Checksum": {
-      "Data1": 3169722572607751371,
-      "Data2": -4804460776615208793,
-      "Data3": -5078204082113270152,
-      "Data4": 740018328262493837
+      "Data1": 8751575653732518776,
+      "Data2": -7685198277031575313,
+      "Data3": -796515372757722755,
+      "Data4": 949628848870480471
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 8,
     "RuntimeKind": 0,
     "Name": "Attributes",
@@ -89556,7 +89463,6 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Attributes"
     }
   },
@@ -91952,12 +91858,12 @@
   },
   {
     "__Checksum": {
-      "Data1": -3946450386589784616,
-      "Data2": -7315286971023745237,
-      "Data3": 6385357706727936338,
-      "Data4": 4512961067327737349
+      "Data1": 7371225388738898585,
+      "Data2": -1974320933981781761,
+      "Data3": 8754560165771913341,
+      "Data4": -894226577649352995
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 5,
     "RuntimeKind": 0,
     "Name": "Bind",
@@ -92012,19 +91918,18 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Bind",
       "Components.Bind.Fallback": "True"
     }
   },
   {
     "__Checksum": {
-      "Data1": -9060829312714799041,
-      "Data2": -7922762991640998,
-      "Data3": -986673857696214483,
-      "Data4": -1992734432656270717
+      "Data1": 5222926201843575468,
+      "Data2": -4091179629813981306,
+      "Data3": -3734882789971164244,
+      "Data4": 2028999135007917471
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 5,
     "RuntimeKind": 0,
     "Name": "Bind",
@@ -92084,7 +91989,6 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.BindAttributes",
       "Components.Bind.ChangeAttribute": "onchange",
       "Components.Bind.Format": null,
@@ -92094,12 +91998,12 @@
   },
   {
     "__Checksum": {
-      "Data1": 799964370170798209,
-      "Data2": -3600813969562444319,
-      "Data3": -8836152698792996024,
-      "Data4": 447126508576959866
+      "Data1": 1599470850350291236,
+      "Data2": -6344026730598260989,
+      "Data3": 1194358085311545088,
+      "Data4": 2765054985852728439
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 5,
     "RuntimeKind": 0,
     "Name": "Bind_value",
@@ -92159,7 +92063,6 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.BindAttributes",
       "Components.Bind.ChangeAttribute": "onchange",
       "Components.Bind.Format": null,
@@ -92169,12 +92072,12 @@
   },
   {
     "__Checksum": {
-      "Data1": 7323164803334818066,
-      "Data2": 814799592282367591,
-      "Data3": 1329999740045931864,
-      "Data4": 5851872560878615330
+      "Data1": -4577081890935332118,
+      "Data2": 5443532654443382002,
+      "Data3": -3781125575755501015,
+      "Data4": 4778752805785845053
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 5,
     "RuntimeKind": 0,
     "Name": "Bind",
@@ -92240,7 +92143,6 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.BindAttributes",
       "Components.Bind.ChangeAttribute": "onchange",
       "Components.Bind.Format": null,
@@ -92251,12 +92153,12 @@
   },
   {
     "__Checksum": {
-      "Data1": 3131093628627262517,
-      "Data2": 6845494766495900424,
-      "Data3": 1270814522419271025,
-      "Data4": 4316694811617444649
+      "Data1": 2560646361742851145,
+      "Data2": 6098259696396290038,
+      "Data3": -3977134479650439417,
+      "Data4": -1430209256999528100
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 5,
     "RuntimeKind": 0,
     "Name": "Bind",
@@ -92322,7 +92224,6 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.BindAttributes",
       "Components.Bind.ChangeAttribute": "onchange",
       "Components.Bind.Format": null,
@@ -92333,12 +92234,12 @@
   },
   {
     "__Checksum": {
-      "Data1": 1240448700402236006,
-      "Data2": 6564835597327895171,
-      "Data3": -8593009669909298236,
-      "Data4": 4182800683987924207
+      "Data1": 2253662660051548668,
+      "Data2": 2453055531752233721,
+      "Data3": -7734487654090007985,
+      "Data4": 4632623746921150159
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 5,
     "RuntimeKind": 0,
     "Name": "Bind",
@@ -92404,7 +92305,6 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.BindAttributes",
       "Components.Bind.ChangeAttribute": "onchange",
       "Components.Bind.Format": null,
@@ -92415,12 +92315,12 @@
   },
   {
     "__Checksum": {
-      "Data1": 686392652962246261,
-      "Data2": 1490528910121311112,
-      "Data3": -3377117360415682802,
-      "Data4": 518845048291931966
+      "Data1": 3934375665315467720,
+      "Data2": -7348826722295198885,
+      "Data3": 4481851933179957694,
+      "Data4": -6987997663607332183
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 5,
     "RuntimeKind": 0,
     "Name": "Bind_value",
@@ -92486,7 +92386,6 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.BindAttributes",
       "Components.Bind.ChangeAttribute": "onchange",
       "Components.Bind.Format": null,
@@ -92497,12 +92396,12 @@
   },
   {
     "__Checksum": {
-      "Data1": -8749843187129905029,
-      "Data2": -502379620712950625,
-      "Data3": -7556800254310424221,
-      "Data4": -7163246168389690310
+      "Data1": -3598895765898605985,
+      "Data2": -5348463124776392444,
+      "Data3": -5651911861606635480,
+      "Data4": -3073675933490548666
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 5,
     "RuntimeKind": 0,
     "Name": "Bind",
@@ -92568,7 +92467,6 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.BindAttributes",
       "Components.Bind.ChangeAttribute": "onchange",
       "Components.Bind.Format": "yyyy-MM-dd",
@@ -92579,12 +92477,12 @@
   },
   {
     "__Checksum": {
-      "Data1": -3778309496896246995,
-      "Data2": -6748876237678887232,
-      "Data3": 1304342537984611028,
-      "Data4": -7207349701838745279
+      "Data1": -881378233519087719,
+      "Data2": 268175700785338430,
+      "Data3": 1793189377809616625,
+      "Data4": 3583881659054261003
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 5,
     "RuntimeKind": 0,
     "Name": "Bind_value",
@@ -92650,7 +92548,6 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.BindAttributes",
       "Components.Bind.ChangeAttribute": "onchange",
       "Components.Bind.Format": "yyyy-MM-dd",
@@ -92661,12 +92558,12 @@
   },
   {
     "__Checksum": {
-      "Data1": -2774513739567809638,
-      "Data2": 3214236472984896472,
-      "Data3": -7465486153033596128,
-      "Data4": 8015241838681806405
+      "Data1": 8817061776843485406,
+      "Data2": 4574438928189386860,
+      "Data3": 7082730069719920872,
+      "Data4": 7961430045391892604
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 5,
     "RuntimeKind": 0,
     "Name": "Bind",
@@ -92732,7 +92629,6 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.BindAttributes",
       "Components.Bind.ChangeAttribute": "onchange",
       "Components.Bind.Format": "yyyy-MM-ddTHH:mm:ss",
@@ -92743,12 +92639,12 @@
   },
   {
     "__Checksum": {
-      "Data1": -8467454868681409162,
-      "Data2": -1301460724313705655,
-      "Data3": 2847862259814467210,
-      "Data4": -7550371341956617187
+      "Data1": 8502264206886817254,
+      "Data2": 1421189920930028091,
+      "Data3": -3496509599730283368,
+      "Data4": -322841717882004338
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 5,
     "RuntimeKind": 0,
     "Name": "Bind_value",
@@ -92814,7 +92710,6 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.BindAttributes",
       "Components.Bind.ChangeAttribute": "onchange",
       "Components.Bind.Format": "yyyy-MM-ddTHH:mm:ss",
@@ -92825,12 +92720,12 @@
   },
   {
     "__Checksum": {
-      "Data1": 3695660897489199603,
-      "Data2": 2587192997105404487,
-      "Data3": 3172856984439974893,
-      "Data4": 3979259678969573284
+      "Data1": -6140407956282405291,
+      "Data2": -4089742117248602616,
+      "Data3": 1492784461818795251,
+      "Data4": 7952453488085023519
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 5,
     "RuntimeKind": 0,
     "Name": "Bind",
@@ -92896,7 +92791,6 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.BindAttributes",
       "Components.Bind.ChangeAttribute": "onchange",
       "Components.Bind.Format": "yyyy-MM",
@@ -92907,12 +92801,12 @@
   },
   {
     "__Checksum": {
-      "Data1": 5890612388539751875,
-      "Data2": 386595330095971934,
-      "Data3": 35311084195453192,
-      "Data4": 4768069672196366545
+      "Data1": -6047719157793019415,
+      "Data2": 1402491253515910479,
+      "Data3": 6821717758382075523,
+      "Data4": -5360867008040662789
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 5,
     "RuntimeKind": 0,
     "Name": "Bind_value",
@@ -92978,7 +92872,6 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.BindAttributes",
       "Components.Bind.ChangeAttribute": "onchange",
       "Components.Bind.Format": "yyyy-MM",
@@ -92989,12 +92882,12 @@
   },
   {
     "__Checksum": {
-      "Data1": -6237657233322775490,
-      "Data2": -3691757592964845488,
-      "Data3": -818505498553267696,
-      "Data4": -5136344203338328789
+      "Data1": -3334379274830949323,
+      "Data2": -5127815030980596148,
+      "Data3": 1761796264083711282,
+      "Data4": -962911407856757161
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 5,
     "RuntimeKind": 0,
     "Name": "Bind",
@@ -93060,7 +92953,6 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.BindAttributes",
       "Components.Bind.ChangeAttribute": "onchange",
       "Components.Bind.Format": "HH:mm:ss",
@@ -93071,12 +92963,12 @@
   },
   {
     "__Checksum": {
-      "Data1": 2366055111692539403,
-      "Data2": -3860801534877614987,
-      "Data3": 137348760598490830,
-      "Data4": -5567097825237319519
+      "Data1": 2680433456834929937,
+      "Data2": 6421139728298857792,
+      "Data3": 4135147851641030795,
+      "Data4": -7989012470906014092
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 5,
     "RuntimeKind": 0,
     "Name": "Bind_value",
@@ -93142,7 +93034,6 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.BindAttributes",
       "Components.Bind.ChangeAttribute": "onchange",
       "Components.Bind.Format": "HH:mm:ss",
@@ -93153,12 +93044,12 @@
   },
   {
     "__Checksum": {
-      "Data1": 9058536284435027993,
-      "Data2": 1543463511892267632,
-      "Data3": -4159551385343788009,
-      "Data4": -6412174897690066054
+      "Data1": 2518066606668709529,
+      "Data2": -6481767293710708791,
+      "Data3": -4664407676448700177,
+      "Data4": 5378991204740800495
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 5,
     "RuntimeKind": 0,
     "Name": "Bind",
@@ -93218,7 +93109,6 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.BindAttributes",
       "Components.Bind.ChangeAttribute": "onchange",
       "Components.Bind.Format": null,
@@ -93228,12 +93118,12 @@
   },
   {
     "__Checksum": {
-      "Data1": -1178891180454254805,
-      "Data2": -1247656732575123795,
-      "Data3": 8927243930401108073,
-      "Data4": 1314300412729102495
+      "Data1": -373405552961268891,
+      "Data2": -2566572648436175540,
+      "Data3": 1541516871637253739,
+      "Data4": 507827492688791456
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 5,
     "RuntimeKind": 0,
     "Name": "Bind",
@@ -93293,7 +93183,6 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Web.BindAttributes",
       "Components.Bind.ChangeAttribute": "onchange",
       "Components.Bind.Format": null,
@@ -99989,12 +99878,12 @@
   },
   {
     "__Checksum": {
-      "Data1": -6414110463641320347,
-      "Data2": -7279029199838634355,
-      "Data3": 1887452405885686680,
-      "Data4": -6046317929799275799
+      "Data1": -7765150152961458129,
+      "Data2": -936453519669055207,
+      "Data3": 985105518531720794,
+      "Data4": 1183369056654947441
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 7,
     "RuntimeKind": 0,
     "Name": "Ref",
@@ -100023,18 +99912,17 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Ref"
     }
   },
   {
     "__Checksum": {
-      "Data1": 1587665261068944581,
-      "Data2": 4128228194484533965,
-      "Data3": -7351795185186725614,
-      "Data4": -2226332381373968382
+      "Data1": -8175766715417735486,
+      "Data2": 450006176753726421,
+      "Data3": -308700333557869296,
+      "Data4": 8606431605443477549
     },
-    "Flags": 1,
+    "Flags": 5,
     "Kind": 6,
     "RuntimeKind": 0,
     "Name": "Key",
@@ -100063,7 +99951,6 @@
       }
     ],
     "Metadata": {
-      "Common.ClassifyAttributesOnly": "True",
       "Common.TypeName": "Microsoft.AspNetCore.Components.Key"
     }
   }

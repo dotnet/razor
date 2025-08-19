@@ -31,11 +31,11 @@ public class SplatTagHelperDescriptorProviderTest : TagHelperDescriptorProviderT
         Assert.Empty(item.Diagnostics);
         Assert.False(item.HasErrors);
         Assert.Equal(TagHelperKind.Splat, item.Kind);
-        Assert.Equal(bool.TrueString, item.Metadata[TagHelperMetadata.Common.ClassifyAttributesOnly]);
         Assert.Equal(RuntimeKind.None, item.RuntimeKind);
         Assert.False(item.IsDefaultKind());
         Assert.False(item.KindUsesDefaultTagHelperRuntime());
         Assert.True(item.CaseSensitive);
+        Assert.True(item.ClassifyAttributesOnly);
 
         Assert.Equal(
             "Merges a collection of attributes into the current element or component.",

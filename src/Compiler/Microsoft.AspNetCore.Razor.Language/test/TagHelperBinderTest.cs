@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Xunit;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -627,8 +626,8 @@ public class TagHelperBinderTest
     {
         // Arrange
         var divDescriptor = TagHelperDescriptorBuilder.CreateTagHelper("foo1", "SomeAssembly")
+            .ClassifyAttributesOnly(true)
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("div"))
-            .Metadata(MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly))
             .Build();
 
         ImmutableArray<TagHelperDescriptor> descriptors = [divDescriptor];
@@ -650,13 +649,13 @@ public class TagHelperBinderTest
     {
         // Arrange
         var divDescriptor1 = TagHelperDescriptorBuilder.CreateTagHelper("foo1", "SomeAssembly")
+            .ClassifyAttributesOnly(true)
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("div"))
-            .Metadata(MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly))
             .Build();
 
         var divDescriptor2 = TagHelperDescriptorBuilder.CreateTagHelper("foo1", "SomeAssembly")
+            .ClassifyAttributesOnly(true)
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("div"))
-            .Metadata(MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly))
             .Build();
 
         ImmutableArray<TagHelperDescriptor> descriptors = [divDescriptor1, divDescriptor2];
@@ -678,8 +677,8 @@ public class TagHelperBinderTest
     {
         // Arrange
         var divDescriptor1 = TagHelperDescriptorBuilder.CreateTagHelper("foo1", "SomeAssembly")
+            .ClassifyAttributesOnly(true)
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("div"))
-            .Metadata(MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly))
             .Build();
 
         var divDescriptor2 = TagHelperDescriptorBuilder.CreateTagHelper("foo1", "SomeAssembly")

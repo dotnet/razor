@@ -56,6 +56,12 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
         set => _flags.UpdateFlag(TagHelperFlags.IsFullyQualifiedNameMatch, value);
     }
 
+    public bool ClassifyAttributesOnly
+    {
+        get => _flags.IsFlagSet(TagHelperFlags.ClassifyAttributesOnly);
+        set => _flags.UpdateFlag(TagHelperFlags.ClassifyAttributesOnly, value);
+    }
+
     public string? Documentation
     {
         get => _documentationObject.GetText();

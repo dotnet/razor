@@ -10,4 +10,5 @@ public enum TagHelperFlags : byte
 {
     CaseSensitive = 1 << 0,
     IsFullyQualifiedNameMatch = 1 << 1,
+    ClassifyAttributesOnly = 1 << 2
 }

@@ -31,12 +31,12 @@ public class KeyTagHelperDescriptorProviderTest : TagHelperDescriptorProviderTes
         Assert.Empty(item.Diagnostics);
         Assert.False(item.HasErrors);
         Assert.Equal(TagHelperKind.Key, item.Kind);
-        Assert.Equal(bool.TrueString, item.Metadata[TagHelperMetadata.Common.ClassifyAttributesOnly]);
         Assert.Equal(RuntimeKind.None, item.RuntimeKind);
         Assert.False(item.IsDefaultKind());
         Assert.False(item.KindUsesDefaultTagHelperRuntime());
         Assert.False(item.IsComponentOrChildContentTagHelper());
         Assert.True(item.CaseSensitive);
+        Assert.True(item.ClassifyAttributesOnly);
 
         Assert.Equal(
             "Ensures that the component or element will be preserved across renders if (and only if) the supplied key value matches.",

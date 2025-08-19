@@ -43,10 +43,10 @@ internal sealed class RenderModeTagHelperDescriptorProvider() : TagHelperDescrip
             out var builder);
 
         builder.CaseSensitive = true;
+        builder.ClassifyAttributesOnly = true;
         builder.SetDocumentation(DocumentationDescriptor.RenderModeTagHelper);
 
         builder.SetMetadata(
-            MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
             TypeName("Microsoft.AspNetCore.Components.RenderMode"));
 
         builder.TagMatchingRule(rule =>

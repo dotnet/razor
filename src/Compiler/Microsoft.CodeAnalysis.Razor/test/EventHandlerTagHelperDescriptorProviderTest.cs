@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Xunit;
+using static Microsoft.AspNetCore.Razor.Language.Components.ComponentMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -51,12 +52,12 @@ public class EventHandlerTagHelperDescriptorProviderTest : TagHelperDescriptorPr
         Assert.Empty(item.Diagnostics);
         Assert.False(item.HasErrors);
         Assert.Equal(TagHelperKind.EventHandler, item.Kind);
-        Assert.Equal(bool.TrueString, item.Metadata[TagHelperMetadata.Common.ClassifyAttributesOnly]);
         Assert.Equal(RuntimeKind.None, item.RuntimeKind);
         Assert.False(item.IsDefaultKind());
         Assert.False(item.KindUsesDefaultTagHelperRuntime());
         Assert.False(item.IsComponentOrChildContentTagHelper());
         Assert.True(item.CaseSensitive);
+        Assert.True(item.ClassifyAttributesOnly);
 
         Assert.Equal(
             "Sets the '@onclick' attribute to the provided string or delegate value. " +
@@ -157,12 +158,12 @@ public class EventHandlerTagHelperDescriptorProviderTest : TagHelperDescriptorPr
         Assert.Empty(item.Diagnostics);
         Assert.False(item.HasErrors);
         Assert.Equal(TagHelperKind.EventHandler, item.Kind);
-        Assert.Equal(bool.TrueString, item.Metadata[TagHelperMetadata.Common.ClassifyAttributesOnly]);
         Assert.Equal(RuntimeKind.None, item.RuntimeKind);
         Assert.False(item.IsDefaultKind());
         Assert.False(item.KindUsesDefaultTagHelperRuntime());
         Assert.False(item.IsComponentOrChildContentTagHelper());
         Assert.True(item.CaseSensitive);
+        Assert.True(item.ClassifyAttributesOnly);
 
         Assert.Equal(
             "Sets the '@onclick' attribute to the provided string or delegate value. " +

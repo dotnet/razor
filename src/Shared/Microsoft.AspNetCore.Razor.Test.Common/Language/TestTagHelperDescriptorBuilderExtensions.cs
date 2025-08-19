@@ -115,6 +115,13 @@ public static class TestTagHelperDescriptorBuilderExtensions
         return builder;
     }
 
+    public static TagHelperDescriptorBuilder ClassifyAttributesOnly(this TagHelperDescriptorBuilder builder, bool value)
+    {
+        builder.ClassifyAttributesOnly = value;
+
+        return builder;
+    }
+
     public static TagHelperDescriptorBuilder SetCaseSensitive(this TagHelperDescriptorBuilder builder)
     {
         if (builder == null)

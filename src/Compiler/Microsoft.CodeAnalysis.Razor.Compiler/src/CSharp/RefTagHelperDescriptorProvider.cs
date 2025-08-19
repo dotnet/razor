@@ -43,10 +43,10 @@ internal sealed class RefTagHelperDescriptorProvider() : TagHelperDescriptorProv
             out var builder);
 
         builder.CaseSensitive = true;
+        builder.ClassifyAttributesOnly = true;
         builder.SetDocumentation(DocumentationDescriptor.RefTagHelper);
 
         builder.SetMetadata(
-            MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
             TypeName("Microsoft.AspNetCore.Components.Ref"));
 
         builder.TagMatchingRule(rule =>

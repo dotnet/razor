@@ -45,6 +45,8 @@ public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
     /// </summary>
     internal bool IsFullyQualifiedNameMatch => _flags.IsFlagSet(TagHelperFlags.IsFullyQualifiedNameMatch);
 
+    public bool ClassifyAttributesOnly => _flags.IsFlagSet(TagHelperFlags.ClassifyAttributesOnly);
+
     internal TagHelperDescriptor(
         TagHelperFlags flags,
         TagHelperKind kind,

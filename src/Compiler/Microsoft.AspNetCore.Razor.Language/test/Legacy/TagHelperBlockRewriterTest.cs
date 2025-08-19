@@ -2394,8 +2394,8 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
         ImmutableArray<TagHelperDescriptor> descriptors =
         [
             TagHelperDescriptorBuilder.Create(TagHelperKind.Bind, "Bind", ComponentsApi.AssemblyName)
+                .ClassifyAttributesOnly(true)
                 .Metadata(
-                    MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
                     TypeName("Microsoft.AspNetCore.Components.Bind"),
                     MakeTrue(ComponentMetadata.Bind.FallbackKey))
                 .TagMatchingRuleDescriptor(rule => rule
@@ -2433,8 +2433,8 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
         ImmutableArray<TagHelperDescriptor> descriptors =
         [
             TagHelperDescriptorBuilder.Create(TagHelperKind.Bind, "Bind", ComponentsApi.AssemblyName)
+                .ClassifyAttributesOnly(true)
                 .Metadata(
-                    MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
                     TypeName("Microsoft.AspNetCore.Components.Bind"),
                     MakeTrue(ComponentMetadata.Bind.FallbackKey))
                 .TagMatchingRuleDescriptor(rule => rule

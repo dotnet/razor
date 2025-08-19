@@ -14,8 +14,6 @@ public static class TagHelperMetadata
         public static readonly string TypeNamespace = "Common.TypeNamespace";
 
         public static readonly string TypeNameIdentifier = "Common.TypeNameIdentifier";
-
-        public static readonly string ClassifyAttributesOnly = "Common.ClassifyAttributesOnly";
     }
 
     public static class Runtime

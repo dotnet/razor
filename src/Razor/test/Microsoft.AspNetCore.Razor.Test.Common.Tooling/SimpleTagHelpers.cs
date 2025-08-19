@@ -128,8 +128,8 @@ internal static class SimpleTagHelpers
             });
         });
         directiveAttribute1.IsFullyQualifiedNameMatch = true;
+        directiveAttribute1.ClassifyAttributesOnly = true;
         directiveAttribute1.SetMetadata(
-            MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
             TypeName("TestDirectiveAttribute"));
 
         var directiveAttribute2 = TagHelperDescriptorBuilder.CreateComponent("MinimizedDirectiveAttribute", "TestAssembly");
@@ -166,8 +166,8 @@ internal static class SimpleTagHelpers
             });
         });
         directiveAttribute2.IsFullyQualifiedNameMatch = true;
+        directiveAttribute2.ClassifyAttributesOnly = true;
         directiveAttribute2.SetMetadata(
-            MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
             TypeName("TestDirectiveAttribute"));
 
         var directiveAttribute3 = TagHelperDescriptorBuilder.CreateEventHandler("OnClickDirectiveAttribute", "TestAssembly");
@@ -194,9 +194,9 @@ internal static class SimpleTagHelpers
             attribute.TypeName = "Microsoft.AspNetCore.Components.EventCallback<Microsoft.AspNetCore.Components.Web.MouseEventArgs>";
         });
         directiveAttribute3.IsFullyQualifiedNameMatch = true;
+        directiveAttribute3.ClassifyAttributesOnly = true;
         directiveAttribute3.SetMetadata(
             new(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.MouseEventArgs"),
-            MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
             TypeName("OnClickDirectiveAttribute"),
             TypeNamespace("Microsoft.AspNetCore.Components.Web"),
             TypeNameIdentifier("EventHandlers"));
