@@ -31,6 +31,7 @@ public partial class TagHelperDescriptorBuilder
         _kind = 0;
         _name = null;
         _assemblyName = null;
+        _typeNameObject = default;
         _documentationObject = default;
 
         RuntimeKind = 0;

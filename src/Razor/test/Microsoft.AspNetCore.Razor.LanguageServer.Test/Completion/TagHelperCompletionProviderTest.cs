@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.Editor.Razor;
 using Xunit;
 using Xunit.Abstractions;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
@@ -547,7 +546,7 @@ public class TagHelperCompletionProviderTest(ITestOutputHelper testOutput) : Tag
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly");
         tagHelper.TagMatchingRule(rule => rule.TagName = "test");
-        tagHelper.SetMetadata(TypeName("TestTagHelper"));
+        tagHelper.TypeName = "TestTagHelper";
         tagHelper.BindAttribute(attribute =>
         {
             attribute.Name = "bool-val";
@@ -590,7 +589,7 @@ public class TagHelperCompletionProviderTest(ITestOutputHelper testOutput) : Tag
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly");
         tagHelper.TagMatchingRule(rule => rule.TagName = "test");
-        tagHelper.SetMetadata(TypeName("TestTagHelper"));
+        tagHelper.TypeName = "TestTagHelper";
         tagHelper.BindAttribute(attribute =>
         {
             attribute.Name = "int-val";

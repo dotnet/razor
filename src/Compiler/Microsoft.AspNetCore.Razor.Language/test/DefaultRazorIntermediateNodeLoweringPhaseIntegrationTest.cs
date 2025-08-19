@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Xunit;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 using static Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeAssert;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -470,7 +469,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest : RazorPro
         params ReadOnlySpan<Action<BoundAttributeDescriptorBuilder>> attributes)
     {
         var builder = TagHelperDescriptorBuilder.CreateTagHelper(typeName, assemblyName);
-        builder.Metadata(TypeName(typeName));
+        builder.TypeName = typeName;
 
         foreach (var attributeBuilder in attributes)
         {

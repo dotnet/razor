@@ -6,7 +6,6 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -52,12 +51,11 @@ internal sealed class FormNameTagHelperDescriptorProvider() : TagHelperDescripto
             assemblyName: ComponentsApi.AssemblyName,
             builder: out var builder);
 
+        builder.TypeName = "Microsoft.AspNetCore.Components.FormName";
+
         builder.CaseSensitive = true;
         builder.ClassifyAttributesOnly = true;
         builder.SetDocumentation(DocumentationDescriptor.FormNameTagHelper);
-
-        builder.SetMetadata(
-            TypeName("Microsoft.AspNetCore.Components.FormName"));
 
         builder.TagMatchingRule(rule =>
         {

@@ -15,8 +15,8 @@ internal static class SimpleTagHelpers
     static SimpleTagHelpers()
     {
         var builder1 = TagHelperDescriptorBuilder.CreateTagHelper("Test1TagHelper", "TestAssembly");
+        builder1.TypeName = "Test1TagHelper";
         builder1.TagMatchingRule(rule => rule.TagName = "test1");
-        builder1.SetMetadata(TypeName("Test1TagHelper"));
         builder1.BindAttribute(attribute =>
         {
             attribute.Name = "bool-val";
@@ -31,12 +31,12 @@ internal static class SimpleTagHelpers
         });
 
         var builder1WithRequiredParent = TagHelperDescriptorBuilder.CreateTagHelper("Test1TagHelper.SomeChild", "TestAssembly");
+        builder1WithRequiredParent.TypeName = "Test1TagHelper.SomeChild";
         builder1WithRequiredParent.TagMatchingRule(rule =>
         {
             rule.TagName = "SomeChild";
             rule.ParentTag = "test1";
         });
-        builder1WithRequiredParent.SetMetadata(TypeName("Test1TagHelper.SomeChild"));
         builder1WithRequiredParent.BindAttribute(attribute =>
         {
             attribute.Name = "attribute";
@@ -45,8 +45,8 @@ internal static class SimpleTagHelpers
         });
 
         var builder2 = TagHelperDescriptorBuilder.CreateTagHelper("Test2TagHelper", "TestAssembly");
+        builder2.TypeName = "Test2TagHelper";
         builder2.TagMatchingRule(rule => rule.TagName = "test2");
-        builder2.SetMetadata(TypeName("Test2TagHelper"));
         builder2.BindAttribute(attribute =>
         {
             attribute.Name = "bool-val";
@@ -61,10 +61,10 @@ internal static class SimpleTagHelpers
         });
 
         var builder3 = TagHelperDescriptorBuilder.CreateComponent("Component1TagHelper", "TestAssembly");
+        builder3.TypeName = "Component1";
         builder3.TagMatchingRule(rule => rule.TagName = "Component1");
         builder3.IsFullyQualifiedNameMatch = true;
         builder3.SetMetadata(
-            TypeName("Component1"),
             TypeNamespace("System"), // Just so we can reasonably assume a using directive is in place
             TypeNameIdentifier("Component1"));
         builder3.BindAttribute(attribute =>
@@ -87,14 +87,15 @@ internal static class SimpleTagHelpers
         });
 
         var textComponent = TagHelperDescriptorBuilder.CreateComponent("TextTagHelper", "TestAssembly");
+        textComponent.TypeName = "Text";
         textComponent.TagMatchingRule(rule => rule.TagName = "Text");
         textComponent.IsFullyQualifiedNameMatch = true;
         textComponent.SetMetadata(
-            TypeName("Text"),
             TypeNamespace("System"),
             TypeNameIdentifier("Text"));
 
         var directiveAttribute1 = TagHelperDescriptorBuilder.CreateComponent("TestDirectiveAttribute", "TestAssembly");
+        directiveAttribute1.TypeName = "TestDirectiveAttribute";
         directiveAttribute1.TagMatchingRule(rule =>
         {
             rule.TagName = "*";
@@ -129,10 +130,9 @@ internal static class SimpleTagHelpers
         });
         directiveAttribute1.IsFullyQualifiedNameMatch = true;
         directiveAttribute1.ClassifyAttributesOnly = true;
-        directiveAttribute1.SetMetadata(
-            TypeName("TestDirectiveAttribute"));
 
         var directiveAttribute2 = TagHelperDescriptorBuilder.CreateComponent("MinimizedDirectiveAttribute", "TestAssembly");
+        directiveAttribute2.TypeName = "TestDirectiveAttribute";
         directiveAttribute2.TagMatchingRule(rule =>
         {
             rule.TagName = "*";
@@ -167,10 +167,9 @@ internal static class SimpleTagHelpers
         });
         directiveAttribute2.IsFullyQualifiedNameMatch = true;
         directiveAttribute2.ClassifyAttributesOnly = true;
-        directiveAttribute2.SetMetadata(
-            TypeName("TestDirectiveAttribute"));
 
         var directiveAttribute3 = TagHelperDescriptorBuilder.CreateEventHandler("OnClickDirectiveAttribute", "TestAssembly");
+        directiveAttribute3.TypeName = "OnClickDirectiveAttribute";
         directiveAttribute3.TagMatchingRule(rule =>
         {
             rule.TagName = "*";
@@ -197,7 +196,6 @@ internal static class SimpleTagHelpers
         directiveAttribute3.ClassifyAttributesOnly = true;
         directiveAttribute3.SetMetadata(
             new(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.MouseEventArgs"),
-            TypeName("OnClickDirectiveAttribute"),
             TypeNamespace("Microsoft.AspNetCore.Components.Web"),
             TypeNameIdentifier("EventHandlers"));
 
@@ -210,7 +208,7 @@ internal static class SimpleTagHelpers
                 attributeRule.Name = "mutator";
             });
         });
-        htmlTagMutator.SetMetadata(TypeName("HtmlMutator"));
+        htmlTagMutator.TypeName = "HtmlMutator";
         htmlTagMutator.BindAttribute(attribute =>
         {
             attribute.Name = "Extra";

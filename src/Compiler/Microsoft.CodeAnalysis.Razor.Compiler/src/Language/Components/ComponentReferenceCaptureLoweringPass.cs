@@ -53,7 +53,7 @@ internal class ComponentReferenceCaptureLoweringPass : ComponentIntermediateNode
         var componentTagHelper = (parent as ComponentIntermediateNode)?.Component;
         if (componentTagHelper != null)
         {
-            return new ReferenceCaptureIntermediateNode(identifierToken, componentTagHelper.GetTypeName());
+            return new ReferenceCaptureIntermediateNode(identifierToken, componentTagHelper.TypeName);
         }
         else
         {

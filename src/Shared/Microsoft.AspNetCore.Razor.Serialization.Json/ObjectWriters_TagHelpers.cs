@@ -24,6 +24,7 @@ internal static partial class ObjectWriters
         writer.Write(nameof(value.Name), value.Name);
         writer.Write(nameof(value.AssemblyName), value.AssemblyName);
         writer.WriteIfNotNull(nameof(value.DisplayName), value.DisplayName);
+        WriteTypeNameObject(writer, nameof(value.TypeName), value.TypeNameObject);
         WriteDocumentationObject(writer, nameof(value.Documentation), value.DocumentationObject);
         writer.WriteIfNotNull(nameof(value.TagOutputHint), value.TagOutputHint);
         writer.WriteArrayIfNotDefaultOrEmpty(nameof(value.TagMatchingRules), value.TagMatchingRules, WriteTagMatchingRule);

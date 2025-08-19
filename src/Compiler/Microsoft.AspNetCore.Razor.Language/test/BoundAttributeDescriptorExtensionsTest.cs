@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Xunit;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -13,7 +12,7 @@ public class BoundAttributeDescriptorExtensionsTest
     {
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "Test")
-            .Metadata(TypeName("TestTagHelper"))
+            .TypeName("TestTagHelper")
             .BoundAttributeDescriptor(attribute => attribute
                 .Name("test")
                 .PropertyName("IntProperty")
@@ -34,7 +33,7 @@ public class BoundAttributeDescriptorExtensionsTest
     {
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper(TagHelperKind.ViewComponent, "TestTagHelper", "Test")
-            .Metadata(TypeName("TestTagHelper"))
+            .TypeName("TestTagHelper")
             .BoundAttributeDescriptor(attribute => attribute
                 .Name("test")
                 .PropertyName("IntProperty")
@@ -55,7 +54,7 @@ public class BoundAttributeDescriptorExtensionsTest
     {
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "Test")
-            .Metadata(TypeName("TestTagHelper"))
+            .TypeName("TestTagHelper")
             .BoundAttributeDescriptor(attribute => attribute
                 .Name("test")
                 .PropertyName("BoundProp")
@@ -76,7 +75,7 @@ public class BoundAttributeDescriptorExtensionsTest
     {
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "Test")
-            .Metadata(TypeName("TestTagHelper"))
+            .TypeName("TestTagHelper")
             .BoundAttributeDescriptor(attribute => attribute
                 .Name("test")
                 .PropertyName("BoundProp")
@@ -97,7 +96,7 @@ public class BoundAttributeDescriptorExtensionsTest
     {
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "Test")
-            .Metadata(TypeName("TestTagHelper"))
+            .TypeName("TestTagHelper")
             .BoundAttributeDescriptor(attribute => attribute
                 .Name("test")
                 .PropertyName("BoundProp")
@@ -119,7 +118,7 @@ public class BoundAttributeDescriptorExtensionsTest
     {
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "Test")
-            .Metadata(TypeName("TestTagHelper"))
+            .TypeName("TestTagHelper")
             .BoundAttributeDescriptor(attribute => attribute
                 .Name("test")
                 .PropertyName("BoundProp")
@@ -141,7 +140,7 @@ public class BoundAttributeDescriptorExtensionsTest
     {
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "Test")
-            .Metadata(TypeName("TestTagHelper"))
+            .TypeName("TestTagHelper")
             .BoundAttributeDescriptor(attribute => attribute
                 .Name("test")
                 .PropertyName("BoundProp")
@@ -162,7 +161,7 @@ public class BoundAttributeDescriptorExtensionsTest
     {
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "Test")
-            .Metadata(TypeName("TestTagHelper"))
+            .TypeName("TestTagHelper")
             .BoundAttributeDescriptor(attribute => attribute
                 .Name("test")
                 .PropertyName("BoundProp")
@@ -183,7 +182,7 @@ public class BoundAttributeDescriptorExtensionsTest
     {
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "Test")
-            .Metadata(TypeName("TestTagHelper"))
+            .TypeName("TestTagHelper")
             .BoundAttributeDescriptor(attribute => attribute
                 .Name("test")
                 .PropertyName("BoundProp")
@@ -205,7 +204,7 @@ public class BoundAttributeDescriptorExtensionsTest
     {
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "Test")
-            .Metadata(TypeName("TestTagHelper"))
+            .TypeName("TestTagHelper")
             .BoundAttributeDescriptor(attribute => attribute
                 .Name("test")
                 .PropertyName("BoundProp")

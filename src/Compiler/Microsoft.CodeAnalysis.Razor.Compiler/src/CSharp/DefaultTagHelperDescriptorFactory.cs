@@ -37,10 +37,11 @@ internal sealed class DefaultTagHelperDescriptorFactory(bool includeDocumentatio
             typeName, assemblyName,
             out var descriptorBuilder);
 
+        descriptorBuilder.TypeName = typeName;
+
         descriptorBuilder.RuntimeKind = RuntimeKind.ITagHelper;
 
         descriptorBuilder.SetMetadata(
-            TypeName(typeName),
             TypeNamespace(type.ContainingNamespace.GetFullName()),
             TypeNameIdentifier(type.Name));
 

@@ -93,7 +93,7 @@ namespace Test
         Assert.Equal("TestAssembly", bind.AssemblyName);
         Assert.Equal("Test.MyComponent", bind.Name);
         Assert.Equal("Test.MyComponent", bind.DisplayName);
-        Assert.Equal("Test.MyComponent", bind.GetTypeName());
+        Assert.Equal("Test.MyComponent", bind.TypeName);
 
         Assert.Collection(bind.TagMatchingRules.OrderBy(r => r.Attributes.Length),
             rule =>
@@ -317,7 +317,7 @@ namespace Test
         Assert.Equal("TestAssembly", bind.AssemblyName);
         Assert.Equal("Test.MyComponent", bind.Name);
         Assert.Equal("Test.MyComponent", bind.DisplayName);
-        Assert.Equal("Test.MyComponent", bind.GetTypeName());
+        Assert.Equal("Test.MyComponent", bind.TypeName);
 
         Assert.Collection(bind.TagMatchingRules.OrderBy(o => o.Attributes.Length),
             rule =>
@@ -500,7 +500,7 @@ namespace Test
         Assert.Equal("Microsoft.AspNetCore.Components", bind.AssemblyName);
         Assert.Equal("Bind", bind.Name);
         Assert.Equal("Test.BindAttributes", bind.DisplayName);
-        Assert.Equal("Test.BindAttributes", bind.GetTypeName());
+        Assert.Equal("Test.BindAttributes", bind.TypeName);
 
         // The tag matching rule for a bind-Component is always the component name + the attribute name
         Assert.Collection(bind.TagMatchingRules.OrderBy(o => o.Attributes.Length),
@@ -1134,7 +1134,7 @@ namespace Test
         Assert.Equal("Microsoft.AspNetCore.Components", bind.AssemblyName);
         Assert.Equal("Bind", bind.Name);
         Assert.Equal("Microsoft.AspNetCore.Components.Bind", bind.DisplayName);
-        Assert.Equal("Microsoft.AspNetCore.Components.Bind", bind.GetTypeName());
+        Assert.Equal("Microsoft.AspNetCore.Components.Bind", bind.TypeName);
 
         // The tag matching rule for a bind-Component is always the component name + the attribute name
         var rule = Assert.Single(bind.TagMatchingRules);

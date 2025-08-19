@@ -45,7 +45,7 @@ public class KeyTagHelperDescriptorProviderTest : TagHelperDescriptorProviderTes
         Assert.Equal("Microsoft.AspNetCore.Components", item.AssemblyName);
         Assert.Equal("Key", item.Name);
         Assert.Equal("Microsoft.AspNetCore.Components.Key", item.DisplayName);
-        Assert.Equal("Microsoft.AspNetCore.Components.Key", item.GetTypeName());
+        Assert.Equal("Microsoft.AspNetCore.Components.Key", item.TypeName);
 
         // The tag matching rule for a key is just the attribute name "key"
         var rule = Assert.Single(item.TagMatchingRules);

@@ -88,7 +88,7 @@ public class InstrumentationPassIntegrationTest : IntegrationTestBase
         IEnumerable<Action<BoundAttributeDescriptorBuilder>> attributes = null)
     {
         var builder = TagHelperDescriptorBuilder.CreateTagHelper(typeName, assemblyName);
-        builder.Metadata(TypeName(typeName));
+        builder.TypeName = typeName;
 
         if (attributes != null)
         {

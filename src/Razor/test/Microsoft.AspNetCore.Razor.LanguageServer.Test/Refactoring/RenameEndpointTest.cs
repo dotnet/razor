@@ -728,19 +728,19 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
     {
         var fullyQualifiedName = $"{namespaceName}.{tagName}";
         var builder = TagHelperDescriptorBuilder.CreateComponent(fullyQualifiedName, assemblyName);
+        builder.TypeName = fullyQualifiedName;
         builder.TagMatchingRule(rule => rule.TagName = tagName);
         builder.SetMetadata(
-            TypeName(fullyQualifiedName),
             TypeNameIdentifier(tagName),
             TypeNamespace(namespaceName));
 
         yield return builder.Build();
 
         var fullyQualifiedBuilder = TagHelperDescriptorBuilder.CreateComponent(fullyQualifiedName, assemblyName);
+        fullyQualifiedBuilder.TypeName = fullyQualifiedName;
         fullyQualifiedBuilder.TagMatchingRule(rule => rule.TagName = fullyQualifiedName);
         fullyQualifiedBuilder.IsFullyQualifiedNameMatch = true;
         fullyQualifiedBuilder.SetMetadata(
-            TypeName(fullyQualifiedName),
             TypeNameIdentifier(tagName),
             TypeNamespace(namespaceName));
 

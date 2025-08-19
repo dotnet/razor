@@ -5,7 +5,6 @@ using System;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -42,12 +41,11 @@ internal sealed class RenderModeTagHelperDescriptorProvider() : TagHelperDescrip
             TagHelperKind.RenderMode, "RenderMode", ComponentsApi.AssemblyName,
             out var builder);
 
+        builder.TypeName = "Microsoft.AspNetCore.Components.RenderMode";
+
         builder.CaseSensitive = true;
         builder.ClassifyAttributesOnly = true;
         builder.SetDocumentation(DocumentationDescriptor.RenderModeTagHelper);
-
-        builder.SetMetadata(
-            TypeName("Microsoft.AspNetCore.Components.RenderMode"));
 
         builder.TagMatchingRule(rule =>
         {

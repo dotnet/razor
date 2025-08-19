@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Serialization.MessagePack.Resolvers;
 using Xunit;
 using Xunit.Abstractions;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor.Serialization;
 
@@ -245,7 +244,7 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
         Action<TagHelperDescriptorBuilder>? configureAction = null)
     {
         var builder = TagHelperDescriptorBuilder.CreateTagHelper(kind, typeName, assemblyName);
-        builder.Metadata(TypeName(typeName));
+        builder.TypeName = typeName;
 
         if (attributes != null)
         {

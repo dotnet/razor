@@ -44,7 +44,7 @@ public class SplatTagHelperDescriptorProviderTest : TagHelperDescriptorProviderT
         Assert.Equal("Microsoft.AspNetCore.Components", item.AssemblyName);
         Assert.Equal("Attributes", item.Name);
         Assert.Equal("Microsoft.AspNetCore.Components.Attributes", item.DisplayName);
-        Assert.Equal("Microsoft.AspNetCore.Components.Attributes", item.GetTypeName());
+        Assert.Equal("Microsoft.AspNetCore.Components.Attributes", item.TypeName);
 
         var rule = Assert.Single(item.TagMatchingRules);
         Assert.Empty(rule.Diagnostics);

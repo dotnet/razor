@@ -15,7 +15,6 @@ namespace Microsoft.AspNetCore.Razor.Language;
 public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
 {
     private readonly TagHelperFlags _flags;
-    private readonly DocumentationObject _documentationObject;
 
     private ImmutableArray<BoundAttributeDescriptor> _editorRequiredAttributes;
 
@@ -26,8 +25,12 @@ public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
     public string Name { get; }
     public string AssemblyName { get; }
 
-    public string? Documentation => _documentationObject.GetText();
-    internal DocumentationObject DocumentationObject => _documentationObject;
+    public string TypeName => TypeNameObject.GetTypeName().AssumeNotNull();
+
+    public string? Documentation => DocumentationObject.GetText();
+
+    internal TypeNameObject TypeNameObject { get; }
+    internal DocumentationObject DocumentationObject { get; }
 
     public string DisplayName { get; }
     public string? TagOutputHint { get; }
@@ -54,6 +57,7 @@ public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
         string name,
         string assemblyName,
         string displayName,
+        TypeNameObject typeNameObject,
         DocumentationObject documentationObject,
         string? tagOutputHint,
         ImmutableArray<TagMatchingRuleDescriptor> tagMatchingRules,
@@ -69,7 +73,8 @@ public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
         Name = name;
         AssemblyName = assemblyName;
         DisplayName = displayName;
-        _documentationObject = documentationObject;
+        TypeNameObject = typeNameObject;
+        DocumentationObject = documentationObject;
         TagOutputHint = tagOutputHint;
         TagMatchingRules = tagMatchingRules.NullToEmpty();
         BoundAttributes = attributeDescriptors.NullToEmpty();
@@ -102,6 +107,7 @@ public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
         builder.AppendData(DisplayName);
         builder.AppendData(TagOutputHint);
 
+        TypeNameObject.AppendToChecksum(in builder);
         DocumentationObject.AppendToChecksum(in builder);
 
         foreach (var descriptor in AllowedChildTags)
@@ -201,7 +207,7 @@ public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
     {
         return new(
             Flags, Kind, RuntimeKind, name, AssemblyName, DisplayName,
-            DocumentationObject, TagOutputHint,
+            TypeNameObject, DocumentationObject, TagOutputHint,
             TagMatchingRules, BoundAttributes, AllowedChildTags,
             Metadata, Diagnostics);
     }

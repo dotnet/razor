@@ -4,13 +4,11 @@
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor.Tooltip;
 
@@ -33,7 +31,7 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
         var builder = TagHelperDescriptorBuilder.CreateComponent("TestTagHelper", "TestAssembly");
         builder.TagMatchingRule(rule => rule.TagName = "Test");
         var tagHelperTypeName = "TestNamespace.TestTagHelper";
-        builder.Metadata(TypeName(tagHelperTypeName));
+        builder.TypeName = tagHelperTypeName;
         var tagHelpers = ImmutableArray.Create(builder.Build());
         var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers);
 
@@ -71,7 +69,7 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
         var builder = TagHelperDescriptorBuilder.CreateComponent("TestTagHelper", "TestAssembly");
         builder.TagMatchingRule(rule => rule.TagName = "Test");
         var tagHelperTypeName = "TestNamespace.TestTagHelper";
-        builder.Metadata(TypeName(tagHelperTypeName));
+        builder.TypeName = tagHelperTypeName;
         var tagHelpers = ImmutableArray.Create(builder.Build());
         var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers);
 
@@ -120,7 +118,7 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
         var builder = TagHelperDescriptorBuilder.CreateComponent("TestTagHelper", "TestAssembly");
         builder.TagMatchingRule(rule => rule.TagName = "Test");
         var tagHelperTypeName = "TestNamespace.TestTagHelper";
-        builder.Metadata(TypeName(tagHelperTypeName));
+        builder.TypeName = tagHelperTypeName;
         var tagHelpers = ImmutableArray.Create(builder.Build());
         var projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers);
 

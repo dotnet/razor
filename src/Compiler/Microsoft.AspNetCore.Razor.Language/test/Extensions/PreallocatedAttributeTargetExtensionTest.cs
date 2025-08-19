@@ -1,12 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Xunit;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.Language.Extensions;
 
@@ -127,8 +124,10 @@ public class PreallocatedAttributeTargetExtensionTest
         var extension = new PreallocatedAttributeTargetExtension();
         using var context = TestCodeRenderingContext.CreateRuntime();
 
-        var tagHelperBuilder = new TagHelperDescriptorBuilder(TagHelperKind.ITagHelper, "FooTagHelper", "Test");
-        tagHelperBuilder.Metadata(TypeName("FooTagHelper"));
+        var tagHelperBuilder = new TagHelperDescriptorBuilder(TagHelperKind.ITagHelper, "FooTagHelper", "Test")
+        {
+            TypeName = "FooTagHelper"
+        };
 
         var builder = new BoundAttributeDescriptorBuilder(tagHelperBuilder);
         builder
@@ -170,8 +169,10 @@ __tagHelperExecutionContext.AddTagHelperAttribute(_tagHelper1);
         var extension = new PreallocatedAttributeTargetExtension();
         using var context = TestCodeRenderingContext.CreateRuntime();
 
-        var tagHelperBuilder = new TagHelperDescriptorBuilder(TagHelperKind.ITagHelper, "FooTagHelper", "Test");
-        tagHelperBuilder.Metadata(TypeName("FooTagHelper"));
+        var tagHelperBuilder = new TagHelperDescriptorBuilder(TagHelperKind.ITagHelper, "FooTagHelper", "Test")
+        {
+            TypeName = "FooTagHelper"
+        };
 
         var builder = new BoundAttributeDescriptorBuilder(tagHelperBuilder);
         builder
@@ -220,8 +221,10 @@ __tagHelperExecutionContext.AddTagHelperAttribute(_tagHelper1);
         var extension = new PreallocatedAttributeTargetExtension();
         using var context = TestCodeRenderingContext.CreateRuntime();
 
-        var tagHelperBuilder = new TagHelperDescriptorBuilder(TagHelperKind.ITagHelper, "FooTagHelper", "Test");
-        tagHelperBuilder.Metadata(TypeName("FooTagHelper"));
+        var tagHelperBuilder = new TagHelperDescriptorBuilder(TagHelperKind.ITagHelper, "FooTagHelper", "Test")
+        {
+            TypeName = "FooTagHelper"
+        };
 
         var builder = new BoundAttributeDescriptorBuilder(tagHelperBuilder);
         builder

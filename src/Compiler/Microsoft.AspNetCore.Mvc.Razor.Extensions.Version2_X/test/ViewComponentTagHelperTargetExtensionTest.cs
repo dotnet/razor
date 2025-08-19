@@ -1,12 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Xunit;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X;
 
@@ -17,9 +14,8 @@ public class ViewComponentTagHelperTargetExtensionTest
     {
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder.CreateViewComponent("TestTagHelper", "TestAssembly")
-            .Metadata(
-                TypeName("__Generated__TagCloudViewComponentTagHelper"),
-                new(ViewComponentTagHelperMetadata.Name, "TagCloud"))
+            .TypeName("__Generated__TagCloudViewComponentTagHelper")
+            .Metadata(ViewComponentTagHelperMetadata.Name, "TagCloud")
             .BoundAttributeDescriptor(attribute => attribute
                 .Name("Foo")
                 .TypeName("System.Int32")
@@ -70,9 +66,8 @@ public class __Generated__TagCloudViewComponentTagHelper : Microsoft.AspNetCore.
     {
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder.CreateViewComponent("TestTagHelper", "TestAssembly")
-            .Metadata(
-                TypeName("__Generated__TagCloudViewComponentTagHelper"),
-                new(ViewComponentTagHelperMetadata.Name, "TagCloud"))
+            .TypeName("__Generated__TagCloudViewComponentTagHelper")
+            .Metadata(ViewComponentTagHelperMetadata.Name, "TagCloud")
             .BoundAttributeDescriptor(attribute => attribute
                 .Name("Foo")
                 .TypeName("System.Collections.Generic.Dictionary<System.String, System.Int32>")

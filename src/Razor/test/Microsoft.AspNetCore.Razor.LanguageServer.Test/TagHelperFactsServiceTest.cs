@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.VisualStudio.Editor.Razor;
 using Xunit;
 using Xunit.Abstractions;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
 
@@ -106,6 +105,7 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
     {
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("WithBoundAttribute", "TestAssembly");
+        tagHelper.TypeName = "WithBoundAttribute";
         tagHelper.TagMatchingRule(rule => rule.TagName = "test");
         tagHelper.BindAttribute(attribute =>
         {
@@ -113,7 +113,6 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
             attribute.PropertyName = "Bound";
             attribute.TypeName = typeof(bool).FullName;
         });
-        tagHelper.SetMetadata(TypeName("WithBoundAttribute"));
         var codeDocument = CreateCodeDocument("""
             @addTagHelper *, TestAssembly
             <test bound='true' />
@@ -139,6 +138,7 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
     {
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("WithBoundAttribute", "TestAssembly");
+        tagHelper.TypeName = "WithBoundAttribute";
         tagHelper.TagMatchingRule(rule => rule.TagName = "test");
         tagHelper.BindAttribute(attribute =>
         {
@@ -146,7 +146,6 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
             attribute.PropertyName = "Bound";
             attribute.TypeName = typeof(bool).FullName;
         });
-        tagHelper.SetMetadata(TypeName("WithBoundAttribute"));
         var codeDocument = CreateCodeDocument("""
             @addTagHelper *, TestAssembly
             <test bound />

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.MessagePack.Formatters.TagH
 
 internal sealed class TagHelperFormatter : ValueFormatter<TagHelperDescriptor>
 {
-    private const int PropertyCount = 13;
+    private const int PropertyCount = 14;
 
     public static readonly ValueFormatter<TagHelperDescriptor> Instance = new TagHelperFormatter();
 
@@ -29,6 +29,7 @@ internal sealed class TagHelperFormatter : ValueFormatter<TagHelperDescriptor>
         var assemblyName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
 
         var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
+        var typeNameObject = reader.Deserialize<TypeNameObject>(options);
         var documentationObject = reader.Deserialize<DocumentationObject>(options);
         var tagOutputHint = CachedStringFormatter.Instance.Deserialize(ref reader, options);
 
@@ -41,7 +42,7 @@ internal sealed class TagHelperFormatter : ValueFormatter<TagHelperDescriptor>
 
         return new TagHelperDescriptor(
             flags, kind, runtimeKind, name, assemblyName,
-            displayName, documentationObject, tagOutputHint,
+            displayName, typeNameObject, documentationObject, tagOutputHint,
             tagMatchingRules, boundAttributes, allowedChildTags,
             metadata, diagnostics);
     }
@@ -57,6 +58,7 @@ internal sealed class TagHelperFormatter : ValueFormatter<TagHelperDescriptor>
         CachedStringFormatter.Instance.Serialize(ref writer, value.AssemblyName, options);
 
         CachedStringFormatter.Instance.Serialize(ref writer, value.DisplayName, options);
+        writer.Serialize(value.TypeNameObject, options);
         writer.Serialize(value.DocumentationObject, options);
         CachedStringFormatter.Instance.Serialize(ref writer, value.TagOutputHint, options);
 
@@ -79,6 +81,7 @@ internal sealed class TagHelperFormatter : ValueFormatter<TagHelperDescriptor>
         CachedStringFormatter.Instance.Skim(ref reader, options); // AssemblyName
 
         CachedStringFormatter.Instance.Skim(ref reader, options); // DisplayName
+        TypeNameObjectFormatter.Instance.Skim(ref reader, options); // TypeNameObject
         DocumentationObjectFormatter.Instance.Skim(ref reader, options); // DocumentationObject
         CachedStringFormatter.Instance.Skim(ref reader, options); // TagOutputHint
 

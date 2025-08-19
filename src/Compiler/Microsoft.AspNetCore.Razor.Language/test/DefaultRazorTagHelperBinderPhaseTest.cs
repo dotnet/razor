@@ -1310,12 +1310,11 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         IEnumerable<Action<TagMatchingRuleDescriptorBuilder>> ruleBuilders = null,
         bool componentFullyQualified = false)
     {
-
         var builder = TagHelperDescriptorBuilder.CreateTagHelper(kind, typeName, assemblyName);
+        builder.TypeName = typeName;
 
         using var metadata = new MetadataBuilder();
 
-        metadata.Add(TypeName(typeName));
         metadata.Add(TypeNamespace(typeNamespace ?? (typeName.LastIndexOf('.') == -1 ? "" : typeName[..typeName.LastIndexOf('.')])));
         metadata.Add(TypeNameIdentifier(typeNameIdentifier ?? (typeName.LastIndexOf('.') == -1 ? typeName : typeName[(typeName.LastIndexOf('.') + 1)..])));
 

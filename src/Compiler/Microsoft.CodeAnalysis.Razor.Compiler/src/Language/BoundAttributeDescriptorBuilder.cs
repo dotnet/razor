@@ -174,11 +174,7 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBui
             return DisplayName;
         }
 
-        if (!_parent.TryGetMetadataValue(TagHelperMetadata.Common.TypeName, out var parentTypeName))
-        {
-            parentTypeName = null;
-        }
-
+        var parentTypeName = _parent.TypeName;
         var propertyName = PropertyName;
 
         if (TypeName != null &&

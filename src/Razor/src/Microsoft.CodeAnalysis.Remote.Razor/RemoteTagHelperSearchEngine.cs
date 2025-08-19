@@ -23,7 +23,7 @@ internal sealed class RemoteTagHelperSearchEngine : ITagHelperSearchEngine
             return null;
         }
 
-        var typeName = boundTagHelper.GetTypeName();
+        var typeName = boundTagHelper.TypeName;
         if (typeName is null)
         {
             return null;

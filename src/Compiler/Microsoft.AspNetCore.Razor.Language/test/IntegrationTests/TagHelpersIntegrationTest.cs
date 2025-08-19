@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using Xunit;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
@@ -105,7 +104,7 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
         IEnumerable<Action<BoundAttributeDescriptorBuilder>>? attributes = null)
     {
         var builder = TagHelperDescriptorBuilder.CreateTagHelper(typeName, assemblyName);
-        builder.Metadata(TypeName(typeName));
+        builder.TypeName = typeName;
 
         if (attributes != null)
         {

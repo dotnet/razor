@@ -45,7 +45,7 @@ public class RefTagHelperDescriptorProviderTest : TagHelperDescriptorProviderTes
         Assert.Equal("Microsoft.AspNetCore.Components", item.AssemblyName);
         Assert.Equal("Ref", item.Name);
         Assert.Equal("Microsoft.AspNetCore.Components.Ref", item.DisplayName);
-        Assert.Equal("Microsoft.AspNetCore.Components.Ref", item.GetTypeName());
+        Assert.Equal("Microsoft.AspNetCore.Components.Ref", item.TypeName);
 
         // The tag matching rule for a ref is just the attribute name "ref"
         var rule = Assert.Single(item.TagMatchingRules);

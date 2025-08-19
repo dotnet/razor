@@ -75,7 +75,7 @@ namespace Test
         Assert.Equal("TestAssembly", component.AssemblyName);
         Assert.Equal("Test.MyComponent", component.Name);
         Assert.Equal("Test.MyComponent", component.DisplayName);
-        Assert.Equal("Test.MyComponent", component.GetTypeName());
+        Assert.Equal("Test.MyComponent", component.TypeName);
 
         // Our use of matching rules is also very simple, and derived from the name. Verifying
         // it once in detail here and then ignoring it.
@@ -87,12 +87,10 @@ namespace Test
         Assert.Equal("MyComponent", rule.TagName);
         Assert.Equal(TagStructure.Unspecified, rule.TagStructure);
 
-
         // Our use of metadata is also (for now) an invariant for all Components - other than the type name
         // which is trivial. Verifying it once in detail and then ignoring it.
         Assert.Collection(
             component.Metadata.OrderBy(kvp => kvp.Key),
-            kvp => { Assert.Equal(TagHelperMetadata.Common.TypeName, kvp.Key); Assert.Equal("Test.MyComponent", kvp.Value); },
             kvp => { Assert.Equal(TagHelperMetadata.Common.TypeNameIdentifier, kvp.Key); Assert.Equal("MyComponent", kvp.Value); },
             kvp => { Assert.Equal(TagHelperMetadata.Common.TypeNamespace, kvp.Key); Assert.Equal("Test", kvp.Value); });
 
@@ -173,7 +171,7 @@ namespace Test
         Assert.Equal("TestAssembly", component.AssemblyName);
         Assert.Equal("Test.MyComponent<T>", component.Name);
         Assert.Equal("Test.MyComponent<T>", component.DisplayName);
-        Assert.Equal("Test.MyComponent<T>", component.GetTypeName());
+        Assert.Equal("Test.MyComponent<T>", component.TypeName);
 
         Assert.True(component.IsGenericTypedComponent());
 
@@ -1626,8 +1624,8 @@ namespace Test
         // Assert
         Assert.NotNull(compilation.GetTypeByMetadataName(testComponent));
         Assert.Empty(context.Results); // Target assembly contains no components
-        Assert.Empty(context.Results.Where(f => f.GetTypeName() == testComponent));
-        Assert.Empty(context.Results.Where(f => f.GetTypeName() == routerComponent));
+        Assert.Empty(context.Results.Where(f => f.TypeName == testComponent));
+        Assert.Empty(context.Results.Where(f => f.TypeName == routerComponent));
     }
 
     [Fact]
@@ -1670,7 +1668,7 @@ namespace Test
         // Assert
         Assert.NotNull(compilation.GetTypeByMetadataName(testComponent));
         Assert.NotEmpty(context.Results);
-        Assert.NotEmpty(context.Results.Where(f => f.GetTypeName() == testComponent));
-        Assert.NotEmpty(context.Results.Where(f => f.GetTypeName() == routerComponent));
+        Assert.NotEmpty(context.Results.Where(f => f.TypeName == testComponent));
+        Assert.NotEmpty(context.Results.Where(f => f.TypeName == routerComponent));
     }
 }

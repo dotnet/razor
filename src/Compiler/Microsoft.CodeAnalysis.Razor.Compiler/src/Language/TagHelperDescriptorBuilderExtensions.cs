@@ -77,37 +77,4 @@ public static class TagHelperDescriptorBuilderExtensions
 
         builder.Metadata[TagHelperMetadata.Common.TypeNameIdentifier] = typeNameIdentifier;
     }
-
-    [Obsolete($"Do not use this method. {nameof(TagHelperDescriptorBuilder.SetMetadata)} should be used instead.")]
-    public static void SetTypeName(this TagHelperDescriptorBuilder builder, string typeName)
-    {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (typeName == null)
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
-
-        Debug.Fail($"Do not use this method. {nameof(TagHelperDescriptorBuilder.SetMetadata)} should be used instead.");
-
-        builder.Metadata[TagHelperMetadata.Common.TypeName] = typeName;
-    }
-
-    [Obsolete($"Do not use this method. {nameof(TagHelperDescriptorBuilder.TryGetMetadataValue)} should be used instead.")]
-    public static string GetTypeName(this TagHelperDescriptorBuilder builder)
-    {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        Debug.Fail($"Do not use this method. {nameof(TagHelperDescriptorBuilder.TryGetMetadataValue)} should be used instead.");
-
-        return builder.TryGetMetadataValue(TagHelperMetadata.Common.TypeName, out var value)
-            ? value
-            : null;
-    }
 }
