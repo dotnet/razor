@@ -96,7 +96,7 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
             var assemblyName = type.ContainingAssembly.Identity.Name;
 
             using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
-                ComponentMetadata.Component.TagHelperKind, typeName, assemblyName, out var builder);
+                TagHelperKind.Component, typeName, assemblyName, out var builder);
 
             builder.RuntimeKind = RuntimeKind.IComponent;
 
@@ -553,7 +553,7 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
             var assemblyName = component.AssemblyName;
 
             using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
-                ComponentMetadata.ChildContent.TagHelperKind, typeName, assemblyName,
+                TagHelperKind.ChildContent, typeName, assemblyName,
                 out var builder);
 
             using var metadata = new MetadataBuilder();
@@ -563,9 +563,6 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
             metadata.Add(TypeNameIdentifier(component.GetTypeNameIdentifier()));
 
             builder.CaseSensitive = true;
-
-            // Opt out of processing as a component. We'll process this specially as part of the component's body.
-            metadata.Add(SpecialKind(ComponentMetadata.ChildContent.TagHelperKind));
 
             var xml = attribute.Documentation;
             if (!string.IsNullOrEmpty(xml))

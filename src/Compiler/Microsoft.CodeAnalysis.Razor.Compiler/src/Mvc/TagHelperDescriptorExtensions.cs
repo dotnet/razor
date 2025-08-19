@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
@@ -17,12 +18,9 @@ public static class TagHelperDescriptorExtensions
     /// <returns>Whether a <see cref="TagHelperDescriptor"/> represents a view component.</returns>
     public static bool IsViewComponentKind(this TagHelperDescriptor tagHelper)
     {
-        if (tagHelper == null)
-        {
-            throw new ArgumentNullException(nameof(tagHelper));
-        }
+        ArgHelper.ThrowIfNull(tagHelper);
 
-        return string.Equals(ViewComponentTagHelperConventions.Kind, tagHelper.Kind, StringComparison.Ordinal);
+        return tagHelper.Kind == TagHelperKind.ViewComponent;
     }
 
     public static string GetViewComponentName(this TagHelperDescriptor tagHelper)

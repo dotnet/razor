@@ -5,10 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Xunit;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
@@ -149,14 +147,13 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
 
     public static ImmutableArray<TagHelperDescriptor> CatchAllAttribute_Descriptors =
     [
-        TagHelperDescriptorBuilder.CreateTagHelper("InputTagHelper1", "SomeAssembly")
+        TagHelperDescriptorBuilder.CreateEventHandler("InputTagHelper1", "SomeAssembly")
             .TagMatchingRuleDescriptor(rule => rule
                 .RequireTagName("*")
                 .RequireAttributeDescriptor(b =>
                 {
                     b.Name = "onclick";
                 }))
-            .Metadata(SpecialKind(ComponentMetadata.EventHandler.EventArgsType))
             .Build(),
     ];
 

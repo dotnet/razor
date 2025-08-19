@@ -39,14 +39,13 @@ internal sealed class RenderModeTagHelperDescriptorProvider() : TagHelperDescrip
     private static TagHelperDescriptor CreateRenderModeTagHelper()
     {
         using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
-            ComponentMetadata.RenderMode.TagHelperKind, "RenderMode", ComponentsApi.AssemblyName,
+            TagHelperKind.RenderMode, "RenderMode", ComponentsApi.AssemblyName,
             out var builder);
 
         builder.CaseSensitive = true;
         builder.SetDocumentation(DocumentationDescriptor.RenderModeTagHelper);
 
         builder.SetMetadata(
-            SpecialKind(ComponentMetadata.RenderMode.TagHelperKind),
             MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
             TypeName("Microsoft.AspNetCore.Components.RenderMode"));
 

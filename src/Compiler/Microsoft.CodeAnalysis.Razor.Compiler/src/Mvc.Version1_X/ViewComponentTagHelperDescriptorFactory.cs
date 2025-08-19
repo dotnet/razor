@@ -60,7 +60,7 @@ internal class ViewComponentTagHelperDescriptorFactory
         var displayName = shortName + "ViewComponentTagHelper";
 
         using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
-            ViewComponentTagHelperConventions.Kind, typeName, assemblyName,
+            TagHelperKind.ViewComponent, typeName, assemblyName,
             out var descriptorBuilder);
 
         descriptorBuilder.RuntimeKind = RuntimeKind.ITagHelper;

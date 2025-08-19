@@ -7,7 +7,6 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Xunit;
-using static Microsoft.AspNetCore.Razor.Language.Components.ComponentMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -62,7 +61,7 @@ namespace Test
         // here and then ignoring them.
         Assert.Empty(component.Diagnostics);
         Assert.False(component.HasErrors);
-        Assert.Equal(ComponentMetadata.Component.TagHelperKind, component.Kind);
+        Assert.Equal(TagHelperKind.Component, component.Kind);
         Assert.Equal(RuntimeKind.IComponent, component.RuntimeKind);
         Assert.False(component.IsDefaultKind());
         Assert.False(component.KindUsesDefaultTagHelperRuntime());
@@ -104,7 +103,7 @@ namespace Test
         // Invariants
         Assert.Empty(attribute.Diagnostics);
         Assert.False(attribute.HasErrors);
-        Assert.Equal("Components.Component", attribute.Parent.Kind);
+        Assert.Equal(TagHelperKind.Component, attribute.Parent.Kind);
         Assert.False(attribute.IsDefaultKind());
 
         // Related to dictionaries/indexers, not supported currently, not sure if we ever will

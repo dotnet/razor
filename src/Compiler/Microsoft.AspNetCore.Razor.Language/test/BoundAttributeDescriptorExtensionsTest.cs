@@ -33,7 +33,7 @@ public class BoundAttributeDescriptorExtensionsTest
     public void IsDefaultKind_ReturnsFalse_IfKindIsNotDefault()
     {
         // Arrange
-        var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("other-kind", "TestTagHelper", "Test")
+        var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper(TagHelperKind.ViewComponent, "TestTagHelper", "Test")
             .Metadata(TypeName("TestTagHelper"))
             .BoundAttributeDescriptor(attribute => attribute
                 .Name("test")

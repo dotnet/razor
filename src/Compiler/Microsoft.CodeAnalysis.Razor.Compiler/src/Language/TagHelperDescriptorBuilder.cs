@@ -5,14 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.AspNetCore.Razor.Language.Components;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
 public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<TagHelperDescriptor>
 {
     private TagHelperFlags _flags;
-    private string? _kind;
+    private TagHelperKind _kind;
     private string? _name;
     private string? _assemblyName;
 
@@ -23,27 +22,27 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
     {
     }
 
-    internal TagHelperDescriptorBuilder(string kind, string name, string assemblyName)
+    internal TagHelperDescriptorBuilder(TagHelperKind kind, string name, string assemblyName)
         : this()
     {
-        _kind = kind ?? throw new ArgumentNullException(nameof(kind));
+        _kind = kind;
         _name = name ?? throw new ArgumentNullException(nameof(name));
         _assemblyName = assemblyName ?? throw new ArgumentNullException(nameof(assemblyName));
     }
 
     public static TagHelperDescriptorBuilder Create(string name, string assemblyName)
-        => new(TagHelperConventions.DefaultKind, name, assemblyName);
+        => new(TagHelperKind.ITagHelper, name, assemblyName);
 
-    public static TagHelperDescriptorBuilder Create(string kind, string name, string assemblyName)
+    public static TagHelperDescriptorBuilder Create(TagHelperKind kind, string name, string assemblyName)
         => new(kind, name, assemblyName);
 
-    public string Kind => _kind.AssumeNotNull();
+    public TagHelperKind Kind => _kind;
+    public RuntimeKind RuntimeKind { get; set; }
+
     public string Name => _name.AssumeNotNull();
     public string AssemblyName => _assemblyName.AssumeNotNull();
     public string? DisplayName { get; set; }
     public string? TagOutputHint { get; set; }
-
-    public RuntimeKind RuntimeKind { get; set; }
 
     public bool CaseSensitive
     {
@@ -131,21 +130,19 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
 
         var flags = _flags;
 
-        if (Kind == ComponentMetadata.Component.TagHelperKind &&
-            !metadata.ContainsKey(ComponentMetadata.SpecialKindKey))
+        if (Kind == TagHelperKind.Component)
         {
             flags |= TagHelperFlags.IsComponent;
         }
-
-        if (metadata.Contains(ComponentMetadata.SpecialKindKey, ComponentMetadata.ChildContent.TagHelperKind))
+        else if (Kind == TagHelperKind.ChildContent)
         {
             flags |= TagHelperFlags.IsChildContent;
         }
 
         return new TagHelperDescriptor(
             flags,
-            RuntimeKind,
             Kind,
+            RuntimeKind,
             Name,
             AssemblyName,
             GetDisplayName(),

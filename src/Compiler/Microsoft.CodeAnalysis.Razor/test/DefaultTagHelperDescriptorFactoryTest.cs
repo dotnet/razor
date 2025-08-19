@@ -116,7 +116,7 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
         Action<RequiredAttributeDescriptorBuilder> configure)
     {
         // Arrange
-        var expected = TagHelperDescriptorBuilder.Create(TagHelperConventions.DefaultKind, "TestTagHelper", "Test")
+        var expected = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "Test")
             .TagMatchingRuleDescriptor(rule =>
             {
                 rule.Attribute(configure);
@@ -124,7 +124,7 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
             .Build();
 
         // Act
-        var actual = TagHelperDescriptorBuilder.Create(TagHelperConventions.DefaultKind, "TestTagHelper", "Test")
+        var actual = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "Test")
             .TagMatchingRuleDescriptor(rule =>
             {
                 RequiredAttributeParser.AddRequiredAttributes(requiredAttributes, rule);
@@ -198,7 +198,7 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
         ImmutableArray<Action<RequiredAttributeDescriptorBuilder>> configures)
     {
         // Arrange
-        var expected = TagHelperDescriptorBuilder.Create(TagHelperConventions.DefaultKind, "TestTagHelper", "Test")
+        var expected = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "Test")
             .TagMatchingRuleDescriptor(rule =>
             {
                 foreach (var configure in configures)
@@ -209,7 +209,7 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
             .Build();
 
         // Act
-        var actual = TagHelperDescriptorBuilder.Create(TagHelperConventions.DefaultKind, "TestTagHelper", "Test")
+        var actual = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "Test")
             .TagMatchingRuleDescriptor(rule =>
             {
                 RequiredAttributeParser.AddRequiredAttributes(requiredAttributes, rule);

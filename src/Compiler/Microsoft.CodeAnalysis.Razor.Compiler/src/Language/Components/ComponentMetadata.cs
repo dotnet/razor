@@ -12,11 +12,6 @@ internal static class ComponentMetadata
 {
     private const string MangledClassNamePrefix = "__generated__";
 
-    // There's a bug in the 15.7 preview 1 Razor that prevents 'Kind' from being serialized
-    // this affects both tooling and build. For now our workaround is to ignore 'Kind' and
-    // use our own metadata entry to denote non-Component tag helpers.
-    public const string SpecialKindKey = "Components.IsSpecialKind";
-
     public const string ImportsFileName = "_Imports.razor";
 
     public static string MangleClassName(string className)

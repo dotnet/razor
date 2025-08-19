@@ -23,8 +23,8 @@ internal sealed class TagHelperFormatter : ValueFormatter<TagHelperDescriptor>
         reader.ReadArrayHeaderAndVerify(PropertyCount);
 
         var flags = (TagHelperFlags)reader.ReadByte();
+        var kind = (TagHelperKind)reader.ReadByte();
         var runtimeKind = (RuntimeKind)reader.ReadByte();
-        var kind = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
         var name = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
         var assemblyName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
 
@@ -40,7 +40,7 @@ internal sealed class TagHelperFormatter : ValueFormatter<TagHelperDescriptor>
         var diagnostics = reader.Deserialize<ImmutableArray<RazorDiagnostic>>(options);
 
         return new TagHelperDescriptor(
-            flags, runtimeKind, kind, name, assemblyName,
+            flags, kind, runtimeKind, name, assemblyName,
             displayName, documentationObject, tagOutputHint,
             tagMatchingRules, boundAttributes, allowedChildTags,
             metadata, diagnostics);
@@ -51,8 +51,8 @@ internal sealed class TagHelperFormatter : ValueFormatter<TagHelperDescriptor>
         writer.WriteArrayHeader(PropertyCount);
 
         writer.Write((byte)value.Flags);
+        writer.Write((byte)value.Kind);
         writer.Write((byte)value.RuntimeKind);
-        CachedStringFormatter.Instance.Serialize(ref writer, value.Kind, options);
         CachedStringFormatter.Instance.Serialize(ref writer, value.Name, options);
         CachedStringFormatter.Instance.Serialize(ref writer, value.AssemblyName, options);
 
@@ -73,8 +73,8 @@ internal sealed class TagHelperFormatter : ValueFormatter<TagHelperDescriptor>
         reader.ReadArrayHeaderAndVerify(PropertyCount);
 
         reader.Skip(); // Flags
+        reader.Skip(); // Kind
         reader.Skip(); // RuntimeKind
-        CachedStringFormatter.Instance.Skim(ref reader, options); // Kind
         CachedStringFormatter.Instance.Skim(ref reader, options); // Name
         CachedStringFormatter.Instance.Skim(ref reader, options); // AssemblyName
 

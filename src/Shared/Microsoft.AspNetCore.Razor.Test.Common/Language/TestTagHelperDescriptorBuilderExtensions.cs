@@ -5,8 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Mvc.Razor.Extensions;
-using Microsoft.AspNetCore.Razor.Language.Components;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -16,13 +14,13 @@ public static class TestTagHelperDescriptorBuilderExtensions
     {
         public static TagHelperDescriptorBuilder CreateTagHelper(string name, string assemblyName)
         {
-            var builder = TagHelperDescriptorBuilder.Create(TagHelperConventions.DefaultKind, name, assemblyName);
+            var builder = TagHelperDescriptorBuilder.Create(TagHelperKind.ITagHelper, name, assemblyName);
             builder.RuntimeKind = Language.RuntimeKind.ITagHelper;
 
             return builder;
         }
 
-        public static TagHelperDescriptorBuilder CreateTagHelper(string kind, string name, string assemblyName)
+        public static TagHelperDescriptorBuilder CreateTagHelper(TagHelperKind kind, string name, string assemblyName)
         {
             var builder = TagHelperDescriptorBuilder.Create(kind, name, assemblyName);
             builder.RuntimeKind = Language.RuntimeKind.ITagHelper;
@@ -31,15 +29,18 @@ public static class TestTagHelperDescriptorBuilderExtensions
         }
 
         public static TagHelperDescriptorBuilder CreateViewComponent(string name, string assemblyName)
-            => CreateTagHelper(ViewComponentTagHelperConventions.Kind, name, assemblyName);
+            => CreateTagHelper(TagHelperKind.ViewComponent, name, assemblyName);
 
         public static TagHelperDescriptorBuilder CreateComponent(string name, string assemblyName)
         {
-            var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, name, assemblyName);
+            var builder = TagHelperDescriptorBuilder.Create(TagHelperKind.Component, name, assemblyName);
             builder.RuntimeKind = Language.RuntimeKind.IComponent;
 
             return builder;
         }
+
+        public static TagHelperDescriptorBuilder CreateEventHandler(string name, string assemblyName)
+            => TagHelperDescriptorBuilder.Create(TagHelperKind.EventHandler, name, assemblyName);
     }
 
     public static TagHelperDescriptorBuilder Metadata(this TagHelperDescriptorBuilder builder, string key, string value)

@@ -44,12 +44,9 @@ public static class TagHelperDescriptorExtensions
 
     public static bool IsDefaultKind(this TagHelperDescriptor tagHelper)
     {
-        if (tagHelper == null)
-        {
-            throw new ArgumentNullException(nameof(tagHelper));
-        }
+        ArgHelper.ThrowIfNull(tagHelper);
 
-        return string.Equals(tagHelper.Kind, TagHelperConventions.DefaultKind, StringComparison.Ordinal);
+        return tagHelper.Kind == TagHelperKind.ITagHelper;
     }
 
     public static bool KindUsesDefaultTagHelperRuntime(this TagHelperDescriptor tagHelper)

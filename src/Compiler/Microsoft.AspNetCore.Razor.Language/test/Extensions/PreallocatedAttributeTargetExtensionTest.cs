@@ -127,7 +127,7 @@ public class PreallocatedAttributeTargetExtensionTest
         var extension = new PreallocatedAttributeTargetExtension();
         using var context = TestCodeRenderingContext.CreateRuntime();
 
-        var tagHelperBuilder = new TagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "FooTagHelper", "Test");
+        var tagHelperBuilder = new TagHelperDescriptorBuilder(TagHelperKind.ITagHelper, "FooTagHelper", "Test");
         tagHelperBuilder.Metadata(TypeName("FooTagHelper"));
 
         var builder = new BoundAttributeDescriptorBuilder(tagHelperBuilder);
@@ -170,7 +170,7 @@ __tagHelperExecutionContext.AddTagHelperAttribute(_tagHelper1);
         var extension = new PreallocatedAttributeTargetExtension();
         using var context = TestCodeRenderingContext.CreateRuntime();
 
-        var tagHelperBuilder = new TagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "FooTagHelper", "Test");
+        var tagHelperBuilder = new TagHelperDescriptorBuilder(TagHelperKind.ITagHelper, "FooTagHelper", "Test");
         tagHelperBuilder.Metadata(TypeName("FooTagHelper"));
 
         var builder = new BoundAttributeDescriptorBuilder(tagHelperBuilder);
@@ -220,7 +220,7 @@ __tagHelperExecutionContext.AddTagHelperAttribute(_tagHelper1);
         var extension = new PreallocatedAttributeTargetExtension();
         using var context = TestCodeRenderingContext.CreateRuntime();
 
-        var tagHelperBuilder = new TagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "FooTagHelper", "Test");
+        var tagHelperBuilder = new TagHelperDescriptorBuilder(TagHelperKind.ITagHelper, "FooTagHelper", "Test");
         tagHelperBuilder.Metadata(TypeName("FooTagHelper"));
 
         var builder = new BoundAttributeDescriptorBuilder(tagHelperBuilder);

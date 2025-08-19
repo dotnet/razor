@@ -56,7 +56,7 @@ public class TagHelperDescriptorExtensionsTest
     public void IsDefaultKind_ReturnsFalse_IfKindIsNotDefault()
     {
         // Arrange
-        var descriptor = TagHelperDescriptorBuilder.CreateTagHelper("other-kind", "TestTagHelper", "TestAssembly").Build();
+        var descriptor = TagHelperDescriptorBuilder.CreateTagHelper(TagHelperKind.ViewComponent, "TestTagHelper", "TestAssembly").Build();
 
         // Act
         var isDefault = descriptor.IsDefaultKind();

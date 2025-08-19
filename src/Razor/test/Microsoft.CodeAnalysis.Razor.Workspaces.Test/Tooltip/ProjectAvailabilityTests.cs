@@ -30,7 +30,7 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
     [Fact]
     public async Task GetProjectAvailabilityText_OneProject_ReturnsNull()
     {
-        var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
+        var builder = TagHelperDescriptorBuilder.CreateComponent("TestTagHelper", "TestAssembly");
         builder.TagMatchingRule(rule => rule.TagName = "Test");
         var tagHelperTypeName = "TestNamespace.TestTagHelper";
         builder.Metadata(TypeName(tagHelperTypeName));
@@ -68,7 +68,7 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
     [Fact]
     public async Task GetProjectAvailabilityText_AvailableInAllProjects_ReturnsNull()
     {
-        var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
+        var builder = TagHelperDescriptorBuilder.CreateComponent("TestTagHelper", "TestAssembly");
         builder.TagMatchingRule(rule => rule.TagName = "Test");
         var tagHelperTypeName = "TestNamespace.TestTagHelper";
         builder.Metadata(TypeName(tagHelperTypeName));
@@ -117,7 +117,7 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : ToolingTes
     [Fact]
     public async Task GetProjectAvailabilityText_NotAvailableInAllProjects_ReturnsText()
     {
-        var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
+        var builder = TagHelperDescriptorBuilder.CreateComponent("TestTagHelper", "TestAssembly");
         builder.TagMatchingRule(rule => rule.TagName = "Test");
         var tagHelperTypeName = "TestNamespace.TestTagHelper";
         builder.Metadata(TypeName(tagHelperTypeName));

@@ -5,7 +5,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -206,7 +205,7 @@ public class RazorComponentSearchEngineTest(ITestOutputHelper testOutput) : Lang
     {
         typeName ??= tagName;
         var fullyQualifiedName = $"{namespaceName}.{typeName}";
-        var builder1 = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, fullyQualifiedName, assemblyName);
+        var builder1 = TagHelperDescriptorBuilder.CreateComponent(fullyQualifiedName, assemblyName);
         builder1.TagMatchingRule(rule => rule.TagName = tagName);
         builder1.SetMetadata(
             TypeNameIdentifier(typeName),
