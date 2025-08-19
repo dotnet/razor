@@ -12,9 +12,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Components;
 internal static class TagHelperDescriptorExtensions
 {
     public static bool IsAnyComponentDocumentTagHelper(this TagHelperDescriptor tagHelper)
-    {
-        return tagHelper.Kind >= TagHelperKind.Component;
-    }
+        => tagHelper.Kind >= TagHelperKind.Component;
+
+    public static bool IsComponentOrChildContentTagHelper(this TagHelperDescriptor tagHelper)
+        => tagHelper.Kind is TagHelperKind.Component or TagHelperKind.ChildContent;
 
     public static bool IsBindTagHelper(this TagHelperDescriptor tagHelper)
     {
@@ -37,7 +38,7 @@ internal static class TagHelperDescriptorExtensions
     public static bool IsGenericTypedComponent(this TagHelperDescriptor tagHelper)
     {
         return
-            tagHelper.IsComponentTagHelper &&
+            tagHelper.Kind == TagHelperKind.Component &&
             tagHelper.Metadata.TryGetValue(ComponentMetadata.Component.GenericTypedKey, out var value) &&
             string.Equals(bool.TrueString, value);
     }
@@ -62,7 +63,7 @@ internal static class TagHelperDescriptorExtensions
     {
         typeName = null;
 
-        if (!tagHelper.IsComponentTagHelper)
+        if (tagHelper.Kind != TagHelperKind.Component)
         {
             return false;
         }

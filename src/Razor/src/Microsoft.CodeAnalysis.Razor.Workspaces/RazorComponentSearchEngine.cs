@@ -44,7 +44,7 @@ internal class RazorComponentSearchEngine(ILoggerFactory loggerFactory) : IRazor
         ISolutionQueryOperations solutionQueryOperations,
         CancellationToken cancellationToken)
     {
-        if (!tagHelper.IsComponentTagHelper)
+        if (tagHelper.Kind != TagHelperKind.Component)
         {
             return null;
         }

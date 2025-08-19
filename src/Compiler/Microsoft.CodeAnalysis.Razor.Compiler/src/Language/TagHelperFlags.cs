@@ -9,7 +9,5 @@ namespace Microsoft.AspNetCore.Razor.Language;
 public enum TagHelperFlags : byte
 {
     CaseSensitive = 1 << 0,
-    IsComponent = 1 << 1,
-    IsFullyQualifiedNameMatch = 1 << 2,
-    IsChildContent = 1 << 3
+    IsFullyQualifiedNameMatch = 1 << 1,
 }

@@ -18,7 +18,7 @@ internal sealed class RemoteTagHelperSearchEngine : ITagHelperSearchEngine
 {
     public async Task<LspLocation?> TryLocateTagHelperDefinitionAsync(TagHelperDescriptor boundTagHelper, BoundAttributeDescriptor? boundAttribute, IDocumentSnapshot documentSnapshot, ISolutionQueryOperations solutionQueryOperations, CancellationToken cancellationToken)
     {
-        if (boundTagHelper.IsComponentTagHelper)
+        if (boundTagHelper.Kind == TagHelperKind.Component)
         {
             return null;
         }

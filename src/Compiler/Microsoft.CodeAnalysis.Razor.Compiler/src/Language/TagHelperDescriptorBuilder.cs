@@ -126,21 +126,8 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
 
     private protected override TagHelperDescriptor BuildCore(ImmutableArray<RazorDiagnostic> diagnostics)
     {
-        var metadata = _metadata.GetMetadataCollection();
-
-        var flags = _flags;
-
-        if (Kind == TagHelperKind.Component)
-        {
-            flags |= TagHelperFlags.IsComponent;
-        }
-        else if (Kind == TagHelperKind.ChildContent)
-        {
-            flags |= TagHelperFlags.IsChildContent;
-        }
-
         return new TagHelperDescriptor(
-            flags,
+            _flags,
             Kind,
             RuntimeKind,
             Name,
@@ -151,7 +138,7 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
             TagMatchingRules.ToImmutable(),
             BoundAttributes.ToImmutable(),
             AllowedChildTags.ToImmutable(),
-            metadata,
+            _metadata.GetMetadataCollection(),
             diagnostics);
     }
 
