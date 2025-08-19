@@ -436,22 +436,36 @@ public class ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper test
         bool supportsFileCreation = true)
     {
         var shortComponent = TagHelperDescriptorBuilder.CreateComponent("Fully.Qualified.Component", "TestAssembly");
+        shortComponent.SetTypeName(
+            fullName: "Fully.Qualified.Component",
+            typeNamespace: "Fully.Qualified",
+            typeNameIdentifier: "Component");
         shortComponent.CaseSensitive = true;
         shortComponent.TagMatchingRule(rule => rule.TagName = "Component");
-        shortComponent.SetMetadata(CommonMetadata.TypeNamespace("Fully.Qualified"));
+
         var fullyQualifiedComponent = TagHelperDescriptorBuilder.CreateComponent("Fully.Qualified.Component", "TestAssembly");
+        fullyQualifiedComponent.SetTypeName(
+            fullName: "Fully.Qualified.Component",
+            typeNamespace: "Fully.Qualified",
+            typeNameIdentifier: "Component");
         fullyQualifiedComponent.CaseSensitive = true;
         fullyQualifiedComponent.TagMatchingRule(rule => rule.TagName = "Fully.Qualified.Component");
-        fullyQualifiedComponent.SetMetadata(CommonMetadata.TypeNamespace("Fully.Qualified"));
 
         var shortGenericComponent = TagHelperDescriptorBuilder.CreateComponent("Fully.Qualified.GenericComponent<T>", "TestAssembly");
+        shortGenericComponent.SetTypeName(
+            fullName: "Fully.Qualified.GenericComponent<T>",
+            typeNamespace: "Fully.Qualified",
+            typeNameIdentifier: "GenericComponent");
         shortGenericComponent.CaseSensitive = true;
         shortGenericComponent.TagMatchingRule(rule => rule.TagName = "GenericComponent");
-        shortGenericComponent.SetMetadata(CommonMetadata.TypeNamespace("Fully.Qualified"));
+
         var fullyQualifiedGenericComponent = TagHelperDescriptorBuilder.CreateComponent("Fully.Qualified.GenericComponent<T>", "TestAssembly");
+        fullyQualifiedGenericComponent.SetTypeName(
+            fullName: "Fully.Qualified.GenericComponent<T>",
+            typeNamespace: "Fully.Qualified",
+            typeNameIdentifier: "GenericComponent");
         fullyQualifiedGenericComponent.CaseSensitive = true;
         fullyQualifiedGenericComponent.TagMatchingRule(rule => rule.TagName = "Fully.Qualified.GenericComponent");
-        fullyQualifiedGenericComponent.SetMetadata(CommonMetadata.TypeNamespace("Fully.Qualified"));
 
         var tagHelpers = ImmutableArray.Create(shortComponent.Build(), fullyQualifiedComponent.Build(), shortGenericComponent.Build(), fullyQualifiedGenericComponent.Build());
 

@@ -64,7 +64,7 @@ internal class ViewComponentTagHelperDescriptorFactory
             out var descriptorBuilder);
 
         descriptorBuilder.RuntimeKind = RuntimeKind.ITagHelper;
-        descriptorBuilder.TypeName = typeName;
+        descriptorBuilder.SetTypeName($"__Generated__{shortName}ViewComponentTagHelper", typeNamespace: null, typeNameIdentifier: null);
 
         descriptorBuilder.SetMetadata(KeyValuePair.Create(ViewComponentTagHelperMetadata.Name, shortName));
 

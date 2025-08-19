@@ -41,7 +41,10 @@ internal sealed class KeyTagHelperDescriptorProvider() : TagHelperDescriptorProv
             TagHelperKind.Key, "Key", ComponentsApi.AssemblyName,
             out var builder);
 
-        builder.TypeName = "Microsoft.AspNetCore.Components.Key";
+        builder.SetTypeName(
+            fullName: "Microsoft.AspNetCore.Components.Key",
+            typeNamespace: "Microsoft.AspNetCore.Components",
+            typeNameIdentifier: "Key");
 
         builder.CaseSensitive = true;
         builder.ClassifyAttributesOnly = true;

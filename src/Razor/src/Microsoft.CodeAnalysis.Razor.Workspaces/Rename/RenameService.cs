@@ -185,7 +185,7 @@ internal class RenameService(
             if (originTagHelper.IsFullyQualifiedNameMatch)
             {
                 // Fully qualified binding, our "new name" needs to be fully qualified.
-                var @namespace = originTagHelper.GetTypeNamespace();
+                var @namespace = originTagHelper.TypeNamespace;
                 if (@namespace == null)
                 {
                     return;

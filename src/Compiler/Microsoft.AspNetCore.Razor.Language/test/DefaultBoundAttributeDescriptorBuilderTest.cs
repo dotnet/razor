@@ -29,10 +29,8 @@ public class DefaultBoundAttributeDescriptorBuilderTest
     public void DisplayName_DefaultsToPropertyLookingDisplayName()
     {
         // Arrange
-        var tagHelperBuilder = new TagHelperDescriptorBuilder(TagHelperKind.ITagHelper, "TestTagHelper", "Test")
-        {
-            TypeName = "TestTagHelper"
-        };
+        var tagHelperBuilder = new TagHelperDescriptorBuilder(TagHelperKind.ITagHelper, "TestTagHelper", "Test");
+        tagHelperBuilder.SetTypeName("TestTagHelper", typeNamespace: null, typeNameIdentifier: null);
 
         var builder = new BoundAttributeDescriptorBuilder(tagHelperBuilder);
         builder

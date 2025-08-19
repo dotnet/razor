@@ -100,7 +100,7 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
                 for (var j = 0; j < usings.Count; j++)
                 {
                     var usingNamespace = usings[j].Content;
-                    if (string.Equals(tagHelper.GetTypeNamespace(), usingNamespace, StringComparison.Ordinal))
+                    if (string.Equals(tagHelper.TypeNamespace, usingNamespace, StringComparison.Ordinal))
                     {
                         if (candidate == null)
                         {

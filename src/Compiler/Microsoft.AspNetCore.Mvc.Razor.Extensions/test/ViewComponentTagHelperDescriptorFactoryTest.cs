@@ -24,19 +24,16 @@ public class ViewComponentTagHelperDescriptorFactoryTest
             .TypeName("__Generated__StringParameterViewComponentTagHelper")
             .Metadata(ViewComponentTagHelperMetadata.Name, "StringParameter")
             .DisplayName("StringParameterViewComponentTagHelper")
-            .TagMatchingRuleDescriptor(rule =>
-                rule
+            .TagMatchingRuleDescriptor(rule => rule
                 .RequireTagName("vc:string-parameter")
                 .RequireAttributeDescriptor(attribute => attribute.Name("foo"))
                 .RequireAttributeDescriptor(attribute => attribute.Name("bar")))
-            .BoundAttributeDescriptor(attribute =>
-                attribute
+            .BoundAttributeDescriptor(attribute => attribute
                 .Name("foo")
                 .PropertyName("foo")
                 .TypeName(typeof(string).FullName)
                 .DisplayName("string StringParameterViewComponentTagHelper.foo"))
-            .BoundAttributeDescriptor(attribute =>
-                attribute
+            .BoundAttributeDescriptor(attribute => attribute
                 .Name("bar")
                 .PropertyName("bar")
                 .TypeName(typeof(string).FullName)

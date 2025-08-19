@@ -76,6 +76,8 @@ namespace Test
         Assert.Equal("Test.MyComponent", component.Name);
         Assert.Equal("Test.MyComponent", component.DisplayName);
         Assert.Equal("Test.MyComponent", component.TypeName);
+        Assert.Equal("Test", component.TypeNamespace);
+        Assert.Equal("MyComponent", component.TypeNameIdentifier);
 
         // Our use of matching rules is also very simple, and derived from the name. Verifying
         // it once in detail here and then ignoring it.
@@ -86,13 +88,6 @@ namespace Test
         Assert.Null(rule.ParentTag);
         Assert.Equal("MyComponent", rule.TagName);
         Assert.Equal(TagStructure.Unspecified, rule.TagStructure);
-
-        // Our use of metadata is also (for now) an invariant for all Components - other than the type name
-        // which is trivial. Verifying it once in detail and then ignoring it.
-        Assert.Collection(
-            component.Metadata.OrderBy(kvp => kvp.Key),
-            kvp => { Assert.Equal(TagHelperMetadata.Common.TypeNameIdentifier, kvp.Key); Assert.Equal("MyComponent", kvp.Value); },
-            kvp => { Assert.Equal(TagHelperMetadata.Common.TypeNamespace, kvp.Key); Assert.Equal("Test", kvp.Value); });
 
         // Our use of bound attributes is what tests will focus on. As you might expect right now, this test
         // is going to cover a lot of trivial stuff that will be true for all components/component-properties.

@@ -365,7 +365,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
                     continue;
                 }
 
-                var tagHelperTypeNamespace = tagHelper.GetTypeNamespace().AsMemory();
+                var tagHelperTypeNamespace = tagHelper.TypeNamespace.AsMemory();
 
                 if (tagHelperTypeNamespace.IsEmpty)
                 {
@@ -543,7 +543,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
         // open file in the editor. We mangle the class name for its generated code, so using that here to filter these out.
         internal static bool IsTagHelperFromMangledClass(TagHelperDescriptor tagHelper)
         {
-            return ComponentMetadata.IsMangledClass(tagHelper.GetTypeNameIdentifier());
+            return ComponentMetadata.IsMangledClass(tagHelper.TypeNameIdentifier);
         }
     }
 }

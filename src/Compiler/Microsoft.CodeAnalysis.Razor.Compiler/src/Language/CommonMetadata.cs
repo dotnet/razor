@@ -9,8 +9,4 @@ public static class CommonMetadata
 {
     internal static KeyValuePair<string, string?> MakeTrue(string key)
         => new(key, bool.TrueString);
-    internal static KeyValuePair<string, string?> TypeNamespace(string value)
-        => new(TagHelperMetadata.Common.TypeNamespace, value);
-    internal static KeyValuePair<string, string?> TypeNameIdentifier(string value)
-        => new(TagHelperMetadata.Common.TypeNameIdentifier, value);
 }

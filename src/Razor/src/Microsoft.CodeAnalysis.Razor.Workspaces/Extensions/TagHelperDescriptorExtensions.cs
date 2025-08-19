@@ -13,7 +13,7 @@ internal static class TagHelperDescriptorExtensions
 
     public static string? TryGetComponentTag(this TagHelperDescriptor descriptor)
     {
-        var typeName = descriptor.GetTypeNameIdentifier();
+        var typeName = descriptor.TypeNameIdentifier;
         if (string.IsNullOrWhiteSpace(typeName))
         {
             return null;

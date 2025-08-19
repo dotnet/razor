@@ -25,7 +25,9 @@ public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
     public string Name { get; }
     public string AssemblyName { get; }
 
-    public string TypeName => TypeNameObject.GetTypeName().AssumeNotNull();
+    public string TypeName => TypeNameObject.FullName.AssumeNotNull();
+    public string? TypeNamespace => TypeNameObject.Namespace;
+    public string? TypeNameIdentifier => TypeNameObject.Name;
 
     public string? Documentation => DocumentationObject.GetText();
 

@@ -134,9 +134,13 @@ public static class TestTagHelperDescriptorBuilderExtensions
         return builder;
     }
 
-    public static TagHelperDescriptorBuilder TypeName(this TagHelperDescriptorBuilder builder, string typeName)
+    public static TagHelperDescriptorBuilder TypeName(
+        this TagHelperDescriptorBuilder builder,
+        string fullName,
+        string typeNamespace = null,
+        string typeNameIdentifier = null)
     {
-        builder.TypeName = typeName;
+        builder.SetTypeName(fullName, typeNamespace, typeNameIdentifier);
 
         return builder;
     }

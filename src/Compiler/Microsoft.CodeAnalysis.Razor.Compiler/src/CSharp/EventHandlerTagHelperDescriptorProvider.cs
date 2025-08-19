@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -158,7 +157,7 @@ internal sealed class EventHandlerTagHelperDescriptorProvider : TagHelperDescrip
                 TagHelperKind.EventHandler, attribute, ComponentsApi.AssemblyName,
                 out var builder);
 
-            builder.TypeName = typeName;
+            builder.SetTypeName(typeName, typeNamespace, typeNameIdentifier);
 
             builder.CaseSensitive = true;
             builder.ClassifyAttributesOnly = true;
@@ -169,9 +168,7 @@ internal sealed class EventHandlerTagHelperDescriptorProvider : TagHelperDescrip
                     eventArgType));
 
             builder.SetMetadata(
-                new(ComponentMetadata.EventHandler.EventArgsType, eventArgType),
-                TypeNamespace(typeNamespace),
-                TypeNameIdentifier(typeNameIdentifier));
+                KeyValuePair.Create<string, string?>(ComponentMetadata.EventHandler.EventArgsType, eventArgType));
 
             builder.TagMatchingRule(rule =>
             {

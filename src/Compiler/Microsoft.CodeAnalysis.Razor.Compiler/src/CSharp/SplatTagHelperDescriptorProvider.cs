@@ -5,7 +5,6 @@ using System;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -41,7 +40,10 @@ internal sealed class SplatTagHelperDescriptorProvider : TagHelperDescriptorProv
             TagHelperKind.Splat, "Attributes", ComponentsApi.AssemblyName,
             out var builder);
 
-        builder.TypeName = "Microsoft.AspNetCore.Components.Attributes";
+        builder.SetTypeName(
+            fullName: "Microsoft.AspNetCore.Components.Attributes",
+            typeNamespace: "Microsoft.AspNetCore.Components",
+            typeNameIdentifier: "Attributes");
 
         builder.CaseSensitive = true;
         builder.ClassifyAttributesOnly = true;

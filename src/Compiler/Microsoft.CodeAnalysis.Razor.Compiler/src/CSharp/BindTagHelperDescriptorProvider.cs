@@ -124,16 +124,17 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
             TagHelperKind.Bind, "Bind", ComponentsApi.AssemblyName,
             out var builder);
 
-        builder.TypeName = "Microsoft.AspNetCore.Components.Bind";
+        builder.SetTypeName(
+            fullName: "Microsoft.AspNetCore.Components.Bind",
+            typeNamespace: "Microsoft.AspNetCore.Components",
+            typeNameIdentifier: "Bind");
 
         builder.CaseSensitive = true;
         builder.ClassifyAttributesOnly = true;
         builder.SetDocumentation(DocumentationDescriptor.BindTagHelper_Fallback);
 
         builder.SetMetadata(
-            MakeTrue(ComponentMetadata.Bind.FallbackKey),
-            TypeNamespace("Microsoft.AspNetCore.Components"),
-            TypeNameIdentifier("Bind"));
+            MakeTrue(ComponentMetadata.Bind.FallbackKey));
 
         builder.TagMatchingRule(rule =>
         {
@@ -360,7 +361,7 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
                 TagHelperKind.Bind, name, ComponentsApi.AssemblyName,
                 out var builder);
 
-            builder.TypeName = typeName;
+            builder.SetTypeName(typeName, typeNamespace, typeNameIdentifier);
 
             builder.CaseSensitive = true;
             builder.ClassifyAttributesOnly = true;
@@ -389,9 +390,6 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
                 // tag helpers match.
                 metadata.Add(ComponentMetadata.Bind.TypeAttribute, typeAttribute);
             }
-
-            metadata.Add(TypeNamespace(typeNamespace));
-            metadata.Add(TypeNameIdentifier(typeNameIdentifier));
 
             builder.SetMetadata(metadata.Build());
 
@@ -591,7 +589,7 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
                     TagHelperKind.Bind, tagHelper.Name, tagHelper.AssemblyName,
                     out var builder);
 
-                builder.TypeName = tagHelper.TypeName;
+                builder.SetTypeName(tagHelper.TypeNameObject);
 
                 builder.DisplayName = tagHelper.DisplayName;
                 builder.CaseSensitive = true;
@@ -609,9 +607,6 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
                 {
                     metadata.Add(ComponentMetadata.Bind.ExpressionAttribute, expressionAttribute.Name);
                 }
-
-                metadata.Add(TypeNamespace(tagHelper.GetTypeNamespace()));
-                metadata.Add(TypeNameIdentifier(tagHelper.GetTypeNameIdentifier()));
 
                 // Match the component and attribute name
                 builder.TagMatchingRule(rule =>

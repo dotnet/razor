@@ -326,7 +326,11 @@ public abstract class CodeActionEndToEndTestBase(ITestOutputHelper testOutput) :
             //     void OnDragStart(<Microsoft.AspNetCore.Components.Web.DragEventArgs<string> args) {}
             // }
             builder = TagHelperDescriptorBuilder.CreateComponent("TestGenericComponent", "Microsoft.AspNetCore.Components");
-            builder.TypeName = "Microsoft.AspNetCore.Components.TestGenericComponent";
+            builder.SetTypeName(
+                fullName: "Microsoft.AspNetCore.Components.TestGenericComponent",
+                typeNamespace: "Microsoft.AspNetCore.Components",
+                typeNameIdentifier: "TestGenericComponent");
+
             builder.BoundAttributeDescriptor(configure => configure
                 .Name("OnDragStart")
                 .TypeName("System.Action<Microsoft.AspNetCore.Components.Web.DragEventArgs<TItem>>")
@@ -342,9 +346,6 @@ public abstract class CodeActionEndToEndTestBase(ITestOutputHelper testOutput) :
                 .PropertyName("TItem")
                 .Metadata(new TypeParameterMetadata()));
             builder.TagMatchingRule(rule => rule.RequireTagName("TestGenericComponent"));
-            builder.SetMetadata(
-                new(TagHelperMetadata.Common.TypeNamespace, "Microsoft.AspNetCore.Components"),
-                new(TagHelperMetadata.Common.TypeNameIdentifier, "TestGenericComponent"));
             yield return builder.Build();
 
             // Sets up a component to make the following available
@@ -356,7 +357,10 @@ public abstract class CodeActionEndToEndTestBase(ITestOutputHelper testOutput) :
             //     void OnDragStart(<Microsoft.AspNetCore.Components.Web.DragEventArgs args) {}
             // }
             builder = TagHelperDescriptorBuilder.CreateComponent("TestComponent", "Microsoft.AspNetCore.Components");
-            builder.TypeName = "Microsoft.AspNetCore.Components.TestComponent";
+            builder.SetTypeName(
+                fullName: "Microsoft.AspNetCore.Components.TestComponent",
+                typeNamespace: "Microsoft.AspNetCore.Components",
+                typeNameIdentifier: "TestComponent");
             builder.BoundAttributeDescriptor(configure => configure
                 .Name("OnDragStart")
                 .TypeName("System.Action<Microsoft.AspNetCore.Components.Web.DragEventArgs>")
@@ -366,9 +370,6 @@ public abstract class CodeActionEndToEndTestBase(ITestOutputHelper testOutput) :
                     IsDelegateSignature = true
                 }));
             builder.TagMatchingRule(rule => rule.RequireTagName("TestComponent"));
-            builder.SetMetadata(
-                new(TagHelperMetadata.Common.TypeNamespace, "Microsoft.AspNetCore.Components"),
-                new(TagHelperMetadata.Common.TypeNameIdentifier, "TestComponent"));
             yield return builder.Build();
         }
     }

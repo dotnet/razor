@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -47,9 +48,12 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
 
     public string? TypeName
     {
-        get => _typeNameObject.GetTypeName();
+        get => _typeNameObject.FullName;
         set => _typeNameObject = TypeNameObject.From(value);
     }
+
+    public string? TypeNamespace => _typeNameObject.Namespace;
+    public string? TypeNameIdentifier => _typeNameObject.Name;
 
     public bool CaseSensitive
     {
@@ -81,6 +85,21 @@ public sealed partial class TagHelperDescriptorBuilder : TagHelperObjectBuilder<
 
     public bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
         => _metadata.TryGetMetadataValue(key, out value);
+
+    internal void SetTypeName(TypeNameObject typeName)
+    {
+        _typeNameObject = typeName;
+    }
+
+    public void SetTypeName(string fullName, string? typeNamespace, string? typeNameIdentifier)
+    {
+        _typeNameObject = TypeNameObject.From(fullName, typeNamespace, typeNameIdentifier);
+    }
+
+    public void SetTypeName(INamedTypeSymbol namedType)
+    {
+        _typeNameObject = TypeNameObject.From(namedType);
+    }
 
     public TagHelperObjectBuilderCollection<AllowedChildTagDescriptor, AllowedChildTagDescriptorBuilder> AllowedChildTags { get; }
         = new(AllowedChildTagDescriptorBuilder.Pool);

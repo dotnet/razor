@@ -221,10 +221,27 @@ internal static partial class ObjectReaders
                 return default;
             }
 
+            if (reader.TryReadNull())
+            {
+                return default;
+            }
+
             if (reader.IsInteger)
             {
                 var index = reader.ReadByte();
                 return new(index);
+            }
+
+            if (reader.IsObjectStart)
+            {
+                return reader.ReadNonNullObject(static reader =>
+                {
+                    var fullName = reader.ReadNonNullString(nameof(TypeNameObject.FullName));
+                    var namespaceName = reader.ReadStringOrNull(nameof(TypeNameObject.Namespace));
+                    var name = reader.ReadStringOrNull(nameof(TypeNameObject.Name));
+
+                    return TypeNameObject.From(fullName, Cached(namespaceName), Cached(name));
+                });
             }
 
             Debug.Assert(reader.IsString);

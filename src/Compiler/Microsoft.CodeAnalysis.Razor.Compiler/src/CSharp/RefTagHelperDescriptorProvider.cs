@@ -41,7 +41,10 @@ internal sealed class RefTagHelperDescriptorProvider() : TagHelperDescriptorProv
             TagHelperKind.Ref, "Ref", ComponentsApi.AssemblyName,
             out var builder);
 
-        builder.TypeName = "Microsoft.AspNetCore.Components.Ref";
+        builder.SetTypeName(
+            fullName: "Microsoft.AspNetCore.Components.Ref",
+            typeNamespace: "Microsoft.AspNetCore.Components",
+            typeNameIdentifier: "Ref");
 
         builder.CaseSensitive = true;
         builder.ClassifyAttributesOnly = true;

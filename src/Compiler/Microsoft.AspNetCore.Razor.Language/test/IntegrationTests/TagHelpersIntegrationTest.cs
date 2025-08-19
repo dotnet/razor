@@ -104,7 +104,7 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
         IEnumerable<Action<BoundAttributeDescriptorBuilder>>? attributes = null)
     {
         var builder = TagHelperDescriptorBuilder.CreateTagHelper(typeName, assemblyName);
-        builder.TypeName = typeName;
+        builder.SetTypeName(typeName, typeNamespace: null, typeNameIdentifier: null);
 
         if (attributes != null)
         {

@@ -41,7 +41,10 @@ internal sealed class RenderModeTagHelperDescriptorProvider() : TagHelperDescrip
             TagHelperKind.RenderMode, "RenderMode", ComponentsApi.AssemblyName,
             out var builder);
 
-        builder.TypeName = "Microsoft.AspNetCore.Components.RenderMode";
+        builder.SetTypeName(
+            fullName: "Microsoft.AspNetCore.Components.RenderMode",
+            typeNamespace: "Microsoft.AspNetCore.Components",
+            typeNameIdentifier: "RenderMode");
 
         builder.CaseSensitive = true;
         builder.ClassifyAttributesOnly = true;

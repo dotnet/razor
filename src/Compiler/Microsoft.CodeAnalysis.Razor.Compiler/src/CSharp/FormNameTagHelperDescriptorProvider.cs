@@ -51,7 +51,10 @@ internal sealed class FormNameTagHelperDescriptorProvider() : TagHelperDescripto
             assemblyName: ComponentsApi.AssemblyName,
             builder: out var builder);
 
-        builder.TypeName = "Microsoft.AspNetCore.Components.FormName";
+        builder.SetTypeName(
+            fullName: "Microsoft.AspNetCore.Components.FormName",
+            typeNamespace: "Microsoft.AspNetCore.Components",
+            typeNameIdentifier: "FormName");
 
         builder.CaseSensitive = true;
         builder.ClassifyAttributesOnly = true;

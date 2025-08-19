@@ -10,7 +10,6 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -30,20 +29,15 @@ internal sealed class DefaultTagHelperDescriptorFactory(bool includeDocumentatio
             return null;
         }
 
-        var typeName = type.GetFullName();
+        var typeName = TypeNameObject.From(type);
         var assemblyName = type.ContainingAssembly.Identity.Name;
 
         using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
-            typeName, assemblyName,
+            typeName.FullName.AssumeNotNull(), assemblyName,
             out var descriptorBuilder);
 
-        descriptorBuilder.TypeName = typeName;
-
+        descriptorBuilder.SetTypeName(typeName);
         descriptorBuilder.RuntimeKind = RuntimeKind.ITagHelper;
-
-        descriptorBuilder.SetMetadata(
-            TypeNamespace(type.ContainingNamespace.GetFullName()),
-            TypeNameIdentifier(type.Name));
 
         AddBoundAttributes(type, descriptorBuilder);
         AddTagMatchingRules(type, descriptorBuilder);

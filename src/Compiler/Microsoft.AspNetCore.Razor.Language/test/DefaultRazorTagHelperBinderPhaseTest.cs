@@ -1250,7 +1250,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
     {
         // Arrange & Act
         var descriptor = CreateComponentDescriptor(typeName, typeName, "Test.dll");
-        var tagHelperTypeNamespace = descriptor.GetTypeNamespace();
+        var tagHelperTypeNamespace = descriptor.TypeNamespace;
 
         var result = DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor.IsTypeNamespaceInScope(tagHelperTypeNamespace, currentNamespace);
 
@@ -1311,12 +1311,15 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         bool componentFullyQualified = false)
     {
         var builder = TagHelperDescriptorBuilder.CreateTagHelper(kind, typeName, assemblyName);
-        builder.TypeName = typeName;
 
-        using var metadata = new MetadataBuilder();
+        if (typeNamespace == null || typeNameIdentifier == null)
+        {
+            var lastDotIndex = typeName.LastIndexOf('.');
+            typeNamespace ??= lastDotIndex >= 0 ? typeName[..lastDotIndex] : "";
+            typeNameIdentifier ??= lastDotIndex >= 0 ? typeName[(lastDotIndex + 1)..] : typeName;
+        }
 
-        metadata.Add(TypeNamespace(typeNamespace ?? (typeName.LastIndexOf('.') == -1 ? "" : typeName[..typeName.LastIndexOf('.')])));
-        metadata.Add(TypeNameIdentifier(typeNameIdentifier ?? (typeName.LastIndexOf('.') == -1 ? typeName : typeName[(typeName.LastIndexOf('.') + 1)..])));
+        builder.SetTypeName(typeName, typeNamespace, typeNameIdentifier);
 
         if (attributes != null)
         {
@@ -1346,8 +1349,6 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         {
             builder.IsFullyQualifiedNameMatch = true;
         }
-
-        builder.SetMetadata(metadata.Build());
 
         var descriptor = builder.Build();
 

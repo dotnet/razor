@@ -63,15 +63,32 @@ internal static partial class ObjectWriters
             }
         }
 
-        static void WriteTypeNameObject(JsonDataWriter writer, string propertyName, TypeNameObject typeNameObject)
+        static void WriteTypeNameObject(JsonDataWriter writer, string propertyName, TypeNameObject value)
         {
-            if (typeNameObject.Index is byte index)
+            if (value.IsNull)
+            {
+                // Don't write property if the value is null.
+            }
+            else if (value.Index is byte index)
             {
                 writer.Write(propertyName, index);
             }
-            else if (typeNameObject.StringValue is string stringValue)
+            else if (value.Namespace is null && value.Name is null)
             {
-                writer.Write(propertyName, stringValue);
+                // If we only have a full name, write that.
+                writer.Write(propertyName, value.FullName.AssumeNotNull());
+            }
+            else
+            {
+                writer.WriteObject(propertyName, value, static (writer, value) =>
+                {
+                    Debug.Assert(value.Index is null);
+
+                    writer.Write(nameof(value.FullName), value.FullName);
+                    writer.WriteIfNotNull(nameof(value.Namespace), value.Namespace);
+                    writer.WriteIfNotNull(nameof(value.Name), value.Name);
+                });
+
             }
         }
 

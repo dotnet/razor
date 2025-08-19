@@ -92,19 +92,16 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
             ImmutableArray<(IPropertySymbol property, PropertyKind kind)> properties,
             bool fullyQualified)
         {
-            var typeName = type.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat);
+            var typeName = TypeNameObject.From(type);
             var assemblyName = type.ContainingAssembly.Identity.Name;
 
             using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
-                TagHelperKind.Component, typeName, assemblyName, out var builder);
+                TagHelperKind.Component, typeName.FullName.AssumeNotNull(), assemblyName, out var builder);
 
             builder.RuntimeKind = RuntimeKind.IComponent;
-            builder.TypeName = typeName;
+            builder.SetTypeName(typeName);
 
             using var metadata = new MetadataBuilder();
-
-            metadata.Add(TypeNamespace(type.ContainingNamespace.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat)));
-            metadata.Add(TypeNameIdentifier(type.Name));
 
             builder.CaseSensitive = true;
 
@@ -112,7 +109,7 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
             {
                 var fullName = type.ContainingNamespace.IsGlobalNamespace
                     ? type.Name
-                    : $"{type.ContainingNamespace.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat)}.{type.Name}";
+                    : $"{type.ContainingNamespace.GetFullName()}.{type.Name}";
 
                 builder.TagMatchingRule(r =>
                 {
@@ -556,12 +553,7 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
                 TagHelperKind.ChildContent, typeName, assemblyName,
                 out var builder);
 
-            builder.TypeName = typeName;
-
-            using var metadata = new MetadataBuilder();
-
-            metadata.Add(TypeNamespace(component.GetTypeNamespace()));
-            metadata.Add(TypeNameIdentifier(component.GetTypeNameIdentifier()));
+            builder.SetTypeName(typeName, component.TypeNamespace, component.TypeNameIdentifier);
 
             builder.CaseSensitive = true;
 
@@ -589,8 +581,6 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
             {
                 builder.IsFullyQualifiedNameMatch = true;
             }
-
-            builder.SetMetadata(metadata.Build());
 
             var descriptor = builder.Build();
 

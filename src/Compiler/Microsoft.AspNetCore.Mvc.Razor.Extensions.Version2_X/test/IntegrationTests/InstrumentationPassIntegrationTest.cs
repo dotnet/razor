@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.IntegrationTests;
 
@@ -88,7 +87,7 @@ public class InstrumentationPassIntegrationTest : IntegrationTestBase
         IEnumerable<Action<BoundAttributeDescriptorBuilder>> attributes = null)
     {
         var builder = TagHelperDescriptorBuilder.CreateTagHelper(typeName, assemblyName);
-        builder.TypeName = typeName;
+        builder.SetTypeName(typeName, typeNamespace: null, typeNameIdentifier: null);
 
         if (attributes != null)
         {
