@@ -16,10 +16,45 @@ Copyright (c) .NET Foundation. All rights reserved.
 
 <Project>
 
+  <!-- Razor cohosting support for projects that don't use the Razor SDK -->
+
   <!--
-    We only want this file to be used when the user is not using the Razor or Web sdks. We can using 'UsingMicrosoftNETSdkRazor' to check this,
-    and rather than putting that condition on everything we do, we just move our work to a separate targets file that is imported conditionally.
+    If there are any .razor or .cshtml files in this project we want to do three things:
+
+      1. Add a 'ContainsRazorFile' capability to the project so tooling can light up as necessary
+      2. Reference the Razor source generator
+      3. Add each .razor and .cshtml file to the project as an AdditionalFiles item so the source generator can see it
   -->
-  <Import Project="Microsoft.CSharpExtension.DesignTime.Impl.targets" Condition="'Language' == 'C#' And 'TargetRuntime' == 'Managed' And 'UsingMicrosoftNETSdkRazor' != 'true'"/>
+
+  <PropertyGroup>
+    <_HasRazorOrCshtmlFiles>false</_HasRazorOrCshtmlFiles>
+  </PropertyGroup>
+
+  <!-- .NET Framework uses a different editor in VS -->
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework' And '$(UsingMicrosoftNETSdkRazor)' != 'true'">
+    <!-- Collect all Razor and CSHTML files -->
+    <_RazorOrCshtmlFiles Include="**\*.razor;**\*.cshtml" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework' And '$(UsingMicrosoftNETSdkRazor)' != 'true'">
+    <_HasRazorOrCshtmlFiles Condition="'@(_RazorOrCshtmlFiles)' != ''">true</_HasRazorOrCshtmlFiles>
+  </PropertyGroup>
+
+  <!-- Add a capability to control initialization of Razor in the IDE -->
+  <PropertyGroup Condition="'$(_HasRazorOrCshtmlFiles)' == 'true'">
+    <ProjectCapability Include="RazorWithoutSdk" />
+  </PropertyGroup>
+
+  <!-- As a get out of jail card, we let users turn off anything impactful, but their IDE won't really work. -->
+  <ItemGroup Condition="'$(DisableAllRazorFilesAsAdditionalFiles)' != 'true' And '$(_HasRazorOrCshtmlFiles)' == 'true'">
+    <AdditionalFiles Include="@(_RazorOrCshtmlFiles)" Condition="'@(_RazorOrCshtmlFiles)' != ''" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(DisableAutomaticRazorSourceGeneratorReference)' != 'true' And '$(_HasRazorOrCshtmlFiles)' == 'true'">
+    <!-- TODO: How do we work out which path to use? -->
+    <Analyzer Include="Microsoft.CodeAnalysis.Razor.Compiler.dll" />
+    <Analyzer Include="Microsoft.Extensions.ObjectPool.dll" />
+    <Analyzer Include="Microsoft.AspNetCore.Razor.Utilities.Shared.dll" />
+  </ItemGroup>
 
 </Project>
