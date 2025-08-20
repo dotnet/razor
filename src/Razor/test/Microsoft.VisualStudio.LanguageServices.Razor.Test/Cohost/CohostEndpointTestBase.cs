@@ -155,6 +155,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     protected TextDocument CreateProjectAndRazorDocument(
         string contents,
         RazorFileKind? fileKind = null,
+        string? documentFilePath = null,
         (string fileName, string contents)[]? additionalFiles = null,
         bool createSeparateRemoteAndLocalWorkspaces = false,
         bool inGlobalNamespace = false,
@@ -163,7 +164,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         // Using IsLegacy means null == component, so easier for test authors
         var isComponent = fileKind != RazorFileKind.Legacy;
 
-        var documentFilePath = isComponent
+        documentFilePath ??= isComponent
             ? TestProjectData.SomeProjectComponentFile1.FilePath
             : TestProjectData.SomeProjectFile1.FilePath;
 
