@@ -147,49 +147,46 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
 
         public override void VisitMethodDeclaration(MethodDeclarationIntermediateNode node)
         {
-            var codeWriter = CodeWriter;
+            var writer = CodeWriter;
 
-            codeWriter.WriteLine("#pragma warning disable 1998");
+            writer.WriteLine("#pragma warning disable 1998");
 
-            for (var i = 0; i < node.Modifiers.Count; i++)
+            foreach (var modifier in node.Modifiers)
             {
-                codeWriter.Write($"{node.Modifiers[i]} ");
+                writer.Write($"{modifier} ");
             }
 
-            codeWriter.Write($"{node.ReturnType} ");
-            codeWriter.Write($"{node.MethodName}(");
+            writer.Write($"{node.ReturnType} {node.Name}(");
 
             var isFirst = true;
 
-            for (var i = 0; i < node.Parameters.Count; i++)
+            foreach (var parameter in node.Parameters)
             {
-                var parameter = node.Parameters[i];
-
                 if (isFirst)
                 {
                     isFirst = false;
                 }
                 else
                 {
-                    codeWriter.Write(", ");
+                    writer.Write(", ");
                 }
 
                 for (var j = 0; j < parameter.Modifiers.Count; j++)
                 {
-                    codeWriter.Write($"{parameter.Modifiers[j]} ");
+                    writer.Write($"{parameter.Modifiers[j]} ");
                 }
 
-                codeWriter.Write($"{parameter.TypeName} {parameter.ParameterName}");
+                writer.Write($"{parameter.TypeName} {parameter.ParameterName}");
             }
 
-            codeWriter.WriteLine(")");
+            writer.WriteLine(")");
 
-            using (codeWriter.BuildScope())
+            using (writer.BuildScope())
             {
                 VisitDefault(node);
             }
 
-            codeWriter.WriteLine("#pragma warning restore 1998");
+            writer.WriteLine("#pragma warning restore 1998");
         }
 
         public override void VisitFieldDeclaration(FieldDeclarationIntermediateNode node)

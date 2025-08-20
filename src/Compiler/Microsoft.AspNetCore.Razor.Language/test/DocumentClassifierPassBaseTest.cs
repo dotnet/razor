@@ -199,7 +199,7 @@ public class DocumentClassifierPassBaseTest : RazorProjectEngineTestBase
         Assert.Equal("TestClass", @class.Name);
 
         var method = SingleChild<MethodDeclarationIntermediateNode>(@class);
-        Assert.Equal("TestMethod", method.MethodName);
+        Assert.Equal("TestMethod", method.Name);
     }
 
     [Fact]
@@ -266,7 +266,7 @@ public class DocumentClassifierPassBaseTest : RazorProjectEngineTestBase
         {
             @namespace.Name = Namespace;
             @class.Name = Class;
-            @method.MethodName = Method;
+            @method.Name = Method;
         }
 
         protected override void ConfigureTarget(CodeTargetBuilder builder)

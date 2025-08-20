@@ -306,10 +306,9 @@ public class DefaultDocumentWriterTest
         var builder = IntermediateNodeBuilder.Create(document);
         builder.Add(new MethodDeclarationIntermediateNode()
         {
-            Modifiers = { "internal", "virtual", "async", },
-            MethodName = "TestMethod",
-            Parameters =
-            {
+            Modifiers = ["internal", "virtual", "async"],
+            Name = "TestMethod",
+            Parameters = [
                 new MethodParameter()
                 {
                     Modifiers = { "readonly", "ref" },
@@ -321,7 +320,7 @@ public class DefaultDocumentWriterTest
                     ParameterName = "b",
                     TypeName = "string"
                 }
-            },
+            ],
             ReturnType = "string"
         });
 

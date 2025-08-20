@@ -397,12 +397,9 @@ public sealed class RazorProjectEngine
 
         configurationFeature.ConfigureMethod.Add((document, method) =>
         {
-            method.MethodName = "ExecuteAsync";
+            method.Name = "ExecuteAsync";
             method.ReturnType = $"global::{typeof(Task).FullName}";
-
-            method.Modifiers.Add("public");
-            method.Modifiers.Add("async");
-            method.Modifiers.Add("override");
+            method.Modifiers = ["public", "async", "override"];
         });
     }
 
