@@ -309,17 +309,8 @@ public class DefaultDocumentWriterTest
             Modifiers = ["internal", "virtual", "async"],
             Name = "TestMethod",
             Parameters = [
-                new MethodParameter()
-                {
-                    Modifiers = { "readonly", "ref" },
-                    ParameterName = "a",
-                    TypeName = "int"
-                },
-                new MethodParameter()
-                {
-                    ParameterName = "b",
-                    TypeName = "string"
-                }
+                new(name: "a", type: "int", modifiers: ["readonly", "ref"]),
+                new(name: "b", type: "string")
             ],
             ReturnType = "string"
         });

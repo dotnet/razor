@@ -171,12 +171,12 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
                     writer.Write(", ");
                 }
 
-                for (var j = 0; j < parameter.Modifiers.Count; j++)
+                foreach (var modifier in parameter.Modifiers)
                 {
-                    writer.Write($"{parameter.Modifiers[j]} ");
+                    writer.Write($"{modifier} ");
                 }
 
-                writer.Write($"{parameter.TypeName} {parameter.ParameterName}");
+                writer.Write($"{parameter.Type} {parameter.Name}");
             }
 
             writer.WriteLine(")");

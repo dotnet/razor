@@ -137,11 +137,9 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
             method.Name = ComponentsApi.ComponentBase.BuildRenderTree;
             method.Modifiers = ["protected", "override"];
 
-            method.Parameters = [new MethodParameter()
-            {
-                ParameterName = ComponentsApi.RenderTreeBuilder.BuilderParameter,
-                TypeName = $"global::{ComponentsApi.RenderTreeBuilder.FullTypeName}"
-            }];
+            method.Parameters = [new(
+                name: ComponentsApi.RenderTreeBuilder.BuilderParameter,
+                type: $"global::{ComponentsApi.RenderTreeBuilder.FullTypeName}")];
         }
     }
 

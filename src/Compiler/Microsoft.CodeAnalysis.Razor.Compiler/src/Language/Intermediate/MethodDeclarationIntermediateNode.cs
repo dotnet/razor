@@ -36,16 +36,16 @@ public sealed class MethodDeclarationIntermediateNode : MemberDeclarationInterme
     {
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
-        for (var i = 0; i < parameter.Modifiers.Count; i++)
+        foreach (var modifier in parameter.Modifiers)
         {
-            builder.Append(parameter.Modifiers[i]);
+            builder.Append(modifier);
             builder.Append(' ');
         }
 
-        builder.Append(parameter.TypeName);
+        builder.Append(parameter.Type);
         builder.Append(' ');
 
-        builder.Append(parameter.ParameterName);
+        builder.Append(parameter.Name);
 
         return builder.ToString();
     }
