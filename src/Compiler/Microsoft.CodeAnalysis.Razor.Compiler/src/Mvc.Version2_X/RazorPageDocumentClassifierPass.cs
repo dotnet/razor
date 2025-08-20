@@ -53,7 +53,7 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
     {
         base.OnDocumentStructureCreated(codeDocument, @namespace, @class, method);
 
-        @namespace.Content = "AspNetCore";
+        @namespace.Name = "AspNetCore";
 
         @class.BaseType = new BaseTypeWithModel("global::Microsoft.AspNetCore.Mvc.RazorPages.Page");
 

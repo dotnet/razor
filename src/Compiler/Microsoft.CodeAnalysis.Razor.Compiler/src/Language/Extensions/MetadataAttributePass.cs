@@ -70,9 +70,9 @@ internal class MetadataAttributePass : IntermediateNodePassBase, IRazorOptimizat
         // [RazorCompiledItem] is an [assembly: ... ] attribute, so it needs to be applied at the global scope.
         documentNode.Children.Insert(0, new RazorCompiledItemAttributeIntermediateNode()
         {
-            TypeName = string.IsNullOrEmpty(@namespace.Content)
+            TypeName = string.IsNullOrEmpty(@namespace.Name)
                 ? @class.ClassName
-                : @namespace.Content + "." + @class.ClassName,
+                : @namespace.Name + "." + @class.ClassName,
             Kind = documentNode.DocumentKind,
             Identifier = identifier,
         });

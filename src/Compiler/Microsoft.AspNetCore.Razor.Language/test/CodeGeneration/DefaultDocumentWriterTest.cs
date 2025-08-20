@@ -135,7 +135,7 @@ public class DefaultDocumentWriterTest
         var builder = IntermediateNodeBuilder.Create(document);
         builder.Add(new NamespaceDeclarationIntermediateNode()
         {
-            Content = "TestNamespace",
+            Name = "TestNamespace",
         });
 
         var codeDocument = TestRazorCodeDocument.CreateEmpty();

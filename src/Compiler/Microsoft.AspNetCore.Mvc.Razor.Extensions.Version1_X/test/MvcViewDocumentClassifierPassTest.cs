@@ -64,7 +64,7 @@ public class MvcViewDocumentClassifierPassTest : RazorProjectEngineTestBase
         var documentnode = processor.GetDocumentNode();
         var namespaceNode = documentnode.GetNamespaceNode();
 
-        Assert.Equal("AspNetCore", namespaceNode.Content);
+        Assert.Equal("AspNetCore", namespaceNode.Name);
     }
 
     [Fact]

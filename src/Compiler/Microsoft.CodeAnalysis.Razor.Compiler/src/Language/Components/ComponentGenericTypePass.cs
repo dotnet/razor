@@ -414,7 +414,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
 
         private void CreateTypeInferenceMethod(DocumentIntermediateNode documentNode, ComponentIntermediateNode node, List<CascadingGenericTypeParameter>? receivesCascadingGenericTypes)
         {
-            var @namespace = documentNode.FindPrimaryNamespace().AssumeNotNull().Content;
+            var @namespace = documentNode.FindPrimaryNamespace().AssumeNotNull().Name;
             @namespace = string.IsNullOrEmpty(@namespace) ? "__Blazor" : "__Blazor." + @namespace;
             @namespace += "." + documentNode.FindPrimaryClass().AssumeNotNull().ClassName;
 
@@ -451,7 +451,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
             {
                 namespaceNode = new NamespaceDeclarationIntermediateNode()
                 {
-                    Content = @namespace,
+                    Name = @namespace,
                     IsGenericTyped = true,
                 };
 

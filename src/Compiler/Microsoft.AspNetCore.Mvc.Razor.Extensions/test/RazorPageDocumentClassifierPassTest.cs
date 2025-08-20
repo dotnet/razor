@@ -179,7 +179,7 @@ public class RazorPageDocumentClassifierPassTest : RazorProjectEngineTestBase
         var documentNode = processor.GetDocumentNode();
         var namespaceNode = documentNode.GetNamespaceNode();
 
-        Assert.Equal("AspNetCore", namespaceNode.Content);
+        Assert.Equal("AspNetCore", namespaceNode.Name);
     }
 
     [Fact]

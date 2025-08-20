@@ -130,7 +130,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         builder.Add(new DirectiveTokenIntermediateNode() { Content = "WebApplication.Account" });
         builder.Pop();
 
-        var @namespace = new NamespaceDeclarationIntermediateNode() { Content = "default" };
+        var @namespace = new NamespaceDeclarationIntermediateNode() { Name = "default" };
         builder.Push(@namespace);
 
         var @class = new ClassDeclarationIntermediateNode() { ClassName = "default" };
@@ -142,7 +142,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         ProjectEngine.ExecutePass<NamespaceDirective.Pass>(codeDocument, documentNode);
 
         // Assert
-        Assert.Equal("WebApplication.Account.Manage", @namespace.Content);
+        Assert.Equal("WebApplication.Account.Manage", @namespace.Name);
         Assert.Equal("default", @class.ClassName);
     }
 
@@ -177,7 +177,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         builder.Add(new DirectiveTokenIntermediateNode() { Content = "WebApplication.Account.Manage" });
         builder.Pop();
 
-        var @namespace = new NamespaceDeclarationIntermediateNode() { Content = "default" };
+        var @namespace = new NamespaceDeclarationIntermediateNode() { Name = "default" };
         builder.Push(@namespace);
 
         var @class = new ClassDeclarationIntermediateNode() { ClassName = "default" };
@@ -189,7 +189,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         ProjectEngine.ExecutePass<NamespaceDirective.Pass>(codeDocument, documentNode);
 
         // Assert
-        Assert.Equal("WebApplication.Account.Manage", @namespace.Content);
+        Assert.Equal("WebApplication.Account.Manage", @namespace.Name);
         Assert.Equal("default", @class.ClassName);
     }
 
@@ -214,7 +214,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         builder.Add(new DirectiveTokenIntermediateNode() { Content = "WebApplication.Account" });
         builder.Pop();
 
-        var @namespace = new NamespaceDeclarationIntermediateNode() { Content = "default" };
+        var @namespace = new NamespaceDeclarationIntermediateNode() { Name = "default" };
         builder.Push(@namespace);
 
         var @class = new ClassDeclarationIntermediateNode() { ClassName = "default" };
@@ -226,7 +226,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         ProjectEngine.ExecutePass<NamespaceDirective.Pass>(codeDocument, documentNode);
 
         // Assert
-        Assert.Equal("WebApplication.Account.Manage_Info", @namespace.Content);
+        Assert.Equal("WebApplication.Account.Manage_Info", @namespace.Name);
         Assert.Equal("default", @class.ClassName);
     }
 
@@ -261,7 +261,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         builder.Add(new DirectiveTokenIntermediateNode() { Content = "WebApplication.Account.Manage" });
         builder.Pop();
 
-        var @namespace = new NamespaceDeclarationIntermediateNode() { Content = "default" };
+        var @namespace = new NamespaceDeclarationIntermediateNode() { Name = "default" };
         builder.Push(@namespace);
 
         var @class = new ClassDeclarationIntermediateNode() { ClassName = "default" };
@@ -273,7 +273,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         ProjectEngine.ExecutePass<NamespaceDirective.Pass>(codeDocument, documentNode);
 
         // Assert
-        Assert.Equal("WebApplication.Account.Manage", @namespace.Content);
+        Assert.Equal("WebApplication.Account.Manage", @namespace.Name);
         Assert.Equal("default", @class.ClassName);
     }
 
@@ -298,7 +298,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         builder.Add(new DirectiveTokenIntermediateNode() { Content = "WebApplication.Account" });
         builder.Pop();
 
-        var @namespace = new NamespaceDeclarationIntermediateNode() { Content = "default" };
+        var @namespace = new NamespaceDeclarationIntermediateNode() { Name = "default" };
         builder.Push(@namespace);
 
         var @class = new ClassDeclarationIntermediateNode() { ClassName = "default" };
@@ -310,7 +310,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         ProjectEngine.ExecutePass<NamespaceDirective.Pass>(codeDocument, documentNode);
 
         // Assert
-        Assert.Equal("WebApplication.Account", @namespace.Content);
+        Assert.Equal("WebApplication.Account", @namespace.Name);
         Assert.Equal("default", @class.ClassName);
     }
 
@@ -333,7 +333,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         builder.Add(new DirectiveTokenIntermediateNode() { Content = "WebApplication.Account" });
         builder.Pop();
 
-        var @namespace = new NamespaceDeclarationIntermediateNode() { Content = "default" };
+        var @namespace = new NamespaceDeclarationIntermediateNode() { Name = "default" };
         builder.Push(@namespace);
 
         var @class = new ClassDeclarationIntermediateNode() { ClassName = "default" };
@@ -345,7 +345,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         ProjectEngine.ExecutePass<NamespaceDirective.Pass>(codeDocument, documentNode);
 
         // Assert
-        Assert.Equal("default", @namespace.Content);
+        Assert.Equal("default", @namespace.Name);
         Assert.Equal("default", @class.ClassName);
     }
 }

@@ -111,7 +111,7 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
         {
             var codeWriter = CodeWriter;
 
-            using (codeWriter.BuildNamespace(node.Content, node.Source, _context))
+            using (codeWriter.BuildNamespace(node.Name, node.Source, _context))
             {
                 if (node.Children.OfType<UsingDirectiveIntermediateNode>().Any())
                 {

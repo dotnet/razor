@@ -31,7 +31,7 @@ public class ConsolidatedMvcViewDocumentClassifierPassTest : RazorProjectEngineT
         var documentNode = processor.GetDocumentNode();
         var namespaceNode = documentNode.GetNamespaceNode();
 
-        Assert.Equal("AspNetCoreGeneratedDocument", namespaceNode.Content);
+        Assert.Equal("AspNetCoreGeneratedDocument", namespaceNode.Name);
     }
 
     [Fact]

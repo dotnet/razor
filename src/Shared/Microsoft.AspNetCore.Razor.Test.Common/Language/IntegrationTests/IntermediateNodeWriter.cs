@@ -109,7 +109,7 @@ public class IntermediateNodeWriter :
 
     public override void VisitNamespaceDeclaration(NamespaceDeclarationIntermediateNode node)
     {
-        WriteContentNode(node, node.Content);
+        WriteContentNode(node, node.Name);
     }
 
     public override void VisitMethodDeclaration(MethodDeclarationIntermediateNode node)

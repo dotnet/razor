@@ -153,7 +153,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
             IsPrimaryNamespace = true,
-            Content = "Some.Namespace"
+            Name = "Some.Namespace"
         };
 
         builder.Push(@namespace);
@@ -185,7 +185,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
             IsPrimaryNamespace = true,
-            Content = "Some.Namespace"
+            Name = "Some.Namespace"
         };
 
         builder.Push(@namespace);
@@ -222,7 +222,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
             IsPrimaryNamespace = true,
-            Content = "Some.Namespace"
+            Name = "Some.Namespace"
         };
 
         builder.Push(@namespace);
@@ -259,7 +259,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
             IsPrimaryNamespace = true,
-            Content = "Some.Namespace"
+            Name = "Some.Namespace"
         };
 
         builder.Push(@namespace);
@@ -307,7 +307,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
             IsPrimaryNamespace = true,
-            Content = "Some.Namespace"
+            Name = "Some.Namespace"
         };
 
         builder.Push(@namespace);
@@ -367,7 +367,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
             IsPrimaryNamespace = true,
-            Content = "Some.Namespace"
+            Name = "Some.Namespace"
         };
 
         builder.Push(@namespace);

@@ -392,7 +392,7 @@ public sealed class RazorProjectEngine
 
         configurationFeature.ConfigureNamespace.Add((document, @namespace) =>
         {
-            @namespace.Content = "Razor";
+            @namespace.Name = "Razor";
         });
 
         configurationFeature.ConfigureMethod.Add((document, method) =>

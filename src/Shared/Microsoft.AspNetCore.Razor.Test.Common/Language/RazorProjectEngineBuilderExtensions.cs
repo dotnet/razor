@@ -63,7 +63,7 @@ public static class RazorProjectEngineBuilderExtensions
 
         feature.ConfigureNamespace.Add((RazorCodeDocument codeDocument, NamespaceDeclarationIntermediateNode node) =>
         {
-            node.Content = "Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles";
+            node.Name = "Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles";
         });
 
         feature.ConfigureClass.Add((RazorCodeDocument codeDocument, ClassDeclarationIntermediateNode node) =>

@@ -52,7 +52,7 @@ public class ComponentDocumentClassifierPassTest : RazorProjectEngineTestBase
         var documentNode = processor.GetDocumentNode();
         var namespaceNode = documentNode.GetNamespaceNode();
 
-        Assert.Equal("MyApp", namespaceNode.Content);
+        Assert.Equal("MyApp", namespaceNode.Name);
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public class ComponentDocumentClassifierPassTest : RazorProjectEngineTestBase
         var classNode = documentNode.GetClassNode();
 
         Assert.Equal("Banner", classNode.ClassName);
-        Assert.Equal("MyApp.Pages.Announcements", namespaceNode.Content);
+        Assert.Equal("MyApp.Pages.Announcements", namespaceNode.Name);
     }
 
     [Fact]
@@ -128,7 +128,7 @@ public class ComponentDocumentClassifierPassTest : RazorProjectEngineTestBase
         var classNode = documentNode.GetClassNode();
 
         Assert.Equal("path_with_invalid_chars", classNode.ClassName);
-        Assert.Equal("My._App", namespaceNode.Content);
+        Assert.Equal("My._App", namespaceNode.Name);
     }
 
     [Fact]
