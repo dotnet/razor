@@ -116,15 +116,6 @@
       "vsBranch": "rel/d18.0",
       "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d18.0]"
-    },
-    "release/dev-next": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "main",
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[Validation]"
     }
   }
 }
