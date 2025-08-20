@@ -705,14 +705,7 @@ internal static class CodeWriterExtensions
             for (var i = 0; i < typeParameters.Length; i++)
             {
                 var typeParameter = typeParameters[i];
-                if (typeParameter.ParameterNameSource is { } source)
-                {
-                    WriteWithPragma(writer, typeParameter.ParameterName, context, source);
-                }
-                else
-                {
-                    writer.Write(typeParameter.ParameterName);
-                }
+                WriteToken(typeParameter.Name);
 
                 // Write ',' between parameters, but not after them
                 if (i < typeParameters.Length - 1)
@@ -756,24 +749,12 @@ internal static class CodeWriterExtensions
         }
 
         writer.WriteLine();
-        if (typeParameters != null)
+
+        if (!typeParameters.IsDefaultOrEmpty)
         {
             foreach (var typeParameter in typeParameters)
             {
-                var constraint = typeParameter.Constraints;
-                if (constraint != null)
-                {
-                    if (typeParameter.ConstraintsSource is { } source)
-                    {
-                        Debug.Assert(context != null);
-                        WriteWithPragma(writer, constraint, context, source);
-                    }
-                    else
-                    {
-                        writer.Write(constraint);
-                        writer.WriteLine();
-                    }
-                }
+                WriteOptionalToken(typeParameter.Constraints, addLineBreak: true);
             }
         }
 
@@ -784,15 +765,15 @@ internal static class CodeWriterExtensions
 
         return new CSharpCodeWritingScope(writer);
 
-        void WriteOptionalToken(IntermediateToken token)
+        void WriteOptionalToken(IntermediateToken token, bool addLineBreak = false)
         {
             if (token is not null)
             {
-                WriteToken(token);
+                WriteToken(token, addLineBreak);
             }
         }
 
-        void WriteToken(IntermediateToken token)
+        void WriteToken(IntermediateToken token, bool addLineBreak = false)
         {
             if (token.Source is { } source)
             {
@@ -801,6 +782,11 @@ internal static class CodeWriterExtensions
             else
             {
                 writer.Write(token.Content);
+
+                if (addLineBreak)
+                {
+                    writer.WriteLine();
+                }
             }
         }
 

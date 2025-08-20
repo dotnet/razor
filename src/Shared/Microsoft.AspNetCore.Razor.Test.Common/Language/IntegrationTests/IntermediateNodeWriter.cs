@@ -49,7 +49,7 @@ public class IntermediateNodeWriter :
         // Avoid adding the type parameters to the baseline if they aren't present.
         if (!node.TypeParameters.IsDefaultOrEmpty)
         {
-            entries.Add(string.Join(", ", node.TypeParameters.Select(p => p.ParameterName)));
+            entries.Add(string.Join(", ", node.TypeParameters.Select(p => p.Name.Content)));
         }
 
         WriteContentNode(node, entries.ToArray());
