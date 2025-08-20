@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -306,7 +304,11 @@ public class CSharpCodeWriterTest
         using var writer = new CodeWriter();
 
         // Act
-        writer.WriteField(Array.Empty<string>(), new[] { "private" }, "global::System.String", "_myString");
+        writer.WriteField(
+            suppressWarnings: [],
+            modifiers: ["private"],
+            type: "global::System.String",
+            name: "_myString");
 
         // Assert
         var output = writer.GetText().ToString();
@@ -323,7 +325,11 @@ public class CSharpCodeWriterTest
         using var writer = new CodeWriter();
 
         // Act
-        writer.WriteField(Array.Empty<string>(), new[] { "private", "readonly", "static" }, "global::System.String", "_myString");
+        writer.WriteField(
+            suppressWarnings: [],
+            modifiers: ["private", "readonly", "static"],
+            type: "global::System.String",
+            name: "_myString");
 
         // Assert
         var output = writer.GetText().ToString();
@@ -334,17 +340,17 @@ public class CSharpCodeWriterTest
     }
 
     [Fact]
-    public void WriteField_WithModifiersAndSupressions_WritesFieldDeclaration()
+    public void WriteField_WithModifiersAndSuppressions_WritesFieldDeclaration()
     {
         // Arrange
         using var writer = new CodeWriter();
 
         // Act
         writer.WriteField(
-            new[] { "0001", "0002", },
-            new[] { "private", "readonly", "static" },
-            "global::System.String",
-            "_myString");
+            suppressWarnings: ["0001", "0002"],
+            modifiers: ["private", "readonly", "static"],
+            type: "global::System.String",
+            name: "_myString");
 
         // Assert
         var output = writer.GetText().ToString();
@@ -405,7 +411,7 @@ public class CSharpCodeWriterTest
 
         // Act
         writer.BuildClassDeclaration(modifiers: [], name: "C", baseType: null, interfaces: [], typeParameters: [], context: null);
-        writer.WriteField(Array.Empty<string>(), Array.Empty<string>(), "int", "f");
+        writer.WriteField(suppressWarnings: [], modifiers: [], type: "int", name: "f");
 
         // Assert
         var output = writer.GetText().ToString();
@@ -429,7 +435,7 @@ public class CSharpCodeWriterTest
 
         // Act
         writer.BuildClassDeclaration(modifiers: [], name: "C", baseType: null, interfaces: [], typeParameters: [], context: null);
-        writer.WriteField(Array.Empty<string>(), Array.Empty<string>(), "int", "f");
+        writer.WriteField(suppressWarnings: [], modifiers: [], type: "int", name: "f");
 
         // Assert
         var output = writer.GetText().ToString();

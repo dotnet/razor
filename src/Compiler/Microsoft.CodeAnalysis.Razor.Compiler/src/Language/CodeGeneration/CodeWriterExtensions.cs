@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -367,7 +367,7 @@ internal static class CodeWriterExtensions
         [InterpolatedStringHandlerArgument(nameof(writer))] ref CodeWriter.WriteInterpolatedStringHandler handler)
     {
         writer.Write(ref handler);
-        
+
         return writer.Write("(");
     }
 
@@ -449,50 +449,37 @@ internal static class CodeWriterExtensions
             string.Format(CultureInfo.InvariantCulture, InstanceMethodFormat, instanceName, methodName));
     }
 
-    public static CodeWriter WriteField(this CodeWriter writer, IList<string> suppressWarnings, IList<string> modifiers, string typeName, string fieldName)
+    public static CodeWriter WriteField(
+        this CodeWriter writer,
+        ImmutableArray<string> suppressWarnings,
+        ImmutableArray<string> modifiers,
+        string type,
+        string name)
     {
-        if (suppressWarnings == null)
+        if (!suppressWarnings.IsDefaultOrEmpty)
         {
-            throw new ArgumentNullException(nameof(suppressWarnings));
+            foreach (var suppressWarning in suppressWarnings)
+            {
+                writer.WriteLine($"#pragma warning disable {suppressWarning}");
+            }
         }
 
-        if (modifiers == null)
+        if (!modifiers.IsDefaultOrEmpty)
         {
-            throw new ArgumentNullException(nameof(modifiers));
+            foreach (var modifier in modifiers)
+            {
+                writer.Write($"{modifier} ");
+            }
         }
 
-        if (typeName == null)
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
+        writer.WriteLine($"{type} {name};");
 
-        if (fieldName == null)
+        if (!suppressWarnings.IsDefaultOrEmpty)
         {
-            throw new ArgumentNullException(nameof(fieldName));
-        }
-
-        for (var i = 0; i < suppressWarnings.Count; i++)
-        {
-            writer.Write("#pragma warning disable ");
-            writer.WriteLine(suppressWarnings[i]);
-        }
-
-        for (var i = 0; i < modifiers.Count; i++)
-        {
-            writer.Write(modifiers[i]);
-            writer.Write(" ");
-        }
-
-        writer.Write(typeName);
-        writer.Write(" ");
-        writer.Write(fieldName);
-        writer.Write(";");
-        writer.WriteLine();
-
-        for (var i = suppressWarnings.Count - 1; i >= 0; i--)
-        {
-            writer.Write("#pragma warning restore ");
-            writer.WriteLine(suppressWarnings[i]);
+            for (var i = suppressWarnings.Length - 1; i >= 0; i--)
+            {
+                writer.WriteLine($"#pragma warning restore {suppressWarnings[i]}");
+            }
         }
 
         return writer;

@@ -194,7 +194,7 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
 
         public override void VisitFieldDeclaration(FieldDeclarationIntermediateNode node)
         {
-            CodeWriter.WriteField(node.SuppressWarnings, node.Modifiers, node.FieldType, node.FieldName);
+            CodeWriter.WriteField(node.SuppressWarnings, node.Modifiers, node.Type, node.Name);
         }
 
         public override void VisitPropertyDeclaration(PropertyDeclarationIntermediateNode node)
