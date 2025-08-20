@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -498,32 +498,44 @@ internal static class CodeWriterExtensions
             .WriteEndMethodInvocation(endLine);
     }
 
-    public static CodeWriter WritePropertyDeclaration(this CodeWriter writer, IList<string> modifiers, IntermediateToken type, string propertyName, string propertyExpression, CodeRenderingContext context)
+    public static CodeWriter WritePropertyDeclaration(
+        this CodeWriter writer,
+        ImmutableArray<string> modifiers,
+        IntermediateToken type,
+        string name,
+        string expressionBody,
+        CodeRenderingContext context)
     {
-        WritePropertyDeclarationPreamble(writer, modifiers, type.Content, propertyName, type.Source, propertySpan: null, context);
-        writer.Write(" => ");
-        writer.Write(propertyExpression);
-        writer.WriteLine(";");
+        WritePropertyDeclarationPreamble(writer, modifiers, type.Content, name, type.Source, nameSpan: null, context);
+
+        writer.WriteLine($" => {expressionBody};");
+
         return writer;
     }
 
-    public static CodeWriter WriteAutoPropertyDeclaration(this CodeWriter writer, IList<string> modifiers, string typeName, string propertyName, SourceSpan? typeSpan = null, SourceSpan? propertySpan = null, CodeRenderingContext context = null, bool privateSetter = false, bool defaultValue = false)
+    public static CodeWriter WriteAutoPropertyDeclaration(
+        this CodeWriter writer,
+        ImmutableArray<string> modifiers,
+        string type,
+        string name,
+        SourceSpan? typeSpan = null,
+        SourceSpan? nameSpan = null,
+        CodeRenderingContext context = null,
+        bool privateSetter = false,
+        bool defaultValue = false)
     {
-        ArgHelper.ThrowIfNull(modifiers);
-        ArgHelper.ThrowIfNull(typeName);
-        ArgHelper.ThrowIfNull(propertyName);
-
-        WritePropertyDeclarationPreamble(writer, modifiers, typeName, propertyName, typeSpan, propertySpan, context);
+        WritePropertyDeclarationPreamble(writer, modifiers, type, name, typeSpan, nameSpan, context);
 
         writer.Write(" { get;");
+
         if (privateSetter)
         {
             writer.Write(" private");
         }
-        writer.Write(" set; }");
-        writer.WriteLine();
 
-        if (defaultValue && context?.Options.SuppressNullabilityEnforcement == false && context?.Options.DesignTime == false)
+        writer.WriteLine(" set; }");
+
+        if (defaultValue && context?.Options is { SuppressNullabilityEnforcement: false, DesignTime: false })
         {
             writer.WriteLine(" = default!;");
         }
@@ -531,17 +543,26 @@ internal static class CodeWriterExtensions
         return writer;
     }
 
-    private static void WritePropertyDeclarationPreamble(CodeWriter writer, IList<string> modifiers, string typeName, string propertyName, SourceSpan? typeSpan, SourceSpan? propertySpan, CodeRenderingContext context)
+    private static void WritePropertyDeclarationPreamble(
+        CodeWriter writer,
+        ImmutableArray<string> modifiers,
+        string type,
+        string name,
+        SourceSpan? typeSpan,
+        SourceSpan? nameSpan,
+        CodeRenderingContext context)
     {
-        for (var i = 0; i < modifiers.Count; i++)
+        if (!modifiers.IsDefaultOrEmpty)
         {
-            writer.Write(modifiers[i]);
-            writer.Write(" ");
+            foreach (var modifier in modifiers)
+            {
+                writer.Write($"{modifier} ");
+            }
         }
 
-        WriteToken(writer, typeName, typeSpan, context);
+        WriteToken(writer, type, typeSpan, context);
         writer.Write(" ");
-        WriteToken(writer, propertyName, propertySpan, context);
+        WriteToken(writer, name, nameSpan, context);
 
         static void WriteToken(CodeWriter writer, string content, SourceSpan? span, CodeRenderingContext context)
         {

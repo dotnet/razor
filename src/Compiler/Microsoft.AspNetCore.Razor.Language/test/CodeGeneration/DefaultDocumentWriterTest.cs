@@ -396,10 +396,10 @@ public class DefaultDocumentWriterTest
         var builder = IntermediateNodeBuilder.Create(document);
         builder.Add(new PropertyDeclarationIntermediateNode()
         {
-            Modifiers = { "internal", "virtual", },
-            PropertyName = "Foo",
-            PropertyType = IntermediateNodeFactory.CSharpToken("string"),
-            PropertyExpression = "default"
+            Modifiers = ["internal", "virtual"],
+            Name = "Foo",
+            Type = IntermediateNodeFactory.CSharpToken("string"),
+            ExpressionBody = "default"
         });
 
         var codeDocument = TestRazorCodeDocument.CreateEmpty();

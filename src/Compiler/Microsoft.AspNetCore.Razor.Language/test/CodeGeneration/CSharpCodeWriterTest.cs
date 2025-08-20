@@ -372,7 +372,7 @@ public class CSharpCodeWriterTest
         using var writer = new CodeWriter();
 
         // Act
-        writer.WriteAutoPropertyDeclaration(new[] { "public" }, "global::System.String", "MyString");
+        writer.WriteAutoPropertyDeclaration(modifiers: ["public" ], type: "global::System.String", name: "MyString");
 
         // Assert
         var output = writer.GetText().ToString();
@@ -389,7 +389,7 @@ public class CSharpCodeWriterTest
         using var writer = new CodeWriter();
 
         // Act
-        writer.WriteAutoPropertyDeclaration(new[] { "public", "static" }, "global::System.String", "MyString");
+        writer.WriteAutoPropertyDeclaration(modifiers: ["public", "static"], type: "global::System.String", name: "MyString");
 
         // Assert
         var output = writer.GetText().ToString();
