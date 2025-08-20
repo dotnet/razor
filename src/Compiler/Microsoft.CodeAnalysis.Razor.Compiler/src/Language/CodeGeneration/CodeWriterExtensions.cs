@@ -674,11 +674,11 @@ internal static class CodeWriterExtensions
 
     public static CSharpCodeWritingScope BuildClassDeclaration(
         this CodeWriter writer,
-        IList<string> modifiers,
+        ImmutableArray<string> modifiers,
         string name,
         BaseTypeWithModel baseType,
-        IList<IntermediateToken> interfaces,
-        IList<TypeParameter> typeParameters,
+        ImmutableArray<IntermediateToken> interfaces,
+        ImmutableArray<TypeParameter> typeParameters,
         CodeRenderingContext context,
         bool useNullableContext = false)
     {
@@ -689,20 +689,20 @@ internal static class CodeWriterExtensions
             writer.WriteLine("#nullable restore");
         }
 
-        for (var i = 0; i < modifiers.Count; i++)
+        foreach (var modifier in modifiers)
         {
-            writer.Write(modifiers[i]);
+            writer.Write(modifier);
             writer.Write(" ");
         }
 
         writer.Write("class ");
         writer.Write(name);
 
-        if (typeParameters != null && typeParameters.Count > 0)
+        if (!typeParameters.IsDefaultOrEmpty)
         {
             writer.Write("<");
 
-            for (var i = 0; i < typeParameters.Count; i++)
+            for (var i = 0; i < typeParameters.Length; i++)
             {
                 var typeParameter = typeParameters[i];
                 if (typeParameter.ParameterNameSource is { } source)
@@ -715,7 +715,7 @@ internal static class CodeWriterExtensions
                 }
 
                 // Write ',' between parameters, but not after them
-                if (i < typeParameters.Count - 1)
+                if (i < typeParameters.Length - 1)
                 {
                     writer.Write(",");
                 }
@@ -725,7 +725,7 @@ internal static class CodeWriterExtensions
         }
 
         var hasBaseType = !string.IsNullOrWhiteSpace(baseType?.BaseType.Content);
-        var hasInterfaces = interfaces != null && interfaces.Count > 0;
+        var hasInterfaces = !interfaces.IsDefaultOrEmpty;
 
         if (hasBaseType || hasInterfaces)
         {
@@ -747,7 +747,7 @@ internal static class CodeWriterExtensions
             if (hasInterfaces)
             {
                 WriteToken(interfaces[0]);
-                for (var i = 1; i < interfaces.Count; i++)
+                for (var i = 1; i < interfaces.Length; i++)
                 {
                     writer.Write(", ");
                     WriteToken(interfaces[i]);

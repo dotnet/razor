@@ -47,23 +47,17 @@ public class MvcViewDocumentClassifierPass : DocumentClassifierPassBase
             // It's possible for a Razor document to not have a file path.
             // Eg. When we try to generate code for an in memory document like default imports.
             var checksum = ChecksumUtilities.BytesToString(codeDocument.Source.Text.GetChecksum());
-            @class.ClassName = "AspNetCore_" + checksum;
+            @class.Name = "AspNetCore_" + checksum;
         }
         else
         {
-            @class.ClassName = className;
+            @class.Name = className;
         }
         @class.BaseType = new BaseTypeWithModel("global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<TModel>", location: null);
-        @class.Modifiers.Clear();
-        if (_useConsolidatedMvcViews)
-        {
-            @class.Modifiers.Add("internal");
-            @class.Modifiers.Add("sealed");
-        }
-        else
-        {
-            @class.Modifiers.Add("public");
-        }
+
+        @class.Modifiers = _useConsolidatedMvcViews
+            ? ["internal", "sealed"]
+            : ["public"];
 
         @class.NullableContext = true;
 

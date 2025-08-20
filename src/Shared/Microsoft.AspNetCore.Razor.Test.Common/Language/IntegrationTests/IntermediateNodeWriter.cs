@@ -41,13 +41,13 @@ public class IntermediateNodeWriter :
         var entries = new List<string>()
         {
             string.Join(" ", node.Modifiers),
-            node.ClassName,
+            node.Name,
             node.BaseType is { } baseType ? $"{baseType.BaseType.Content}{baseType.GreaterThan?.Content}{baseType.ModelType?.Content}{baseType.LessThan?.Content}" : "",
             string.Join(", ", node.Interfaces.Select(i => i.Content))
         };
 
         // Avoid adding the type parameters to the baseline if they aren't present.
-        if (node.TypeParameters != null && node.TypeParameters.Count > 0)
+        if (!node.TypeParameters.IsDefaultOrEmpty)
         {
             entries.Add(string.Join(", ", node.TypeParameters.Select(p => p.ParameterName)));
         }

@@ -134,7 +134,7 @@ internal class DefaultDocumentWriter(CodeTarget codeTarget, RazorCodeGenerationO
         {
             using (CodeWriter.BuildClassDeclaration(
                 node.Modifiers,
-                node.ClassName,
+                node.Name,
                 node.BaseType,
                 node.Interfaces,
                 node.TypeParameters,

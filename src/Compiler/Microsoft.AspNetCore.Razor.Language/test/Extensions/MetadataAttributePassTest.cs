@@ -111,7 +111,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var @class = new ClassDeclarationIntermediateNode
         {
             IsPrimaryClass = true,
-            ClassName = "Test"
+            Name = "Test"
         };
 
         builder.Add(@class);
@@ -133,7 +133,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         Assert.Equal("/test.cshtml", checksum.Identifier);
 
         var foundClass = Assert.IsType<ClassDeclarationIntermediateNode>(@namespace.Children[1]);
-        Assert.Equal("Test", foundClass.ClassName);
+        Assert.Equal("Test", foundClass.Name);
     }
 
     [Fact]
@@ -193,7 +193,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var @class = new ClassDeclarationIntermediateNode
         {
             IsPrimaryClass = true,
-            ClassName = "Test"
+            Name = "Test"
         };
 
         builder.Add(@class);
@@ -230,7 +230,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var @class = new ClassDeclarationIntermediateNode
         {
             IsPrimaryClass = true,
-            ClassName = "Test"
+            Name = "Test"
         };
 
         builder.Add(@class);
@@ -267,7 +267,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var @class = new ClassDeclarationIntermediateNode
         {
             IsPrimaryClass = true,
-            ClassName = "Test",
+            Name = "Test",
         };
 
         builder.Add(@class);
@@ -315,7 +315,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var @class = new ClassDeclarationIntermediateNode
         {
             IsPrimaryClass = true,
-            ClassName = "Test",
+            Name = "Test",
         };
 
         builder.Add(@class);
@@ -375,7 +375,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var @class = new ClassDeclarationIntermediateNode
         {
             IsPrimaryClass = true,
-            ClassName = "Test"
+            Name = "Test"
         };
 
         builder.Add(@class);

@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
@@ -89,10 +90,8 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
 
         @namespace.Name = computedNamespace;
         @namespace.Source = computedNamespaceSpan;
-        @class.ClassName = computedClass;
-        @class.Modifiers.Clear();
-        @class.Modifiers.Add("public");
-        @class.Modifiers.Add("partial");
+        @class.Name = computedClass;
+        @class.Modifiers = ["public", "partial"];
 
         if (codeDocument.FileKind.IsComponentImport())
         {
@@ -117,6 +116,8 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
                 ? ComponentConstrainedTypeParamDirective.Directive
                 : ComponentTypeParamDirective.Directive;
 
+            using var typeParameters = new PooledArrayBuilder<TypeParameter>();
+
             foreach (var typeParamReference in documentNode.FindDirectiveReferences(directiveType))
             {
                 var typeParamNode = (DirectiveIntermediateNode)typeParamReference.Node;
@@ -129,7 +130,7 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
                 var typeParameter = typeParamNode.Tokens.First();
                 var constraints = typeParamNode.Tokens.Skip(1).FirstOrDefault();
 
-                @class.TypeParameters.Add(new TypeParameter()
+                typeParameters.Add(new TypeParameter()
                 {
                     ParameterName = typeParameter.Content,
                     ParameterNameSource = typeParameter.Source,
@@ -137,6 +138,8 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
                     ConstraintsSource = constraints?.Source,
                 });
             }
+
+            @class.TypeParameters = typeParameters.ToImmutableAndClear();
 
             method.ReturnType = "void";
             method.MethodName = ComponentsApi.ComponentBase.BuildRenderTree;

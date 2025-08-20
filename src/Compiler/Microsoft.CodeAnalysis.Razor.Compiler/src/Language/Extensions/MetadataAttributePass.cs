@@ -48,7 +48,7 @@ internal class MetadataAttributePass : IntermediateNodePassBase, IRazorOptimizat
         }
 
         var @class = documentNode.FindPrimaryClass();
-        if (@class == null || string.IsNullOrEmpty(@class.ClassName))
+        if (@class == null || string.IsNullOrEmpty(@class.Name))
         {
             // No class node or it's incomplete. Skip.
             return;
@@ -71,8 +71,8 @@ internal class MetadataAttributePass : IntermediateNodePassBase, IRazorOptimizat
         documentNode.Children.Insert(0, new RazorCompiledItemAttributeIntermediateNode()
         {
             TypeName = string.IsNullOrEmpty(@namespace.Name)
-                ? @class.ClassName
-                : @namespace.Name + "." + @class.ClassName,
+                ? @class.Name
+                : @namespace.Name + "." + @class.Name,
             Kind = documentNode.DocumentKind,
             Identifier = identifier,
         });

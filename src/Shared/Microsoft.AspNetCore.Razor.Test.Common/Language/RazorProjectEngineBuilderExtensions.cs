@@ -68,9 +68,8 @@ public static class RazorProjectEngineBuilderExtensions
 
         feature.ConfigureClass.Add((RazorCodeDocument codeDocument, ClassDeclarationIntermediateNode node) =>
         {
-            node.ClassName = testFileName.Replace('/', '_');
-            node.Modifiers.Clear();
-            node.Modifiers.Add("public");
+            node.Name = testFileName.Replace('/', '_');
+            node.Modifiers = ["public"];
         });
 
         feature.ConfigureMethod.Add((RazorCodeDocument codeDocument, MethodDeclarationIntermediateNode node) =>
