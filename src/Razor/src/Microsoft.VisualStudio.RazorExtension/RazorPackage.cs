@@ -49,8 +49,8 @@ namespace Microsoft.VisualStudio.RazorExtension;
 [ProvideUIContextRule(
         contextGuid: RazorConstants.RazorCapabilityPresentUIContext,
         name: "Razor Capability Present",
-        expression: "DotNetCoreWeb | DotNetCoreRazor | ContainsRazorFile",
-        termNames: ["DotNetCoreWeb", "DotNetCoreRazor", "ContainsRazorFile"],
+        expression: "DotNetCoreWeb | DotNetCoreRazor | RazorWithoutSdk",
+        termNames: ["DotNetCoreWeb", "DotNetCoreRazor", "RazorWithoutSdk"],
         termValues: ["SolutionHasProjectCapability:DotNetCoreWeb", "SolutionHasProjectCapability:DotNetCoreRazor", "SolutionHasProjectCapability:ContainsRazorFile"])]
 
 internal sealed class RazorPackage : AsyncPackage
