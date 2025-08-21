@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -17,7 +18,7 @@ public sealed class TagHelperIntermediateNode : IntermediateNode
 
     public string TagName { get; set; }
 
-    public IList<TagHelperDescriptor> TagHelpers { get; } = new List<TagHelperDescriptor>();
+    public ImmutableArray<TagHelperDescriptor> TagHelpers { get; init => field = value.NullToEmpty(); } = [];
 
     public TagHelperBodyIntermediateNode Body => Children.OfType<TagHelperBodyIntermediateNode>().SingleOrDefault();
 

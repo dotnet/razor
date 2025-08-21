@@ -1032,13 +1032,9 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 TagName = tagName,
                 TagMode = info.TagMode,
-                Source = BuildSourceSpanFromNode(node)
+                Source = BuildSourceSpanFromNode(node),
+                TagHelpers = info.BindingResult.Descriptors
             };
-
-            foreach (var tagHelper in info.BindingResult.Descriptors)
-            {
-                tagHelperNode.TagHelpers.Add(tagHelper);
-            }
 
             _builder.Push(tagHelperNode);
 
@@ -1775,13 +1771,9 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 TagName = tagName,
                 TagMode = info.TagMode,
-                Source = BuildSourceSpanFromNode(node)
+                Source = BuildSourceSpanFromNode(node),
+                TagHelpers = info.BindingResult.Descriptors
             };
-
-            foreach (var tagHelper in info.BindingResult.Descriptors)
-            {
-                tagHelperNode.TagHelpers.Add(tagHelper);
-            }
 
             if (node.StartTag != null &&
                 // We only want this error during the second phase of the two phase compilation.
