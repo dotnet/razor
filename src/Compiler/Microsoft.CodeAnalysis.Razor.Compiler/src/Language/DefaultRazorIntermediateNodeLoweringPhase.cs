@@ -1898,13 +1898,11 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                     }
 
                     IntermediateNode attributeNode = match.IsParameterMatch && directiveAttributeName.HasParameter
-                        ? new TagHelperDirectiveAttributeParameterIntermediateNode()
+                        ? new TagHelperDirectiveAttributeParameterIntermediateNode(match)
                         {
                             AttributeName = directiveAttributeName.Text,
                             AttributeNameWithoutParameter = directiveAttributeName.TextWithoutParameter,
                             OriginalAttributeName = attributeName,
-                            BoundAttributeParameter = match.Parameter,
-                            IsIndexerNameMatch = match.IsIndexerMatch,
                             AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                             Source = null
                         }
@@ -1993,13 +1991,11 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 foreach (var match in matches)
                 {
                     IntermediateNode attributeNode = match.IsParameterMatch && directiveAttributeName.HasParameter
-                        ? new TagHelperDirectiveAttributeParameterIntermediateNode()
+                        ? new TagHelperDirectiveAttributeParameterIntermediateNode(match)
                         {
                             AttributeName = directiveAttributeName.Text,
                             AttributeNameWithoutParameter = directiveAttributeName.TextWithoutParameter,
                             OriginalAttributeName = attributeName,
-                            BoundAttributeParameter = match.Parameter,
-                            IsIndexerNameMatch = match.IsIndexerMatch,
                             AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                             Source = BuildSourceSpanFromNode(attributeValueNode),
                             OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name)
