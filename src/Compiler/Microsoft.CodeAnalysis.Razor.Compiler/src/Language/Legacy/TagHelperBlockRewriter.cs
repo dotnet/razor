@@ -460,6 +460,7 @@ internal static class TagHelperBlockRewriter
         var isBoundBooleanAttribute = false;
         var isMissingDictionaryKey = false;
         var isDirectiveAttribute = false;
+        var isDuplicateAttribute = false;
 
         foreach (var descriptor in descriptors)
         {
@@ -476,15 +477,14 @@ internal static class TagHelperBlockRewriter
 
                 isDirectiveAttribute = match.Attribute.IsDirectiveAttribute;
 
+                if (!processedBoundAttributeNames.Add(name))
+                {
+                    // A bound attribute with the same name has already been processed.
+                    isDuplicateAttribute = true;
+                }
+
                 break;
             }
-        }
-
-        var isDuplicateAttribute = false;
-        if (isBoundAttribute && !processedBoundAttributeNames.Add(name))
-        {
-            // A bound attribute with the same name has already been processed.
-            isDuplicateAttribute = true;
         }
 
         return new TryParseResult
