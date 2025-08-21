@@ -2112,31 +2112,20 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         }
     }
 
-    private ref struct DirectiveAttributeName(ReadOnlySpan<char> original)
+    private ref struct DirectiveAttributeName(string original)
     {
         // Directive attributes should start with '@' unless the descriptors are misconfigured.
         // In that case, we would have already logged an error.
-        public readonly ReadOnlySpan<char> Span = original.StartsWith('@') ? original[1..] : original;
+        public readonly ReadOnlySpan<char> Span = original.StartsWith('@') ? original.AsSpan()[1..] : original;
+
+        public string Text => field ??= (Span.Length < original.Length ? Span.ToString() : original);
 
         private bool? _hasParameter;
-
-        public string Text => field ??= Span.ToString();
 
         public bool HasParameter => _hasParameter ??= Span.IndexOf(':') >= 0;
 
         public string TextWithoutParameter
-        {
-            get
-            {
-                return field ??= GetWithoutParameter(Span);
-
-                static string GetWithoutParameter(ReadOnlySpan<char> span)
-                {
-                    var index = span.IndexOf(':');
-                    return index >= 0 ? span[..index].ToString() : span.ToString();
-                }
-            }
-        }
+            => field ??= Span.IndexOf(':') is int index && index >= 0 ? Span[..index].ToString() : Text;
     }
 
     private class ComponentImportFileKindVisitor : LoweringVisitor
