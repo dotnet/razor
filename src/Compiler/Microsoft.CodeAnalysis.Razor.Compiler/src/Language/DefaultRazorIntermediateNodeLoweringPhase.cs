@@ -1906,12 +1906,10 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                             AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                             Source = null
                         }
-                        : new TagHelperDirectiveAttributeIntermediateNode()
+                        : new TagHelperDirectiveAttributeIntermediateNode(match)
                         {
                             AttributeName = directiveAttributeName.Text,
                             OriginalAttributeName = attributeName,
-                            BoundAttribute = match.Attribute,
-                            IsIndexerNameMatch = match.IsIndexerMatch,
                             AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                             Source = null,
                         };
@@ -2000,12 +1998,10 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                             Source = BuildSourceSpanFromNode(attributeValueNode),
                             OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name)
                         }
-                        : new TagHelperDirectiveAttributeIntermediateNode()
+                        : new TagHelperDirectiveAttributeIntermediateNode(match)
                         {
                             AttributeName = directiveAttributeName.Text,
                             OriginalAttributeName = attributeName,
-                            BoundAttribute = match.Attribute,
-                            IsIndexerNameMatch = match.IsIndexerMatch,
                             AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                             Source = BuildSourceSpanFromNode(attributeValueNode),
                             OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name)

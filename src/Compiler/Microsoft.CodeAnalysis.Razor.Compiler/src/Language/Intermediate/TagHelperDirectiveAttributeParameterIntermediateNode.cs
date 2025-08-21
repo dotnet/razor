@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Diagnostics;
-
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 public sealed class TagHelperDirectiveAttributeParameterIntermediateNode : IntermediateNode
@@ -27,8 +25,6 @@ public sealed class TagHelperDirectiveAttributeParameterIntermediateNode : Inter
 
     internal TagHelperDirectiveAttributeParameterIntermediateNode(TagHelperAttributeMatch match)
     {
-        Debug.Assert(match.IsParameterMatch);
-
         _match = match;
     }
 
