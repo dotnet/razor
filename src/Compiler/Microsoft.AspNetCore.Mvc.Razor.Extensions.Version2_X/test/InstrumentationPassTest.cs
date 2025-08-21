@@ -147,7 +147,11 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
 
-        builder.Push(new TagHelperIntermediateNode());
+        builder.Push(new TagHelperIntermediateNode()
+        {
+            TagMode = 0,
+            TagName = "Test"
+        });
 
         builder.Push(new TagHelperHtmlAttributeIntermediateNode()
         {
@@ -192,7 +196,11 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
 
-        builder.Push(new TagHelperIntermediateNode());
+        builder.Push(new TagHelperIntermediateNode()
+        {
+            TagMode = 0,
+            TagName = "Test"
+        });
 
         builder.Push(new TagHelperPropertyIntermediateNode(match: default)
         {
@@ -239,6 +247,8 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
 
         builder.Add(new TagHelperIntermediateNode()
         {
+            TagMode = 0,
+            TagName = "Test",
             Source = CreateSource(3)
         });
 
@@ -262,7 +272,11 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
 
         var builder = IntermediateNodeBuilder.Create(documentNode);
 
-        builder.Push(new TagHelperIntermediateNode());
+        builder.Push(new TagHelperIntermediateNode()
+        {
+            TagMode = 0,
+            TagName = "Test"
+        });
 
         // Act
         ProjectEngine.ExecutePass<InstrumentationPass>(codeDocument, documentNode);

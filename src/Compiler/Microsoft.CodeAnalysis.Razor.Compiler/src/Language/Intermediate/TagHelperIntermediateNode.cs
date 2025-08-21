@@ -1,10 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -12,41 +8,15 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 public sealed class TagHelperIntermediateNode : IntermediateNode
 {
-    public override IntermediateNodeCollection Children { get; } = new IntermediateNodeCollection();
-
-    public TagMode TagMode { get; set; }
-
-    public string TagName { get; set; }
+    public required TagMode TagMode { get; init; }
+    public required string TagName { get; init; }
 
     public ImmutableArray<TagHelperDescriptor> TagHelpers { get; init => field = value.NullToEmpty(); } = [];
 
-    public TagHelperBodyIntermediateNode Body => Children.OfType<TagHelperBodyIntermediateNode>().SingleOrDefault();
-
-    public IEnumerable<TagHelperPropertyIntermediateNode> Properties
-    {
-        get
-        {
-            return Children.OfType<TagHelperPropertyIntermediateNode>();
-        }
-    }
-
-    public IEnumerable<TagHelperHtmlAttributeIntermediateNode> HtmlAttributes
-    {
-        get
-        {
-            return Children.OfType<TagHelperHtmlAttributeIntermediateNode>();
-        }
-    }
+    public override IntermediateNodeCollection Children { get => field ??= []; }
 
     public override void Accept(IntermediateNodeVisitor visitor)
-    {
-        if (visitor == null)
-        {
-            throw new ArgumentNullException(nameof(visitor));
-        }
-
-        visitor.VisitTagHelper(this);
-    }
+        => visitor.VisitTagHelper(this);
 
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
