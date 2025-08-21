@@ -175,34 +175,20 @@ internal static class TagHelperMatchingConventions
         return true;
     }
 
-    public static bool TryGetFirstBoundAttributeMatch(
-        TagHelperDescriptor descriptor,
-        string name,
-        out BoundAttributeDescriptor? boundAttribute,
-        out bool indexerMatch,
-        out bool parameterMatch,
-        out BoundAttributeParameterDescriptor? boundAttributeParameter)
+    public static bool TryGetFirstBoundAttributeMatch(TagHelperDescriptor descriptor, string name, out TagHelperAttributeMatch match)
     {
-        indexerMatch = false;
-        parameterMatch = false;
-        boundAttribute = null;
-        boundAttributeParameter = null;
-
         if (descriptor == null || name.IsNullOrEmpty())
         {
+            match = default;
             return false;
         }
 
         // First, check if we have a bound attribute descriptor that matches the parameter if it exists.
         foreach (var attribute in descriptor.BoundAttributes)
         {
-            boundAttributeParameter = GetSatisfyingBoundAttributeWithParameter(attribute, name);
-
-            if (boundAttributeParameter != null)
+            if (GetSatisfyingBoundAttributeWithParameter(attribute, name) is { } parameter)
             {
-                boundAttribute = attribute;
-                indexerMatch = SatisfiesBoundAttributeIndexer(attribute, name.AsSpan());
-                parameterMatch = true;
+                match = new(name, attribute, parameter);
                 return true;
             }
         }
@@ -213,13 +199,13 @@ internal static class TagHelperMatchingConventions
         {
             if (CanSatisfyBoundAttribute(name, attribute))
             {
-                boundAttribute = attribute;
-                indexerMatch = SatisfiesBoundAttributeIndexer(attribute, name.AsSpan());
+                match = new(name, attribute, parameter: null);
                 return true;
             }
         }
 
         // No matches found.
+        match = default;
         return false;
     }
 

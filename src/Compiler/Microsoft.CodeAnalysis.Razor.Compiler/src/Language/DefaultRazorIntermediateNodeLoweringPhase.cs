@@ -1853,32 +1853,23 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 foreach (var associatedDescriptor in associatedDescriptors)
                 {
-                    if (TagHelperMatchingConventions.TryGetFirstBoundAttributeMatch(
-                        associatedDescriptor,
-                        attributeName,
-                        out var associatedAttributeDescriptor,
-                        out var indexerMatch,
-                        out _,
-                        out _))
+                    if (TagHelperMatchingConventions.TryGetFirstBoundAttributeMatch(associatedDescriptor, attributeName, out var match))
                     {
-                        var expectsBooleanValue = associatedAttributeDescriptor.ExpectsBooleanValue(attributeName);
-
-                        if (!expectsBooleanValue)
+                        if (!match.ExpectsBooleanValue)
                         {
                             // We do not allow minimized non-boolean bound attributes.
                             return;
                         }
 
-                        var setTagHelperProperty = new TagHelperPropertyIntermediateNode()
+                        var setTagHelperProperty = new TagHelperPropertyIntermediateNode
                         {
                             AttributeName = attributeName,
-                            BoundAttribute = associatedAttributeDescriptor,
+                            BoundAttribute = match.Attribute,
                             AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                             Source = null,
-                            IsIndexerNameMatch = indexerMatch,
+                            IsIndexerNameMatch = match.IsIndexerMatch,
+                            OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name)
                         };
-
-                        setTagHelperProperty.OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name);
 
                         _builder.Add(setTagHelperProperty);
                     }
@@ -1915,57 +1906,43 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 foreach (var associatedDescriptor in associatedDescriptors)
                 {
-                    if (TagHelperMatchingConventions.TryGetFirstBoundAttributeMatch(
-                        associatedDescriptor,
-                        attributeName,
-                        out var associatedAttributeDescriptor,
-                        out var indexerMatch,
-                        out var parameterMatch,
-                        out var associatedAttributeParameterDescriptor))
+                    if (TagHelperMatchingConventions.TryGetFirstBoundAttributeMatch(associatedDescriptor, attributeName, out var match))
                     {
+                        if (!match.ExpectsBooleanValue)
+                        {
+                            // We do not allow minimized non-boolean bound attributes.
+                            return;
+                        }
+
                         // Directive attributes should start with '@' unless the descriptors are misconfigured.
                         // In that case, we would have already logged an error.
                         var actualAttributeName = attributeName.StartsWith("@", StringComparison.Ordinal) ? attributeName.Substring(1) : attributeName;
 
                         IntermediateNode attributeNode;
-                        if (parameterMatch &&
+                        if (match.IsParameterMatch &&
                             TagHelperMatchingConventions.TryGetBoundAttributeParameter(actualAttributeName, out var attributeNameWithoutParameter))
                         {
-                            var expectsBooleanValue = associatedAttributeParameterDescriptor.IsBooleanProperty;
-                            if (!expectsBooleanValue)
-                            {
-                                // We do not allow minimized non-boolean bound attributes.
-                                return;
-                            }
-
                             attributeNode = new TagHelperDirectiveAttributeParameterIntermediateNode()
                             {
                                 AttributeName = actualAttributeName,
                                 AttributeNameWithoutParameter = attributeNameWithoutParameter.ToString(),
                                 OriginalAttributeName = attributeName,
-                                BoundAttributeParameter = associatedAttributeParameterDescriptor,
-                                IsIndexerNameMatch = indexerMatch,
+                                BoundAttributeParameter = match.Parameter,
+                                IsIndexerNameMatch = match.IsIndexerMatch,
                                 AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
-                                Source = null,
+                                Source = null
                             };
                         }
                         else
                         {
-                            var expectsBooleanValue = associatedAttributeDescriptor.ExpectsBooleanValue(attributeName);
-                            if (!expectsBooleanValue)
-                            {
-                                // We do not allow minimized non-boolean bound attributes.
-                                return;
-                            }
-
                             attributeNode = new TagHelperDirectiveAttributeIntermediateNode()
                             {
                                 AttributeName = actualAttributeName,
                                 OriginalAttributeName = attributeName,
-                                BoundAttribute = associatedAttributeDescriptor,
+                                BoundAttribute = match.Attribute,
                                 AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                                 Source = null,
-                                IsIndexerNameMatch = indexerMatch,
+                                IsIndexerNameMatch = match.IsIndexerMatch
                             };
                         }
 
@@ -1998,24 +1975,17 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 foreach (var associatedDescriptor in associatedDescriptors)
                 {
-                    if (TagHelperMatchingConventions.TryGetFirstBoundAttributeMatch(
-                        associatedDescriptor,
-                        attributeName,
-                        out var associatedAttributeDescriptor,
-                        out var indexerMatch,
-                        out _,
-                        out _))
+                    if (TagHelperMatchingConventions.TryGetFirstBoundAttributeMatch(associatedDescriptor, attributeName, out var match))
                     {
-                        var setTagHelperProperty = new TagHelperPropertyIntermediateNode()
+                        var setTagHelperProperty = new TagHelperPropertyIntermediateNode
                         {
                             AttributeName = attributeName,
-                            BoundAttribute = associatedAttributeDescriptor,
+                            BoundAttribute = match.Attribute,
                             AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                             Source = BuildSourceSpanFromNode(attributeValueNode),
-                            IsIndexerNameMatch = indexerMatch,
+                            IsIndexerNameMatch = match.IsIndexerMatch,
+                            OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name)
                         };
-
-                        setTagHelperProperty.OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name);
 
                         _builder.Push(setTagHelperProperty);
                         VisitAttributeValue(attributeValueNode);
@@ -2051,20 +2021,14 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 foreach (var associatedDescriptor in associatedDescriptors)
                 {
-                    if (TagHelperMatchingConventions.TryGetFirstBoundAttributeMatch(
-                        associatedDescriptor,
-                        attributeName,
-                        out var associatedAttributeDescriptor,
-                        out var indexerMatch,
-                        out var parameterMatch,
-                        out var associatedAttributeParameterDescriptor))
+                    if (TagHelperMatchingConventions.TryGetFirstBoundAttributeMatch(associatedDescriptor, attributeName, out var match))
                     {
                         // Directive attributes should start with '@' unless the descriptors are misconfigured.
                         // In that case, we would have already logged an error.
                         var actualAttributeName = attributeName.StartsWith("@", StringComparison.Ordinal) ? attributeName.Substring(1) : attributeName;
 
                         IntermediateNode attributeNode;
-                        if (parameterMatch &&
+                        if (match.IsParameterMatch &&
                             TagHelperMatchingConventions.TryGetBoundAttributeParameter(actualAttributeName, out var attributeNameWithoutParameter))
                         {
                             attributeNode = new TagHelperDirectiveAttributeParameterIntermediateNode()
@@ -2072,8 +2036,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                                 AttributeName = actualAttributeName,
                                 AttributeNameWithoutParameter = attributeNameWithoutParameter.ToString(),
                                 OriginalAttributeName = attributeName,
-                                BoundAttributeParameter = associatedAttributeParameterDescriptor,
-                                IsIndexerNameMatch = indexerMatch,
+                                BoundAttributeParameter = match.Parameter,
+                                IsIndexerNameMatch = match.IsIndexerMatch,
                                 AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                                 Source = BuildSourceSpanFromNode(attributeValueNode),
                                 OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name)
@@ -2085,10 +2049,10 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                             {
                                 AttributeName = actualAttributeName,
                                 OriginalAttributeName = attributeName,
-                                BoundAttribute = associatedAttributeDescriptor,
+                                BoundAttribute = match.Attribute,
                                 AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                                 Source = BuildSourceSpanFromNode(attributeValueNode),
-                                IsIndexerNameMatch = indexerMatch,
+                                IsIndexerNameMatch = match.IsIndexerMatch,
                                 OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name)
                             };
                         }
