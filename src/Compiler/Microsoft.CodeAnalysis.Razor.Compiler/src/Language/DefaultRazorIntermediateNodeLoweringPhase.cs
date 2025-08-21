@@ -1094,13 +1094,11 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                         return;
                     }
 
-                    var setTagHelperProperty = new TagHelperPropertyIntermediateNode()
+                    var setTagHelperProperty = new TagHelperPropertyIntermediateNode(match)
                     {
                         AttributeName = attributeName,
-                        BoundAttribute = match.Attribute,
                         AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                         Source = null,
-                        IsIndexerNameMatch = match.IsIndexerMatch
                     };
 
                     _builder.Add(setTagHelperProperty);
@@ -1132,13 +1130,11 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 foreach (var match in matches)
                 {
-                    var setTagHelperProperty = new TagHelperPropertyIntermediateNode()
+                    var setTagHelperProperty = new TagHelperPropertyIntermediateNode(match)
                     {
                         AttributeName = attributeName,
-                        BoundAttribute = match.Attribute,
                         AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                         Source = BuildSourceSpanFromNode(attributeValueNode),
-                        IsIndexerNameMatch = match.IsIndexerMatch
                     };
 
                     _builder.Push(setTagHelperProperty);
@@ -1844,11 +1840,9 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                         return;
                     }
 
-                    var setTagHelperProperty = new TagHelperPropertyIntermediateNode
+                    var setTagHelperProperty = new TagHelperPropertyIntermediateNode(match)
                     {
                         AttributeName = attributeName,
-                        BoundAttribute = match.Attribute,
-                        IsIndexerNameMatch = match.IsIndexerMatch,
                         AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                         Source = null,
                         OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name)
@@ -1943,13 +1937,11 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 foreach (var match in matches)
                 {
-                    var setTagHelperProperty = new TagHelperPropertyIntermediateNode
+                    var setTagHelperProperty = new TagHelperPropertyIntermediateNode(match)
                     {
                         AttributeName = attributeName,
-                        BoundAttribute = match.Attribute,
                         AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                         Source = BuildSourceSpanFromNode(attributeValueNode),
-                        IsIndexerNameMatch = match.IsIndexerMatch,
                         OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name)
                     };
 

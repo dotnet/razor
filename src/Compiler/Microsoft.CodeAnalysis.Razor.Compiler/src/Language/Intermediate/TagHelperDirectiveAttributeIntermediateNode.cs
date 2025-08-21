@@ -39,8 +39,8 @@ public sealed class TagHelperDirectiveAttributeIntermediateNode : IntermediateNo
         formatter.WriteProperty(nameof(AttributeName), AttributeName);
         formatter.WriteProperty(nameof(OriginalAttributeName), OriginalAttributeName);
         formatter.WriteProperty(nameof(AttributeStructure), AttributeStructure.ToString());
-        formatter.WriteProperty(nameof(BoundAttribute), BoundAttribute?.DisplayName);
+        formatter.WriteProperty(nameof(BoundAttribute), BoundAttribute.DisplayName);
         formatter.WriteProperty(nameof(IsIndexerNameMatch), IsIndexerNameMatch.ToString());
-        formatter.WriteProperty(nameof(TagHelper), TagHelper?.DisplayName);
+        formatter.WriteProperty(nameof(TagHelper), TagHelper.DisplayName);
     }
 }
