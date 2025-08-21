@@ -1848,9 +1848,9 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                     {
                         AttributeName = attributeName,
                         BoundAttribute = match.Attribute,
+                        IsIndexerNameMatch = match.IsIndexerMatch,
                         AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                         Source = null,
-                        IsIndexerNameMatch = match.IsIndexerMatch,
                         OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name)
                     };
 
@@ -1887,6 +1887,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
             if (matches.Any() && _renderedBoundAttributeNames.Add(attributeName))
             {
+                var directiveAttributeName = new DirectiveAttributeName(attributeName);
+
                 foreach (var match in matches)
                 {
                     if (!match.ExpectsBooleanValue)
@@ -1895,37 +1897,26 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                         return;
                     }
 
-                    // Directive attributes should start with '@' unless the descriptors are misconfigured.
-                    // In that case, we would have already logged an error.
-                    var actualAttributeName = attributeName.StartsWith("@", StringComparison.Ordinal) ? attributeName.Substring(1) : attributeName;
-
-                    IntermediateNode attributeNode;
-                    if (match.IsParameterMatch &&
-                        TagHelperMatchingConventions.TryGetBoundAttributeParameter(actualAttributeName, out var attributeNameWithoutParameter))
-                    {
-                        attributeNode = new TagHelperDirectiveAttributeParameterIntermediateNode()
+                    IntermediateNode attributeNode = match.IsParameterMatch && directiveAttributeName.HasParameter
+                        ? new TagHelperDirectiveAttributeParameterIntermediateNode()
                         {
-                            AttributeName = actualAttributeName,
-                            AttributeNameWithoutParameter = attributeNameWithoutParameter.ToString(),
+                            AttributeName = directiveAttributeName.Text,
+                            AttributeNameWithoutParameter = directiveAttributeName.TextWithoutParameter,
                             OriginalAttributeName = attributeName,
                             BoundAttributeParameter = match.Parameter,
                             IsIndexerNameMatch = match.IsIndexerMatch,
                             AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                             Source = null
-                        };
-                    }
-                    else
-                    {
-                        attributeNode = new TagHelperDirectiveAttributeIntermediateNode()
+                        }
+                        : new TagHelperDirectiveAttributeIntermediateNode()
                         {
-                            AttributeName = actualAttributeName,
+                            AttributeName = directiveAttributeName.Text,
                             OriginalAttributeName = attributeName,
                             BoundAttribute = match.Attribute,
+                            IsIndexerNameMatch = match.IsIndexerMatch,
                             AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                             Source = null,
-                            IsIndexerNameMatch = match.IsIndexerMatch
                         };
-                    }
 
                     _builder.Add(attributeNode);
                 }
@@ -1997,41 +1988,32 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
             if (matches.Any() && _renderedBoundAttributeNames.Add(attributeName))
             {
+                var directiveAttributeName = new DirectiveAttributeName(attributeName);
+
                 foreach (var match in matches)
                 {
-                    // Directive attributes should start with '@' unless the descriptors are misconfigured.
-                    // In that case, we would have already logged an error.
-                    var actualAttributeName = attributeName.StartsWith("@", StringComparison.Ordinal) ? attributeName.Substring(1) : attributeName;
-
-                    IntermediateNode attributeNode;
-                    if (match.IsParameterMatch &&
-                        TagHelperMatchingConventions.TryGetBoundAttributeParameter(actualAttributeName, out var attributeNameWithoutParameter))
-                    {
-                        attributeNode = new TagHelperDirectiveAttributeParameterIntermediateNode()
+                    IntermediateNode attributeNode = match.IsParameterMatch && directiveAttributeName.HasParameter
+                        ? new TagHelperDirectiveAttributeParameterIntermediateNode()
                         {
-                            AttributeName = actualAttributeName,
-                            AttributeNameWithoutParameter = attributeNameWithoutParameter.ToString(),
+                            AttributeName = directiveAttributeName.Text,
+                            AttributeNameWithoutParameter = directiveAttributeName.TextWithoutParameter,
                             OriginalAttributeName = attributeName,
                             BoundAttributeParameter = match.Parameter,
                             IsIndexerNameMatch = match.IsIndexerMatch,
                             AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                             Source = BuildSourceSpanFromNode(attributeValueNode),
                             OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name)
-                        };
-                    }
-                    else
-                    {
-                        attributeNode = new TagHelperDirectiveAttributeIntermediateNode()
+                        }
+                        : new TagHelperDirectiveAttributeIntermediateNode()
                         {
-                            AttributeName = actualAttributeName,
+                            AttributeName = directiveAttributeName.Text,
                             OriginalAttributeName = attributeName,
                             BoundAttribute = match.Attribute,
+                            IsIndexerNameMatch = match.IsIndexerMatch,
                             AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                             Source = BuildSourceSpanFromNode(attributeValueNode),
-                            IsIndexerNameMatch = match.IsIndexerMatch,
                             OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name)
                         };
-                    }
 
                     _builder.Push(attributeNode);
                     VisitAttributeValue(attributeValueNode);
@@ -2142,6 +2124,33 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                     source.Length + item.Width,
                     source.LineCount,
                     source.EndCharacterIndex);
+            }
+        }
+    }
+
+    private ref struct DirectiveAttributeName(ReadOnlySpan<char> original)
+    {
+        // Directive attributes should start with '@' unless the descriptors are misconfigured.
+        // In that case, we would have already logged an error.
+        public readonly ReadOnlySpan<char> Span = original.StartsWith('@') ? original[1..] : original;
+
+        private bool? _hasParameter;
+
+        public string Text => field ??= Span.ToString();
+
+        public bool HasParameter => _hasParameter ??= Span.IndexOf(':') >= 0;
+
+        public string TextWithoutParameter
+        {
+            get
+            {
+                return field ??= GetWithoutParameter(Span);
+
+                static string GetWithoutParameter(ReadOnlySpan<char> span)
+                {
+                    var index = span.IndexOf(':');
+                    return index >= 0 ? span[..index].ToString() : span.ToString();
+                }
             }
         }
     }
