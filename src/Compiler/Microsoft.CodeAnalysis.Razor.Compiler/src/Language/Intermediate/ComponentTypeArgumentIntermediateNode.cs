@@ -19,7 +19,6 @@ public sealed class ComponentTypeArgumentIntermediateNode : IntermediateNode
 
         BoundAttribute = propertyNode.BoundAttribute;
         Source = propertyNode.Source;
-        TagHelper = propertyNode.TagHelper;
 
         Debug.Assert(propertyNode.Children.Count == 1);
         Value = propertyNode.Children[0] switch
@@ -39,7 +38,7 @@ public sealed class ComponentTypeArgumentIntermediateNode : IntermediateNode
 
     public string TypeParameterName => BoundAttribute.Name;
 
-    public TagHelperDescriptor TagHelper { get; set; }
+    public TagHelperDescriptor TagHelper => BoundAttribute.Parent;
 
     public CSharpIntermediateToken Value { get; set; }
 

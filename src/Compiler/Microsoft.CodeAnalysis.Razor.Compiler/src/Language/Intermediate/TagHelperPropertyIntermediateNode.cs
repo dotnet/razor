@@ -17,7 +17,7 @@ public sealed class TagHelperPropertyIntermediateNode : IntermediateNode
 
     public BoundAttributeDescriptor BoundAttribute { get; set; }
 
-    public TagHelperDescriptor TagHelper { get; set; }
+    public TagHelperDescriptor TagHelper => BoundAttribute.Parent;
 
     public bool IsIndexerNameMatch { get; set; }
 

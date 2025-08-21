@@ -434,7 +434,6 @@ EndAddHtmlAttributeValues(__tagHelperExecutionContext);
             FieldName = "__InputTagHelper",
             IsIndexerNameMatch = false,
             PropertyName = "StringProp",
-            TagHelper = StringPropertyTagHelper,
             Children =
             {
                 new HtmlContentIntermediateNode()
@@ -475,7 +474,6 @@ __InputTagHelper.StringProp = ""value"";
             FieldName = "__InputTagHelper",
             IsIndexerNameMatch = false,
             PropertyName = "StringProp",
-            TagHelper = StringPropertyTagHelper,
             Children =
             {
                 new CSharpExpressionIntermediateNode()
@@ -516,7 +514,6 @@ __InputTagHelper.StringProp = string.Empty;
             FieldName = "__InputTagHelper",
             IsIndexerNameMatch = false,
             PropertyName = "IntProp",
-            TagHelper = IntPropertyTagHelper,
             Source = Span,
             Children =
             {
@@ -573,7 +570,6 @@ __InputTagHelper.IntProp = 32;
             FieldName = "__InputTagHelper",
             IsIndexerNameMatch = false,
             PropertyName = "IntProp",
-            TagHelper = IntPropertyTagHelper,
             Source = Span,
         };
         tagHelperNode.Children.Add(node1);
@@ -608,7 +604,6 @@ __InputTagHelper.IntProp = 32;
             FieldName = "__InputTagHelper",
             IsIndexerNameMatch = false,
             PropertyName = "IntProp",
-            TagHelper = IntPropertyTagHelper,
             Children =
             {
                 new CSharpExpressionIntermediateNode()
@@ -648,7 +643,6 @@ __InputTagHelper.IntProp = 32;
             FieldName = "__InputTagHelper",
             IsIndexerNameMatch = true,
             PropertyName = "IntIndexer",
-            TagHelper = IntIndexerTagHelper,
             Source = Span,
             Children =
             {
@@ -696,7 +690,6 @@ __InputTagHelper.IntIndexer[""bound""] = 32;
             FieldName = "__InputTagHelper",
             IsIndexerNameMatch = true,
             PropertyName = "IntIndexer",
-            TagHelper = IntIndexerTagHelper,
             Children =
             {
                 new CSharpExpressionIntermediateNode()
@@ -736,7 +729,6 @@ __InputTagHelper.IntIndexer[""bound""] = 32;
             FieldName = "__InputTagHelper",
             IsIndexerNameMatch = false,
             PropertyName = "StringProp",
-            TagHelper = StringPropertyTagHelper,
             Children =
             {
                 new HtmlContentIntermediateNode()
@@ -782,7 +774,6 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""bound"", __InputTagHelper.St
             FieldName = "__InputTagHelper",
             IsIndexerNameMatch = false,
             PropertyName = "IntProp",
-            TagHelper = IntPropertyTagHelper,
             Children =
             {
                 new CSharpExpressionIntermediateNode()
@@ -840,7 +831,6 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""bound"", __InputTagHelper.In
             FieldName = "__InputTagHelper",
             IsIndexerNameMatch = false,
             PropertyName = "IntProp",
-            TagHelper = IntPropertyTagHelper,
             Source = Span,
         };
         tagHelperNode.Children.Add(node1);
@@ -875,7 +865,6 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""bound"", __InputTagHelper.In
             FieldName = "__InputTagHelper",
             IsIndexerNameMatch = false,
             PropertyName = "IntProp",
-            TagHelper = IntPropertyTagHelper,
             Children =
             {
                 new CSharpExpressionIntermediateNode()
@@ -916,7 +905,6 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""bound"", __InputTagHelper.In
             FieldName = "__InputTagHelper",
             IsIndexerNameMatch = true,
             PropertyName = "IntIndexer",
-            TagHelper = IntIndexerTagHelper,
             Children =
             {
                 new CSharpExpressionIntermediateNode()
@@ -969,7 +957,6 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""foo-bound"", __InputTagHelpe
             FieldName = "__InputTagHelper",
             IsIndexerNameMatch = true,
             PropertyName = "IntIndexer",
-            TagHelper = IntIndexerTagHelper,
             Children =
             {
                 new CSharpExpressionIntermediateNode()
@@ -986,7 +973,6 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""foo-bound"", __InputTagHelpe
             FieldName = "__InputTagHelper",
             IsIndexerNameMatch = true,
             PropertyName = "IntIndexer",
-            TagHelper = IntIndexerTagHelper,
             Children =
             {
                 new CSharpExpressionIntermediateNode()
@@ -1036,7 +1022,6 @@ __tagHelperExecutionContext.AddTagHelperAttribute(""foo-bound"", __InputTagHelpe
             FieldName = "__InputTagHelper",
             IsIndexerNameMatch = true,
             PropertyName = "IntIndexer",
-            TagHelper = IntIndexerTagHelper,
             Children =
             {
                 new CSharpExpressionIntermediateNode()

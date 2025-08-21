@@ -21,9 +21,9 @@ public sealed class TagHelperDirectiveAttributeParameterIntermediateNode : Inter
 
     public BoundAttributeParameterDescriptor BoundAttributeParameter { get; set; }
 
-    public BoundAttributeDescriptor BoundAttribute { get; set; }
+    public BoundAttributeDescriptor BoundAttribute => BoundAttributeParameter.Parent;
 
-    public TagHelperDescriptor TagHelper { get; set; }
+    public TagHelperDescriptor TagHelper => BoundAttribute.Parent;
 
     public bool IsIndexerNameMatch { get; set; }
 
