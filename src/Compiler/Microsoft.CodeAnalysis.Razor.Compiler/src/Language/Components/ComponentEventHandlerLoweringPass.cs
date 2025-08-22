@@ -137,7 +137,7 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
 
         var parameterDuplicates = parent.Children
             .OfType<TagHelperDirectiveAttributeParameterIntermediateNode>()
-            .Where(p => p.TagHelper?.Kind == TagHelperKind.EventHandler)
+            .Where(p => p.TagHelper.Kind == TagHelperKind.EventHandler)
             .GroupBy(p => p.AttributeName)
             .Where(g => g.Count() > 1);
 
