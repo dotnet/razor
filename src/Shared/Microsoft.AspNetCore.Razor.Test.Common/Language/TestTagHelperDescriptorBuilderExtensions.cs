@@ -10,12 +10,7 @@ public static class TestTagHelperDescriptorBuilderExtensions
     extension(TagHelperDescriptorBuilder)
     {
         public static TagHelperDescriptorBuilder CreateTagHelper(string name, string assemblyName)
-        {
-            var builder = TagHelperDescriptorBuilder.Create(TagHelperKind.ITagHelper, name, assemblyName);
-            builder.RuntimeKind = Language.RuntimeKind.ITagHelper;
-
-            return builder;
-        }
+            => CreateTagHelper(TagHelperKind.ITagHelper, name, assemblyName);
 
         public static TagHelperDescriptorBuilder CreateTagHelper(TagHelperKind kind, string name, string assemblyName)
         {

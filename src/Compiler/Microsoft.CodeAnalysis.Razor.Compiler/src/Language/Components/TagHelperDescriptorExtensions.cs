@@ -10,10 +10,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Components;
 internal static class TagHelperDescriptorExtensions
 {
     public static bool IsAnyComponentDocumentTagHelper(this TagHelperDescriptor tagHelper)
-        => tagHelper.Kind >= TagHelperKind.Component;
+        => tagHelper.Kind.IsAnyComponentKind;
 
     public static bool IsComponentOrChildContentTagHelper(this TagHelperDescriptor tagHelper)
-        => tagHelper.Kind is TagHelperKind.Component or TagHelperKind.ChildContent;
+        => tagHelper.Kind.IsComponentOrChildContentKind;
 
     public static bool IsFallbackBindTagHelper(this TagHelperDescriptor tagHelper)
         => tagHelper is

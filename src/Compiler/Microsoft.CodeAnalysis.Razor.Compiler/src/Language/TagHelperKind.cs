@@ -8,6 +8,7 @@ public enum TagHelperKind : byte
     ITagHelper,
     ViewComponent,
 
+    // Component kinds.
     Component,
     ChildContent,
     EventHandler,
@@ -16,5 +17,5 @@ public enum TagHelperKind : byte
     Ref,
     Splat,
     FormName,
-    RenderMode
+    RenderMode // Last component kind. If another is added, update TagHelperKindExtensions.IsAnyComponentKind.
 }

@@ -62,7 +62,7 @@ internal readonly struct TypeNameObject
             Debug.Assert(knownTypeNames.Count < byte.MaxValue, "Too many known type names to fit in a byte index.");
 
             var fullName = typeof(T).FullName!;
-            var @namespace = typeof(T).Namespace!;
+            var @namespace = typeof(T).Namespace;
             var name = typeof(T).Name;
 
             var index = (byte)knownTypeNames.Count;
@@ -114,13 +114,7 @@ internal readonly struct TypeNameObject
             return default;
         }
 
-        if (s_typeNameToIndex.TryGetValue(fullName, out var index))
-        {
-            var info = s_knownTypeNames[index];
-            return new(info, index);
-        }
-
-        return new(new(fullName, @namespace: null, name: null, alias: null), index: null);
+        return From(fullName, namespaceName: null, name: null);
     }
 
     public static TypeNameObject From(string fullName, string? namespaceName, string? name)

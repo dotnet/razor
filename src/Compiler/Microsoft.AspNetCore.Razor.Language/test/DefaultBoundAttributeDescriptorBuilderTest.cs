@@ -13,15 +13,13 @@ public class DefaultBoundAttributeDescriptorBuilderTest
         // Arrange
         var expectedDisplayName = "ExpectedDisplayName";
 
-        var tagHelperBuilder = new TagHelperDescriptorBuilder(TagHelperKind.ITagHelper, "TestTagHelper", "Test");
+        var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "Test")
+            .BoundAttributeDescriptor(builder => builder.DisplayName(expectedDisplayName))
+            .Build();
 
-        var builder = new BoundAttributeDescriptorBuilder(tagHelperBuilder);
-        builder.DisplayName(expectedDisplayName);
+        // Act & Assert
+        var descriptor = tagHelper.BoundAttributes[0];
 
-        // Act
-        var descriptor = builder.Build();
-
-        // Assert
         Assert.Equal(expectedDisplayName, descriptor.DisplayName);
     }
 
@@ -29,18 +27,16 @@ public class DefaultBoundAttributeDescriptorBuilderTest
     public void DisplayName_DefaultsToPropertyLookingDisplayName()
     {
         // Arrange
-        var tagHelperBuilder = new TagHelperDescriptorBuilder(TagHelperKind.ITagHelper, "TestTagHelper", "Test");
-        tagHelperBuilder.SetTypeName("TestTagHelper", typeNamespace: null, typeNameIdentifier: null);
-
-        var builder = new BoundAttributeDescriptorBuilder(tagHelperBuilder);
-        builder
-            .TypeName(typeof(int).FullName)
-            .PropertyName("SomeProperty");
+        var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "Test")
+            .TypeName("TestTagHelper")
+            .BoundAttributeDescriptor(builder => builder
+                .TypeName(typeof(int).FullName)
+                .PropertyName("SomeProperty"))
+            .Build();
 
         // Act
-        var descriptor = builder.Build();
+        var descriptor = tagHelper.BoundAttributes[0];
 
-        // Assert
         Assert.Equal("int TestTagHelper.SomeProperty", descriptor.DisplayName);
     }
 }
