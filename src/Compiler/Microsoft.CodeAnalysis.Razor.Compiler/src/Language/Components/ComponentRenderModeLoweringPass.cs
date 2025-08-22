@@ -20,9 +20,11 @@ internal sealed class ComponentRenderModeLoweringPass : ComponentIntermediateNod
         var references = documentNode.FindDescendantReferences<TagHelperDirectiveAttributeIntermediateNode>();
         foreach (var reference in references)
         {
-            if (reference is { Node: TagHelperDirectiveAttributeIntermediateNode node, Parent: IntermediateNode parentNode } && node.TagHelper.IsRenderModeTagHelper())
+            var (node, parent) = reference;
+
+            if (node.TagHelper.IsRenderModeTagHelper())
             {
-                if (parentNode is not ComponentIntermediateNode componentNode)
+                if (parent is not ComponentIntermediateNode componentNode)
                 {
                     node.AddDiagnostic(ComponentDiagnosticFactory.CreateAttribute_ValidOnlyOnComponent(node.Source, node.OriginalAttributeName));
                     continue;
