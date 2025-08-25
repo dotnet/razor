@@ -16,16 +16,11 @@ using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
-internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IRazorOptimizationPass
+internal partial class ComponentBindLoweringPass(bool bindGetSetSupported) : ComponentIntermediateNodePassBase, IRazorOptimizationPass
 {
     private static readonly string s_cultureInvariantText = $"global::{typeof(CultureInfo).FullName}.{nameof(CultureInfo.InvariantCulture)}";
 
-    private readonly bool _bindGetSetSupported;
-
-    public ComponentBindLoweringPass(bool bindGetSetSupported)
-    {
-        _bindGetSetSupported = bindGetSetSupported;
-    }
+    private readonly bool _bindGetSetSupported = bindGetSetSupported;
 
     // Run after event handler pass
     public override int Order => 100;
@@ -395,8 +390,6 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
         // We also assume that the element will be treated as a component for now because
         // multiple passes handle 'special' tag helpers. We have another pass that translates
         // a tag helper node back into 'regular' element when it doesn't have an associated component
-        var node = bindEntry.BindNode;
-        var getNode = bindEntry.BindGetNode;
         if (!TryComputeAttributeNames(
             parent,
             bindEntry,
@@ -408,24 +401,25 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
             out var changeAttribute,
             out var expressionAttribute))
         {
-            // Skip anything we can't understand. It's important that we don't crash, that will bring down
-            // the build.
-            if (node != null)
+            // Skip anything we can't understand. It's important that we don't crash, that will bring down the build.
+            if (bindEntry.BindNode is { } bindNode)
             {
-                node.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttribute_InvalidSyntax(
-                    node.Source,
-                    node.AttributeName));
-                return [node];
+                bindNode.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttribute_InvalidSyntax(
+                    bindNode.Source,
+                    bindNode.AttributeName));
+
+                return [bindNode];
             }
             else
             {
-                Assumed.NotNull(getNode);
+                var bindGetNode = bindEntry.BindGetNode.AssumeNotNull();
 
-                getNode.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttribute_MissingBindSet(
-                    getNode.Source,
-                    getNode.AttributeName,
-                    $"{getNode.AttributeNameWithoutParameter}:set"));
-                return [getNode];
+                bindGetNode.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttribute_MissingBindSet(
+                    bindGetNode.Source,
+                    bindGetNode.AttributeName,
+                    $"{bindGetNode.AttributeNameWithoutParameter}:set"));
+
+                return [bindGetNode];
             }
         }
 
@@ -553,20 +547,21 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
         }
         else
         {
+            var node = bindEntry.BindNode;
+            var getNode = bindEntry.BindGetNode;
+
             using var builder = new PooledArrayBuilder<IntermediateNode>();
 
-            var valuePropertyName = valueAttribute?.PropertyName;
-
             var valueNode = node != null
-                ? new ComponentAttributeIntermediateNode(node)
-                : new ComponentAttributeIntermediateNode(getNode);
+                ? ComponentAttributeIntermediateNode.From(node, addChildren: false)
+                : ComponentAttributeIntermediateNode.From(getNode.AssumeNotNull(), addChildren: false);
 
             valueNode.OriginalAttributeName = bindEntry.OriginalAttributeName;
 
             valueNode.PropertySpan = GetOriginalPropertySpan(valueNode);
             valueNode.AttributeName = valueAttributeName;
             valueNode.BoundAttribute = valueAttribute; // Might be null if it doesn't match a component attribute
-            valueNode.PropertyName = valuePropertyName;
+            valueNode.PropertyName = valueAttribute?.PropertyName;
             valueNode.TypeName = valueAttribute?.IsWeaklyTyped == false ? valueAttribute.TypeName : null;
 
             var valueExpressionNode = new CSharpExpressionIntermediateNode();
@@ -576,14 +571,13 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
                 valueExpressionNode.Children.Add(token);
             }
 
-            valueNode.Children.Clear();
             valueNode.Children.Add(valueExpressionNode);
 
             builder.Add(valueNode);
 
             var changeNode = node != null
-                ? new ComponentAttributeIntermediateNode(node)
-                : new ComponentAttributeIntermediateNode(getNode);
+                ? ComponentAttributeIntermediateNode.From(node, addChildren: false)
+                : ComponentAttributeIntermediateNode.From(getNode.AssumeNotNull(), addChildren: false);
 
             changeNode.OriginalAttributeName = bindEntry.OriginalAttributeName;
             changeNode.PropertySpan = GetOriginalPropertySpan(changeNode);
@@ -600,7 +594,6 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
                 changeExpressionNode.Children.Add(token);
             }
 
-            changeNode.Children.Clear();
             changeNode.Children.Add(changeExpressionNode);
 
             builder.Add(changeNode);
@@ -610,8 +603,8 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
             if (expressionAttribute != null)
             {
                 var expressionNode = node != null
-                    ? new ComponentAttributeIntermediateNode(node)
-                    : new ComponentAttributeIntermediateNode(getNode);
+                    ? ComponentAttributeIntermediateNode.From(node, addChildren: false)
+                    : ComponentAttributeIntermediateNode.From(getNode.AssumeNotNull(), addChildren: false);
 
                 expressionNode.OriginalAttributeName = bindEntry.OriginalAttributeName;
                 expressionNode.PropertySpan = GetOriginalPropertySpan(expressionNode);
@@ -621,7 +614,6 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
                 expressionNode.PropertyName = expressionAttribute.PropertyName;
                 expressionNode.TypeName = expressionAttribute.IsWeaklyTyped ? null : expressionAttribute.TypeName;
 
-                expressionNode.Children.Clear();
                 expressionNode.Children.Add(new CSharpExpressionIntermediateNode()
                 {
                     Children = { IntermediateNodeFactory.CSharpToken($"() => {original.Content}") }
@@ -653,14 +645,12 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
             return;
         }
 
-        var helperNode = new ComponentAttributeIntermediateNode(node)
-        {
-            OriginalAttributeName = node.OriginalAttributeName,
-            IsDesignTimePropertyAccessHelper = true,
-            PropertySpan = GetOriginalPropertySpan(node),
-            BoundAttribute = valueAttribute,
-            PropertyName = valueAttribute.PropertyName
-        };
+        var helperNode = ComponentAttributeIntermediateNode.From(node, addChildren: true);
+        helperNode.OriginalAttributeName = node.OriginalAttributeName;
+        helperNode.IsDesignTimePropertyAccessHelper = true;
+        helperNode.PropertySpan = GetOriginalPropertySpan(node);
+        helperNode.BoundAttribute = valueAttribute;
+        helperNode.PropertyName = valueAttribute.PropertyName;
 
         builder.Add(helperNode);
     }
