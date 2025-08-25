@@ -10,7 +10,6 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
@@ -26,23 +25,6 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
     // Run after event handler pass
     public override int Order => 100;
 
-    private readonly record struct BindEntryKey(IntermediateNode Parent, string AttributeName)
-    {
-        public bool Equals(BindEntryKey other)
-            => ReferenceEquals(Parent, other.Parent) &&
-               AttributeName == other.AttributeName;
-
-        public override int GetHashCode()
-        {
-            var hash = HashCodeCombiner.Start();
-
-            hash.Add(Parent);
-            hash.Add(AttributeName);
-
-            return hash.CombinedHash;
-        }
-    }
-
     protected override void ExecuteCore(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
     {
         if (!IsComponentDocument(documentNode))
@@ -57,8 +39,6 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
             // Nothing to do, bail. We can't function without the standard structure.
             return;
         }
-
-        // For each @bind usage we need to rewrite the tag helper node to map to basic constructs.
 
         using var references = new PooledArrayBuilder<IntermediateNodeReference>();
         using var parameterReferences = new PooledArrayBuilder<IntermediateNodeReference>();
@@ -79,6 +59,8 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
         parameterReferences.Clear();
         documentNode.CollectDescendantReferences<TagHelperDirectiveAttributeParameterIntermediateNode>(ref parameterReferencesRef);
 
+        // For each @bind usage we need to rewrite the tag helper node to map to basic constructs.
+
         // Collect all the non-parameterized @bind or @bind-* attributes.
         // The dict key is essentially a tuple of (parent, attributeName) to differentiate attributes
         // with the same name in two different elements. We don't have to worry about duplicate bound
@@ -88,12 +70,11 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
 
         foreach (var reference in references)
         {
-            var parent = reference.Parent;
             var node = (TagHelperDirectiveAttributeIntermediateNode)reference.Node;
 
             if (node.TagHelper.IsBindTagHelper())
             {
-                bindEntries[new(parent, node.AttributeName)] = new BindEntry(reference);
+                bindEntries.Add(new(reference.Parent, node), new BindEntry(reference));
             }
         }
 
@@ -116,11 +97,11 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
                     node.AttributeName));
             }
 
-            var key = new BindEntryKey(parent, node.AttributeNameWithoutParameter);
+            var key = new BindEntryKey(parent, node);
 
             if (!bindEntries.TryGetValue(key, out var existingEntry))
             {
-                bindEntries[key] = new BindEntry(parameterReference);
+                bindEntries.Add(key, new BindEntry(parameterReference));
             }
             else
             {
@@ -138,77 +119,79 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
             var parent = parameterReference.Parent;
             var node = (TagHelperDirectiveAttributeParameterIntermediateNode)parameterReference.Node;
 
-            if (node.TagHelper.IsBindTagHelper())
+            if (!node.TagHelper.IsBindTagHelper())
             {
-                // Check if this tag contains a corresponding non-parameterized bind node.
-                var key = new BindEntryKey(parent, node.AttributeNameWithoutParameter);
+                continue;
+            }
 
-                if (!bindEntries.TryGetValue(key, out var entry))
-                {
-                    if (node.BoundAttributeParameter.Name != "set")
-                    {
-                        // There is no corresponding bind node. Add a diagnostic and move on.
-                        parameterReference.Parent.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttributeParameter_MissingBind(
-                            node.Source,
-                            node.AttributeName));
-                    }
-                    else
-                    {
-                        // There is no corresponding bind node. Add a diagnostic and move on.
-                        parameterReference.Parent.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttributeParameter_MissingBindGet(
-                            node.Source,
-                            node.AttributeNameWithoutParameter));
-                    }
-                }
-                else if (node.BoundAttributeParameter.Name == "event")
-                {
-                    entry.BindEventNode = node;
-                }
-                else if (node.BoundAttributeParameter.Name == "format")
-                {
-                    entry.BindFormatNode = node;
-                }
-                else if (node.BoundAttributeParameter.Name == "culture")
-                {
-                    entry.BindCultureNode = node;
-                }
-                else if (node.BoundAttributeParameter.Name == "after")
-                {
-                    entry.BindAfterNode = node;
-                }
-                else if (node.BoundAttributeParameter.Name == "get")
-                {
-                    // Avoid removing the reference since it will be processed later on.
-                    continue;
-                }
-                else if (node.BoundAttributeParameter.Name == "set")
-                {
-                    if (entry.BindNode != null)
-                    {
-                        parameterReference.Parent.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttributeParameter_UseBindGet(
-                            node.Source,
-                            node.BoundAttribute.Name));
-                    }
+            // Check if this tag contains a corresponding non-parameterized bind node.
+            var key = new BindEntryKey(parent, node);
+            var name = node.BoundAttributeParameter.Name;
 
-                    entry.BindSetNode = node;
+            if (!bindEntries.TryGetValue(key, out var entry))
+            {
+                if (name != "set")
+                {
+                    // There is no corresponding bind node. Add a diagnostic and move on.
+                    parent.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttributeParameter_MissingBind(
+                        node.Source,
+                        node.AttributeName));
                 }
                 else
                 {
-                    // Unsupported bind attribute parameter. This can only happen if bound attribute descriptor
-                    // is configured to expect a parameter other than 'event' and 'format'.
+                    // There is no corresponding bind node. Add a diagnostic and move on.
+                    parent.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttributeParameter_MissingBindGet(
+                        node.Source,
+                        node.AttributeNameWithoutParameter));
+                }
+            }
+            else if (name == "event")
+            {
+                entry.BindEventNode = node;
+            }
+            else if (name == "format")
+            {
+                entry.BindFormatNode = node;
+            }
+            else if (name == "culture")
+            {
+                entry.BindCultureNode = node;
+            }
+            else if (name == "after")
+            {
+                entry.BindAfterNode = node;
+            }
+            else if (name == "get")
+            {
+                // Avoid removing the reference since it will be processed later on.
+                continue;
+            }
+            else if (name == "set")
+            {
+                if (entry.BindNode != null)
+                {
+                    parent.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttributeParameter_UseBindGet(
+                        node.Source,
+                        node.BoundAttribute.Name));
                 }
 
-                // We've extracted what we need from the parameterized bind node. Remove it.
-                parameterReference.Remove();
+                entry.BindSetNode = node;
             }
+            else
+            {
+                // Unsupported bind attribute parameter. This can only happen if bound attribute descriptor
+                // is configured to expect a parameter other than 'event' and 'format'.
+            }
+
+            // We've extracted what we need from the parameterized bind node. Remove it.
+            parameterReference.Remove();
         }
 
         // We now have all the info we need to rewrite the tag helper.
         foreach (var (key, entry) in bindEntries)
         {
-            if (entry.BindSetNode != null && entry.BindAfterNode != null)
+            if (entry.BindSetNode != null && entry.BindAfterNode is { } afterNode)
             {
-                var afterNode = entry.BindAfterNode;
                 key.Parent.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttributeParameter_InvalidSyntaxBindSetAfter(
                     afterNode.Source,
                     afterNode.AttributeNameWithoutParameter));
