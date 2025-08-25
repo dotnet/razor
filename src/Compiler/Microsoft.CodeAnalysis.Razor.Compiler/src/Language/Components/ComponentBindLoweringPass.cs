@@ -214,7 +214,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
         }
     }
 
-    private void ProcessDuplicates(IntermediateNode node)
+    private static void ProcessDuplicates(IntermediateNode node)
     {
         // Reverse order because we will remove nodes.
         //
@@ -330,7 +330,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
         }
     }
 
-    private IntermediateNode[] RewriteUsage(IntermediateNode parent, BindEntry bindEntry)
+    private static IntermediateNode[] RewriteUsage(IntermediateNode parent, BindEntry bindEntry)
     {
         // Bind works similarly to a macro, it always expands to code that the user could have written.
         //
@@ -608,7 +608,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
         builder.Add(helperNode);
     }
 
-    private bool TryParseBindAttribute(BindEntry bindEntry, out string? valueAttributeName)
+    private static bool TryParseBindAttribute(BindEntry bindEntry, out string? valueAttributeName)
     {
         var attributeName = bindEntry.GetEffectiveBindNodeAttributeName();
         valueAttributeName = null;
@@ -628,7 +628,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
     }
 
     // Attempts to compute the attribute names that should be used for an instance of 'bind'.
-    private bool TryComputeAttributeNames(
+    private static bool TryComputeAttributeNames(
         IntermediateNode parent,
         BindEntry bindEntry,
         out string? valueAttributeName,
@@ -759,7 +759,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
         }
     }
 
-    private void RewriteNodesForComponentDelegateBind(
+    private static void RewriteNodesForComponentDelegateBind(
         IntermediateToken original,
         IntermediateToken? setter,
         IntermediateToken? after,
@@ -823,7 +823,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
         }
     }
 
-    private void RewriteNodesForComponentEventCallbackBind(
+    private static void RewriteNodesForComponentEventCallbackBind(
         IntermediateToken original,
         IntermediateToken? setter,
         IntermediateToken? after,
@@ -874,7 +874,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
         changeExpressionTokens.Add(IntermediateNodeFactory.CSharpToken($", {original.Content})"));
     }
 
-    private void RewriteNodesForElementEventCallbackBind(
+    private static void RewriteNodesForElementEventCallbackBind(
         IntermediateToken original,
         IntermediateToken? format,
         IntermediateToken? culture,
@@ -1008,7 +1008,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
             return GetToken(node);
         }
 
-        IntermediateToken GetToken(IntermediateNode parent)
+        static IntermediateToken GetToken(IntermediateNode parent)
         {
             if (parent.Children.Count == 1 && parent.Children[0] is IntermediateToken token)
             {
