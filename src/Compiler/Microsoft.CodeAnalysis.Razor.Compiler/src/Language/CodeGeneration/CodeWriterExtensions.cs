@@ -74,6 +74,14 @@ internal static class CodeWriterExtensions
         return writer.LastChar is '\n';
     }
 
+    public static void EnsureNewLine(this CodeWriter writer)
+    {
+        if (!IsAtBeginningOfLine(writer))
+        {
+            writer.WriteLine();
+        }
+    }
+
     public static CodeWriter WritePadding(this CodeWriter writer, int offset, SourceSpan? span, CodeRenderingContext context)
     {
         if (span == null)
@@ -843,26 +851,25 @@ internal static class CodeWriterExtensions
         return new CSharpCodeWritingScope(writer);
     }
 
-    public static IDisposable BuildLinePragma(this CodeWriter writer, SourceSpan? span, CodeRenderingContext context, bool suppressLineDefaultAndHidden = false)
+    public static LinePragmaScope BuildLinePragma(this CodeWriter writer, SourceSpan? span, CodeRenderingContext context, bool suppressLineDefaultAndHidden = false)
     {
-        if (string.IsNullOrEmpty(span?.FilePath))
-        {
-            // Can't build a valid line pragma without a file path.
-            return NullDisposable.Default;
-        }
+        Debug.Assert(ReferenceEquals(writer, context.CodeWriter));
+        Debug.Assert(context.Options.DesignTime, "Runtime generation should only use enhanced line pragmas");
 
-        return new LinePragmaWriter(writer, span.Value, context, 0, useEnhancedLinePragma: false, suppressLineDefaultAndHidden);
+        // Can't build a valid line pragma without a file path.
+        return span is SourceSpan spanValue && !spanValue.FilePath.IsNullOrEmpty()
+            ? LinePragmaScope.Standard(context, spanValue, suppressLineDefaultAndHidden)
+            : LinePragmaScope.None;
     }
 
-    public static IDisposable BuildEnhancedLinePragma(this CodeWriter writer, SourceSpan? span, CodeRenderingContext context, int characterOffset = 0, bool suppressLineDefaultAndHidden = false)
+    public static LinePragmaScope BuildEnhancedLinePragma(this CodeWriter writer, SourceSpan? span, CodeRenderingContext context, int characterOffset = 0, bool suppressLineDefaultAndHidden = false)
     {
-        if (string.IsNullOrEmpty(span?.FilePath))
-        {
-            // Can't build a valid line pragma without a file path.
-            return NullDisposable.Default;
-        }
+        Debug.Assert(ReferenceEquals(writer, context.CodeWriter));
 
-        return new LinePragmaWriter(writer, span.Value, context, characterOffset, useEnhancedLinePragma: true, suppressLineDefaultAndHidden);
+        // Can't build a valid line pragma without a file path.
+        return span is SourceSpan spanValue && !spanValue.FilePath.IsNullOrEmpty()
+            ? LinePragmaScope.Enhanced(context, spanValue, characterOffset, suppressLineDefaultAndHidden)
+            : LinePragmaScope.None;
     }
 
     private static void WriteVerbatimStringLiteral(CodeWriter writer, ReadOnlyMemory<char> literal)
@@ -1027,122 +1034,124 @@ internal static class CodeWriterExtensions
         }
     }
 
-    private class LinePragmaWriter : IDisposable
+    public readonly ref struct LinePragmaScope
     {
-        private readonly CodeWriter _writer;
         private readonly CodeRenderingContext _context;
-        private readonly bool _isEnhanced;
-        private readonly int _startIndent;
         private readonly SourceSpan _span;
+        private readonly bool _isEnhanced;
+        private readonly int _originalIndent;
         private readonly bool _suppressLineDefaultAndHidden;
 
-        public LinePragmaWriter(
-            CodeWriter writer,
-            SourceSpan span,
+        private LinePragmaScope(
             CodeRenderingContext context,
-            int characterOffset,
-            bool useEnhancedLinePragma = false,
-            bool suppressLineDefaultAndHidden = false)
+            SourceSpan span,
+            bool isEnhanced,
+            int originalIndent,
+            bool suppressLineDefaultAndHidden)
         {
-            Debug.Assert(context.Options.DesignTime || useEnhancedLinePragma, "Runtime generation should only use enhanced line pragmas");
-
-            if (writer == null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            _writer = writer;
             _context = context;
-            _suppressLineDefaultAndHidden = suppressLineDefaultAndHidden;
-            _startIndent = _writer.CurrentIndent;
-            _writer.CurrentIndent = 0;
             _span = span;
+            _isEnhanced = isEnhanced;
+            _originalIndent = originalIndent;
+            _suppressLineDefaultAndHidden = suppressLineDefaultAndHidden;
+        }
 
-            var endsWithNewline = _writer.LastChar is '\n';
-            if (!endsWithNewline)
+        public static LinePragmaScope None => default;
+
+        public static LinePragmaScope Standard(CodeRenderingContext context, SourceSpan span, bool suppressLineDefaultAndHidden)
+        {
+            var writer = context.CodeWriter;
+            var options = context.Options;
+
+            var (originalIndent, ensurePathBackSlashes) = WritePreamble(writer, options);
+
+            writer.WriteLineNumberDirective(span, ensurePathBackSlashes);
+
+            return new(context, span, isEnhanced: false, originalIndent, suppressLineDefaultAndHidden);
+        }
+
+        public static LinePragmaScope Enhanced(CodeRenderingContext context, SourceSpan span, int characterOffset, bool suppressLineDefaultAndHidden)
+        {
+            var writer = context.CodeWriter;
+            var options = context.Options;
+
+            // Are we allowed to write an enhanced line pragma?
+            if (!options.UseEnhancedLinePragma)
             {
-                _writer.WriteLine();
+                var standardScope = Standard(context, span, suppressLineDefaultAndHidden);
+
+                // If the caller requested an enhanced line directive, but we fell back to
+                // a regular one, write out the extra padding and add a source mapping.
+                writer.WritePadding(offset: 0, span, context);
+                context.AddSourceMappingFor(span);
+
+                return standardScope;
             }
 
-            if (!_context.Options.SuppressNullabilityEnforcement)
+            var (originalIndent, ensurePathBackSlashes) = WritePreamble(writer, options);
+
+            writer.WriteEnhancedLineNumberDirective(span, characterOffset, ensurePathBackSlashes);
+            context.AddSourceMappingFor(span, characterOffset);
+
+            return new(context, span, isEnhanced: true, originalIndent, suppressLineDefaultAndHidden);
+        }
+
+        private static (int originalIndent, bool ensureBackSlashes) WritePreamble(CodeWriter writer, RazorCodeGenerationOptions options)
+        {
+            // Capture the current indent and reset to 0 for writing directives.
+            var originalIndent = writer.CurrentIndent;
+            writer.CurrentIndent = 0;
+
+            // Ensure that we start on a new line.
+            writer.EnsureNewLine();
+
+            if (!options.SuppressNullabilityEnforcement)
             {
-                _writer.WriteLine("#nullable restore");
+                writer.WriteLine("#nullable restore");
             }
 
-            var ensurePathBackslashes = context.Options.RemapLinePragmaPathsOnWindows && PlatformInformation.IsWindows;
-            if (useEnhancedLinePragma && _context.Options.UseEnhancedLinePragma)
-            {
-                WriteEnhancedLineNumberDirective(writer, span, characterOffset, ensurePathBackslashes);
-                _isEnhanced = true;
-            }
-            else
-            {
-                WriteLineNumberDirective(writer, span, ensurePathBackslashes);
-            }
+            var ensurePathBackSlashes = options.RemapLinePragmaPathsOnWindows && PlatformInformation.IsWindows;
 
-            if (useEnhancedLinePragma)
-            {
-                // If the caller requested an enhanced line directive, but we fell back to regular ones, write out the extra padding that is required
-                if (!_context.Options.UseEnhancedLinePragma)
-                {
-                    context.CodeWriter.WritePadding(0, span, context);
-                    characterOffset = 0;
-                }
-
-                context.AddSourceMappingFor(span, characterOffset);
-            }
+            return (originalIndent, ensurePathBackSlashes);
         }
 
         public void Dispose()
         {
-            // Need to add an additional line at the end IF there wasn't one already written.
-            // This is needed to work with the C# editor's handling of #line ...
-            var endsWithNewline = _writer.LastChar is '\n';
+            if (_context is null)
+            {
+                return;
+            }
+
+            var writer = _context.CodeWriter;
+            var options = _context.Options;
+
+            writer.EnsureNewLine();
 
             // Always write at least 1 empty line to potentially separate code from pragmas.
-            _writer.WriteLine();
-
-            // Check if the previous empty line wasn't enough to separate code from pragmas.
-            if (!endsWithNewline)
-            {
-                _writer.WriteLine();
-            }
+            writer.WriteLine();
 
             var linePragma = new LinePragma(
                 _isEnhanced,
                 _span.FilePath,
                 _span.LineIndex,
-                endLineIndex: _writer.Location.LineIndex);
+                endLineIndex: writer.Location.LineIndex);
 
             _context.AddLinePragma(linePragma);
 
             if (!_suppressLineDefaultAndHidden)
             {
-                _writer
+                writer
                     .WriteLine("#line default")
                     .WriteLine("#line hidden");
             }
 
-            if (!_context.Options.SuppressNullabilityEnforcement)
+            if (!options.SuppressNullabilityEnforcement)
             {
-                _writer.WriteLine("#nullable disable");
+                writer.WriteLine("#nullable disable");
             }
 
-            _writer.CurrentIndent = _startIndent;
-
-        }
-    }
-
-    private class NullDisposable : IDisposable
-    {
-        public static readonly NullDisposable Default = new NullDisposable();
-
-        private NullDisposable()
-        {
-        }
-
-        public void Dispose()
-        {
+            // Reset indentation.
+            writer.CurrentIndent = _originalIndent;
         }
     }
 }
