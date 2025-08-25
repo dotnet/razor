@@ -30,7 +30,9 @@ public class InjectTargetExtension(bool considerNullabilityEnforcement) : IInjec
             if (node.TypeName == "")
             {
                 // if we don't even have a type name, just emit an empty mapped region so that intellisense still works
-                context.CodeWriter.BuildEnhancedLinePragma(node.TypeSource.Value, context).Dispose();
+                using (context.CodeWriter.BuildEnhancedLinePragma(node.TypeSource.Value, context))
+                {
+                }
             }
             else
             {
