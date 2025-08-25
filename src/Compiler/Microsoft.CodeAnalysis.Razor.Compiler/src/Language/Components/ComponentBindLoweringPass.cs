@@ -16,11 +16,9 @@ using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
-internal partial class ComponentBindLoweringPass(bool bindGetSetSupported) : ComponentIntermediateNodePassBase, IRazorOptimizationPass
+internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IRazorOptimizationPass
 {
     private static readonly string s_cultureInvariantText = $"global::{typeof(CultureInfo).FullName}.{nameof(CultureInfo.InvariantCulture)}";
-
-    private readonly bool _bindGetSetSupported = bindGetSetSupported;
 
     // Run after event handler pass
     public override int Order => 100;
@@ -39,6 +37,8 @@ internal partial class ComponentBindLoweringPass(bool bindGetSetSupported) : Com
             // Nothing to do, bail. We can't function without the standard structure.
             return;
         }
+
+        var bindGetSetSupported = codeDocument.ParserOptions.LanguageVersion >= RazorLanguageVersion.Version_7_0;
 
         using var references = new PooledArrayBuilder<IntermediateNodeReference>();
         using var parameterReferences = new PooledArrayBuilder<IntermediateNodeReference>();
@@ -90,7 +90,7 @@ internal partial class ComponentBindLoweringPass(bool bindGetSetSupported) : Com
                 continue;
             }
 
-            if (!_bindGetSetSupported)
+            if (!bindGetSetSupported)
             {
                 node.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttributeParameter_UnsupportedSyntaxBindGetSet(
                     node.Source,
