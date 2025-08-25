@@ -15,7 +15,7 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
     {
         if (node.Source is { FilePath: not null } sourceSpan)
         {
-            using (context.CodeWriter.BuildLinePragma(sourceSpan, context, suppressLineDefaultAndHidden: !node.AppendLineDefaultAndHidden))
+            using (context.BuildLinePragma(sourceSpan, suppressLineDefaultAndHidden: !node.AppendLineDefaultAndHidden))
             {
                 context.AddSourceMappingFor(node);
                 context.CodeWriter.WriteUsing(node.Content);
@@ -52,7 +52,7 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
 
         if (node.Source != null)
         {
-            using (context.CodeWriter.BuildLinePragma(node.Source.Value, context))
+            using (context.BuildLinePragma(node.Source.Value))
             {
                 var offset = DesignTimeDirectivePass.DesignTimeVariable.Length + " = ".Length;
                 context.CodeWriter.WritePadding(offset, node.Source, context);
@@ -102,7 +102,7 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
 
         if (node.Source is SourceSpan nodeSource)
         {
-            using (writer.BuildLinePragma(nodeSource, context))
+            using (context.BuildLinePragma(nodeSource))
             {
                 writer.WritePadding(0, nodeSource, context);
                 RenderCSharpCode(context, node);
@@ -145,7 +145,7 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
         var firstChild = node.Children[0];
         if (firstChild.Source != null)
         {
-            using (context.CodeWriter.BuildLinePragma(firstChild.Source.Value, context))
+            using (context.BuildLinePragma(firstChild.Source.Value))
             {
                 var offset = DesignTimeDirectivePass.DesignTimeVariable.Length + " = ".Length;
                 context.CodeWriter.WritePadding(offset, firstChild.Source, context);
@@ -207,7 +207,7 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
 
                 if (token.Source is SourceSpan tokenSource)
                 {
-                    using (writer.BuildLinePragma(tokenSource, context))
+                    using (context.BuildLinePragma(tokenSource))
                     {
                         writer.WritePadding(0, tokenSource, context);
 

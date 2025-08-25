@@ -12,7 +12,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
-using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
@@ -568,7 +567,7 @@ internal static class CodeWriterExtensions
         {
             if (span is not null && context?.Options.DesignTime == false)
             {
-                using (writer.BuildEnhancedLinePragma(span, context))
+                using (context.BuildEnhancedLinePragma(span))
                 {
                     writer.Write(content);
                 }
@@ -671,7 +670,7 @@ internal static class CodeWriterExtensions
         else
         {
             writer.WriteLine();
-            using (writer.BuildEnhancedLinePragma(span, context))
+            using (context.BuildEnhancedLinePragma(span))
             {
                 writer.WriteLine(name);
             }
@@ -715,7 +714,7 @@ internal static class CodeWriterExtensions
                 var typeParameter = typeParameters[i];
                 if (typeParameter.ParameterNameSource is { } source)
                 {
-                    WriteWithPragma(writer, typeParameter.ParameterName, context, source);
+                    WriteWithPragma(typeParameter.ParameterName, context, source);
                 }
                 else
                 {
@@ -774,7 +773,7 @@ internal static class CodeWriterExtensions
                     if (typeParameter.ConstraintsSource is { } source)
                     {
                         Debug.Assert(context != null);
-                        WriteWithPragma(writer, constraint, context, source);
+                        WriteWithPragma(constraint, context, source);
                     }
                     else
                     {
@@ -804,7 +803,7 @@ internal static class CodeWriterExtensions
         {
             if (token.Source is { } source)
             {
-                WriteWithPragma(writer, token.Content, context, source);
+                WriteWithPragma(token.Content, context, source);
             }
             else
             {
@@ -812,11 +811,13 @@ internal static class CodeWriterExtensions
             }
         }
 
-        static void WriteWithPragma(CodeWriter writer, string content, CodeRenderingContext context, SourceSpan source)
+        static void WriteWithPragma(string content, CodeRenderingContext context, SourceSpan source)
         {
+            var writer = context.CodeWriter;
+
             if (context.Options.DesignTime)
             {
-                using (writer.BuildLinePragma(source, context))
+                using (context.BuildLinePragma(source))
                 {
                     context.AddSourceMappingFor(source);
                     writer.Write(content);
@@ -824,7 +825,7 @@ internal static class CodeWriterExtensions
             }
             else
             {
-                using (writer.BuildEnhancedLinePragma(source, context))
+                using (context.BuildEnhancedLinePragma(source))
                 {
                     writer.Write(content);
                 }
@@ -849,27 +850,6 @@ internal static class CodeWriterExtensions
             .WriteLine(")");
 
         return new CSharpCodeWritingScope(writer);
-    }
-
-    public static LinePragmaScope BuildLinePragma(this CodeWriter writer, SourceSpan? span, CodeRenderingContext context, bool suppressLineDefaultAndHidden = false)
-    {
-        Debug.Assert(ReferenceEquals(writer, context.CodeWriter));
-        Debug.Assert(context.Options.DesignTime, "Runtime generation should only use enhanced line pragmas");
-
-        // Can't build a valid line pragma without a file path.
-        return span is SourceSpan spanValue && !spanValue.FilePath.IsNullOrEmpty()
-            ? LinePragmaScope.Standard(context, spanValue, suppressLineDefaultAndHidden)
-            : LinePragmaScope.None;
-    }
-
-    public static LinePragmaScope BuildEnhancedLinePragma(this CodeWriter writer, SourceSpan? span, CodeRenderingContext context, int characterOffset = 0, bool suppressLineDefaultAndHidden = false)
-    {
-        Debug.Assert(ReferenceEquals(writer, context.CodeWriter));
-
-        // Can't build a valid line pragma without a file path.
-        return span is SourceSpan spanValue && !spanValue.FilePath.IsNullOrEmpty()
-            ? LinePragmaScope.Enhanced(context, spanValue, characterOffset, suppressLineDefaultAndHidden)
-            : LinePragmaScope.None;
     }
 
     private static void WriteVerbatimStringLiteral(CodeWriter writer, ReadOnlyMemory<char> literal)
@@ -1031,127 +1011,6 @@ internal static class CodeWriterExtensions
             {
                 _writer.Write(spaceCharacter);
             }
-        }
-    }
-
-    public readonly ref struct LinePragmaScope
-    {
-        private readonly CodeRenderingContext _context;
-        private readonly SourceSpan _span;
-        private readonly bool _isEnhanced;
-        private readonly int _originalIndent;
-        private readonly bool _suppressLineDefaultAndHidden;
-
-        private LinePragmaScope(
-            CodeRenderingContext context,
-            SourceSpan span,
-            bool isEnhanced,
-            int originalIndent,
-            bool suppressLineDefaultAndHidden)
-        {
-            _context = context;
-            _span = span;
-            _isEnhanced = isEnhanced;
-            _originalIndent = originalIndent;
-            _suppressLineDefaultAndHidden = suppressLineDefaultAndHidden;
-        }
-
-        public static LinePragmaScope None => default;
-
-        public static LinePragmaScope Standard(CodeRenderingContext context, SourceSpan span, bool suppressLineDefaultAndHidden)
-        {
-            var writer = context.CodeWriter;
-            var options = context.Options;
-
-            var (originalIndent, ensurePathBackSlashes) = WritePreamble(writer, options);
-
-            writer.WriteLineNumberDirective(span, ensurePathBackSlashes);
-
-            return new(context, span, isEnhanced: false, originalIndent, suppressLineDefaultAndHidden);
-        }
-
-        public static LinePragmaScope Enhanced(CodeRenderingContext context, SourceSpan span, int characterOffset, bool suppressLineDefaultAndHidden)
-        {
-            var writer = context.CodeWriter;
-            var options = context.Options;
-
-            // Are we allowed to write an enhanced line pragma?
-            if (!options.UseEnhancedLinePragma)
-            {
-                var standardScope = Standard(context, span, suppressLineDefaultAndHidden);
-
-                // If the caller requested an enhanced line directive, but we fell back to
-                // a regular one, write out the extra padding and add a source mapping.
-                writer.WritePadding(offset: 0, span, context);
-                context.AddSourceMappingFor(span);
-
-                return standardScope;
-            }
-
-            var (originalIndent, ensurePathBackSlashes) = WritePreamble(writer, options);
-
-            writer.WriteEnhancedLineNumberDirective(span, characterOffset, ensurePathBackSlashes);
-            context.AddSourceMappingFor(span, characterOffset);
-
-            return new(context, span, isEnhanced: true, originalIndent, suppressLineDefaultAndHidden);
-        }
-
-        private static (int originalIndent, bool ensureBackSlashes) WritePreamble(CodeWriter writer, RazorCodeGenerationOptions options)
-        {
-            // Capture the current indent and reset to 0 for writing directives.
-            var originalIndent = writer.CurrentIndent;
-            writer.CurrentIndent = 0;
-
-            // Ensure that we start on a new line.
-            writer.EnsureNewLine();
-
-            if (!options.SuppressNullabilityEnforcement)
-            {
-                writer.WriteLine("#nullable restore");
-            }
-
-            var ensurePathBackSlashes = options.RemapLinePragmaPathsOnWindows && PlatformInformation.IsWindows;
-
-            return (originalIndent, ensurePathBackSlashes);
-        }
-
-        public void Dispose()
-        {
-            if (_context is null)
-            {
-                return;
-            }
-
-            var writer = _context.CodeWriter;
-            var options = _context.Options;
-
-            writer.EnsureNewLine();
-
-            // Always write at least 1 empty line to potentially separate code from pragmas.
-            writer.WriteLine();
-
-            var linePragma = new LinePragma(
-                _isEnhanced,
-                _span.FilePath,
-                _span.LineIndex,
-                endLineIndex: writer.Location.LineIndex);
-
-            _context.AddLinePragma(linePragma);
-
-            if (!_suppressLineDefaultAndHidden)
-            {
-                writer
-                    .WriteLine("#line default")
-                    .WriteLine("#line hidden");
-            }
-
-            if (!options.SuppressNullabilityEnforcement)
-            {
-                writer.WriteLine("#nullable disable");
-            }
-
-            // Reset indentation.
-            writer.CurrentIndent = _originalIndent;
         }
     }
 }

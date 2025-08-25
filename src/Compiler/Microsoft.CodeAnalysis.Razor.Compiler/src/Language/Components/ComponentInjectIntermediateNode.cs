@@ -65,7 +65,7 @@ internal class ComponentInjectIntermediateNode : ExtensionIntermediateNode
         if (TypeName == string.Empty && TypeSpan.HasValue && !context.Options.DesignTime)
         {
             // if we don't even have a type name, just emit an empty mapped region so that intellisense still works
-            using (context.CodeWriter.BuildEnhancedLinePragma(TypeSpan.Value, context))
+            using (context.BuildEnhancedLinePragma(TypeSpan.Value))
             {
             }
         }
