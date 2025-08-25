@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
@@ -24,6 +25,23 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
 
     // Run after event handler pass
     public override int Order => 100;
+
+    private readonly record struct BindEntryKey(IntermediateNode Parent, string AttributeName)
+    {
+        public bool Equals(BindEntryKey other)
+            => ReferenceEquals(Parent, other.Parent) &&
+               AttributeName == other.AttributeName;
+
+        public override int GetHashCode()
+        {
+            var hash = HashCodeCombiner.Start();
+
+            hash.Add(Parent);
+            hash.Add(AttributeName);
+
+            return hash.CombinedHash;
+        }
+    }
 
     protected override void ExecuteCore(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
     {
@@ -41,7 +59,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
         }
 
         // For each @bind *usage* we need to rewrite the tag helper node to map to basic constructs.
-        using var _ = ReferenceEqualityHashSetPool<IntermediateNode>.GetPooledObject(out var parents);
+        using var _1 = ReferenceEqualityHashSetPool<IntermediateNode>.GetPooledObject(out var parents);
         var references = documentNode.FindDescendantReferences<TagHelperDirectiveAttributeIntermediateNode>();
         var parameterReferences = documentNode.FindDescendantReferences<TagHelperDirectiveAttributeParameterIntermediateNode>();
 
@@ -64,7 +82,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
         // The dict key is a tuple of (parent, attributeName) to differentiate attributes with the same name in two different elements.
         // We don't have to worry about duplicate bound attributes in the same element
         // like, <Foo @bind="bar" @bind="bar" />, because IR lowering takes care of that.
-        var bindEntries = new Dictionary<(IntermediateNode, string), BindEntry>();
+        using var _2 = DictionaryPool<BindEntryKey, BindEntry>.GetPooledObject(out var bindEntries);
 
         foreach (var reference in references)
         {
@@ -79,7 +97,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
 
             if (node.TagHelper.IsBindTagHelper())
             {
-                bindEntries[(parent, node.AttributeName)] = new BindEntry(reference);
+                bindEntries[new(parent, node.AttributeName)] = new BindEntry(reference);
             }
         }
 
@@ -104,9 +122,12 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
                         node.Source,
                         node.AttributeName));
                 }
-                if (!bindEntries.TryGetValue((parameterReference.Parent, node.AttributeNameWithoutParameter), out var existingEntry))
+
+                var key = new BindEntryKey(parent, node.AttributeNameWithoutParameter);
+
+                if (!bindEntries.TryGetValue(key, out var existingEntry))
                 {
-                    bindEntries[(parameterReference.Parent, node.AttributeNameWithoutParameter)] = new BindEntry(parameterReference);
+                    bindEntries[key] = new BindEntry(parameterReference);
                 }
                 else
                 {
@@ -134,7 +155,9 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
             if (node.TagHelper.IsBindTagHelper())
             {
                 // Check if this tag contains a corresponding non-parameterized bind node.
-                if (!bindEntries.TryGetValue((parent, node.AttributeNameWithoutParameter), out var entry))
+                var key = new BindEntryKey(parent, node.AttributeNameWithoutParameter);
+
+                if (!bindEntries.TryGetValue(key, out var entry))
                 {
                     if (node.BoundAttributeParameter.Name != "set")
                     {
@@ -180,6 +203,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
                             node.Source,
                             node.BoundAttribute.Name));
                     }
+
                     entry.BindSetNode = node;
                 }
                 else
@@ -194,17 +218,18 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
         }
 
         // We now have all the info we need to rewrite the tag helper.
-        foreach (var entry in bindEntries)
+        foreach (var (key, entry) in bindEntries)
         {
-            var reference = entry.Value.BindNodeReference;
-            if (entry.Value.BindSetNode != null && entry.Value.BindAfterNode != null)
+            if (entry.BindSetNode != null && entry.BindAfterNode != null)
             {
-                var afterNode = entry.Value.BindAfterNode;
-                entry.Key.Item1.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttributeParameter_InvalidSyntaxBindSetAfter(
+                var afterNode = entry.BindAfterNode;
+                key.Parent.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttributeParameter_InvalidSyntaxBindSetAfter(
                     afterNode.Source,
                     afterNode.AttributeNameWithoutParameter));
             }
-            var rewritten = RewriteUsage(reference.Parent, entry.Value);
+
+            var reference = entry.BindNodeReference;
+            var rewritten = RewriteUsage(reference.Parent, entry);
             reference.Remove();
 
             for (var j = 0; j < rewritten.Length; j++)
