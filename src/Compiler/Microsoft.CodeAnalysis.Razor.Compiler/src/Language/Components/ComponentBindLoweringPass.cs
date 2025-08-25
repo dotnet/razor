@@ -58,42 +58,38 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
             return;
         }
 
-        // For each @bind *usage* we need to rewrite the tag helper node to map to basic constructs.
-        using var _1 = ReferenceEqualityHashSetPool<IntermediateNode>.GetPooledObject(out var parents);
-        var references = documentNode.FindDescendantReferences<TagHelperDirectiveAttributeIntermediateNode>();
-        var parameterReferences = documentNode.FindDescendantReferences<TagHelperDirectiveAttributeParameterIntermediateNode>();
+        // For each @bind usage we need to rewrite the tag helper node to map to basic constructs.
 
-        foreach (var reference in references)
-        {
-            parents.Add(reference.Parent);
-        }
+        using var references = new PooledArrayBuilder<IntermediateNodeReference>();
+        using var parameterReferences = new PooledArrayBuilder<IntermediateNodeReference>();
 
-        foreach (var parameterReference in parameterReferences)
-        {
-            parents.Add(parameterReference.Parent);
-        }
+        ref var referencesRef = ref references.AsRef();
+        ref var parameterReferencesRef = ref parameterReferences.AsRef();
 
-        foreach (var parent in parents)
-        {
-            ProcessDuplicates(parent);
-        }
+        // First, process duplicates so we don't have to worry about them later.
+        documentNode.CollectDescendantReferences<TagHelperDirectiveAttributeIntermediateNode>(ref referencesRef);
+        documentNode.CollectDescendantReferences<TagHelperDirectiveAttributeParameterIntermediateNode>(ref parameterReferencesRef);
 
-        // First, collect all the non-parameterized @bind or @bind-* attributes.
-        // The dict key is a tuple of (parent, attributeName) to differentiate attributes with the same name in two different elements.
-        // We don't have to worry about duplicate bound attributes in the same element
-        // like, <Foo @bind="bar" @bind="bar" />, because IR lowering takes care of that.
-        using var _2 = DictionaryPool<BindEntryKey, BindEntry>.GetPooledObject(out var bindEntries);
+        ProcessDuplicates(ref referencesRef, ref parameterReferencesRef);
+
+        // Now that we've processed duplicates, re-collect all the references as some may have been removed.
+        references.Clear();
+        documentNode.CollectDescendantReferences<TagHelperDirectiveAttributeIntermediateNode>(ref referencesRef);
+
+        parameterReferences.Clear();
+        documentNode.CollectDescendantReferences<TagHelperDirectiveAttributeParameterIntermediateNode>(ref parameterReferencesRef);
+
+        // Collect all the non-parameterized @bind or @bind-* attributes.
+        // The dict key is essentially a tuple of (parent, attributeName) to differentiate attributes
+        // with the same name in two different elements. We don't have to worry about duplicate bound
+        // attributes in the same element such as, <Foo @bind="bar" @bind="bar" />, because IR lowering
+        // takes care of that.
+        using var _ = DictionaryPool<BindEntryKey, BindEntry>.GetPooledObject(out var bindEntries);
 
         foreach (var reference in references)
         {
             var parent = reference.Parent;
             var node = (TagHelperDirectiveAttributeIntermediateNode)reference.Node;
-
-            if (!parent.Children.Contains(node))
-            {
-                // This node was removed as a duplicate, skip it.
-                continue;
-            }
 
             if (node.TagHelper.IsBindTagHelper())
             {
@@ -108,35 +104,31 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
             var parent = parameterReference.Parent;
             var node = (TagHelperDirectiveAttributeParameterIntermediateNode)parameterReference.Node;
 
-            if (!parent.Children.Contains(node))
+            if (!node.BoundAttributeParameter.BindAttributeGetSet)
             {
-                // This node was removed as a duplicate, skip it.
                 continue;
             }
 
-            if (node.BoundAttributeParameter.BindAttributeGetSet)
+            if (!_bindGetSetSupported)
             {
-                if (!_bindGetSetSupported)
-                {
-                    node.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttributeParameter_UnsupportedSyntaxBindGetSet(
-                        node.Source,
-                        node.AttributeName));
-                }
+                node.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttributeParameter_UnsupportedSyntaxBindGetSet(
+                    node.Source,
+                    node.AttributeName));
+            }
 
-                var key = new BindEntryKey(parent, node.AttributeNameWithoutParameter);
+            var key = new BindEntryKey(parent, node.AttributeNameWithoutParameter);
 
-                if (!bindEntries.TryGetValue(key, out var existingEntry))
-                {
-                    bindEntries[key] = new BindEntry(parameterReference);
-                }
-                else
-                {
-                    var bindNode = existingEntry.BindNode.AssumeNotNull();
+            if (!bindEntries.TryGetValue(key, out var existingEntry))
+            {
+                bindEntries[key] = new BindEntry(parameterReference);
+            }
+            else
+            {
+                var bindNode = existingEntry.BindNode.AssumeNotNull();
 
-                    bindNode.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttributeParameter_InvalidSyntaxBindAndBindGet(
-                        node.Source,
-                        bindNode.AttributeName));
-                }
+                bindNode.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttributeParameter_InvalidSyntaxBindAndBindGet(
+                    node.Source,
+                    bindNode.AttributeName));
             }
         }
 
@@ -145,12 +137,6 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
         {
             var parent = parameterReference.Parent;
             var node = (TagHelperDirectiveAttributeParameterIntermediateNode)parameterReference.Node;
-
-            if (!parent.Children.Contains(node))
-            {
-                // This node was removed as a duplicate, skip it.
-                continue;
-            }
 
             if (node.TagHelper.IsBindTagHelper())
             {
@@ -239,7 +225,29 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
         }
     }
 
-    private static void ProcessDuplicates(IntermediateNode node)
+    private static void ProcessDuplicates(
+        ref PooledArrayBuilder<IntermediateNodeReference> references,
+        ref PooledArrayBuilder<IntermediateNodeReference> parameterReferences)
+    {
+        using var _ = ReferenceEqualityHashSetPool<IntermediateNode>.GetPooledObject(out var parents);
+
+        foreach (var reference in references)
+        {
+            parents.Add(reference.Parent);
+        }
+
+        foreach (var parameterReference in parameterReferences)
+        {
+            parents.Add(parameterReference.Parent);
+        }
+
+        foreach (var parent in parents)
+        {
+            ProcessDuplicateAttributes(parent);
+        }
+    }
+
+    private static void ProcessDuplicateAttributes(IntermediateNode node)
     {
         var children = node.Children;
 
