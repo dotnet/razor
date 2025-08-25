@@ -40,7 +40,7 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
         {
             Name = GeneratedRenderModeAttributeName,
             BaseType = new BaseTypeWithModel($"global::{ComponentsApi.RenderModeAttribute.FullTypeName}"),
-            Modifiers = ["private", "sealed"]
+            Modifiers = CommonModifiers.PrivateSealed
         };
 
         classDecl.Children.Add(new CSharpCodeIntermediateNode()

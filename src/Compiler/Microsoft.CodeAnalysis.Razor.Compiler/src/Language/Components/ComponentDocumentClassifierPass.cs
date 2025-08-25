@@ -91,7 +91,7 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
         @namespace.Name = computedNamespace;
         @namespace.Source = computedNamespaceSpan;
         @class.Name = computedClass;
-        @class.Modifiers = ["public", "partial"];
+        @class.Modifiers = CommonModifiers.PublicPartial;
 
         if (codeDocument.FileKind.IsComponentImport())
         {
@@ -101,7 +101,7 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
 
             method.ReturnType = "void";
             method.Name = "Execute";
-            method.Modifiers = ["protected"];
+            method.Modifiers = CommonModifiers.Protected;
             method.Parameters = [];
         }
         else
@@ -135,7 +135,7 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
 
             method.ReturnType = "void";
             method.Name = ComponentsApi.ComponentBase.BuildRenderTree;
-            method.Modifiers = ["protected", "override"];
+            method.Modifiers = CommonModifiers.ProtectedOverride;
 
             method.Parameters = [new(
                 name: ComponentsApi.RenderTreeBuilder.BuilderParameter,

@@ -86,13 +86,13 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
         @class.BaseType = new BaseTypeWithModel("global::Microsoft.AspNetCore.Mvc.RazorPages.Page");
 
         @class.Modifiers = _useConsolidatedMvcViews
-            ? ["internal", "sealed"]
-            : ["public"];
+            ? CommonModifiers.InternalSealed
+            : CommonModifiers.Public;
 
         @class.NullableContext = true;
 
         method.Name = "ExecuteAsync";
-        method.Modifiers = ["public", "async", "override"];
+        method.Modifiers = CommonModifiers.PublicAsyncOverride;
         method.ReturnType = $"global::{typeof(System.Threading.Tasks.Task).FullName}";
 
         var document = codeDocument.GetRequiredDocumentNode();

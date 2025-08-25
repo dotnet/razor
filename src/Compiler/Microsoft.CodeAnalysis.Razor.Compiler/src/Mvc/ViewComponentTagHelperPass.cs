@@ -126,7 +126,7 @@ public class ViewComponentTagHelperPass : IntermediateNodePassBase, IRazorOptimi
         context.Class.Children.Insert(i, new FieldDeclarationIntermediateNode()
         {
             IsTagHelperField = true,
-            Modifiers = ["private"],
+            Modifiers = CommonModifiers.Private,
             Name = context.GetFieldName(tagHelper),
             Type = "global::" + context.GetFullyQualifiedName(tagHelper),
         });

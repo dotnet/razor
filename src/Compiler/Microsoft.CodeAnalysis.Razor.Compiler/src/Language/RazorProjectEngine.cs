@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -387,7 +388,7 @@ public sealed class RazorProjectEngine
         configurationFeature.ConfigureClass.Add((document, @class) =>
         {
             @class.Name = "Template";
-            @class.Modifiers = ["public"];
+            @class.Modifiers = CommonModifiers.Public;
         });
 
         configurationFeature.ConfigureNamespace.Add((document, @namespace) =>
@@ -399,7 +400,7 @@ public sealed class RazorProjectEngine
         {
             method.Name = "ExecuteAsync";
             method.ReturnType = $"global::{typeof(Task).FullName}";
-            method.Modifiers = ["public", "async", "override"];
+            method.Modifiers = CommonModifiers.PublicAsyncOverride;
         });
     }
 

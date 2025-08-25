@@ -70,10 +70,10 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
             @class.Name = CSharpIdentifier.GetClassNameFromPath(filePath);
         }
 
-        @class.Modifiers = ["public"];
+        @class.Modifiers = CommonModifiers.Public;
 
         method.Name = "ExecuteAsync";
-        method.Modifiers = ["public", "async", "override"];
+        method.Modifiers = CommonModifiers.PublicAsyncOverride;
         method.ReturnType = $"global::{typeof(System.Threading.Tasks.Task).FullName}";
 
         var document = codeDocument.GetRequiredDocumentNode();

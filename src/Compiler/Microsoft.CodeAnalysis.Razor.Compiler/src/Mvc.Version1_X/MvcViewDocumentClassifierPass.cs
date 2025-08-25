@@ -40,10 +40,10 @@ public class MvcViewDocumentClassifierPass : DocumentClassifierPassBase
         }
 
         @class.BaseType = new BaseTypeWithModel("global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<TModel>", location: null);
-        @class.Modifiers = ["public"];
+        @class.Modifiers = CommonModifiers.Public;
 
         method.Name = "ExecuteAsync";
-        method.Modifiers = ["public", "async", "override"];
+        method.Modifiers = CommonModifiers.PublicAsyncOverride;
         method.ReturnType = $"global::{typeof(System.Threading.Tasks.Task).FullName}";
     }
 }
