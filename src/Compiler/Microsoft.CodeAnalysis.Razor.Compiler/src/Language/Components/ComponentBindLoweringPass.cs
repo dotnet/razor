@@ -14,7 +14,7 @@ using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
-internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IRazorOptimizationPass
+internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IRazorOptimizationPass
 {
     private readonly bool _bindGetSetSupported;
 
@@ -241,116 +241,136 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
 
     private static void ProcessDuplicates(IntermediateNode node)
     {
-        // Reverse order because we will remove nodes.
-        //
-        // Each 'property' node could be duplicated if there are multiple tag helpers that match that
-        // particular attribute. This is common in our approach, which relies on 'fallback' tag helpers
-        // that overlap with more specific ones.
-        for (var i = node.Children.Count - 1; i >= 0; i--)
+        var children = node.Children;
+
+        // First, collect all the bind-related attributes on this node.
+        using var attributes = new PooledArrayBuilder<AttributeInfo>();
+
+        for (var i = 0; i < children.Count; i++)
+        {
+            switch (children[i])
+            {
+                case TagHelperDirectiveAttributeIntermediateNode directiveAttribute:
+                    attributes.Add(new(directiveAttribute, i));
+                    break;
+
+                case TagHelperDirectiveAttributeParameterIntermediateNode directiveAttributeParameter:
+                    attributes.Add(new(directiveAttributeParameter, i));
+                    break;
+            }
+        }
+
+        // Next, identify attributes for "fallback" bind tag helpers that are overridden by attributes
+        // with more specific bind tag helpers.
+        using var toRemove = new PooledArrayBuilder<AttributeInfo>();
+
+        foreach (var attribute in attributes)
         {
             // For each usage of the general 'fallback' bind tag helper, it could duplicate
             // the usage of a more specific one. Look for duplicates and remove the fallback.
-            TagHelperDescriptor? tagHelper = null;
-            string? attributeName = null;
-            var attribute = node.Children[i];
-
-            if (attribute is TagHelperDirectiveAttributeIntermediateNode directiveAttribute)
-            {
-                attributeName = directiveAttribute.AttributeName;
-                tagHelper = directiveAttribute.TagHelper;
-            }
-            else if (attribute is TagHelperDirectiveAttributeParameterIntermediateNode parameterAttribute)
-            {
-                attributeName = parameterAttribute.AttributeName;
-                tagHelper = parameterAttribute.TagHelper;
-            }
-            if (attribute != null &&
-                tagHelper != null &&
-                tagHelper.IsFallbackBindTagHelper())
-            {
-                for (var j = 0; j < node.Children.Count; j++)
-                {
-                    TagHelperDescriptor? duplicateTagHelper = null;
-                    string? duplicateAttributeName = null;
-                    var duplicate = node.Children[j];
-
-                    if (duplicate is TagHelperDirectiveAttributeIntermediateNode duplicateDirectiveAttribute)
-                    {
-                        duplicateAttributeName = duplicateDirectiveAttribute.AttributeName;
-                        duplicateTagHelper = duplicateDirectiveAttribute.TagHelper;
-                    }
-                    else if (duplicate is TagHelperDirectiveAttributeParameterIntermediateNode duplicateParameterAttribute)
-                    {
-                        duplicateAttributeName = duplicateParameterAttribute.AttributeName;
-                        duplicateTagHelper = duplicateParameterAttribute.TagHelper;
-                    }
-                    if (duplicate != null &&
-                        duplicateTagHelper != null &&
-                        duplicateTagHelper.IsBindTagHelper() &&
-                        duplicateAttributeName == attributeName &&
-                        !object.ReferenceEquals(attribute, duplicate))
-                    {
-                        // Found a duplicate - remove the 'fallback' in favor of the
-                        // more specific tag helper.
-                        node.Children.RemoveAt(i);
-                        break;
-                    }
-                }
-            }
-
+            //
             // Also treat the general <input @bind="..." /> as a 'fallback' for that case and remove it.
             // This is a workaround for a limitation where you can't write a tag helper that binds only
-            // when a specific attribute is **not** present.
-            if (attribute != null &&
-                tagHelper != null &&
-                tagHelper.IsInputElementFallbackBindTagHelper())
-            {
-                for (var j = 0; j < node.Children.Count; j++)
-                {
-                    TagHelperDescriptor? duplicateTagHelper = null;
-                    string? duplicateAttributeName = null;
-                    var duplicate = node.Children[j];
+            // when a specific attribute is *not* present.
 
-                    if (duplicate is TagHelperDirectiveAttributeIntermediateNode duplicateDirectiveAttribute)
+            if (attribute.IsFallback)
+            {
+                foreach (var candidate in attributes)
+                {
+                    if (ReferenceEquals(attribute.Node, candidate.Node))
                     {
-                        duplicateAttributeName = duplicateDirectiveAttribute.AttributeName;
-                        duplicateTagHelper = duplicateDirectiveAttribute.TagHelper;
+                        // Same node, skip.
+                        continue;
                     }
-                    else if (duplicate is TagHelperDirectiveAttributeParameterIntermediateNode duplicateParameterAttribute)
+
+                    // If the candidate isn't a more specific bind tag helper then skip it.
+                    if ((attribute.IsFallbackBindTagHelper && !candidate.IsBindTagHelper) ||
+                        (attribute.IsInputElementFallbackBindTagHelper && !candidate.IsInputElementBindTagHelper))
                     {
-                        duplicateAttributeName = duplicateParameterAttribute.AttributeName;
-                        duplicateTagHelper = duplicateParameterAttribute.TagHelper;
+                        continue;
                     }
-                    if (duplicate != null &&
-                        duplicateTagHelper != null &&
-                        duplicateTagHelper.IsInputElementBindTagHelper() &&
-                        duplicateAttributeName == attributeName &&
-                        !object.ReferenceEquals(attribute, duplicate))
+
+                    if (attribute.AttributeName == candidate.AttributeName)
                     {
-                        // Found a duplicate - remove the 'fallback' input tag helper in favor of the
-                        // more specific tag helper.
-                        node.Children.RemoveAt(i);
+                        // Found a duplicate - remove the 'fallback' in favor of the more specific tag helper.
+                        toRemove.Add(attribute);
                         break;
                     }
                 }
             }
         }
 
-        // If we still have duplicates at this point then they are genuine conflicts.
-        var duplicates = node.Children
-            .OfType<TagHelperDirectiveAttributeIntermediateNode>()
-            .GroupBy(p => p.AttributeName)
-            .Where(g => g.Count() > 1);
-
-        foreach (var duplicate in duplicates)
+        // Now that we've identified attributes that should be removed, iterate them in reverse order
+        // and remove them using the index we stored. Note: We know the attributes are already ordered
+        // by index.
+        for (var i = toRemove.Count - 1; i >= 0; i--)
         {
-            node.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttribute_Duplicates(
-                node.Source,
-                duplicate.First().OriginalAttributeName,
-                duplicate.ToArray()));
-            foreach (var property in duplicate)
+            children.RemoveAt(toRemove[i].Index);
+        }
+
+        // If we still have duplicates at this point then they are genuine conflicts.
+        // Use a hash set to quickly determine whether there are any duplicates.
+        // If so, we need to do a more expensive pass to identify and remove them.
+        using var _ = StringHashSetPool.Ordinal.GetPooledObject(out var duplicates);
+
+        foreach (var child in children)
+        {
+            if (child is TagHelperDirectiveAttributeIntermediateNode { AttributeName: string attributeName } &&
+                !duplicates.Add(attributeName))
             {
-                node.Children.Remove(property);
+                ReportDiagnosticAndRemoveDuplicates(node);
+                break;
+            }
+        }
+
+        static void ReportDiagnosticAndRemoveDuplicates(IntermediateNode node)
+        {
+            var children = node.Children;
+
+            using var _ = StringDictionaryPool<ImmutableArray<AttributeInfo>.Builder>.Ordinal.GetPooledObject(out var duplicates);
+
+            for (var i = 0; i < children.Count; i++)
+            {
+                if (children[i] is TagHelperDirectiveAttributeIntermediateNode directiveAttribute)
+                {
+                    if (!duplicates.TryGetValue(directiveAttribute.AttributeName, out var builder))
+                    {
+                        builder = ImmutableArray.CreateBuilder<AttributeInfo>();
+                        duplicates[directiveAttribute.AttributeName] = builder;
+                    }
+
+                    builder.Add(new(directiveAttribute, i));
+                }
+            }
+
+            using var toRemove = new PooledArrayBuilder<AttributeInfo>();
+
+            foreach (var (_, builder) in duplicates)
+            {
+                if (builder.Count > 1)
+                {
+                    node.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttribute_Duplicates(
+                        node.Source,
+                        builder[0].OriginalAttributeName,
+                        builder.Select(static x => (TagHelperDirectiveAttributeIntermediateNode)x.Node)));
+
+                    foreach (var attribute in builder)
+                    {
+                        toRemove.Add(attribute);
+                    }
+                }
+            }
+
+            // Do we have duplicates to remove? If so, remove them in reverse order.
+            if (toRemove.Count > 0)
+            {
+                // Sort by index to ensure we remove in the right order.
+                toRemove.Sort(static (x, y) => x.Index.CompareTo(y.Index));
+
+                for (var i = toRemove.Count - 1; i >= 0; i--)
+                {
+                    children.RemoveAt(toRemove[i].Index);
+                }
             }
         }
     }
