@@ -2,27 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Test.Common.Mef;
-using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
+using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
+using Microsoft.VisualStudioCode.RazorExtension.Configuration;
 using Microsoft.VisualStudioCode.RazorExtension.Services;
-using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudioCode.RazorExtension.Test;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper) : CohostTestBase(testOutputHelper)
 {
+    private IClientSettingsManager? _clientSettingsManager;
     private VSCodeRemoteServiceInvoker? _remoteServiceInvoker;
 
     private protected override IRemoteServiceInvoker RemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
+
+    private protected override IClientSettingsManager ClientSettingsManager => _clientSettingsManager.AssumeNotNull();
 
     /// <summary>
     /// The export provider for Roslyn "devenv" services, if tests opt-in to using them
@@ -33,10 +32,16 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     {
         await base.InitializeAsync();
 
+        InProcServiceFactory.TestAccessor.SetExportProvider(OOPExportProvider);
+
         var workspaceProvider = new VSCodeWorkspaceProvider();
+        var remoteWorkspace = RemoteWorkspaceProvider.Instance.GetWorkspace();
+        workspaceProvider.SetWorkspace(remoteWorkspace);
 
         _remoteServiceInvoker = new VSCodeRemoteServiceInvoker(workspaceProvider, LoggerFactory);
         AddDisposable(_remoteServiceInvoker);
+
+        _clientSettingsManager = new ClientSettingsManager();
     }
 
     private protected override RemoteClientLSPInitializationOptions GetRemoteClientLSPInitializationOptions()

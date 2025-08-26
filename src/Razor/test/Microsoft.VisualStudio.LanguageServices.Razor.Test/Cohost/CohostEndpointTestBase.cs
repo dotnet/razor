@@ -10,7 +10,9 @@ using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.Razor.Settings;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -19,9 +21,11 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper) : CohostTestBase(testOutputHelper)
 {
     private TestRemoteServiceInvoker? _remoteServiceInvoker;
+    private IClientSettingsManager? _clientSettingsManager;
 
     private protected override IRemoteServiceInvoker RemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
     private protected TestRemoteServiceInvoker TestRemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
+    private protected override IClientSettingsManager ClientSettingsManager => _clientSettingsManager.AssumeNotNull();
 
     /// <summary>
     /// The export provider for Roslyn "devenv" services, if tests opt-in to using them
@@ -34,6 +38,8 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
 
         _remoteServiceInvoker = new TestRemoteServiceInvoker(JoinableTaskContext, OOPExportProvider, LoggerFactory);
         AddDisposable(_remoteServiceInvoker);
+
+        _clientSettingsManager = new ClientSettingsManager([], null, null);
     }
 
     private protected override RemoteClientLSPInitializationOptions GetRemoteClientLSPInitializationOptions()

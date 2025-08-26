@@ -58,6 +58,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.Test" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.Test" />
     <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension.Test" />
   </ItemGroup>
 
   <ItemGroup Label="String Resources">

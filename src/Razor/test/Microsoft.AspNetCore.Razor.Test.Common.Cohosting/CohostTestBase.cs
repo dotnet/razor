@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor.Logging;
 using Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
@@ -36,8 +37,10 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
     private RemoteClientLSPInitializationOptions _clientLSPInitializationOptions;
     private IFilePathService? _filePathService;
 
-    private protected TestIncompatibleProjectService IncompatibleProjectService => _incompatibleProjectService.AssumeNotNull();
     private protected abstract IRemoteServiceInvoker RemoteServiceInvoker { get; }
+    private protected abstract IClientSettingsManager ClientSettingsManager { get; }
+
+    private protected TestIncompatibleProjectService IncompatibleProjectService => _incompatibleProjectService.AssumeNotNull();
     private protected IFilePathService FilePathService => _filePathService.AssumeNotNull();
     private protected RemoteLanguageServerFeatureOptions FeatureOptions => OOPExportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
     private protected RemoteClientCapabilitiesService ClientCapabilitiesService => OOPExportProvider.GetExportedValue<RemoteClientCapabilitiesService>();
