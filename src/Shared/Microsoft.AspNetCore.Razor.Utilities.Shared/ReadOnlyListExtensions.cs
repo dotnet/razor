@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
@@ -559,7 +559,7 @@ internal static class ReadOnlyListExtensions
     ///  An <see cref="IReadOnlyList{T}"/> to return the last element of.
     /// </param>
     /// <param name="defaultValue">
-    ///  The default value to return if the list is empty
+    ///  The default value to return if the list is empty.
     /// </param>
     /// <returns>
     ///  <paramref name="defaultValue"/> if <paramref name="list"/> is empty; otherwise,
@@ -635,7 +635,7 @@ internal static class ReadOnlyListExtensions
     ///  A function to test each element for a condition.
     /// </param>
     /// <param name="defaultValue">
-    ///  The default value to return if the list is empty.
+    ///  The default value to return if the list is empty or no element is found.
     /// </param>
     /// <returns>
     ///  <paramref name="defaultValue"/> if <paramref name="list"/> is empty or if no element
@@ -840,7 +840,7 @@ internal static class ReadOnlyListExtensions
     ///  An <see cref="IReadOnlyList{T}"/> to return the single element of.
     /// </param>
     /// <param name="defaultValue">
-    ///  The default value to return if the list is empty
+    ///  The default value to return if the list is empty.
     /// </param>
     /// <returns>
     ///  The single element in the list, or <paramref name="defaultValue"/>
@@ -951,7 +951,7 @@ internal static class ReadOnlyListExtensions
     ///  A function to test an element for a condition.
     /// </param>
     /// <param name="defaultValue">
-    ///  The default value to return if the list is empty.
+    ///  The default value to return if the list is empty or no element is found.
     /// </param>
     /// <returns>
     ///  The single element of the list that satisfies the condition, or
@@ -996,7 +996,7 @@ internal static class ReadOnlyListExtensions
     ///  A function to test an element for a condition.
     /// </param>
     /// <param name="defaultValue">
-    ///  The default value to return if the list is empty.
+    ///  The default value to return if the list is empty or no element is found.
     /// </param>
     /// <returns>
     ///  The single element of the list that satisfies the condition, or
@@ -1546,7 +1546,7 @@ internal static class ReadOnlyListExtensions
     /// <param name="selector">A transform function to apply to each element.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
-    ///  on each element of <paramref name="list"/> and sorted in decending order.
+    ///  on each element of <paramref name="list"/> and sorted in descending order.
     /// </returns>
     public static ImmutableArray<TResult> SelectAndOrderDescendingAsArray<T, TResult>(this IReadOnlyList<T> list, Func<T, TResult> selector)
     {
@@ -1566,7 +1566,7 @@ internal static class ReadOnlyListExtensions
     /// <param name="comparer">An <see cref="IComparer{T}"/> to compare elements.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
-    ///  on each element of <paramref name="list"/> and sorted in decending order.
+    ///  on each element of <paramref name="list"/> and sorted in descending order.
     /// </returns>
     public static ImmutableArray<TResult> SelectAndOrderDescendingAsArray<T, TResult>(
         this IReadOnlyList<T> list, Func<T, TResult> selector, IComparer<TResult> comparer)
@@ -1587,7 +1587,7 @@ internal static class ReadOnlyListExtensions
     /// <param name="comparison">An <see cref="Comparison{T}"/> to compare elements.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
-    ///  on each element of <paramref name="list"/> and sorted in decending order.
+    ///  on each element of <paramref name="list"/> and sorted in descending order.
     /// </returns>
     public static ImmutableArray<TResult> SelectAndOrderDescendingAsArray<T, TResult>(
         this IReadOnlyList<T> list, Func<T, TResult> selector, Comparison<TResult> comparison)
