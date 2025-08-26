@@ -336,7 +336,7 @@ internal static class ReadOnlyListExtensions
     ///  An <see cref="IReadOnlyList{T}"/> to return the first element of.
     /// </param>
     /// <param name="defaultValue">
-    ///  The default value to return if the list is empty
+    ///  The default value to return if the list is empty.
     /// </param>
     /// <returns>
     ///  <paramref name="defaultValue"/> if <paramref name="list"/> is empty; otherwise,
@@ -373,6 +373,36 @@ internal static class ReadOnlyListExtensions
     }
 
     /// <summary>
+    ///  Returns the first element of the list that satisfies a condition, or a specified default value if no such element is found.
+    /// </summary>
+    /// <param name="list">
+    ///  An <see cref="IReadOnlyList{T}"/> to return an element from.
+    /// </param>
+    /// <param name="predicate">
+    ///  A function to test each element for a condition.
+    /// </param>
+    /// <param name="defaultValue">
+    ///  The default value to return if the list is empty or no element is found.
+    /// </param>
+    /// <returns>
+    ///  <paramref name="defaultValue"/> if <paramref name="list"/> is empty or if no element
+    ///  passes the test specified by <paramref name="predicate"/>; otherwise, the first element in <paramref name="list"/>
+    ///  that passes the test specified by <paramref name="predicate"/>.
+    /// </returns>
+    public static T? FirstOrDefault<T>(this IReadOnlyList<T> list, Func<T, bool> predicate, T defaultValue)
+    {
+        foreach (var item in list.AsEnumerable())
+        {
+            if (predicate(item))
+            {
+                return item;
+            }
+        }
+
+        return defaultValue;
+    }
+
+    /// <summary>
     ///  Returns the first element of the list that satisfies a condition or a default value if no such element is found.
     /// </summary>
     /// <param name="list">
@@ -400,6 +430,39 @@ internal static class ReadOnlyListExtensions
         }
 
         return default;
+    }
+
+    /// <summary>
+    ///  Returns the first element of the list that satisfies a condition, or a specified default value if no such element is found.
+    /// </summary>
+    /// <param name="list">
+    ///  An <see cref="IReadOnlyList{T}"/> to return an element from.
+    /// </param>
+    /// <param name="arg">
+    ///  An argument to pass to <paramref name="predicate"/>.
+    /// </param>
+    /// <param name="predicate">
+    ///  A function to test each element for a condition.
+    /// </param>
+    /// <param name="defaultValue">
+    ///  The default value to return if the list is empty or no element is found.
+    /// </param>
+    /// <returns>
+    ///  <paramref name="defaultValue"/> if <paramref name="list"/> is empty or if no element
+    ///  passes the test specified by <paramref name="predicate"/>; otherwise, the first element in <paramref name="list"/>
+    ///  that passes the test specified by <paramref name="predicate"/>.
+    /// </returns>
+    public static T? FirstOrDefault<T, TArg>(this IReadOnlyList<T> list, TArg arg, Func<T, TArg, bool> predicate, T defaultValue)
+    {
+        foreach (var item in list.AsEnumerable())
+        {
+            if (predicate(item, arg))
+            {
+                return item;
+            }
+        }
+
+        return defaultValue;
     }
 
     /// <summary>
@@ -434,7 +497,7 @@ internal static class ReadOnlyListExtensions
     /// </exception>
     public static T Last<T>(this IReadOnlyList<T> list, Func<T, bool> predicate)
     {
-        foreach (var item in list.AsEnumerable().Reverse())
+        foreach (var item in list.AsEnumerable().Reversed)
         {
             if (predicate(item))
             {
@@ -465,7 +528,7 @@ internal static class ReadOnlyListExtensions
     /// </exception>
     public static T Last<T, TArg>(this IReadOnlyList<T> list, TArg arg, Func<T, TArg, bool> predicate)
     {
-        foreach (var item in list.AsEnumerable().Reverse())
+        foreach (var item in list.AsEnumerable().Reversed)
         {
             if (predicate(item, arg))
             {
@@ -521,7 +584,7 @@ internal static class ReadOnlyListExtensions
     /// </returns>
     public static T? LastOrDefault<T>(this IReadOnlyList<T> list, Func<T, bool> predicate)
     {
-        foreach (var item in list.AsEnumerable().Reverse())
+        foreach (var item in list.AsEnumerable().Reversed)
         {
             if (predicate(item))
             {
@@ -551,7 +614,7 @@ internal static class ReadOnlyListExtensions
     /// </returns>
     public static T? LastOrDefault<T, TArg>(this IReadOnlyList<T> list, TArg arg, Func<T, TArg, bool> predicate)
     {
-        foreach (var item in list.AsEnumerable().Reverse())
+        foreach (var item in list.AsEnumerable().Reversed)
         {
             if (predicate(item, arg))
             {
@@ -581,7 +644,7 @@ internal static class ReadOnlyListExtensions
     /// </returns>
     public static T LastOrDefault<T>(this IReadOnlyList<T> list, Func<T, bool> predicate, T defaultValue)
     {
-        foreach (var item in list.AsEnumerable().Reverse())
+        foreach (var item in list.AsEnumerable().Reversed)
         {
             if (predicate(item))
             {
@@ -605,7 +668,7 @@ internal static class ReadOnlyListExtensions
     ///  A function to test each element for a condition.
     /// </param>
     /// <param name="defaultValue">
-    ///  The default value to return if the list is empty.
+    ///  The default value to return if the list is empty or no element is found.
     /// </param>
     /// <returns>
     ///  <paramref name="defaultValue"/> if <paramref name="list"/> is empty or if no element
@@ -614,7 +677,7 @@ internal static class ReadOnlyListExtensions
     /// </returns>
     public static T LastOrDefault<T, TArg>(this IReadOnlyList<T> list, TArg arg, Func<T, TArg, bool> predicate, T defaultValue)
     {
-        foreach (var item in list.AsEnumerable().Reverse())
+        foreach (var item in list.AsEnumerable().Reversed)
         {
             if (predicate(item, arg))
             {
@@ -970,7 +1033,7 @@ internal static class ReadOnlyListExtensions
     {
         public Enumerator<T> GetEnumerator() => new(list);
 
-        public ReverseEnumerable<T> Reverse() => new(list);
+        public ReverseEnumerable<T> Reversed => new(list);
     }
 
     public ref struct Enumerator<T>(IReadOnlyList<T> list)
