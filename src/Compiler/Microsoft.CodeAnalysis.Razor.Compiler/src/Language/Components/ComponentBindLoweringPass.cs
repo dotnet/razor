@@ -306,6 +306,12 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
 
         foreach (var child in children)
         {
+            // UNDONE: For some reason, we do not look for duplicates among parameterized
+            // attributes here or in ReportDiagnosticAndRemoveDuplicates. Prior to being
+            // unrolled, duplicates were identified with a LINQ expression that called
+            // OfType<TagHelperDirectiveAttributeIntermediateNode>(), meaning that
+            // TagHelperDirectiveAttributeParameterIntermediateNode nodes were never considered.
+            // This is possibly a bug, but without a report or a repro it's hard to say for sure.
             if (child is TagHelperDirectiveAttributeIntermediateNode { AttributeName: string attributeName } &&
                 !duplicates.Add(attributeName))
             {
