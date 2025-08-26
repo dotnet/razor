@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -200,27 +201,37 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
         {
             if (child is CSharpIntermediateToken token)
             {
-                if (token.Content.IsNullOrWhiteSpace())
+                var isWhiteSpace = token.Content.IsNullOrWhiteSpace();
+
+                if (token.Source is not SourceSpan tokenSource)
                 {
+                    // Just write non-whitespace tokens when there isn't a source mapping.
+                    if (!isWhiteSpace)
+                    {
+                        Debug.Fail("Why do we have non-whitespace tokens without source mappings?");
+                        writer.WriteLine(token.Content);
+                    }
+
                     continue;
                 }
 
-                if (token.Source is SourceSpan tokenSource)
+                if (!isWhiteSpace)
                 {
+                    // Only use a line pragma for non-whitespace content.
                     using (context.BuildLinePragma(tokenSource))
                     {
                         writer.WritePadding(0, tokenSource, context);
 
-                        context.AddSourceMappingFor(token);
+                        context.AddSourceMappingFor(tokenSource);
                         writer.Write(token.Content);
                     }
                 }
                 else
                 {
-                    context.AddSourceMappingFor(token);
-                    writer.Write(token.Content);
+                    writer.WritePadding(0, tokenSource, context);
 
-                    writer.WriteLine();
+                    context.AddSourceMappingFor(tokenSource);
+                    writer.WriteLine(token.Content);
                 }
             }
             else
