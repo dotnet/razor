@@ -112,6 +112,7 @@ internal static class CodeRenderingContextExtensions
 
         public void Dispose()
         {
+            // Just return if this LinePragmaScope wasn't initialized.
             if (_context is null)
             {
                 return;
