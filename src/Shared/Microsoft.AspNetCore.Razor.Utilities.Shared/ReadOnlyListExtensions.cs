@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
@@ -1027,78 +1027,123 @@ internal static class ReadOnlyListExtensions
         return result;
     }
 
-    public static Enumerable<T> AsEnumerable<T>(this IReadOnlyList<T> list) => new(list);
-
-    public readonly ref struct Enumerable<T>(IReadOnlyList<T> list)
+    public static Enumerable<T> AsEnumerable<T>(this IReadOnlyList<T> list)
     {
-        public Enumerator<T> GetEnumerator() => new(list);
+        ArgHelper.ThrowIfNull(list);
 
-        public ReverseEnumerable<T> Reversed => new(list);
+        return new(list, 0, list.Count);
     }
 
-    public ref struct Enumerator<T>(IReadOnlyList<T> list)
+    public static Enumerable<T> AsEnumerable<T>(this IReadOnlyList<T> list, int start)
     {
-        private readonly IReadOnlyList<T> _list = list;
-        private int _index = 0;
-        private T _current = default!;
+        ArgHelper.ThrowIfNull(list);
+        ArgHelper.ThrowIfNegative(start);
+        ArgHelper.ThrowIfGreaterThan(start, list.Count);
 
-        public readonly T Current => _current;
+        return new(list, start, list.Count - start);
+    }
 
-        public bool MoveNext()
+    public static Enumerable<T> AsEnumerable<T>(this IReadOnlyList<T> list, Index startIndex)
+    {
+        ArgHelper.ThrowIfNull(list);
+
+        var start = startIndex.GetOffset(list.Count);
+        var count = list.Count - start;
+
+        return new(list, start, count);
+    }
+
+    public static Enumerable<T> AsEnumerable<T>(this IReadOnlyList<T> list, Range range)
+    {
+        ArgHelper.ThrowIfNull(list);
+
+        var (start, count) = range.GetOffsetAndLength(list.Count);
+
+        return new(list, start, count);
+    }
+
+    public static Enumerable<T> AsEnumerable<T>(this IReadOnlyList<T> list, int start, int count)
+    {
+        ArgHelper.ThrowIfNull(list);
+        ArgHelper.ThrowIfNegative(start);
+        ArgHelper.ThrowIfNegative(count);
+        ArgHelper.ThrowIfGreaterThan(start + count, list.Count);
+
+        return new(list, start, count);
+    }
+
+    public readonly ref struct Enumerable<T>(IReadOnlyList<T> list, int start, int count)
+    {
+        private readonly int First => start;
+        private readonly int Last => start + count - 1;
+
+        private readonly T this[int index] => list[index];
+
+        public Enumerator GetEnumerator() => new(this);
+
+        public ReverseEnumerable Reversed => new(this);
+
+        public ref struct Enumerator(Enumerable<T> enumerable)
         {
-            if (_index < _list.Count)
+            private readonly Enumerable<T> _enumerable = enumerable;
+
+            private int _index = enumerable.First;
+            private T _current = default!;
+
+            public readonly T Current => _current;
+
+            public bool MoveNext()
             {
-                _current = _list[_index];
-                _index++;
-                return true;
+                if (_index <= _enumerable.Last)
+                {
+                    _current = _enumerable[_index];
+                    _index++;
+                    return true;
+                }
+
+                return false;
             }
 
-            return false;
-        }
-
-        public void Reset()
-        {
-            _index = 0;
-            _current = default!;
-        }
-    }
-
-    public readonly ref struct ReverseEnumerable<T>(IReadOnlyList<T> list)
-    {
-        public ReverseEnumerator<T> GetEnumerator() => new(list);
-    }
-
-    public ref struct ReverseEnumerator<T>
-    {
-        private readonly IReadOnlyList<T> _list;
-        private int _index;
-        private T _current;
-
-        public readonly T Current => _current;
-
-        public ReverseEnumerator(IReadOnlyList<T> list)
-        {
-            _list = list;
-            _index = _list.Count - 1;
-            _current = default!;
-        }
-
-        public bool MoveNext()
-        {
-            if (_index >= 0)
+            public void Reset()
             {
-                _current = _list[_index];
-                _index--;
-                return true;
+                _index = _enumerable.First;
+                _current = default!;
             }
-
-            return false;
         }
 
-        public void Reset()
+        public readonly ref struct ReverseEnumerable(Enumerable<T> enumerable)
         {
-            _index = _list.Count - 1;
-            _current = default!;
+            private readonly Enumerable<T> _enumerable = enumerable;
+
+            public ReverseEnumerator GetEnumerator() => new(_enumerable);
+
+            public ref struct ReverseEnumerator(Enumerable<T> enumerable)
+            {
+                private readonly Enumerable<T> _enumerable = enumerable;
+
+                private int _index = enumerable.Last;
+                private T _current = default!;
+
+                public readonly T Current => _current;
+
+                public bool MoveNext()
+                {
+                    if (_index >= _enumerable.First)
+                    {
+                        _current = _enumerable[_index];
+                        _index--;
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                public void Reset()
+                {
+                    _index = _enumerable.Last;
+                    _current = default!;
+                }
+            }
         }
     }
 
