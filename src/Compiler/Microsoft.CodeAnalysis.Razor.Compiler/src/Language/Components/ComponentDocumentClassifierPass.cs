@@ -83,7 +83,7 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
 
         if (MangleClassNames)
         {
-            computedClass = ComponentMetadata.MangleClassName(computedClass);
+            computedClass = ComponentHelpers.MangleClassName(computedClass);
         }
 
         @class.NullableContext = true;

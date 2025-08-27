@@ -3,7 +3,6 @@
 
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Xunit;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.Language.Extensions;
 
@@ -20,8 +19,8 @@ public class DefaultTagHelperOptimizationPassTest : RazorProjectEngineTestBase
     public void DefaultTagHelperOptimizationPass_Execute_ReplacesChildren()
     {
         // Arrange
-        var tagHelper = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly")
-            .Metadata(TypeName("TestTagHelper"))
+        var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly")
+            .TypeName("TestTagHelper")
             .BoundAttributeDescriptor(attribute => attribute
                 .Name("Foo")
                 .TypeName("System.Int32")
