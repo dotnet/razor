@@ -461,7 +461,7 @@ internal static partial class ImmutableArrayExtensions
     /// </exception>
     public static T Last<T, TArg>(this ImmutableArray<T> array, TArg arg, Func<T, TArg, bool> predicate)
     {
-        foreach (var item in array.Reversed)
+        foreach (var item in array.AsSpan().Reversed)
         {
             if (predicate(item, arg))
             {
@@ -491,7 +491,7 @@ internal static partial class ImmutableArrayExtensions
     /// </returns>
     public static T? LastOrDefault<T, TArg>(this ImmutableArray<T> array, TArg arg, Func<T, TArg, bool> predicate)
     {
-        foreach (var item in array.Reversed)
+        foreach (var item in array.AsSpan().Reversed)
         {
             if (predicate(item, arg))
             {
@@ -515,7 +515,7 @@ internal static partial class ImmutableArrayExtensions
     ///  A function to test each element for a condition.
     /// </param>
     /// <param name="defaultValue">
-    ///  The default value to return if the array is empty.
+    ///  The default value to return if the array is empty or no element was found.
     /// </param>
     /// <returns>
     ///  <paramref name="defaultValue"/> if <paramref name="array"/> is empty or if no element
@@ -524,7 +524,7 @@ internal static partial class ImmutableArrayExtensions
     /// </returns>
     public static T LastOrDefault<T, TArg>(this ImmutableArray<T> array, TArg arg, Func<T, TArg, bool> predicate, T defaultValue)
     {
-        foreach (var item in array.Reversed)
+        foreach (var item in array.AsSpan().Reversed)
         {
             if (predicate(item, arg))
             {
@@ -591,7 +591,7 @@ internal static partial class ImmutableArrayExtensions
     ///  A function to test an element for a condition.
     /// </param>
     /// <param name="defaultValue">
-    ///  The default value to return if the array is empty.
+    ///  The default value to return if the array is empty or no element was found.
     /// </param>
     /// <returns>
     ///  The single element of the array that satisfies the condition, or
@@ -620,50 +620,6 @@ internal static partial class ImmutableArrayExtensions
         }
 
         return result;
-    }
-
-    extension<T>(ImmutableArray<T> array)
-    {
-        public ReverseEnumerable<T> Reversed => new(array);
-    }
-
-    public readonly ref struct ReverseEnumerable<T>(ImmutableArray<T> array)
-    {
-        public ReverseEnumerator<T> GetEnumerator() => new(array);
-    }
-
-    public ref struct ReverseEnumerator<T>
-    {
-        private readonly ImmutableArray<T> _array;
-        private int _index;
-        private T _current;
-
-        public readonly T Current => _current;
-
-        public ReverseEnumerator(ImmutableArray<T> array)
-        {
-            _array = array;
-            _index = _array.Length - 1;
-            _current = default!;
-        }
-
-        public bool MoveNext()
-        {
-            if (_index >= 0)
-            {
-                _current = _array[_index];
-                _index--;
-                return true;
-            }
-
-            return false;
-        }
-
-        public void Reset()
-        {
-            _index = _array.Length - 1;
-            _current = default!;
-        }
     }
 
     /// <summary>
