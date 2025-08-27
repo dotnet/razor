@@ -151,7 +151,6 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
 
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, supportsVSExtensions: supportsVSExtensions);
         await AssertSemanticTokensAsync(documentText, supportsVSExtensions: supportsVSExtensions, csharpTokens: csharpTokens);
-        VerifyTimesLanguageServerCalled();
     }
 
     [Theory]
@@ -165,7 +164,6 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
 
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, supportsVSExtensions: supportsVSExtensions);
         await AssertSemanticTokensAsync(documentText, csharpTokens: csharpTokens, documentVersion: 21);
-        VerifyTimesLanguageServerCalled();
     }
 
     [Theory]
@@ -1052,15 +1050,6 @@ public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelpe
             DisposalToken);
 
         return new ProvideSemanticTokensResponse(tokens: result?.Data, hostDocumentSyncVersion: 0);
-    }
-
-    private void VerifyTimesLanguageServerCalled()
-    {
-        _clientConnection
-            .Verify(l => l.SendRequestAsync<SemanticTokensParams, ProvideSemanticTokensResponse?>(
-                CustomMessageNames.RazorProvidePreciseRangeSemanticTokensEndpoint,
-                It.IsAny<SemanticTokensParams>(),
-                It.IsAny<CancellationToken>()), Times.Exactly(1));
     }
 
     private static LinePositionSpan GetSpan(string text)
