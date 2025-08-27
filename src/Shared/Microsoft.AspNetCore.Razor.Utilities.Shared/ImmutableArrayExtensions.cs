@@ -169,7 +169,7 @@ internal static partial class ImmutableArrayExtensions
     /// <param name="array">An array of values to invoke a transform function on.</param>
     /// <param name="arg">An argument to pass to <paramref name="selector"/>.</param>
     /// <param name="selector">
-    ///  A transform function to apply to each element; the second parameter of the function represents the index of the element.
+    ///  A transform function to apply to each element; the third parameter of the function represents the index of the element.
     /// </param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
@@ -210,27 +210,49 @@ internal static partial class ImmutableArrayExtensions
         return builder.ToImmutableAndClear();
     }
 
-    public static ImmutableArray<T> WhereAsArray<T>(this ImmutableArray<T> source, Func<T, bool> predicate)
+    /// <summary>
+    ///  Filters an <see cref="ImmutableArray{T}"/> based on a predicate.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="array"/>.</typeparam>
+    /// <param name="array">An <see cref="ImmutableArray{T}"/> to filter.</param>
+    /// <param name="predicate">A function to test each element for a condition.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> that contains elements from the input array
+    ///  that satisfy the condition.
+    /// </returns>
+    /// <remarks>
+    ///  This method uses an optimized algorithm that avoids allocating a new array if all elements
+    ///  match the predicate (returns the original array) or if no elements match (returns an empty array).
+    /// </remarks>
+    public static ImmutableArray<T> WhereAsArray<T>(this ImmutableArray<T> array, Func<T, bool> predicate)
     {
+        var length = array.Length;
+
+        if (length == 0)
+        {
+            return [];
+        }
+
         using var builder = new PooledArrayBuilder<T>();
         var none = true;
         var all = true;
 
-        var n = source.Length;
-        for (var i = 0; i < n; i++)
+        for (var i = 0; i < length; i++)
         {
-            var a = source[i];
+            var item = array[i];
 
-            if (predicate(a))
+            if (predicate(item))
             {
                 none = false;
+
                 if (all)
                 {
                     continue;
                 }
 
                 Debug.Assert(i > 0);
-                builder.Add(a);
+
+                builder.Add(item);
             }
             else
             {
@@ -241,52 +263,80 @@ internal static partial class ImmutableArrayExtensions
                 }
 
                 Debug.Assert(i > 0);
+
+                // We found at least one item that doesn't match the predicate.
+                // If this is the first one, we need to copy all the previous items
+                // that matched the predicate.
                 if (all)
                 {
                     all = false;
-                    for (var j = 0; j < i; j++)
-                    {
-                        builder.Add(source[j]);
-                    }
+                    builder.AddRange(array.AsSpan()[..i]);
                 }
             }
         }
 
+        Debug.Assert(!(none && all));
+
         if (all)
         {
-            return source;
+            return array;
         }
-        else if (none)
+
+        if (none)
         {
-            return ImmutableArray<T>.Empty;
+            return [];
         }
-        else
-        {
-            return builder.ToImmutableAndClear();
-        }
+
+        return builder.ToImmutableAndClear();
     }
 
-    public static ImmutableArray<T> WhereAsArray<T>(this ImmutableArray<T>.Builder source, Func<T, bool> predicate)
+    /// <summary>
+    ///  Filters an <see cref="ImmutableArray{T}"/> based on a predicate. Each element's index is used in
+    ///  the logic of the predicate function.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="array"/>.</typeparam>
+    /// <param name="array">An <see cref="ImmutableArray{T}"/> to filter.</param>
+    /// <param name="predicate">
+    ///  A function to test each element for a condition; the second parameter of the function
+    ///  represents the index of the element.
+    /// </param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> that contains elements from the input array
+    ///  that satisfy the condition.
+    /// </returns>
+    /// <remarks>
+    ///  This method uses an optimized algorithm that avoids allocating a new array if all elements
+    ///  match the predicate (returns the original array) or if no elements match (returns an empty array).
+    /// </remarks>
+    public static ImmutableArray<T> WhereAsArray<T>(this ImmutableArray<T> array, Func<T, int, bool> predicate)
     {
+        var length = array.Length;
+
+        if (length == 0)
+        {
+            return [];
+        }
+
         using var builder = new PooledArrayBuilder<T>();
         var none = true;
         var all = true;
 
-        var n = source.Count;
-        for (var i = 0; i < n; i++)
+        for (var i = 0; i < length; i++)
         {
-            var a = source[i];
+            var item = array[i];
 
-            if (predicate(a))
+            if (predicate(item, i))
             {
                 none = false;
+
                 if (all)
                 {
                     continue;
                 }
 
                 Debug.Assert(i > 0);
-                builder.Add(a);
+
+                builder.Add(item);
             }
             else
             {
@@ -297,29 +347,199 @@ internal static partial class ImmutableArrayExtensions
                 }
 
                 Debug.Assert(i > 0);
+
+                // We found at least one item that doesn't match the predicate.
+                // If this is the first one, we need to copy all the previous items
+                // that matched the predicate.
                 if (all)
                 {
                     all = false;
-                    for (var j = 0; j < i; j++)
-                    {
-                        builder.Add(source[j]);
-                    }
+                    builder.AddRange(array.AsSpan()[..i]);
                 }
             }
         }
 
+        Debug.Assert(!(none && all));
+
         if (all)
         {
-            return source.ToImmutable();
+            return array;
         }
-        else if (none)
+
+        if (none)
         {
-            return ImmutableArray<T>.Empty;
+            return [];
         }
-        else
+
+        return builder.ToImmutableAndClear();
+    }
+
+    /// <summary>
+    ///  Filters an <see cref="ImmutableArray{T}"/> based on a predicate.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="array"/>.</typeparam>
+    /// <typeparam name="TArg">The type of the argument to pass to <paramref name="predicate"/>.</typeparam>
+    /// <param name="array">An <see cref="ImmutableArray{T}"/> to filter.</param>
+    /// <param name="arg">An argument to pass to <paramref name="predicate"/>.</param>
+    /// <param name="predicate">A function to test each element for a condition.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> that contains elements from the input array
+    ///  that satisfy the condition.
+    /// </returns>
+    /// <remarks>
+    ///  This method uses an optimized algorithm that avoids allocating a new array if all elements
+    ///  match the predicate (returns the original array) or if no elements match (returns an empty array).
+    /// </remarks>
+    public static ImmutableArray<T> WhereAsArray<T, TArg>(this ImmutableArray<T> array, TArg arg, Func<T, TArg, bool> predicate)
+    {
+        var length = array.Length;
+
+        if (length == 0)
         {
-            return builder.ToImmutableAndClear();
+            return [];
         }
+
+        using var builder = new PooledArrayBuilder<T>();
+        var none = true;
+        var all = true;
+
+        for (var i = 0; i < length; i++)
+        {
+            var item = array[i];
+
+            if (predicate(item, arg))
+            {
+                none = false;
+
+                if (all)
+                {
+                    continue;
+                }
+
+                Debug.Assert(i > 0);
+
+                builder.Add(item);
+            }
+            else
+            {
+                if (none)
+                {
+                    all = false;
+                    continue;
+                }
+
+                Debug.Assert(i > 0);
+
+                // We found at least one item that doesn't match the predicate.
+                // If this is the first one, we need to copy all the previous items
+                // that matched the predicate.
+                if (all)
+                {
+                    all = false;
+                    builder.AddRange(array.AsSpan()[..i]);
+                }
+            }
+        }
+
+        Debug.Assert(!(none && all));
+
+        if (all)
+        {
+            return array;
+        }
+
+        if (none)
+        {
+            return [];
+        }
+
+        return builder.ToImmutableAndClear();
+    }
+
+    /// <summary>
+    ///  Filters an <see cref="ImmutableArray{T}"/> based on a predicate. Each element's index is used in
+    ///  the logic of the predicate function.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="array"/>.</typeparam>
+    /// <typeparam name="TArg">The type of the argument to pass to <paramref name="predicate"/>.</typeparam>
+    /// <param name="array">An <see cref="ImmutableArray{T}"/> to filter.</param>
+    /// <param name="arg">An argument to pass to <paramref name="predicate"/>.</param>
+    /// <param name="predicate">
+    ///  A function to test each element for a condition; the third parameter of the function
+    ///  represents the index of the element.
+    /// </param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> that contains elements from the input array
+    ///  that satisfy the condition.
+    /// </returns>
+    /// <remarks>
+    ///  This method uses an optimized algorithm that avoids allocating a new array if all elements
+    ///  match the predicate (returns the original array) or if no elements match (returns an empty array).
+    /// </remarks>
+    public static ImmutableArray<T> WhereAsArray<T, TArg>(this ImmutableArray<T> array, TArg arg, Func<T, TArg, int, bool> predicate)
+    {
+        var length = array.Length;
+
+        if (length == 0)
+        {
+            return [];
+        }
+
+        using var builder = new PooledArrayBuilder<T>();
+        var none = true;
+        var all = true;
+
+        for (var i = 0; i < length; i++)
+        {
+            var item = array[i];
+
+            if (predicate(item, arg, i))
+            {
+                none = false;
+
+                if (all)
+                {
+                    continue;
+                }
+
+                Debug.Assert(i > 0);
+
+                builder.Add(item);
+            }
+            else
+            {
+                if (none)
+                {
+                    all = false;
+                    continue;
+                }
+
+                Debug.Assert(i > 0);
+
+                // We found at least one item that doesn't match the predicate.
+                // If this is the first one, we need to copy all the previous items
+                // that matched the predicate.
+                if (all)
+                {
+                    all = false;
+                    builder.AddRange(array.AsSpan()[..i]);
+                }
+            }
+        }
+
+        Debug.Assert(!(none && all));
+
+        if (all)
+        {
+            return array;
+        }
+
+        if (none)
+        {
+            return [];
+        }
+
+        return builder.ToImmutableAndClear();
     }
 
     /// <summary>
