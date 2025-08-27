@@ -78,7 +78,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
                 continue;
             }
 
-            if (node.TagHelper.IsBindTagHelper())
+            if (node.TagHelper.Kind == TagHelperKind.Bind)
             {
                 bindEntries[(parent, node.AttributeName)] = new BindEntry(reference);
             }
@@ -130,7 +130,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
                 continue;
             }
 
-            if (node.TagHelper.IsBindTagHelper())
+            if (node.TagHelper.Kind == TagHelperKind.Bind)
             {
                 // Check if this tag contains a corresponding non-parameterized bind node.
                 if (!bindEntries.TryGetValue((parent, node.AttributeNameWithoutParameter), out var entry))
@@ -257,9 +257,10 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
                         duplicateAttributeName = duplicateParameterAttribute.AttributeName;
                         duplicateTagHelper = duplicateParameterAttribute.TagHelper;
                     }
+
                     if (duplicate != null &&
                         duplicateTagHelper != null &&
-                        duplicateTagHelper.IsBindTagHelper() &&
+                        duplicateTagHelper.Kind == TagHelperKind.Bind &&
                         duplicateAttributeName == attributeName &&
                         !object.ReferenceEquals(attribute, duplicate))
                     {
@@ -524,7 +525,6 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
             valueNode.AttributeName = valueAttributeName;
             valueNode.BoundAttribute = valueAttribute; // Might be null if it doesn't match a component attribute
             valueNode.PropertyName = valuePropertyName;
-            valueNode.TagHelper = valueAttribute == null ? null : bindEntry.GetEffectiveNodeTagHelperDescriptor();
             valueNode.TypeName = valueAttribute?.IsWeaklyTyped == false ? valueAttribute.TypeName : null;
 
             valueNode.Children.Clear();
@@ -543,7 +543,6 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
             changeNode.AttributeName = changeAttributeName;
             changeNode.BoundAttribute = changeAttribute; // Might be null if it doesn't match a component attribute
             changeNode.PropertyName = changeAttribute?.PropertyName;
-            changeNode.TagHelper = changeAttribute == null ? null : bindEntry.GetEffectiveNodeTagHelperDescriptor();
             changeNode.TypeName = changeAttribute?.IsWeaklyTyped == false ? changeAttribute.TypeName : null;
 
             changeNode.Children.Clear();
@@ -566,7 +565,6 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
                 expressionNode.AttributeName = expressionAttributeName;
                 expressionNode.BoundAttribute = expressionAttribute;
                 expressionNode.PropertyName = expressionAttribute.PropertyName;
-                expressionNode.TagHelper = bindEntry.GetEffectiveNodeTagHelperDescriptor();
                 expressionNode.TypeName = expressionAttribute.IsWeaklyTyped ? null : expressionAttribute.TypeName;
 
                 expressionNode.Children.Clear();

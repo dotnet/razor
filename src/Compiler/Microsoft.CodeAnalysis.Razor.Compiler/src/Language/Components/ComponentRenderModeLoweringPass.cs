@@ -22,7 +22,7 @@ internal sealed class ComponentRenderModeLoweringPass : ComponentIntermediateNod
         {
             var (node, parent) = reference;
 
-            if (node.TagHelper.IsRenderModeTagHelper())
+            if (node.TagHelper.Kind == TagHelperKind.RenderMode)
             {
                 if (parent is not ComponentIntermediateNode componentNode)
                 {
@@ -32,14 +32,14 @@ internal sealed class ComponentRenderModeLoweringPass : ComponentIntermediateNod
 
                 var expression = node.Children[0] switch
                 {
-                    CSharpExpressionIntermediateNode cSharpNode => cSharpNode.Children[0],
+                    CSharpExpressionIntermediateNode csharpNode => csharpNode.Children[0],
                     IntermediateNode token => token
                 };
 
                 var renderModeNode = new RenderModeIntermediateNode() { Source = node.Source, Children = { expression } };
                 renderModeNode.AddDiagnosticsFromNode(node);
 
-                if (componentNode.Component.Metadata.ContainsKey(ComponentMetadata.Component.HasRenderModeDirectiveKey))
+                if (componentNode.Component.Metadata is ComponentMetadata { HasRenderModeDirective: true })
                 {
                     renderModeNode.AddDiagnostic(ComponentDiagnosticFactory.CreateRenderModeAttribute_ComponentDeclaredRenderMode(
                        node.Source,

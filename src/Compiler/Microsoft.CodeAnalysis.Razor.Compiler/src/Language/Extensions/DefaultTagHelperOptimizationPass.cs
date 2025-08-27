@@ -153,7 +153,7 @@ internal class DefaultTagHelperOptimizationPass : IntermediateNodePassBase, IRaz
         {
             FieldName = context.GetFieldName(tagHelper),
             TagHelper = tagHelper,
-            TypeName = tagHelper.GetTypeName(),
+            TypeName = tagHelper.TypeName,
         });
 
         // Next we need to rewrite any property nodes to use the field and property name for this
@@ -199,7 +199,7 @@ internal class DefaultTagHelperOptimizationPass : IntermediateNodePassBase, IRaz
                     "private",
                 },
             FieldName = context.GetFieldName(tagHelper),
-            FieldType = "global::" + tagHelper.GetTypeName(),
+            FieldType = "global::" + tagHelper.TypeName,
         });
     }
 
@@ -249,7 +249,7 @@ internal class DefaultTagHelperOptimizationPass : IntermediateNodePassBase, IRaz
 
         private static string GenerateFieldName(TagHelperDescriptor tagHelper)
         {
-            return "__" + tagHelper.GetTypeName().Replace('.', '_');
+            return "__" + tagHelper.TypeName.Replace('.', '_');
         }
     }
 }
