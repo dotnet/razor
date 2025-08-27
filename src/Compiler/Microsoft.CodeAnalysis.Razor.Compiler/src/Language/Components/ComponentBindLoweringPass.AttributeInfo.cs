@@ -24,7 +24,7 @@ internal partial class ComponentBindLoweringPass
             => _isFallbackBindTagHelper ??= TagHelper.IsFallbackBindTagHelper();
 
         public bool IsBindTagHelper
-            => _isBindTagHelper ??= TagHelper.IsBindTagHelper();
+            => _isBindTagHelper ??= TagHelper.Kind == TagHelperKind.Bind;
 
         public bool IsInputElementFallbackBindTagHelper
             => _isInputElementFallbackBindTagHelper ??= TagHelper.IsInputElementFallbackBindTagHelper();

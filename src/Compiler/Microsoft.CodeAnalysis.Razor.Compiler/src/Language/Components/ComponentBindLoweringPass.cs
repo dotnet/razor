@@ -72,7 +72,7 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
         {
             var node = (TagHelperDirectiveAttributeIntermediateNode)reference.Node;
 
-            if (node.TagHelper.IsBindTagHelper())
+            if (node.TagHelper.Kind == TagHelperKind.Bind)
             {
                 bindEntries.Add(new(reference.Parent, node), new BindEntry(reference));
             }
@@ -119,7 +119,7 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
             var parent = parameterReference.Parent;
             var node = (TagHelperDirectiveAttributeParameterIntermediateNode)parameterReference.Node;
 
-            if (!node.TagHelper.IsBindTagHelper())
+            if (node.TagHelper.Kind != TagHelperKind.Bind)
             {
                 continue;
             }
