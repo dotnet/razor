@@ -91,7 +91,7 @@ internal static partial class RazorCodeDocumentExtensions
         return false;
     }
 
-    public static bool ComponentNamespaceMatches(this RazorCodeDocument razorCodeDocument, string fullyQualifiedNamespace)
+    public static bool ComponentNamespaceMatches(this RazorCodeDocument razorCodeDocument, string? fullyQualifiedNamespace)
     {
         var namespaceNode = (NamespaceDeclarationIntermediateNode)razorCodeDocument
             .GetRequiredDocumentNode()
