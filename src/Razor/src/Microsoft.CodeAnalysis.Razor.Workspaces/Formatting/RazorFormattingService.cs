@@ -50,16 +50,10 @@ internal class RazorFormattingService : IRazorFormattingService
         ];
 
         _languageServerFeatureOptions = languageServerFeatureOptions;
-        _documentFormattingPasses = _languageServerFeatureOptions.UseNewFormattingEngine
-            ? [
+        _documentFormattingPasses = [
                 new New.HtmlFormattingPass(loggerFactory),
                 new RazorFormattingPass(languageServerFeatureOptions, loggerFactory),
                 new New.CSharpFormattingPass(hostServicesProvider, loggerFactory),
-            ]
-            : [
-                new HtmlFormattingPass(loggerFactory),
-                new RazorFormattingPass(languageServerFeatureOptions, loggerFactory),
-                new CSharpFormattingPass(documentMappingService, hostServicesProvider, loggerFactory),
             ];
     }
 
@@ -70,9 +64,7 @@ internal class RazorFormattingService : IRazorFormattingService
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
-        var codeDocument = !_languageServerFeatureOptions.UseNewFormattingEngine && documentContext.Snapshot is IDesignTimeCodeGenerator generator
-            ? await generator.GenerateDesignTimeOutputAsync(cancellationToken).ConfigureAwait(false)
-            : await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         // Range formatting happens on every paste, and if there are Razor diagnostics in the file
         // that can make some very bad results. eg, given:
@@ -103,8 +95,7 @@ internal class RazorFormattingService : IRazorFormattingService
         var context = FormattingContext.Create(
             documentSnapshot,
             codeDocument,
-            options,
-            _languageServerFeatureOptions.UseNewFormattingEngine);
+            options);
         var originalText = context.SourceText;
 
         var result = htmlChanges;

@@ -21,7 +21,6 @@ internal sealed class FormattingContext
 {
     private ImmutableArray<FormattingSpan>? _formattingSpans;
     private IReadOnlyDictionary<int, IndentationContext>? _indentations;
-    private readonly bool _useNewFormattingEngine;
 
     private FormattingContext(
         IDocumentSnapshot originalSnapshot,
@@ -29,8 +28,7 @@ internal sealed class FormattingContext
         RazorFormattingOptions options,
         bool automaticallyAddUsings,
         int hostDocumentIndex,
-        char triggerCharacter,
-        bool useNewFormattingEngine)
+        char triggerCharacter)
     {
         OriginalSnapshot = originalSnapshot;
         CodeDocument = codeDocument;
@@ -38,7 +36,6 @@ internal sealed class FormattingContext
         AutomaticallyAddUsings = automaticallyAddUsings;
         HostDocumentIndex = hostDocumentIndex;
         TriggerCharacter = triggerCharacter;
-        _useNewFormattingEngine = useNewFormattingEngine;
     }
 
     public static bool SkipValidateComponents { get; set; }
@@ -229,9 +226,7 @@ internal sealed class FormattingContext
     {
         var changedSnapshot = OriginalSnapshot.WithText(changedText);
 
-        var codeDocument = !_useNewFormattingEngine && changedSnapshot is IDesignTimeCodeGenerator generator
-            ? await generator.GenerateDesignTimeOutputAsync(cancellationToken).ConfigureAwait(false)
-            : await changedSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await changedSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         DEBUG_ValidateComponents(CodeDocument, codeDocument);
 
@@ -241,8 +236,7 @@ internal sealed class FormattingContext
             Options,
             AutomaticallyAddUsings,
             HostDocumentIndex,
-            TriggerCharacter,
-            _useNewFormattingEngine);
+            TriggerCharacter);
 
         return newContext;
     }
@@ -279,15 +273,13 @@ internal sealed class FormattingContext
             options,
             automaticallyAddUsings,
             hostDocumentIndex,
-            triggerCharacter,
-            useNewFormattingEngine: false);
+            triggerCharacter);
     }
 
     public static FormattingContext Create(
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
-        RazorFormattingOptions options,
-        bool useNewFormattingEngine)
+        RazorFormattingOptions options)
     {
         return new FormattingContext(
             originalSnapshot,
@@ -295,7 +287,6 @@ internal sealed class FormattingContext
             options,
             automaticallyAddUsings: false,
             hostDocumentIndex: 0,
-            triggerCharacter: '\0',
-            useNewFormattingEngine: useNewFormattingEngine);
+            triggerCharacter: '\0');
     }
 }
