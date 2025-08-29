@@ -211,6 +211,6 @@ internal sealed class HtmlOnTypeFormattingPass(ILoggerFactory loggerFactory) : I
         // `<p csharpattr="|Variable">` - true
         //
         return owner.AncestorsAndSelf().Any(
-            n => n is MarkupStartTagSyntax || n is MarkupTagHelperStartTagSyntax || n is MarkupEndTagSyntax || n is MarkupTagHelperEndTagSyntax);
+            n => n is MarkupStartTagSyntax or MarkupTagHelperStartTagSyntax or MarkupEndTagSyntax or MarkupTagHelperEndTagSyntax);
     }
 }

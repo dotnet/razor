@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Threading;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
@@ -101,7 +102,7 @@ internal sealed class CSharpOnTypeFormattingPass(
 
         _logger.LogTestOnly($"Formatted C#:\r\n{originalTextWithChanges}");
 
-        var mappedChanges = RemapTextChanges(codeDocument, normalizedChanges);
+        var mappedChanges = _documentMappingSerivce.GetRazorDocumentEdits(codeDocument.GetRequiredCSharpDocument(), normalizedChanges);
         var filteredChanges = FilterCSharpTextChanges(context, mappedChanges);
         if (filteredChanges.Length == 0)
         {
@@ -199,13 +200,6 @@ internal sealed class CSharpOnTypeFormattingPass(
         return finalChanges;
     }
 
-    private ImmutableArray<TextChange> RemapTextChanges(RazorCodeDocument codeDocument, ImmutableArray<TextChange> projectedTextChanges)
-    {
-        var changes = _documentMappingSerivce.GetRazorDocumentEdits(codeDocument.GetRequiredCSharpDocument(), projectedTextChanges);
-
-        return changes.ToImmutableArray();
-    }
-
     private static async Task<ImmutableArray<TextChange>> AddUsingStatementEditsIfNecessaryAsync(FormattingContext context, ImmutableArray<TextChange> changes, SourceText originalTextWithChanges, ImmutableArray<TextChange> finalChanges, CancellationToken cancellationToken)
     {
         if (context.AutomaticallyAddUsings)
@@ -234,7 +228,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         return newText;
     }
 
-    private static ImmutableArray<TextChange> FilterCSharpTextChanges(FormattingContext context, ImmutableArray<TextChange> changes)
+    private static ImmutableArray<TextChange> FilterCSharpTextChanges(FormattingContext context, IEnumerable<TextChange> changes)
     {
         var indent = context.GetIndentationLevelString(1);
 

@@ -95,7 +95,7 @@ internal sealed class RazorFormattingPass(ILoggerFactory loggerFactory) : IForma
         if (node is CSharpCodeBlockSyntax directiveCode &&
             directiveCode.Children is [RazorDirectiveSyntax directive, ..] &&
             directive.DirectiveDescriptor?.Directive == SectionDirective.Directive.Directive &&
-            directive.Body is RazorDirectiveBodySyntax { CSharpCode: { Children: var children } })
+            directive.Body is RazorDirectiveBodySyntax { CSharpCode.Children: var children })
         {
             if (TryGetWhitespace(children, out var whitespaceBeforeSectionName, out var whitespaceAfterSectionName))
             {

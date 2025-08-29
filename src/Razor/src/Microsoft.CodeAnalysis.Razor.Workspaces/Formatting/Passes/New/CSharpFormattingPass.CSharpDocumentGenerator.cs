@@ -354,9 +354,9 @@ internal partial class CSharpFormattingPass
                 // but we can't let Roslyn see the "@<div>" that it is.
                 // We use a multi-line comment because Roslyn has a desire to line up "//" comments with the previous line, which we could interpret
                 // as Roslyn suggesting we indent some trailing Html.
-                const string endOfLineComment = " /* */";
-                offsetFromEnd += endOfLineComment.Length;
-                _builder.AppendLine(endOfLineComment);
+                const string EndOfLineComment = " /* */";
+                offsetFromEnd += EndOfLineComment.Length;
+                _builder.AppendLine(EndOfLineComment);
 
                 // Final quirk: If we're inside an Html attribute, it means the Html formatter won't have formatted this line, as multi-line
                 // Html attributes are not valid.

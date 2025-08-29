@@ -88,19 +88,18 @@ internal sealed class FormattingContext
                 // position now contains the first non-whitespace character or 0. Get the corresponding FormattingSpan.
                 if (TryGetFormattingSpan(nonWsPos.Value, out var span))
                 {
-                    indentations[i] = new IndentationContext(firstSpan: span)
-                    {
-                        Line = i,
+                    indentations[i] = new IndentationContext(
+                        FirstSpan: span,
+                        Line: i,
 #if DEBUG
-                        DebugOnly_LineText = line.ToString(),
+                        DebugOnly_LineText: line.ToString(),
 #endif
-                        RazorIndentationLevel = span.RazorIndentationLevel,
-                        HtmlIndentationLevel = span.HtmlIndentationLevel,
-                        RelativeIndentationLevel = span.IndentationLevel - previousIndentationLevel,
-                        ExistingIndentation = existingIndentation,
-                        ExistingIndentationSize = existingIndentationSize,
-                        EmptyOrWhitespaceLine = emptyOrWhitespaceLine,
-                    };
+                        RazorIndentationLevel: span.RazorIndentationLevel,
+                        HtmlIndentationLevel: span.HtmlIndentationLevel,
+                        RelativeIndentationLevel: span.IndentationLevel - previousIndentationLevel,
+                        ExistingIndentation: existingIndentation,
+                        EmptyOrWhitespaceLine: emptyOrWhitespaceLine,
+                        ExistingIndentationSize: existingIndentationSize);
                     previousIndentationLevel = span.IndentationLevel;
                 }
                 else
@@ -109,28 +108,25 @@ internal sealed class FormattingContext
                     // Let's create a 0 length span to represent this and default it to HTML.
                     var placeholderSpan = new FormattingSpan(
                         new TextSpan(nonWsPos.Value, 0),
-                        new TextSpan(nonWsPos.Value, 0),
                         FormattingSpanKind.Markup,
-                        FormattingBlockKind.Markup,
-                        razorIndentationLevel: 0,
-                        htmlIndentationLevel: 0,
-                        isInGlobalNamespace: false,
-                        isInClassBody: false,
-                        componentLambdaNestingLevel: 0);
+                        RazorIndentationLevel: 0,
+                        HtmlIndentationLevel: 0,
+                        IsInGlobalNamespace: false,
+                        IsInClassBody: false,
+                        ComponentLambdaNestingLevel: 0);
 
-                    indentations[i] = new IndentationContext(firstSpan: placeholderSpan)
-                    {
-                        Line = i,
+                    indentations[i] = new IndentationContext(
+                        FirstSpan: placeholderSpan,
+                        Line: i,
 #if DEBUG
-                        DebugOnly_LineText = line.ToString(),
+                        DebugOnly_LineText: line.ToString(),
 #endif
-                        RazorIndentationLevel = 0,
-                        HtmlIndentationLevel = 0,
-                        RelativeIndentationLevel = previousIndentationLevel,
-                        ExistingIndentation = existingIndentation,
-                        ExistingIndentationSize = existingIndentation,
-                        EmptyOrWhitespaceLine = emptyOrWhitespaceLine,
-                    };
+                        RazorIndentationLevel: 0,
+                        HtmlIndentationLevel: 0,
+                        RelativeIndentationLevel: previousIndentationLevel,
+                        ExistingIndentation: existingIndentation,
+                        EmptyOrWhitespaceLine: emptyOrWhitespaceLine,
+                        ExistingIndentationSize: existingIndentation);
                 }
             }
 

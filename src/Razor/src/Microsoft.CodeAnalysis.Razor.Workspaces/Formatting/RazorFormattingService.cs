@@ -104,7 +104,7 @@ internal class RazorFormattingService : IRazorFormattingService
 
         var filteredChanges = range is not { } linePositionSpan
             ? result
-            : result.Where(e => linePositionSpan.LineOverlapsWith(sourceText.GetLinePositionSpan(e.Span))).ToImmutableArray();
+            : result.WhereAsArray(e => linePositionSpan.LineOverlapsWith(sourceText.GetLinePositionSpan(e.Span)));
 
         var normalizedChanges = NormalizeLineEndings(originalText, filteredChanges);
 
