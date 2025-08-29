@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.RazorExtension;
         termNames: ["RazorContentType"],
         termValues: [$"ActiveEditorContentType:{RazorConstants.RazorLSPContentTypeName}"])]
 // We need to do some initialization when a Razor capability exists in a project, since the source generator
-// is key to cohosting. The "ContainsRazorFile" capability doesn't exist yet, but I'm hedging :)
+// is key to cohosting.
 [ProvideUIContextRule(
         contextGuid: RazorConstants.RazorCapabilityPresentUIContext,
         name: "Razor Capability Present",
