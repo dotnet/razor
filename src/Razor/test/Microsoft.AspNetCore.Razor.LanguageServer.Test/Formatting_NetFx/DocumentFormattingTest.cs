@@ -89,7 +89,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 """);
     }
 
-    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [FormattingTestFact]
     public async Task RoslynFormatSpaceAfterDot()
     {
         await RunFormattingTestAsync(
@@ -113,7 +113,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             });
     }
 
-    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [FormattingTestFact]
     public async Task RoslynFormatSpaceAfterMethodCall()
     {
         await RunFormattingTestAsync(
@@ -157,7 +157,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             });
     }
 
-    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [FormattingTestFact]
     public async Task RoslynFormatSpaceAfterMethodCallAndDecl()
     {
         await RunFormattingTestAsync(
@@ -2569,7 +2569,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             fileKind: RazorFileKind.Component);
     }
 
-    [FormattingTestFact(SkipFlipLineEndingInOldEngine = true)]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/6001")]
     public async Task FormatNestedCascadingValue2()
     {
@@ -2687,7 +2687,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             fileKind: RazorFileKind.Component);
     }
 
-    [FormattingTestFact(SkipFlipLineEndingInOldEngine = true)]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/6001")]
     public async Task FormatNestedCascadingValue4()
     {
@@ -2739,7 +2739,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             fileKind: RazorFileKind.Component);
     }
 
-    [FormattingTestFact(SkipFlipLineEndingInOldEngine = true)]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/6001")]
     public async Task FormatNestedCascadingValue5()
     {
@@ -3085,7 +3085,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             fileKind: RazorFileKind.Component);
     }
 
-    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [FormattingTestFact]
     public async Task FormatEventHandlerAttributes()
     {
         await RunFormattingTestAsync(
@@ -3124,7 +3124,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             fileKind: RazorFileKind.Component);
     }
 
-    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [FormattingTestFact]
     public async Task FormatEventCallbackAttributes()
     {
         await RunFormattingTestAsync(
@@ -3167,7 +3167,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             fileKind: RazorFileKind.Component);
     }
 
-    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [FormattingTestFact]
     public async Task FormatBindAttributes()
     {
         await RunFormattingTestAsync(
@@ -5996,7 +5996,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     """);
     }
 
-    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/9254")]
     public async Task RenderFragmentPresent()
     {
@@ -6041,7 +6041,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     """);
     }
 
-    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/6150")]
     public async Task RenderFragment_InLambda()
     {
@@ -6161,7 +6161,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     """);
     }
 
-    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/9711")]
     public async Task Directives()
     {
@@ -6292,7 +6292,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 """);
     }
 
-    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [FormattingTestFact]
     public async Task PartialTagHelper()
     {
         await RunFormattingTestAsync(
@@ -6325,7 +6325,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             fileKind: RazorFileKind.Legacy);
     }
 
-    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [FormattingTestFact]
     public async Task MultilineExplicitExpression()
     {
         await RunFormattingTestAsync(
@@ -6424,7 +6424,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             expected: code);
     }
 
-    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/11622")]
     public async Task TextArea()
     {
@@ -6502,7 +6502,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             debugAssertsEnabled: false
             );
 
-    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/11873")]
     public Task NestedExplicitExpression1()
         => RunFormattingTestAsync(
@@ -6555,7 +6555,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 }
                 """);
 
-    [FormattingTestFact(SkipOldFormattingEngine = true)]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/11873")]
     public Task NestedExplicitExpression1_Stable()
     {
