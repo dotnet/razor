@@ -26,19 +26,6 @@ internal static class CompilationHelpers
         return generator.Generate(source, document.FileKind, importSources, tagHelpers, cancellationToken);
     }
 
-    internal static async Task<RazorCodeDocument> GenerateDesignTimeCodeDocumentAsync(
-        IDocumentSnapshot document,
-        RazorProjectEngine projectEngine,
-        CancellationToken cancellationToken)
-    {
-        var importSources = await GetImportSourcesAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);
-        var tagHelpers = await document.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
-        var source = await document.GetSourceAsync(cancellationToken).ConfigureAwait(false);
-
-        var generator = new CodeDocumentGenerator(projectEngine, RazorCompilerOptions.None);
-        return generator.GenerateDesignTime(source, document.FileKind, importSources, tagHelpers, cancellationToken);
-    }
-
     internal static async Task<ImmutableArray<RazorSourceDocument>> GetImportSourcesAsync(IDocumentSnapshot document, RazorProjectEngine projectEngine, CancellationToken cancellationToken)
     {
         // We don't use document.FilePath when calling into GetItem(...) because

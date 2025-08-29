@@ -288,10 +288,7 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
                 RazorExtensions.Register(builder);
             });
 
-        var designTimeCodeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKindValue, [importSource], tagHelpers);
-        var codeDocument = _context.ForceRuntimeCodeGeneration
-            ? projectEngine.Process(sourceDocument, fileKindValue, [importSource], tagHelpers)
-            : designTimeCodeDocument;
+        var codeDocument = projectEngine.Process(sourceDocument, fileKindValue, [importSource], tagHelpers);
 
         if (!allowDiagnostics)
         {
@@ -299,7 +296,7 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         }
 
         var documentSnapshot = CreateDocumentSnapshot(
-            path, fileKindValue, codeDocument, designTimeCodeDocument, projectEngine, [importSnapshotMock.Object], [importSource], tagHelpers, inGlobalNamespace, _context.ForceRuntimeCodeGeneration);
+            path, fileKindValue, codeDocument, projectEngine, [importSnapshotMock.Object], [importSource], tagHelpers, inGlobalNamespace);
 
         return (codeDocument, documentSnapshot);
     }
@@ -308,13 +305,11 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         string path,
         RazorFileKind fileKind,
         RazorCodeDocument codeDocument,
-        RazorCodeDocument designTimeCodeDocument,
         RazorProjectEngine projectEngine,
         ImmutableArray<IDocumentSnapshot> imports,
         ImmutableArray<RazorSourceDocument> importDocuments,
         ImmutableArray<TagHelperDescriptor> tagHelpers,
-        bool inGlobalNamespace,
-        bool forceRuntimeCodeGeneration)
+        bool inGlobalNamespace)
     {
         var projectKey = new ProjectKey(Path.Combine(path, "obj"));
 
@@ -352,19 +347,11 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
                     filePath: path,
                     relativePath: inGlobalNamespace ? Path.GetFileName(path) : path));
 
-                var designTimeCodeDocument = projectEngine.ProcessDesignTime(source, fileKind, importDocuments, tagHelpers);
-                var codeDocument = forceRuntimeCodeGeneration
-                    ? projectEngine.Process(source, fileKind, importDocuments, tagHelpers)
-                    : designTimeCodeDocument;
+                var codeDocument = projectEngine.Process(source, fileKind, importDocuments, tagHelpers);
 
                 return CreateDocumentSnapshot(
-                    path, fileKind, codeDocument, designTimeCodeDocument, projectEngine, imports, importDocuments, tagHelpers, inGlobalNamespace, forceRuntimeCodeGeneration);
+                    path, fileKind, codeDocument, projectEngine, imports, importDocuments, tagHelpers, inGlobalNamespace);
             });
-
-        var generatorMock = snapshotMock.As<IDesignTimeCodeGenerator>();
-        generatorMock
-            .Setup(x => x.GenerateDesignTimeOutputAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(designTimeCodeDocument);
 
         return snapshotMock.Object;
     }
