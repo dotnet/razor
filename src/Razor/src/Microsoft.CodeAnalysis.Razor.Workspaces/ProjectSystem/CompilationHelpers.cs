@@ -15,14 +15,13 @@ internal static class CompilationHelpers
     internal static async Task<RazorCodeDocument> GenerateCodeDocumentAsync(
         IDocumentSnapshot document,
         RazorProjectEngine projectEngine,
-        RazorCompilerOptions compilerOptions,
         CancellationToken cancellationToken)
     {
         var importSources = await GetImportSourcesAsync(document, projectEngine, cancellationToken).ConfigureAwait(false);
         var tagHelpers = await document.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
         var source = await document.GetSourceAsync(cancellationToken).ConfigureAwait(false);
 
-        var generator = new CodeDocumentGenerator(projectEngine, compilerOptions);
+        var generator = new CodeDocumentGenerator(projectEngine);
         return generator.Generate(source, document.FileKind, importSources, tagHelpers, cancellationToken);
     }
 
