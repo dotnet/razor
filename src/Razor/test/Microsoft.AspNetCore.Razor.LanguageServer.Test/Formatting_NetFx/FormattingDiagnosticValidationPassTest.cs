@@ -113,7 +113,7 @@ public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKindValue, importSources: default, tagHelpers);
 
         var documentSnapshot = FormattingTestBase.CreateDocumentSnapshot(
-            path, fileKindValue, codeDocument, codeDocument, projectEngine, imports: [], importDocuments: [], tagHelpers, inGlobalNamespace: false, forceRuntimeCodeGeneration: false);
+            path, fileKindValue, codeDocument, projectEngine, imports: [], importDocuments: [], tagHelpers, inGlobalNamespace: false);
 
         return (codeDocument, documentSnapshot);
     }
