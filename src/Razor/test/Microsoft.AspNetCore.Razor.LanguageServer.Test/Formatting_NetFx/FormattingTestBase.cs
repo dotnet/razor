@@ -224,8 +224,8 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         if (_context.ShouldFlipLineEndings)
         {
             // flip the line endings of the stings (LF to CRLF and vice versa) and run again
-            input = _context.FlipLineEndings(input);
-            expected = _context.FlipLineEndings(expected);
+            input = FormattingTestContext.FlipLineEndings(input);
+            expected = FormattingTestContext.FlipLineEndings(expected);
         }
 
         return (input, expected);
