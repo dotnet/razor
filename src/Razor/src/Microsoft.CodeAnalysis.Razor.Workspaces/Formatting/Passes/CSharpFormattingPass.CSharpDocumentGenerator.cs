@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 using RazorSyntaxToken = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxToken;
 
-namespace Microsoft.CodeAnalysis.Razor.Formatting.New;
+namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal partial class CSharpFormattingPass
 {
