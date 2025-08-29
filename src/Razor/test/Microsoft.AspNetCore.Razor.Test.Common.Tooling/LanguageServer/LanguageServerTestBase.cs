@@ -90,7 +90,7 @@ public abstract class LanguageServerTestBase(ITestOutputHelper testOutput) : Too
                 """,
             RazorSourceDocumentProperties.Create(importDocumentName, importDocumentName));
 
-        return projectEngine.ProcessDesignTime(sourceDocument, fileKind, [defaultImportDocument], tagHelpers);
+        return projectEngine.Process(sourceDocument, fileKind, [defaultImportDocument], tagHelpers);
     }
 
     private protected static IDocumentContextFactory CreateDocumentContextFactory(Uri documentPath, string sourceText)

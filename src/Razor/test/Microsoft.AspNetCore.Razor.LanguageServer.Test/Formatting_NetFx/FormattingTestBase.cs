@@ -44,8 +44,6 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
 
     internal sealed override bool UseTwoPhaseCompilation => true;
 
-    internal sealed override bool DesignTime => true;
-
     private protected FormattingTestBase(FormattingTestContext context, HtmlFormattingService htmlFormattingService, ITestOutputHelper testOutput)
         : base(testOutput)
     {
