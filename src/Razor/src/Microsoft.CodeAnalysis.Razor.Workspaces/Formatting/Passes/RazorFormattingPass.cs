@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.TextDifferencing;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using RazorRazorSyntaxNodeList = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxList<Microsoft.AspNetCore.Razor.Language.Syntax.RazorSyntaxNode>;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -24,9 +23,8 @@ using RazorSyntaxNodeOrToken = Microsoft.AspNetCore.Razor.Language.Syntax.Syntax
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal sealed class RazorFormattingPass(LanguageServerFeatureOptions languageServerFeatureOptions, ILoggerFactory loggerFactory) : IFormattingPass
+internal sealed class RazorFormattingPass(ILoggerFactory loggerFactory) : IFormattingPass
 {
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorFormattingPass>();
 
     public async Task<ImmutableArray<TextChange>> ExecuteAsync(FormattingContext context, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
@@ -57,7 +55,7 @@ internal sealed class RazorFormattingPass(LanguageServerFeatureOptions languageS
         return SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, DiffKind.Char);
     }
 
-    private ImmutableArray<TextChange> FormatRazor(FormattingContext context, RazorSyntaxTree syntaxTree)
+    private static ImmutableArray<TextChange> FormatRazor(FormattingContext context, RazorSyntaxTree syntaxTree)
     {
         using var changes = new PooledArrayBuilder<TextChange>();
         var source = syntaxTree.Source;
@@ -74,7 +72,7 @@ internal sealed class RazorFormattingPass(LanguageServerFeatureOptions languageS
         return changes.ToImmutable();
     }
 
-    private void TryFormatBlocks(FormattingContext context, ref PooledArrayBuilder<TextChange> changes, RazorSourceDocument source, RazorSyntaxNode node)
+    private static void TryFormatBlocks(FormattingContext context, ref PooledArrayBuilder<TextChange> changes, RazorSourceDocument source, RazorSyntaxNode node)
     {
         // We only want to run one of these
         _ = TryFormatFunctionsBlock(context, ref changes, source, node) ||
@@ -84,7 +82,7 @@ internal sealed class RazorFormattingPass(LanguageServerFeatureOptions languageS
             TryFormatSectionBlock(context, ref changes, source, node);
     }
 
-    private bool TryFormatSectionBlock(FormattingContext context, ref PooledArrayBuilder<TextChange> changes, RazorSourceDocument source, RazorSyntaxNode node)
+    private static bool TryFormatSectionBlock(FormattingContext context, ref PooledArrayBuilder<TextChange> changes, RazorSourceDocument source, RazorSyntaxNode node)
     {
         // @section Goo {
         // }
@@ -139,7 +137,7 @@ internal sealed class RazorFormattingPass(LanguageServerFeatureOptions languageS
         }
     }
 
-    private bool TryFormatFunctionsBlock(FormattingContext context, ref PooledArrayBuilder<TextChange> changes, RazorSourceDocument source, RazorSyntaxNode node)
+    private static bool TryFormatFunctionsBlock(FormattingContext context, ref PooledArrayBuilder<TextChange> changes, RazorSourceDocument source, RazorSyntaxNode node)
     {
         // @functions
         // {
@@ -180,7 +178,7 @@ internal sealed class RazorFormattingPass(LanguageServerFeatureOptions languageS
         return false;
     }
 
-    private bool TryFormatCSharpExplicitTransition(FormattingContext context, ref PooledArrayBuilder<TextChange> changes, RazorSourceDocument source, RazorSyntaxNode node)
+    private static bool TryFormatCSharpExplicitTransition(FormattingContext context, ref PooledArrayBuilder<TextChange> changes, RazorSourceDocument source, RazorSyntaxNode node)
     {
         // We're looking for a code block like this:
         //
@@ -202,7 +200,7 @@ internal sealed class RazorFormattingPass(LanguageServerFeatureOptions languageS
         return false;
     }
 
-    private bool TryFormatComplexCSharpBlock(FormattingContext context, ref PooledArrayBuilder<TextChange> changes, RazorSourceDocument source, RazorSyntaxNode node)
+    private static bool TryFormatComplexCSharpBlock(FormattingContext context, ref PooledArrayBuilder<TextChange> changes, RazorSourceDocument source, RazorSyntaxNode node)
     {
         // complex situations like
         // @{
@@ -224,7 +222,7 @@ internal sealed class RazorFormattingPass(LanguageServerFeatureOptions languageS
         return false;
     }
 
-    private bool TryFormatHtmlInCSharp(FormattingContext context, ref PooledArrayBuilder<TextChange> changes, RazorSourceDocument source, RazorSyntaxNode node)
+    private static bool TryFormatHtmlInCSharp(FormattingContext context, ref PooledArrayBuilder<TextChange> changes, RazorSourceDocument source, RazorSyntaxNode node)
     {
         // void Method()
         // {
@@ -376,7 +374,7 @@ internal sealed class RazorFormattingPass(LanguageServerFeatureOptions languageS
         changes.Add(new TextChange(nodeOrToken.Span, " "));
     }
 
-    private bool FormatBlock(FormattingContext context, RazorSourceDocument source, RazorSyntaxNode? directiveNode, RazorSyntaxNode openBraceNode, RazorSyntaxNode codeNode, RazorSyntaxNode closeBraceNode, ref PooledArrayBuilder<TextChange> changes)
+    private static bool FormatBlock(FormattingContext context, RazorSourceDocument source, RazorSyntaxNode? directiveNode, RazorSyntaxNode openBraceNode, RazorSyntaxNode codeNode, RazorSyntaxNode closeBraceNode, ref PooledArrayBuilder<TextChange> changes)
     {
         var didFormat = false;
 
@@ -465,83 +463,6 @@ internal sealed class RazorFormattingPass(LanguageServerFeatureOptions languageS
             var hasBeenModified = changes.Any(e => e.Span.End == endIndex);
 
             return hasBeenModified;
-        }
-
-        static int GetAdditionalIndentationLevel(FormattingContext context, LinePositionSpan range, RazorSyntaxNode openBraceNode, RazorSyntaxNode codeNode)
-        {
-            if (!context.TryGetIndentationLevel(codeNode.Position, out var desiredIndentationLevel))
-            {
-                // If for some reason we don't match a particular span use the indentation for the whole line
-                var indentations = context.GetIndentations();
-                var indentation = indentations[range.Start.Line];
-                desiredIndentationLevel = indentation.HtmlIndentationLevel + indentation.RazorIndentationLevel;
-            }
-
-            var desiredIndentationOffset = context.GetIndentationOffsetForLevel(desiredIndentationLevel);
-            var currentIndentationOffset = GetTrailingWhitespaceLength(openBraceNode, context) + GetLeadingWhitespaceLength(codeNode, context);
-
-            return desiredIndentationOffset - currentIndentationOffset;
-
-            static int GetLeadingWhitespaceLength(RazorSyntaxNode node, FormattingContext context)
-            {
-                var whitespaceLength = 0;
-
-                foreach (var token in node.DescendantTokens())
-                {
-                    if (token.IsWhitespace())
-                    {
-                        if (token.Kind == SyntaxKind.NewLine)
-                        {
-                            // We need to reset when we move to a new line.
-                            whitespaceLength = 0;
-                        }
-                        else if (token.IsSpace())
-                        {
-                            whitespaceLength++;
-                        }
-                        else if (token.IsTab())
-                        {
-                            whitespaceLength += (int)context.Options.TabSize;
-                        }
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-
-                return whitespaceLength;
-            }
-
-            static int GetTrailingWhitespaceLength(RazorSyntaxNode node, FormattingContext context)
-            {
-                var whitespaceLength = 0;
-
-                foreach (var token in node.DescendantTokens().Reverse())
-                {
-                    if (token.IsWhitespace())
-                    {
-                        if (token.Kind == SyntaxKind.NewLine)
-                        {
-                            whitespaceLength = 0;
-                        }
-                        else if (token.IsSpace())
-                        {
-                            whitespaceLength++;
-                        }
-                        else if (token.IsTab())
-                        {
-                            whitespaceLength += (int)context.Options.TabSize;
-                        }
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-
-                return whitespaceLength;
-            }
         }
     }
 

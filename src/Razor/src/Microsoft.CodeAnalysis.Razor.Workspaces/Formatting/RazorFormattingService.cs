@@ -33,12 +33,10 @@ internal class RazorFormattingService : IRazorFormattingService
     private readonly ImmutableArray<IFormattingValidationPass> _validationPasses;
     private readonly CSharpOnTypeFormattingPass _csharpOnTypeFormattingPass;
     private readonly HtmlOnTypeFormattingPass _htmlOnTypeFormattingPass;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
     public RazorFormattingService(
         IDocumentMappingService documentMappingService,
         IHostServicesProvider hostServicesProvider,
-        LanguageServerFeatureOptions languageServerFeatureOptions,
         ILoggerFactory loggerFactory)
     {
         _htmlOnTypeFormattingPass = new HtmlOnTypeFormattingPass(loggerFactory);
@@ -49,10 +47,9 @@ internal class RazorFormattingService : IRazorFormattingService
             new FormattingContentValidationPass(loggerFactory)
         ];
 
-        _languageServerFeatureOptions = languageServerFeatureOptions;
         _documentFormattingPasses = [
                 new New.HtmlFormattingPass(loggerFactory),
-                new RazorFormattingPass(languageServerFeatureOptions, loggerFactory),
+                new RazorFormattingPass(loggerFactory),
                 new New.CSharpFormattingPass(hostServicesProvider, loggerFactory),
             ];
     }
