@@ -335,6 +335,6 @@ public class RazorCodeDocumentExtensionsTest(ITestOutputHelper testOutput) : Too
             });
         });
 
-        return projectEngine.ProcessDesignTime(sourceDocument, RazorFileKind.Legacy, importSources: default, tagHelpers);
+        return projectEngine.Process(sourceDocument, RazorFileKind.Legacy, importSources: default, tagHelpers);
     }
 }

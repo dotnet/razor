@@ -37,6 +37,6 @@ internal static class RazorCodeDocumentFactory
 
         var fileKind = FileKinds.GetFileKindFromPath(filePath);
 
-        return projectEngine.ProcessDesignTime(sourceDocument, fileKind, importSources: default, tagHelpers);
+        return projectEngine.Process(sourceDocument, fileKind, importSources: default, tagHelpers);
     }
 }
