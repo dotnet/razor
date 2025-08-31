@@ -27,6 +27,11 @@ internal static class RazorCodeDocumentFactory
         var sourceDocument = TestRazorSourceDocument.Create(text, filePath: filePath, relativePath: filePath);
         var projectEngine = RazorProjectEngine.Create(builder =>
         {
+            builder.ConfigureCodeGenerationOptions(builder =>
+            {
+                builder.UseEnhancedLinePragma = true;
+            });
+
             builder.ConfigureParserOptions(builder =>
             {
                 builder.UseRoslynTokenizer = true;

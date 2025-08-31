@@ -67,6 +67,11 @@ public abstract class LanguageServerTestBase(ITestOutputHelper testOutput) : Too
                 b.SetRootNamespace(rootNamespace);
             }
 
+            b.ConfigureCodeGenerationOptions(builder =>
+            {
+                builder.UseEnhancedLinePragma = true;
+            });
+
             RazorExtensions.Register(b);
 
             b.ConfigureParserOptions(builder =>
