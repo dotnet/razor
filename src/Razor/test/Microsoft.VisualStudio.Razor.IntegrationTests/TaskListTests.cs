@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
 public class TaskListTests(ITestOutputHelper testOutputHelper) : AbstractRazorEditorTest(testOutputHelper)
 {
-    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/12142")]
+    [IdeFact]
     public async Task ShowsTasks()
     {
         // Arrange
