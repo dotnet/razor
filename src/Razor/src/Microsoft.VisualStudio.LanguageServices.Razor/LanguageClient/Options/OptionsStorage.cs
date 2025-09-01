@@ -141,6 +141,10 @@ internal class OptionsStorage : IAdvancedSettingsStorage, IDisposable
 #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
 
         _taskListDescriptors = tokensBuilder.ToImmutable();
+
+        await TaskScheduler.Default;
+
+        NotifyChange();
     }
 
     public async Task OnChangedAsync(Action<ClientAdvancedSettings> changed)
