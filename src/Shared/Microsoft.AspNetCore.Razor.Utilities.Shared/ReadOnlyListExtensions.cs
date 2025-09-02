@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
@@ -1074,10 +1074,11 @@ internal static class ReadOnlyListExtensions
 
     public readonly ref struct Enumerable<T>(IReadOnlyList<T> list, int start, int count)
     {
-        private readonly int First => start;
-        private readonly int Last => start + count - 1;
+        private readonly IReadOnlyList<T> _list = list;
+        private readonly int _first = start;
+        private readonly int _last = start + count - 1;
 
-        private readonly T this[int index] => list[index];
+        private readonly T this[int index] => _list[index];
 
         public Enumerator GetEnumerator() => new(this);
 
@@ -1087,14 +1088,14 @@ internal static class ReadOnlyListExtensions
         {
             private readonly Enumerable<T> _enumerable = enumerable;
 
-            private int _index = enumerable.First;
+            private int _index = enumerable._first;
             private T _current = default!;
 
             public readonly T Current => _current;
 
             public bool MoveNext()
             {
-                if (_index <= _enumerable.Last)
+                if (_index <= _enumerable._last)
                 {
                     _current = _enumerable[_index];
                     _index++;
@@ -1106,7 +1107,7 @@ internal static class ReadOnlyListExtensions
 
             public void Reset()
             {
-                _index = _enumerable.First;
+                _index = _enumerable._first;
                 _current = default!;
             }
         }
@@ -1121,14 +1122,14 @@ internal static class ReadOnlyListExtensions
             {
                 private readonly Enumerable<T> _enumerable = enumerable;
 
-                private int _index = enumerable.Last;
+                private int _index = enumerable._last;
                 private T _current = default!;
 
                 public readonly T Current => _current;
 
                 public bool MoveNext()
                 {
-                    if (_index >= _enumerable.First)
+                    if (_index >= _enumerable._first)
                     {
                         _current = _enumerable[_index];
                         _index--;
@@ -1140,7 +1141,7 @@ internal static class ReadOnlyListExtensions
 
                 public void Reset()
                 {
-                    _index = _enumerable.Last;
+                    _index = _enumerable._last;
                     _current = default!;
                 }
             }
