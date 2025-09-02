@@ -40,24 +40,24 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
 
         var bindGetSetSupported = codeDocument.ParserOptions.LanguageVersion >= RazorLanguageVersion.Version_7_0;
 
-        using var references = new PooledArrayBuilder<IntermediateNodeReference>();
-        using var parameterReferences = new PooledArrayBuilder<IntermediateNodeReference>();
+        using var references = new PooledArrayBuilder<IntermediateNodeReference<TagHelperDirectiveAttributeIntermediateNode>>();
+        using var parameterReferences = new PooledArrayBuilder<IntermediateNodeReference<TagHelperDirectiveAttributeParameterIntermediateNode>>();
 
         ref var referencesRef = ref references.AsRef();
         ref var parameterReferencesRef = ref parameterReferences.AsRef();
 
         // First, process duplicates so we don't have to worry about them later.
-        documentNode.CollectDescendantReferences<TagHelperDirectiveAttributeIntermediateNode>(ref referencesRef);
-        documentNode.CollectDescendantReferences<TagHelperDirectiveAttributeParameterIntermediateNode>(ref parameterReferencesRef);
+        documentNode.CollectDescendantReferences(ref referencesRef);
+        documentNode.CollectDescendantReferences(ref parameterReferencesRef);
 
         ProcessDuplicates(ref referencesRef, ref parameterReferencesRef);
 
         // Now that we've processed duplicates, re-collect all the references as some may have been removed.
         references.Clear();
-        documentNode.CollectDescendantReferences<TagHelperDirectiveAttributeIntermediateNode>(ref referencesRef);
+        documentNode.CollectDescendantReferences(ref referencesRef);
 
         parameterReferences.Clear();
-        documentNode.CollectDescendantReferences<TagHelperDirectiveAttributeParameterIntermediateNode>(ref parameterReferencesRef);
+        documentNode.CollectDescendantReferences(ref parameterReferencesRef);
 
         // For each @bind usage we need to rewrite the tag helper node to map to basic constructs.
 
@@ -70,11 +70,12 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
 
         foreach (var reference in references)
         {
-            var node = (TagHelperDirectiveAttributeIntermediateNode)reference.Node;
+            var parent = reference.Parent;
+            var node = reference.Node;
 
             if (node.TagHelper.Kind == TagHelperKind.Bind)
             {
-                bindEntries.Add(new(reference.Parent, node), new BindEntry(reference));
+                bindEntries.Add(new(parent, node), new BindEntry(reference));
             }
         }
 
@@ -83,7 +84,7 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
         foreach (var parameterReference in parameterReferences)
         {
             var parent = parameterReference.Parent;
-            var node = (TagHelperDirectiveAttributeParameterIntermediateNode)parameterReference.Node;
+            var node = parameterReference.Node;
 
             if (!node.BoundAttributeParameter.BindAttributeGetSet)
             {
@@ -117,7 +118,7 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
         foreach (var parameterReference in parameterReferences)
         {
             var parent = parameterReference.Parent;
-            var node = (TagHelperDirectiveAttributeParameterIntermediateNode)parameterReference.Node;
+            var node = parameterReference.Node;
 
             if (node.TagHelper.Kind != TagHelperKind.Bind)
             {
@@ -209,8 +210,8 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
     }
 
     private static void ProcessDuplicates(
-        ref PooledArrayBuilder<IntermediateNodeReference> references,
-        ref PooledArrayBuilder<IntermediateNodeReference> parameterReferences)
+        ref PooledArrayBuilder<IntermediateNodeReference<TagHelperDirectiveAttributeIntermediateNode>> references,
+        ref PooledArrayBuilder<IntermediateNodeReference<TagHelperDirectiveAttributeParameterIntermediateNode>> parameterReferences)
     {
         using var _ = ReferenceEqualityHashSetPool<IntermediateNode>.GetPooledObject(out var parents);
 
@@ -1114,13 +1115,16 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
         public string AttributeName => field ??= GetAttributeName();
         public string OriginalAttributeName => field ??= GetOriginalAttributeName();
 
-        public BindEntry(IntermediateNodeReference reference)
+        public BindEntry(IntermediateNodeReference<TagHelperDirectiveAttributeIntermediateNode> bindNodeReference)
         {
-            BindNodeReference = reference;
-            BindNode = reference.Node as TagHelperDirectiveAttributeIntermediateNode;
-            BindGetNode = reference.Node as TagHelperDirectiveAttributeParameterIntermediateNode;
+            BindNodeReference = bindNodeReference;
+            BindNode = bindNodeReference.Node;
+        }
 
-            Assumed.True((BindNode is null && BindGetNode is not null) || (BindNode is not null && BindGetNode is null));
+        public BindEntry(IntermediateNodeReference<TagHelperDirectiveAttributeParameterIntermediateNode> bindNodeReference)
+        {
+            BindNodeReference = bindNodeReference;
+            BindGetNode = bindNodeReference.Node;
         }
 
         [DoesNotReturn]

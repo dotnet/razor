@@ -56,7 +56,7 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
 
         foreach (var reference in references)
         {
-            var node = (TagHelperDirectiveAttributeIntermediateNode)reference.Node;
+            var node = reference.Node;
 
             if (!reference.Parent.Children.Contains(node))
             {
@@ -72,7 +72,7 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
 
         foreach (var parameterReference in parameterReferences)
         {
-            var node = (TagHelperDirectiveAttributeParameterIntermediateNode)parameterReference.Node;
+            var node = parameterReference.Node;
 
             if (!parameterReference.Parent.Children.Contains(node))
             {

@@ -194,12 +194,9 @@ internal class DefaultTagHelperOptimizationPass : IntermediateNodePassBase, IRaz
         context.Class.Children.Insert(i, new FieldDeclarationIntermediateNode()
         {
             IsTagHelperField = true,
-            Modifiers =
-                {
-                    "private",
-                },
-            FieldName = context.GetFieldName(tagHelper),
-            FieldType = "global::" + tagHelper.TypeName,
+            Modifiers = CommonModifiers.Private,
+            Name = context.GetFieldName(tagHelper),
+            Type = "global::" + tagHelper.TypeName
         });
     }
 
