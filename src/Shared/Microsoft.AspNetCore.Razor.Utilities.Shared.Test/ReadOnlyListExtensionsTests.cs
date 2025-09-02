@@ -458,7 +458,7 @@ public class ReadOnlyListExtensionsTest
     {
         IReadOnlyList<int> list = [1, 2, 3, 4, 5];
 
-        var result = Enumerate(list.AsEnumerable().Reversed);
+        var result = Enumerate(list.AsEnumerable().Reversed());
 
         Assert.Equal([5, 4, 3, 2, 1], result);
     }
@@ -468,7 +468,7 @@ public class ReadOnlyListExtensionsTest
     {
         IReadOnlyList<int> list = [1, 2, 3, 4, 5];
 
-        var result = Enumerate(list.AsEnumerable(start: 1, count: 3).Reversed);
+        var result = Enumerate(list.AsEnumerable(start: 1, count: 3).Reversed());
 
         Assert.Equal([4, 3, 2], result);
     }
@@ -478,7 +478,7 @@ public class ReadOnlyListExtensionsTest
     {
         IReadOnlyList<int> list = [];
 
-        var result = Enumerate(list.AsEnumerable().Reversed);
+        var result = Enumerate(list.AsEnumerable().Reversed());
 
         Assert.Empty(result);
     }
@@ -515,7 +515,7 @@ public class ReadOnlyListExtensionsTest
     public void AsEnumerable_ReverseEnumeratorReset()
     {
         IReadOnlyList<int> list = [1, 2, 3];
-        var enumerable = list.AsEnumerable().Reversed;
+        var enumerable = list.AsEnumerable().Reversed();
         var enumerator = enumerable.GetEnumerator();
 
         // First enumeration
@@ -669,7 +669,7 @@ public class ReadOnlyListExtensionsTest
         return [.. result];
     }
 
-    private static T[] Enumerate<T>(ReadOnlyListExtensions.Enumerable<T>.ReverseEnumerable enumerable)
+    private static T[] Enumerate<T>(ReadOnlyListExtensions.Enumerable<T>.ReversedEnumerable enumerable)
     {
         var result = new List<T>();
 

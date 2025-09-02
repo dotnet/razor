@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
@@ -497,7 +497,7 @@ internal static class ReadOnlyListExtensions
     /// </exception>
     public static T Last<T>(this IReadOnlyList<T> list, Func<T, bool> predicate)
     {
-        foreach (var item in list.AsEnumerable().Reversed)
+        foreach (var item in list.AsEnumerable().Reversed())
         {
             if (predicate(item))
             {
@@ -528,7 +528,7 @@ internal static class ReadOnlyListExtensions
     /// </exception>
     public static T Last<T, TArg>(this IReadOnlyList<T> list, TArg arg, Func<T, TArg, bool> predicate)
     {
-        foreach (var item in list.AsEnumerable().Reversed)
+        foreach (var item in list.AsEnumerable().Reversed())
         {
             if (predicate(item, arg))
             {
@@ -584,7 +584,7 @@ internal static class ReadOnlyListExtensions
     /// </returns>
     public static T? LastOrDefault<T>(this IReadOnlyList<T> list, Func<T, bool> predicate)
     {
-        foreach (var item in list.AsEnumerable().Reversed)
+        foreach (var item in list.AsEnumerable().Reversed())
         {
             if (predicate(item))
             {
@@ -614,7 +614,7 @@ internal static class ReadOnlyListExtensions
     /// </returns>
     public static T? LastOrDefault<T, TArg>(this IReadOnlyList<T> list, TArg arg, Func<T, TArg, bool> predicate)
     {
-        foreach (var item in list.AsEnumerable().Reversed)
+        foreach (var item in list.AsEnumerable().Reversed())
         {
             if (predicate(item, arg))
             {
@@ -644,7 +644,7 @@ internal static class ReadOnlyListExtensions
     /// </returns>
     public static T LastOrDefault<T>(this IReadOnlyList<T> list, Func<T, bool> predicate, T defaultValue)
     {
-        foreach (var item in list.AsEnumerable().Reversed)
+        foreach (var item in list.AsEnumerable().Reversed())
         {
             if (predicate(item))
             {
@@ -677,7 +677,7 @@ internal static class ReadOnlyListExtensions
     /// </returns>
     public static T LastOrDefault<T, TArg>(this IReadOnlyList<T> list, TArg arg, Func<T, TArg, bool> predicate, T defaultValue)
     {
-        foreach (var item in list.AsEnumerable().Reversed)
+        foreach (var item in list.AsEnumerable().Reversed())
         {
             if (predicate(item, arg))
             {
@@ -1082,7 +1082,7 @@ internal static class ReadOnlyListExtensions
 
         public Enumerator GetEnumerator() => new(this);
 
-        public ReverseEnumerable Reversed => new(this);
+        public readonly ReversedEnumerable Reversed() => new(this);
 
         public ref struct Enumerator(Enumerable<T> enumerable)
         {
@@ -1112,13 +1112,13 @@ internal static class ReadOnlyListExtensions
             }
         }
 
-        public readonly ref struct ReverseEnumerable(Enumerable<T> enumerable)
+        public readonly ref struct ReversedEnumerable(Enumerable<T> enumerable)
         {
             private readonly Enumerable<T> _enumerable = enumerable;
 
-            public ReverseEnumerator GetEnumerator() => new(_enumerable);
+            public ReversedEnumerator GetEnumerator() => new(_enumerable);
 
-            public ref struct ReverseEnumerator(Enumerable<T> enumerable)
+            public ref struct ReversedEnumerator(Enumerable<T> enumerable)
             {
                 private readonly Enumerable<T> _enumerable = enumerable;
 
