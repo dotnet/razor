@@ -137,7 +137,7 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
     public static ComponentAttributeIntermediateNode From(TagHelperDirectiveAttributeParameterIntermediateNode node, bool addChildren)
         => new(node, addChildren);
 
-    public override IntermediateNodeCollection Children { get; } = new IntermediateNodeCollection();
+    public override IntermediateNodeCollection Children { get => field ??= []; }
 
     public string AttributeName { get; set; }
 
