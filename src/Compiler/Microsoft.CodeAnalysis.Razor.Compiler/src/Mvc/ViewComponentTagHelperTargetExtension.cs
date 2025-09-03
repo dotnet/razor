@@ -4,7 +4,6 @@
 #nullable disable
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -20,8 +19,6 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
     private const string TagHelperOutputVariableName = "__output";
     private const string ViewComponentHelperVariableName = "__helper";
 
-    private static readonly ImmutableArray<string> s_publicModifiers = ["public"];
-
     public void WriteViewComponentTagHelper(CodeRenderingContext context, ViewComponentTagHelperIntermediateNode node)
     {
         // Add target element.
@@ -29,7 +26,7 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
 
         // Initialize declaration.
         using (context.CodeWriter.BuildClassDeclaration(
-            s_publicModifiers,
+            CommonModifiers.Public,
             node.ClassName,
             new BaseTypeWithModel(ViewComponentsApi.TagHelper.FullTypeName),
             interfaces: default,
@@ -82,14 +79,14 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
           .WriteLine("]");
 
         writer.WriteAutoPropertyDeclaration(
-            s_publicModifiers,
+            CommonModifiers.Public,
             ViewComponentsApi.ViewContext.GloballyQualifiedTypeName,
             ViewComponentsApi.ViewContextPropertyName);
 
         foreach (var attribute in tagHelper.BoundAttributes)
         {
             writer.WriteAutoPropertyDeclaration(
-                s_publicModifiers,
+                CommonModifiers.Public,
                 attribute.TypeName,
                 attribute.PropertyName);
 
