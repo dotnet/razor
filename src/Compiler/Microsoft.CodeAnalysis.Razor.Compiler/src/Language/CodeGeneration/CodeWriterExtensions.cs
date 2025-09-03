@@ -243,9 +243,16 @@ internal static class CodeWriterExtensions
         return writer;
     }
 
-    public static CodeWriter WriteStartAssignment(this CodeWriter writer, string name)
+    public static CodeWriter WriteStartAssignment(
+        this CodeWriter writer,
+        [InterpolatedStringHandlerArgument(nameof(writer))] ref CodeWriter.WriteInterpolatedStringHandler left)
     {
-        return writer.Write(name).Write(" = ");
+        return writer.Write(ref left).Write(" = ");
+    }
+
+    public static CodeWriter WriteStartAssignment(this CodeWriter writer, string left)
+    {
+        return writer.Write(left).Write(" = ");
     }
 
     public static CodeWriter WriteParameterSeparator(this CodeWriter writer)
@@ -367,9 +374,9 @@ internal static class CodeWriterExtensions
 
     public static CodeWriter WriteStartMethodInvocation(
         this CodeWriter writer,
-        [InterpolatedStringHandlerArgument(nameof(writer))] ref CodeWriter.WriteInterpolatedStringHandler handler)
+        [InterpolatedStringHandlerArgument(nameof(writer))] ref CodeWriter.WriteInterpolatedStringHandler methodName)
     {
-        writer.Write(ref handler);
+        writer.Write(ref methodName);
 
         return writer.Write("(");
     }
@@ -474,9 +481,25 @@ internal static class CodeWriterExtensions
     public static CodeWriter WriteMethodInvocation(this CodeWriter writer, string methodName, params ImmutableArray<string> arguments)
         => writer.WriteMethodInvocation(methodName, endLine: true, arguments);
 
+    public static CodeWriter WriteMethodInvocation(
+        this CodeWriter writer,
+        [InterpolatedStringHandlerArgument(nameof(writer))] ref CodeWriter.WriteInterpolatedStringHandler methodName,
+        params ImmutableArray<string> arguments)
+        => writer.WriteMethodInvocation(ref methodName, endLine: true, arguments);
+
     public static CodeWriter WriteMethodInvocation(this CodeWriter writer, string methodName, bool endLine, params ImmutableArray<string> arguments)
         => writer
             .WriteStartMethodInvocation(methodName)
+            .WriteCommaSeparatedList(arguments)
+            .WriteEndMethodInvocation(endLine);
+
+    public static CodeWriter WriteMethodInvocation(
+        this CodeWriter writer,
+        [InterpolatedStringHandlerArgument(nameof(writer))] ref CodeWriter.WriteInterpolatedStringHandler methodName,
+        bool endLine,
+        params ImmutableArray<string> arguments)
+        => writer
+            .WriteStartMethodInvocation(ref methodName)
             .WriteCommaSeparatedList(arguments)
             .WriteEndMethodInvocation(endLine);
 
