@@ -19,7 +19,7 @@ internal sealed class ViewComponentTagHelperTargetExtension : ViewComponentTagHe
         var propertyNames = tagHelper.BoundAttributes.Select(attribute => attribute.PropertyName);
         var joinedPropertyNames = string.Join(", ", propertyNames);
         var parametersString = $"new {{ {joinedPropertyNames} }}";
-        var viewComponentName = tagHelper.GetViewComponentName();
+        var viewComponentName = tagHelper.ViewComponentName;
 
         return [$"\"{viewComponentName}\"", parametersString];
     }

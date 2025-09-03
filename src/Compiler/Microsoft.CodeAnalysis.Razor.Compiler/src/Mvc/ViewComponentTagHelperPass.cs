@@ -53,7 +53,7 @@ public class ViewComponentTagHelperPass : IntermediateNodePassBase, IRazorOptimi
 
     private void RewriteUsage(Context context, TagHelperIntermediateNode node, TagHelperDescriptor tagHelper)
     {
-        if (!tagHelper.IsViewComponentKind())
+        if (!tagHelper.IsViewComponentKind)
         {
             return;
         }
@@ -165,7 +165,7 @@ public class ViewComponentTagHelperPass : IntermediateNodePassBase, IRazorOptimi
                 return false;
             }
 
-            var className = $"__Generated__{tagHelper.GetViewComponentName()}ViewComponentTagHelper";
+            var className = $"__Generated__{tagHelper.ViewComponentName}ViewComponentTagHelper";
             var namespaceSeparator = string.IsNullOrEmpty(Namespace.Name) ? string.Empty : ".";
             var fullyQualifiedName = $"{Namespace.Name}{namespaceSeparator}{Class.Name}.{className}";
             var fieldName = GenerateFieldName(tagHelper);
@@ -192,7 +192,7 @@ public class ViewComponentTagHelperPass : IntermediateNodePassBase, IRazorOptimi
 
         private static string GenerateFieldName(TagHelperDescriptor tagHelper)
         {
-            return $"__{tagHelper.GetViewComponentName()}ViewComponentTagHelper";
+            return $"__{tagHelper.ViewComponentName}ViewComponentTagHelper";
         }
     }
 }

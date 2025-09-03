@@ -56,7 +56,7 @@ internal sealed class ViewComponentTagHelperTargetExtension : ViewComponentTagHe
 
     protected override ImmutableArray<string> GetInvokeArguments(TagHelperDescriptor tagHelper)
     {
-        var viewComponentName = tagHelper.GetViewComponentName();
+        var viewComponentName = tagHelper.ViewComponentName;
 
         return [$"\"{viewComponentName}\"", $"{ViewComponentsApi.ProcessInvokeAsyncArgsMethodName}({TagHelperContextVariableName})"];
     }
