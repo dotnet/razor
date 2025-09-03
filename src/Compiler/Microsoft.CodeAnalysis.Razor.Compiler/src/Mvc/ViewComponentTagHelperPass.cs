@@ -134,11 +134,7 @@ public class ViewComponentTagHelperPass : IntermediateNodePassBase, IRazorOptimi
 
     private void AddTagHelperClass(Context context, TagHelperDescriptor tagHelper)
     {
-        var node = new ViewComponentTagHelperIntermediateNode()
-        {
-            ClassName = context.GetClassName(tagHelper),
-            TagHelper = tagHelper
-        };
+        var node = new ViewComponentTagHelperIntermediateNode(context.GetClassName(tagHelper), tagHelper);
 
         context.Class.Children.Add(node);
     }
