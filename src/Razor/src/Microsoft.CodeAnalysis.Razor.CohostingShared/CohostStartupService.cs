@@ -5,50 +5,73 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-#pragma warning disable CS0618 // Type or member is obsolete. Will be addressed in https://github.com/dotnet/razor/pull/12079 but Roslyn changes are batched
-[Export(typeof(ICohostStartupService))]
+[Export(typeof(AbstractRazorCohostLifecycleService))]
 [method: ImportingConstructor]
 internal sealed class CohostStartupService(
     [ImportMany] IEnumerable<Lazy<IRazorCohostStartupService>> lazyStartupServices,
-    ILoggerFactory loggerFactory) : ICohostStartupService
-#pragma warning restore CS0618 // Type or member is obsolete
+    IRemoteServiceInvoker remoteServiceInvoker,
+    LanguageServerFeatureOptions featureOptions,
+    ILoggerFactory loggerFactory) : AbstractRazorCohostLifecycleService
 {
     private readonly ImmutableArray<Lazy<IRazorCohostStartupService>> _lazyStartupServices = [.. lazyStartupServices];
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostStartupService>();
+    private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
+    private readonly LanguageServerFeatureOptions _featureOptions = featureOptions;
 
-    public async Task StartupAsync(string clientCapabilitiesString, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
+    public override Task LspServerIntializedAsync(CancellationToken cancellationToken)
     {
-        var clientCapabilities = JsonSerializer.Deserialize<VSInternalClientCapabilities>(clientCapabilitiesString, JsonHelpers.JsonSerializerOptions) ?? new();
+        // If cohosting is on, we have to intialize it early so we can un-suppress the source generator. This can be removed
+        // when the suppression system is removed once cohosting is fully enabled.
+        // Without this operations that might affect Razor files won't work until a Razor file is opened in the editor.
+        if (_featureOptions.UseRazorCohostServer)
+        {
+            return _remoteServiceInvoker.InitializeAsync().AsTask();
+        }
 
+        return Task.CompletedTask;
+    }
+
+    public override async Task RazorActivatedAsync(ClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
+    {
+        // Normally loggers are fields, but this service gets created early so it's better to avoid the work in case Razor
+        // never gets activated.
+        var logger = loggerFactory.GetOrCreateLogger<CohostStartupService>();
+
+        var capabilities = clientCapabilities.ToVSInternalClientCapabilities();
         var providers = _lazyStartupServices.SelectAndOrderByAsArray(p => p.Value, p => p.Order);
 
         foreach (var provider in providers)
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                _logger.LogInformation($"Razor extension startup cancelled.");
+                logger.LogInformation($"Razor extension startup cancelled.");
                 return;
             }
 
             try
             {
-                await provider.StartupAsync(clientCapabilities, requestContext, cancellationToken).ConfigureAwait(false);
+                await provider.StartupAsync(capabilities, requestContext, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                _logger.LogError(ex, $"Error initializing Razor startup service '{provider.GetType().Name}'");
+                logger.LogError(ex, $"Error initializing Razor startup service '{provider.GetType().Name}'");
             }
         }
 
-        _logger.LogInformation($"Razor extension startup finished.");
+        logger.LogInformation($"Razor extension startup finished.");
+    }
+
+    public override void Dispose()
+    {
+        _remoteServiceInvoker.UninitializeLspAsync().Forget();
     }
 }
