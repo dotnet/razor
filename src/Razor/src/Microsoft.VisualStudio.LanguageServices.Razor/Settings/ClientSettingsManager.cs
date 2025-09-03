@@ -46,8 +46,8 @@ internal sealed class ClientSettingsManager : IClientSettingsManager
 
         if (_advancedSettingsStorage is not null)
         {
-            _advancedSettingsStorage.OnChangedAsync(Update).Forget();
             Update(_advancedSettingsStorage.GetAdvancedSettings());
+            _advancedSettingsStorage.OnChangedAsync(Update).Forget();
         }
     }
 

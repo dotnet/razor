@@ -113,6 +113,13 @@ internal class OptionsStorage : IAdvancedSettingsStorage, IDisposable
 
             await GetTaskListDescriptorsAsync(joinableTaskContext.Factory, serviceProvider);
         });
+
+        // NotifyChange waits for the initialize task to be finished, but we still want to notify once we've
+        // done loading, so do it in a background continuation.
+        _initializeTask.Task.ContinueWith(t =>
+        {
+            NotifyChange();
+        }, TaskScheduler.Default).Forget();
     }
 
     private async Task GetTaskListDescriptorsAsync(JoinableTaskFactory jtf, IAsyncServiceProvider serviceProvider)
@@ -141,10 +148,6 @@ internal class OptionsStorage : IAdvancedSettingsStorage, IDisposable
 #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
 
         _taskListDescriptors = tokensBuilder.ToImmutable();
-
-        await TaskScheduler.Default;
-
-        NotifyChange();
     }
 
     public async Task OnChangedAsync(Action<ClientAdvancedSettings> changed)
