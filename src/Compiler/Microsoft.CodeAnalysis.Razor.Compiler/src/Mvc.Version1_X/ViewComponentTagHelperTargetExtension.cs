@@ -1,9 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,7 +11,7 @@ using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X;
 
-internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTargetExtension
+internal sealed class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTargetExtension
 {
     private const string TagHelperContentVariableName = "content";
     private const string TagHelperContextVariableName = "context";
@@ -35,10 +33,10 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
             context))
         {
             // Add view component helper.
-            context.CodeWriter.WriteVariableDeclaration(
-                $"private readonly {ViewComponentsApi.IViewComponentHelper.GloballyQualifiedTypeName}",
-                ViewComponentHelperVariableName,
-                value: null);
+            context.CodeWriter.WriteFieldDeclaration(
+                CommonModifiers.PrivateReadOnly,
+                ViewComponentsApi.IViewComponentHelper.GloballyQualifiedTypeName,
+                ViewComponentHelperVariableName);
 
             // Add constructor.
             WriteConstructorString(context.CodeWriter, node.ClassName);
@@ -51,22 +49,19 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
         }
     }
 
-    private void WriteConstructorString(CodeWriter writer, string className)
+    private static void WriteConstructorString(CodeWriter writer, string className)
     {
-        writer.Write("public ")
-            .Write(className)
-            .Write("(")
-            .Write($"{ViewComponentsApi.IViewComponentHelper.GloballyQualifiedTypeName} helper")
-            .WriteLine(")");
-        using (writer.BuildScope())
+        using (writer.BuildConstructorDeclaration(
+            CommonModifiers.Public,
+            className,
+            [(ViewComponentsApi.IViewComponentHelper.GloballyQualifiedTypeName, "helper")]))
         {
             writer.WriteStartAssignment(ViewComponentHelperVariableName)
-                .Write("helper")
-                .WriteLine(";");
+                .WriteLine("helper;");
         }
     }
 
-    private void WriteAttributeDeclarations(CodeWriter writer, TagHelperDescriptor tagHelper)
+    private static void WriteAttributeDeclarations(CodeWriter writer, TagHelperDescriptor tagHelper)
     {
         writer.Write("[")
           .Write(ViewComponentsApi.HtmlAttributeNotBoundAttribute.FullTypeName)
@@ -95,47 +90,47 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
         }
     }
 
-    private void WriteProcessMethodString(CodeWriter writer, TagHelperDescriptor tagHelper)
+    private static void WriteProcessMethodString(CodeWriter writer, TagHelperDescriptor tagHelper)
     {
         using (writer.BuildMethodDeclaration(
-            $"public override async",
+            CommonModifiers.PublicOverrideAsync,
             $"global::{typeof(Task).FullName}",
             ViewComponentsApi.ProcessAsyncMethodName,
-            new Dictionary<string, string>()
-            {
-                { ViewComponentsApi.TagHelperContext.FullTypeName, TagHelperContextVariableName },
-                { ViewComponentsApi.TagHelperOutput.FullTypeName, TagHelperOutputVariableName }
-            }))
+            parameters: [
+                (ViewComponentsApi.TagHelperContext.FullTypeName, TagHelperContextVariableName),
+                (ViewComponentsApi.TagHelperOutput.FullTypeName, TagHelperOutputVariableName)
+            ]))
         {
             writer.WriteInstanceMethodInvocation(
                 $"({ViewComponentHelperVariableName} as {ViewComponentsApi.IViewContextAware.GloballyQualifiedTypeName})?",
                 ViewComponentsApi.IViewContextAware.ContextualizeMethodName,
-                new[] { ViewComponentsApi.ViewContextPropertyName });
+                arguments: [ViewComponentsApi.ViewContextPropertyName]);
 
-            var methodParameters = GetMethodParameters(tagHelper);
+            var methodArguments = GetMethodArguments(tagHelper);
             writer.Write("var ")
                 .WriteStartAssignment(TagHelperContentVariableName)
-                .WriteInstanceMethodInvocation($"await {ViewComponentHelperVariableName}", ViewComponentsApi.IViewComponentHelper.InvokeMethodName, methodParameters);
+                .Write("await ")
+                .WriteInstanceMethodInvocation(ViewComponentHelperVariableName, ViewComponentsApi.IViewComponentHelper.InvokeMethodName, methodArguments);
             writer.WriteStartAssignment($"{TagHelperOutputVariableName}.{ViewComponentsApi.TagHelperOutput.TagNamePropertyName}")
                 .WriteLine("null;");
             writer.WriteInstanceMethodInvocation(
                 $"{TagHelperOutputVariableName}.{ViewComponentsApi.TagHelperOutput.ContentPropertyName}",
                 ViewComponentsApi.TagHelperOutput.ContentSetMethodName,
-                new[] { TagHelperContentVariableName });
+                arguments: [TagHelperContentVariableName]);
         }
     }
 
-    private string[] GetMethodParameters(TagHelperDescriptor tagHelper)
+    private static ImmutableArray<string> GetMethodArguments(TagHelperDescriptor tagHelper)
     {
         var propertyNames = tagHelper.BoundAttributes.Select(attribute => attribute.PropertyName);
         var joinedPropertyNames = string.Join(", ", propertyNames);
         var parametersString = $"new {{ { joinedPropertyNames } }}";
         var viewComponentName = tagHelper.GetViewComponentName();
-        var methodParameters = new[] { $"\"{viewComponentName}\"", parametersString };
-        return methodParameters;
+
+        return [$"\"{viewComponentName}\"", parametersString];
     }
 
-    private void WriteTargetElementString(CodeWriter writer, TagHelperDescriptor tagHelper)
+    private static void WriteTargetElementString(CodeWriter writer, TagHelperDescriptor tagHelper)
     {
         Debug.Assert(tagHelper.TagMatchingRules.Length == 1);
 
