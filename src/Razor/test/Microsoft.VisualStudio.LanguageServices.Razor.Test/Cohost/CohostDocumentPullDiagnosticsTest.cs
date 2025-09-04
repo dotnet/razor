@@ -396,6 +396,10 @@ public class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOutputHelpe
         => VerifyDiagnosticsAsync("""
             @using System.Threading.Tasks;
 
+            // TODO: This isn't C#
+
+            TODO: Nor is this
+
             <div>
 
                 @*{|TODO: TODO: This does |}*@
@@ -403,6 +407,11 @@ public class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOutputHelpe
                 @* TODONT: This doesn't *@
 
             </div>
+
+            @code {
+                // This looks different because Roslyn only reports zero width ranges for task lists
+                // {|TODO:|}TODO: Write some C# code too
+            }
             """,
             taskListRequest: true);
 
@@ -440,7 +449,8 @@ public class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOutputHelpe
             });
 
         var testOutput = input.Text;
-        foreach (var (index, text) in markers.OrderByDescending(i => i.index))
+        // Ordering by text last means start tags get sorted before end tags, for zero width ranges
+        foreach (var (index, text) in markers.OrderByDescending(i => i.index).ThenByDescending(i => i.text))
         {
             testOutput = testOutput.Insert(index, text);
         }
