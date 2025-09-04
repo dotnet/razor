@@ -154,69 +154,45 @@ internal class ComponentMarkupEncodingPass : ComponentIntermediateNodePassBase, 
                 return true;
             }
 
-            using var chunksBuilder = new MemoryBuilder<ReadOnlyMemory<char>>();
-
-            while (!content.IsEmpty)
+            decoded = string.TryBuild(content, static (ref builder, content) =>
             {
-                var ampersandIndex = content.Span.IndexOf('&');
-
-                if (ampersandIndex == -1)
+                while (!content.IsEmpty)
                 {
-                    // No more entities, add the remaining content
-                    chunksBuilder.Append(content);
-                    break;
+                    var ampersandIndex = content.Span.IndexOf('&');
+
+                    if (ampersandIndex == -1)
+                    {
+                        // No more entities, add the remaining content
+                        builder.Append(content);
+                        break;
+                    }
+
+                    if (!TryGetHtmlEntity(content[ampersandIndex..], out var entity, out var replacement))
+                    {
+                        // We found a '&' that we don't know what to do with. Don't try to decode further.
+                        return false;
+                    }
+
+                    // We found a valid entity.
+                    // First, add the text before the entity.
+                    // Then, add the replacement text for the entity.
+                    if (ampersandIndex > 0)
+                    {
+                        builder.Append(content[..ampersandIndex]);
+                    }
+
+                    builder.Append(replacement.AsMemory());
+
+                    // Skip past the processed entity and continue.
+                    content = content[(ampersandIndex + entity.Length)..];
                 }
 
-                if (!TryGetHtmlEntity(content[ampersandIndex..], out var entity, out var replacement))
-                {
-                    // We found a '&' that we don't know what to do with. Don't try to decode further.
-                    return false;
-                }
+                Debug.Assert(builder.Length > 0, "How could builder be empty if content was not?");
 
-                // We found a valid entity.
-                // First, add the text before the entity.
-                // Then, add the replacement text for the entity.
-                if (ampersandIndex > 0)
-                {
-                    chunksBuilder.Append(content[..ampersandIndex]);
-                }
-
-                chunksBuilder.Append(replacement.AsMemory());
-
-                // Skip past the processed entity and continue.
-                content = content[(ampersandIndex + entity.Length)..];
-            }
-
-            Debug.Assert(chunksBuilder.Length > 0, "How could chunksBuilder be empty if content was not?");
-
-            if (chunksBuilder.Length == 1)
-            {
-                // If we only have one chunk, we can return it directly.
-                // It is guaranteed to be the same as the content that was originally
-                // passed in. Calling ToString() on this will not allocate if the
-                // original content represented an entire string.
-                decoded = chunksBuilder.AsMemory().Span[0].ToString();
                 return true;
-            }
-
-            var chunks = chunksBuilder.AsMemory();
-            var length = 0;
-
-            foreach (var chunk in chunks.Span)
-            {
-                length += chunk.Length;
-            }
-
-            decoded = string.Create(length, chunks, (destination, chunks) =>
-            {
-                foreach (var chunk in chunks.Span)
-                {
-                    chunk.Span.CopyTo(destination);
-                    destination = destination[chunk.Length..];
-                }
             });
 
-            return true;
+            return decoded is not null;
         }
 
         private static bool TryGetHtmlEntity(ReadOnlyMemory<char> content, out ReadOnlyMemory<char> entity, out string replacement)
