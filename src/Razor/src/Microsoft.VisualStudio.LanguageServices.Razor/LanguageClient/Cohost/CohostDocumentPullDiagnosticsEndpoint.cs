@@ -83,7 +83,7 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
 
         if (results is null)
         {
-            return [];
+            return null;
         }
 
         return [new()
