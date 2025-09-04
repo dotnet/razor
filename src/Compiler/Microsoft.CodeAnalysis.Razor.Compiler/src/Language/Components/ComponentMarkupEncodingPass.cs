@@ -1,11 +1,10 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Frozen;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -13,14 +12,9 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
-internal class ComponentMarkupEncodingPass : ComponentIntermediateNodePassBase, IRazorOptimizationPass
+internal sealed class ComponentMarkupEncodingPass(RazorLanguageVersion version) : ComponentIntermediateNodePassBase, IRazorOptimizationPass
 {
-    private readonly RazorLanguageVersion _version;
-
-    public ComponentMarkupEncodingPass(RazorLanguageVersion version)
-    {
-        _version = version;
-    }
+    private readonly RazorLanguageVersion _version = version;
 
     // Runs after ComponentMarkupBlockPass
     public override int Order => ComponentMarkupDiagnosticPass.DefaultOrder + 20;
@@ -42,40 +36,47 @@ internal class ComponentMarkupEncodingPass : ComponentIntermediateNodePassBase, 
         rewriter.Visit(documentNode);
     }
 
-    private class Rewriter : IntermediateNodeWalker
+    private sealed class Rewriter(RazorLanguageVersion version) : IntermediateNodeWalker
     {
-        // Markup content in components are rendered in one of the following two ways,
-        // AddContent - we encode it when used with prerendering and inserted into the DOM in a safe way (low perf impact)
-        // AddMarkupContent - renders the content directly as markup (high perf impact)
+        // Markup content in components are rendered in one of the following two ways:
+        //
+        // 1. AddContent - we encode it when used with pre-rendering and inserted into the DOM in a safe way (low perf impact)
+        // 2. AddMarkupContent - renders the content directly as markup (high perf impact)
+        //
         // Because of this, we want to use AddContent as much as possible.
         //
-        // We want to use AddMarkupContent to avoid aggressive encoding during prerendering.
-        // Specifically, when one of the following characters are in the content,
+        // We want to use AddMarkupContent to avoid aggressive encoding during pre-rendering.
+        // Specifically, when one of the following characters are in the content:
+        //
         // 1. New lines (\r, \n), tabs (\t), angle brackets (<, >) - so they get rendered as actual new lines, tabs, brackets instead of &#xA;
         // 2. Any character outside the ASCII range
 
         private static readonly FrozenSet<char> EncodedCharacters = ['\r', '\n', '\t', '<', '>'];
 
-        private readonly bool _avoidEncodingScripts;
+        private readonly bool _avoidEncodingScripts = version >= RazorLanguageVersion.Version_8_0;
 
         private bool _avoidEncodingContent;
-
-        public Rewriter(RazorLanguageVersion version)
-        {
-            _avoidEncodingScripts = version >= RazorLanguageVersion.Version_8_0;
-        }
 
         public override void VisitMarkupElement(MarkupElementIntermediateNode node)
         {
             // We don't want to HTML-encode literal content inside <script> tags.
             var oldAvoidEncodingContent = _avoidEncodingContent;
-            _avoidEncodingContent = _avoidEncodingContent || (
-                _avoidEncodingScripts &&
-                string.Equals("script", node.TagName, StringComparison.OrdinalIgnoreCase));
 
-            base.VisitMarkupElement(node);
+            _avoidEncodingContent = _avoidEncodingContent || (_avoidEncodingScripts && IsScript(node));
 
-            _avoidEncodingContent = oldAvoidEncodingContent;
+            try
+            {
+                base.VisitMarkupElement(node);
+            }
+            finally
+            {
+                _avoidEncodingContent = oldAvoidEncodingContent;
+            }
+
+            static bool IsScript(MarkupElementIntermediateNode node)
+            {
+                return string.Equals("script", node.TagName, StringComparison.OrdinalIgnoreCase);
+            }
         }
 
         public override void VisitHtml(HtmlContentIntermediateNode node)
@@ -162,7 +163,7 @@ internal class ComponentMarkupEncodingPass : ComponentIntermediateNodePassBase, 
             Debug.Assert(decodedIndex == decodedContent.Count);
         }
 
-        private static bool TryDecodeHtmlEntities(ReadOnlyMemory<char> content, out string decoded)
+        private static bool TryDecodeHtmlEntities(ReadOnlyMemory<char> content, [NotNullWhen(true)] out string? decoded)
         {
             decoded = null;
 
@@ -213,7 +214,7 @@ internal class ComponentMarkupEncodingPass : ComponentIntermediateNodePassBase, 
             return decoded is not null;
         }
 
-        private static bool TryGetHtmlEntity(ReadOnlyMemory<char> content, out ReadOnlyMemory<char> entity, out string replacement)
+        private static bool TryGetHtmlEntity(ReadOnlyMemory<char> content, out ReadOnlyMemory<char> entity, [NotNullWhen(true)] out string? replacement)
         {
             // We're at '&'. Check if it is the start of an HTML entity.
             entity = default;
