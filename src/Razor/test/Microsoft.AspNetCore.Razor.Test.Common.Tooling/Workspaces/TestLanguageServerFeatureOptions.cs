@@ -36,7 +36,7 @@ internal class TestLanguageServerFeatureOptions(
 
     public override bool SupportsSoftSelectionInCompletion => supportsSoftSelectionInCompletion;
 
-    public override bool UseVsCodeCompletionTriggerCharacters => vsCodeCompletionTriggerCharacters;
+    public override bool UseVsCodeCompletionCommitCharacters => vsCodeCompletionTriggerCharacters;
 
     public override bool DoNotInitializeMiscFilesProjectFromWorkspace => doNotInitializeMiscFilesProjectWithWorkspaceFiles;
 }

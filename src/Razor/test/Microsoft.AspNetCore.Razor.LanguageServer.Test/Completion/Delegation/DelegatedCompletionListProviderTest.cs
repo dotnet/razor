@@ -23,7 +23,7 @@ public class DelegatedCompletionListProviderTest : CompletionTestBase
         SnippetsSupported: true,
         AutoInsertAttributeQuotes: true,
         CommitElementsWithSpace: true,
-        UseVsCodeCompletionTriggerCharacters: false);
+        UseVsCodeCompletionCommitCharacters: false);
 
     private static readonly VSInternalClientCapabilities s_clientCapabilities = new();
 

@@ -232,7 +232,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                 return;
             }
 
-            if (!razorCompletionOptions.UseVsCodeCompletionTriggerCharacters)
+            if (!razorCompletionOptions.UseVsCodeCompletionCommitCharacters)
             {
                 // We don't add "=" as a commit character when using VSCode trigger characters.
                 commitCharacters.Add("=");

@@ -78,7 +78,7 @@ internal class RazorCompletionEndpoint(
                 SnippetsSupported: true,
                 AutoInsertAttributeQuotes: options.AutoInsertAttributeQuotes,
                 CommitElementsWithSpace: options.CommitElementsWithSpace,
-                UseVsCodeCompletionTriggerCharacters: _featureOptions.UseVsCodeCompletionTriggerCharacters);
+                UseVsCodeCompletionCommitCharacters: _featureOptions.UseVsCodeCompletionCommitCharacters);
 
             var result = await _completionListProvider
                 .GetCompletionListAsync(

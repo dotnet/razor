@@ -70,7 +70,7 @@ public class HtmlCommitCharacterResponseRewriterTest(ITestOutputHelper testOutpu
                 SnippetsSupported: true,
                 AutoInsertAttributeQuotes: true,
                 CommitElementsWithSpace: false,
-                UseVsCodeCompletionTriggerCharacters: false);
+                UseVsCodeCompletionCommitCharacters: false);
 
         // Act
         var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
@@ -121,7 +121,7 @@ public class HtmlCommitCharacterResponseRewriterTest(ITestOutputHelper testOutpu
             SnippetsSupported: true,
             AutoInsertAttributeQuotes: true,
             CommitElementsWithSpace: false,
-            UseVsCodeCompletionTriggerCharacters: false);
+            UseVsCodeCompletionCommitCharacters: false);
         var rewriter = new HtmlCommitCharacterResponseRewriter();
 
         // Act

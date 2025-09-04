@@ -144,7 +144,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
             SnippetsSupported: true, // always true in non-legacy Razor, always false in legacy Razor
             AutoInsertAttributeQuotes: clientSettings.AdvancedSettings.AutoInsertAttributeQuotes,
             CommitElementsWithSpace: clientSettings.AdvancedSettings.CommitElementsWithSpace,
-            UseVsCodeCompletionTriggerCharacters: _languageServerFeatureOptions.UseVsCodeCompletionTriggerCharacters);
+            UseVsCodeCompletionCommitCharacters: _languageServerFeatureOptions.UseVsCodeCompletionCommitCharacters);
         using var _ = HashSetPool<string>.GetPooledObject(out var existingHtmlCompletions);
 
         if (_triggerAndCommitCharacters.IsValidHtmlTrigger(completionContext))

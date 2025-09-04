@@ -20,7 +20,7 @@ public abstract class ResponseRewriterTestBase(ITestOutputHelper testOutput) : C
             SnippetsSupported: true,
             AutoInsertAttributeQuotes: true,
             CommitElementsWithSpace: true,
-            UseVsCodeCompletionTriggerCharacters: false);
+            UseVsCodeCompletionCommitCharacters: false);
 
         return GetRewrittenCompletionListAsync(absoluteIndex, documentContent, initialCompletionList, razorCompletionOptions);
     }

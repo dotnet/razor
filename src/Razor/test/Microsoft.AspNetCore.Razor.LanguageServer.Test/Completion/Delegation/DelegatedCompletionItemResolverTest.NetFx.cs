@@ -61,7 +61,7 @@ public class DelegatedCompletionItemResolverTest : CompletionTestBase
         SnippetsSupported: true,
         AutoInsertAttributeQuotes: true,
         CommitElementsWithSpace: true,
-        UseVsCodeCompletionTriggerCharacters: false);
+        UseVsCodeCompletionCommitCharacters: false);
 
     private readonly DelegatedCompletionParams _csharpCompletionParams;
     private readonly DelegatedCompletionParams _htmlCompletionParams;
