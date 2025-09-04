@@ -264,10 +264,18 @@ internal class ComponentMarkupEncodingPass : ComponentIntermediateNodePassBase, 
                         }
                     }
                 }
-                else if (ParserHelpers.NamedHtmlEntities.TryGetValue(entity.ToString(), out replacement))
+
+#if NET9_0_OR_GREATER
+                if (ParserHelpers.NamedHtmlEntities.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(entity.Span, out replacement))
                 {
                     return true;
                 }
+#else
+                if (ParserHelpers.NamedHtmlEntities.TryGetValue(entity.ToString(), out replacement))
+                {
+                    return true;
+                }
+#endif
 
                 // Found ';' but entity is not recognized
                 entity = default;
