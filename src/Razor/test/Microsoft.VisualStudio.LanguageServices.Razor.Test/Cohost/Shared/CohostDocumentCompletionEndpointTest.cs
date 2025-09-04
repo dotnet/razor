@@ -722,7 +722,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             expectedItemLabels: ["FormName", "OnValidSubmit", "@...", "style"],
             htmlItemLabels: ["style"],
             autoInsertAttributeQuotes: false,
-            UseVsCodeCompletionCommitCharacters: true);
+            useVsCodeCompletionCommitCharacters: true);
 
         Assert.All(list.Items, item => Assert.DoesNotContain("=", item.CommitCharacters ?? []));
     }
@@ -740,7 +740,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         string? expectedResolvedItemDescription = null,
         bool autoInsertAttributeQuotes = true,
         bool commitElementsWithSpace = true,
-        bool UseVsCodeCompletionCommitCharacters = false,
+        bool useVsCodeCompletionCommitCharacters = false,
         RazorFileKind? fileKind = null)
     {
         var document = CreateProjectAndRazorDocument(input.Text, fileKind);
@@ -777,7 +777,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         snippetCompletionItemProvider.SnippetCache.Update(SnippetLanguage.Html, snippetInfos);
 #endif
 
-        var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(vsCodeCompletionTriggerCharacters: UseVsCodeCompletionCommitCharacters);
+        var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(useVsCodeCompletionCommitCharacters: useVsCodeCompletionCommitCharacters);
 
         var completionListCache = new CompletionListCache();
         var endpoint = new CohostDocumentCompletionEndpoint(
