@@ -4,11 +4,12 @@
 #nullable disable
 
 using System;
+using System.Collections.Frozen;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
@@ -53,7 +54,7 @@ internal class ComponentMarkupEncodingPass : ComponentIntermediateNodePassBase, 
         // 1. New lines (\r, \n), tabs (\t), angle brackets (<, >) - so they get rendered as actual new lines, tabs, brackets instead of &#xA;
         // 2. Any character outside the ASCII range
 
-        private static readonly char[] EncodedCharacters = new[] { '\r', '\n', '\t', '<', '>' };
+        private static readonly FrozenSet<char> EncodedCharacters = ['\r', '\n', '\t', '<', '>'];
 
         private readonly bool _avoidEncodingScripts;
 
@@ -85,34 +86,48 @@ internal class ComponentMarkupEncodingPass : ComponentIntermediateNodePassBase, 
                 return;
             }
 
-            for (var i = 0; i < node.Children.Count; i++)
+            // We'll count any ampersand ('&') characters we find.
+            var ampersandCount = 0;
+
+            foreach (var child in node.Children)
             {
-                var child = node.Children[i];
-                if (child is not HtmlIntermediateToken token || string.IsNullOrEmpty(token.Content))
+                if (child is not HtmlIntermediateToken token || token.Content.IsNullOrEmpty())
                 {
                     // We only care about Html tokens.
                     continue;
                 }
 
-                for (var j = 0; j < token.Content.Length; j++)
+                foreach (var ch in token.Content)
                 {
-                    var ch = token.Content[j];
                     // ASCII range is 0 - 127
                     if (ch > 127 || EncodedCharacters.Contains(ch))
                     {
                         node.HasEncodedContent = true;
                         return;
                     }
+
+                    if (ch == '&')
+                    {
+                        ampersandCount++;
+                    }
                 }
             }
 
-            // If we reach here, we don't have newlines, tabs or non-ascii characters in this node.
-            // If we can successfully decode all HTML entities(if any) in this node, we can safely let it call AddContent.
-            var decodedContent = new string[node.Children.Count];
-            for (var i = 0; i < node.Children.Count; i++)
+            // If we reach here, we don't have new-lines, tabs or non-ascii characters in this node.
+
+            // if there aren't any ampersands, we know there aren't any HTML character entitites to decode.
+            if (ampersandCount == 0)
             {
-                var child = node.Children[i];
-                if (child is not HtmlIntermediateToken token || string.IsNullOrEmpty(token.Content))
+                return;
+            }
+
+            // Use ampersand count as a capacity hint. We double the count because text is likely present
+            // after each entity and add 1 for any text before the first entity.
+            using var decodedContent = new PooledArrayBuilder<string>(capacity: (ampersandCount * 2) + 1);
+
+            foreach (var child in node.Children)
+            {
+                if (child is not HtmlIntermediateToken token || token.Content.IsNullOrEmpty())
                 {
                     // We only care about Html tokens.
                     continue;
@@ -120,7 +135,7 @@ internal class ComponentMarkupEncodingPass : ComponentIntermediateNodePassBase, 
 
                 if (TryDecodeHtmlEntities(token.Content.AsMemory(), out var decoded))
                 {
-                    decodedContent[i] = decoded;
+                    decodedContent.Add(decoded);
                 }
                 else
                 {
@@ -131,17 +146,20 @@ internal class ComponentMarkupEncodingPass : ComponentIntermediateNodePassBase, 
 
             // If we reach here, it means we have successfully decoded all content.
             // Replace all token content with the decoded value.
-            for (var i = 0; i < node.Children.Count; i++)
+            var decodedIndex = 0;
+
+            foreach (var child in node.Children)
             {
-                var child = node.Children[i];
-                if (child is not IntermediateToken token || string.IsNullOrEmpty(token.Content))
+                if (child is not HtmlIntermediateToken token || token.Content.IsNullOrEmpty())
                 {
                     // We only care about Html tokens.
                     continue;
                 }
 
-                token.UpdateContent(decodedContent[i]);
+                token.UpdateContent(decodedContent[decodedIndex++]);
             }
+
+            Debug.Assert(decodedIndex == decodedContent.Count);
         }
 
         private static bool TryDecodeHtmlEntities(ReadOnlyMemory<char> content, out string decoded)
