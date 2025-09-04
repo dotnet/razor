@@ -4,7 +4,7 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -56,7 +56,6 @@ internal class ComponentMarkupEncodingPass : ComponentIntermediateNodePassBase, 
         private static readonly char[] EncodedCharacters = new[] { '\r', '\n', '\t', '<', '>' };
 
         private readonly bool _avoidEncodingScripts;
-        private readonly Dictionary<string, string> _seenEntities = new Dictionary<string, string>(StringComparer.Ordinal);
 
         private bool _avoidEncodingContent;
 
@@ -119,7 +118,7 @@ internal class ComponentMarkupEncodingPass : ComponentIntermediateNodePassBase, 
                     continue;
                 }
 
-                if (TryDecodeHtmlEntities(token.Content, out var decoded))
+                if (TryDecodeHtmlEntities(token.Content.AsMemory(), out var decoded))
                 {
                     decodedContent[i] = decoded;
                 }
@@ -145,43 +144,77 @@ internal class ComponentMarkupEncodingPass : ComponentIntermediateNodePassBase, 
             }
         }
 
-        private bool TryDecodeHtmlEntities(string content, out string decoded)
+        private static bool TryDecodeHtmlEntities(ReadOnlyMemory<char> content, out string decoded)
         {
-            _seenEntities.Clear();
-            decoded = content;
-            var i = 0;
-            while (i < content.Length)
-            {
-                var ch = content[i];
-                if (ch == '&')
-                {
-                    var remainingContent = content.AsMemory(i);
-                    if (TryGetHtmlEntity(remainingContent, out var entity, out var replacement))
-                    {
-                        var entityString = entity.ToString();
-                        if (!_seenEntities.ContainsKey(entityString))
-                        {
-                            _seenEntities.Add(entityString, replacement);
-                        }
+            decoded = null;
 
-                        i += entity.Length;
-                    }
-                    else
-                    {
-                        // We found a '&' that we don't know what to do with. Don't try to decode further.
-                        return false;
-                    }
-                }
-                else
-                {
-                    i++;
-                }
+            if (content.IsEmpty)
+            {
+                decoded = string.Empty;
+                return true;
             }
 
-            foreach (var entity in _seenEntities)
+            using var chunksBuilder = new MemoryBuilder<ReadOnlyMemory<char>>();
+
+            while (!content.IsEmpty)
             {
-                decoded = decoded.Replace(entity.Key, entity.Value);
+                var ampersandIndex = content.Span.IndexOf('&');
+
+                if (ampersandIndex == -1)
+                {
+                    // No more entities, add the remaining content
+                    chunksBuilder.Append(content);
+                    break;
+                }
+
+                if (!TryGetHtmlEntity(content[ampersandIndex..], out var entity, out var replacement))
+                {
+                    // We found a '&' that we don't know what to do with. Don't try to decode further.
+                    return false;
+                }
+
+                // We found a valid entity.
+                // First, add the text before the entity.
+                // Then, add the replacement text for the entity.
+                if (ampersandIndex > 0)
+                {
+                    chunksBuilder.Append(content[..ampersandIndex]);
+                }
+
+                chunksBuilder.Append(replacement.AsMemory());
+
+                // Skip past the processed entity and continue.
+                content = content[(ampersandIndex + entity.Length)..];
             }
+
+            Debug.Assert(chunksBuilder.Length > 0, "How could chunksBuilder be empty if content was not?");
+
+            if (chunksBuilder.Length == 1)
+            {
+                // If we only have one chunk, we can return it directly.
+                // It is guaranteed to be the same as the content that was originally
+                // passed in. Calling ToString() on this will not allocate if the
+                // original content represented an entire string.
+                decoded = chunksBuilder.AsMemory().Span[0].ToString();
+                return true;
+            }
+
+            var chunks = chunksBuilder.AsMemory();
+            var length = 0;
+
+            foreach (var chunk in chunks.Span)
+            {
+                length += chunk.Length;
+            }
+
+            decoded = string.Create(length, chunks, (destination, chunks) =>
+            {
+                foreach (var chunk in chunks.Span)
+                {
+                    chunk.Span.CopyTo(destination);
+                    destination = destination[chunk.Length..];
+                }
+            });
 
             return true;
         }
