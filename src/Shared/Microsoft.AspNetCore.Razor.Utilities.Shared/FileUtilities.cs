@@ -41,7 +41,7 @@ internal static class FileUtilities
         // Normalized paths from the LSP editor project system could trigger this, because "C:\Goo" would become "C:/Goo", but thats not
         // what we're looking for, and it would be surprising for those paths to have a question mark in them after the drive letter.
         if (filePath.IndexOf(":/") is int colonSlash and > 0 &&
-           filePath.IndexOf('?') is int realPathEnd and > 0 &&
+           filePath.IndexOf('?') is int realPathEnd &&
            realPathEnd > colonSlash)
         {
             return filePath[..realPathEnd];
