@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -154,11 +155,13 @@ internal class ComponentMarkupEncodingPass : ComponentIntermediateNodePassBase, 
                 var ch = content[i];
                 if (ch == '&')
                 {
-                    if (TryGetHtmlEntity(content, i, out var entity, out var replacement))
+                    var remainingContent = content.AsMemory(i);
+                    if (TryGetHtmlEntity(remainingContent, out var entity, out var replacement))
                     {
-                        if (!_seenEntities.ContainsKey(entity))
+                        var entityString = entity.ToString();
+                        if (!_seenEntities.ContainsKey(entityString))
                         {
-                            _seenEntities.Add(entity, replacement);
+                            _seenEntities.Add(entityString, replacement);
                         }
 
                         i += entity.Length;
@@ -183,63 +186,91 @@ internal class ComponentMarkupEncodingPass : ComponentIntermediateNodePassBase, 
             return true;
         }
 
-        private bool TryGetHtmlEntity(string content, int position, out string entity, out string replacement)
+        private static bool TryGetHtmlEntity(ReadOnlyMemory<char> content, out ReadOnlyMemory<char> entity, out string replacement)
         {
             // We're at '&'. Check if it is the start of an HTML entity.
-            entity = null;
+            entity = default;
             replacement = null;
-            var endPosition = -1;
-            for (var i = position + 1; i < content.Length; i++)
+
+            var span = content.Span;
+
+            for (var i = 1; i < span.Length; i++)
             {
-                var ch = content[i];
+                var ch = span[i];
+
                 if (char.IsLetterOrDigit(ch) || ch == '#')
                 {
                     continue;
                 }
-                else if (ch == ';')
+
+                if (ch == ';')
                 {
-                    endPosition = i;
+                    // Found the end of an entity. +1 to include the ';'
+                    entity = content[0..(i + 1)];
+                    break;
                 }
 
                 break;
             }
 
-            if (endPosition != -1)
+            if (!entity.IsEmpty)
             {
-                entity = content.Substring(position, endPosition - position + 1);
-                if (entity.StartsWith("&#", StringComparison.Ordinal))
+                if (entity.Span.StartsWith("&#".AsSpan()))
                 {
                     // Extract the codepoint and map it to an entity.
 
-                    // `entity` is guaranteed to be of the format &#****;
-                    var entityValue = entity.Substring(2, entity.Length - 3);
-                    int codePoint;
-                    if (!int.TryParse(entityValue, out codePoint))
+                    // entity is guaranteed to be of the format '&#****;'
+                    var digitsSpan = entity.Span[2..^1];
+                    var style = NumberStyles.Integer;
+
+                    switch (digitsSpan)
                     {
-                        // If it is not an integer, check if it is hexadecimal like 0x00CD
-                        try
-                        {
-                            codePoint = Convert.ToInt32(entityValue, 16);
-                        }
-                        catch (FormatException)
-                        {
-                            // Do nothing.
-                        }
+                        case ['x' or 'X', .. var rest]: // &#x41; or &#X41;
+                            style = NumberStyles.HexNumber;
+                            digitsSpan = rest;
+                            break;
+
+                        case ['0', 'x' or 'X', .. var rest]: // &#0x41; or &#0X41; (Technically illegal but supported by Razor)
+                            style = NumberStyles.HexNumber;
+                            digitsSpan = rest;
+                            break;
                     }
 
-                    if (ParserHelpers.HtmlEntityCodePoints.TryGetValue(codePoint, out replacement))
-                    {
-                        // This is a known html entity unicode codepoint.
-                        return true;
-                    }
+#if NET
+                    var success = int.TryParse(digitsSpan, style, CultureInfo.InvariantCulture, out var codePoint);
+#else
+                    // Sadly, we have to allocate on non-.NET to call int.TryParse.
+                    var success = int.TryParse(digitsSpan.ToString(), style, CultureInfo.InvariantCulture, out var codePoint);
+#endif
 
-                    // Unknown entity.
-                    return false;
+                    if (success)
+                    {
+                        // First try the special HTML entity code points dictionary
+                        if (ParserHelpers.HtmlEntityCodePoints.TryGetValue(codePoint, out replacement))
+                        {
+                            return true;
+                        }
+
+                        // For basic printable Unicode characters, convert directly
+                        // Use a conservative range that matches typical browser behavior:
+                        // - Start at 0x20 (space) to exclude control characters
+                        // - End at 0xFFFF to stay within Basic Multilingual Plane
+                        // - Exclude surrogate pair range 0xD800-0xDFFF
+                        if (codePoint >= 0x20 && codePoint <= 0xFFFF &&
+                            (codePoint < 0xD800 || codePoint > 0xDFFF))
+                        {
+                            replacement = char.ConvertFromUtf32(codePoint);
+                            return true;
+                        }
+                    }
                 }
-                else if (ParserHelpers.NamedHtmlEntities.TryGetValue(entity, out replacement))
+                else if (ParserHelpers.NamedHtmlEntities.TryGetValue(entity.ToString(), out replacement))
                 {
                     return true;
                 }
+
+                // Found ';' but entity is not recognized
+                entity = default;
             }
 
             // The '&' is not part of an HTML entity.
