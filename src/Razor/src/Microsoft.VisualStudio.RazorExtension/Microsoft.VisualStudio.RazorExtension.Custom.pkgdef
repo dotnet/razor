@@ -62,6 +62,7 @@
 "Value"=dword:00000000
 "Title"="Use Roslyn Cohost server for Razor (requires restart)"
 "PreviewPaneChannels"="*"
+"overrideDefaultValueChannels"="Preview,IntPreview,int.main"
 
 [$RootKey$\FeatureFlags\Razor\LSP\UseNewFormattingEngine]
 "Description"="Enables the new Razor formatting engine, which provides formatting results that more closely match C# formatting."
