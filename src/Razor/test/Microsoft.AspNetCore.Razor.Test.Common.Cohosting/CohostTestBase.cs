@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -91,7 +92,9 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
         UpdateClientLSPInitializationOptions(c => c);
 
         // Force initialization and creation of the remote workspace. It will be filled in later.
-        await RemoteWorkspaceProvider.TestAccessor.InitializeRemoteExportProviderBuilderAsync(Path.GetTempPath(), DisposalToken);
+        var traceSource = new TraceSource("Cohost test remote initialization");
+        traceSource.Listeners.Add(new XunitTraceListener(TestOutputHelper));
+        await RemoteWorkspaceProvider.TestAccessor.InitializeRemoteExportProviderBuilderAsync(Path.GetTempPath(), traceSource, DisposalToken);
         _ = RemoteWorkspaceProvider.Instance.GetWorkspace();
     }
 
