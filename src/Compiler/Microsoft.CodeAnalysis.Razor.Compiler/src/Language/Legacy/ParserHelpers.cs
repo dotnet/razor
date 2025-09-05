@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -34,8 +37,7 @@ internal static class ParserHelpers
     }
 
     // From http://dev.w3.org/html5/spec/Overview.html#elements-0
-    public static readonly HashSet<string> VoidElements = new(StringComparer.OrdinalIgnoreCase)
-    {
+    public static readonly FrozenSet<string> VoidElements = FrozenSet.Create(StringComparer.OrdinalIgnoreCase,
         "area",
         "base",
         "br",
@@ -51,13 +53,111 @@ internal static class ParserHelpers
         "param",
         "source",
         "track",
-        "wbr"
-    };
+        "wbr");
+
+    public static bool TryGetHtmlEntity(ReadOnlyMemory<char> content, out ReadOnlyMemory<char> entity, [NotNullWhen(true)] out string? replacement)
+    {
+        // We're at '&'. Check if it is the start of an HTML entity.
+        entity = default;
+        replacement = null;
+
+        var span = content.Span;
+
+        for (var i = 1; i < span.Length; i++)
+        {
+            var ch = span[i];
+
+            if (char.IsLetterOrDigit(ch) || ch == '#')
+            {
+                continue;
+            }
+
+            if (ch == ';')
+            {
+                // Found the end of an entity. +1 to include the ';'
+                entity = content[0..(i + 1)];
+                break;
+            }
+
+            break;
+        }
+
+        if (!entity.IsEmpty)
+        {
+            if (entity.Span.StartsWith("&#".AsSpan()))
+            {
+                // Extract the codepoint and map it to an entity.
+
+                // entity is guaranteed to be of the format '&#****;'
+                var digitsSpan = entity.Span[2..^1];
+                var style = NumberStyles.Integer;
+
+                switch (digitsSpan)
+                {
+                    case ['x' or 'X', .. var rest]: // &#x41; or &#X41;
+                        style = NumberStyles.HexNumber;
+                        digitsSpan = rest;
+                        break;
+
+                    case ['0', 'x' or 'X', .. var rest]: // &#0x41; or &#0X41; (Technically illegal but supported by Razor)
+                        style = NumberStyles.HexNumber;
+                        digitsSpan = rest;
+                        break;
+                }
+
+#if NET
+                var success = int.TryParse(digitsSpan, style, CultureInfo.InvariantCulture, out var codePoint);
+#else
+                // Sadly, we have to allocate on non-.NET to call int.TryParse.
+                var success = int.TryParse(digitsSpan.ToString(), style, CultureInfo.InvariantCulture, out var codePoint);
+#endif
+
+                if (success)
+                {
+                    // First try the special HTML entity code points dictionary
+                    if (s_htmlEntityCodePoints.TryGetValue(codePoint, out replacement))
+                    {
+                        return true;
+                    }
+
+                    // For basic printable Unicode characters, convert directly
+                    // Use a conservative range that matches typical browser behavior:
+                    // - Start at 0x20 (space) to exclude control characters
+                    // - End at 0xFFFF to stay within Basic Multilingual Plane
+                    // - Exclude surrogate pair range 0xD800-0xDFFF
+                    if (codePoint >= 0x20 && codePoint <= 0xFFFF &&
+                        (codePoint < 0xD800 || codePoint > 0xDFFF))
+                    {
+                        replacement = char.ConvertFromUtf32(codePoint);
+                        return true;
+                    }
+                }
+            }
+
+#if NET9_0_OR_GREATER
+            if (s_namedHtmlEntities.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(entity.Span, out replacement))
+            {
+                return true;
+            }
+#else
+            if (ParserHelpers.s_namedHtmlEntities.TryGetValue(entity.ToString(), out replacement))
+            {
+                return true;
+            }
+#endif
+
+            // Found ';' but entity is not recognized
+            entity = default;
+        }
+
+        // The '&' is not part of an HTML entity.
+        return false;
+    }
 
     #region HtmlEntities
 
     // From https://www.w3.org/TR/html5/syntax.html#named-character-references
-    public static readonly Dictionary<string, string> NamedHtmlEntities = new()
+    private static readonly FrozenDictionary<string, string> s_namedHtmlEntities = new Dictionary<string, string>()
     {
         { "&Aacute;", "\u00C1" },
         { "&Aacute", "\u00C1" },
@@ -2289,10 +2389,10 @@ internal static class ParserHelpers
         { "&Zscr;", "\uD835\uDCB5" },
         { "&zscr;", "\uD835\uDCCF" },
         { "&zwj;", "\u200D" },
-        { "&zwnj;", "\u200C" },
-    };
+        { "&zwnj;", "\u200C" }
+    }.ToFrozenDictionary();
 
-    public static readonly Dictionary<int, string> HtmlEntityCodePoints = new Dictionary<int, string>()
+    private static readonly FrozenDictionary<int, string> s_htmlEntityCodePoints = new Dictionary<int, string>()
     {
         { 193, "\u00C1" },
         { 225, "\u00E1" },
@@ -3739,8 +3839,8 @@ internal static class ParserHelpers
         { 119989, "\uD835\uDCB5" },
         { 120015, "\uD835\uDCCF" },
         { 8205, "\u200D" },
-        { 8204, "\u200C" },
-    };
+        { 8204, "\u200C" }
+    }.ToFrozenDictionary();
 
     #endregion
 }
