@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Threading;
@@ -98,10 +96,10 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
         }
 
         _logger.LogDebug($"Reporting {diagnostics.Length} diagnostics back to the client");
-        return diagnostics.ToArray();
+        return [.. diagnostics];
     }
 
-    protected Task<SourceGeneratedDocument?> TryGetGeneratedDocumentAsync(TextDocument razorDocument, CancellationToken cancellationToken)
+    protected static Task<SourceGeneratedDocument?> TryGetGeneratedDocumentAsync(TextDocument razorDocument, CancellationToken cancellationToken)
     {
         if (!razorDocument.TryComputeHintNameFromRazorDocument(out var hintName))
         {
@@ -124,7 +122,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
         using var _ = _telemetryReporter.TrackLspRequest(LspMethodName, "Razor.ExternalAccess", TelemetryThresholds.DiagnosticsSubLSPTelemetryThreshold, correletionId);
         var supportsVisualStudioExtensions = _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions;
         var diagnostics = await ExternalHandlers.Diagnostics.GetDocumentDiagnosticsAsync(generatedDocument, supportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
-        return diagnostics.ToArray();
+        return [.. diagnostics];
     }
 
     private async Task<LspDiagnostic[]> GetHtmlDiagnosticsAsync(TextDocument razorDocument, Guid correletionId, CancellationToken cancellationToken)
