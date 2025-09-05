@@ -101,10 +101,20 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
         return diagnostics.ToArray();
     }
 
+    protected Task<SourceGeneratedDocument?> TryGetGeneratedDocumentAsync(TextDocument razorDocument, CancellationToken cancellationToken)
+    {
+        if (!razorDocument.TryComputeHintNameFromRazorDocument(out var hintName))
+        {
+            return SpecializedTasks.Null<SourceGeneratedDocument>();
+        }
+
+        return razorDocument.Project.TryGetSourceGeneratedDocumentFromHintNameAsync(hintName, cancellationToken);
+    }
+
     private async Task<LspDiagnostic[]> GetCSharpDiagnosticsAsync(TextDocument razorDocument, Guid correletionId, CancellationToken cancellationToken)
     {
-        if (!razorDocument.TryComputeHintNameFromRazorDocument(out var hintName) ||
-            await razorDocument.Project.TryGetSourceGeneratedDocumentFromHintNameAsync(hintName, cancellationToken).ConfigureAwait(false) is not { } generatedDocument)
+        var generatedDocument = await TryGetGeneratedDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
+        if (generatedDocument is null)
         {
             return [];
         }
