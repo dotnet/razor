@@ -3508,5 +3508,78 @@ namespace MyApp
 #pragma warning restore 1591
 ");
         }
+
+        [Fact]
+        public async Task IncrementalCompilation_RerunsGenerator_When_AdditionalFileRenamed()
+        {
+            // Arrange
+            using var eventListener = new RazorEventListener();
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Index.razor"] = "<h1>Hello world</h1>",
+                ["Pages/Counter.razor"] = "<h1>Counter</h1>",
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, additionalTexts, analyzerConfigOptionProvider) = await GetDriverWithAdditionalTextAndProviderAsync(project);
+
+            var result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+            Assert.Equal(2, result.GeneratedSources.Length);
+
+            eventListener.Clear();
+
+            // Verify no changes when re-running
+            result = RunGenerator(compilation!, ref driver)
+                        .VerifyOutputsMatch(result);
+
+            Assert.Empty(result.Diagnostics);
+            Assert.Equal(2, result.GeneratedSources.Length);
+            Assert.Empty(eventListener.Events);
+
+            // Rename Counter.razor to NewCounter.razor by removing and re-adding with same content
+            var counterText = additionalTexts.First(f => f.Path.EndsWith("Counter.razor", StringComparison.OrdinalIgnoreCase));
+            var renamedText = new TestAdditionalText("Pages/NewCounter.razor", counterText.GetText()!);
+            driver = driver.RemoveAdditionalTexts([counterText])
+                          .AddAdditionalTexts([renamedText]);
+
+            // Update the analyzer config options with the new target path
+            analyzerConfigOptionProvider.AdditionalTextOptions[renamedText.Path] = new TestAnalyzerConfigOptions
+            {
+                ["build_metadata.AdditionalFiles.TargetPath"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(renamedText.Path))
+            };
+            driver = driver.WithUpdatedAnalyzerConfigOptions(analyzerConfigOptionProvider);
+
+            result = RunGenerator(compilation!, ref driver);
+
+            // Should have generated source for Index.razor and NewCounter.razor
+            Assert.Empty(result.Diagnostics);
+            Assert.Equal(2, result.GeneratedSources.Length);
+
+            // Verify the new file was processed
+            Assert.Collection(eventListener.Events,
+                    e => e.AssertSingleItem("ParseRazorDocumentStart", "Pages/NewCounter.razor"),
+                    e => e.AssertSingleItem("ParseRazorDocumentStop", "Pages/NewCounter.razor"),
+                    e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/NewCounter.razor"),
+                    e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/NewCounter.razor"),
+                    e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
+                    e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
+                    e => e.AssertSingleItem("RewriteTagHelpersStart", "Pages/NewCounter.razor"),
+                    e => e.AssertSingleItem("RewriteTagHelpersStop", "Pages/NewCounter.razor"),
+                    e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Index.razor"),
+                    e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.razor"),
+                    e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/NewCounter.razor"),
+                    e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/NewCounter.razor"),
+                    e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.razor", "Runtime"),
+                    e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
+                    e => e.AssertPair("RazorCodeGenerateStart", "Pages/NewCounter.razor", "Runtime"),
+                    e => e.AssertPair("RazorCodeGenerateStop", "Pages/NewCounter.razor", "Runtime"),
+                    e => e.AssertSingleItem("AddSyntaxTrees", "Pages_NewCounter_razor.g.cs")
+            );
+
+            // Verify the generated source has the correct namespace and class name
+            var newCounterSource = result.GeneratedSources.FirstOrDefault(s => s.HintName.Contains("NewCounter"));
+            Assert.Contains("namespace MyApp.Pages", newCounterSource.SourceText.ToString());
+            Assert.Contains("public partial class NewCounter", newCounterSource.SourceText.ToString());
+        }
     }
 }
