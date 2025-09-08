@@ -59,10 +59,9 @@
 
 [$RootKey$\FeatureFlags\Razor\LSP\UseRazorCohostServer]
 "Description"="Uses the Razor language server that is cohosted in Roslyn to provide some Razor tooling functionality."
-"Value"=dword:00000000
+"Value"=dword:00000001
 "Title"="Use Roslyn Cohost server for Razor (requires restart)"
 "PreviewPaneChannels"="*"
-"overrideDefaultValueChannels"="Preview,IntPreview,int.main"
 
 [$RootKey$\FeatureFlags\Razor\LSP\UseNewFormattingEngine]
 "Description"="Enables the new Razor formatting engine, which provides formatting results that more closely match C# formatting."
