@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
@@ -57,100 +58,115 @@ internal static class ParserHelpers
 
     public static bool TryGetHtmlEntity(ReadOnlyMemory<char> content, out ReadOnlyMemory<char> entity, [NotNullWhen(true)] out string? replacement)
     {
-        // We're at '&'. Check if it is the start of an HTML entity.
         entity = default;
         replacement = null;
 
         var span = content.Span;
 
+        if (span is not ['&', ..])
+        {
+            // Not an entity.
+            return false;
+        }
+
+        // We're at a '&'. Scan forward to find the end of the entity.
+
         for (var i = 1; i < span.Length; i++)
         {
             var ch = span[i];
 
-            if (char.IsLetterOrDigit(ch) || ch == '#')
+            if (!char.IsLetterOrDigit(ch) && ch != '#')
             {
-                continue;
-            }
+                if (ch == ';')
+                {
+                    // Found the end of an entity. +1 to include the ';'
+                    entity = content[0..(i + 1)];
+                    break;
+                }
 
-            if (ch == ';')
-            {
-                // Found the end of an entity. +1 to include the ';'
-                entity = content[0..(i + 1)];
+                // Invalid character for an entity. Bail.
                 break;
             }
 
-            break;
+            // Keep going until we find a non-entity character.
         }
 
-        if (!entity.IsEmpty)
+        if (entity.IsEmpty)
         {
-            if (entity.Span.StartsWith("&#".AsSpan()))
+            // Did not find the end of an entity.
+            return false;
+        }
+
+        Debug.Assert(entity.Span is ['&',.., ';'], "At this point, entity must start with '&' and end with ';'.");
+
+        if (entity.Span[1] == '#')
+        {
+            // Extract the codepoint and map it to an entity.
+
+            // entity is guaranteed to be of the format '&#****;'
+            var digitsSpan = entity.Span[2..^1];
+            var style = NumberStyles.Integer;
+
+            switch (digitsSpan)
             {
-                // Extract the codepoint and map it to an entity.
+                case ['x' or 'X', .. var rest]: // &#x41; or &#X41;
+                    style = NumberStyles.HexNumber;
+                    digitsSpan = rest;
+                    break;
 
-                // entity is guaranteed to be of the format '&#****;'
-                var digitsSpan = entity.Span[2..^1];
-                var style = NumberStyles.Integer;
-
-                switch (digitsSpan)
-                {
-                    case ['x' or 'X', .. var rest]: // &#x41; or &#X41;
-                        style = NumberStyles.HexNumber;
-                        digitsSpan = rest;
-                        break;
-
-                    case ['0', 'x' or 'X', .. var rest]: // &#0x41; or &#0X41; (Technically illegal but supported by Razor)
-                        style = NumberStyles.HexNumber;
-                        digitsSpan = rest;
-                        break;
-                }
+                case ['0', 'x' or 'X', .. var rest]: // &#0x41; or &#0X41; (Technically illegal but supported by Razor)
+                    style = NumberStyles.HexNumber;
+                    digitsSpan = rest;
+                    break;
+            }
 
 #if NET
-                var success = int.TryParse(digitsSpan, style, CultureInfo.InvariantCulture, out var codePoint);
+            var success = int.TryParse(digitsSpan, style, CultureInfo.InvariantCulture, out var codePoint);
 #else
-                // Sadly, we have to allocate on non-.NET to call int.TryParse.
-                var success = int.TryParse(digitsSpan.ToString(), style, CultureInfo.InvariantCulture, out var codePoint);
+            // Sadly, we have to allocate on non-.NET to call int.TryParse.
+            var success = int.TryParse(digitsSpan.ToString(), style, CultureInfo.InvariantCulture, out var codePoint);
 #endif
 
-                if (success)
+            if (success)
+            {
+                // First try the special HTML entity code points dictionary
+                if (s_htmlEntityCodePoints.TryGetValue(codePoint, out replacement))
                 {
-                    // First try the special HTML entity code points dictionary
-                    if (s_htmlEntityCodePoints.TryGetValue(codePoint, out replacement))
-                    {
-                        return true;
-                    }
+                    return true;
+                }
 
-                    // For basic printable Unicode characters, convert directly
-                    // Use a conservative range that matches typical browser behavior:
-                    // - Start at 0x20 (space) to exclude control characters
-                    // - End at 0xFFFF to stay within Basic Multilingual Plane
-                    // - Exclude surrogate pair range 0xD800-0xDFFF
-                    if (codePoint >= 0x20 && codePoint <= 0xFFFF &&
-                        (codePoint < 0xD800 || codePoint > 0xDFFF))
-                    {
-                        replacement = char.ConvertFromUtf32(codePoint);
-                        return true;
-                    }
+                // For basic printable Unicode characters, convert directly
+                // Use a conservative range that matches typical browser behavior:
+                // - Start at 0x20 (space) to exclude control characters
+                // - End at 0xFFFF to stay within Basic Multilingual Plane
+                // - Exclude surrogate pair range 0xD800-0xDFFF
+                if (codePoint >= 0x20 && codePoint <= 0xFFFF &&
+                    (codePoint < 0xD800 || codePoint > 0xDFFF))
+                {
+                    // UNDONE: char.ConvertFromUtf32(...) will allocate a new string.
+                    // If this becomes a performance issue, we can consider caching.
+                    replacement = char.ConvertFromUtf32(codePoint);
+                    return true;
                 }
             }
-
-#if NET9_0_OR_GREATER
-            if (s_namedHtmlEntities.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(entity.Span, out replacement))
-            {
-                return true;
-            }
-#else
-            if (ParserHelpers.s_namedHtmlEntities.TryGetValue(entity.ToString(), out replacement))
-            {
-                return true;
-            }
-#endif
-
-            // Found ';' but entity is not recognized
-            entity = default;
         }
 
-        // The '&' is not part of an HTML entity.
+#if NET9_0_OR_GREATER
+        else if (s_namedHtmlEntities.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(entity.Span, out replacement))
+        {
+            return true;
+        }
+#else
+        // We have to allocate on non-net9.0 to call FrozenDictionary<string, string>.TryGetValue(...).
+        // However, other TFMs are becoming far less common.
+        else if (s_namedHtmlEntities.TryGetValue(entity.ToString(), out replacement))
+        {
+            return true;
+        }
+#endif
+
+        // The '&' is not part of a known HTML entity.
+        entity = default;
         return false;
     }
 

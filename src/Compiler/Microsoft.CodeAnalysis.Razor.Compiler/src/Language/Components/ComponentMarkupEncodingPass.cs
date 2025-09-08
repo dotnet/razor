@@ -116,7 +116,7 @@ internal sealed class ComponentMarkupEncodingPass(RazorLanguageVersion version) 
 
             // If we reach here, we don't have new-lines, tabs or non-ascii characters in this node.
 
-            // if there aren't any ampersands, we know there aren't any HTML character entitites to decode.
+            // if there aren't any ampersands, we know there aren't any HTML character entities to decode.
             if (ampersandCount == 0)
             {
                 return;
@@ -124,7 +124,7 @@ internal sealed class ComponentMarkupEncodingPass(RazorLanguageVersion version) 
 
             // Use ampersand count as a capacity hint. We double the count because text is likely present
             // after each entity and add 1 for any text before the first entity.
-            using var decodedContent = new PooledArrayBuilder<string>(capacity: (ampersandCount * 2) + 1);
+            using var toUpdate = new PooledArrayBuilder<(HtmlIntermediateToken token, string content)>(capacity: (ampersandCount * 2) + 1);
 
             foreach (var child in node.Children)
             {
@@ -136,7 +136,7 @@ internal sealed class ComponentMarkupEncodingPass(RazorLanguageVersion version) 
 
                 if (TryDecodeHtmlEntities(token.Content.AsMemory(), out var decoded))
                 {
-                    decodedContent.Add(decoded);
+                    toUpdate.Add((token, decoded));
                 }
                 else
                 {
@@ -147,20 +147,10 @@ internal sealed class ComponentMarkupEncodingPass(RazorLanguageVersion version) 
 
             // If we reach here, it means we have successfully decoded all content.
             // Replace all token content with the decoded value.
-            var decodedIndex = 0;
-
-            foreach (var child in node.Children)
+            foreach (var (token, content) in toUpdate)
             {
-                if (child is not HtmlIntermediateToken token || token.Content.IsNullOrEmpty())
-                {
-                    // We only care about Html tokens.
-                    continue;
-                }
-
-                token.UpdateContent(decodedContent[decodedIndex++]);
+                token.UpdateContent(content);
             }
-
-            Debug.Assert(decodedIndex == decodedContent.Count);
         }
 
         private static bool TryDecodeHtmlEntities(ReadOnlyMemory<char> content, [NotNullWhen(true)] out string? decoded)
