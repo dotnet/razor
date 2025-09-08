@@ -3551,7 +3551,6 @@ namespace MyApp
 
             result = RunGenerator(compilation!, ref driver);
 
-            // Should have generated source for Index.razor and NewCounter.razor
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
@@ -3580,6 +3579,24 @@ namespace MyApp
             var newCounterSource = result.GeneratedSources.FirstOrDefault(s => s.HintName.Contains("NewCounter"));
             Assert.Contains("namespace MyApp.Pages", newCounterSource.SourceText.ToString());
             Assert.Contains("public partial class NewCounter", newCounterSource.SourceText.ToString());
+
+            // Do a case-only rename and make sure we update the generated class name still
+            // as component names are case sensitive even on Windows.
+            var renamedText2 = new TestAdditionalText("Pages/NewCouNter.razor", counterText.GetText()!);
+            driver = driver.RemoveAdditionalTexts([renamedText])
+                          .AddAdditionalTexts([renamedText2]);
+
+            // Update the analyzer config options with the new target path
+            analyzerConfigOptionProvider.AdditionalTextOptions[renamedText2.Path] = new TestAnalyzerConfigOptions
+            {
+                ["build_metadata.AdditionalFiles.TargetPath"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(renamedText2.Path))
+            };
+            driver = driver.WithUpdatedAnalyzerConfigOptions(analyzerConfigOptionProvider);
+
+            result = RunGenerator(compilation!, ref driver);
+
+            var newCouNterSource = result.GeneratedSources.FirstOrDefault(s => s.HintName.Contains("NewCouNter"));
+            Assert.Contains("public partial class NewCouNter", newCouNterSource.SourceText.ToString());
         }
     }
 }
