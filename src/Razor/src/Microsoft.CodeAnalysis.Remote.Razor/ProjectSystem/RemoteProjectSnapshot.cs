@@ -145,7 +145,7 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
         var generatorResult = await GetRazorGeneratorResultAsync(throwIfNotFound: true, cancellationToken).ConfigureAwait(false);
 
         return generatorResult.AssumeNotNull().GetCodeDocument(documentSnapshot.FilePath)
-            ?? throw new InvalidOperationException($"Generator run result did not contain a code document for '{documentSnapshot.FilePath}");
+            ?? throw new InvalidOperationException(SR.FormatGenerator_run_result_did_not_contain_a_code_document(documentSnapshot.FilePath));
     }
 
     internal async Task<SourceGeneratedDocument> GetRequiredGeneratedDocumentAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
@@ -157,7 +157,7 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
         var generatedDocument = await _project.TryGetSourceGeneratedDocumentFromHintNameAsync(hintName, cancellationToken).ConfigureAwait(false);
 
         return generatedDocument
-            ?? throw new InvalidOperationException($"Couldn't get the source generated document for hint name '{hintName}' that we got from the generator run result.");
+            ?? throw new InvalidOperationException(SR.FormatCouldnt_get_the_source_generated_document_for_hint_name(hintName));
     }
 
     public async Task<RazorCodeDocument?> TryGetCodeDocumentFromGeneratedDocumentUriAsync(Uri generatedDocumentUri, CancellationToken cancellationToken)
@@ -204,7 +204,7 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
         {
             if (throwIfNotFound)
             {
-                throw new InvalidOperationException($"Couldn't get a source generator run result for project '{_project.Name}'.");
+                throw new InvalidOperationException(SR.FormatCouldnt_get_a_source_generator_run_result(_project.Name));
             }
 
             return null;
@@ -218,11 +218,11 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
                 if (result.Results.SingleOrDefault(r => r.Generator.GetGeneratorType().Name == "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator").Generator is { } wrongGenerator)
                 {
                     // Wrong ALC?
-                    throw new InvalidOperationException($"Razor source generator is referenced from '{wrongGenerator.GetGeneratorType().Assembly.Location}' but we are expecting '{typeof(RazorSourceGenerator).Assembly.Location}', for project '{_project.Name}'.");
+                    throw new InvalidOperationException(SR.FormatRazor_source_generator_reference_incorrect(wrongGenerator.GetGeneratorType().Assembly.Location, typeof(RazorSourceGenerator).Assembly.Location, _project.Name));
                 }
                 else
                 {
-                    throw new InvalidOperationException($"Razor source generator is not referenced or no run result found for project '{_project.Name}'.");
+                    throw new InvalidOperationException(SR.FormatRazor_source_generator_is_not_referenced(_project.Name));
                 }
             }
 
@@ -231,13 +231,11 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
 
 #pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         if (!runResult.HostOutputs.TryGetValue(nameof(RazorGeneratorResult), out var objectResult))
+#pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         {
             if (throwIfNotFound)
             {
-                throw new InvalidOperationException($"""
-                    Razor source generator did not produce a host output for project '{_project.Name}':
-                    {string.Join(Environment.NewLine, runResult.Diagnostics)}
-                    """);
+                throw new InvalidOperationException(SR.FormatRazor_source_generator_did_not_produce_a_host_output(_project.Name, string.Join(Environment.NewLine, runResult.Diagnostics)));
             }
 
             return null;
@@ -248,15 +246,11 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
             if (throwIfNotFound)
             {
                 // Wrong ALC?
-                throw new InvalidOperationException($"""
-                    Razor source generator host output is not of type RazorGeneratorResult for project '{_project.Name}':
-                    {string.Join(Environment.NewLine, runResult.Diagnostics)}
-                    """);
+                throw new InvalidOperationException(SR.FormatRazor_source_generator_host_output_is_not_RazorGeneratorResult(_project.Name, string.Join(Environment.NewLine, runResult.Diagnostics)));
             }
 
             return null;
         }
-#pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
         return generatorResult;
     }
