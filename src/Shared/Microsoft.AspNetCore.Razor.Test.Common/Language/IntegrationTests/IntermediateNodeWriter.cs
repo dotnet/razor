@@ -189,7 +189,7 @@ public class IntermediateNodeWriter :
 
     public override void VisitSetKey(SetKeyIntermediateNode node)
     {
-        WriteContentNode(node, node.KeyValueToken?.Content);
+        WriteContentNode(node, node.KeyValueToken.Content);
     }
 
     public override void VisitPropertyDeclaration(PropertyDeclarationIntermediateNode node)
