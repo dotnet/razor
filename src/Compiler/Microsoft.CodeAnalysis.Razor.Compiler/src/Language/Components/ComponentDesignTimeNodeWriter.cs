@@ -1086,16 +1086,6 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
     public override void WriteReferenceCapture(CodeRenderingContext context, ReferenceCaptureIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
         // Looks like:
         //
         // __field = default(MyComponent);
@@ -1111,15 +1101,27 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             // The runtime node writer moves the call elsewhere. At design time we
             // just want sufficiently similar code that any unknown-identifier or type
             // errors will be equivalent
-            var nullSuppression = !context.Options.SuppressNullabilityEnforcement ? "!" : string.Empty;
+
+            var assignmentText = string.Build((node.FieldTypeName, context.Options.SuppressNullabilityEnforcement), (ref builder, state) =>
+            {
+                builder.Append(" = default(");
+                builder.Append(state.FieldTypeName);
+                builder.Append(")");
+
+                if (!state.SuppressNullabilityEnforcement)
+                {
+                    builder.Append("!");
+                }
+
+                builder.Append(";");
+            });
+
+            var assignmentToken = IntermediateNodeFactory.CSharpToken(assignmentText);
+
             WriteCSharpCode(context, new CSharpCodeIntermediateNode
             {
                 Source = node.Source,
-                Children =
-                {
-                    node.IdentifierToken,
-                    IntermediateNodeFactory.CSharpToken($" = default({node.FieldTypeName}){nullSuppression};")
-                }
+                Children = { node.IdentifierToken, assignmentToken }
             });
         }
         else
@@ -1129,8 +1131,10 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             // (__value) = { _field = (MyComponent)__value; }
             // OR
             // (__value) = { _field = (ElementRef)__value; }
-            const string refCaptureParamName = "__value";
-            using (var lambdaScope = context.CodeWriter.BuildLambda(refCaptureParamName))
+            const string RefCaptureParamName = "__value";
+            const string DefaultAssignment = $" = {RefCaptureParamName};";
+
+            using (context.CodeWriter.BuildLambda(RefCaptureParamName))
             {
                 WriteCSharpCode(context, new CSharpCodeIntermediateNode
                 {
@@ -1138,7 +1142,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                     Children =
                     {
                         node.IdentifierToken,
-                        IntermediateNodeFactory.CSharpToken($" = {refCaptureParamName};")
+                        IntermediateNodeFactory.CSharpToken(DefaultAssignment)
                     }
                 });
             }

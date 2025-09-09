@@ -989,18 +989,21 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         // (__value) = { _field = (MyComponent)__value; }
         // OR
         // (__value) = { _field = (ElementRef)__value; }
-        const string refCaptureParamName = "__value";
-        using (var lambdaScope = context.CodeWriter.BuildLambda(refCaptureParamName))
+        const string RefCaptureParamName = "__value";
+        const string DefaultAssignment = $" = {RefCaptureParamName};";
+
+        using (context.CodeWriter.BuildLambda(RefCaptureParamName))
         {
-            var typecastIfNeeded = shouldTypeCheck && node.IsComponentCapture ? $"({node.FieldTypeName})" : string.Empty;
+            shouldTypeCheck = shouldTypeCheck && node.IsComponentCapture;
+
+            var assignmentToken = shouldTypeCheck
+                ? IntermediateNodeFactory.CSharpToken($" = ({node.FieldTypeName}){RefCaptureParamName};")
+                : IntermediateNodeFactory.CSharpToken(DefaultAssignment);
+
             WriteCSharpCode(context, new CSharpCodeIntermediateNode
             {
                 Source = node.Source,
-                Children =
-                {
-                    node.IdentifierToken,
-                    IntermediateNodeFactory.CSharpToken( $" = {typecastIfNeeded}{refCaptureParamName};")
-                }
+                Children = { node.IdentifierToken, assignmentToken }
             });
         }
     }
