@@ -990,16 +990,6 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
     public override void WriteSetKey(CodeRenderingContext context, SetKeyIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
         // Looks like:
         //
         // __builder.SetKey(_keyValue);
@@ -1016,10 +1006,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         WriteCSharpCode(context, new CSharpCodeIntermediateNode
         {
             Source = node.Source,
-            Children =
-                    {
-                        node.KeyValueToken
-                    }
+            Children = { node.KeyValueToken }
         });
     }
 

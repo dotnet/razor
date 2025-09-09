@@ -897,10 +897,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         WriteCSharpCode(context, new CSharpCodeIntermediateNode
         {
             Source = node.Source,
-            Children =
-                    {
-                        node.KeyValueToken
-                    }
+            Children = { node.KeyValueToken }
         });
     }
 
