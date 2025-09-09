@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
@@ -61,16 +62,8 @@ internal class ViewComponentTypeVisitor : SymbolVisitor
             return false;
         }
 
-        if (symbol.DeclaredAccessibility != Accessibility.Public ||
-            symbol.IsAbstract ||
-            symbol.IsGenericType ||
-            AttributeIsDefined(symbol, _nonViewComponentAttribute))
-        {
-            return false;
-        }
-
-        return symbol.Name.EndsWith(ViewComponentTypes.ViewComponentSuffix, StringComparison.Ordinal) ||
-            AttributeIsDefined(symbol, _viewComponentAttribute);
+        var cache = Cache.Instance.GetValue(symbol, static symbol => new Cache(symbol));
+        return cache.IsViewComponent(_viewComponentAttribute, _nonViewComponentAttribute);
     }
 
     private static bool AttributeIsDefined(INamedTypeSymbol? type, INamedTypeSymbol? queryAttribute)
@@ -89,5 +82,33 @@ internal class ViewComponentTypeVisitor : SymbolVisitor
         }
 
         return AttributeIsDefined(type.BaseType, queryAttribute);
+    }
+
+    private sealed class Cache(INamedTypeSymbol symbol)
+    {
+        public static readonly ConditionalWeakTable<INamedTypeSymbol, Cache> Instance = new();
+
+        private bool? _isViewComponent;
+
+        public bool IsViewComponent(INamedTypeSymbol viewComponentAttribute, INamedTypeSymbol? nonViewComponentAttribute)
+        {
+            if (!_isViewComponent.HasValue)
+            {
+                if (symbol.DeclaredAccessibility != Accessibility.Public ||
+                    symbol.IsAbstract ||
+                    symbol.IsGenericType ||
+                    AttributeIsDefined(symbol, nonViewComponentAttribute))
+                {
+                    _isViewComponent = false;
+                }
+                else
+                {
+                    _isViewComponent = symbol.Name.EndsWith(ViewComponentTypes.ViewComponentSuffix, StringComparison.Ordinal) ||
+                        AttributeIsDefined(symbol, viewComponentAttribute);
+                }
+            }
+
+            return _isViewComponent.Value;
+        }
     }
 }
