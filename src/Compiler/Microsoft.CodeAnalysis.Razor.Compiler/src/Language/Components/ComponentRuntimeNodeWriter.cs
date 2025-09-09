@@ -903,16 +903,6 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
     public override void WriteSplat(CodeRenderingContext context, SplatIntermediateNode node)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (node == null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
         // Looks like:
         //
         // _builder.AddMultipleAttributes(2, ...);
@@ -925,22 +915,23 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         context.CodeWriter.WriteEndMethodInvocation();
     }
 
-    private void WriteSplatInnards(CodeRenderingContext context, SplatIntermediateNode node, bool canTypeCheck)
+    private static void WriteSplatInnards(CodeRenderingContext context, SplatIntermediateNode node, bool canTypeCheck)
     {
+        var writer = context.CodeWriter;
+
         if (canTypeCheck)
         {
-            context.CodeWriter.Write(ComponentsApi.RuntimeHelpers.TypeCheck);
-            context.CodeWriter.Write("<");
-            context.CodeWriter.Write(ComponentsApi.AddMultipleAttributesTypeFullName);
-            context.CodeWriter.Write(">");
-            context.CodeWriter.Write("(");
+            writer.Write($"{ComponentsApi.RuntimeHelpers.TypeCheck}<{ComponentsApi.AddMultipleAttributesTypeFullName}>(");
         }
 
-        WriteCSharpTokens(context, GetCSharpTokens(node));
+        using var tokens = new PooledArrayBuilder<CSharpIntermediateToken>();
+        node.CollectDescendantNodes(ref tokens.AsRef());
+
+        WriteCSharpTokens(context, in tokens);
 
         if (canTypeCheck)
         {
-            context.CodeWriter.Write(")");
+            writer.Write(")");
         }
     }
 
@@ -1209,6 +1200,14 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
     }
 
     private static void WriteCSharpTokens(CodeRenderingContext context, ImmutableArray<CSharpIntermediateToken> tokens)
+    {
+        foreach (var token in tokens)
+        {
+            WriteCSharpToken(context, token);
+        }
+    }
+
+    private static void WriteCSharpTokens(CodeRenderingContext context, ref readonly PooledArrayBuilder<CSharpIntermediateToken> tokens)
     {
         foreach (var token in tokens)
         {
