@@ -102,7 +102,7 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
         {
         }
 
-        // We can't get C# responses without significant amounts of extra work, so let's just shim it for now, any non-Null result is fine.
+        // We can't get C# responses without significant amounts of extra work, so let's just shim it for now and not append any ranges.
         protected override Task<bool> AddCSharpSemanticRangesAsync(
             List<SemanticRange> ranges,
             DocumentContext documentContext,

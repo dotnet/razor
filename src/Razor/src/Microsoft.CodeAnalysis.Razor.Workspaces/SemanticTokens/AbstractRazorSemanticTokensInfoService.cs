@@ -291,13 +291,13 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
         var index = 0;
         foreach (var result in semanticRanges)
         {
-            AppendData(result, previousResult, firstRange, sourceText, data, ref index);
+            ConvertIntoDataArray(result, previousResult, firstRange, sourceText, data, ref index);
             firstRange = false;
 
             previousResult = result;
         }
 
-        // The common case is that the AppendData calls didn't find any overlap, and we can just directly use the
+        // The common case is that the ConvertIntoDataArray calls didn't find any overlap, and we can just directly use the
         // data array we allocated. If there was overlap, then we need to allocate a smaller array and copy the data over.
         if (index == data.Length)
         {
@@ -309,7 +309,7 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
         return subset;
 
         // We purposely capture and manipulate the "data" array here to avoid allocation
-        static void AppendData(
+        static void ConvertIntoDataArray(
             SemanticRange currentRange,
             SemanticRange previousRange,
             bool firstRange,
