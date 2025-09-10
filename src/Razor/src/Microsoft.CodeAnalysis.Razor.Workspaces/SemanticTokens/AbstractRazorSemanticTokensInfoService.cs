@@ -70,7 +70,7 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
         cancellationToken.ThrowIfCancellationRequested();
 
         var textSpan = codeDocument.Source.Text.GetTextSpan(span);
-        var combinedSemanticRanges = s_pool.Get();
+        using var _ = s_pool.GetPooledObject(out var combinedSemanticRanges);
 
         SemanticTokensVisitor.AddSemanticRanges(combinedSemanticRanges, codeDocument, textSpan, _semanticTokensLegendService, colorBackground);
         Debug.Assert(combinedSemanticRanges.SequenceEqual(combinedSemanticRanges.OrderBy(g => g)));
@@ -104,11 +104,7 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
         // Additionally, as mentioned above, the C# ranges are not guaranteed to be in order
         combinedSemanticRanges.Sort();
 
-        var semanticTokens = ConvertSemanticRangesToSemanticTokensData(combinedSemanticRanges, codeDocument);
-
-        s_pool.Return(combinedSemanticRanges);
-
-        return semanticTokens;
+        return ConvertSemanticRangesToSemanticTokensData(combinedSemanticRanges, codeDocument);
     }
 
     // Virtual for benchmarks
