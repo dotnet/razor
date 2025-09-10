@@ -428,17 +428,17 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
             return false;
         }
 
-        var markupAttributeNode = owner.FirstAncestorOrSelf<RazorSyntaxNode>(static n =>
-            n is MarkupAttributeBlockSyntax ||
-            n is MarkupTagHelperAttributeSyntax ||
+        var markupAttributeValue = owner.FirstAncestorOrSelf<RazorSyntaxNode>(static n =>
+            (n.Parent is MarkupAttributeBlockSyntax block && n == block.Value) ||
+            n is MarkupTagHelperAttributeValueSyntax ||
             n is MarkupMiscAttributeContentSyntax);
 
-        if (markupAttributeNode is not null)
+        if (markupAttributeValue is not null)
         {
-            if (!processedAttributes.TryGetValue(markupAttributeNode.Span, out var doesAttributeContainNonMarkup))
+            if (!processedAttributes.TryGetValue(markupAttributeValue.Span, out var doesAttributeContainNonMarkup))
             {
-                doesAttributeContainNonMarkup = CheckIfAttributeContainsNonMarkupNodes(markupAttributeNode);
-                processedAttributes.Add(markupAttributeNode.Span, doesAttributeContainNonMarkup);
+                doesAttributeContainNonMarkup = CheckIfAttributeContainsNonMarkupNodes(markupAttributeValue);
+                processedAttributes.Add(markupAttributeValue.Span, doesAttributeContainNonMarkup);
             }
 
             return doesAttributeContainNonMarkup;
@@ -448,16 +448,16 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
 
         static bool CheckIfAttributeContainsNonMarkupNodes(RazorSyntaxNode attributeNode)
         {
-            // Only allow markup, generic & (non-razor comment) token nodes
-            var containsNonMarkupNodes = attributeNode.DescendantNodesAndTokens().Any(IsNotMarkupNodeOrCommentToken);
-
-            return containsNonMarkupNodes;
+            return attributeNode.DescendantNodes().Any(IsNotMarkupOrComemntNode);
         }
 
-        static bool IsNotMarkupNodeOrCommentToken(RazorSyntaxNodeOrToken nodeOrToken)
+        static bool IsNotMarkupOrComemntNode(SyntaxNode nodeOrToken)
         {
-            return !(nodeOrToken.IsToken && nodeOrToken.AsToken().Kind == SyntaxKind.RazorCommentTransition) &&
-                   !(nodeOrToken.IsNode && nodeOrToken.AsNode() is MarkupBlockSyntax or MarkupSyntaxNode or GenericBlockSyntax);
+            return !(nodeOrToken is
+                MarkupBlockSyntax or
+                MarkupSyntaxNode or
+                GenericBlockSyntax or
+                RazorCommentBlockSyntax);
         }
     }
 
