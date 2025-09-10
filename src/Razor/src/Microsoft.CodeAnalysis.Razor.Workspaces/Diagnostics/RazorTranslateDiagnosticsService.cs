@@ -99,7 +99,7 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
         var syntaxTree = codeDocument.GetRequiredSyntaxTree();
         var sourceText = codeDocument.Source.Text;
 
-        var processedAttributes = new Dictionary<TextSpan, bool>();
+        using var _ = DictionaryPool<TextSpan, bool>.GetPooledObject(out var processedAttributes);
 
         var filteredDiagnostics = unmappedDiagnostics
             .Where(d =>
