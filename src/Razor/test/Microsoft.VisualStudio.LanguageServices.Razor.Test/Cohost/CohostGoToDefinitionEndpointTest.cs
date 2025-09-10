@@ -388,6 +388,157 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
+    [Fact]
+    public async Task TagHelper_Attribute_Wildcard()
+    {
+        TestCode expected;
+        var result = await GetGoToDefinitionResultAsync("""
+            @addTagHelper *, SomeProject
+
+            <label fo$$o="Dave" />
+            """,
+            fileKind: RazorFileKind.Legacy,
+            additionalFiles:
+                (FileName("FooTagHelper.cs"),
+                    (expected = """
+                        using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                        [HtmlTargetElement("*", Attributes = FooAttributeName)]
+                        public class [|FooTaghelper|] : TagHelper
+                        {
+                            private const string FooAttributeName = "foo";
+
+                            public override void Process(TagHelperContext context, TagHelperOutput output)
+                            {
+                                output.Attributes.Add("foo", "bar");
+                            }
+                        }
+                        """).Text));
+
+        Assert.NotNull(result.Value.Second);
+        var locations = result.Value.Second;
+        var location = Assert.Single(locations);
+
+        Assert.Equal(FileUri("FooTagHelper.cs"), location.DocumentUri.GetRequiredParsedUri());
+        Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
+    }
+
+    [Fact]
+    public async Task TagHelper_Attribute_Wildcard_OnElement()
+    {
+        TestCode expected;
+        var result = await GetGoToDefinitionResultAsync("""
+            @addTagHelper *, SomeProject
+
+            <lab$$el foo="Dave" />
+            """,
+            fileKind: RazorFileKind.Legacy,
+            additionalFiles:
+                (FileName("FooTagHelper.cs"),
+                    (expected = """
+                        using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                        [HtmlTargetElement("*", Attributes = FooAttributeName)]
+                        public class [|FooTaghelper|] : TagHelper
+                        {
+                            private const string FooAttributeName = "foo";
+
+                            public override void Process(TagHelperContext context, TagHelperOutput output)
+                            {
+                                output.Attributes.Add("foo", "bar");
+                            }
+                        }
+                        """).Text));
+
+        Assert.NotNull(result.Value.Second);
+        var locations = result.Value.Second;
+        var location = Assert.Single(locations);
+
+        Assert.Equal(FileUri("FooTagHelper.cs"), location.DocumentUri.GetRequiredParsedUri());
+        Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
+    }
+
+    [Fact]
+    public async Task TagHelper_Attribute_Wildcard_WithOtherTagHelper()
+    {
+        TestCode expected;
+        var result = await GetGoToDefinitionResultAsync("""
+            @addTagHelper *, SomeProject
+
+            <label asp-for="fish" fo$$o="Dave" />
+            """,
+            fileKind: RazorFileKind.Legacy,
+            additionalFiles:
+                (FileName("FooTagHelper.cs"),
+                    (expected = """
+                        using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                        [HtmlTargetElement("*", Attributes = FooAttributeName)]
+                        public class [|FooTaghelper|] : TagHelper
+                        {
+                            private const string FooAttributeName = "foo";
+
+                            public override void Process(TagHelperContext context, TagHelperOutput output)
+                            {
+                                output.Attributes.Add("foo", "bar");
+                            }
+                        }
+                        """).Text));
+
+        Assert.NotNull(result.Value.Second);
+        var locations = result.Value.Second;
+        var location = Assert.Single(locations);
+
+        Assert.Equal(FileUri("FooTagHelper.cs"), location.DocumentUri.GetRequiredParsedUri());
+        Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
+    }
+
+    [Fact]
+    public async Task TagHelper_Attribute_Multiple()
+    {
+        TestCode expected;
+        var result = await GetGoToDefinitionResultAsync("""
+            @addTagHelper *, SomeProject
+
+            <label b$$ar="Paul" foo="Dave" />
+            """,
+            fileKind: RazorFileKind.Legacy,
+            additionalFiles:
+                (FileName("TagHelpers.cs"),
+                    (expected = """
+                        using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                        [HtmlTargetElement("label", Attributes = FooAttributeName)]
+                        public class FooTaghelper: TagHelper
+                        {
+                            private const string FooAttributeName = "foo";
+
+                            public override void Process(TagHelperContext context, TagHelperOutput output)
+                            {
+                                output.Attributes.Add("foo", "bar");
+                            }
+                        }
+
+                        [HtmlTargetElement("label", Attributes = BarAttributeName)]
+                        public class [|BarTaghelper|] : TagHelper
+                        {
+                            private const string BarAttributeName = "bar";
+
+                            public override void Process(TagHelperContext context, TagHelperOutput output)
+                            {
+                                output.Attributes.Add("bar", "hello");
+                            }
+                        }
+                        """).Text));
+
+        Assert.NotNull(result.Value.Second);
+        var locations = result.Value.Second;
+        var location = Assert.Single(locations);
+
+        Assert.Equal(FileUri("TagHelpers.cs"), location.DocumentUri.GetRequiredParsedUri());
+        Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
+    }
+
     private static string FileName(string projectRelativeFileName)
         => Path.Combine(TestProjectData.SomeProjectPath, projectRelativeFileName);
 
