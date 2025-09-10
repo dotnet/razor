@@ -19,7 +19,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.CodeAnalysis.Razor.SemanticTokens;
 
-internal abstract class AbstractRazorSemanticTokensInfoService(
+internal abstract partial class AbstractRazorSemanticTokensInfoService(
     IDocumentMappingService documentMappingService,
     ISemanticTokensLegendService semanticTokensLegendService,
     ICSharpSemanticTokensProvider csharpSemanticTokensProvider,
@@ -282,45 +282,46 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
         List<SemanticRange> semanticRanges,
         RazorCodeDocument razorCodeDocument)
     {
-        SemanticRange previousResult = default;
-
         var sourceText = razorCodeDocument.Source.Text;
 
         // We don't bother filtering out duplicate ranges (eg, where C# and Razor both have opinions), but instead take advantage of
         // our sort algorithm to be correct, so we can skip duplicates here. That means our final array may end up smaller than the
         // expected size.
-        var data = new int[semanticRanges.Count * TokenSize];
+        var tokens = new int[semanticRanges.Count * TokenSize];
 
-        var firstRange = true;
+        var isFirstRange = true;
         var index = 0;
-        foreach (var result in semanticRanges)
+        SemanticRange previousRange = default;
+        foreach (var range in semanticRanges)
         {
-            ConvertIntoDataArray(result, previousResult, firstRange, sourceText, data, ref index);
-            firstRange = false;
+            if (TryWriteToken(range, previousRange, isFirstRange, sourceText, tokens.AsSpan(index, TokenSize)))
+            {
+                index += TokenSize;
+            }
 
-            previousResult = result;
+            isFirstRange = false;
+            previousRange = range;
         }
 
         // The common case is that the ConvertIntoDataArray calls didn't find any overlap, and we can just directly use the
         // data array we allocated. If there was overlap, then we need to allocate a smaller array and copy the data over.
-        if (index == data.Length)
+        if (index < tokens.Length)
         {
-            return data;
+            Array.Resize(ref tokens, newSize: index);
         }
 
-        var subset = new int[index];
-        Array.Copy(data, subset, index);
-        return subset;
+        return tokens;
 
-        // We purposely capture and manipulate the "data" array here to avoid allocation
-        static void ConvertIntoDataArray(
+        // We purposely capture and manipulate the destination array here to avoid allocation
+        static bool TryWriteToken(
             SemanticRange currentRange,
             SemanticRange previousRange,
-            bool firstRange,
+            bool isFirstRange,
             SourceText sourceText,
-            int[] data,
-            ref int index)
+            Span<int> destination)
         {
+            Debug.Assert(destination.Length == TokenSize);
+
             /*
              * In short, each token takes 5 integers to represent, so a specific token `i` in the file consists of the following array indices:
              *  - at index `5*i`   - `deltaLine`: token line number, relative to the previous token
@@ -335,7 +336,7 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
             var deltaLine = currentRange.StartLine - previousLineIndex;
 
             int deltaStart;
-            if (!firstRange && previousRange.StartLine == currentRange.StartLine)
+            if (!isFirstRange && previousRange.StartLine == currentRange.StartLine)
             {
                 deltaStart = currentRange.StartCharacter - previousRange.StartCharacter;
 
@@ -343,7 +344,7 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
                 // then it means this range overlaps the previous, so we skip it.
                 if (deltaStart == 0)
                 {
-                    return;
+                    return false;
                 }
             }
             else
@@ -351,8 +352,8 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
                 deltaStart = currentRange.StartCharacter;
             }
 
-            data[index] = deltaLine;
-            data[index + 1] = deltaStart;
+            destination[0] = deltaLine;
+            destination[1] = deltaStart;
 
             // length
 
@@ -364,43 +365,13 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
 
             var length = endPosition - startPosition;
             Debug.Assert(length > 0);
-            data[index + 2] = length;
+            destination[2] = length;
 
             // tokenType
-            data[index + 3] = currentRange.Kind;
+            destination[3] = currentRange.Kind;
 
             // tokenModifiers
-            data[index + 4] = currentRange.Modifier;
-
-            index += 5;
-        }
-    }
-
-    private sealed class Policy : IPooledObjectPolicy<List<SemanticRange>>
-    {
-        public static readonly Policy Instance = new();
-
-        // Significantly larger than DefaultPool.MaximumObjectSize as these arrays are commonly large.
-        // The 2048 limit should be large enough for nearly all semantic token requests, while still
-        // keeping the backing arrays off the LOH.
-        public const int MaximumObjectSize = 2048;
-
-        private Policy()
-        {
-        }
-
-        public List<SemanticRange> Create() => new();
-
-        public bool Return(List<SemanticRange> list)
-        {
-            var count = list.Count;
-
-            list.Clear();
-
-            if (count > MaximumObjectSize)
-            {
-                list.TrimExcess();
-            }
+            destination[4] = currentRange.Modifier;
 
             return true;
         }
