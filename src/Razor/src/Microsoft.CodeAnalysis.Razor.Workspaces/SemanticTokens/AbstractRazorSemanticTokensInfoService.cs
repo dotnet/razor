@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.CodeAnalysis.Razor.SemanticTokens;
 
@@ -26,6 +27,9 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
     : IRazorSemanticTokensInfoService
 {
     private const int TokenSize = 5;
+
+    // Use a custom pool as these lists commonly exceed the size threshold for returning into the default ListPool.
+    private static readonly ObjectPool<List<SemanticRange>> s_pool = DefaultPool.Create(Policy.Instance, size: 8);
 
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
@@ -66,7 +70,7 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
         cancellationToken.ThrowIfCancellationRequested();
 
         var textSpan = codeDocument.Source.Text.GetTextSpan(span);
-        using var _ = ListPool<SemanticRange>.GetPooledObject(out var combinedSemanticRanges);
+        var combinedSemanticRanges = s_pool.Get();
 
         SemanticTokensVisitor.AddSemanticRanges(combinedSemanticRanges, codeDocument, textSpan, _semanticTokensLegendService, colorBackground);
         Debug.Assert(combinedSemanticRanges.SequenceEqual(combinedSemanticRanges.OrderBy(g => g)));
@@ -100,7 +104,11 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
         // Additionally, as mentioned above, the C# ranges are not guaranteed to be in order
         combinedSemanticRanges.Sort();
 
-        return ConvertSemanticRangesToSemanticTokensData(combinedSemanticRanges, codeDocument);
+        var semanticTokens = ConvertSemanticRangesToSemanticTokensData(combinedSemanticRanges, codeDocument);
+
+        s_pool.Return(combinedSemanticRanges);
+
+        return semanticTokens;
     }
 
     // Virtual for benchmarks
@@ -369,6 +377,36 @@ internal abstract class AbstractRazorSemanticTokensInfoService(
             data[index + 4] = currentRange.Modifier;
 
             index += 5;
+        }
+    }
+
+    private sealed class Policy : IPooledObjectPolicy<List<SemanticRange>>
+    {
+        public static readonly Policy Instance = new();
+
+        // Significantly larger than DefaultPool.MaximumObjectSize as these arrays are commonly large.
+        // The 2048 limit should be large enough for nearly all semantic token requests, while still
+        // keeping the backing arrays off the LOH.
+        public const int MaximumObjectSize = 2048;
+
+        private Policy()
+        {
+        }
+
+        public List<SemanticRange> Create() => new();
+
+        public bool Return(List<SemanticRange> list)
+        {
+            var count = list.Count;
+
+            list.Clear();
+
+            if (count > MaximumObjectSize)
+            {
+                list.TrimExcess();
+            }
+
+            return true;
         }
     }
 }
