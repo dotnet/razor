@@ -57,7 +57,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         Assert.Equal(1, listener.SerializeCalls[project2.Id]);
     }
 
-    [Fact]
+    [ConditionalFact(Is.Windows)]
     public async Task TwoProjectsAdded_SchedulesTwoTasks()
     {
         using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
@@ -167,7 +167,7 @@ public class RazorWorkspaceListenerTest(ITestOutputHelper testOutputHelper) : To
         Assert.Equal(1, listener.SerializeCalls[project.Id]);
     }
 
-    [Fact]
+    [ConditionalFact(Is.Windows)]
     public async Task DocumentAdded_WithDelay_SchedulesTwoTasks()
     {
         using var workspace = new AdhocWorkspace(CodeAnalysis.Host.Mef.MefHostServices.DefaultHost);
