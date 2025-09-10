@@ -27,7 +27,7 @@ public class MEFCompositionTest(ITestOutputHelper testOutputHelper) : ToolingTes
                     Contract name: Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api.IPythiaSignatureHelpProviderImplementation
                     TypeIdentityName: Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api.IPythiaSignatureHelpProviderImplementation
                 but found 0.
-                """),
+                """, e),
             e => AssertEx.AssertEqualToleratingWhitespaceDifferences("""
                 Microsoft.VisualStudioCode.RazorExtension.Services.WorkspaceService.ctor(loggerFactory): expected exactly 1 export matching constraints:
                     Contract name: Microsoft.Extensions.Logging.ILoggerFactory
