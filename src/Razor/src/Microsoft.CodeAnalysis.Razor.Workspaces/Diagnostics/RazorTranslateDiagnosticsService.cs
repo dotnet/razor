@@ -244,6 +244,7 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
             CSSErrorCodes.MissingOpeningBrace or
             CSSErrorCodes.MissingClassNameAfterDot or
             CSSErrorCodes.MissingSelectorAfterCombinator or
+            CSSErrorCodes.MissingPropertyName or
             CSSErrorCodes.MissingPropertyValue or
             CSSErrorCodes.MissingSelectorBeforeCombinatorCode => IsAtCSharpTransitionInStyleBlock(diagnostic, sourceText, syntaxTree),
             HtmlErrorCodes.UnexpectedEndTagErrorCode => IsHtmlWithBangAndMatchingTags(diagnostic, sourceText, syntaxTree),
