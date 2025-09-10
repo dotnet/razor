@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Razor.Diagnostics;
 
 using RazorDiagnosticFactory = AspNetCore.Razor.Language.RazorDiagnosticFactory;
-using RazorSyntaxNodeOrToken = AspNetCore.Razor.Language.Syntax.SyntaxNodeOrToken;
 using SyntaxNode = AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 /// <summary>
@@ -431,8 +430,7 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
 
         var markupAttributeValue = owner.FirstAncestorOrSelf<RazorSyntaxNode>(static n =>
             (n.Parent is MarkupAttributeBlockSyntax block && n == block.Value) ||
-            n is MarkupTagHelperAttributeValueSyntax ||
-            n is MarkupMiscAttributeContentSyntax);
+            n is MarkupTagHelperAttributeValueSyntax or MarkupMiscAttributeContentSyntax);
 
         if (markupAttributeValue is not null)
         {
@@ -449,12 +447,12 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
 
         static bool CheckIfAttributeContainsNonMarkupNodes(RazorSyntaxNode attributeNode)
         {
-            return attributeNode.DescendantNodes().Any(IsNotMarkupOrComemntNode);
+            return attributeNode.DescendantNodes().Any(IsNotMarkupOrCommentNode);
         }
 
-        static bool IsNotMarkupOrComemntNode(SyntaxNode nodeOrToken)
+        static bool IsNotMarkupOrCommentNode(SyntaxNode node)
         {
-            return !(nodeOrToken is
+            return !(node is
                 MarkupBlockSyntax or
                 MarkupSyntaxNode or
                 GenericBlockSyntax or
