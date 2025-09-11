@@ -73,6 +73,7 @@ internal static class RazorComponentDefinitionHelpers
             return false;
         }
 
+        var requireAttributeMatch = false;
         if ((!ignoreComponentAttributes || boundTagHelper.Kind != TagHelperKind.Component) &&
             tagHelperNode is MarkupTagHelperStartTagSyntax startTag)
         {
@@ -80,6 +81,8 @@ internal static class RazorComponentDefinitionHelpers
             // as if the user wants to go to the attribute definition.
             // ie: <Component attribute$$></Component>
             var selectedAttribute = startTag.Attributes.FirstOrDefault(a => a.Span.Contains(absoluteIndex) || a.Span.End == absoluteIndex);
+
+            requireAttributeMatch = selectedAttribute is not null;
 
             // If we're on an attribute then just validate against the attribute name
             switch (selectedAttribute)
@@ -107,6 +110,12 @@ internal static class RazorComponentDefinitionHelpers
         boundAttribute = propertyName is not null
             ? boundTagHelper.BoundAttributes.FirstOrDefault(a => a.Name?.Equals(propertyName, StringComparison.Ordinal) == true)
             : null;
+
+        if (requireAttributeMatch && boundAttribute is null)
+        {
+            // The user is on an attribute, but we couldn't find a matching BoundAttributeDescriptor.
+            return false;
+        }
 
         return true;
 
