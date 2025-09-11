@@ -3,14 +3,12 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
-using Microsoft.CodeAnalysis.Razor.Remote;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 [Shared]
-[Export(typeof(ILspLifetimeService))]
 [Export(typeof(RoslynInlayHintCacheWrapper))]
-internal class RoslynInlayHintCacheWrapper : ILspLifetimeService
+internal class RoslynInlayHintCacheWrapper
 {
     private InlayHintCacheWrapper? _inlayHintCacheWrapper;
 
@@ -18,14 +16,5 @@ internal class RoslynInlayHintCacheWrapper : ILspLifetimeService
     {
         _inlayHintCacheWrapper ??= new();
         return _inlayHintCacheWrapper;
-    }
-
-    void ILspLifetimeService.OnLspInitialized(RemoteClientLSPInitializationOptions options)
-    {
-    }
-
-    void ILspLifetimeService.OnLspUninitialized()
-    {
-        _inlayHintCacheWrapper = null;
     }
 }

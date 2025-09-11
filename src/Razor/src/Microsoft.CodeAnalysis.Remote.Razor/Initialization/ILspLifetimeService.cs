@@ -8,5 +8,4 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 internal interface ILspLifetimeService
 {
     void OnLspInitialized(RemoteClientLSPInitializationOptions options);
-    void OnLspUninitialized();
 }

@@ -11,10 +11,6 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteServiceInvoker
 {
-    ValueTask InitializeAsync();
-
-    ValueTask UninitializeLspAsync();
-
     ValueTask<TResult?> TryInvokeAsync<TService, TResult>(
         Solution solution,
         Func<TService, RazorPinnedSolutionInfoWrapper, CancellationToken, ValueTask<TResult>> invocation,

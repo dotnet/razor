@@ -117,17 +117,6 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
         }
     }
 
-    protected override Task DisposeAsync()
-    {
-        var lifetimeServices = OOPExportProvider.GetExportedValues<ILspLifetimeService>();
-        foreach (var service in lifetimeServices)
-        {
-            service.OnLspUninitialized();
-        }
-
-        return Task.CompletedTask;
-    }
-
     protected virtual TextDocument CreateProjectAndRazorDocument(
         string contents,
         RazorFileKind? fileKind = null,

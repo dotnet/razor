@@ -38,16 +38,4 @@ internal sealed class RemoteClientInitializationService(in ServiceArgs args) : R
                 return default;
             },
             cancellationToken);
-
-    public ValueTask UninitializeLspAsync(CancellationToken cancellationToken)
-        => RunServiceAsync(ct =>
-            {
-                foreach (var service in _lspLifetimeServices)
-                {
-                    service.OnLspUninitialized();
-                }
-
-                return default;
-            },
-            cancellationToken);
 }

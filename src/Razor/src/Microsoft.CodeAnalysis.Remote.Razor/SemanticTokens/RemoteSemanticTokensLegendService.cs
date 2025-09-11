@@ -26,8 +26,4 @@ internal sealed class RemoteSemanticTokensLegendService : ISemanticTokensLegendS
         _tokenTypes = new SemanticTokenTypes(options.TokenTypes);
         _tokenModifiers = new SemanticTokenModifiers(options.TokenModifiers);
     }
-
-    public void OnLspUninitialized()
-    {
-    }
 }

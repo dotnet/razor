@@ -48,7 +48,6 @@ internal sealed class RemoteServiceInvoker(
     private readonly object _gate = new();
     private Task? _initializeOOPTask;
     private Task? _initializeLspTask;
-    private CancellationTokenSource? _uninitializeLspTokenSource;
 
     public void Dispose()
     {
@@ -131,7 +130,7 @@ internal sealed class RemoteServiceInvoker(
             ?? throw new InvalidOperationException($"Couldn't retrieve {nameof(RazorRemoteHostClient)} for JSON serialization.");
     }
 
-    public ValueTask InitializeAsync()
+    private ValueTask InitializeAsync()
     {
         var oopInitialized = _initializeOOPTask is { Status: TaskStatus.RanToCompletion };
         var lspInitialized = _initializeLspTask is { Status: TaskStatus.RanToCompletion };
@@ -163,8 +162,6 @@ internal sealed class RemoteServiceInvoker(
             {
                 lock (_gate)
                 {
-                    _uninitializeLspTokenSource?.Cancel();
-
                     _initializeLspTask ??= InitializeLspAsync(remoteClient);
                 }
 
@@ -216,36 +213,6 @@ internal sealed class RemoteServiceInvoker(
                         _disposeTokenSource.Token)
                     .AsTask();
             }
-        }
-    }
-
-    public ValueTask UninitializeLspAsync()
-    {
-        var lspInitialized = _initializeLspTask is { Status: TaskStatus.RanToCompletion };
-
-        lock (_gate)
-        {
-            _uninitializeLspTokenSource?.Cancel();
-
-            _initializeLspTask = null;
-            _uninitializeLspTokenSource = new();
-        }
-
-        return lspInitialized
-            ? new(UninitializeCoreAsync(_uninitializeLspTokenSource.Token))
-            : default;
-
-        async Task UninitializeCoreAsync(CancellationToken cancellationToken)
-        {
-            // Note: IRemoteClientInitializationService is an IRemoteJsonService
-            var remoteClient = await _lazyJsonClient
-                .GetValueAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-            await remoteClient
-                .TryInvokeAsync<IRemoteClientInitializationService>(
-                  (s, ct) => s.UninitializeLspAsync(ct),
-                  cancellationToken);
         }
     }
 }

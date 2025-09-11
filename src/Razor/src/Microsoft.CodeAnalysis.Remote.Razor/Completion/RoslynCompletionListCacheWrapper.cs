@@ -3,14 +3,12 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
-using Microsoft.CodeAnalysis.Razor.Remote;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 [Shared]
-[Export(typeof(ILspLifetimeService))]
 [Export(typeof(RoslynCompletionListCacheWrapper))]
-internal class RoslynCompletionListCacheWrapper : ILspLifetimeService
+internal class RoslynCompletionListCacheWrapper
 {
     private CompletionListCacheWrapper? _cacheWrapper;
 
@@ -18,14 +16,5 @@ internal class RoslynCompletionListCacheWrapper : ILspLifetimeService
     {
         _cacheWrapper ??= new();
         return _cacheWrapper;
-    }
-
-    void ILspLifetimeService.OnLspInitialized(RemoteClientLSPInitializationOptions options)
-    {
-    }
-
-    void ILspLifetimeService.OnLspUninitialized()
-    {
-        _cacheWrapper = null;
     }
 }

@@ -16,9 +16,4 @@ internal sealed class RemoteClientCapabilitiesService : AbstractClientCapabiliti
     {
         SetCapabilities(options.ClientCapabilities);
     }
-
-    public void OnLspUninitialized()
-    {
-        SetCapabilities(null);
-    }
 }
