@@ -326,10 +326,6 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
         public bool OOPReturnsNull { get; set; }
         public Func<Task>? GenerateTask { get; set; } = generateTask;
 
-        public ValueTask InitializeAsync() => throw new NotImplementedException();
-
-        public ValueTask UninitializeLspAsync() => throw new NotImplementedException();
-
         public async ValueTask<TResult?> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, RazorPinnedSolutionInfoWrapper, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken, [CallerFilePath] string? callerFilePath = null, [CallerMemberName] string? callerMemberName = null) where TService : class
         {
             Assert.Equal(typeof(string), typeof(TResult));

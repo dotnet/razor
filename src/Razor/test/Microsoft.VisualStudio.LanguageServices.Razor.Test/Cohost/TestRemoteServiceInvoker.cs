@@ -28,10 +28,6 @@ internal sealed class TestRemoteServiceInvoker(
     private readonly Dictionary<Type, object> _services = [];
     private readonly ReentrantSemaphore _reentrantSemaphore = ReentrantSemaphore.Create(initialCount: 1, joinableTaskContext);
 
-    public ValueTask InitializeAsync() => throw new NotImplementedException();
-
-    public ValueTask UninitializeLspAsync() => throw new NotImplementedException();
-
     private async Task<TService> GetOrCreateServiceAsync<TService>()
         where TService : class
     {

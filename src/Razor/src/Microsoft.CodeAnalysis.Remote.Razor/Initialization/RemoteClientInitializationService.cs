@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -17,7 +18,7 @@ internal sealed class RemoteClientInitializationService(in ServiceArgs args) : R
     }
 
     private readonly RemoteLanguageServerFeatureOptions _remoteLanguageServerFeatureOptions = args.ExportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
-    private readonly IEnumerable<ILspLifetimeService> _lspLifetimeServices = args.ExportProvider.GetExportedValues<ILspLifetimeService>();
+    private readonly ImmutableArray<ILspLifetimeService> _lspLifetimeServices = args.ExportProvider.GetExportedValues<ILspLifetimeService>().ToImmutableArray();
 
     public ValueTask InitializeAsync(RemoteClientInitializationOptions options, CancellationToken cancellationToken)
         => RunServiceAsync(ct =>

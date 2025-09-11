@@ -44,14 +44,6 @@ namespace Microsoft.VisualStudio.RazorExtension;
         expression: "RazorContentType",
         termNames: ["RazorContentType"],
         termValues: [$"ActiveEditorContentType:{RazorConstants.RazorLSPContentTypeName}"])]
-// We need to do some initialization when a Razor capability exists in a project, since the source generator
-// is key to cohosting.
-[ProvideUIContextRule(
-        contextGuid: RazorConstants.RazorCapabilityPresentUIContext,
-        name: "Razor Capability Present",
-        expression: "DotNetCoreWeb | DotNetCoreRazor",
-        termNames: ["DotNetCoreWeb", "DotNetCoreRazor"],
-        termValues: ["SolutionHasProjectCapability:DotNetCoreWeb", "SolutionHasProjectCapability:DotNetCoreRazor"])]
 
 internal sealed class RazorPackage : AsyncPackage
 {

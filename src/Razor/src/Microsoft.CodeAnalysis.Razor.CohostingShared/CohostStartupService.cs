@@ -20,7 +20,6 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [method: ImportingConstructor]
 internal sealed class CohostStartupService(
     [ImportMany] IEnumerable<Lazy<IRazorCohostStartupService>> lazyStartupServices,
-#pragma warning disable CS0618 // Type or member is obsolete. Fixed in https://github.com/dotnet/razor/pull/12079
     ILoggerFactory loggerFactory) : ICohostStartupService
 {
     private readonly ImmutableArray<Lazy<IRazorCohostStartupService>> _lazyStartupServices = [.. lazyStartupServices];

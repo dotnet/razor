@@ -16,6 +16,5 @@ public class RazorConstantsTest
         Assert.Equal(RazorConstants.RazorLSPContentTypeName, Constants.RazorLanguageName);
         Assert.Equal(RazorConstants.RazorLSPContentTypeName, CohostConstants.RazorLanguageName);
         Assert.Equal(RazorConstants.RazorCohostingUIContext, CohostConstants.RazorCohostingUIContext.ToString());
-        Assert.Equal(RazorConstants.RazorCapabilityPresentUIContext, CohostConstants.RazorCapabilityPresentUIContext.ToString());
     }
 }
