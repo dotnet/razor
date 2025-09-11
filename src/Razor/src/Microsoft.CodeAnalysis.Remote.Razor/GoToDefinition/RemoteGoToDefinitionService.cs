@@ -68,9 +68,9 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
                 cancellationToken)
                 .ConfigureAwait(false);
 
-            if (componentLocation is not null)
+            if (componentLocation is { Length: > 0 })
             {
-                return Results([componentLocation]);
+                return Results(componentLocation);
             }
 
             // If it isn't a Razor construct, and it isn't C#, let the server know to delegate to HTML.

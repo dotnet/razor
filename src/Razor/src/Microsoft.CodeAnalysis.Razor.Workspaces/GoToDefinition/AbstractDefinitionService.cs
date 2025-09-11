@@ -24,7 +24,7 @@ internal abstract class AbstractDefinitionService(
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ILogger _logger = logger;
 
-    public async Task<LspLocation?> GetDefinitionAsync(
+    public async Task<LspLocation[]?> GetDefinitionAsync(
         IDocumentSnapshot documentSnapshot,
         DocumentPositionInfo positionInfo,
         ISolutionQueryOperations solutionQueryOperations,
@@ -60,7 +60,7 @@ internal abstract class AbstractDefinitionService(
             var tagHelperLocation = await _tagHelperSearchEngine.TryLocateTagHelperDefinitionAsync(boundTagHelper, boundAttribute, documentSnapshot, solutionQueryOperations, cancellationToken).ConfigureAwait(false);
             if (tagHelperLocation is not null)
             {
-                return tagHelperLocation;
+                return [tagHelperLocation];
             }
         }
 
@@ -80,7 +80,7 @@ internal abstract class AbstractDefinitionService(
 
         var range = await GetNavigateRangeAsync(componentDocument, boundAttribute, cancellationToken).ConfigureAwait(false);
 
-        return LspFactory.CreateLocation(componentFilePath, range);
+        return [LspFactory.CreateLocation(componentFilePath, range)];
     }
 
     private async Task<LspRange> GetNavigateRangeAsync(IDocumentSnapshot documentSnapshot, BoundAttributeDescriptor? attributeDescriptor, CancellationToken cancellationToken)
