@@ -16,7 +16,6 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
     private readonly Lazy<bool> _showAllCSharpCodeActions;
     private readonly Lazy<bool> _includeProjectKeyInGeneratedFilePath;
     private readonly Lazy<bool> _useRazorCohostServer;
-    private readonly Lazy<bool> _useNewFormattingEngine;
 
     [ImportingConstructor]
     public VisualStudioLanguageServerFeatureOptions(ILspEditorFeatureDetector lspEditorFeatureDetector)
@@ -45,15 +44,8 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
         _useRazorCohostServer = new Lazy<bool>(() =>
         {
             var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var useRazorCohostServer = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.UseRazorCohostServer, defaultValue: false);
+            var useRazorCohostServer = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.UseRazorCohostServer, defaultValue: true);
             return useRazorCohostServer;
-        });
-
-        _useNewFormattingEngine = new Lazy<bool>(() =>
-        {
-            var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var useNewFormattingEngine = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.UseNewFormattingEngine, defaultValue: true);
-            return useNewFormattingEngine;
         });
     }
 
@@ -80,12 +72,10 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
 
     public override bool UseRazorCohostServer => _useRazorCohostServer.Value;
 
-    public override bool UseNewFormattingEngine => _useNewFormattingEngine.Value;
-
     // VS actually needs explicit commit characters so don't avoid them.
     public override bool SupportsSoftSelectionInCompletion => true;
 
-    public override bool UseVsCodeCompletionTriggerCharacters => false;
+    public override bool UseVsCodeCompletionCommitCharacters => false;
 
     // In VS, we do not want the language server to add all documents in the workspace root path
     // to the misc-files project when initialized.
