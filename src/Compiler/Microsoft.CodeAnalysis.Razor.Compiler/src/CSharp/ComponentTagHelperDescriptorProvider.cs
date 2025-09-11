@@ -12,12 +12,13 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Razor.Compiler.Language.Extensions;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
 internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptorProviderBase
 {
-    private static readonly SymbolDisplayFormat GloballyQualifiedFullNameTypeDisplayFormat =
+    public static readonly SymbolDisplayFormat GloballyQualifiedFullNameTypeDisplayFormat =
         SymbolDisplayFormat.FullyQualifiedFormat
             .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Included)
             .WithMiscellaneousOptions(SymbolDisplayFormat.FullyQualifiedFormat.MiscellaneousOptions & (~SymbolDisplayMiscellaneousOptions.UseSpecialTypes));
@@ -192,15 +193,15 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
                 var builder = new PropertyMetadata.Builder();
 
                 pb.Name = property.Name;
-                pb.ContainingType = containingSymbol.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat);
-                pb.TypeName = property.Type.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat);
+                pb.ContainingType = containingSymbol.ToCachedDisplayString(SymbolExtensions.FullNameTypeDisplayFormat);
+                pb.TypeName = property.Type.ToCachedDisplayString(SymbolExtensions.FullNameTypeDisplayFormat);
                 pb.PropertyName = property.Name;
                 pb.IsEditorRequired = property.GetAttributes().Any(
                     static a => a.HasFullName("Microsoft.AspNetCore.Components.EditorRequiredAttribute"));
 
                 pb.CaseSensitive = false;
 
-                builder.GloballyQualifiedTypeName = property.Type.ToDisplayString(GloballyQualifiedFullNameTypeDisplayFormat);
+                builder.GloballyQualifiedTypeName = property.Type.ToCachedDisplayString(GloballyQualifiedFullNameTypeDisplayFormat);
 
                 if (kind == PropertyKind.Enum)
                 {
@@ -427,7 +428,7 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
 
                 foreach (var constraintType in typeParameter.ConstraintTypes)
                 {
-                    constraints.Add(constraintType.ToDisplayString(GloballyQualifiedFullNameTypeDisplayFormat));
+                    constraints.Add(constraintType.ToCachedDisplayString(GloballyQualifiedFullNameTypeDisplayFormat));
                 }
 
                 // CS0401: The new() constraint must be the last constraint specified.
@@ -458,7 +459,7 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
                             withAttributes.Append('[');
                         }
 
-                        withAttributes.Append(attribute.AttributeClass.ToDisplayString(GloballyQualifiedFullNameTypeDisplayFormat));
+                        withAttributes.Append(attribute.AttributeClass.ToCachedDisplayString(GloballyQualifiedFullNameTypeDisplayFormat));
                         withAttributes.Append('(');
 
                         var first = true;
@@ -476,7 +477,7 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
                             if (arg.Kind == TypedConstantKind.Enum)
                             {
                                 withAttributes.Append("unchecked((");
-                                withAttributes.Append(arg.Type!.ToDisplayString(GloballyQualifiedFullNameTypeDisplayFormat));
+                                withAttributes.Append(arg.Type!.ToCachedDisplayString(GloballyQualifiedFullNameTypeDisplayFormat));
                                 withAttributes.Append(')');
                                 withAttributes.Append(CSharp.SymbolDisplay.FormatPrimitive(arg.Value!, quoteStrings: true, useHexadecimalNumbers: true));
                                 withAttributes.Append(')');

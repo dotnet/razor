@@ -5,6 +5,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.Compiler.Language.Extensions;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -16,10 +17,10 @@ internal static class SymbolExtensions
             .RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
     internal static string GetFullName(this ITypeSymbol typeSymbol)
-        => typeSymbol.ToDisplayString(FullNameTypeDisplayFormat);
+        => typeSymbol.ToCachedDisplayString(FullNameTypeDisplayFormat);
 
     internal static string GetFullName(this INamespaceSymbol namespaceSymbol)
-        => namespaceSymbol.ToDisplayString(FullNameTypeDisplayFormat);
+        => namespaceSymbol.ToCachedDisplayString(FullNameTypeDisplayFormat);
 
     internal static bool HasFullName(this AttributeData attribute, string fullName)
         => attribute.AttributeClass is { } attributeClass && attributeClass.HasFullName(fullName);

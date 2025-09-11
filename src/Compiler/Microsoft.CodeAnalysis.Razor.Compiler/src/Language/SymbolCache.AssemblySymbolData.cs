@@ -2,18 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis;
+using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.AspNetCore.Razor.Language;
+namespace Microsoft.CodeAnalysis.Razor.Compiler.Language;
 
-public abstract partial class TagHelperCollector<T>
-    where T : TagHelperCollector<T>
+internal partial class SymbolCache
 {
-    private sealed class Cache(IAssemblySymbol assembly)
+    public sealed partial class AssemblySymbolData(IAssemblySymbol symbol)
     {
         private const int IncludeDocumentation = 1 << 0;
         private const int ExcludeHidden = 1 << 1;
@@ -23,7 +22,7 @@ public abstract partial class TagHelperCollector<T>
 
         private readonly TagHelperDescriptor[]?[] _tagHelpers = new TagHelperDescriptor[CacheSize][];
 
-        public bool MightContainTagHelpers { get; } = CalculateMightContainTagHelpers(assembly);
+        public bool MightContainTagHelpers { get; } = CalculateMightContainTagHelpers(symbol);
 
         public bool TryGet(bool includeDocumentation, bool excludeHidden, [NotNullWhen(true)] out TagHelperDescriptor[]? tagHelpers)
         {

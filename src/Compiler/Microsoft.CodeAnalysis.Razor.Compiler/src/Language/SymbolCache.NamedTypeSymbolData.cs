@@ -1,11 +1,11 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-namespace Microsoft.CodeAnalysis.Razor.Compiler.Language.Extensions;
+namespace Microsoft.CodeAnalysis.Razor.Compiler.Language;
 
-internal static partial class INamedTypeSymbolExtensions
+internal partial class SymbolCache
 {
-    private sealed partial class Cache(INamedTypeSymbol symbol)
+    public sealed partial class NamedTypeSymbolData(INamedTypeSymbol symbol)
     {
         private readonly INamedTypeSymbol _symbol = symbol;
         private IsViewComponentResult? _isViewComponentResult;

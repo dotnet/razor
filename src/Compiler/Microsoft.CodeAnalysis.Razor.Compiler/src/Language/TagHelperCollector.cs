@@ -2,18 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.Compiler.Language;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
 public abstract partial class TagHelperCollector<T>
     where T : TagHelperCollector<T>
 {
-    // This type is generic to ensure that each descendent gets its own instance of this field.
-    private static readonly ConditionalWeakTable<IAssemblySymbol, Cache> s_perAssemblyCaches = new();
-
     private readonly Compilation _compilation;
     private readonly ISymbol? _targetSymbol;
 
@@ -44,9 +41,8 @@ public abstract partial class TagHelperCollector<T>
                     // across compilations, so this ensures that we don't produce new tag helpers
                     // for the same assemblies over and over again.
 
-                    var cache = s_perAssemblyCaches.GetValue(assembly, static assembly => new Cache(assembly));
-
-                    if (!cache.MightContainTagHelpers)
+                    var assemblySymbolData = SymbolCache.GetAssemblySymbolData(assembly);
+                    if (!assemblySymbolData.MightContainTagHelpers)
                     {
                         continue;
                     }
@@ -54,12 +50,12 @@ public abstract partial class TagHelperCollector<T>
                     var includeDocumentation = context.IncludeDocumentation;
                     var excludeHidden = context.ExcludeHidden;
 
-                    if (!cache.TryGet(includeDocumentation, excludeHidden, out var tagHelpers))
+                    if (!assemblySymbolData.TryGet(includeDocumentation, excludeHidden, out var tagHelpers))
                     {
                         using var _ = ListPool<TagHelperDescriptor>.GetPooledObject(out var referenceTagHelpers);
                         Collect(assembly.GlobalNamespace, referenceTagHelpers);
 
-                        tagHelpers = cache.Add(referenceTagHelpers.ToArrayOrEmpty(), includeDocumentation, excludeHidden);
+                        tagHelpers = assemblySymbolData.Add(referenceTagHelpers.ToArrayOrEmpty(), includeDocumentation, excludeHidden);
                     }
 
                     foreach (var tagHelper in tagHelpers)

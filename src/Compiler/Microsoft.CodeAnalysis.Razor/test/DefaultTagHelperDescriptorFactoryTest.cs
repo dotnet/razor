@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.Compiler.Language.Extensions;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -1146,7 +1147,7 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
         Assert.NotNull(typeSymbol);
 
         var expectedDescriptor = CreateTagHelper(
-            @namespace: typeSymbol.ContainingNamespace.ToDisplayString(),
+            @namespace: typeSymbol.ContainingNamespace.ToCachedDisplayString(),
             typeName: typeSymbol.Name,
             assemblyName: typeSymbol.ContainingAssembly.Identity.Name, static b => b
                 .TagMatchingRule("enumerable"));
