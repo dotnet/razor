@@ -1,12 +1,15 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.GoToDefinition;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -16,7 +19,23 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 [Export(typeof(ITagHelperSearchEngine)), Shared]
 internal sealed class RemoteTagHelperSearchEngine : ITagHelperSearchEngine
 {
-    public async Task<LspLocation?> TryLocateTagHelperDefinitionAsync(TagHelperDescriptor boundTagHelper, BoundAttributeDescriptor? boundAttribute, IDocumentSnapshot documentSnapshot, ISolutionQueryOperations solutionQueryOperations, CancellationToken cancellationToken)
+    public async Task<LspLocation[]?> TryLocateTagHelperDefinitionsAsync(ImmutableArray<BoundTagHelperResult> boundTagHelperResults, IDocumentSnapshot documentSnapshot, ISolutionQueryOperations solutionQueryOperations, CancellationToken cancellationToken)
+    {
+        using var locations = new PooledArrayBuilder<LspLocation>();
+
+        foreach (var (boundTagHelper, boundAttribute) in boundTagHelperResults)
+        {
+            var location = await TryLocateTagHelperDefinitionAsync(boundTagHelper, boundAttribute, documentSnapshot, cancellationToken).ConfigureAwait(false);
+            if (location is not null)
+            {
+                locations.Add(location);
+            }
+        }
+
+        return locations.ToArray();
+    }
+
+    private async Task<LspLocation?> TryLocateTagHelperDefinitionAsync(TagHelperDescriptor boundTagHelper, BoundAttributeDescriptor? boundAttribute, IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
         if (boundTagHelper.Kind == TagHelperKind.Component)
         {

@@ -47,7 +47,7 @@ internal abstract class AbstractDefinitionService(
 
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
-        if (!RazorComponentDefinitionHelpers.TryGetBoundTagHelpers(codeDocument, positionInfo.HostDocumentIndex, ignoreComponentAttributes, _logger, out var boundTagHelper, out var boundAttribute))
+        if (!RazorComponentDefinitionHelpers.TryGetBoundTagHelpers(codeDocument, positionInfo.HostDocumentIndex, ignoreComponentAttributes, _logger, out var boundTagHelperResults))
         {
             _logger.LogInformation($"Could not retrieve bound tag helper information.");
             return null;
@@ -57,12 +57,15 @@ internal abstract class AbstractDefinitionService(
         {
             Debug.Assert(_tagHelperSearchEngine is not null, "If includeMvcTagHelpers is true, _tagHelperSearchEngine must not be null.");
 
-            var tagHelperLocation = await _tagHelperSearchEngine.TryLocateTagHelperDefinitionAsync(boundTagHelper, boundAttribute, documentSnapshot, solutionQueryOperations, cancellationToken).ConfigureAwait(false);
-            if (tagHelperLocation is not null)
+            var tagHelperLocations = await _tagHelperSearchEngine.TryLocateTagHelperDefinitionsAsync(boundTagHelperResults, documentSnapshot, solutionQueryOperations, cancellationToken).ConfigureAwait(false);
+            if (tagHelperLocations is { Length: > 0 })
             {
-                return [tagHelperLocation];
+                return tagHelperLocations;
             }
         }
+
+        // For Razor components, there can only ever be one tag helper result
+        var (boundTagHelper, boundAttribute) = boundTagHelperResults[0];
 
         var componentDocument = await _componentSearchEngine
             .TryLocateComponentAsync(boundTagHelper, solutionQueryOperations, cancellationToken)
