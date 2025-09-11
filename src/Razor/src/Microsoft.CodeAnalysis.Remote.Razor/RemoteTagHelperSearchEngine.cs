@@ -21,33 +21,6 @@ internal sealed class RemoteTagHelperSearchEngine : ITagHelperSearchEngine
 {
     public async Task<LspLocation[]?> TryLocateTagHelperDefinitionsAsync(ImmutableArray<BoundTagHelperResult> boundTagHelperResults, IDocumentSnapshot documentSnapshot, ISolutionQueryOperations solutionQueryOperations, CancellationToken cancellationToken)
     {
-        using var locations = new PooledArrayBuilder<LspLocation>();
-
-        foreach (var (boundTagHelper, boundAttribute) in boundTagHelperResults)
-        {
-            var location = await TryLocateTagHelperDefinitionAsync(boundTagHelper, boundAttribute, documentSnapshot, cancellationToken).ConfigureAwait(false);
-            if (location is not null)
-            {
-                locations.Add(location);
-            }
-        }
-
-        return locations.ToArray();
-    }
-
-    private async Task<LspLocation?> TryLocateTagHelperDefinitionAsync(TagHelperDescriptor boundTagHelper, BoundAttributeDescriptor? boundAttribute, IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
-    {
-        if (boundTagHelper.Kind == TagHelperKind.Component)
-        {
-            return null;
-        }
-
-        var typeName = boundTagHelper.TypeName;
-        if (typeName is null)
-        {
-            return null;
-        }
-
         Debug.Assert(documentSnapshot is RemoteDocumentSnapshot);
 
         var project = ((RemoteDocumentSnapshot)documentSnapshot).TextDocument.Project;
@@ -57,11 +30,34 @@ internal sealed class RemoteTagHelperSearchEngine : ITagHelperSearchEngine
             return null;
         }
 
-        foreach (var type in compilation.GetTypesByMetadataName(typeName))
+        using var locations = new PooledArrayBuilder<LspLocation>();
+
+        foreach (var (boundTagHelper, boundAttribute) in boundTagHelperResults)
+        {
+            if (boundTagHelper.Kind == TagHelperKind.Component)
+            {
+                return null;
+            }
+
+            var location = await TryLocateTagHelperDefinitionAsync(boundTagHelper, boundAttribute, compilation, project.Solution, cancellationToken).ConfigureAwait(false);
+            if (location is not null)
+            {
+                locations.Add(location);
+            }
+        }
+
+        return locations.ToArrayAndClear();
+    }
+
+    private async Task<LspLocation?> TryLocateTagHelperDefinitionAsync(TagHelperDescriptor boundTagHelper, BoundAttributeDescriptor? boundAttribute, Compilation compilation, Solution solution, CancellationToken cancellationToken)
+    {
+        foreach (var type in compilation.GetTypesByMetadataName(boundTagHelper.TypeName))
         {
             var locations = type.Locations;
-            if (boundAttribute is { PropertyName: string propertyName } &&
-                type.GetMembers(propertyName) is [{ } property])
+
+            // If we're on an attribute, then lets try to navigate them to the property it represents, rather than just the type.
+            if (boundAttribute is not null &&
+                type.GetMembers(boundAttribute.PropertyName) is [{ } property])
             {
                 locations = property.Locations;
             }
@@ -69,7 +65,7 @@ internal sealed class RemoteTagHelperSearchEngine : ITagHelperSearchEngine
             foreach (var location in locations)
             {
                 if (location.IsInSource &&
-                    project.Solution.GetDocument(location.SourceTree) is { } document)
+                    solution.GetDocument(location.SourceTree) is { } document)
                 {
                     var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     return new LspLocation

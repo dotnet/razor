@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -79,7 +80,7 @@ internal static class RazorComponentDefinitionHelpers
                 // Include attributes where the end index also matches, since GetSyntaxNodeAsync will consider that the start tag but we behave
                 // as if the user wants to go to the attribute definition.
                 // ie: <Component attribute$$></Component>
-                var selectedAttribute = startTag.Attributes.FirstOrDefault(a => a.Span.Contains(absoluteIndex) || a.Span.End == absoluteIndex);
+                var selectedAttribute = startTag.Attributes.FirstOrDefault(absoluteIndex, static (a, absoluteIndex) => a.Span.Contains(absoluteIndex) || a.Span.End == absoluteIndex);
 
                 requireAttributeMatch = selectedAttribute is not null;
 
@@ -107,7 +108,7 @@ internal static class RazorComponentDefinitionHelpers
             }
 
             var boundAttribute = propertyName is not null
-                ? boundTagHelper.BoundAttributes.FirstOrDefault(a => a.Name?.Equals(propertyName, StringComparison.Ordinal) == true)
+                ? boundTagHelper.BoundAttributes.FirstOrDefault(propertyName, static (a, propertyName) => a.Name == propertyName)
                 : null;
 
             if (requireAttributeMatch && boundAttribute is null)
