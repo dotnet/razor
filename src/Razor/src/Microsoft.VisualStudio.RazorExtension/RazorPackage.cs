@@ -44,7 +44,6 @@ namespace Microsoft.VisualStudio.RazorExtension;
         expression: "RazorContentType",
         termNames: ["RazorContentType"],
         termValues: [$"ActiveEditorContentType:{RazorConstants.RazorLSPContentTypeName}"])]
-
 internal sealed class RazorPackage : AsyncPackage
 {
     public const string PackageGuidString = "13b72f58-279e-49e0-a56d-296be02f0805";
