@@ -1,11 +1,13 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -51,7 +53,9 @@ internal sealed class RemoteTagHelperSearchEngine : ITagHelperSearchEngine
 
     private async Task<LspLocation?> TryLocateTagHelperDefinitionAsync(TagHelperDescriptor boundTagHelper, BoundAttributeDescriptor? boundAttribute, Compilation compilation, Solution solution, CancellationToken cancellationToken)
     {
-        foreach (var type in compilation.GetTypesByMetadataName(boundTagHelper.TypeName))
+        var typeName = GetTypeNameForNavigation(boundTagHelper);
+
+        foreach (var type in compilation.GetTypesByMetadataName(typeName))
         {
             var locations = type.Locations;
 
@@ -78,5 +82,16 @@ internal sealed class RemoteTagHelperSearchEngine : ITagHelperSearchEngine
         }
 
         return null;
+    }
+
+    private static string GetTypeNameForNavigation(TagHelperDescriptor boundTagHelper)
+    {
+        // View components type name starts with "__Generated" for some reason, so we need to use the original type name metadata instead
+        if (boundTagHelper.Metadata is ViewComponentMetadata { OriginalTypeName: { } originalTypeName })
+        {
+            return originalTypeName;
+        }
+
+        return boundTagHelper.TypeName;
     }
 }
