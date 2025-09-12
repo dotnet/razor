@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.Razor.Compiler.Language;
+namespace Microsoft.AspNetCore.Razor.Language;
 
 internal partial class SymbolCache
 {

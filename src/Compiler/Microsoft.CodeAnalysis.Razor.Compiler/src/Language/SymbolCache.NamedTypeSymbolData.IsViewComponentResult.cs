@@ -3,8 +3,9 @@
 
 using System;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.Razor.Compiler.Language;
+namespace Microsoft.AspNetCore.Razor.Language;
 
 internal partial class SymbolCache
 {

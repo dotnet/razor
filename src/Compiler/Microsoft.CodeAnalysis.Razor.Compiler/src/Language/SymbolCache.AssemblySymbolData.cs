@@ -4,9 +4,9 @@
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.Razor.Compiler.Language;
+namespace Microsoft.AspNetCore.Razor.Language;
 
 internal partial class SymbolCache
 {

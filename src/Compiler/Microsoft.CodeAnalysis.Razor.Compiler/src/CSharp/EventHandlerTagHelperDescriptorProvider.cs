@@ -44,9 +44,6 @@ internal sealed class EventHandlerTagHelperDescriptorProvider : TagHelperDescrip
 
             foreach (var type in types)
             {
-                // Create helper to delay computing display names for this type when we need them.
-                var displayNames = new DisplayNameHelper(type);
-
                 // Not handling duplicates here for now since we're the primary ones extending this.
                 // If we see users adding to the set of event handler constructs we will want to add deduplication
                 // and potentially diagnostics.
@@ -60,7 +57,8 @@ internal sealed class EventHandlerTagHelperDescriptorProvider : TagHelperDescrip
                             continue;
                         }
 
-                        var (typeName, namespaceName) = displayNames.GetNames();
+                        var typeName = type.GetDefaultDisplayString();
+                        var namespaceName = type.ContainingNamespace.GetFullName();
                         results.Add(CreateTagHelper(typeName, namespaceName, type.Name, args));
                     }
                 }
@@ -123,23 +121,6 @@ internal sealed class EventHandlerTagHelperDescriptorProvider : TagHelperDescrip
                     args = default;
                     return false;
                 }
-            }
-        }
-
-        /// <summary>
-        ///  Helper to avoid computing various type-based names until necessary.
-        /// </summary>
-        private ref struct DisplayNameHelper(INamedTypeSymbol type)
-        {
-            private readonly INamedTypeSymbol _type = type;
-            private (string Type, string Namespace)? _names;
-
-            public (string Type, string Namespace) GetNames()
-            {
-                _names ??= (_type.GetDefaultDisplayString(),
-                    _type.ContainingNamespace.GetFullName());
-
-                return _names.GetValueOrDefault();
             }
         }
 

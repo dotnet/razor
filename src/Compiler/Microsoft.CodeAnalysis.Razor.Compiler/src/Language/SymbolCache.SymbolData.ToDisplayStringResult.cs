@@ -1,9 +1,10 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.CodeAnalysis.Razor.Compiler.Language;
+namespace Microsoft.AspNetCore.Razor.Language;
 
 internal partial class SymbolCache
 {
@@ -22,34 +23,28 @@ internal partial class SymbolCache
                 _symbol = symbol;
             }
 
-            public string ToDisplayString(SymbolDisplayFormat? format)
+            public string GetDefaultDisplayString()
             {
-                if (format == null)
-                {
-                    return GetToDisplayStringResult(_symbol, format, ref _emptyDisplayFormatValue);
-                }
-                else if (format == WellKnownSymbolDisplayFormats.FullNameTypeDisplayFormat)
-                {
-                    return GetToDisplayStringResult(_symbol, format, ref _fullNameTypeDisplayFormatValue);
-                }
-                else if (format == WellKnownSymbolDisplayFormats.GloballyQualifiedFullNameTypeDisplayFormat)
-                {
-                    return GetToDisplayStringResult(_symbol, format, ref _globallyQualifiedFullNameTypeDisplayFormatValue);
-                }
+                return GetToDisplayStringResult(_symbol, format: null, ref _emptyDisplayFormatValue);
+            }
 
-                throw new InvalidOperationException("The provided format is not cached. Only the default, FullNameTypeDisplayFormat, and GloballyQualifiedFullNameTypeDisplayFormat formats are cached.");
+            public string GetFullName()
+            {
+                return GetToDisplayStringResult(_symbol, format: WellKnownSymbolDisplayFormats.FullNameTypeDisplayFormat, ref _fullNameTypeDisplayFormatValue);
+            }
 
-                static string GetToDisplayStringResult(ISymbol symbol, SymbolDisplayFormat? format, ref string? cachedValue)
-                {
-                    if (cachedValue == null)
-                    {
+            public string GetGloballyQualifiedFullName()
+            {
+                return GetToDisplayStringResult(_symbol, format: WellKnownSymbolDisplayFormats.GloballyQualifiedFullNameTypeDisplayFormat, ref _globallyQualifiedFullNameTypeDisplayFormatValue);
+            }
+
+            private static string GetToDisplayStringResult(ISymbol symbol, SymbolDisplayFormat? format, ref string? cachedValue)
+            {
 #pragma warning disable RS0030 // Do not use banned APIs
-                        cachedValue = symbol.ToDisplayString(format);
+                cachedValue ??= symbol.ToDisplayString(format);
 #pragma warning restore RS0030 // Do not use banned APIs
-                    }
 
-                    return cachedValue;
-                }
+                return cachedValue;
             }
         }
     }
