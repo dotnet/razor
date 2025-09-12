@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.Razor.Compiler.Language.Extensions;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -137,8 +136,8 @@ internal sealed class EventHandlerTagHelperDescriptorProvider : TagHelperDescrip
 
             public (string Type, string Namespace) GetNames()
             {
-                _names ??= (_type.ToCachedDisplayString(),
-                    _type.ContainingNamespace.ToCachedDisplayString(SymbolExtensions.FullNameTypeDisplayFormat));
+                _names ??= (_type.GetDefaultDisplayString(),
+                    _type.ContainingNamespace.GetFullName());
 
                 return _names.GetValueOrDefault();
             }
@@ -153,7 +152,7 @@ internal sealed class EventHandlerTagHelperDescriptorProvider : TagHelperDescrip
             var (attribute, eventArgsType, enableStopPropagation, enablePreventDefault) = args;
 
             var attributeName = "@" + attribute;
-            var eventArgType = eventArgsType.ToCachedDisplayString();
+            var eventArgType = eventArgsType.GetDefaultDisplayString();
             using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
                 TagHelperKind.EventHandler, attribute, ComponentsApi.AssemblyName,
                 out var builder);

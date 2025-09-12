@@ -5,22 +5,20 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.Compiler.Language.Extensions;
+using Microsoft.CodeAnalysis.Razor.Compiler.Language;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
 internal static class SymbolExtensions
 {
-    internal static readonly SymbolDisplayFormat FullNameTypeDisplayFormat =
-        SymbolDisplayFormat.FullyQualifiedFormat
-            .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted)
-            .RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+    internal static string GetFullName(this ISymbol typeSymbol)
+        => SymbolCache.GetSymbolData(typeSymbol).ToDisplayString(WellKnownSymbolDisplayFormats.FullNameTypeDisplayFormat);
 
-    internal static string GetFullName(this ITypeSymbol typeSymbol)
-        => typeSymbol.ToCachedDisplayString(FullNameTypeDisplayFormat);
+    internal static string GetGloballyQualifiedFullName(this ISymbol typeSymbol)
+        => SymbolCache.GetSymbolData(typeSymbol).ToDisplayString(WellKnownSymbolDisplayFormats.GloballyQualifiedFullNameTypeDisplayFormat);
 
-    internal static string GetFullName(this INamespaceSymbol namespaceSymbol)
-        => namespaceSymbol.ToCachedDisplayString(FullNameTypeDisplayFormat);
+    internal static string GetDefaultDisplayString(this ISymbol typeSymbol)
+        => SymbolCache.GetSymbolData(typeSymbol).ToDisplayString(format: null);
 
     internal static bool HasFullName(this AttributeData attribute, string fullName)
         => attribute.AttributeClass is { } attributeClass && attributeClass.HasFullName(fullName);

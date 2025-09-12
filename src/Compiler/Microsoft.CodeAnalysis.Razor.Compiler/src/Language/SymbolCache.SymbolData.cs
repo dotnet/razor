@@ -13,10 +13,7 @@ internal partial class SymbolCache
 
         public string ToDisplayString(SymbolDisplayFormat? format)
         {
-            if (_toDisplayStringResult is null)
-            {
-                _toDisplayStringResult = new ToDisplayStringResult(_symbol);
-            }
+            _toDisplayStringResult ??= new ToDisplayStringResult(_symbol);
 
             return _toDisplayStringResult.ToDisplayString(format);
         }

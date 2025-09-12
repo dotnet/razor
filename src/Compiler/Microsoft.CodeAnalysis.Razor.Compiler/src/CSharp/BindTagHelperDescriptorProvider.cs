@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.Razor.Compiler.Language.Extensions;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -320,8 +319,8 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
             private (string Type, string Namespace)? _names;
 
             public (string Type, string Namespace) GetNames()
-                => _names ??= (_type.ToCachedDisplayString(),
-                    _type.ContainingNamespace.ToCachedDisplayString(SymbolExtensions.FullNameTypeDisplayFormat));
+                => _names ??= (_type.GetDefaultDisplayString(),
+                    _type.ContainingNamespace.GetFullName());
         }
 
         private static TagHelperDescriptor CreateElementBindTagHelper(
