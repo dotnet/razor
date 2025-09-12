@@ -7,8 +7,8 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 [Shared]
-[Export(typeof(RoslynInlayHintCacheWrapper))]
-internal class RoslynInlayHintCacheWrapper
+[Export(typeof(InlayHintCacheWrapperProvider))]
+internal class InlayHintCacheWrapperProvider
 {
     private InlayHintCacheWrapper? _inlayHintCacheWrapper;
 

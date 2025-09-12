@@ -7,8 +7,8 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 [Shared]
-[Export(typeof(RoslynCompletionListCacheWrapper))]
-internal class RoslynCompletionListCacheWrapper
+[Export(typeof(CompletionListCacheWrapperProvder))]
+internal class CompletionListCacheWrapperProvder
 {
     private CompletionListCacheWrapper? _cacheWrapper;
 
