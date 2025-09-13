@@ -242,11 +242,41 @@ internal abstract class GreenNode
 
     public override string ToString()
     {
+        // If there is only a single value in our slots, then we can just defer to the ToString
+        // implementation on that item, as it may avoid the need to allocate a string
+        if (GetSingleSlotValueOrDefault() is { } loneSlotValue)
+        {
+            return loneSlotValue.ToString();
+        }
+
         using var _ = StringWriterPool.GetPooledObject(out var writer);
 
         WriteTo(writer);
 
         return writer.ToString();
+
+        GreenNode GetSingleSlotValueOrDefault()
+        {
+            GreenNode loneSlotValue = null;
+            for (var i = SlotCount - 1; i >= 0; i--)
+            {
+                var slotValue = GetSlot(i);
+                if (slotValue is not null)
+                {
+                    if (loneSlotValue is null)
+                    {
+                        loneSlotValue = slotValue;
+                    }
+                    else
+                    {
+                        loneSlotValue = null;
+                        break;
+                    }
+                }
+            }
+
+            return loneSlotValue;
+        }
     }
 
     public void WriteTo(TextWriter writer)
