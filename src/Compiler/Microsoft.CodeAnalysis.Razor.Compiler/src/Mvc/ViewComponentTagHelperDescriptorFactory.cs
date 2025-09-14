@@ -69,7 +69,7 @@ internal class ViewComponentTagHelperDescriptorFactory
         descriptorBuilder.SetMetadata(new ViewComponentMetadata()
         {
             Name = shortName,
-            OriginalTypeName = type.Name
+            OriginalTypeName = TypeNameObject.From(type)
         });
 
         descriptorBuilder.DisplayName = displayName;

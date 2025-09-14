@@ -87,7 +87,14 @@ internal sealed class RemoteTagHelperSearchEngine : ITagHelperSearchEngine
     private static string GetTypeNameForNavigation(TagHelperDescriptor boundTagHelper)
     {
         // View components type name starts with "__Generated" for some reason, so we need to use the original type name metadata instead
-        if (boundTagHelper.Metadata is ViewComponentMetadata { OriginalTypeName: { } originalTypeName })
+        if (boundTagHelper.Metadata is ViewComponentMetadata
+            {
+                OriginalTypeName:
+                {
+                    IsNull: false,
+                    FullName: { } originalTypeName
+                }
+            })
         {
             return originalTypeName;
         }
