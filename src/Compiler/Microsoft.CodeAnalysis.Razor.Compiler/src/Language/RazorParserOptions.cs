@@ -214,12 +214,11 @@ public sealed partial class RazorParserOptions
     public override int GetHashCode()
     {
         var combiner = HashCodeCombiner.Start();
-        combiner.Add(base.GetHashCode());
         combiner.Add(_flags);
         combiner.Add(FileKind);
         combiner.Add(LanguageVersion);
         combiner.Add(CSharpParseOptions);
-        combiner.Add(Directives);
+        combiner.Add(Directives, ReferenceEqualityComparer<DirectiveDescriptor>.Instance);
 
         return combiner.CombinedHash;
     }
