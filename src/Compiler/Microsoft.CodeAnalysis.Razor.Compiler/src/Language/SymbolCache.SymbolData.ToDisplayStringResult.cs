@@ -41,6 +41,8 @@ internal partial class SymbolCache
             private static string GetToDisplayStringResult(ISymbol symbol, SymbolDisplayFormat? format, ref string? cachedValue)
             {
 #pragma warning disable RS0030 // Do not use banned APIs
+                // This is the only location which should call ISymbol.ToDisplayString.
+                // All callers of this method should cache the result into a field.
                 cachedValue ??= symbol.ToDisplayString(format);
 #pragma warning restore RS0030 // Do not use banned APIs
 
