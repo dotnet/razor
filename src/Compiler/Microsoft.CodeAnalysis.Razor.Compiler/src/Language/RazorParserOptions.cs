@@ -4,8 +4,10 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -197,10 +199,28 @@ public sealed partial class RazorParserOptions
     {
         return
             other is not null
-            && LanguageVersion == other.LanguageVersion
-            && FileKind == other.FileKind
-            && CSharpParseOptions == other.CSharpParseOptions
             && _flags == other._flags
-            && Directives.SequenceEqual(other.Directives);
+            && FileKind == other.FileKind
+            && LanguageVersion == other.LanguageVersion
+            && CSharpParseOptions == other.CSharpParseOptions
+            && Directives.SequenceEqual(other.Directives, ReferenceEqualityComparer<DirectiveDescriptor>.Instance);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return Equals(obj as RazorParserOptions);
+    }
+
+    public override int GetHashCode()
+    {
+        var combiner = HashCodeCombiner.Start();
+        combiner.Add(base.GetHashCode());
+        combiner.Add(_flags);
+        combiner.Add(FileKind);
+        combiner.Add(LanguageVersion);
+        combiner.Add(CSharpParseOptions);
+        combiner.Add(Directives);
+
+        return combiner.CombinedHash;
     }
 }
