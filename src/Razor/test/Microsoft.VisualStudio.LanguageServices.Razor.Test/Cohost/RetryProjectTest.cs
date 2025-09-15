@@ -69,7 +69,7 @@ public class RetryProjectTest(ITestOutputHelper testOutputHelper) : CohostEndpoi
             """;
         var document = CreateProjectAndRazorDocument(input.Text, RazorFileKind.Component);
 
-        // Make sure the source generator has been run while cohosting is off, to simular Roslyn winning the initialization race
+        // Make sure the source generator has been run while cohosting is off, to simulate Roslyn winning the initialization race
         //var compilation = await document.Project.GetCompilationAsync(DisposalToken);
         Assert.Empty(await document.Project.GetSourceGeneratedDocumentsAsync(DisposalToken));
 
