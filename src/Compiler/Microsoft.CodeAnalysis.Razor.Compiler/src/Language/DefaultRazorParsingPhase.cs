@@ -1,10 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#if !NET
-using System;
-#endif
-
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -14,6 +11,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 internal class DefaultRazorParsingPhase : RazorEnginePhaseBase, IRazorParsingPhase
 {
     private static readonly ConditionalWeakTable<RazorSourceDocument, RazorSyntaxTree> s_importTrees = new();
+    private static readonly object s_lock = new();
 
     protected override void ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
     {
@@ -25,29 +23,35 @@ internal class DefaultRazorParsingPhase : RazorEnginePhaseBase, IRazorParsingPha
 
         foreach (var import in codeDocument.Imports)
         {
-            if (!s_importTrees.TryGetValue(import, out var tree)
-                || !tree.Options.Equals(options))
+            // Attempt to pull the parsed import tree from the CWT
+            if (!TryGetCachedImportTree(import, options, out var tree))
             {
+                // We don't have a cached version, parse the import and add it to the CWT
                 tree = RazorSyntaxTree.Parse(import, options);
 
-#if NET
-                s_importTrees.AddOrUpdate(import, tree);
-#else
-                try
+                // NetStandard2.0 doesn't have a nice AddOrUpdate method, so we'll use our own locking to
+                // ensure the CWT is updated correctly.
+                lock (s_lock)
                 {
-                    // good effort update of CWT value
-                    s_importTrees.Remove(import);
-                    s_importTrees.Add(import, tree);
+                    if (TryGetCachedImportTree(import, options, out var cachedTree))
+                    {
+                        // Someone else added it while we were parsing, use theirs.
+                        tree = cachedTree;
+                    }
+                    else
+                    {
+                        // No one else has added it, we should.
+                        s_importTrees.Add(import, tree);
+                    }
                 }
-                catch (ArgumentException)
-                {
-                }
-#endif
             }
 
             importSyntaxTrees.Add(tree);
         }
 
         codeDocument.SetImportSyntaxTrees(importSyntaxTrees.ToImmutableAndClear());
+
+        static bool TryGetCachedImportTree(RazorSourceDocument import, RazorParserOptions options, [NotNullWhen(true)] out RazorSyntaxTree? tree)
+            => s_importTrees.TryGetValue(import, out tree) && tree.Options.Equals(options);
     }
 }
