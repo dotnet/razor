@@ -5,6 +5,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -244,7 +245,7 @@ internal abstract class GreenNode
     {
         // If there is only a single value in our slots, then we can just defer to the ToString
         // implementation on that item, as it may avoid the need to allocate a string
-        if (GetSingleSlotValueOrDefault() is { } loneSlotValue)
+        if (TryGetSingleSlotValue(out var loneSlotValue))
         {
             return loneSlotValue.ToString();
         }
@@ -255,30 +256,26 @@ internal abstract class GreenNode
 
         return writer.ToString();
 
-        GreenNode GetSingleSlotValueOrDefault()
+        bool TryGetSingleSlotValue([NotNullWhen(true)] out GreenNode result)
         {
-            GreenNode loneSlotValue = null;
+            result = null;
 
             // Reverse iteration to avoid hitting the SlotCount property multiple times
             // We're just as likely to hit a non-null slot at the end as at the beginning
-            for (var i = SlotCount - 1; i >= 0; i--)
+            var slotCount = SlotCount;
+            for (var i = 0; i < slotCount; i++)
             {
                 var slotValue = GetSlot(i);
-                if (slotValue is not null)
+                if (slotValue is not null && result is not null)
                 {
-                    if (loneSlotValue is null)
-                    {
-                        loneSlotValue = slotValue;
-                    }
-                    else
-                    {
-                        loneSlotValue = null;
-                        break;
-                    }
+                    result = null;
+                    return false;
                 }
+
+                result = slotValue;
             }
 
-            return loneSlotValue;
+            return result is not null;
         }
     }
 
