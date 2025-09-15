@@ -26,7 +26,8 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
 
     public ProjectKey Key { get; }
 
-    private readonly Project _project;
+    // This is not readonly for ONE specific purpose, and should not generally be mutated
+    private Project _project;
     private readonly Dictionary<TextDocument, RemoteDocumentSnapshot> _documentMap = [];
 
     public RemoteProjectSnapshot(Project project, RemoteSolutionSnapshot solutionSnapshot)
@@ -71,7 +72,13 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
     {
         if (document.Project != _project)
         {
-            throw new ArgumentException(SR.Document_does_not_belong_to_this_project, nameof(document));
+            // We got asked for a document that doesn't belong to this project, but it could be that we are the result
+            // of re-running the generator (a "retry project") and the document they passed in is from the original project
+            // because it comes from the devenv side, so we can be a little lenient here. Since retry projects only exist
+            // early in a session, we should still catch coding errors with even basic manual testing.
+            document = _project.IsRetryProject() && _project.GetAdditionalDocument(document.Id) is { } retryDocument
+                    ? retryDocument
+                    : throw new ArgumentException(SR.Document_does_not_belong_to_this_project, nameof(document));
         }
 
         if (!document.IsRazorDocument())
@@ -233,6 +240,19 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
         if (!runResult.HostOutputs.TryGetValue(nameof(RazorGeneratorResult), out var objectResult))
 #pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         {
+            // We know the generator is referenced, or we wouldn't have gotten past the above checks. We also know cohosting is turned on, since we got here.
+            // There is a race condition that can happen where if Roslyn runs the generator before Razor has a chance to initialize, then Roslyn will have
+            // cached the fact that cohosting was off, and any subsequent runs of the generator will not produce a host output. We can work around this by
+            // making an innocuous change to the project, and trying again.
+            if (SolutionSnapshot.SnapshotManager.TryGetRetryProject(_project) is { } retryProject)
+            {
+                // For subsequent requests for this project, the solution snapshot will have updated its view of the world and everything
+                // will be fine. For this request though, the caller of this method is just going to keep querying _project so we need to
+                // update it.
+                _project = retryProject;
+                return await GetRazorGeneratorResultAsync(throwIfNotFound, cancellationToken).ConfigureAwait(false);
+            }
+
             if (throwIfNotFound)
             {
                 throw new InvalidOperationException(SR.FormatRazor_source_generator_did_not_produce_a_host_output(_project.Name, string.Join(Environment.NewLine, runResult.Diagnostics)));
