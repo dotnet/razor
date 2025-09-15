@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 namespace Microsoft.AspNetCore.Razor.Language;
 
 public sealed partial class RazorParserOptions
+    : IEquatable<RazorParserOptions>
 {
     private static RazorLanguageVersion DefaultLanguageVersion => RazorLanguageVersion.Latest;
     private static RazorFileKind DefaultFileKind => RazorFileKind.Legacy;
@@ -190,5 +191,16 @@ public sealed partial class RazorParserOptions
         return flags == _flags
             ? this
             : new(LanguageVersion, FileKind, Directives, CSharpParseOptions, flags);
+    }
+
+    public bool Equals(RazorParserOptions? other)
+    {
+        return
+            other is not null
+            && LanguageVersion == other.LanguageVersion
+            && FileKind == other.FileKind
+            && CSharpParseOptions == other.CSharpParseOptions
+            && _flags == other._flags
+            && Directives.SequenceEqual(other.Directives);
     }
 }
