@@ -266,13 +266,16 @@ internal abstract class GreenNode
             for (var i = 0; i < slotCount; i++)
             {
                 var slotValue = GetSlot(i);
-                if (slotValue is not null && result is not null)
+                if (slotValue is not null)
                 {
-                    result = null;
-                    return false;
-                }
+                    if (result is not null)
+                    {
+                        result = null;
+                        return false;
+                    }
 
-                result = slotValue;
+                    result = slotValue;
+                }
             }
 
             return result is not null;
