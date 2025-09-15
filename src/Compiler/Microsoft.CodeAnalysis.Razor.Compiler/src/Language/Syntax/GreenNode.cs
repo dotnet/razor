@@ -258,6 +258,9 @@ internal abstract class GreenNode
         GreenNode GetSingleSlotValueOrDefault()
         {
             GreenNode loneSlotValue = null;
+
+            // Reverse iteration to avoid hitting the SlotCount property multiple times
+            // We're just as likely to hit a non-null slot at the end as at the beginning
             for (var i = SlotCount - 1; i >= 0; i--)
             {
                 var slotValue = GetSlot(i);
