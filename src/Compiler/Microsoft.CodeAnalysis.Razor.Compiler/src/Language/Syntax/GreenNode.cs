@@ -260,8 +260,6 @@ internal abstract class GreenNode
         {
             result = null;
 
-            // Reverse iteration to avoid hitting the SlotCount property multiple times
-            // We're just as likely to hit a non-null slot at the end as at the beginning
             var slotCount = SlotCount;
             for (var i = 0; i < slotCount; i++)
             {
