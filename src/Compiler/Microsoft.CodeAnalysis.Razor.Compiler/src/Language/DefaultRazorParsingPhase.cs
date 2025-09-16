@@ -13,7 +13,7 @@ internal class DefaultRazorParsingPhase : RazorEnginePhaseBase, IRazorParsingPha
     private static readonly ConditionalWeakTable<RazorSourceDocument, RazorSyntaxTree> s_importTrees = new();
 
 #if !NET
-    private static readonly object s_importTreeslock = new();
+    private static readonly object s_importTreesLock = new();
 #endif
 
     protected override void ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
@@ -37,7 +37,7 @@ internal class DefaultRazorParsingPhase : RazorEnginePhaseBase, IRazorParsingPha
 #else
                 // NetStandard2.0 doesn't have a nice AddOrUpdate method, so we'll use our own locking to
                 // ensure the CWT is updated correctly.
-                lock (s_importTreeslock)
+                lock (s_importTreesLock)
                 {
                     if (TryGetCachedImportTree(import, options, out var cachedTree))
                     {
