@@ -205,8 +205,7 @@
       "title": "@110;{13b72f58-279e-49e0-a56d-296be02f0805}" // Razor (ASP.NET Core)
     },
     "textEditor.razor.advanced": {
-      "title": "@1050;{13b72f58-279e-49e0-a56d-296be02f0805}", // Advanced
-      "legacyOptionPageId": "8EBB7F64-5BF7-49E6-9023-7CD7B9912203"
+      "title": "@1050;{13b72f58-279e-49e0-a56d-296be02f0805}" // Advanced
     }
   }
 }
