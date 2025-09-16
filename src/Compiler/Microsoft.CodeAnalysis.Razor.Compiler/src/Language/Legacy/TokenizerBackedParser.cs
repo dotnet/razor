@@ -705,11 +705,15 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase, IDisposa
 
     protected void ConfigureSpanContext(SpanContextConfigActionWithPreviousConfig? config)
     {
-        var prev = SpanContextConfig;
         SpanContextConfig = config == null
             ? null
-            : ((SpanEditHandlerBuilder? span, ref ISpanChunkGenerator? chunkGenerator) => config(span, ref chunkGenerator, prev));
+            : GetNewSpanContextConfigAction(config, SpanContextConfig);
         InitializeContext();
+
+        static SpanContextConfigAction GetNewSpanContextConfigAction(SpanContextConfigActionWithPreviousConfig config, SpanContextConfigAction? prev)
+        {
+            return (span, ref chunkGenerator) => config(span, ref chunkGenerator, prev);
+        }
     }
 
     protected void InitializeContext()
