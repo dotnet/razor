@@ -11,7 +11,10 @@ namespace Microsoft.AspNetCore.Razor.Language;
 internal class DefaultRazorParsingPhase : RazorEnginePhaseBase, IRazorParsingPhase
 {
     private static readonly ConditionalWeakTable<RazorSourceDocument, RazorSyntaxTree> s_importTrees = new();
-    private static readonly object s_lock = new();
+
+#if !NET
+    private static readonly object s_importTreeslock = new();
+#endif
 
     protected override void ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
     {
@@ -29,9 +32,12 @@ internal class DefaultRazorParsingPhase : RazorEnginePhaseBase, IRazorParsingPha
                 // We don't have a cached version, parse the import and add it to the CWT
                 tree = RazorSyntaxTree.Parse(import, options);
 
+#if NET
+                s_importTrees.AddOrUpdate(import, tree);
+#else
                 // NetStandard2.0 doesn't have a nice AddOrUpdate method, so we'll use our own locking to
                 // ensure the CWT is updated correctly.
-                lock (s_lock)
+                lock (s_importTreeslock)
                 {
                     if (TryGetCachedImportTree(import, options, out var cachedTree))
                     {
@@ -40,10 +46,17 @@ internal class DefaultRazorParsingPhase : RazorEnginePhaseBase, IRazorParsingPha
                     }
                     else
                     {
-                        // No one else has added it, we should.
+                        if (cachedTree is not null)
+                        {
+                            // If there is a cachedTree, it must have different options. Remove it from the cache
+                            s_importTrees.Remove(import);
+                        }
+
+                        // Add the tree we created to the cache
                         s_importTrees.Add(import, tree);
                     }
                 }
+#endif
             }
 
             importSyntaxTrees.Add(tree);
