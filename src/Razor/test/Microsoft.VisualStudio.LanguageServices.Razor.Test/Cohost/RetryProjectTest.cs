@@ -35,14 +35,6 @@ public class RetryProjectTest(ITestOutputHelper testOutputHelper) : CohostEndpoi
         // Now turn the source generator on, to simulate Razor starting up and initializing OOP
         RazorCohostingOptions.UseRazorCohostServer = true;
 
-        var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();
-        var projectSnapshot = snapshotManager.GetSnapshot(document.Project);
-        var documentSnapshot = projectSnapshot.GetDocument(document);
-
-        await projectSnapshot.GetRequiredCodeDocumentAsync(documentSnapshot, DisposalToken);
-
-        Assert.True(projectSnapshot.Project.IsRetryProject());
-
         var inputText = await document.GetTextAsync(DisposalToken);
         var linePosition = inputText.GetLinePosition(input.Position);
 
@@ -82,6 +74,7 @@ public class RetryProjectTest(ITestOutputHelper testOutputHelper) : CohostEndpoi
 
         await projectSnapshot.GetRequiredCodeDocumentAsync(documentSnapshot, DisposalToken);
 
+        projectSnapshot = snapshotManager.GetSnapshot(document.Project);
         Assert.True(projectSnapshot.Project.IsRetryProject());
     }
 
@@ -162,6 +155,7 @@ public class RetryProjectTest(ITestOutputHelper testOutputHelper) : CohostEndpoi
         var documentSnapshot = projectSnapshot.GetDocument(document);
         await projectSnapshot.GetRequiredCodeDocumentAsync(documentSnapshot, DisposalToken);
 
+        projectSnapshot = snapshotManager.GetSnapshot(document.Project);
         Assert.True(projectSnapshot.Project.IsRetryProject());
 
         var changedDocument = document.Project.Solution.WithAdditionalDocumentText(document.Id, SourceText.From("Different")).GetAdditionalDocument(document.Id);

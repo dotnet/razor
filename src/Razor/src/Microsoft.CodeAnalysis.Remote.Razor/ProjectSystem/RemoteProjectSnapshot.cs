@@ -12,11 +12,9 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Utilities;
-using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
@@ -26,8 +24,7 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
 
     public ProjectKey Key { get; }
 
-    // This is not readonly for ONE specific purpose, and should not generally be mutated
-    private Project _project;
+    private readonly Project _project;
     private readonly Dictionary<TextDocument, RemoteDocumentSnapshot> _documentMap = [];
 
     public RemoteProjectSnapshot(Project project, RemoteSolutionSnapshot solutionSnapshot)
@@ -61,8 +58,8 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
 
     public async ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken)
     {
-        var generatorResult = await GetRazorGeneratorResultAsync(throwIfNotFound: false, cancellationToken).ConfigureAwait(false);
-        if (generatorResult is null)
+        var generatorResult = await GeneratorRunResult.CreateAsync(throwIfNotFound: false, _project, SolutionSnapshot.SnapshotManager, cancellationToken).ConfigureAwait(false);
+        if (generatorResult.IsDefault)
             return [];
 
         return [.. generatorResult.TagHelpers];
@@ -149,22 +146,20 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
 
     internal async Task<RazorCodeDocument> GetRequiredCodeDocumentAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
-        var generatorResult = await GetRazorGeneratorResultAsync(throwIfNotFound: true, cancellationToken).ConfigureAwait(false);
+        var generatorResult = await GeneratorRunResult.CreateAsync(throwIfNotFound: true, _project, SolutionSnapshot.SnapshotManager, cancellationToken).ConfigureAwait(false);
 
-        return generatorResult.AssumeNotNull().GetCodeDocument(documentSnapshot.FilePath)
-            ?? throw new InvalidOperationException(SR.FormatGenerator_run_result_did_not_contain_a_code_document(documentSnapshot.FilePath));
+        Assumed.False(generatorResult.IsDefault);
+
+        return generatorResult.GetRequiredCodeDocument(documentSnapshot.FilePath);
     }
 
     internal async Task<SourceGeneratedDocument> GetRequiredGeneratedDocumentAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
-        var generatorResult = await GetRazorGeneratorResultAsync(throwIfNotFound: true, cancellationToken).ConfigureAwait(false);
+        var generatorResult = await GeneratorRunResult.CreateAsync(throwIfNotFound: true, _project, SolutionSnapshot.SnapshotManager, cancellationToken).ConfigureAwait(false);
 
-        var hintName = generatorResult.AssumeNotNull().GetHintName(documentSnapshot.FilePath);
+        Assumed.False(generatorResult.IsDefault);
 
-        var generatedDocument = await _project.TryGetSourceGeneratedDocumentFromHintNameAsync(hintName, cancellationToken).ConfigureAwait(false);
-
-        return generatedDocument
-            ?? throw new InvalidOperationException(SR.FormatCouldnt_get_the_source_generated_document_for_hint_name(hintName));
+        return await generatorResult.GetRequiredSourceGeneratedDocumentForRazorFilePathAsync(documentSnapshot.FilePath, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<RazorCodeDocument?> TryGetCodeDocumentFromGeneratedDocumentUriAsync(Uri generatedDocumentUri, CancellationToken cancellationToken)
@@ -179,99 +174,28 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
 
     public async Task<RazorCodeDocument?> TryGetCodeDocumentFromGeneratedHintNameAsync(string generatedDocumentHintName, CancellationToken cancellationToken)
     {
-        var runResult = await GetRazorGeneratorResultAsync(throwIfNotFound: false, cancellationToken).ConfigureAwait(false);
-        if (runResult is null)
+        var generatorResult = await GeneratorRunResult.CreateAsync(throwIfNotFound: false, _project, SolutionSnapshot.SnapshotManager, cancellationToken).ConfigureAwait(false);
+        if (generatorResult.IsDefault)
         {
             return null;
         }
 
-        return runResult.GetFilePath(generatedDocumentHintName) is { } razorFilePath
-            ? runResult.GetCodeDocument(razorFilePath)
+        return generatorResult.GetRazorFilePathFromHintName(generatedDocumentHintName) is { } razorFilePath
+            ? generatorResult.GetCodeDocument(razorFilePath)
             : null;
     }
 
     public async Task<TextDocument?> TryGetRazorDocumentFromGeneratedHintNameAsync(string generatedDocumentHintName, CancellationToken cancellationToken)
     {
-        var runResult = await GetRazorGeneratorResultAsync(throwIfNotFound: false, cancellationToken).ConfigureAwait(false);
-        if (runResult is null)
+        var generatorResult = await GeneratorRunResult.CreateAsync(throwIfNotFound: false, _project, SolutionSnapshot.SnapshotManager, cancellationToken).ConfigureAwait(false);
+        if (generatorResult.IsDefault)
         {
             return null;
         }
 
-        return runResult.GetFilePath(generatedDocumentHintName) is { } razorFilePath &&
-            _project.Solution.TryGetRazorDocument(razorFilePath, out var razorDocument)
+        return generatorResult.GetRazorFilePathFromHintName(generatedDocumentHintName) is { } razorFilePath &&
+            generatorResult.TryGetRazorDocument(razorFilePath, out var razorDocument)
                 ? razorDocument
                 : null;
-    }
-
-    private async Task<RazorGeneratorResult?> GetRazorGeneratorResultAsync(bool throwIfNotFound, CancellationToken cancellationToken)
-    {
-        var result = await _project.GetSourceGeneratorRunResultAsync(cancellationToken).ConfigureAwait(false);
-        if (result is null)
-        {
-            if (throwIfNotFound)
-            {
-                throw new InvalidOperationException(SR.FormatCouldnt_get_a_source_generator_run_result(_project.Name));
-            }
-
-            return null;
-        }
-
-        var runResult = result.Results.SingleOrDefault(r => r.Generator.GetGeneratorType().Assembly.Location == typeof(RazorSourceGenerator).Assembly.Location);
-        if (runResult.Generator is null)
-        {
-            if (throwIfNotFound)
-            {
-                if (result.Results.SingleOrDefault(r => r.Generator.GetGeneratorType().Name == "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator").Generator is { } wrongGenerator)
-                {
-                    // Wrong ALC?
-                    throw new InvalidOperationException(SR.FormatRazor_source_generator_reference_incorrect(wrongGenerator.GetGeneratorType().Assembly.Location, typeof(RazorSourceGenerator).Assembly.Location, _project.Name));
-                }
-                else
-                {
-                    throw new InvalidOperationException(SR.FormatRazor_source_generator_is_not_referenced(_project.Name));
-                }
-            }
-
-            return null;
-        }
-
-#pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-        if (!runResult.HostOutputs.TryGetValue(nameof(RazorGeneratorResult), out var objectResult))
-#pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-        {
-            // We know the generator is referenced, or we wouldn't have gotten past the above checks. We also know cohosting is turned on, since we got here.
-            // There is a race condition that can happen where if Roslyn runs the generator before Razor has a chance to initialize, then Roslyn will have
-            // cached the fact that cohosting was off, and any subsequent runs of the generator will not produce a host output. We can work around this by
-            // making an innocuous change to the project, and trying again.
-            if (SolutionSnapshot.SnapshotManager.TryGetRetryProject(_project) is { } retryProject)
-            {
-                // For subsequent requests for this project, the solution snapshot will have updated its view of the world and everything
-                // will be fine. For this request though, the caller of this method is just going to keep querying _project so we need to
-                // update it.
-                _project = retryProject;
-                return await GetRazorGeneratorResultAsync(throwIfNotFound, cancellationToken).ConfigureAwait(false);
-            }
-
-            if (throwIfNotFound)
-            {
-                throw new InvalidOperationException(SR.FormatRazor_source_generator_did_not_produce_a_host_output(_project.Name, string.Join(Environment.NewLine, runResult.Diagnostics)));
-            }
-
-            return null;
-        }
-
-        if (objectResult is not RazorGeneratorResult generatorResult)
-        {
-            if (throwIfNotFound)
-            {
-                // Wrong ALC?
-                throw new InvalidOperationException(SR.FormatRazor_source_generator_host_output_is_not_RazorGeneratorResult(_project.Name, string.Join(Environment.NewLine, runResult.Diagnostics)));
-            }
-
-            return null;
-        }
-
-        return generatorResult;
     }
 }
