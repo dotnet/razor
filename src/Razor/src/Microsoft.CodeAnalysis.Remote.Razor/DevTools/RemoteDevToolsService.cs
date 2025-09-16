@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -91,7 +92,7 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
 
     private async ValueTask<string> GetTagHelpersJsonAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
     {
-        var tagHelperDescriptors = await documentContext.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
+        var tagHelperDescriptors = await documentContext.Snapshot.ProjectSnapshot.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
         return JsonSerializer.Serialize(tagHelperDescriptors, new JsonSerializerOptions { WriteIndented = true });
     }
 
@@ -109,7 +110,7 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
         };
     }
 
-    private static Microsoft.CodeAnalysis.Razor.Protocol.DevTools.RazorSyntaxNode ConvertSyntaxNode(AspNetCore.Razor.Language.Syntax.SyntaxNode node)
+    private static Microsoft.CodeAnalysis.Razor.Protocol.DevTools.RazorSyntaxNode ConvertSyntaxNode(SyntaxNode node)
     {
         var children = node.ChildNodes().Select(ConvertSyntaxNode).ToArray();
         

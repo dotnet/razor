@@ -3,6 +3,7 @@
 
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol.DevTools;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.LanguageServer.Protocol;
