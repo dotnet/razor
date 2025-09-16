@@ -42,8 +42,10 @@ internal sealed class TagHelperBinder
         out ImmutableArray<TagHelperDescriptor> catchAllDescriptors)
     {
         using var catchAllBuilder = new PooledArrayBuilder<TagHelperDescriptor>();
-        using var pooledMap = StringDictionaryPool<ImmutableArray<TagHelperDescriptor>.Builder>.OrdinalIgnoreCase.GetPooledObject(out var mapBuilder);
         using var pooledSet = HashSetPool<TagHelperDescriptor>.GetPooledObject(out var distinctSet);
+
+        // mapBuilder maps from tag name to either a single TagHelperDescriptor or a List<TagHelperDescriptor>.
+        using var pooledMap = StringDictionaryPool<object>.OrdinalIgnoreCase.GetPooledObject(out var mapBuilder);
 
         // Build a map of tag name -> tag helpers.
         foreach (var descriptor in descriptors)
@@ -65,9 +67,8 @@ internal sealed class TagHelperBinder
                 {
                     // This is a specific tag name, we need to add it to the map.
                     var tagName = tagNamePrefix + rule.TagName;
-                    var builder = mapBuilder.GetOrAdd(tagName, _ => ImmutableArray.CreateBuilder<TagHelperDescriptor>());
 
-                    builder.Add(descriptor);
+                    AddToMapBuilder(mapBuilder, descriptor, tagName);
                 }
             }
         }
@@ -77,13 +78,48 @@ internal sealed class TagHelperBinder
 
         foreach (var (key, value) in mapBuilder)
         {
-            map.Add(key, value.ToImmutableAndClear());
+            if (value is List<TagHelperDescriptor> builder)
+            {
+                map[key] = [.. builder];
+                ListPool<TagHelperDescriptor>.Default.Return(builder);
+            }
+            else
+            {
+                Debug.Assert(value is TagHelperDescriptor);
+                map[key] = [(TagHelperDescriptor)value];
+            }
         }
 
         tagNameToDescriptorsMap = new ReadOnlyDictionary<string, ImmutableArray<TagHelperDescriptor>>(map);
 
         // Build the catch all descriptors array.
         catchAllDescriptors = catchAllBuilder.ToImmutableAndClear();
+
+        static void AddToMapBuilder(Dictionary<string, object> mapBuilder, TagHelperDescriptor descriptor, string tagName)
+        {
+            if (!mapBuilder.TryGetValue(tagName, out var value))
+            {
+                // First descriptor for this tag name, just store it directly.
+                mapBuilder[tagName] = descriptor;
+            }
+            else
+            {
+                // If we have only seen a single descriptor for this tag name, upgrade to a list.
+                if (value is not List<TagHelperDescriptor> builder)
+                {
+                    Debug.Assert(value is TagHelperDescriptor);
+
+                    var existingDescriptor = (TagHelperDescriptor)value;
+                    builder = ListPool<TagHelperDescriptor>.Default.Get();
+                    builder.Add(existingDescriptor);
+
+                    mapBuilder[tagName] = builder;
+                }
+
+                // Add the given descriptor to the list.
+                builder.Add(descriptor);
+            }
+        }
     }
 
     /// <summary>
