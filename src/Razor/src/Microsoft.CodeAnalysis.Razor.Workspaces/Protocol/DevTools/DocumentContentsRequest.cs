@@ -18,7 +18,7 @@ internal sealed class DocumentContentsRequest
     {
         return new DocumentContentsRequest
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = hostDocumentUri },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = new(hostDocumentUri) },
             Kind = kind
         };
     }

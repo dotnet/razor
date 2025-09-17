@@ -4,6 +4,7 @@
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol.DevTools;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.LanguageServer.Protocol;
@@ -61,7 +62,7 @@ public class CohostDevToolsEndpointTest(ITestOutputHelper testOutputHelper) : Co
                 <div>Test content</div>
                 """;
 
-        var razorDocument = await CreateDocumentAsync(input);
+        var razorDocument = CreateProjectAndRazorDocument(input);
         var endpoint = new CohostTagHelpersEndpoint(IncompatibleProjectService, RemoteServiceInvoker);
         
         var request = new TagHelpersRequest
@@ -90,7 +91,7 @@ public class CohostDevToolsEndpointTest(ITestOutputHelper testOutputHelper) : Co
                 <div>@message</div>
                 """;
 
-        var razorDocument = await CreateDocumentAsync(input);
+        var razorDocument = CreateProjectAndRazorDocument(input);
         var endpoint = new CohostSyntaxTreeEndpoint(IncompatibleProjectService, RemoteServiceInvoker);
         
         var request = new SyntaxTreeRequest
@@ -109,7 +110,7 @@ public class CohostDevToolsEndpointTest(ITestOutputHelper testOutputHelper) : Co
 
     private async Task VerifyGeneratedDocumentContentsAsync(string input, GeneratedDocumentKind kind, string expectedContentSubstring, string expectedFileExtension)
     {
-        var razorDocument = await CreateDocumentAsync(input);
+        var razorDocument = CreateProjectAndRazorDocument(input);
         var endpoint = new CohostGeneratedDocumentContentsEndpoint(IncompatibleProjectService, RemoteServiceInvoker);
         
         var request = new DocumentContentsRequest

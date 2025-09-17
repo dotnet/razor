@@ -241,6 +241,50 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
         return false;
     }
 
+    private bool ShowSerializedTagHelpers_Cohost(ITextBuffer textBuffer, Uri hostDocumentUri, TagHelperDisplayMode displayKind)
+    {
+        EnsureInitialized();
+
+        var tagHelpersKind = displayKind switch
+        {
+            TagHelperDisplayMode.All => TagHelpersKind.All,
+            TagHelperDisplayMode.InScope => TagHelpersKind.InScope,
+            TagHelperDisplayMode.Referenced => TagHelpersKind.Referenced,
+            _ => TagHelpersKind.All
+        };
+
+        var request = TagHelpersRequest.Create(hostDocumentUri, tagHelpersKind);
+
+        var response = _joinableTaskFactory.Run(async () =>
+        {
+            var lspResponse = await _lspRequestInvoker.ReinvokeRequestOnServerAsync<TagHelpersRequest, string>(
+                textBuffer,
+                "razor/tagHelpers",
+                RazorLSPConstants.RoslynLanguageServerName,
+                request,
+                CancellationToken.None);
+
+            return lspResponse?.Response;
+        });
+
+        if (response != null)
+        {
+            var tempFileName = GetTempFileName(displayKind.ToString() + "TagHelpers.json");
+            try
+            {
+                File.WriteAllText(tempFileName, response);
+                VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, tempFileName);
+                return true;
+            }
+            catch
+            {
+                // Fall through to legacy method
+            }
+        }
+
+        return false;
+    }
+
     public void ShowSerializedTagHelpers(TagHelperDisplayMode displayKind)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
@@ -251,41 +295,9 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
         {
             if (_fileUriProvider.TryGet(_activeWpfTextView.TextBuffer, out var hostDocumentUri))
             {
-                var tagHelpersKind = displayKind switch
+                if (ShowSerializedTagHelpers_Cohost(_activeWpfTextView.TextBuffer, hostDocumentUri, displayKind))
                 {
-                    TagHelperDisplayMode.All => TagHelpersKind.All,
-                    TagHelperDisplayMode.InScope => TagHelpersKind.InScope,
-                    TagHelperDisplayMode.Referenced => TagHelpersKind.Referenced,
-                    _ => TagHelpersKind.All
-                };
-
-                var request = TagHelpersRequest.Create(hostDocumentUri, tagHelpersKind);
-
-                var response = _joinableTaskFactory.Run(async () =>
-                {
-                    var lspResponse = await _lspRequestInvoker.ReinvokeRequestOnServerAsync<TagHelpersRequest, string>(
-                        _activeWpfTextView.TextBuffer,
-                        "razor/tagHelpers",
-                        RazorLSPConstants.RoslynLanguageServerName,
-                        request,
-                        CancellationToken.None);
-
-                    return lspResponse?.Response;
-                });
-
-                if (response != null)
-                {
-                    var tempFileName = GetTempFileName(displayKind.ToString() + "TagHelpers.json");
-                    try
-                    {
-                        File.WriteAllText(tempFileName, response);
-                        VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, tempFileName);
-                        return;
-                    }
-                    catch
-                    {
-                        // Fall through to legacy method
-                    }
+                    return;
                 }
             }
         }
