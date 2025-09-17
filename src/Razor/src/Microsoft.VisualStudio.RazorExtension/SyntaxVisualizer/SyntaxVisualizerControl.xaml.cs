@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Serialization.Json;
 using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Razor.Protocol.DevTools;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
 using Microsoft.VisualStudio.Razor;
@@ -24,6 +26,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer;
 
@@ -35,6 +38,8 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
     private JoinableTaskFactory? _joinableTaskFactory;
     private LSPDocumentManager? _documentManager;
     private FileUriProvider? _fileUriProvider;
+    private LanguageServerFeatureOptions? _languageServerFeatureOptions;
+    private LSPRequestInvoker? _lspRequestInvoker;
     private uint _runningDocumentTableCookie;
     private IVsRunningDocumentTable? _runningDocumentTable;
     private IWpfTextView? _activeWpfTextView;
@@ -61,13 +66,15 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
         InitializeRunningDocumentTable();
     }
 
-    [MemberNotNull(nameof(_codeDocumentProvider), nameof(_joinableTaskFactory), nameof(_documentManager), nameof(_fileUriProvider))]
+    [MemberNotNull(nameof(_codeDocumentProvider), nameof(_joinableTaskFactory), nameof(_documentManager), nameof(_fileUriProvider), nameof(_languageServerFeatureOptions), nameof(_lspRequestInvoker))]
     private void EnsureInitialized()
     {
         if (_codeDocumentProvider is not null &&
             _joinableTaskFactory is not null &&
             _documentManager is not null &&
-            _fileUriProvider is not null)
+            _fileUriProvider is not null &&
+            _languageServerFeatureOptions is not null &&
+            _lspRequestInvoker is not null)
         {
             return;
         }
@@ -76,6 +83,8 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
         _joinableTaskFactory = VSServiceHelpers.GetRequiredMefService<JoinableTaskContext>().Factory;
         _documentManager = VSServiceHelpers.GetRequiredMefService<LSPDocumentManager>();
         _fileUriProvider = VSServiceHelpers.GetRequiredMefService<FileUriProvider>();
+        _languageServerFeatureOptions = VSServiceHelpers.GetRequiredMefService<LanguageServerFeatureOptions>();
+        _lspRequestInvoker = VSServiceHelpers.GetRequiredMefService<LSPRequestInvoker>();
     }
 
     private void InitializeRunningDocumentTable()
@@ -121,6 +130,34 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
 
         if (_fileUriProvider.TryGet(_activeWpfTextView.TextBuffer, out var hostDocumentUri))
         {
+            if (_languageServerFeatureOptions.UseRazorCohostServer)
+            {
+                var request = new DocumentContentsRequest
+                {
+                    TextDocument = new TextDocumentIdentifier { DocumentUri = hostDocumentUri },
+                    Kind = GeneratedDocumentKind.Formatting
+                };
+
+                var response = _joinableTaskFactory.Run(async () =>
+                {
+                    var lspResponse = await _lspRequestInvoker.ReinvokeRequestOnServerAsync<DocumentContentsRequest, DocumentContentsResponse>(
+                        _activeWpfTextView.TextBuffer,
+                        "razor/generatedDocumentContents",
+                        RazorLSPConstants.RoslynLanguageServerName,
+                        request,
+                        CancellationToken.None);
+
+                    return lspResponse?.Response;
+                });
+
+                if (response != null)
+                {
+                    OpenGeneratedCode(response.FilePath, response.Contents);
+                    return;
+                }
+            }
+
+            // Fall back to legacy method if cohosting is not enabled or failed
             var codeDocument = GetCodeDocument();
             if (codeDocument is null)
             {
@@ -141,6 +178,39 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
             return;
         }
 
+        EnsureInitialized();
+
+        if (_languageServerFeatureOptions.UseRazorCohostServer)
+        {
+            if (_fileUriProvider.TryGet(_activeWpfTextView.TextBuffer, out var hostDocumentUri))
+            {
+                var request = new DocumentContentsRequest
+                {
+                    TextDocument = new TextDocumentIdentifier { DocumentUri = hostDocumentUri },
+                    Kind = GeneratedDocumentKind.CSharp
+                };
+
+                var response = _joinableTaskFactory.Run(async () =>
+                {
+                    var lspResponse = await _lspRequestInvoker.ReinvokeRequestOnServerAsync<DocumentContentsRequest, DocumentContentsResponse>(
+                        _activeWpfTextView.TextBuffer,
+                        "razor/generatedDocumentContents",
+                        RazorLSPConstants.RoslynLanguageServerName,
+                        request,
+                        CancellationToken.None);
+
+                    return lspResponse?.Response;
+                });
+
+                if (response != null)
+                {
+                    OpenGeneratedCode(response.FilePath, response.Contents);
+                    return;
+                }
+            }
+        }
+
+        // Fall back to legacy method if cohosting is not enabled or failed
         OpenVirtualDocuments<CSharpVirtualDocumentSnapshot>(_activeWpfTextView.TextBuffer);
     }
 
@@ -181,6 +251,39 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
             return;
         }
 
+        EnsureInitialized();
+
+        if (_languageServerFeatureOptions.UseRazorCohostServer)
+        {
+            if (_fileUriProvider.TryGet(_activeWpfTextView.TextBuffer, out var hostDocumentUri))
+            {
+                var request = new DocumentContentsRequest
+                {
+                    TextDocument = new TextDocumentIdentifier { DocumentUri = hostDocumentUri },
+                    Kind = GeneratedDocumentKind.Html
+                };
+
+                var response = _joinableTaskFactory.Run(async () =>
+                {
+                    var lspResponse = await _lspRequestInvoker.ReinvokeRequestOnServerAsync<DocumentContentsRequest, DocumentContentsResponse>(
+                        _activeWpfTextView.TextBuffer,
+                        "razor/generatedDocumentContents",
+                        RazorLSPConstants.RoslynLanguageServerName,
+                        request,
+                        CancellationToken.None);
+
+                    return lspResponse?.Response;
+                });
+
+                if (response != null)
+                {
+                    OpenGeneratedCode(response.FilePath, response.Contents);
+                    return;
+                }
+            }
+        }
+
+        // Fall back to legacy method if cohosting is not enabled or failed
         OpenVirtualDocuments<HtmlVirtualDocumentSnapshot>(_activeWpfTextView.TextBuffer);
     }
 
@@ -188,6 +291,42 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 
+        EnsureInitialized();
+
+        if (_languageServerFeatureOptions.UseRazorCohostServer && _activeWpfTextView is not null)
+        {
+            if (_fileUriProvider.TryGet(_activeWpfTextView.TextBuffer, out var hostDocumentUri))
+            {
+                var response = _joinableTaskFactory.Run(async () =>
+                {
+                    var lspResponse = await _lspRequestInvoker.ReinvokeRequestOnServerAsync<TextDocumentIdentifier, string>(
+                        _activeWpfTextView.TextBuffer,
+                        "razor/tagHelpers",
+                        RazorLSPConstants.RoslynLanguageServerName,
+                        new TextDocumentIdentifier { DocumentUri = hostDocumentUri },
+                        CancellationToken.None);
+
+                    return lspResponse?.Response;
+                });
+
+                if (response != null)
+                {
+                    var tempFileName = GetTempFileName(displayKind.ToString() + "TagHelpers.json");
+                    try
+                    {
+                        File.WriteAllText(tempFileName, response);
+                        VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, tempFileName);
+                        return;
+                    }
+                    catch
+                    {
+                        // Fall through to legacy method
+                    }
+                }
+            }
+        }
+
+        // Fall back to legacy method if cohosting is not enabled or failed
         var codeDocument = GetCodeDocument().AssumeNotNull();
         var tagHelpers = displayKind switch
         {
