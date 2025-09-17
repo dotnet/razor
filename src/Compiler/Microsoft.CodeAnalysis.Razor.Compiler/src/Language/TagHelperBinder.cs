@@ -44,7 +44,7 @@ internal sealed class TagHelperBinder
     {
         using var catchAllBuilder = new PooledArrayBuilder<TagHelperDescriptor>();
         using var toVisit = new PooledArrayBuilder<(string, TagHelperDescriptor)>();
-        using var _ = StringDictionaryPool<TagHelperDescriptorArrayBuilder>.GetPooledObject(out var builderMap);
+        using var _ = StringDictionaryPool<TagHelperDescriptorArrayBuilder>.OrdinalIgnoreCase.GetPooledObject(out var builderMap);
 
         // The initial pass does three things:
         // 1: Fills out builderMap with a structure that can be used to create the array we will return
@@ -54,7 +54,7 @@ internal sealed class TagHelperBinder
 
         // Perform a pass over toVisit to populate each TagHelperDescriptorArrayBuilder entry in builderMap with descriptors
         // that match the tag name
-        PopulateArrayBuilders(ref toVisit.AsRef(), builderMap);
+        PopulateArrayBuilders(in toVisit, builderMap);
 
         // Build the final dictionary with immutable arrays
         var map = new Dictionary<string, ImmutableArray<TagHelperDescriptor>>(capacity: builderMap.Count, StringComparer.OrdinalIgnoreCase);
@@ -116,16 +116,16 @@ internal sealed class TagHelperBinder
         }
 
         static void PopulateArrayBuilders(
-            ref PooledArrayBuilder<(string, TagHelperDescriptor)> toVisit,
+            ref readonly PooledArrayBuilder<(string, TagHelperDescriptor)> toVisit,
             Dictionary<string, TagHelperDescriptorArrayBuilder> builderMap)
         {
             foreach (var (tagName, descriptor) in toVisit)
             {
-                var finalArrayBuilder = builderMap[tagName];
+                var builder = builderMap[tagName];
 
-                finalArrayBuilder.Add(descriptor);
+                builder.Add(descriptor);
 
-                builderMap[tagName] = finalArrayBuilder;
+                builderMap[tagName] = builder;
             }
         }
     }
