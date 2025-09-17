@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -53,7 +54,7 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
             context => GetFormattingDocumentTextAsync(context, cancellationToken),
             cancellationToken);
 
-    public ValueTask<string> GetTagHelpersJsonAsync(
+    public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersJsonAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId razorDocumentId,
         Microsoft.CodeAnalysis.Razor.Protocol.DevTools.TagHelpersKind kind,
@@ -64,7 +65,7 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
             context => GetTagHelpersJsonAsync(context, kind, cancellationToken),
             cancellationToken);
 
-    public ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.RazorSyntaxTree?> GetRazorSyntaxTreeAsync(
+    public ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.SyntaxVisualizerTree?> GetRazorSyntaxTreeAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId razorDocumentId,
         CancellationToken cancellationToken)
@@ -115,7 +116,7 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
         };
     }
 
-    private async ValueTask<string> GetTagHelpersJsonAsync(RemoteDocumentContext documentContext, Microsoft.CodeAnalysis.Razor.Protocol.DevTools.TagHelpersKind kind, CancellationToken cancellationToken)
+    private async ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersJsonAsync(RemoteDocumentContext documentContext, Microsoft.CodeAnalysis.Razor.Protocol.DevTools.TagHelpersKind kind, CancellationToken cancellationToken)
     {
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var tagHelpers = kind switch
@@ -127,10 +128,10 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
         };
 
         tagHelpers ??= [];
-        return JsonSerializer.Serialize(tagHelpers, new JsonSerializerOptions { WriteIndented = true });
+        return tagHelpers.ToImmutableArray();
     }
 
-    private async ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.RazorSyntaxTree?> GetRazorSyntaxTreeAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
+    private async ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.SyntaxVisualizerTree?> GetRazorSyntaxTreeAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
     {
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var razorSyntaxTree = codeDocument.GetSyntaxTree();
@@ -138,17 +139,17 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
         if (razorSyntaxTree?.Root == null)
             return null;
 
-        return new Microsoft.CodeAnalysis.Razor.Protocol.DevTools.RazorSyntaxTree
+        return new Microsoft.CodeAnalysis.Razor.Protocol.DevTools.SyntaxVisualizerTree
         {
             Root = ConvertSyntaxNode(razorSyntaxTree.Root)
         };
     }
 
-    private static Microsoft.CodeAnalysis.Razor.Protocol.DevTools.RazorSyntaxNode ConvertSyntaxNode(SyntaxNode node)
+    private static Microsoft.CodeAnalysis.Razor.Protocol.DevTools.SyntaxVisualizerNode ConvertSyntaxNode(SyntaxNode node)
     {
         var children = node.ChildNodes().Select(ConvertSyntaxNode).ToArray();
         
-        return new Microsoft.CodeAnalysis.Razor.Protocol.DevTools.RazorSyntaxNode
+        return new Microsoft.CodeAnalysis.Razor.Protocol.DevTools.SyntaxVisualizerNode
         {
             Kind = node.Kind.ToString(),
             SpanStart = node.SpanStart,

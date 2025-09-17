@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 internal sealed class CohostSyntaxTreeEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker)
-    : AbstractCohostDocumentEndpoint<SyntaxTreeRequest, RazorSyntaxTree?>(incompatibleProjectService)
+    : AbstractCohostDocumentEndpoint<SyntaxTreeRequest, SyntaxVisualizerTree?>(incompatibleProjectService)
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
 
@@ -32,9 +32,9 @@ internal sealed class CohostSyntaxTreeEndpoint(
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(SyntaxTreeRequest request)
         => request.TextDocument.ToRazorTextDocumentIdentifier();
 
-    protected override async Task<RazorSyntaxTree?> HandleRequestAsync(SyntaxTreeRequest request, TextDocument razorDocument, CancellationToken cancellationToken)
+    protected override async Task<SyntaxVisualizerTree?> HandleRequestAsync(SyntaxTreeRequest request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        return await _remoteServiceInvoker.TryInvokeAsync<IRemoteDevToolsService, RazorSyntaxTree?>(
+        return await _remoteServiceInvoker.TryInvokeAsync<IRemoteDevToolsService, SyntaxVisualizerTree?>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken) => service.GetRazorSyntaxTreeAsync(solutionInfo, razorDocument.Id, cancellationToken),
             cancellationToken).ConfigureAwait(false);
@@ -44,7 +44,7 @@ internal sealed class CohostSyntaxTreeEndpoint(
 
     internal readonly struct TestAccessor(CohostSyntaxTreeEndpoint instance)
     {
-        public Task<RazorSyntaxTree?> HandleRequestAsync(SyntaxTreeRequest request, TextDocument razorDocument, CancellationToken cancellationToken)
+        public Task<SyntaxVisualizerTree?> HandleRequestAsync(SyntaxTreeRequest request, TextDocument razorDocument, CancellationToken cancellationToken)
             => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
     }
 }

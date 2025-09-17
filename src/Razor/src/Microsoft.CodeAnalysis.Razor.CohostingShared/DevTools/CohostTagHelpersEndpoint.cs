@@ -1,9 +1,12 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Immutable;
 using System.Composition;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Cohost;
@@ -34,10 +37,17 @@ internal sealed class CohostTagHelpersEndpoint(
 
     protected override async Task<string?> HandleRequestAsync(TagHelpersRequest request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        return await _remoteServiceInvoker.TryInvokeAsync<IRemoteDevToolsService, string>(
+        var tagHelpers = await _remoteServiceInvoker.TryInvokeAsync<IRemoteDevToolsService, ImmutableArray<TagHelperDescriptor>>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken) => service.GetTagHelpersJsonAsync(solutionInfo, razorDocument.Id, request.Kind, cancellationToken),
             cancellationToken).ConfigureAwait(false);
+
+        if (tagHelpers.IsDefault)
+        {
+            return null;
+        }
+
+        return JsonSerializer.Serialize(tagHelpers, new JsonSerializerOptions { WriteIndented = true });
     }
 
     internal TestAccessor GetTestAccessor() => new(this);

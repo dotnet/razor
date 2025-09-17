@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.Razor.Protocol.DevTools;
 
-internal sealed class RazorSyntaxNode
+internal sealed class SyntaxVisualizerNode
 {
     [JsonPropertyName("kind")]
     public required string Kind { get; set; }
@@ -17,5 +17,5 @@ internal sealed class RazorSyntaxNode
     public required int SpanEnd { get; set; }
 
     [JsonPropertyName("children")]
-    public required RazorSyntaxNode[] Children { get; set; }
+    public required SyntaxVisualizerNode[] Children { get; set; }
 }

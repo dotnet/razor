@@ -216,6 +216,8 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
 
     private bool ShowGeneratedCode_Cohost(ITextBuffer textBuffer, Uri hostDocumentUri, GeneratedDocumentKind kind)
     {
+        EnsureInitialized();
+        
         var request = DocumentContentsRequest.Create(hostDocumentUri, kind);
 
         var response = _joinableTaskFactory.Run(async () =>

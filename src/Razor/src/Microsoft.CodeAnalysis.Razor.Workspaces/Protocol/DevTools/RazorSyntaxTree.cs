@@ -5,8 +5,8 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.Razor.Protocol.DevTools;
 
-internal sealed class RazorSyntaxTree
+internal sealed class SyntaxVisualizerTree
 {
     [JsonPropertyName("root")]
-    public required RazorSyntaxNode Root { get; set; }
+    public required SyntaxVisualizerNode Root { get; set; }
 }
