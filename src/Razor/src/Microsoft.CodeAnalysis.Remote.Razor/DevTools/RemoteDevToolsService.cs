@@ -1,6 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -55,11 +56,12 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
     public ValueTask<string> GetTagHelpersJsonAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId razorDocumentId,
+        Microsoft.CodeAnalysis.Razor.Protocol.DevTools.TagHelpersKind kind,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => GetTagHelpersJsonAsync(context, cancellationToken),
+            context => GetTagHelpersJsonAsync(context, kind, cancellationToken),
             cancellationToken);
 
     public ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.RazorSyntaxTree?> GetRazorSyntaxTreeAsync(
@@ -113,10 +115,19 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
         };
     }
 
-    private async ValueTask<string> GetTagHelpersJsonAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
+    private async ValueTask<string> GetTagHelpersJsonAsync(RemoteDocumentContext documentContext, Microsoft.CodeAnalysis.Razor.Protocol.DevTools.TagHelpersKind kind, CancellationToken cancellationToken)
     {
-        var tagHelperDescriptors = await documentContext.Snapshot.ProjectSnapshot.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
-        return JsonSerializer.Serialize(tagHelperDescriptors, new JsonSerializerOptions { WriteIndented = true });
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var tagHelpers = kind switch
+        {
+            Microsoft.CodeAnalysis.Razor.Protocol.DevTools.TagHelpersKind.All => codeDocument.GetTagHelpers(),
+            Microsoft.CodeAnalysis.Razor.Protocol.DevTools.TagHelpersKind.InScope => codeDocument.GetRequiredTagHelperContext().TagHelpers,
+            Microsoft.CodeAnalysis.Razor.Protocol.DevTools.TagHelpersKind.Referenced => (IEnumerable<TagHelperDescriptor>?)codeDocument.GetReferencedTagHelpers(),
+            _ => []
+        };
+
+        tagHelpers ??= [];
+        return JsonSerializer.Serialize(tagHelpers, new JsonSerializerOptions { WriteIndented = true });
     }
 
     private async ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.RazorSyntaxTree?> GetRazorSyntaxTreeAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)

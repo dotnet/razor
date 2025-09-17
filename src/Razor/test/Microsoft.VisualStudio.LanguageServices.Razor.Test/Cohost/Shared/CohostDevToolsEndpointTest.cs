@@ -64,9 +64,10 @@ public class CohostDevToolsEndpointTest(ITestOutputHelper testOutputHelper) : Co
         var razorDocument = await CreateDocumentAsync(input);
         var endpoint = new CohostTagHelpersEndpoint(IncompatibleProjectService, RemoteServiceInvoker);
         
-        var request = new TextDocumentIdentifier
+        var request = new TagHelpersRequest
         {
-            DocumentUri = razorDocument.CreateDocumentUri()
+            TextDocument = new TextDocumentIdentifier { DocumentUri = razorDocument.CreateDocumentUri() },
+            Kind = TagHelpersKind.All
         };
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, razorDocument, DisposalToken);

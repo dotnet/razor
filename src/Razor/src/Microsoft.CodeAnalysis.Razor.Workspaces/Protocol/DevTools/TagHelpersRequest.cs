@@ -5,17 +5,17 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.Razor.Protocol.DevTools;
 
-internal sealed class DocumentContentsRequest
+internal sealed class TagHelpersRequest
 {
     [JsonPropertyName("textDocument")]
     public required TextDocumentIdentifier TextDocument { get; set; }
 
     [JsonPropertyName("kind")]
-    public required GeneratedDocumentKind Kind { get; set; }
+    public required TagHelpersKind Kind { get; set; }
 
-    public static DocumentContentsRequest Create(System.Uri hostDocumentUri, GeneratedDocumentKind kind)
+    public static TagHelpersRequest Create(System.Uri hostDocumentUri, TagHelpersKind kind)
     {
-        return new DocumentContentsRequest
+        return new TagHelpersRequest
         {
             TextDocument = new TextDocumentIdentifier { DocumentUri = hostDocumentUri },
             Kind = kind

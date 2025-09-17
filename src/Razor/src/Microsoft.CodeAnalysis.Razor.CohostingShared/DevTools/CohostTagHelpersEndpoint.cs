@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.Protocol.DevTools;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -22,21 +22,21 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 internal sealed class CohostTagHelpersEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker)
-    : AbstractCohostDocumentEndpoint<TextDocumentIdentifier, string?>(incompatibleProjectService)
+    : AbstractCohostDocumentEndpoint<TagHelpersRequest, string?>(incompatibleProjectService)
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
 
     protected override bool MutatesSolutionState => false;
     protected override bool RequiresLSPSolution => true;
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(TextDocumentIdentifier request)
-        => request.ToRazorTextDocumentIdentifier();
+    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(TagHelpersRequest request)
+        => request.TextDocument.ToRazorTextDocumentIdentifier();
 
-    protected override async Task<string?> HandleRequestAsync(TextDocumentIdentifier request, TextDocument razorDocument, CancellationToken cancellationToken)
+    protected override async Task<string?> HandleRequestAsync(TagHelpersRequest request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         return await _remoteServiceInvoker.TryInvokeAsync<IRemoteDevToolsService, string>(
             razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.GetTagHelpersJsonAsync(solutionInfo, razorDocument.Id, cancellationToken),
+            (service, solutionInfo, cancellationToken) => service.GetTagHelpersJsonAsync(solutionInfo, razorDocument.Id, request.Kind, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -44,7 +44,7 @@ internal sealed class CohostTagHelpersEndpoint(
 
     internal readonly struct TestAccessor(CohostTagHelpersEndpoint instance)
     {
-        public Task<string?> HandleRequestAsync(TextDocumentIdentifier request, TextDocument razorDocument, CancellationToken cancellationToken)
+        public Task<string?> HandleRequestAsync(TagHelpersRequest request, TextDocument razorDocument, CancellationToken cancellationToken)
             => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
     }
 }
