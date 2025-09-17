@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -42,52 +43,25 @@ internal sealed class TagHelperBinder
         out ImmutableArray<TagHelperDescriptor> catchAllDescriptors)
     {
         using var catchAllBuilder = new PooledArrayBuilder<TagHelperDescriptor>();
-        using var pooledSet = HashSetPool<TagHelperDescriptor>.GetPooledObject(out var distinctSet);
+        using var toVisit = new PooledArrayBuilder<(string, TagHelperDescriptor)>();
+        using var _ = StringDictionaryPool<TagHelperDescriptorArrayBuilder>.GetPooledObject(out var builderMap);
 
-        // mapBuilder maps from tag name to either a single TagHelperDescriptor or a List<TagHelperDescriptor>.
-        using var pooledMap = StringDictionaryPool<object>.OrdinalIgnoreCase.GetPooledObject(out var mapBuilder);
+        // The initial pass does three things:
+        // 1: Fills out builderMap with a structure that can be used to create the array we will return
+        // 2: Fills out toVisit with all the (tagName, descriptor) pairs we need to process in the next pass
+        // 3: Fills out catchAllBuilder with all the catch-all descriptors
+        PerformInitialPass(descriptors, tagNamePrefix, builderMap, ref toVisit.AsRef(), ref catchAllBuilder.AsRef());
 
-        // Build a map of tag name -> tag helpers.
-        foreach (var descriptor in descriptors)
+        // Perform a pass over toVisit to populate each TagHelperDescriptorArrayBuilder entry in builderMap with descriptors
+        // that match the tag name
+        PopulateArrayBuilders(ref toVisit.AsRef(), builderMap);
+
+        // Build the final dictionary with immutable arrays
+        var map = new Dictionary<string, ImmutableArray<TagHelperDescriptor>>(capacity: builderMap.Count, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var (tagName, builder) in builderMap)
         {
-            if (!distinctSet.Add(descriptor))
-            {
-                // We're already seen this descriptor, skip it.
-                continue;
-            }
-
-            foreach (var rule in descriptor.TagMatchingRules)
-            {
-                if (rule.TagName == TagHelperMatchingConventions.ElementCatchAllName)
-                {
-                    // This is a catch-all descriptor, we can keep track of it separately.
-                    catchAllBuilder.Add(descriptor);
-                }
-                else
-                {
-                    // This is a specific tag name, we need to add it to the map.
-                    var tagName = tagNamePrefix + rule.TagName;
-
-                    AddToMapBuilder(mapBuilder, descriptor, tagName);
-                }
-            }
-        }
-
-        // Build the final dictionary with immutable arrays.
-        var map = new Dictionary<string, ImmutableArray<TagHelperDescriptor>>(capacity: mapBuilder.Count, StringComparer.OrdinalIgnoreCase);
-
-        foreach (var (key, value) in mapBuilder)
-        {
-            if (value is List<TagHelperDescriptor> builder)
-            {
-                map[key] = [.. builder];
-                ListPool<TagHelperDescriptor>.Default.Return(builder);
-            }
-            else
-            {
-                Debug.Assert(value is TagHelperDescriptor);
-                map[key] = [(TagHelperDescriptor)value];
-            }
+            map.Add(tagName, builder.ToImmutable());
         }
 
         tagNameToDescriptorsMap = new ReadOnlyDictionary<string, ImmutableArray<TagHelperDescriptor>>(map);
@@ -95,30 +69,97 @@ internal sealed class TagHelperBinder
         // Build the catch all descriptors array.
         catchAllDescriptors = catchAllBuilder.ToImmutableAndClear();
 
-        static void AddToMapBuilder(Dictionary<string, object> mapBuilder, TagHelperDescriptor descriptor, string tagName)
+        static void PerformInitialPass(
+            ImmutableArray<TagHelperDescriptor> descriptors,
+            string? tagNamePrefix,
+            Dictionary<string, TagHelperDescriptorArrayBuilder> builderMap,
+            ref PooledArrayBuilder<(string, TagHelperDescriptor)> toVisit,
+            ref PooledArrayBuilder<TagHelperDescriptor> catchAllBuilder)
         {
-            if (!mapBuilder.TryGetValue(tagName, out var value))
+            using var _ = HashSetPool<TagHelperDescriptor>.GetPooledObject(out var distinctSet);
+
+            foreach (var descriptor in descriptors)
             {
-                // First descriptor for this tag name, just store it directly.
-                mapBuilder[tagName] = descriptor;
-            }
-            else
-            {
-                // If we have only seen a single descriptor for this tag name, upgrade to a list.
-                if (value is not List<TagHelperDescriptor> builder)
+                if (!distinctSet.Add(descriptor))
                 {
-                    Debug.Assert(value is TagHelperDescriptor);
-
-                    var existingDescriptor = (TagHelperDescriptor)value;
-                    builder = ListPool<TagHelperDescriptor>.Default.Get();
-                    builder.Add(existingDescriptor);
-
-                    mapBuilder[tagName] = builder;
+                    // We're already seen this descriptor, skip it.
+                    continue;
                 }
 
-                // Add the given descriptor to the list.
-                builder.Add(descriptor);
+                foreach (var rule in descriptor.TagMatchingRules)
+                {
+                    if (rule.TagName == TagHelperMatchingConventions.ElementCatchAllName)
+                    {
+                        // This is a catch-all descriptor, we can keep track of it separately.
+                        catchAllBuilder.Add(descriptor);
+                    }
+                    else
+                    {
+                        // This is a specific tag name, we need to add it to the map.
+                        var tagName = tagNamePrefix + rule.TagName;
+
+                        if (!builderMap.TryGetValue(tagName, out var builder))
+                        {
+                            builder = default;
+                        }
+
+                        builder.IncreaseSize();
+
+                        // Copy back to the dictionary.
+                        builderMap[tagName] = builder;
+
+                        // Ensure we visit tagName and descriptor in the next pass.
+                        toVisit.Add((tagName, descriptor));
+                    }
+                }
             }
+        }
+
+        static void PopulateArrayBuilders(
+            ref PooledArrayBuilder<(string, TagHelperDescriptor)> toVisit,
+            Dictionary<string, TagHelperDescriptorArrayBuilder> builderMap)
+        {
+            foreach (var (tagName, descriptor) in toVisit)
+            {
+                var finalArrayBuilder = builderMap[tagName];
+
+                finalArrayBuilder.Add(descriptor);
+
+                builderMap[tagName] = finalArrayBuilder;
+            }
+        }
+    }
+
+    private struct TagHelperDescriptorArrayBuilder
+    {
+        private int _size;
+        private TagHelperDescriptor[]? _array;
+        private int _index;
+
+        public void IncreaseSize()
+        {
+            Debug.Assert(_array is null, "Can't increase size once the array has been created");
+            _size++;
+        }
+
+        public void Add(TagHelperDescriptor value)
+        {
+            Debug.Assert(_index < _size, "Can't add past the end of the array");
+            var array = _array ??= new TagHelperDescriptor[_size];
+            array[_index++] = value;
+        }
+
+        public readonly ImmutableArray<TagHelperDescriptor> ToImmutable()
+        {
+            if (_size == 0)
+            {
+                return [];
+            }
+
+            Debug.Assert(_array is not null);
+            Debug.Assert(_index == _size, "Can't produce the final array until it's filled.");
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(_array);
         }
     }
 
