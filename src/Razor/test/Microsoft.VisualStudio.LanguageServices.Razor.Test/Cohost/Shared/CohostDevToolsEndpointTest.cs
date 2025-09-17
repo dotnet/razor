@@ -24,7 +24,7 @@ public class CohostDevToolsEndpointTest(ITestOutputHelper testOutputHelper) : Co
                 <div>@message</div>
                 """;
 
-        await VerifyGeneratedDocumentContentsAsync(input, GeneratedDocumentKind.CSharp);
+        await VerifyGeneratedDocumentContentsAsync(input, GeneratedDocumentKind.CSharp, "message", ".g.cs");
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public class CohostDevToolsEndpointTest(ITestOutputHelper testOutputHelper) : Co
                 <div>@message</div>
                 """;
 
-        await VerifyGeneratedDocumentContentsAsync(input, GeneratedDocumentKind.Html);
+        await VerifyGeneratedDocumentContentsAsync(input, GeneratedDocumentKind.Html, "div", ".g.html");
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class CohostDevToolsEndpointTest(ITestOutputHelper testOutputHelper) : Co
                 <div>@message</div>
                 """;
 
-        await VerifyGeneratedDocumentContentsAsync(input, GeneratedDocumentKind.Formatting);
+        await VerifyGeneratedDocumentContentsAsync(input, GeneratedDocumentKind.Formatting, "message", ".formatting.cs");
     }
 
     [Fact]
@@ -102,11 +102,11 @@ public class CohostDevToolsEndpointTest(ITestOutputHelper testOutputHelper) : Co
         Assert.NotNull(result);
         Assert.NotNull(result.Root);
         Assert.NotEmpty(result.Root.Kind);
-        Assert.True(result.Root.SpanLength > 0);
+        Assert.True(result.Root.SpanEnd > result.Root.SpanStart);
         Assert.NotNull(result.Root.Children);
     }
 
-    private async Task VerifyGeneratedDocumentContentsAsync(string input, GeneratedDocumentKind kind)
+    private async Task VerifyGeneratedDocumentContentsAsync(string input, GeneratedDocumentKind kind, string expectedContentSubstring, string expectedFileExtension)
     {
         var razorDocument = await CreateDocumentAsync(input);
         var endpoint = new CohostGeneratedDocumentContentsEndpoint(IncompatibleProjectService, RemoteServiceInvoker);
@@ -123,19 +123,10 @@ public class CohostDevToolsEndpointTest(ITestOutputHelper testOutputHelper) : Co
         Assert.NotEmpty(result.Contents);
         Assert.NotEmpty(result.FilePath);
         
-        // Verify content based on kind
-        switch (kind)
-        {
-            case GeneratedDocumentKind.CSharp:
-                Assert.Contains("message", result.Contents);
-                break;
-            case GeneratedDocumentKind.Html:
-                Assert.Contains("div", result.Contents);
-                break;
-            case GeneratedDocumentKind.Formatting:
-                // Formatting document should contain C# content
-                Assert.Contains("message", result.Contents);
-                break;
-        }
+        // Verify content contains expected substring
+        Assert.Contains(expectedContentSubstring, result.Contents);
+        
+        // Verify file path ends with expected extension
+        Assert.EndsWith(expectedFileExtension, result.FilePath);
     }
 }

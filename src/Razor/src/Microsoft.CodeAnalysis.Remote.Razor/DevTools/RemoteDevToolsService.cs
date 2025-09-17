@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
@@ -21,7 +22,7 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
             => new RemoteDevToolsService(in args);
     }
 
-    public ValueTask<string?> GetCSharpDocumentTextAsync(
+    public ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.DocumentContentsResponse?> GetCSharpDocumentTextAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId razorDocumentId,
         CancellationToken cancellationToken)
@@ -31,7 +32,7 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
             context => GetCSharpDocumentTextAsync(context, cancellationToken),
             cancellationToken);
 
-    public ValueTask<string?> GetHtmlDocumentTextAsync(
+    public ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.DocumentContentsResponse?> GetHtmlDocumentTextAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId razorDocumentId,
         CancellationToken cancellationToken)
@@ -41,7 +42,7 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
             context => GetHtmlDocumentTextAsync(context, cancellationToken),
             cancellationToken);
 
-    public ValueTask<string?> GetFormattingDocumentTextAsync(
+    public ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.DocumentContentsResponse?> GetFormattingDocumentTextAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId razorDocumentId,
         CancellationToken cancellationToken)
@@ -71,23 +72,45 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
             context => GetRazorSyntaxTreeAsync(context, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<string?> GetCSharpDocumentTextAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
+    private async ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.DocumentContentsResponse?> GetCSharpDocumentTextAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
     {
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        return codeDocument.GetCSharpSourceText().ToString();
+        var contents = codeDocument.GetCSharpSourceText().ToString();
+        var filePath = documentContext.Snapshot.FilePath + ".g.cs";
+        
+        return new Microsoft.CodeAnalysis.Razor.Protocol.DevTools.DocumentContentsResponse
+        {
+            Contents = contents,
+            FilePath = filePath
+        };
     }
 
-    private async ValueTask<string?> GetHtmlDocumentTextAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
+    private async ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.DocumentContentsResponse?> GetHtmlDocumentTextAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
     {
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        return codeDocument.GetHtmlSourceText().ToString();
+        var contents = codeDocument.GetHtmlSourceText().ToString();
+        var filePath = documentContext.Snapshot.FilePath + ".g.html";
+        
+        return new Microsoft.CodeAnalysis.Razor.Protocol.DevTools.DocumentContentsResponse
+        {
+            Contents = contents,
+            FilePath = filePath
+        };
     }
 
-    private async ValueTask<string?> GetFormattingDocumentTextAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
+    private async ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.DocumentContentsResponse?> GetFormattingDocumentTextAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
     {
-        // For formatting, we typically want the C# generated document
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        return codeDocument.GetCSharpSourceText().ToString();
+#pragma warning disable CS0618 // Type or member is obsolete
+        var contents = CSharpFormattingPass.GetFormattingDocumentContentsForSyntaxVisualizer(codeDocument);
+#pragma warning restore CS0618 // Type or member is obsolete
+        var filePath = documentContext.Snapshot.FilePath + ".formatting.cs";
+        
+        return new Microsoft.CodeAnalysis.Razor.Protocol.DevTools.DocumentContentsResponse
+        {
+            Contents = contents,
+            FilePath = filePath
+        };
     }
 
     private async ValueTask<string> GetTagHelpersJsonAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
@@ -119,7 +142,6 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
             Kind = node.Kind.ToString(),
             SpanStart = node.SpanStart,
             SpanEnd = node.Span.End,
-            SpanLength = node.Span.Length,
             Children = children
         };
     }

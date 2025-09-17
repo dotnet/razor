@@ -16,9 +16,6 @@ internal sealed class RazorSyntaxNode
     [JsonPropertyName("spanEnd")]
     public required int SpanEnd { get; set; }
 
-    [JsonPropertyName("spanLength")]
-    public required int SpanLength { get; set; }
-
     [JsonPropertyName("children")]
     public required RazorSyntaxNode[] Children { get; set; }
 }

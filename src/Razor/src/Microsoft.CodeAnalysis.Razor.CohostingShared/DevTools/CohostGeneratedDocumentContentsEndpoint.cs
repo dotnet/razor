@@ -35,26 +35,26 @@ internal sealed class CohostGeneratedDocumentContentsEndpoint(
 
     protected override async Task<DocumentContentsResponse?> HandleRequestAsync(DocumentContentsRequest request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        string? contents = null;
+        DocumentContentsResponse? response = null;
         
         switch (request.Kind)
         {
             case GeneratedDocumentKind.CSharp:
-                contents = await _remoteServiceInvoker.TryInvokeAsync<IRemoteDevToolsService, string?>(
+                response = await _remoteServiceInvoker.TryInvokeAsync<IRemoteDevToolsService, DocumentContentsResponse?>(
                     razorDocument.Project.Solution,
                     (service, solutionInfo, cancellationToken) => service.GetCSharpDocumentTextAsync(solutionInfo, razorDocument.Id, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
                 break;
                 
             case GeneratedDocumentKind.Html:
-                contents = await _remoteServiceInvoker.TryInvokeAsync<IRemoteDevToolsService, string?>(
+                response = await _remoteServiceInvoker.TryInvokeAsync<IRemoteDevToolsService, DocumentContentsResponse?>(
                     razorDocument.Project.Solution,
                     (service, solutionInfo, cancellationToken) => service.GetHtmlDocumentTextAsync(solutionInfo, razorDocument.Id, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
                 break;
                 
             case GeneratedDocumentKind.Formatting:
-                contents = await _remoteServiceInvoker.TryInvokeAsync<IRemoteDevToolsService, string?>(
+                response = await _remoteServiceInvoker.TryInvokeAsync<IRemoteDevToolsService, DocumentContentsResponse?>(
                     razorDocument.Project.Solution,
                     (service, solutionInfo, cancellationToken) => service.GetFormattingDocumentTextAsync(solutionInfo, razorDocument.Id, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
@@ -64,14 +64,7 @@ internal sealed class CohostGeneratedDocumentContentsEndpoint(
                 throw new ArgumentException($"Unsupported document kind: {request.Kind}", nameof(request));
         }
 
-        if (contents == null)
-            return null;
-
-        return new DocumentContentsResponse
-        {
-            Contents = contents,
-            FilePath = razorDocument.FilePath ?? string.Empty
-        };
+        return response;
     }
 
     internal TestAccessor GetTestAccessor() => new(this);

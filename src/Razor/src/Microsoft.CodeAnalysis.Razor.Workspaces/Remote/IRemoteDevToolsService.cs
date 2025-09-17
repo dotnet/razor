@@ -9,11 +9,11 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteDevToolsService
 {
-    ValueTask<string?> GetCSharpDocumentTextAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, CancellationToken cancellationToken);
+    ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.DocumentContentsResponse?> GetCSharpDocumentTextAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, CancellationToken cancellationToken);
     
-    ValueTask<string?> GetHtmlDocumentTextAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, CancellationToken cancellationToken);
+    ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.DocumentContentsResponse?> GetHtmlDocumentTextAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, CancellationToken cancellationToken);
     
-    ValueTask<string?> GetFormattingDocumentTextAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, CancellationToken cancellationToken);
+    ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.DocumentContentsResponse?> GetFormattingDocumentTextAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, CancellationToken cancellationToken);
     
     ValueTask<string> GetTagHelpersJsonAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, CancellationToken cancellationToken);
     
