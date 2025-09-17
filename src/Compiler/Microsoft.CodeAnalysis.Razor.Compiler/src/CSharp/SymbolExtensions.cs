@@ -11,12 +11,27 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 internal static class SymbolExtensions
 {
+    /// <summary>
+    /// Converts the symbol to a string representation. This is the equivalent of calling
+    /// ISymbol.ToDisplayString()
+    /// </summary>
+    /// <returns>A formatted string representation of the symbol.</returns>
     internal static string GetDefaultDisplayString(this ISymbol typeSymbol)
         => SymbolCache.GetSymbolData(typeSymbol).GetDefaultDisplayString();
 
+    /// <summary>
+    /// Converts the symbol to a string representation. This is the equivalent of calling
+    /// ISymbol.ToDisplayString(WellKnownSymbolDisplayFormats.FullNameTypeDisplayFormat)
+    /// </summary>
+    /// <returns>A formatted string representation of the symbol.</returns>
     internal static string GetFullName(this ISymbol typeSymbol)
         => SymbolCache.GetSymbolData(typeSymbol).GetFullName();
 
+    /// <summary>
+    /// Converts the symbol to a string representation. This is the equivalent of calling
+    /// ISymbol.ToDisplayString(WellKnownSymbolDisplayFormats.GloballyQualifiedFullNameTypeDisplayFormat)
+    /// </summary>
+    /// <returns>A formatted string representation of the symbol.</returns>
     internal static string GetGloballyQualifiedFullName(this ISymbol typeSymbol)
         => SymbolCache.GetSymbolData(typeSymbol).GetGloballyQualifiedFullName();
 
