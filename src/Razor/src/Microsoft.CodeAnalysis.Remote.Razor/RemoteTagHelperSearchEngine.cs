@@ -53,7 +53,9 @@ internal sealed class RemoteTagHelperSearchEngine : ITagHelperSearchEngine
 
     private async Task<LspLocation?> TryLocateTagHelperDefinitionAsync(TagHelperDescriptor boundTagHelper, BoundAttributeDescriptor? boundAttribute, Compilation compilation, Solution solution, CancellationToken cancellationToken)
     {
-        var typeName = GetTypeNameForNavigation(boundTagHelper);
+        // For view components TypeName starts with "__Generated" for some reason, so it would never be navigable
+        var typeName = (boundTagHelper.Metadata as ViewComponentMetadata)?.OriginalTypeName
+            ?? boundTagHelper.TypeName;
 
         foreach (var type in compilation.GetTypesByMetadataName(typeName))
         {
@@ -82,23 +84,5 @@ internal sealed class RemoteTagHelperSearchEngine : ITagHelperSearchEngine
         }
 
         return null;
-    }
-
-    private static string GetTypeNameForNavigation(TagHelperDescriptor boundTagHelper)
-    {
-        // View components type name starts with "__Generated" for some reason, so we need to use the original type name metadata instead
-        if (boundTagHelper.Metadata is ViewComponentMetadata
-            {
-                OriginalTypeName:
-                {
-                    IsNull: false,
-                    FullName: { } originalTypeName
-                }
-            })
-        {
-            return originalTypeName;
-        }
-
-        return boundTagHelper.TypeName;
     }
 }

@@ -10,7 +10,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
 public sealed record ViewComponentMetadata() : MetadataObject(MetadataKind.ViewComponent)
 {
     public required string Name { get; init; }
-    internal TypeNameObject? OriginalTypeName { get; init; }
+    internal TypeNameObject OriginalTypeNameObject { get; init; }
+
+    public string OriginalTypeName => OriginalTypeNameObject.FullName.AssumeNotNull();
 
     internal override bool HasDefaultValue => false;
 
@@ -22,13 +24,13 @@ public sealed record ViewComponentMetadata() : MetadataObject(MetadataKind.ViewC
     public ref struct Builder
     {
         public string? Name { get; set; }
-        internal TypeNameObject? OriginalTypeName { get; set; }
+        internal TypeNameObject? OriginalTypeNameObject { get; set; }
 
         public readonly ViewComponentMetadata Build()
             => new()
             {
                 Name = Name.AssumeNotNull(),
-                OriginalTypeName = OriginalTypeName
+                OriginalTypeNameObject = OriginalTypeNameObject.AssumeNotNull()
             };
     }
 }
