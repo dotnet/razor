@@ -1,22 +1,22 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Razor.Protocol.DevTools;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
+using SyntaxNode = AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocumentServiceBase(in args), IRemoteDevToolsService
 {
@@ -26,40 +26,54 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
             => new RemoteDevToolsService(in args);
     }
 
-    public ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.DocumentContentsResponse?> GetCSharpDocumentTextAsync(
+    public ValueTask<string> GetCSharpDocumentTextAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId razorDocumentId,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => GetCSharpDocumentTextAsync(context, cancellationToken),
+            async context =>
+            {
+                var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+                return codeDocument.GetCSharpSourceText().ToString();
+            },
             cancellationToken);
 
-    public ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.DocumentContentsResponse?> GetHtmlDocumentTextAsync(
+    public ValueTask<string> GetHtmlDocumentTextAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId razorDocumentId,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => GetHtmlDocumentTextAsync(context, cancellationToken),
+            async context =>
+            {
+                var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+                return codeDocument.GetHtmlSourceText().ToString();
+            },
             cancellationToken);
 
-    public ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.DocumentContentsResponse?> GetFormattingDocumentTextAsync(
+    public ValueTask<string> GetFormattingDocumentTextAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId razorDocumentId,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => GetFormattingDocumentTextAsync(context, cancellationToken),
+            async context =>
+            {
+                var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+#pragma warning disable CS0618 // Type or member is obsolete
+                return CSharpFormattingPass.GetFormattingDocumentContentsForSyntaxVisualizer(codeDocument);
+#pragma warning restore CS0618 // Type or member is obsolete
+            },
             cancellationToken);
 
-    public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersJsonAsync(
+    public ValueTask<FetchTagHelpersResult> GetTagHelpersJsonAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId razorDocumentId,
-        Microsoft.CodeAnalysis.Razor.Protocol.DevTools.TagHelpersKind kind,
+        TagHelpersKind kind,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
@@ -67,7 +81,22 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
             context => GetTagHelpersJsonAsync(context, kind, cancellationToken),
             cancellationToken);
 
-    public ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.SyntaxVisualizerTree?> GetRazorSyntaxTreeAsync(
+    private static async ValueTask<FetchTagHelpersResult> GetTagHelpersJsonAsync(RemoteDocumentContext documentContext, TagHelpersKind kind, CancellationToken cancellationToken)
+    {
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var tagHelpers = kind switch
+        {
+            TagHelpersKind.All => codeDocument.GetTagHelpers(),
+            TagHelpersKind.InScope => codeDocument.GetRequiredTagHelperContext().TagHelpers,
+            TagHelpersKind.Referenced => (IEnumerable<TagHelperDescriptor>?)codeDocument.GetReferencedTagHelpers(),
+            _ => []
+        };
+
+        tagHelpers ??= [];
+        return new FetchTagHelpersResult(tagHelpers.ToImmutableArray());
+    }
+
+    public ValueTask<SyntaxVisualizerTree?> GetRazorSyntaxTreeAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         DocumentId razorDocumentId,
         CancellationToken cancellationToken)
@@ -77,86 +106,26 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
             context => GetRazorSyntaxTreeAsync(context, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.DocumentContentsResponse?> GetCSharpDocumentTextAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
-    {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var contents = codeDocument.GetCSharpSourceText().ToString();
-        var filePath = documentContext.Snapshot.FilePath + ".g.cs";
-        
-        return new Microsoft.CodeAnalysis.Razor.Protocol.DevTools.DocumentContentsResponse
-        {
-            Contents = contents,
-            FilePath = filePath
-        };
-    }
-
-    private async ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.DocumentContentsResponse?> GetHtmlDocumentTextAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
-    {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var contents = codeDocument.GetHtmlSourceText().ToString();
-        var filePath = documentContext.Snapshot.FilePath + ".g.html";
-        
-        return new Microsoft.CodeAnalysis.Razor.Protocol.DevTools.DocumentContentsResponse
-        {
-            Contents = contents,
-            FilePath = filePath
-        };
-    }
-
-    private async ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.DocumentContentsResponse?> GetFormattingDocumentTextAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
-    {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-#pragma warning disable CS0618 // Type or member is obsolete
-        var contents = CSharpFormattingPass.GetFormattingDocumentContentsForSyntaxVisualizer(codeDocument);
-#pragma warning restore CS0618 // Type or member is obsolete
-        var filePath = documentContext.Snapshot.FilePath + ".formatting.cs";
-        
-        return new Microsoft.CodeAnalysis.Razor.Protocol.DevTools.DocumentContentsResponse
-        {
-            Contents = contents,
-            FilePath = filePath
-        };
-    }
-
-    private async ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersJsonAsync(RemoteDocumentContext documentContext, Microsoft.CodeAnalysis.Razor.Protocol.DevTools.TagHelpersKind kind, CancellationToken cancellationToken)
-    {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var tagHelpers = kind switch
-        {
-            Microsoft.CodeAnalysis.Razor.Protocol.DevTools.TagHelpersKind.All => codeDocument.GetTagHelpers(),
-            Microsoft.CodeAnalysis.Razor.Protocol.DevTools.TagHelpersKind.InScope => codeDocument.GetRequiredTagHelperContext().TagHelpers,
-            Microsoft.CodeAnalysis.Razor.Protocol.DevTools.TagHelpersKind.Referenced => (IEnumerable<TagHelperDescriptor>?)codeDocument.GetReferencedTagHelpers(),
-            _ => []
-        };
-
-        tagHelpers ??= [];
-        return tagHelpers.ToImmutableArray();
-    }
-
-    private async ValueTask<Microsoft.CodeAnalysis.Razor.Protocol.DevTools.SyntaxVisualizerTree?> GetRazorSyntaxTreeAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
+    private static async ValueTask<SyntaxVisualizerTree?> GetRazorSyntaxTreeAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
     {
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var razorSyntaxTree = codeDocument.GetSyntaxTree();
-        
+
         if (razorSyntaxTree?.Root == null)
             return null;
 
-        return new Microsoft.CodeAnalysis.Razor.Protocol.DevTools.SyntaxVisualizerTree
+        return new SyntaxVisualizerTree
         {
             Root = ConvertSyntaxNode(razorSyntaxTree.Root)
         };
     }
 
-    private static Microsoft.CodeAnalysis.Razor.Protocol.DevTools.SyntaxVisualizerNode ConvertSyntaxNode(SyntaxNode node)
-    {
-        var children = node.ChildNodes().Select(ConvertSyntaxNode).ToArray();
-        
-        return new Microsoft.CodeAnalysis.Razor.Protocol.DevTools.SyntaxVisualizerNode
+    private static SyntaxVisualizerNode ConvertSyntaxNode(SyntaxNode node)
+        => new SyntaxVisualizerNode
         {
             Kind = node.Kind.ToString(),
             SpanStart = node.SpanStart,
             SpanEnd = node.Span.End,
-            Children = children
+            Children = [.. node.ChildNodes().Select(ConvertSyntaxNode)]
         };
-    }
 }
