@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor;
@@ -20,6 +22,8 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
     public partial class RazorSourceGenerator : IIncrementalGenerator
     {
         private static RazorSourceGeneratorEventSource Log => RazorSourceGeneratorEventSource.Log;
+
+        private ReadOnlyDictionary<MetadataReference, ImmutableArray<TagHelperDescriptor>> _descriptorCache = new(new Dictionary<MetadataReference, ImmutableArray<TagHelperDescriptor>>());
 
         // Testing usage only.
         private readonly string? _testSuppressUniqueIds;
@@ -195,7 +199,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                     return hasRazorFilesA == hasRazorFilesB;
                 })
-                .Select(static (pair, _) =>
+                .Select((pair, _) =>
                 {
                     var ((compilation, razorSourceGeneratorOptions), hasRazorFiles) = pair;
                     if (!hasRazorFiles)
@@ -211,13 +215,33 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     // So, we start with a larger capacity to avoid extra array copies.
                     var results = new List<TagHelperDescriptor>(capacity: 128);
 
+                    var oldCachedDescriptors = _descriptorCache;
+                    var newCachedDescriptors = new Dictionary<MetadataReference, ImmutableArray<TagHelperDescriptor>>(oldCachedDescriptors.Count);
+                    var descriptorsBuilder = new List<TagHelperDescriptor>();
+
                     foreach (var reference in compilation.References)
                     {
-                        if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
+                        if (!oldCachedDescriptors.TryGetValue(reference, out var cachedDescriptors))
                         {
-                            tagHelperFeature.CollectDescriptors(assembly, results);
+                            if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
+                            {
+                                tagHelperFeature.CollectDescriptors(assembly, descriptorsBuilder);
+                            }
+
+                            cachedDescriptors = descriptorsBuilder.Count > 0 ? descriptorsBuilder.ToImmutableArray() : [];
+                            descriptorsBuilder.Clear();
+                        }
+
+                        newCachedDescriptors[reference] = cachedDescriptors;
+
+                        // Avoid List.AddRange to avoid boxing of the IA and enumerator allocation
+                        foreach (var descriptor in cachedDescriptors)
+                        {
+                            results.Add(descriptor);
                         }
                     }
+
+                    _descriptorCache = new ReadOnlyDictionary<MetadataReference, ImmutableArray<TagHelperDescriptor>>(newCachedDescriptors);
 
                     RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromReferencesStop();
 
