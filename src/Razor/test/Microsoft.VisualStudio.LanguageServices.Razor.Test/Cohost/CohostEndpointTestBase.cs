@@ -6,10 +6,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.VisualStudio.Composition;
@@ -24,11 +26,13 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     private TestRemoteServiceInvoker? _remoteServiceInvoker;
     private IClientSettingsManager? _clientSettingsManager;
     private IFilePathService? _filePathService;
+    private ISemanticTokensLegendService? _semanticTokensLegendService;
 
     private protected override IRemoteServiceInvoker RemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
     private protected TestRemoteServiceInvoker TestRemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
     private protected override IClientSettingsManager ClientSettingsManager => _clientSettingsManager.AssumeNotNull();
     private protected override IFilePathService FilePathService => _filePathService.AssumeNotNull();
+    private protected ISemanticTokensLegendService SemanticTokensLegendService => _semanticTokensLegendService.AssumeNotNull();
 
     /// <summary>
     /// The export provider for Roslyn "devenv" services, if tests opt-in to using them
@@ -45,6 +49,8 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         _clientSettingsManager = new ClientSettingsManager([], null, null);
 
         _filePathService = new VisualStudioFilePathService(FeatureOptions);
+
+        _semanticTokensLegendService = TestRazorSemanticTokensLegendService.GetInstance(supportsVSExtensions: true);
     }
 
     private protected override RemoteClientLSPInitializationOptions GetRemoteClientLSPInitializationOptions()
