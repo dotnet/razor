@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -14,10 +13,10 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// <summary>
 /// Enables retrieval of <see cref="TagHelperBinding"/>'s.
 /// </summary>
-internal sealed class TagHelperBinder
+internal sealed partial class TagHelperBinder
 {
-    private readonly ImmutableArray<TagHelperDescriptor> _catchAllDescriptors;
-    private readonly ReadOnlyDictionary<string, ImmutableArray<TagHelperDescriptor>> _tagNameToDescriptorsMap;
+    private readonly TagHelperSet _catchAllDescriptors;
+    private readonly ReadOnlyDictionary<string, TagHelperSet> _tagNameToDescriptorsMap;
 
     public string? TagNamePrefix { get; }
     public ImmutableArray<TagHelperDescriptor> Descriptors { get; }
@@ -39,128 +38,92 @@ internal sealed class TagHelperBinder
     private static void ProcessDescriptors(
         ImmutableArray<TagHelperDescriptor> descriptors,
         string? tagNamePrefix,
-        out ReadOnlyDictionary<string, ImmutableArray<TagHelperDescriptor>> tagNameToDescriptorsMap,
-        out ImmutableArray<TagHelperDescriptor> catchAllDescriptors)
+        out ReadOnlyDictionary<string, TagHelperSet> tagNameToDescriptorsMap,
+        out TagHelperSet catchAllDescriptors)
     {
-        using var catchAllBuilder = new PooledArrayBuilder<TagHelperDescriptor>();
-        using var toVisit = new PooledArrayBuilder<(string, TagHelperDescriptor)>();
-        using var _ = StringDictionaryPool<TagHelperDescriptorArrayBuilder>.OrdinalIgnoreCase.GetPooledObject(out var builderMap);
+        // Initialize a MemoryBuilder of TagHelperSet.Builders. We need a builder for each unique tag name.
+        using var builders = new MemoryBuilder<TagHelperSet.Builder>(initialCapacity: 32, clearArray: true);
 
-        // The initial pass does three things:
-        // 1: Fills out builderMap with a structure that can be used to create the array we will return
-        // 2: Fills out toVisit with all the (tagName, descriptor) pairs we need to process in the next pass
-        // 3: Fills out catchAllBuilder with all the catch-all descriptors
-        PerformInitialPass(descriptors, tagNamePrefix, builderMap, ref toVisit.AsRef(), ref catchAllBuilder.AsRef());
+        // Keep track of what needs to be added in the second pass.
+        // There will be an entry for every tag matching rule.
+        // Each entry consists of an index to identify a builder and the TagHelperDescriptor to add to it.
+        using var toAdd = new MemoryBuilder<(int, TagHelperDescriptor)>(initialCapacity: descriptors.Length * 4, clearArray: true);
 
-        // Perform a pass over toVisit to populate each TagHelperDescriptorArrayBuilder entry in builderMap with descriptors
-        // that match the tag name
-        PopulateArrayBuilders(in toVisit, builderMap);
+        // Use a special TagHelperSet.Builder to track catch-all tag helpers.
+        var catchAllBuilder = new TagHelperSet.Builder();
 
-        // Build the final dictionary with immutable arrays
-        var map = new Dictionary<string, ImmutableArray<TagHelperDescriptor>>(capacity: builderMap.Count, StringComparer.OrdinalIgnoreCase);
+        // At most, there should only be one catch-all tag helper per descriptor.
+        using var catchAllToAdd = new MemoryBuilder<TagHelperDescriptor>(initialCapacity: descriptors.Length, clearArray: true);
 
-        foreach (var (tagName, builder) in builderMap)
+        // The builders are indexed using a map of "tag name" to the index of the builder in the array.
+        using var _1 = StringDictionaryPool<int>.OrdinalIgnoreCase.GetPooledObject(out var tagNameToBuilderIndexMap);
+        using var _2 = HashSetPool<TagHelperDescriptor>.GetPooledObject(out var tagHelperSet);
+
+#if NET
+        tagHelperSet.EnsureCapacity(descriptors.Length);
+#endif
+
+        foreach (var tagHelper in descriptors)
         {
-            map.Add(tagName, builder.ToImmutable());
-        }
-
-        tagNameToDescriptorsMap = new ReadOnlyDictionary<string, ImmutableArray<TagHelperDescriptor>>(map);
-
-        // Build the catch all descriptors array.
-        catchAllDescriptors = catchAllBuilder.ToImmutableAndClear();
-
-        static void PerformInitialPass(
-            ImmutableArray<TagHelperDescriptor> descriptors,
-            string? tagNamePrefix,
-            Dictionary<string, TagHelperDescriptorArrayBuilder> builderMap,
-            ref PooledArrayBuilder<(string, TagHelperDescriptor)> toVisit,
-            ref PooledArrayBuilder<TagHelperDescriptor> catchAllBuilder)
-        {
-            using var _ = HashSetPool<TagHelperDescriptor>.GetPooledObject(out var distinctSet);
-
-            foreach (var descriptor in descriptors)
+            if (!tagHelperSet.Add(tagHelper))
             {
-                if (!distinctSet.Add(descriptor))
+                // We've already seen this tag helper. Skip.
+                continue;
+            }
+
+            foreach (var rule in tagHelper.TagMatchingRules)
+            {
+                var tagName = rule.TagName;
+
+                if (tagName == TagHelperMatchingConventions.ElementCatchAllName)
                 {
-                    // We're already seen this descriptor, skip it.
+                    catchAllBuilder.IncreaseSize();
+                    catchAllToAdd.Append(tagHelper);
                     continue;
                 }
 
-                foreach (var rule in descriptor.TagMatchingRules)
+                if (!tagNameToBuilderIndexMap.TryGetValue(tagName, out var builderIndex))
                 {
-                    if (rule.TagName == TagHelperMatchingConventions.ElementCatchAllName)
-                    {
-                        // This is a catch-all descriptor, we can keep track of it separately.
-                        catchAllBuilder.Add(descriptor);
-                    }
-                    else
-                    {
-                        // This is a specific tag name, we need to add it to the map.
-                        var tagName = tagNamePrefix + rule.TagName;
+                    builderIndex = builders.Length;
+                    builders.Append(default(TagHelperSet.Builder));
 
-                        if (!builderMap.TryGetValue(tagName, out var builder))
-                        {
-                            builder = default;
-                        }
-
-                        builder.IncreaseSize();
-
-                        // Copy back to the dictionary.
-                        builderMap[tagName] = builder;
-
-                        // Ensure we visit tagName and descriptor in the next pass.
-                        toVisit.Add((tagName, descriptor));
-                    }
+                    tagNameToBuilderIndexMap.Add(tagName, builderIndex);
                 }
+
+                builders[builderIndex].IncreaseSize();
+                toAdd.Append((builderIndex, tagHelper));
             }
         }
 
-        static void PopulateArrayBuilders(
-            ref readonly PooledArrayBuilder<(string, TagHelperDescriptor)> toVisit,
-            Dictionary<string, TagHelperDescriptorArrayBuilder> builderMap)
+        // Next, we walk through toAdd and add each descriptor to the appropriate builder.
+        // Because we counted first, we know that each builder will allocate exactly the
+        // space needed for the final result.
+        foreach (var (builderIndex, tagHelper) in toAdd.AsMemory().Span)
         {
-            foreach (var (tagName, descriptor) in toVisit)
-            {
-                var builder = builderMap[tagName];
-
-                builder.Add(descriptor);
-
-                builderMap[tagName] = builder;
-            }
-        }
-    }
-
-    private struct TagHelperDescriptorArrayBuilder
-    {
-        private int _size;
-        private TagHelperDescriptor[]? _array;
-        private int _index;
-
-        public void IncreaseSize()
-        {
-            Debug.Assert(_array is null, "Can't increase size once the array has been created");
-            _size++;
+            builders[builderIndex].Add(tagHelper);
         }
 
-        public void Add(TagHelperDescriptor value)
+        foreach (var tagHelper in catchAllToAdd.AsMemory().Span)
         {
-            Debug.Assert(_index < _size, "Can't add past the end of the array");
-            var array = _array ??= new TagHelperDescriptor[_size];
-            array[_index++] = value;
+            catchAllBuilder.Add(tagHelper);
         }
 
-        public readonly ImmutableArray<TagHelperDescriptor> ToImmutable()
+        // Build the final dictionary.
+        var map = new Dictionary<string, TagHelperSet>(capacity: tagNameToBuilderIndexMap.Count, StringComparer.OrdinalIgnoreCase);
+
+#if NET
+        map.EnsureCapacity(tagNameToBuilderIndexMap.Count);
+#endif
+
+        foreach (var (tagName, builderIndex) in tagNameToBuilderIndexMap)
         {
-            if (_size == 0)
-            {
-                return [];
-            }
-
-            Debug.Assert(_array is not null);
-            Debug.Assert(_index == _size, "Can't produce the final array until it's filled.");
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(_array);
+            map.Add(tagNamePrefix + tagName, builders[builderIndex].ToSet());
         }
+
+        tagNameToDescriptorsMap = new ReadOnlyDictionary<string, TagHelperSet>(map);
+
+        // Build the "catch all" tag helpers set.
+        catchAllDescriptors = catchAllBuilder.ToSet();
     }
 
     /// <summary>
@@ -227,7 +190,7 @@ internal sealed class TagHelperBinder
             : null;
 
         static void CollectBoundRulesInfo(
-            ImmutableArray<TagHelperDescriptor> descriptors,
+            TagHelperSet descriptors,
             ReadOnlySpan<char> tagName,
             ReadOnlySpan<char> parentTagName,
             ImmutableArray<KeyValuePair<string, string>> attributes,
