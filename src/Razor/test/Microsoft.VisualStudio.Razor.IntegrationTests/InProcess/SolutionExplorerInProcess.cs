@@ -8,8 +8,10 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Razor.IntegrationTests;
 using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
+using Microsoft.VisualStudio.Razor.LanguageClient;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -78,6 +80,28 @@ internal partial class SolutionExplorerInProcess
             cancellationToken => solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken),
             TimeSpan.FromMilliseconds(50),
             cancellationToken);
+    }
+
+    public async Task CloseSolutionAndWaitAsync(CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        await CloseSolutionAsync(cancellationToken);
+
+        // Wait for the Roslyn LSP to have closed, otherwise the speed at which the integration tests open a new solution
+        // and try to start it again, can cause problems.
+        var broker = await GetComponentModelServiceAsync<ILanguageServiceBroker2>(cancellationToken);
+        await Helper.RetryAsync(_ =>
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            var clients = broker.LanguageClients;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            var anyCSharpClientsAlive = clients.Any(c => c.IsValueCreated && c.Metadata.ContentTypes.Contains(RazorLSPConstants.CSharpContentTypeName));
+
+            // If there are any clients alive, that means we return false, so we keep retrying.
+            return Task.FromResult(!anyCSharpClientsAlive);
+        }, TimeSpan.FromMilliseconds(100), cancellationToken);
     }
 
     public async Task OpenSolutionAsync(string solutionFileName, CancellationToken cancellationToken)
@@ -223,7 +247,7 @@ internal partial class SolutionExplorerInProcess
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        await CloseSolutionAsync(cancellationToken);
+        await CloseSolutionAndWaitAsync(cancellationToken);
 
         var solutionFileName = Path.ChangeExtension(solutionName, ".sln");
         Directory.CreateDirectory(solutionPath);
