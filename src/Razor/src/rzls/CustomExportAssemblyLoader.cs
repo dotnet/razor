@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class CustomExportAssemblyLoader(string baseDirectory) : IAssemblyLoader
+internal sealed class CustomExportAssemblyLoader(string baseDirectory) : IAssemblyLoader
 {
     /// <summary>
     /// Cache assemblies that are already loaded by AssemblyName comparison

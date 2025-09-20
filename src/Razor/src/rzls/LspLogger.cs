@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 /// <summary>
 /// ILogger implementation that logs via the window/logMessage LSP method
 /// </summary>
-internal class LspLogger(string categoryName, LogLevelProvider logLevelProvider, IClientConnection clientConnection) : ILogger
+internal sealed class LspLogger(string categoryName, LogLevelProvider logLevelProvider, IClientConnection clientConnection) : ILogger
 {
     private LogLevel LogLevel => logLevelProvider.Current;
     private readonly string _categoryName = categoryName;

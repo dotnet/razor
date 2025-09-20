@@ -18,7 +18,7 @@ internal delegate T ReadProperties<T>(JsonDataReader reader);
 ///  This is an abstraction used to read JSON data. Currently, this
 ///  wraps a <see cref="JsonReader"/> from JSON.NET.
 /// </summary>
-internal partial class JsonDataReader
+internal sealed partial class JsonDataReader
 {
     private static readonly ObjectPool<JsonDataReader> s_pool = DefaultPool.Create(Policy.Instance);
 

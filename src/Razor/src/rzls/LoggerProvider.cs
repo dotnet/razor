@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class LoggerProvider(LogLevelProvider logLevelProvider, IClientConnection clientConnection) : ILoggerProvider
+internal sealed class LoggerProvider(LogLevelProvider logLevelProvider, IClientConnection clientConnection) : ILoggerProvider
 {
     public ILogger CreateLogger(string categoryName)
     {

@@ -33,7 +33,7 @@ internal sealed class AggregatingTelemetryLog
     /// </summary>
     /// <param name="reporter">Telemetry reporter for posting events</param>
     /// <param name="name">the name of the event, not fully qualified.</param>
-    /// <param name="bucketBoundaries">Optional values indicating bucket boundaries in milliseconds. If not specified, 
+    /// <param name="bucketBoundaries">Optional values indicating bucket boundaries in milliseconds. If not specified,
     /// all histograms created will use the default histogram configuration</param>
     public AggregatingTelemetryLog(TelemetryReporter reporter, string name, double[]? bucketBoundaries)
     {
@@ -112,7 +112,7 @@ internal sealed class AggregatingTelemetryLog
         public IInstrument Instrument { get; } = instrument;
     }
 
-    public class TelemetryHistogramEvent<T>(TelemetryEvent telemetryEvent, IHistogram<T> histogram) : TelemetryInstrumentEvent(telemetryEvent, histogram)
+    public sealed class TelemetryHistogramEvent<T>(TelemetryEvent telemetryEvent, IHistogram<T> histogram) : TelemetryInstrumentEvent(telemetryEvent, histogram)
         where T : struct
     {
     }
