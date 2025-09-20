@@ -63,23 +63,23 @@ internal sealed partial class TagHelperBinder
 
         public struct Enumerator
         {
-            private readonly TagHelperSet _oneOrMany;
+            private readonly TagHelperSet _tagHelperSet;
             private int _index;
 
-            internal Enumerator(TagHelperSet oneOrMany)
+            internal Enumerator(TagHelperSet tagHelperSet)
             {
-                _oneOrMany = oneOrMany;
+                _tagHelperSet = tagHelperSet;
                 _index = -1;
             }
 
             public bool MoveNext()
             {
                 _index++;
-                return _index < _oneOrMany.Count;
+                return _index < _tagHelperSet.Count;
             }
 
             public readonly TagHelperDescriptor Current
-                => _oneOrMany[_index];
+                => _tagHelperSet[_index];
         }
 
         private sealed class DebuggerProxy(TagHelperSet instance)

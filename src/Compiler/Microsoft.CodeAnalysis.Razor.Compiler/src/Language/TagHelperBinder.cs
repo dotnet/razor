@@ -111,10 +111,6 @@ internal sealed partial class TagHelperBinder
         // Build the final dictionary.
         var map = new Dictionary<string, TagHelperSet>(capacity: tagNameToBuilderIndexMap.Count, StringComparer.OrdinalIgnoreCase);
 
-#if NET
-        map.EnsureCapacity(tagNameToBuilderIndexMap.Count);
-#endif
-
         foreach (var (tagName, builderIndex) in tagNameToBuilderIndexMap)
         {
             map.Add(tagNamePrefix + tagName, builders[builderIndex].ToSet());
