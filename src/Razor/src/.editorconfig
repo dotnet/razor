@@ -2,3 +2,6 @@
 
 # Call ConfigureAwait
 dotnet_diagnostic.CA2007.severity = warning
+
+# CA1852: Seal internal types
+dotnet_diagnostic.CA1852.severity = warning
