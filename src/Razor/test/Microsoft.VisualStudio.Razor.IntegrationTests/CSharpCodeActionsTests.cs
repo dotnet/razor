@@ -31,7 +31,7 @@ public class CSharpCodeActionsTests(ITestOutputHelper testOutputHelper) : Abstra
         await TestServices.Editor.WaitForCurrentLineTextAsync("private void IncrementCount() => currentCount++;", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "Roslyn add import feature is currently broken: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2576636")]
     public async Task CSharpCodeActionsTests_FullyQualify()
     {
         // Open the file
@@ -59,7 +59,7 @@ public class CSharpCodeActionsTests(ITestOutputHelper testOutputHelper) : Abstra
         await TestServices.Editor.WaitForCurrentLineTextAsync("var x = System.Data.ConflictOption.CompareAllSearchableValues;", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "Roslyn add import feature is currently broken: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2576636")]
     public async Task CSharpCodeActionsTests_AddUsing()
     {
         // Open the file
@@ -94,7 +94,7 @@ public class CSharpCodeActionsTests(ITestOutputHelper testOutputHelper) : Abstra
             """, ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "Roslyn add import feature is currently broken: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2576636")]
     public async Task CSharpCodeActionsTests_AddUsing_WithTypo()
     {
         // Open the file
@@ -128,7 +128,7 @@ public class CSharpCodeActionsTests(ITestOutputHelper testOutputHelper) : Abstra
             """, ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "Roslyn code refactoring provider is not finding the expression in cohosting")]
     public async Task CSharpCodeActionsTests_IntroduceLocal()
     {
         // Open the file
@@ -179,7 +179,7 @@ public class CSharpCodeActionsTests(ITestOutputHelper testOutputHelper) : Abstra
                 """, ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "Roslyn code refactoring provider is not finding the expression in cohosting")]
     public async Task CSharpCodeActionsTests_IntroduceLocal_All()
     {
         // Open the file
