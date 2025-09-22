@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Roslyn.Test.Utilities;
@@ -603,19 +604,23 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
 
     private async Task VerifyTypeAndCommitCompletionAsync(string input, string output, string search, string[] stringsToType, char? commitChar = null, string? expectedSelectedItemLabel = null)
     {
+        const string CompletionTestFileName = "Completion.razor";
+
         await TestServices.SolutionExplorer.AddFileAsync(
             RazorProjectConstants.BlazorProjectName,
-            "Test.razor",
+            CompletionTestFileName,
             input,
             open: true,
             ControlledHangMitigatingCancellationToken);
 
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
+        var filePath = await TestServices.SolutionExplorer.GetAbsolutePathForProjectRelativeFilePathAsync(RazorProjectConstants.BlazorProjectName, CompletionTestFileName, ControlledHangMitigatingCancellationToken);
+
         await TestServices.Editor.PlaceCaretAsync(search, charsOffset: 1, ControlledHangMitigatingCancellationToken);
         foreach (var stringToType in stringsToType)
         {
-            await TestServices.RazorProjectSystem.WaitForHtmlVirtualDocumentUpdateAsync(RazorProjectConstants.BlazorProjectName, "Test.razor", () =>
+            await TestServices.RazorProjectSystem.WaitForHtmlVirtualDocumentUpdateAsync(RazorProjectConstants.BlazorProjectName, filePath, () =>
             {
                 TestServices.Input.Send(stringToType);
 
