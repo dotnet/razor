@@ -94,7 +94,7 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutput) : Ab
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        await TestServices.SolutionExplorer.CloseSolutionAndWaitAsync(ControlledHangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.CloseSolutionAndWaitAsync(cancellationToken);
 
         var solutionPath = CreateTemporaryPath();
 
