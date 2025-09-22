@@ -44,7 +44,7 @@ internal sealed class HtmlDocumentPublisher(
             return;
         }
 
-        _logger.LogDebug($"The html document for {document.FilePath} is {uri}");
+        _logger.LogDebug($"The html document for {document.FilePath} is {htmlDocument.Uri}");
 
         await _joinableTaskContext.Factory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -56,6 +56,6 @@ internal sealed class HtmlDocumentPublisher(
         VisualStudioTextChange[] changes = [new(0, htmlDocument.Snapshot.Length, htmlText)];
         _documentManager.UpdateVirtualDocument<HtmlVirtualDocument>(uri, changes, documentSnapshot.Version, state: synchronizationResult.Checksum);
 
-        _logger.LogDebug($"Finished Html document generation for {document.FilePath} (into {uri})");
+        _logger.LogDebug($"Finished Html document generation for {document.FilePath} (into {htmlDocument.Uri})");
     }
 }
