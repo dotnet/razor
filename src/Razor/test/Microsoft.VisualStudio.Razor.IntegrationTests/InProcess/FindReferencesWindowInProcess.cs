@@ -90,4 +90,12 @@ internal partial class FindReferencesWindowInProcess
         var tableControl = (IWpfTableControl2)tableControlField.GetValue(toolWindowControl);
         return tableControl;
     }
+
+    public async Task CloseToolWindowAsync(CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        var shell = await GetRequiredGlobalServiceAsync<SVsUIShell, IVsUIShell>(cancellationToken);
+        ErrorHandler.ThrowOnFailure(shell.FindToolWindowEx((uint)__VSFINDTOOLWIN.FTW_fFindFirst, FindReferencesWindowGuid, dwToolWinId: 0, out var windowFrame));
+        ErrorHandler.ThrowOnFailure(windowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave));
+    }
 }
