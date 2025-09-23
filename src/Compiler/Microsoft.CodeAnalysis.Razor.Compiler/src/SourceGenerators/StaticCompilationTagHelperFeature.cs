@@ -15,7 +15,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         private ImmutableArray<ITagHelperDescriptorProvider> _providers;
 
         public void CollectDescriptors(
-            ISymbol? targetSymbol,
+            IAssemblySymbol? targetAssembly,
             List<TagHelperDescriptor> results,
             CancellationToken cancellationToken)
         {
@@ -24,7 +24,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 return;
             }
 
-            var context = new TagHelperDescriptorProviderContext(compilation, targetSymbol, results);
+            var context = new TagHelperDescriptorProviderContext(compilation, targetAssembly, results);
 
             foreach (var provider in _providers)
             {
@@ -35,7 +35,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         IReadOnlyList<TagHelperDescriptor> ITagHelperFeature.GetDescriptors(CancellationToken cancellationToken)
         {
             var results = new List<TagHelperDescriptor>();
-            CollectDescriptors(targetSymbol: null, results, cancellationToken);
+            CollectDescriptors(targetAssembly: null, results, cancellationToken);
 
             return results;
         }

@@ -28,7 +28,8 @@ internal sealed class KeyTagHelperDescriptorProvider() : TagHelperDescriptorProv
             return;
         }
 
-        if (context.TargetSymbol is { } targetSymbol && !SymbolEqualityComparer.Default.Equals(targetSymbol, renderTreeBuilderType.ContainingAssembly))
+        if (context.TargetAssembly is { } targetAssembly &&
+            !SymbolEqualityComparer.Default.Equals(targetAssembly, renderTreeBuilderType.ContainingAssembly))
         {
             return;
         }

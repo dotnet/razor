@@ -23,23 +23,26 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
         ArgHelper.ThrowIfNull(context);
 
         var compilation = context.Compilation;
-        var targetSymbol = context.TargetSymbol;
+        var targetAssembly = context.TargetAssembly;
 
-        var collector = new Collector(compilation, targetSymbol);
+        var collector = new Collector(compilation, targetAssembly);
         collector.Collect(context, cancellationToken);
     }
 
-    private sealed class Collector(Compilation compilation, ISymbol? targetSymbol)
-        : TagHelperCollector<Collector>(compilation, targetSymbol)
+    private sealed class Collector(
+        Compilation compilation,
+        IAssemblySymbol? targetAssembly)
+        : TagHelperCollector<Collector>(compilation, targetAssembly)
     {
-        protected override void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results, CancellationToken cancellationToken)
+        protected override void Collect(
+            IAssemblySymbol assembly, ICollection<TagHelperDescriptor> results, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             using var _ = ListPool<INamedTypeSymbol>.GetPooledObject(out var types);
             var visitor = new ComponentTypeVisitor(types);
 
-            visitor.Visit(symbol);
+            visitor.Visit(assembly);
 
             foreach (var type in types)
             {

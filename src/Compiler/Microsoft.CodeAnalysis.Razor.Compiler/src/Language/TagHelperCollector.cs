@@ -9,35 +9,31 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public abstract partial class TagHelperCollector<T>
+public abstract partial class TagHelperCollector<T>(
+    Compilation compilation,
+    IAssemblySymbol? targetAssembly)
     where T : TagHelperCollector<T>
 {
     // This type is generic to ensure that each descendent gets its own instance of this field.
     private static readonly ConditionalWeakTable<IAssemblySymbol, Cache> s_perAssemblyCaches = new();
 
-    private readonly Compilation _compilation;
-    private readonly ISymbol? _targetSymbol;
-
-    protected TagHelperCollector(Compilation compilation, ISymbol? targetSymbol)
-    {
-        _compilation = compilation;
-        _targetSymbol = targetSymbol;
-    }
+    private readonly Compilation _compilation = compilation;
+    private readonly IAssemblySymbol? _targetAssembly = targetAssembly;
 
     protected abstract void Collect(
-        ISymbol symbol,
+        IAssemblySymbol assembly,
         ICollection<TagHelperDescriptor> results,
         CancellationToken cancellationToken);
 
     public void Collect(TagHelperDescriptorProviderContext context, CancellationToken cancellationToken)
     {
-        if (_targetSymbol is not null)
+        if (_targetAssembly is not null)
         {
-            Collect(_targetSymbol, context.Results, cancellationToken);
+            Collect(_targetAssembly, context.Results, cancellationToken);
         }
         else
         {
-            Collect(_compilation.Assembly.GlobalNamespace, context.Results, cancellationToken);
+            Collect(_compilation.Assembly, context.Results, cancellationToken);
 
             foreach (var reference in _compilation.References)
             {
@@ -63,7 +59,7 @@ public abstract partial class TagHelperCollector<T>
                     if (!cache.TryGet(includeDocumentation, excludeHidden, out var tagHelpers))
                     {
                         using var _ = ListPool<TagHelperDescriptor>.GetPooledObject(out var referenceTagHelpers);
-                        Collect(assembly.GlobalNamespace, referenceTagHelpers, cancellationToken);
+                        Collect(assembly, referenceTagHelpers, cancellationToken);
 
                         tagHelpers = cache.Add(referenceTagHelpers.ToArrayOrEmpty(), includeDocumentation, excludeHidden);
                     }

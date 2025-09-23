@@ -95,7 +95,8 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
             return;
         }
 
-        if (context.TargetSymbol is { } targetSymbol && !SymbolEqualityComparer.Default.Equals(targetSymbol, bindMethods.ContainingAssembly))
+        if (context.TargetAssembly is { } targetAssembly &&
+            !SymbolEqualityComparer.Default.Equals(targetAssembly, bindMethods.ContainingAssembly))
         {
             return;
         }
@@ -215,17 +216,20 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
     }
 
     private class Collector(
-        Compilation compilation, INamedTypeSymbol bindElementAttribute, INamedTypeSymbol bindInputElementAttribute)
-        : TagHelperCollector<Collector>(compilation, targetSymbol: null)
+        Compilation compilation,
+        INamedTypeSymbol bindElementAttribute,
+        INamedTypeSymbol bindInputElementAttribute)
+        : TagHelperCollector<Collector>(compilation, targetAssembly: null)
     {
-        protected override void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results, CancellationToken cancellationToken)
+        protected override void Collect(
+            IAssemblySymbol assembly, ICollection<TagHelperDescriptor> results, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             using var _ = ListPool<INamedTypeSymbol>.GetPooledObject(out var types);
             var visitor = new BindElementDataVisitor(types);
 
-            visitor.Visit(symbol);
+            visitor.Visit(assembly);
 
             foreach (var type in types)
             {

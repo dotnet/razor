@@ -28,7 +28,8 @@ internal sealed class RenderModeTagHelperDescriptorProvider() : TagHelperDescrip
             return;
         }
 
-        if (context.TargetSymbol is { } targetSymbol && !SymbolEqualityComparer.Default.Equals(targetSymbol, iComponentRenderMode.ContainingAssembly))
+        if (context.TargetAssembly is { } targetAssembly &&
+            !SymbolEqualityComparer.Default.Equals(targetAssembly, iComponentRenderMode.ContainingAssembly))
         {
             return;
         }

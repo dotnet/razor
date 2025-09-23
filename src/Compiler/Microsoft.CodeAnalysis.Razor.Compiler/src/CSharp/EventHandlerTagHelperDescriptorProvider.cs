@@ -25,25 +25,29 @@ internal sealed class EventHandlerTagHelperDescriptorProvider : TagHelperDescrip
             return;
         }
 
-        var targetSymbol = context.TargetSymbol;
+        var targetAssembly = context.TargetAssembly;
 
-        var collector = new Collector(compilation, targetSymbol, eventHandlerAttribute);
+        var collector = new Collector(compilation, targetAssembly, eventHandlerAttribute);
         collector.Collect(context, cancellationToken);
     }
 
-    private class Collector(Compilation compilation, ISymbol? targetSymbol, INamedTypeSymbol eventHandlerAttribute)
-        : TagHelperCollector<Collector>(compilation, targetSymbol)
+    private class Collector(
+        Compilation compilation,
+        IAssemblySymbol? targetAssembly,
+        INamedTypeSymbol eventHandlerAttribute)
+        : TagHelperCollector<Collector>(compilation, targetAssembly)
     {
         private readonly INamedTypeSymbol _eventHandlerAttribute = eventHandlerAttribute;
 
-        protected override void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results, CancellationToken cancellationToken)
+        protected override void Collect(
+            IAssemblySymbol assembly, ICollection<TagHelperDescriptor> results, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             using var _ = ListPool<INamedTypeSymbol>.GetPooledObject(out var types);
             var visitor = new EventHandlerDataVisitor(types);
 
-            visitor.Visit(symbol);
+            visitor.Visit(assembly);
 
             foreach (var type in types)
             {

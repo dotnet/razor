@@ -28,7 +28,8 @@ internal sealed class RefTagHelperDescriptorProvider() : TagHelperDescriptorProv
             return;
         }
 
-        if (context.TargetSymbol is { } targetSymbol && !SymbolEqualityComparer.Default.Equals(targetSymbol, elementReference.ContainingAssembly))
+        if (context.TargetAssembly is { } targetAssembly &&
+            !SymbolEqualityComparer.Default.Equals(targetAssembly, elementReference.ContainingAssembly))
         {
             return;
         }
