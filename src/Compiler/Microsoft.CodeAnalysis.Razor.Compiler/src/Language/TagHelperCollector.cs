@@ -102,9 +102,10 @@ public abstract partial class TagHelperCollector<T>(
                 case INamespaceSymbol namespaceSymbol:
                     // Note: Add the members to temp first and then push them
                     // onto the stack in reverse to ensure that they're
-                    // popped off in the correct order.
+                    // popped off and processed in the correct order.
                     foreach (var member in namespaceSymbol.GetMembers())
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
                         temp.Add(member);
                     }
 
@@ -127,20 +128,16 @@ public abstract partial class TagHelperCollector<T>(
 
                     if (includeNestedTypes && typeSymbol.DeclaredAccessibility == Accessibility.Public)
                     {
-                        // Note: Add the members to temp first and then push them
-                        // onto the stack in reverse to ensure that they're
-                        // popped off in the correct order.
-                        foreach (var member in typeSymbol.GetTypeMembers())
-                        {
-                            temp.Add(member);
-                        }
+                        var typeMembers = typeSymbol.GetTypeMembers();
 
-                        for (var i = temp.Count - 1; i >= 0; i--)
+                        // Note: Push members onto the stack in reverse to ensure
+                        // that they're popped off and processed in the correct order.
+                        for (var i = typeMembers.Length - 1; i >= 0; i--)
                         {
-                            stack.Push(temp[i]);
-                        }
+                            cancellationToken.ThrowIfCancellationRequested();
 
-                        temp.Clear();
+                            stack.Push(typeMembers[i]);
+                        }
                     }
 
                     break;
