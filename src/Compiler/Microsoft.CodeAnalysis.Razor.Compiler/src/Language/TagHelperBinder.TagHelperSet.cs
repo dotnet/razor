@@ -33,17 +33,12 @@ internal sealed partial class TagHelperBinder
         {
             get
             {
-                if (_valueOrArray is TagHelperDescriptor[] array)
+                return _valueOrArray switch
                 {
-                    return array[index];
-                }
-
-                if (index == 0)
-                {
-                    return (TagHelperDescriptor)_valueOrArray;
-                }
-
-                throw new IndexOutOfRangeException();
+                    TagHelperDescriptor[] array => array[index],
+                    not null when index == 0 => (TagHelperDescriptor)_valueOrArray,
+                    _ => throw new IndexOutOfRangeException(),
+                };
             }
         }
 
