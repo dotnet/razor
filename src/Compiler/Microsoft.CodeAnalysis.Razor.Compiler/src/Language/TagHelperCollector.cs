@@ -87,7 +87,6 @@ public abstract partial class TagHelperCollector<T>(
         var includeNestedTypes = IncludeNestedTypes;
 
         using var stack = new PooledArrayBuilder<INamespaceOrTypeSymbol>();
-        using var temp = new PooledArrayBuilder<INamespaceOrTypeSymbol>();
 
         stack.Push(assembly.GlobalNamespace);
 
@@ -95,29 +94,27 @@ public abstract partial class TagHelperCollector<T>(
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var current = stack.Pop();
+            var namespaceOrType = stack.Pop();
 
-            switch (current)
+            switch (namespaceOrType.Kind)
             {
-                case INamespaceSymbol namespaceSymbol:
-                    // Note: Add the members to temp first and then push them
-                    // onto the stack in reverse to ensure that they're
-                    // popped off in the correct order.
-                    foreach (var member in namespaceSymbol.GetMembers())
-                    {
-                        temp.Add(member);
-                    }
+                case SymbolKind.Namespace:
+                    var members = namespaceOrType.GetMembers();
 
-                    for (var i = temp.Count - 1; i >= 0; i--)
+                    // Note: Push members onto the stack in reverse to ensure
+                    // that they're popped off and processed in the correct order.
+                    for (var i = members.Length - 1; i >= 0; i--)
                     {
-                        stack.Push(temp[i]);
-                    }
+                        cancellationToken.ThrowIfCancellationRequested();
 
-                    temp.Clear();
+                        // Namespaces members are only ever namespaces or types.
+                        stack.Push((INamespaceOrTypeSymbol)members[i]);
+                    }
 
                     break;
 
-                case INamedTypeSymbol typeSymbol:
+                case SymbolKind.NamedType:
+                    var typeSymbol = (INamedTypeSymbol)namespaceOrType;
 
                     if (IsCandidateType(typeSymbol))
                     {
@@ -125,22 +122,18 @@ public abstract partial class TagHelperCollector<T>(
                         Collect(typeSymbol, results, cancellationToken);
                     }
 
-                    if (includeNestedTypes && typeSymbol.DeclaredAccessibility == Accessibility.Public)
+                    if (includeNestedTypes && namespaceOrType.DeclaredAccessibility == Accessibility.Public)
                     {
-                        // Note: Add the members to temp first and then push them
-                        // onto the stack in reverse to ensure that they're
-                        // popped off in the correct order.
-                        foreach (var member in typeSymbol.GetTypeMembers())
-                        {
-                            temp.Add(member);
-                        }
+                        var typeMembers = namespaceOrType.GetTypeMembers();
 
-                        for (var i = temp.Count - 1; i >= 0; i--)
+                        // Note: Push members onto the stack in reverse to ensure
+                        // that they're popped off and processed in the correct order.
+                        for (var i = typeMembers.Length - 1; i >= 0; i--)
                         {
-                            stack.Push(temp[i]);
-                        }
+                            cancellationToken.ThrowIfCancellationRequested();
 
-                        temp.Clear();
+                            stack.Push(typeMembers[i]);
+                        }
                     }
 
                     break;
