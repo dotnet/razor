@@ -221,77 +221,71 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
         INamedTypeSymbol bindInputElementAttribute)
         : TagHelperCollector<Collector>(compilation, targetAssembly: null)
     {
+        protected override bool IsCandidateType(INamedTypeSymbol types)
+            => types.DeclaredAccessibility == Accessibility.Public &&
+               types.Name == "BindAttributes";
+
         protected override void Collect(
-            IAssemblySymbol assembly, ICollection<TagHelperDescriptor> results, CancellationToken cancellationToken)
+            INamedTypeSymbol type,
+            ICollection<TagHelperDescriptor> results,
+            CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            using var _ = ListPool<INamedTypeSymbol>.GetPooledObject(out var types);
-            var visitor = new BindElementDataVisitor(types);
-
-            visitor.Visit(assembly);
-
-            foreach (var type in types)
+            // Not handling duplicates here for now since we're the primary ones extending this.
+            // If we see users adding to the set of 'bind' constructs we will want to add deduplication
+            // and potentially diagnostics.
+            foreach (var attribute in type.GetAttributes())
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                var constructorArguments = attribute.ConstructorArguments;
 
-                // Not handling duplicates here for now since we're the primary ones extending this.
-                // If we see users adding to the set of 'bind' constructs we will want to add deduplication
-                // and potentially diagnostics.
-                foreach (var attribute in type.GetAttributes())
+                TagHelperDescriptor? tagHelper = null;
+
+                // For case #2 & #3 we have a whole bunch of attribute entries on BindMethods that we can use
+                // to data-drive the definitions of these tag helpers.
+
+                // We need to check the constructor argument length here, because this can show up as 0
+                // if the language service fails to initialize. This is an invalid case, so skip it.
+                if (constructorArguments.Length == 4 && SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, bindElementAttribute))
                 {
-                    var constructorArguments = attribute.ConstructorArguments;
+                    tagHelper = CreateElementBindTagHelper(
+                        typeName: type.GetDefaultDisplayString(),
+                        typeNamespace: type.ContainingNamespace.GetFullName(),
+                        typeNameIdentifier: type.Name,
+                        element: (string?)constructorArguments[0].Value,
+                        typeAttribute: null,
+                        suffix: (string?)constructorArguments[1].Value,
+                        valueAttribute: (string?)constructorArguments[2].Value,
+                        changeAttribute: (string?)constructorArguments[3].Value);
+                }
+                else if (constructorArguments.Length == 4 && SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, bindInputElementAttribute))
+                {
+                    tagHelper = CreateElementBindTagHelper(
+                        typeName: type.GetDefaultDisplayString(),
+                        typeNamespace: type.ContainingNamespace.GetFullName(),
+                        typeNameIdentifier: type.Name,
+                        element: "input",
+                        typeAttribute: (string?)constructorArguments[0].Value,
+                        suffix: (string?)constructorArguments[1].Value,
+                        valueAttribute: (string?)constructorArguments[2].Value,
+                        changeAttribute: (string?)constructorArguments[3].Value);
+                }
+                else if (constructorArguments.Length == 6 && SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, bindInputElementAttribute))
+                {
+                    tagHelper = CreateElementBindTagHelper(
+                        typeName: type.GetDefaultDisplayString(),
+                        typeNamespace: type.ContainingNamespace.GetFullName(),
+                        typeNameIdentifier: type.Name,
+                        element: "input",
+                        typeAttribute: (string?)constructorArguments[0].Value,
+                        suffix: (string?)constructorArguments[1].Value,
+                        valueAttribute: (string?)constructorArguments[2].Value,
+                        changeAttribute: (string?)constructorArguments[3].Value,
+                        isInvariantCulture: (bool?)constructorArguments[4].Value ?? false,
+                        format: (string?)constructorArguments[5].Value);
+                }
 
-                    TagHelperDescriptor? tagHelper = null;
-
-                    // For case #2 & #3 we have a whole bunch of attribute entries on BindMethods that we can use
-                    // to data-drive the definitions of these tag helpers.
-
-                    // We need to check the constructor argument length here, because this can show up as 0
-                    // if the language service fails to initialize. This is an invalid case, so skip it.
-                    if (constructorArguments.Length == 4 && SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, bindElementAttribute))
-                    {
-                        tagHelper = CreateElementBindTagHelper(
-                            typeName: type.GetDefaultDisplayString(),
-                            typeNamespace: type.ContainingNamespace.GetFullName(),
-                            typeNameIdentifier: type.Name,
-                            element: (string?)constructorArguments[0].Value,
-                            typeAttribute: null,
-                            suffix: (string?)constructorArguments[1].Value,
-                            valueAttribute: (string?)constructorArguments[2].Value,
-                            changeAttribute: (string?)constructorArguments[3].Value);
-                    }
-                    else if (constructorArguments.Length == 4 && SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, bindInputElementAttribute))
-                    {
-                        tagHelper = CreateElementBindTagHelper(
-                            typeName: type.GetDefaultDisplayString(),
-                            typeNamespace: type.ContainingNamespace.GetFullName(),
-                            typeNameIdentifier: type.Name,
-                            element: "input",
-                            typeAttribute: (string?)constructorArguments[0].Value,
-                            suffix: (string?)constructorArguments[1].Value,
-                            valueAttribute: (string?)constructorArguments[2].Value,
-                            changeAttribute: (string?)constructorArguments[3].Value);
-                    }
-                    else if (constructorArguments.Length == 6 && SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, bindInputElementAttribute))
-                    {
-                        tagHelper = CreateElementBindTagHelper(
-                            typeName: type.GetDefaultDisplayString(),
-                            typeNamespace: type.ContainingNamespace.GetFullName(),
-                            typeNameIdentifier: type.Name,
-                            element: "input",
-                            typeAttribute: (string?)constructorArguments[0].Value,
-                            suffix: (string?)constructorArguments[1].Value,
-                            valueAttribute: (string?)constructorArguments[2].Value,
-                            changeAttribute: (string?)constructorArguments[3].Value,
-                            isInvariantCulture: (bool?)constructorArguments[4].Value ?? false,
-                            format: (string?)constructorArguments[5].Value);
-                    }
-
-                    if (tagHelper is not null)
-                    {
-                        results.Add(tagHelper);
-                    }
+                if (tagHelper is not null)
+                {
+                    results.Add(tagHelper);
                 }
             }
 
@@ -678,33 +672,6 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
                 builder.SetMetadata(metadata.Build());
 
                 results.Add(builder.Build());
-            }
-        }
-
-        private class BindElementDataVisitor(List<INamedTypeSymbol> results) : SymbolVisitor
-        {
-            private readonly List<INamedTypeSymbol> _results = results;
-
-            public override void VisitNamedType(INamedTypeSymbol symbol)
-            {
-                if (symbol.DeclaredAccessibility == Accessibility.Public &&
-                    symbol.Name == "BindAttributes")
-                {
-                    _results.Add(symbol);
-                }
-            }
-
-            public override void VisitNamespace(INamespaceSymbol symbol)
-            {
-                foreach (var member in symbol.GetMembers())
-                {
-                    Visit(member);
-                }
-            }
-
-            public override void VisitAssembly(IAssemblySymbol symbol)
-            {
-                Visit(symbol.GlobalNamespace);
             }
         }
     }

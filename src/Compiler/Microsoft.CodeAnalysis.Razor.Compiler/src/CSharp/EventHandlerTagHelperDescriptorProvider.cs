@@ -7,7 +7,6 @@ using System.Threading;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -39,37 +38,31 @@ internal sealed class EventHandlerTagHelperDescriptorProvider : TagHelperDescrip
     {
         private readonly INamedTypeSymbol _eventHandlerAttribute = eventHandlerAttribute;
 
+        protected override bool IsCandidateType(INamedTypeSymbol type)
+            => type.DeclaredAccessibility == Accessibility.Public &&
+               type.Name == "EventHandlers";
+
         protected override void Collect(
-            IAssemblySymbol assembly, ICollection<TagHelperDescriptor> results, CancellationToken cancellationToken)
+            INamedTypeSymbol type,
+            ICollection<TagHelperDescriptor> results,
+            CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            using var _ = ListPool<INamedTypeSymbol>.GetPooledObject(out var types);
-            var visitor = new EventHandlerDataVisitor(types);
-
-            visitor.Visit(assembly);
-
-            foreach (var type in types)
+            // Not handling duplicates here for now since we're the primary ones extending this.
+            // If we see users adding to the set of event handler constructs we will want to add deduplication
+            // and potentially diagnostics.
+            foreach (var attribute in type.GetAttributes())
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Not handling duplicates here for now since we're the primary ones extending this.
-                // If we see users adding to the set of event handler constructs we will want to add deduplication
-                // and potentially diagnostics.
-                foreach (var attribute in type.GetAttributes())
+                if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, _eventHandlerAttribute))
                 {
-                    if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, _eventHandlerAttribute))
+                    if (!AttributeArgs.TryGet(attribute, out var args))
                     {
-                        if (!AttributeArgs.TryGet(attribute, out var args))
-                        {
-                            // If this occurs, the [EventHandler] was defined incorrectly, so we can't create a tag helper.
-                            continue;
-                        }
-
-                        var typeName = type.GetDefaultDisplayString();
-                        var namespaceName = type.ContainingNamespace.GetFullName();
-                        results.Add(CreateTagHelper(typeName, namespaceName, type.Name, args));
+                        // If this occurs, the [EventHandler] was defined incorrectly, so we can't create a tag helper.
+                        continue;
                     }
+
+                    var typeName = type.GetDefaultDisplayString();
+                    var namespaceName = type.ContainingNamespace.GetFullName();
+                    results.Add(CreateTagHelper(typeName, namespaceName, type.Name, args));
                 }
             }
         }
@@ -255,33 +248,6 @@ internal sealed class EventHandlerTagHelperDescriptorProvider : TagHelperDescrip
             });
 
             return builder.Build();
-        }
-
-        private class EventHandlerDataVisitor(List<INamedTypeSymbol> results) : SymbolVisitor
-        {
-            private readonly List<INamedTypeSymbol> _results = results;
-
-            public override void VisitNamedType(INamedTypeSymbol symbol)
-            {
-                if (symbol.DeclaredAccessibility == Accessibility.Public &&
-                    symbol.Name == "EventHandlers")
-                {
-                    _results.Add(symbol);
-                }
-            }
-
-            public override void VisitNamespace(INamespaceSymbol symbol)
-            {
-                foreach (var member in symbol.GetMembers())
-                {
-                    Visit(member);
-                }
-            }
-
-            public override void VisitAssembly(IAssemblySymbol symbol)
-            {
-                Visit(symbol.GlobalNamespace);
-            }
         }
     }
 }

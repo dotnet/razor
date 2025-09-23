@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X;
@@ -43,26 +42,21 @@ public sealed class ViewComponentTagHelperDescriptorProvider : TagHelperDescript
         private readonly INamedTypeSymbol _vcAttribute = vcAttribute;
         private readonly INamedTypeSymbol? _nonVCAttribute = nonVCAttribute;
 
+        protected override bool IncludeNestedTypes => true;
+
+        protected override bool IsCandidateType(INamedTypeSymbol type)
+            => type.IsViewComponent(_vcAttribute, _nonVCAttribute);
+
         protected override void Collect(
-            IAssemblySymbol assembly, ICollection<TagHelperDescriptor> results, CancellationToken cancellationToken)
+            INamedTypeSymbol type,
+            ICollection<TagHelperDescriptor> results,
+            CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            var descriptor = _factory.CreateDescriptor(type);
 
-            using var _ = ListPool<INamedTypeSymbol>.GetPooledObject(out var types);
-            var visitor = new ViewComponentTypeVisitor(_vcAttribute, _nonVCAttribute, types);
-
-            visitor.Visit(assembly);
-
-            foreach (var type in types)
+            if (descriptor != null)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var descriptor = _factory.CreateDescriptor(type);
-
-                if (descriptor != null)
-                {
-                    results.Add(descriptor);
-                }
+                results.Add(descriptor);
             }
         }
     }

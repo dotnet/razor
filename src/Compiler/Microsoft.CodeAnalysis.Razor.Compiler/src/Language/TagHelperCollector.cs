@@ -20,8 +20,12 @@ public abstract partial class TagHelperCollector<T>(
     private readonly Compilation _compilation = compilation;
     private readonly IAssemblySymbol? _targetAssembly = targetAssembly;
 
+    protected virtual bool IncludeNestedTypes => false;
+
+    protected abstract bool IsCandidateType(INamedTypeSymbol type);
+
     protected abstract void Collect(
-        IAssemblySymbol assembly,
+        INamedTypeSymbol type,
         ICollection<TagHelperDescriptor> results,
         CancellationToken cancellationToken);
 
@@ -69,6 +73,77 @@ public abstract partial class TagHelperCollector<T>(
                         context.Results.Add(tagHelper);
                     }
                 }
+            }
+        }
+    }
+
+    private void Collect(
+        IAssemblySymbol assembly,
+        ICollection<TagHelperDescriptor> results,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var includeNestedTypes = IncludeNestedTypes;
+
+        using var stack = new PooledArrayBuilder<INamespaceOrTypeSymbol>();
+        using var temp = new PooledArrayBuilder<INamespaceOrTypeSymbol>();
+
+        stack.Push(assembly.GlobalNamespace);
+
+        while (stack.Count > 0)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var current = stack.Pop();
+
+            switch (current)
+            {
+                case INamespaceSymbol namespaceSymbol:
+                    // Note: Add the members to temp first and then push them
+                    // onto the stack in reverse to ensure that they're
+                    // popped off in the correct order.
+                    foreach (var member in namespaceSymbol.GetMembers())
+                    {
+                        temp.Add(member);
+                    }
+
+                    for (var i = temp.Count - 1; i >= 0; i--)
+                    {
+                        stack.Push(temp[i]);
+                    }
+
+                    temp.Clear();
+
+                    break;
+
+                case INamedTypeSymbol typeSymbol:
+
+                    if (IsCandidateType(typeSymbol))
+                    {
+                        // We have a candidate. Collect it.
+                        Collect(typeSymbol, results, cancellationToken);
+                    }
+
+                    if (includeNestedTypes && typeSymbol.DeclaredAccessibility == Accessibility.Public)
+                    {
+                        // Note: Add the members to temp first and then push them
+                        // onto the stack in reverse to ensure that they're
+                        // popped off in the correct order.
+                        foreach (var member in typeSymbol.GetTypeMembers())
+                        {
+                            temp.Add(member);
+                        }
+
+                        for (var i = temp.Count - 1; i >= 0; i--)
+                        {
+                            stack.Push(temp[i]);
+                        }
+
+                        temp.Clear();
+                    }
+
+                    break;
             }
         }
     }
