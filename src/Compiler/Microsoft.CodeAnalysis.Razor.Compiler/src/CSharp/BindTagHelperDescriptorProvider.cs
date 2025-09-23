@@ -225,6 +225,29 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
             => types.DeclaredAccessibility == Accessibility.Public &&
                types.Name == "BindAttributes";
 
+        protected override void Collect(IAssemblySymbol assembly, ICollection<TagHelperDescriptor> results, CancellationToken cancellationToken)
+        {
+            // First, collect the initial set of tag helpers from this assembly. This calls
+            // the Collect(INamedTypeSymbol, ...) overload below for cases #2 & #3.
+            base.Collect(assembly, results, cancellationToken);
+
+            // Then, for case #4 we look at the tag helpers that were already created corresponding to components
+            // and pattern match on properties.
+            using var componentBindTagHelpers = new PooledArrayBuilder<TagHelperDescriptor>(capacity: results.Count);
+
+            foreach (var tagHelper in results)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                AddComponentBindTagHelpers(tagHelper, ref componentBindTagHelpers.AsRef());
+            }
+
+            foreach (var tagHelper in componentBindTagHelpers)
+            {
+                results.Add(tagHelper);
+            }
+        }
+
         protected override void Collect(
             INamedTypeSymbol type,
             ICollection<TagHelperDescriptor> results,
@@ -287,22 +310,6 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
                 {
                     results.Add(tagHelper);
                 }
-            }
-
-            // For case #4 we look at the tag helpers that were already created corresponding to components
-            // and pattern match on properties.
-            using var componentBindTagHelpers = new PooledArrayBuilder<TagHelperDescriptor>(capacity: results.Count);
-
-            foreach (var tagHelper in results)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                AddComponentBindTagHelpers(tagHelper, ref componentBindTagHelpers.AsRef());
-            }
-
-            foreach (var tagHelper in componentBindTagHelpers)
-            {
-                results.Add(tagHelper);
             }
         }
 
