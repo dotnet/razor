@@ -26,14 +26,16 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
         var targetSymbol = context.TargetSymbol;
 
         var collector = new Collector(compilation, targetSymbol);
-        collector.Collect(context);
+        collector.Collect(context, cancellationToken);
     }
 
     private sealed class Collector(Compilation compilation, ISymbol? targetSymbol)
         : TagHelperCollector<Collector>(compilation, targetSymbol)
     {
-        protected override void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results)
+        protected override void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             using var _ = ListPool<INamedTypeSymbol>.GetPooledObject(out var types);
             var visitor = new ComponentTypeVisitor(types);
 
@@ -41,6 +43,8 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
 
             foreach (var type in types)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 // Components have very simple matching rules.
                 // 1. The type name (short) matches the tag name.
                 // 2. The fully qualified name matches the tag name.

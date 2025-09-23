@@ -115,7 +115,7 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
         // We want to walk the compilation and its references, not the target symbol.
         var collector = new Collector(
             compilation, bindElementAttribute, bindInputElementAttribute);
-        collector.Collect(context);
+        collector.Collect(context, cancellationToken);
     }
 
     private static TagHelperDescriptor CreateFallbackBindTagHelper()
@@ -218,8 +218,10 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
         Compilation compilation, INamedTypeSymbol bindElementAttribute, INamedTypeSymbol bindInputElementAttribute)
         : TagHelperCollector<Collector>(compilation, targetSymbol: null)
     {
-        protected override void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results)
+        protected override void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             using var _ = ListPool<INamedTypeSymbol>.GetPooledObject(out var types);
             var visitor = new BindElementDataVisitor(types);
 
@@ -227,6 +229,8 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
 
             foreach (var type in types)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 // Not handling duplicates here for now since we're the primary ones extending this.
                 // If we see users adding to the set of 'bind' constructs we will want to add deduplication
                 // and potentially diagnostics.
@@ -293,6 +297,8 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
 
             foreach (var tagHelper in results)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 AddComponentBindTagHelpers(tagHelper, ref componentBindTagHelpers.AsRef());
             }
 

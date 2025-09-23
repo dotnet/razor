@@ -29,7 +29,7 @@ public sealed class ViewComponentTagHelperDescriptorProvider : TagHelperDescript
         var factory = new ViewComponentTagHelperDescriptorFactory(compilation);
         var collector = new Collector(compilation, factory, vcAttribute, nonVCAttribute);
 
-        collector.Collect(context);
+        collector.Collect(context, cancellationToken);
     }
 
     private class Collector(
@@ -43,8 +43,10 @@ public sealed class ViewComponentTagHelperDescriptorProvider : TagHelperDescript
         private readonly INamedTypeSymbol _vcAttribute = vcAttribute;
         private readonly INamedTypeSymbol? _nonVCAttribute = nonVCAttribute;
 
-        protected override void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results)
+        protected override void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             using var _ = ListPool<INamedTypeSymbol>.GetPooledObject(out var types);
             var visitor = new ViewComponentTypeVisitor(_vcAttribute, _nonVCAttribute, types);
 
@@ -52,6 +54,8 @@ public sealed class ViewComponentTagHelperDescriptorProvider : TagHelperDescript
 
             foreach (var type in types)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var descriptor = _factory.CreateDescriptor(type);
 
                 if (descriptor != null)

@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 
@@ -23,20 +24,25 @@ public abstract partial class TagHelperCollector<T>
         _targetSymbol = targetSymbol;
     }
 
-    protected abstract void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results);
+    protected abstract void Collect(
+        ISymbol symbol,
+        ICollection<TagHelperDescriptor> results,
+        CancellationToken cancellationToken);
 
-    public void Collect(TagHelperDescriptorProviderContext context)
+    public void Collect(TagHelperDescriptorProviderContext context, CancellationToken cancellationToken)
     {
         if (_targetSymbol is not null)
         {
-            Collect(_targetSymbol, context.Results);
+            Collect(_targetSymbol, context.Results, cancellationToken);
         }
         else
         {
-            Collect(_compilation.Assembly.GlobalNamespace, context.Results);
+            Collect(_compilation.Assembly.GlobalNamespace, context.Results, cancellationToken);
 
             foreach (var reference in _compilation.References)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (_compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                 {
                     // Check to see if we already have tag helpers cached for this assembly
@@ -57,7 +63,7 @@ public abstract partial class TagHelperCollector<T>
                     if (!cache.TryGet(includeDocumentation, excludeHidden, out var tagHelpers))
                     {
                         using var _ = ListPool<TagHelperDescriptor>.GetPooledObject(out var referenceTagHelpers);
-                        Collect(assembly.GlobalNamespace, referenceTagHelpers);
+                        Collect(assembly.GlobalNamespace, referenceTagHelpers, cancellationToken);
 
                         tagHelpers = cache.Add(referenceTagHelpers.ToArrayOrEmpty(), includeDocumentation, excludeHidden);
                     }

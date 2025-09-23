@@ -28,7 +28,7 @@ internal sealed class EventHandlerTagHelperDescriptorProvider : TagHelperDescrip
         var targetSymbol = context.TargetSymbol;
 
         var collector = new Collector(compilation, targetSymbol, eventHandlerAttribute);
-        collector.Collect(context);
+        collector.Collect(context, cancellationToken);
     }
 
     private class Collector(Compilation compilation, ISymbol? targetSymbol, INamedTypeSymbol eventHandlerAttribute)
@@ -36,8 +36,10 @@ internal sealed class EventHandlerTagHelperDescriptorProvider : TagHelperDescrip
     {
         private readonly INamedTypeSymbol _eventHandlerAttribute = eventHandlerAttribute;
 
-        protected override void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results)
+        protected override void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             using var _ = ListPool<INamedTypeSymbol>.GetPooledObject(out var types);
             var visitor = new EventHandlerDataVisitor(types);
 
@@ -45,6 +47,8 @@ internal sealed class EventHandlerTagHelperDescriptorProvider : TagHelperDescrip
 
             foreach (var type in types)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 // Not handling duplicates here for now since we're the primary ones extending this.
                 // If we see users adding to the set of event handler constructs we will want to add deduplication
                 // and potentially diagnostics.

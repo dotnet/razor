@@ -27,7 +27,7 @@ public sealed class DefaultTagHelperDescriptorProvider : TagHelperDescriptorProv
         var targetSymbol = context.TargetSymbol;
         var factory = new DefaultTagHelperDescriptorFactory(context.IncludeDocumentation, context.ExcludeHidden);
         var collector = new Collector(compilation, targetSymbol, factory, tagHelperTypeSymbol);
-        collector.Collect(context);
+        collector.Collect(context, cancellationToken);
     }
 
     private class Collector(
@@ -37,8 +37,10 @@ public sealed class DefaultTagHelperDescriptorProvider : TagHelperDescriptorProv
         private readonly DefaultTagHelperDescriptorFactory _factory = factory;
         private readonly INamedTypeSymbol _tagHelperTypeSymbol = tagHelperTypeSymbol;
 
-        protected override void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results)
+        protected override void Collect(ISymbol symbol, ICollection<TagHelperDescriptor> results, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             using var _ = ListPool<INamedTypeSymbol>.GetPooledObject(out var types);
             var visitor = new TagHelperTypeVisitor(_tagHelperTypeSymbol, types);
 
@@ -46,6 +48,8 @@ public sealed class DefaultTagHelperDescriptorProvider : TagHelperDescriptorProv
 
             foreach (var type in types)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var descriptor = _factory.CreateDescriptor(type);
 
                 if (descriptor != null)
