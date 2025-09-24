@@ -29,56 +29,6 @@ internal class OptionsStorage : IAdvancedSettingsStorage, IDisposable
     private IDisposable? _unifiedSettingsSubscription;
     private bool _changedBeforeSubscription;
 
-    public bool FormatOnType
-    {
-        get => GetBool(SettingsNames.FormatOnType, defaultValue: true);
-    }
-
-    public bool AutoClosingTags
-    {
-        get => GetBool(SettingsNames.AutoClosingTags, defaultValue: true);
-    }
-
-    public bool AutoInsertAttributeQuotes
-    {
-        get => GetBool(SettingsNames.AutoInsertAttributeQuotes, defaultValue: true);
-    }
-
-    public bool ColorBackground
-    {
-        get => GetBool(SettingsNames.ColorBackground, defaultValue: false);
-    }
-
-    public bool CodeBlockBraceOnNextLine
-    {
-        get => GetBool(SettingsNames.CodeBlockBraceOnNextLine, defaultValue: false);
-    }
-
-    public bool CommitElementsWithSpace
-    {
-        get => GetBool(SettingsNames.CommitElementsWithSpace, defaultValue: true);
-    }
-
-    public SnippetSetting Snippets
-    {
-        get => GetEnum(SettingsNames.Snippets, SnippetSetting.All);
-    }
-
-    public LogLevel LogLevel
-    {
-        get => GetEnum(SettingsNames.LogLevel, LogLevel.Warning);
-    }
-
-    public bool FormatOnPaste
-    {
-        get => GetBool(SettingsNames.FormatOnPaste, defaultValue: true);
-    }
-
-    public ImmutableArray<string> TaskListDescriptors
-    {
-        get { return _taskListDescriptors; }
-    }
-
     [ImportingConstructor]
     public OptionsStorage(
         SVsServiceProvider synchronousServiceProvider,
@@ -148,7 +98,17 @@ internal class OptionsStorage : IAdvancedSettingsStorage, IDisposable
     private EventHandler<ClientAdvancedSettingsChangedEventArgs>? _changed;
 
     public ClientAdvancedSettings GetAdvancedSettings()
-        => new(FormatOnType, AutoClosingTags, AutoInsertAttributeQuotes, ColorBackground, CodeBlockBraceOnNextLine, CommitElementsWithSpace, Snippets, LogLevel, FormatOnPaste, TaskListDescriptors);
+        => new(
+            GetBool(SettingsNames.FormatOnType, defaultValue: true),
+            GetBool(SettingsNames.AutoClosingTags, defaultValue: true),
+            GetBool(SettingsNames.AutoInsertAttributeQuotes, defaultValue: true),
+            GetBool(SettingsNames.ColorBackground, defaultValue: false),
+            GetBool(SettingsNames.CodeBlockBraceOnNextLine, defaultValue: false),
+            GetBool(SettingsNames.CommitElementsWithSpace, defaultValue: true),
+            GetEnum(SettingsNames.Snippets, SnippetSetting.All),
+            GetEnum(SettingsNames.LogLevel, LogLevel.Warning),
+            GetBool(SettingsNames.FormatOnPaste, defaultValue: true),
+            _taskListDescriptors);
 
     public bool GetBool(string name, bool defaultValue)
     {
