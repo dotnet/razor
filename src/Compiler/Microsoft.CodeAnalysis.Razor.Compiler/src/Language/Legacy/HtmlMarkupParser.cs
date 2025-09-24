@@ -2014,14 +2014,14 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
 
             // Check condition 2.2
             var isValidComment = false;
-            LookaheadUntil((token, prevTokens) =>
+            LookaheadUntil((token, ref readonly prevTokens) =>
             {
                 if (token.Kind == SyntaxKind.DoubleHyphen)
                 {
                     if (NextIs(SyntaxKind.CloseAngle))
                     {
                         // Check condition 2.3: We're at the end of a comment. Check to make sure the text ending is allowed.
-                        isValidComment = !IsCommentContentEndingInvalid(prevTokens);
+                        isValidComment = !IsCommentContentEndingInvalid(in prevTokens);
                         return true;
                     }
                     else if (NextIs(ns => IsHyphen(ns) && NextIs(SyntaxKind.CloseAngle)))
@@ -2208,13 +2208,13 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
     /// <summary>
     /// Verifies, that the sequence doesn't end with the "&lt;!-" HtmlTokens. Note, the first token is an opening bracket token
     /// </summary>
-    internal static bool IsCommentContentEndingInvalid(IEnumerable<SyntaxToken> sequence)
+    internal static bool IsCommentContentEndingInvalid(ref readonly PooledArrayBuilder<SyntaxToken> tokens)
     {
-        var reversedSequence = sequence.Reverse();
         var index = 0;
-        foreach (var item in reversedSequence)
+
+        for (var i = tokens.Count - 1; i >= 0; i--)
         {
-            if (!item.IsEquivalentTo(nonAllowedHtmlCommentEnding[index++]))
+            if (!tokens[i].IsEquivalentTo(nonAllowedHtmlCommentEnding[index++]))
             {
                 return false;
             }
