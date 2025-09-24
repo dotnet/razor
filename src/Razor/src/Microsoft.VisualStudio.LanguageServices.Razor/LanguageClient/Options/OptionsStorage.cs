@@ -31,55 +31,46 @@ internal class OptionsStorage : IAdvancedSettingsStorage, IDisposable
 
     public bool FormatOnType
     {
-        set => SetBool(SettingsNames.FormatOnType.LegacyName, value);
         get => GetBool(SettingsNames.FormatOnType, defaultValue: true);
     }
 
     public bool AutoClosingTags
     {
-        set => SetBool(SettingsNames.AutoClosingTags.LegacyName, value);
         get => GetBool(SettingsNames.AutoClosingTags, defaultValue: true);
     }
 
     public bool AutoInsertAttributeQuotes
     {
-        set => SetBool(SettingsNames.AutoInsertAttributeQuotes.LegacyName, value);
         get => GetBool(SettingsNames.AutoInsertAttributeQuotes, defaultValue: true);
     }
 
     public bool ColorBackground
     {
-        set => SetBool(SettingsNames.ColorBackground.LegacyName, value);
         get => GetBool(SettingsNames.ColorBackground, defaultValue: false);
     }
 
     public bool CodeBlockBraceOnNextLine
     {
-        set => SetBool(SettingsNames.CodeBlockBraceOnNextLine.LegacyName, value);
         get => GetBool(SettingsNames.CodeBlockBraceOnNextLine, defaultValue: false);
     }
 
     public bool CommitElementsWithSpace
     {
-        set => SetBool(SettingsNames.CommitElementsWithSpace.LegacyName, value);
         get => GetBool(SettingsNames.CommitElementsWithSpace, defaultValue: true);
     }
 
     public SnippetSetting Snippets
     {
-        set => SetInt(SettingsNames.Snippets.LegacyName, (int)value);
         get => GetEnum(SettingsNames.Snippets, SnippetSetting.All);
     }
 
     public LogLevel LogLevel
     {
-        set => SetInt(SettingsNames.LogLevel.LegacyName, (int)value);
         get => GetEnum(SettingsNames.LogLevel, LogLevel.Warning);
     }
 
     public bool FormatOnPaste
     {
-        set => SetBool(SettingsNames.FormatOnPaste.LegacyName, value);
         get => GetBool(SettingsNames.FormatOnPaste, defaultValue: true);
     }
 
@@ -169,14 +160,6 @@ internal class OptionsStorage : IAdvancedSettingsStorage, IDisposable
         return defaultValue;
     }
 
-    public void SetBool(string name, bool value)
-    {
-        _writableSettingsStore.SetBoolean(SettingsNames.LegacyCollection, name, value);
-        _telemetryReporter.Value.ReportEvent("OptionChanged", Severity.Normal, new Property(name, value));
-
-        NotifyChange();
-    }
-
     public T GetEnum<T>(string name, T defaultValue) where T : struct, Enum
     {
         if (_unifiedSettingsReader.AssumeNotNull().GetValue<string>(name) is { Outcome: SettingRetrievalOutcome.Success, Value: { } unifiedValue })
@@ -188,14 +171,6 @@ internal class OptionsStorage : IAdvancedSettingsStorage, IDisposable
         }
 
         return defaultValue;
-    }
-
-    public void SetInt(string name, int value)
-    {
-        _writableSettingsStore.SetInt32(SettingsNames.LegacyCollection, name, value);
-        _telemetryReporter.Value.ReportEvent("OptionChanged", Severity.Normal, new Property(name, value));
-
-        NotifyChange();
     }
 
     private void NotifyChange()
