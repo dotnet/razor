@@ -6,9 +6,9 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Options;
 internal static class SettingsNames
 {
     public record Setting(string LegacyName, string UnifiedName);
+    public const string UnifiedCollection = "languages.razor.advanced";
 
     public const string LegacyCollection = "Razor";
-    public const string UnifiedCollection = "textEditor.razor.advanced";
 
     public static readonly Setting FormatOnType = new("FormatOnType", UnifiedCollection + ".formatOnType");
     public static readonly Setting AutoClosingTags = new("AutoClosingTags", UnifiedCollection + ".autoClosingTags");
