@@ -89,7 +89,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     {
     }
 
-    public CSharpCodeParser(IEnumerable<DirectiveDescriptor> directives, ParserContext context)
+    public CSharpCodeParser(ImmutableArray<DirectiveDescriptor> directives, ParserContext context)
         : base(context.Options.ParseLeadingDirectives
             ? FirstDirectiveCSharpLanguageCharacteristics.Instance
             : context.Options.UseRoslynTokenizer
@@ -143,7 +143,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             keywordParserMapBuilder.Add(CSharpSyntaxKind.AwaitKeyword, ParseAwaitExpression);
         }
 
-        void SetupDirectiveParsers(IEnumerable<DirectiveDescriptor> directiveDescriptors)
+        void SetupDirectiveParsers(ImmutableArray<DirectiveDescriptor> directiveDescriptors)
         {
             foreach (var directiveDescriptor in directiveDescriptors)
             {
