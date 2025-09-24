@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
@@ -27,8 +25,7 @@ internal class DefaultRazorCSharpLoweringPhase : RazorEnginePhaseBase, IRazorCSh
             throw new InvalidOperationException(message);
         }
 
-        var writer = DocumentWriter.CreateDefault(documentNode.Target, documentNode.Options);
-        var csharpDocument = writer.WriteDocument(codeDocument, documentNode);
+        var csharpDocument = DocumentWriter.WriteDocument(codeDocument);
         codeDocument.SetCSharpDocument(csharpDocument);
     }
 }
