@@ -18,10 +18,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 {
-    private static readonly FrozenSet<char> InvalidNonWhitespaceNameCharacters = new HashSet<char>(
-    [
-        '@', '!', '<', '/', '?', '[', '>', ']', '=', '"', '\'', '*'
-    ]).ToFrozenSet();
+    private static readonly FrozenSet<char> InvalidNonWhitespaceNameCharacters = FrozenSet.Create(
+        '@', '!', '<', '/', '?', '[', '>', ']', '=', '"', '\'', '*');
 
     private static readonly Func<SyntaxToken, bool> IsValidStatementSpacingToken =
         IsSpacingTokenIncludingNewLinesAndCommentsAndCSharpDirectives;
@@ -61,28 +59,31 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             builder.Description = Resources.TagHelperPrefixDirective_Description;
         });
 
-    internal static ImmutableHashSet<string> DefaultKeywords = ImmutableHashSet.Create(
-            SyntaxConstants.CSharp.TagHelperPrefixKeyword,
-            SyntaxConstants.CSharp.AddTagHelperKeyword,
-            SyntaxConstants.CSharp.RemoveTagHelperKeyword,
-            "if",
-            "do",
-            "try",
-            "for",
-            "foreach",
-            "while",
-            "switch",
-            "lock",
-            "using",
-            "namespace",
-            "class",
-            "where"
-         );
+    private static readonly string[] s_defaultKeywords = [
+        SyntaxConstants.CSharp.TagHelperPrefixKeyword,
+        SyntaxConstants.CSharp.AddTagHelperKeyword,
+        SyntaxConstants.CSharp.RemoveTagHelperKeyword,
+        "if",
+        "do",
+        "try",
+        "for",
+        "foreach",
+        "while",
+        "switch",
+        "lock",
+        "using",
+        "namespace",
+        "class",
+        "where"];
 
-    private readonly ImmutableHashSet<string> CurrentKeywords;
 
-    private readonly ImmutableDictionary<CSharpSyntaxKind, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax?>> _keywordParserMap;
-    private readonly ImmutableDictionary<string, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax>> _directiveParserMap;
+    internal static KeywordSet DefaultKeywords { get; } = KeywordSet.Create(
+        FrozenSet.Create(StringComparer.Ordinal, s_defaultKeywords));
+
+    private readonly KeywordSet _currentKeywords;
+
+    private readonly Dictionary<CSharpSyntaxKind, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax?>> _keywordParserMap;
+    private readonly Dictionary<string, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax>> _directiveParserMap;
 
     public CSharpCodeParser(ParserContext context)
         : this(directives: [], context)
@@ -96,22 +97,23 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                 ? new RoslynCSharpLanguageCharacteristics(context.Options.CSharpParseOptions)
                 : NativeCSharpLanguageCharacteristics.Instance, context)
     {
-        ArgHelper.ThrowIfNull(directives);
         ArgHelper.ThrowIfNull(context);
 
-        var keywordsBuilder = ImmutableHashSet<string>.Empty.ToBuilder();
-        var keywordParserMapBuilder = ImmutableDictionary<CSharpSyntaxKind, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax?>>.Empty.ToBuilder();
-        var currentKeywordsBuilder = DefaultKeywords.ToBuilder();
-        var directiveParserMapBuilder = ImmutableDictionary.CreateBuilder<string, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax>>(StringComparer.Ordinal);
+        directives = directives.NullToEmpty();
+
+        var keywordsSet = new HashSet<string>(StringComparer.Ordinal);
+        var keywordParserMap = new Dictionary<CSharpSyntaxKind, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax?>>();
+        var currentKeywordsSet = new HashSet<string>(s_defaultKeywords, StringComparer.Ordinal);
+        var directiveParserMap = new Dictionary<string, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax>>(StringComparer.Ordinal);
 
         SetupKeywordParsers();
         SetupExpressionParsers();
         SetupDirectiveParsers(directives);
 
-        Keywords = keywordsBuilder.ToImmutable();
-        CurrentKeywords = currentKeywordsBuilder.ToImmutable();
-        _keywordParserMap = keywordParserMapBuilder.ToImmutable();
-        _directiveParserMap = directiveParserMapBuilder.ToImmutable();
+        Keywords = KeywordSet.Create(keywordsSet);
+        _currentKeywords = KeywordSet.Create(currentKeywordsSet);
+        _keywordParserMap = keywordParserMap;
+        _directiveParserMap = directiveParserMap;
 
         void SetupKeywordParsers()
         {
@@ -130,47 +132,48 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         {
             foreach (var keyword in keywords)
             {
-                keywordParserMapBuilder.Add(keyword, handler);
+                keywordParserMap.Add(keyword, handler);
+
                 if (topLevel)
                 {
-                    keywordsBuilder.Add(CSharpSyntaxFacts.GetText(keyword));
+                    keywordsSet.Add(CSharpSyntaxFacts.GetText(keyword));
                 }
             }
         }
 
         void SetupExpressionParsers()
         {
-            keywordParserMapBuilder.Add(CSharpSyntaxKind.AwaitKeyword, ParseAwaitExpression);
+            keywordParserMap.Add(CSharpSyntaxKind.AwaitKeyword, ParseAwaitExpression);
         }
 
         void SetupDirectiveParsers(ImmutableArray<DirectiveDescriptor> directiveDescriptors)
         {
             foreach (var directiveDescriptor in directiveDescriptors)
             {
-                currentKeywordsBuilder.Add(directiveDescriptor.Directive);
-                MapDirectives((builder, transition) => ParseExtensibleDirective(builder, transition, directiveDescriptor), directiveParserMapBuilder, keywordsBuilder, context, directiveDescriptor.Directive);
+                currentKeywordsSet.Add(directiveDescriptor.Directive);
+                MapDirectives((builder, transition) => ParseExtensibleDirective(builder, transition, directiveDescriptor), directiveParserMap, keywordsSet, context, directiveDescriptor.Directive);
             }
 
-            MapDirectives(ParseTagHelperPrefixDirective, directiveParserMapBuilder, keywordsBuilder, context, SyntaxConstants.CSharp.TagHelperPrefixKeyword);
-            MapDirectives(ParseAddTagHelperDirective, directiveParserMapBuilder, keywordsBuilder, context, SyntaxConstants.CSharp.AddTagHelperKeyword);
-            MapDirectives(ParseRemoveTagHelperDirective, directiveParserMapBuilder, keywordsBuilder, context, SyntaxConstants.CSharp.RemoveTagHelperKeyword);
+            MapDirectives(ParseTagHelperPrefixDirective, directiveParserMap, keywordsSet, context, SyntaxConstants.CSharp.TagHelperPrefixKeyword);
+            MapDirectives(ParseAddTagHelperDirective, directiveParserMap, keywordsSet, context, SyntaxConstants.CSharp.AddTagHelperKeyword);
+            MapDirectives(ParseRemoveTagHelperDirective, directiveParserMap, keywordsSet, context, SyntaxConstants.CSharp.RemoveTagHelperKeyword);
 
             // If there wasn't any extensible directives relating to the reserved directives then map them.
-            if (!directiveParserMapBuilder.ContainsKey("class"))
+            if (!directiveParserMap.ContainsKey("class"))
             {
-                MapDirectives(ParseReservedDirective, directiveParserMapBuilder, keywordsBuilder, context, "class");
+                MapDirectives(ParseReservedDirective, directiveParserMap, keywordsSet, context, "class");
             }
 
-            if (!directiveParserMapBuilder.ContainsKey("namespace"))
+            if (!directiveParserMap.ContainsKey("namespace"))
             {
-                MapDirectives(ParseReservedDirective, directiveParserMapBuilder, keywordsBuilder, context, "namespace");
+                MapDirectives(ParseReservedDirective, directiveParserMap, keywordsSet, context, "namespace");
             }
         }
 
         static void MapDirectives(
             Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax> handler,
-            ImmutableDictionary<string, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax>>.Builder directiveParserMap,
-            ImmutableHashSet<string>.Builder keywords,
+            Dictionary<string, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax>> directiveParserMap,
+            HashSet<string> keywords,
             ParserContext context,
             params string[] directives)
         {
@@ -188,6 +191,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                     handler(builder, transition);
                     context.SeenDirectives.Add(directive);
                 });
+
                 keywords.Add(directive);
             }
         }
@@ -205,7 +209,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         set => _htmlParser = value;
     }
 
-    protected internal ImmutableHashSet<string> Keywords { get; private set; }
+    protected internal KeywordSet Keywords { get; private set; }
 
     public bool IsNested { get; set; }
 
@@ -339,7 +343,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                         ImplicitExpressionEditHandler.SetupBuilder(editHandlerBuilder,
                             tokenizer: LanguageTokenizeString,
                             acceptTrailingDot: IsNested,
-                            keywords: CurrentKeywords);
+                            keywords: _currentKeywords);
                     }
 
                     // In this error case, we always want to accept a marker token. This allows intellisense to know
