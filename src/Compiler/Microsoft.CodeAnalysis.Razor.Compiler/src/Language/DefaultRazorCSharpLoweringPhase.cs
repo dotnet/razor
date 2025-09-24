@@ -25,7 +25,7 @@ internal class DefaultRazorCSharpLoweringPhase : RazorEnginePhaseBase, IRazorCSh
             throw new InvalidOperationException(message);
         }
 
-        var csharpDocument = DocumentWriter.WriteDocument(codeDocument);
+        var csharpDocument = DocumentWriter.WriteDocument(codeDocument, cancellationToken);
         codeDocument.SetCSharpDocument(csharpDocument);
     }
 }
