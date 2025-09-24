@@ -215,6 +215,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
     public CSharpCodeBlockSyntax? ParseBlock()
     {
+        CancellationToken.ThrowIfCancellationRequested();
+
         if (Context == null)
         {
             throw new InvalidOperationException(Resources.Parser_Context_Not_Set);
@@ -717,6 +719,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         EnsureCurrent();
         while (!EndOfFile && !At(SyntaxKind.RightBrace))
         {
+            CancellationToken.ThrowIfCancellationRequested();
+
             // Parse a statement, then return here
             ParseStatement(builder, block: block, encounteredUnexpectedMarkupTransition: false);
             EnsureCurrent();

@@ -120,6 +120,8 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
     //
     public MarkupBlockSyntax? ParseBlock()
     {
+        CancellationToken.ThrowIfCancellationRequested();
+
         if (Context == null)
         {
             throw new InvalidOperationException(Resources.Parser_Context_Not_Set);
@@ -183,6 +185,8 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
     //
     public MarkupBlockSyntax ParseRazorBlock(Tuple<string, string> nestingSequences, bool caseSensitive)
     {
+        CancellationToken.ThrowIfCancellationRequested();
+
         if (Context == null)
         {
             throw new InvalidOperationException(Resources.Parser_Context_Not_Set);
@@ -219,6 +223,8 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         ParseMode mode,
         Func<SyntaxToken, bool>? stopCondition = null)
     {
+        CancellationToken.ThrowIfCancellationRequested();
+
         stopCondition = stopCondition ?? (token => false);
         while (!EndOfFile && !stopCondition(CurrentToken))
         {
@@ -228,6 +234,8 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
 
     private void ParseMarkupNode(in SyntaxListBuilder<RazorSyntaxNode> builder, ParseMode mode)
     {
+        CancellationToken.ThrowIfCancellationRequested();
+
         switch (GetParserState(mode))
         {
             case ParserState.MarkupText:
@@ -278,6 +286,8 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
     {
         do
         {
+            CancellationToken.ThrowIfCancellationRequested();
+
             switch (GetParserState(ParseMode.MarkupInCodeBlock))
             {
                 case ParserState.EOF:
@@ -297,7 +307,8 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                     ParseMarkupNode(builder, ParseMode.Text);
                     break;
             }
-        } while (!EndOfFile && _tagTracker.Count > 0);
+        }
+        while (!EndOfFile && _tagTracker.Count > 0);
 
         CompleteMarkupInCodeBlock(builder);
     }
@@ -465,6 +476,8 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
 
     private void ParseMarkupElement(in SyntaxListBuilder<RazorSyntaxNode> builder, ParseMode mode)
     {
+        CancellationToken.ThrowIfCancellationRequested();
+
         Assert(SyntaxKind.OpenAngle);
 
         // Output already accepted tokens if any.
