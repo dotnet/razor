@@ -811,7 +811,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             NoOpTelemetryReporter.Instance,
             LoggerFactory);
 
-        var request = new CompletionParams()
+        var request = new RazorVSInternalCompletionParams()
         {
             TextDocument = new TextDocumentIdentifier()
             {
@@ -900,7 +900,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             NoOpTelemetryReporter.Instance,
             LoggerFactory);
 
-        var request = new CompletionParams()
+        var request = new RazorVSInternalCompletionParams()
         {
             TextDocument = new TextDocumentIdentifier()
             {

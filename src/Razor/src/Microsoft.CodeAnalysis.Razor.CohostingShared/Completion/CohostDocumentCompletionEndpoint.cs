@@ -46,7 +46,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
     CompletionListCache completionListCache,
     ITelemetryReporter telemetryReporter,
     ILoggerFactory loggerFactory)
-    : AbstractCohostDocumentEndpoint<CompletionParams, RazorVSInternalCompletionList?>(incompatibleProjectService), IDynamicRegistrationProvider
+    : AbstractCohostDocumentEndpoint<RazorVSInternalCompletionParams, RazorVSInternalCompletionList?>(incompatibleProjectService), IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
@@ -82,13 +82,12 @@ internal sealed class CohostDocumentCompletionEndpoint(
         return [];
     }
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(CompletionParams request)
+    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(RazorVSInternalCompletionParams request)
         => request.TextDocument?.ToRazorTextDocumentIdentifier();
 
-    protected override async Task<RazorVSInternalCompletionList?> HandleRequestAsync(CompletionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    protected override async Task<RazorVSInternalCompletionList?> HandleRequestAsync(RazorVSInternalCompletionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        if (request.Context is null ||
-            JsonHelpers.Convert<CompletionContext, VSInternalCompletionContext>(request.Context) is not { } completionContext)
+        if (request.Context is not { } completionContext)
         {
             _logger.LogError("Completion request context is null");
             return null;
@@ -153,13 +152,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
             // results we don't want to show. So we want to call HTML LSP only if we know we are in HTML content.
             if (documentPositionInfo.LanguageKind == RazorLanguageKind.Html)
             {
-                var completionParams = new RazorVSInternalCompletionParams()
-                {
-                    Context = completionContext,
-                    Position = request.Position,
-                    TextDocument = request.TextDocument,
-                };
-                htmlCompletionList = await GetHtmlCompletionListAsync(completionParams, razorDocument, razorCompletionOptions, correlationId, cancellationToken).ConfigureAwait(false);
+                htmlCompletionList = await GetHtmlCompletionListAsync(request, razorDocument, razorCompletionOptions, correlationId, cancellationToken).ConfigureAwait(false);
 
                 if (htmlCompletionList is not null)
                 {
@@ -291,7 +284,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
     internal readonly struct TestAccessor(CohostDocumentCompletionEndpoint instance)
     {
         public Task<RazorVSInternalCompletionList?> HandleRequestAsync(
-            CompletionParams request,
+            RazorVSInternalCompletionParams request,
             TextDocument razorDocument,
             CancellationToken cancellationToken)
                 => instance.HandleRequestAsync(request, razorDocument, cancellationToken);

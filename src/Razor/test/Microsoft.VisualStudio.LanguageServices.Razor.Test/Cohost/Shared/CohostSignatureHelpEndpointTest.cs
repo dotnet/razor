@@ -94,7 +94,7 @@ public class CohostSignatureHelpEndpointTest(ITestOutputHelper testOutputHelper)
 
         ClientSettingsManager.Update(ClientCompletionSettings.Default with { AutoListParams = autoListParams });
 
-        var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentSignatureHelpName, null)]);
+        var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentSignatureHelpName, (object?)null)]);
 
         var endpoint = new CohostSignatureHelpEndpoint(IncompatibleProjectService, RemoteServiceInvoker, ClientSettingsManager, requestInvoker);
 
