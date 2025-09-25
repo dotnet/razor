@@ -153,7 +153,13 @@ internal sealed class CohostDocumentCompletionEndpoint(
             // results we don't want to show. So we want to call HTML LSP only if we know we are in HTML content.
             if (documentPositionInfo.LanguageKind == RazorLanguageKind.Html)
             {
-                htmlCompletionList = await GetHtmlCompletionListAsync(request, razorDocument, razorCompletionOptions, correlationId, cancellationToken).ConfigureAwait(false);
+                var completionParams = new RazorVSInternalCompletionParams()
+                {
+                    Context = completionContext,
+                    Position = request.Position,
+                    TextDocument = request.TextDocument,
+                };
+                htmlCompletionList = await GetHtmlCompletionListAsync(completionParams, razorDocument, razorCompletionOptions, correlationId, cancellationToken).ConfigureAwait(false);
 
                 if (htmlCompletionList is not null)
                 {
@@ -218,23 +224,23 @@ internal sealed class CohostDocumentCompletionEndpoint(
     }
 
     private async Task<RazorVSInternalCompletionList?> GetHtmlCompletionListAsync(
-        CompletionParams request,
+        RazorVSInternalCompletionParams completionParams,
         TextDocument razorDocument,
         RazorCompletionOptions razorCompletionOptions,
         Guid correlationId,
         CancellationToken cancellationToken)
     {
-        var result = await _requestInvoker.MakeHtmlLspRequestAsync<CompletionParams, RazorVSInternalCompletionList>(
+        var result = await _requestInvoker.MakeHtmlLspRequestAsync<RazorVSInternalCompletionParams, RazorVSInternalCompletionList>(
             razorDocument,
             Methods.TextDocumentCompletionName,
-            request,
+            completionParams,
             TelemetryThresholds.CompletionSubLSPTelemetryThreshold,
             correlationId,
             cancellationToken).ConfigureAwait(false);
 
         var rewrittenResponse = DelegatedCompletionHelper.RewriteHtmlResponse(result, razorCompletionOptions);
 
-        var razorDocumentIdentifier = new TextDocumentIdentifierAndVersion(request.TextDocument, Version: 0);
+        var razorDocumentIdentifier = new TextDocumentIdentifierAndVersion(completionParams.TextDocument, Version: 0);
         var resolutionContext = new DelegatedCompletionResolutionContext(razorDocumentIdentifier, RazorLanguageKind.Html, rewrittenResponse.Data ?? rewrittenResponse.ItemDefaults?.Data);
         var resultId = _completionListCache.Add(rewrittenResponse, resolutionContext);
         rewrittenResponse.SetResultId(resultId, _clientCapabilitiesService.ClientCapabilities);
