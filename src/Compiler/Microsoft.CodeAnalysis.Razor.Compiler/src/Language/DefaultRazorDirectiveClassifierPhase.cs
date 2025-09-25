@@ -22,6 +22,8 @@ internal sealed class DefaultRazorDirectiveClassifierPhase : RazorEnginePhaseBas
 
         foreach (var pass in Passes)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             pass.Execute(codeDocument, documentNode, cancellationToken);
         }
 
