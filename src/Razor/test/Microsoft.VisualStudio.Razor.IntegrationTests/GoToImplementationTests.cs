@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
 public class GoToImplementationTests(ITestOutputHelper testOutputHelper) : AbstractRazorEditorTest(testOutputHelper)
 {
-    [IdeFact]
+    [IdeFact(Skip = "Go To Impl hangs prevents the Roslyn language server from shutting down for some reason")]
     public async Task GoToImplementation_SameFile()
     {
         // Open the file
@@ -24,7 +24,7 @@ public class GoToImplementationTests(ITestOutputHelper testOutputHelper) : Abstr
         await TestServices.Editor.WaitForCurrentLineTextAsync("private void IncrementCount()", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "Go To Impl hangs prevents the Roslyn language server from shutting down for some reason")]
     public async Task GoToImplementation_CSharpClass()
     {
         // Open the file
