@@ -76,8 +76,38 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         "class",
         "where"];
 
+    private static readonly CSharpSyntaxKind[] s_conditionalBlockKeywordKinds = [
+        CSharpSyntaxKind.ForKeyword,
+        CSharpSyntaxKind.ForEachKeyword,
+        CSharpSyntaxKind.WhileKeyword,
+        CSharpSyntaxKind.SwitchKeyword,
+        CSharpSyntaxKind.LockKeyword];
 
-    internal static KeywordSet DefaultKeywords { get; } = KeywordSet.Create(
+    private static readonly CSharpSyntaxKind[] s_caseStatementKeywordKinds = [
+        CSharpSyntaxKind.CaseKeyword,
+        CSharpSyntaxKind.DefaultKeyword];
+
+    private static readonly CSharpSyntaxKind[] s_ifStatementKeywordKinds = [
+        CSharpSyntaxKind.IfKeyword];
+
+    private static readonly CSharpSyntaxKind[] s_tryStatementKeywordKinds = [
+        CSharpSyntaxKind.TryKeyword];
+
+    private static readonly CSharpSyntaxKind[] s_doStatementKeywordKinds = [
+        CSharpSyntaxKind.DoKeyword];
+
+    private static readonly CSharpSyntaxKind[] s_usingKeywordKinds = [
+        CSharpSyntaxKind.UsingKeyword];
+
+    private static readonly int s_initialKeywordCount =
+        s_conditionalBlockKeywordKinds.Length +
+        s_caseStatementKeywordKinds.Length +
+        s_ifStatementKeywordKinds.Length +
+        s_tryStatementKeywordKinds.Length +
+        s_doStatementKeywordKinds.Length +
+        s_usingKeywordKinds.Length;
+
+    internal static KeywordSet DefaultKeywords { get; } = new(
         FrozenSet.Create(StringComparer.Ordinal, s_defaultKeywords));
 
     private readonly KeywordSet _currentKeywords;
@@ -101,34 +131,55 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
         directives = directives.NullToEmpty();
 
+#if NET
+        // We know that we're going to add the keywords specified in SetupKeywordParsers()
+        // along with each directive keyword and a handful more SetupDirectiveParsers().
+        var keywordsSet = new HashSet<string>(capacity: s_initialKeywordCount + directives.Length + 5, StringComparer.Ordinal);
+
+        // We'll be adding the default keywords and the directive keywords.
+        // So, set the capacity accordingly and add the default keywords.
+        var currentKeywordsSet = new HashSet<string>(capacity: s_defaultKeywords.Length + directives.Length, StringComparer.Ordinal);
+        currentKeywordsSet.UnionWith(s_defaultKeywords);
+#else
+        // Unfortunately, HashSet doesn't have a constructor that takes capacity in netstandard2.0.
         var keywordsSet = new HashSet<string>(StringComparer.Ordinal);
-        var keywordParserMap = new Dictionary<CSharpSyntaxKind, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax?>>();
+
+        // Adding the default keywords in the constructor initializes the HashSet
+        // with a capacity based on the length s_defaultKeywords.
         var currentKeywordsSet = new HashSet<string>(s_defaultKeywords, StringComparer.Ordinal);
-        var directiveParserMap = new Dictionary<string, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax>>(StringComparer.Ordinal);
+#endif
+
+        // This dictionary should have a capacity based on the keywords added in SetupKeywordParsers()
+        // plus one more for SetupExpressionParsers().
+        var keywordParserMap = new Dictionary<CSharpSyntaxKind, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax?>>(capacity: s_initialKeywordCount + 1);
+
+        // This dictionary should have a capacity based on the directives potentially
+        // added in SetupDirectiveParsers().
+        var directiveParserMap = new Dictionary<string, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax>>(capacity: directives.Length + 5, StringComparer.Ordinal);
 
         SetupKeywordParsers();
         SetupExpressionParsers();
         SetupDirectiveParsers(directives);
 
-        Keywords = KeywordSet.Create(keywordsSet);
-        _currentKeywords = KeywordSet.Create(currentKeywordsSet);
+        Keywords = new(keywordsSet);
+        _currentKeywords = new(currentKeywordsSet);
         _keywordParserMap = keywordParserMap;
         _directiveParserMap = directiveParserMap;
 
         void SetupKeywordParsers()
         {
-            MapKeywords(ParseConditionalBlock, topLevel: true, CSharpSyntaxKind.ForKeyword, CSharpSyntaxKind.ForEachKeyword, CSharpSyntaxKind.WhileKeyword, CSharpSyntaxKind.SwitchKeyword, CSharpSyntaxKind.LockKeyword);
-            MapKeywords(ParseCaseStatement, topLevel: false, CSharpSyntaxKind.CaseKeyword, CSharpSyntaxKind.DefaultKeyword);
-            MapKeywords(ParseIfStatement, topLevel: true, CSharpSyntaxKind.IfKeyword);
-            MapKeywords(ParseTryStatement, topLevel: true, CSharpSyntaxKind.TryKeyword);
-            MapKeywords(ParseDoStatement, topLevel: true, CSharpSyntaxKind.DoKeyword);
-            MapKeywords(ParseUsingKeyword, topLevel: true, CSharpSyntaxKind.UsingKeyword);
+            MapKeywords(ParseConditionalBlock, topLevel: true, s_conditionalBlockKeywordKinds);
+            MapKeywords(ParseCaseStatement, topLevel: false, s_caseStatementKeywordKinds);
+            MapKeywords(ParseIfStatement, topLevel: true, s_ifStatementKeywordKinds);
+            MapKeywords(ParseTryStatement, topLevel: true, s_tryStatementKeywordKinds);
+            MapKeywords(ParseDoStatement, topLevel: true, s_doStatementKeywordKinds);
+            MapKeywords(ParseUsingKeyword, topLevel: true, s_usingKeywordKinds);
         }
 
         void MapKeywords(
             Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax?> handler,
             bool topLevel,
-            params CSharpSyntaxKind[] keywords)
+            CSharpSyntaxKind[] keywords)
         {
             foreach (var keyword in keywords)
             {
@@ -151,49 +202,46 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             foreach (var directiveDescriptor in directiveDescriptors)
             {
                 currentKeywordsSet.Add(directiveDescriptor.Directive);
-                MapDirectives((builder, transition) => ParseExtensibleDirective(builder, transition, directiveDescriptor), directiveParserMap, keywordsSet, context, directiveDescriptor.Directive);
+                MapDirective((builder, transition) => ParseExtensibleDirective(builder, transition, directiveDescriptor), directiveParserMap, keywordsSet, context, directiveDescriptor.Directive);
             }
 
-            MapDirectives(ParseTagHelperPrefixDirective, directiveParserMap, keywordsSet, context, SyntaxConstants.CSharp.TagHelperPrefixKeyword);
-            MapDirectives(ParseAddTagHelperDirective, directiveParserMap, keywordsSet, context, SyntaxConstants.CSharp.AddTagHelperKeyword);
-            MapDirectives(ParseRemoveTagHelperDirective, directiveParserMap, keywordsSet, context, SyntaxConstants.CSharp.RemoveTagHelperKeyword);
+            MapDirective(ParseTagHelperPrefixDirective, directiveParserMap, keywordsSet, context, SyntaxConstants.CSharp.TagHelperPrefixKeyword);
+            MapDirective(ParseAddTagHelperDirective, directiveParserMap, keywordsSet, context, SyntaxConstants.CSharp.AddTagHelperKeyword);
+            MapDirective(ParseRemoveTagHelperDirective, directiveParserMap, keywordsSet, context, SyntaxConstants.CSharp.RemoveTagHelperKeyword);
 
             // If there wasn't any extensible directives relating to the reserved directives then map them.
             if (!directiveParserMap.ContainsKey("class"))
             {
-                MapDirectives(ParseReservedDirective, directiveParserMap, keywordsSet, context, "class");
+                MapDirective(ParseReservedDirective, directiveParserMap, keywordsSet, context, "class");
             }
 
             if (!directiveParserMap.ContainsKey("namespace"))
             {
-                MapDirectives(ParseReservedDirective, directiveParserMap, keywordsSet, context, "namespace");
+                MapDirective(ParseReservedDirective, directiveParserMap, keywordsSet, context, "namespace");
             }
         }
 
-        static void MapDirectives(
+        static void MapDirective(
             Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax> handler,
             Dictionary<string, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax>> directiveParserMap,
             HashSet<string> keywords,
             ParserContext context,
-            params string[] directives)
+            string directive)
         {
-            foreach (var directive in directives)
+            if (directiveParserMap.ContainsKey(directive))
             {
-                if (directiveParserMap.ContainsKey(directive))
-                {
-                    // It is possible for the list to contain duplicates in cases when the project is misconfigured.
-                    // In those cases, we shouldn't register multiple handlers per keyword.
-                    continue;
-                }
-
-                directiveParserMap.Add(directive, (builder, transition) =>
-                {
-                    handler(builder, transition);
-                    context.SeenDirectives.Add(directive);
-                });
-
-                keywords.Add(directive);
+                // It is possible for the list to contain duplicates in cases when the project is misconfigured.
+                // In those cases, we shouldn't register multiple handlers per keyword.
+                return;
             }
+
+            directiveParserMap.Add(directive, (builder, transition) =>
+            {
+                handler(builder, transition);
+                context.SeenDirectives.Add(directive);
+            });
+
+            keywords.Add(directive);
         }
     }
 
@@ -2553,7 +2601,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             builder.Add(SyntaxFactory.RazorDirective(transition, directiveBody));
 
             if (!Context.DesignTimeMode)
-            { 
+            {
                 CaptureWhitespaceToEndOfLine();
                 builder.Add(OutputAsMetaCode(Output(), Context.CurrentAcceptedCharacters));
             }
