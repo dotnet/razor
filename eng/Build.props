@@ -12,5 +12,8 @@
 
     <!-- Exclude VSIX projects on non-Windows -->
     <ProjectToBuild Condition="'$(OS)'!='WINDOWS_NT' and '$(SdkTaskProjects)'==''" Include="$(MSBuildThisFileDirectory)..\Razor.Slim.slnf" />
+
+    <!-- This is a servicing branch, do not warn about outdated SDKs. -->
+    <NoWarn>$(NoWarn);NETSDK1138</NoWarn>
   </ItemGroup>
 </Project>
