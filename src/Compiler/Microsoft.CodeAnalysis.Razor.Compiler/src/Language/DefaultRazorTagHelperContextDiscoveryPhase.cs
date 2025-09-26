@@ -127,9 +127,10 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
         protected void AddMatches(List<TagHelperDescriptor> tagHelpers)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
+
             foreach (var tagHelper in tagHelpers)
             {
-                _cancellationToken.ThrowIfCancellationRequested();
                 _matches.Add(tagHelper);
             }
         }
@@ -142,9 +143,10 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
         protected void RemoveMatches(List<TagHelperDescriptor> tagHelpers)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
+
             foreach (var tagHelper in tagHelpers)
             {
-                _cancellationToken.ThrowIfCancellationRequested();
                 _matches.Remove(tagHelper);
             }
         }
