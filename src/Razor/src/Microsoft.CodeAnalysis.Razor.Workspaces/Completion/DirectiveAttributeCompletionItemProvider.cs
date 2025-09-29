@@ -19,8 +19,10 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
     private static ReadOnlyMemory<char> QuotedAttributeValueSnippet => "=\"$0\"".AsMemory();
     private static ReadOnlyMemory<char> UnquotedAttributeValueSnippet => "=$0".AsMemory();
 
-    private static readonly ImmutableArray<string> EqualsCommitCharacters = ["="];
-    private static readonly ImmutableArray<string> EqualsAndColonCommitCharacters = ["=", ":"];
+    private static readonly ImmutableArray<RazorCommitCharacter> EqualsCommitCharacters = [new("=")];
+    private static readonly ImmutableArray<RazorCommitCharacter> EqualsAndColonCommitCharacters = [new("="), new(":")];
+    private static readonly ImmutableArray<RazorCommitCharacter> SnippetEqualsCommitCharacters = [new("=", Insert: false)];
+    private static readonly ImmutableArray<RazorCommitCharacter> SnippetEqualsAndColonCommitCharacters = [new("=", Insert: false), new(":")];
 
     public override ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
@@ -86,7 +88,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
         }
 
         // Use ordinal dictionary because attributes are case sensitive when matching
-        using var _ = StringDictionaryPool<(ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<string>)>.Ordinal.GetPooledObject(out var attributeCompletions);
+        using var _ = StringDictionaryPool<(ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>)>.Ordinal.GetPooledObject(out var attributeCompletions);
         var inSnippetContext = InSnippetContext(containingAttribute, razorCompletionOptions);
 
         foreach (var descriptor in descriptorsForTag)
@@ -99,7 +101,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                     continue;
                 }
 
-                if (!TryAddCompletion(attributeDescriptor.Name, attributeDescriptor, descriptor, razorCompletionOptions, selectedAttributeName, attributes, attributeCompletions) && attributeDescriptor.Parameters.Length > 0)
+                if (!TryAddCompletion(attributeDescriptor.Name, attributeDescriptor, descriptor, razorCompletionOptions, selectedAttributeName, attributes, inSnippetContext, attributeCompletions) && attributeDescriptor.Parameters.Length > 0)
                 {
                     // This attribute has parameters and the base attribute name (@bind) is already satisfied. We need to check if there are any valid
                     // parameters left to be provided, if so, we need to still represent the base attribute name in the completion list.
@@ -109,7 +111,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                         if (!attributes.Any(name => TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(parameterDescriptor, name, attributeDescriptor)))
                         {
                             // This bound attribute parameter has not had a completion entry added for it, re-represent the base attribute name in the completion list
-                            AddCompletion(attributeDescriptor.Name, attributeDescriptor, descriptor, razorCompletionOptions, attributeCompletions);
+                            AddCompletion(attributeDescriptor.Name, attributeDescriptor, descriptor, razorCompletionOptions, inSnippetContext, attributeCompletions);
                             break;
                         }
                     }
@@ -117,7 +119,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
                 if (!attributeDescriptor.IndexerNamePrefix.IsNullOrEmpty())
                 {
-                    TryAddCompletion(attributeDescriptor.IndexerNamePrefix + "...", attributeDescriptor, descriptor, razorCompletionOptions, selectedAttributeName, attributes, attributeCompletions);
+                    TryAddCompletion(attributeDescriptor.IndexerNamePrefix + "...", attributeDescriptor, descriptor, razorCompletionOptions, selectedAttributeName, attributes, inSnippetContext, attributeCompletions);
                 }
             }
         }
@@ -160,7 +162,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                 displayText,
                 insertText,
                 descriptionInfo: new(attributeDescriptions),
-                commitCharacters: commitCharacters.SelectAsArray(c => new RazorCommitCharacter(c)),
+                commitCharacters,
                 isSnippet);
 
             completionItems.Add(razorCompletionItem);
@@ -200,7 +202,8 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             RazorCompletionOptions razorCompletionOptions,
             string selectedAttributeName,
             ImmutableArray<string> attributes,
-            Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<string>)> attributeCompletions)
+            bool inSnippetContext,
+            Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>)> attributeCompletions)
         {
             if (selectedAttributeName != attributeName &&
                 attributes.Any(attributeName, static (name, attributeName) => name == attributeName))
@@ -210,7 +213,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                 return false;
             }
 
-            AddCompletion(attributeName, boundAttributeDescriptor, tagHelperDescriptor, razorCompletionOptions, attributeCompletions);
+            AddCompletion(attributeName, boundAttributeDescriptor, tagHelperDescriptor, razorCompletionOptions, inSnippetContext, attributeCompletions);
             return true;
         }
 
@@ -219,12 +222,12 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             BoundAttributeDescriptor boundAttributeDescriptor,
             TagHelperDescriptor tagHelperDescriptor,
             RazorCompletionOptions razorCompletionOptions,
-            Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<string>)> attributeCompletions)
+            bool inSnippetContext,
+            Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>)> attributeCompletions)
         {
             if (!attributeCompletions.TryGetValue(attributeName, out var attributeDetails))
             {
                 attributeDetails = ([], []);
-                attributeCompletions[attributeName] = attributeDetails;
             }
 
             (var attributeDescriptions, var commitCharacters) = attributeDetails;
@@ -241,9 +244,9 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             // Verify not an indexer attribute, as those don't commit with standard chars
             if (!indexerCompletion)
             {
-                var equalsAdded = commitCharacters.Contains("=");
-                var spaceAdded = commitCharacters.Contains(" ");
-                var colonAdded = commitCharacters.Contains(":");
+                var equalsAdded = commitCharacters.Any(static c => c.Character == "=");
+                var spaceAdded = commitCharacters.Any(static c => c.Character == " ");
+                var colonAdded = commitCharacters.Any(static c => c.Character == ":");
 
                 // We don't add "=" as a commit character when using VSCode trigger characters.
                 equalsAdded |= !razorCompletionOptions.UseVsCodeCompletionCommitCharacters;
@@ -260,10 +263,12 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                 }
 
                 // Determine if we have a common commit character set
-                commitCharacters = (equalsAdded, spaceAdded, colonAdded) switch
+                commitCharacters = (equalsAdded, spaceAdded, colonAdded, inSnippetContext) switch
                 {
-                    (true, false, false) => EqualsCommitCharacters,
-                    (true, false, true) => EqualsAndColonCommitCharacters,
+                    (true, false, false, false) => EqualsCommitCharacters,
+                    (true, false, true, false) => EqualsAndColonCommitCharacters,
+                    (true, false, false, true) => SnippetEqualsCommitCharacters,
+                    (true, false, true, true) => SnippetEqualsAndColonCommitCharacters,
                     _ => []
                 };
 
@@ -271,17 +276,17 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                 {
                     if (equalsAdded)
                     {
-                        commitCharacters = commitCharacters.Add("=");
+                        commitCharacters = commitCharacters.Add(new("=", Insert: !inSnippetContext));
                     }
 
                     if (spaceAdded)
                     {
-                        commitCharacters = commitCharacters.Add(" ");
+                        commitCharacters = commitCharacters.Add(new(" "));
                     }
 
                     if (colonAdded)
                     {
-                        commitCharacters = commitCharacters.Add(":");
+                        commitCharacters = commitCharacters.Add(new(":"));
                     }
                 }
             }
