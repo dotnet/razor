@@ -19,6 +19,9 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
     private static ReadOnlyMemory<char> QuotedAttributeValueSnippet => "=\"$0\"".AsMemory();
     private static ReadOnlyMemory<char> UnquotedAttributeValueSnippet => "=$0".AsMemory();
 
+    private static readonly ImmutableArray<string> EqualsCommitCharacters = ["="];
+    private static readonly ImmutableArray<string> EqualsAndColonCommitCharacters = ["=", ":"];
+
     public override ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
         if (!context.SyntaxTree.Options.FileKind.IsComponent())
@@ -83,7 +86,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
         }
 
         // Use ordinal dictionary because attributes are case sensitive when matching
-        using var _ = StringDictionaryPool<(HashSet<BoundAttributeDescriptionInfo>, HashSet<string>)>.Ordinal.GetPooledObject(out var attributeCompletions);
+        using var _ = StringDictionaryPool<(ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<string>)>.Ordinal.GetPooledObject(out var attributeCompletions);
         var inSnippetContext = InSnippetContext(containingAttribute, razorCompletionOptions);
 
         foreach (var descriptor in descriptorsForTag)
@@ -153,18 +156,11 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             // Don't create another string unnecessarily, even though ReadOnlySpan.ToString() special-cases the string to avoid allocation
             var insertText = insertTextSpan == originalInsertTextSpan ? displayText : insertTextSpan.ToString();
 
-            using var razorCommitCharacters = new PooledArrayBuilder<RazorCommitCharacter>(capacity: commitCharacters.Count);
-
-            foreach (var c in commitCharacters)
-            {
-                razorCommitCharacters.Add(new(c));
-            }
-
             var razorCompletionItem = RazorCompletionItem.CreateDirectiveAttribute(
                 displayText,
                 insertText,
-                descriptionInfo: new([.. attributeDescriptions]),
-                commitCharacters: razorCommitCharacters.ToImmutableAndClear(),
+                descriptionInfo: new(attributeDescriptions),
+                commitCharacters: commitCharacters.SelectAsArray(c => new RazorCommitCharacter(c)),
                 isSnippet);
 
             completionItems.Add(razorCompletionItem);
@@ -204,7 +200,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             RazorCompletionOptions razorCompletionOptions,
             string selectedAttributeName,
             ImmutableArray<string> attributes,
-            Dictionary<string, (HashSet<BoundAttributeDescriptionInfo>, HashSet<string>)> attributeCompletions)
+            Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<string>)> attributeCompletions)
         {
             if (selectedAttributeName != attributeName &&
                 attributes.Any(attributeName, static (name, attributeName) => name == attributeName))
@@ -223,7 +219,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             BoundAttributeDescriptor boundAttributeDescriptor,
             TagHelperDescriptor tagHelperDescriptor,
             RazorCompletionOptions razorCompletionOptions,
-            Dictionary<string, (HashSet<BoundAttributeDescriptionInfo>, HashSet<string>)> attributeCompletions)
+            Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<string>)> attributeCompletions)
         {
             if (!attributeCompletions.TryGetValue(attributeName, out var attributeDetails))
             {
@@ -236,43 +232,61 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             var indexerCompletion = attributeName.EndsWith("...", StringComparison.Ordinal);
             var tagHelperTypeName = tagHelperDescriptor.TypeName;
             var descriptionInfo = BoundAttributeDescriptionInfo.From(boundAttributeDescriptor, isIndexer: indexerCompletion, tagHelperTypeName);
-            attributeDescriptions.Add(descriptionInfo);
 
-            if (indexerCompletion)
+            if (!attributeDescriptions.Contains(descriptionInfo))
             {
-                // Indexer attribute, we don't want to commit with standard chars
-                return;
+                attributeDescriptions = attributeDescriptions.Add(descriptionInfo);
             }
 
-            if (!razorCompletionOptions.UseVsCodeCompletionCommitCharacters)
+            // Verify not an indexer attribute, as those don't commit with standard chars
+            if (!indexerCompletion)
             {
+                var equalsAdded = commitCharacters.Contains("=");
+                var spaceAdded = commitCharacters.Contains(" ");
+                var colonAdded = commitCharacters.Contains(":");
+
                 // We don't add "=" as a commit character when using VSCode trigger characters.
-                commitCharacters.Add("=");
-            }
+                equalsAdded |= !razorCompletionOptions.UseVsCodeCompletionCommitCharacters;
 
-            var spaceAdded = commitCharacters.Contains(" ");
-            var colonAdded = commitCharacters.Contains(":");
-
-            if (!spaceAdded || !colonAdded)
-            {
                 foreach (var boundAttribute in tagHelperDescriptor.BoundAttributes)
                 {
-                    if (!spaceAdded && boundAttribute.IsBooleanProperty)
-                    {
-                        commitCharacters.Add(" ");
-                        spaceAdded = true;
-                    }
-                    else if (!colonAdded && boundAttribute.Parameters.Length > 0)
-                    {
-                        commitCharacters.Add(":");
-                        colonAdded = true;
-                    }
-                    else if (spaceAdded && colonAdded)
+                    spaceAdded |= boundAttribute.IsBooleanProperty;
+                    colonAdded |= boundAttribute.Parameters.Length > 0;
+
+                    if (spaceAdded && colonAdded)
                     {
                         break;
                     }
                 }
+
+                // Determine if we have a common commit character set
+                commitCharacters = (equalsAdded, spaceAdded, colonAdded) switch
+                {
+                    (true, false, false) => EqualsCommitCharacters,
+                    (true, false, true) => EqualsAndColonCommitCharacters,
+                    _ => []
+                };
+
+                if (commitCharacters.IsEmpty)
+                {
+                    if (equalsAdded)
+                    {
+                        commitCharacters = commitCharacters.Add("=");
+                    }
+
+                    if (spaceAdded)
+                    {
+                        commitCharacters = commitCharacters.Add(" ");
+                    }
+
+                    if (colonAdded)
+                    {
+                        commitCharacters = commitCharacters.Add(":");
+                    }
+                }
             }
+
+            attributeCompletions[attributeName] = (attributeDescriptions, commitCharacters);
         }
     }
 }
