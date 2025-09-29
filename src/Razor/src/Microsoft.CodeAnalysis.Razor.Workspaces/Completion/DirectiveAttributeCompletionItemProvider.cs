@@ -84,6 +84,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
         // Use ordinal dictionary because attributes are case sensitive when matching
         using var _ = StringDictionaryPool<(HashSet<BoundAttributeDescriptionInfo>, HashSet<string>)>.Ordinal.GetPooledObject(out var attributeCompletions);
+        var inSnippetContext = InSnippetContext(containingAttribute, razorCompletionOptions);
 
         foreach (var descriptor in descriptorsForTag)
         {
@@ -95,7 +96,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                     continue;
                 }
 
-                if (!TryAddCompletion(attributeDescriptor.Name, attributeDescriptor, descriptor, razorCompletionOptions) && attributeDescriptor.Parameters.Length > 0)
+                if (!TryAddCompletion(attributeDescriptor.Name, attributeDescriptor, descriptor, razorCompletionOptions, selectedAttributeName, attributes, attributeCompletions) && attributeDescriptor.Parameters.Length > 0)
                 {
                     // This attribute has parameters and the base attribute name (@bind) is already satisfied. We need to check if there are any valid
                     // parameters left to be provided, if so, we need to still represent the base attribute name in the completion list.
@@ -105,7 +106,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                         if (!attributes.Any(name => TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(parameterDescriptor, name, attributeDescriptor)))
                         {
                             // This bound attribute parameter has not had a completion entry added for it, re-represent the base attribute name in the completion list
-                            AddCompletion(attributeDescriptor.Name, attributeDescriptor, descriptor, razorCompletionOptions);
+                            AddCompletion(attributeDescriptor.Name, attributeDescriptor, descriptor, razorCompletionOptions, attributeCompletions);
                             break;
                         }
                     }
@@ -113,7 +114,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
                 if (!attributeDescriptor.IndexerNamePrefix.IsNullOrEmpty())
                 {
-                    TryAddCompletion(attributeDescriptor.IndexerNamePrefix + "...", attributeDescriptor, descriptor, razorCompletionOptions);
+                    TryAddCompletion(attributeDescriptor.IndexerNamePrefix + "...", attributeDescriptor, descriptor, razorCompletionOptions, selectedAttributeName, attributes, attributeCompletions);
                 }
             }
         }
@@ -142,14 +143,14 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             else
             {
                 // We are trying for snippet text only for non-indexer attributes, e.g. *not* something like "@bind-..."
-                if (TryGetSnippetText(containingAttribute, insertTextSpan, razorCompletionOptions, out var snippetTextSpan))
+                if (inSnippetContext)
                 {
-                    insertTextSpan = snippetTextSpan;
+                    GetSnippetText(insertTextSpan, razorCompletionOptions, out insertTextSpan);
                     isSnippet = true;
                 }
             }
 
-            // Don't create another string annecessarily, even thouth ReadOnlySpan.ToString() special-cases the string to avoid allocation
+            // Don't create another string unnecessarily, even though ReadOnlySpan.ToString() special-cases the string to avoid allocation
             var insertText = insertTextSpan == originalInsertTextSpan ? displayText : insertTextSpan.ToString();
 
             using var razorCommitCharacters = new PooledArrayBuilder<RazorCommitCharacter>(capacity: commitCharacters.Count);
@@ -171,33 +172,39 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
         return completionItems.ToImmutableAndClear();
 
-        static bool TryGetSnippetText(
+        static bool InSnippetContext(
             RazorSyntaxNode owner,
+            RazorCompletionOptions razorCompletionOptions)
+        {
+            return razorCompletionOptions.SnippetsSupported
+                // Don't create snippet text when attribute is already in the tag and we are trying to replace it
+                // Otherwise you could have something like @onabort=""=""
+                && owner is not (MarkupTagHelperDirectiveAttributeSyntax or MarkupAttributeBlockSyntax)
+                && owner.Parent is not (MarkupTagHelperDirectiveAttributeSyntax or MarkupAttributeBlockSyntax);
+        }
+
+        static void GetSnippetText(
             ReadOnlySpan<char> baseTextSpan,
             RazorCompletionOptions razorCompletionOptions,
             out ReadOnlySpan<char> snippetTextSpan)
         {
-            if (razorCompletionOptions.SnippetsSupported
-                // Don't create snippet text when attribute is already in the tag and we are trying to replace it
-                // Otherwise you could have something like @onabort=""=""
-                && owner is not (MarkupTagHelperDirectiveAttributeSyntax or MarkupAttributeBlockSyntax)
-                && owner.Parent is not (MarkupTagHelperDirectiveAttributeSyntax or MarkupAttributeBlockSyntax))
-            {
-                var suffixTextSpan = razorCompletionOptions.AutoInsertAttributeQuotes ? QuotedAttributeValueSnippet : UnquotedAttributeValueSnippet;
+            var suffixTextSpan = razorCompletionOptions.AutoInsertAttributeQuotes ? QuotedAttributeValueSnippet : UnquotedAttributeValueSnippet;
 
-                var buffer = new char[baseTextSpan.Length + suffixTextSpan.Length];
-                baseTextSpan.CopyTo(buffer);
-                suffixTextSpan.CopyTo(buffer.AsMemory()[baseTextSpan.Length..]);
+            var buffer = new char[baseTextSpan.Length + suffixTextSpan.Length];
+            baseTextSpan.CopyTo(buffer);
+            suffixTextSpan.CopyTo(buffer.AsMemory()[baseTextSpan.Length..]);
 
-                snippetTextSpan = buffer.AsSpan();
-                return true;
-            }
-
-            snippetTextSpan = [];
-            return false;
+            snippetTextSpan = buffer.AsSpan();
         }
 
-        bool TryAddCompletion(string attributeName, BoundAttributeDescriptor boundAttributeDescriptor, TagHelperDescriptor tagHelperDescriptor, RazorCompletionOptions razorCompletionOptions)
+        static bool TryAddCompletion(
+            string attributeName,
+            BoundAttributeDescriptor boundAttributeDescriptor,
+            TagHelperDescriptor tagHelperDescriptor,
+            RazorCompletionOptions razorCompletionOptions,
+            string selectedAttributeName,
+            ImmutableArray<string> attributes,
+            Dictionary<string, (HashSet<BoundAttributeDescriptionInfo>, HashSet<string>)> attributeCompletions)
         {
             if (selectedAttributeName != attributeName &&
                 attributes.Any(attributeName, static (name, attributeName) => name == attributeName))
@@ -207,11 +214,16 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                 return false;
             }
 
-            AddCompletion(attributeName, boundAttributeDescriptor, tagHelperDescriptor, razorCompletionOptions);
+            AddCompletion(attributeName, boundAttributeDescriptor, tagHelperDescriptor, razorCompletionOptions, attributeCompletions);
             return true;
         }
 
-        void AddCompletion(string attributeName, BoundAttributeDescriptor boundAttributeDescriptor, TagHelperDescriptor tagHelperDescriptor, RazorCompletionOptions razorCompletionOptions)
+        static void AddCompletion(
+            string attributeName,
+            BoundAttributeDescriptor boundAttributeDescriptor,
+            TagHelperDescriptor tagHelperDescriptor,
+            RazorCompletionOptions razorCompletionOptions,
+            Dictionary<string, (HashSet<BoundAttributeDescriptionInfo>, HashSet<string>)> attributeCompletions)
         {
             if (!attributeCompletions.TryGetValue(attributeName, out var attributeDetails))
             {
