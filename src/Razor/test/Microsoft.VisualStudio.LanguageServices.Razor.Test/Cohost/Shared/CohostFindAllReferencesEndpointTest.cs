@@ -4,6 +4,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
@@ -84,6 +85,38 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
 
         await VerifyFindAllReferencesAsync(input,
             (FilePath("OtherClass.cs"), otherClass));
+    }
+
+    [Fact]
+    public async Task Component_DefinedInCSharp()
+    {
+        TestCode input = """
+            <[|Surv$$eyPrompt|] Title="InputValue" />
+            """;
+
+        // lang=c#-test
+        TestCode surveyPrompt = """
+            using Microsoft.AspNetCore.Components;
+            using Microsoft.AspNetCore.Components.Rendering;
+
+            namespace SomeProject;
+
+            public class [|SurveyPrompt|] : ComponentBase
+            {
+                [Parameter]
+                public string Title { get; set; } = "Hello";
+
+                protected override void BuildRenderTree(RenderTreeBuilder builder)
+                {
+                    builder.OpenElement(0, "div");
+                    builder.AddContent(1, Title + " from a C#-defined component!");
+                    builder.CloseElement();
+                }
+            }
+            """;
+
+        await VerifyFindAllReferencesAsync(input,
+            (FilePath("SurveyPrompt.cs"), surveyPrompt));
     }
 
     private async Task VerifyFindAllReferencesAsync(TestCode input, params (string fileName, TestCode testCode)[] additionalFiles)
