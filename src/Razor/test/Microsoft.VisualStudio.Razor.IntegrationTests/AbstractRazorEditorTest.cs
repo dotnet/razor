@@ -84,8 +84,6 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutput) : Ab
         // fast pace of running integration tests, it's worth taking a slight delay at the start for a more reliable run.
         TestServices.Input.Send("{ENTER}");
 
-        await Task.Delay(2500);
-
         // Close the file we opened, just in case, so the test can start with a clean slate
         await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, saveFile: false, ControlledHangMitigatingCancellationToken);
 
@@ -96,7 +94,7 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutput) : Ab
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        await TestServices.SolutionExplorer.CloseSolutionAsync(ControlledHangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.CloseSolutionAndWaitAsync(cancellationToken);
 
         var solutionPath = CreateTemporaryPath();
 
