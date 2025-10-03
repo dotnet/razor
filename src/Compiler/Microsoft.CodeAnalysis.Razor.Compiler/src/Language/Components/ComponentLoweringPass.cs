@@ -148,6 +148,7 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
             Source = node.Source,
             TagName = node.TagName,
             TypeName = tagHelper.TypeName,
+            StartTagSpan = node.StartTagSpan
         };
 
         component.AddDiagnosticsFromNode(node);

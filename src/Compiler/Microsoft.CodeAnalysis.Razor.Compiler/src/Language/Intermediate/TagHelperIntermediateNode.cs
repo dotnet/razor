@@ -11,6 +11,8 @@ public sealed class TagHelperIntermediateNode : IntermediateNode
     public required TagMode TagMode { get; init; }
     public required string TagName { get; init; }
 
+    public SourceSpan? StartTagSpan { get; init; }
+
     public ImmutableArray<TagHelperDescriptor> TagHelpers { get; init => field = value.NullToEmpty(); } = [];
 
     public override IntermediateNodeCollection Children { get => field ??= []; }
