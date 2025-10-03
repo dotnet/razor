@@ -568,10 +568,12 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
         if (startTagSpan.Length < nonGenericTypeName.Length)
         {
             var lastDot = nonGenericTypeName.Span.LastIndexOf('.');
-            Debug.Assert(lastDot > -1);
-            lastDot++;
-            context.CodeWriter.Write(nonGenericTypeName[0..lastDot]);
-            nonGenericTypeName = nonGenericTypeName.Slice(lastDot);
+            if (lastDot > -1)
+            {
+                lastDot++;
+                context.CodeWriter.Write(nonGenericTypeName[0..lastDot]);
+                nonGenericTypeName = nonGenericTypeName.Slice(lastDot);
+            }
         }
 
         var offset = nonGenericTypeName.Span.StartsWith('@')
