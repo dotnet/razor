@@ -574,7 +574,10 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
             nonGenericTypeName = nonGenericTypeName.Slice(lastDot);
         }
 
-        using (context.BuildEnhancedLinePragma(node.StartTagSpan))
+        var offset = nonGenericTypeName.Span.StartsWith('@')
+            ? 1
+            : 0;
+        using (context.BuildEnhancedLinePragma(node.StartTagSpan, offset))
         {
             context.CodeWriter.Write(nonGenericTypeName);
         }
