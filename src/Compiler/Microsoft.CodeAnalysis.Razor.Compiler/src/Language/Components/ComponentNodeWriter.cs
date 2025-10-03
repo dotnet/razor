@@ -546,14 +546,6 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
         // The type name we are given may or may not be globally qualified, and we want to map it to the component start
         // tag, which may or may not be fully qualified. ie "global::My.Fun.Component" could map to just "Component"
 
-        // If we don't have mapping info, we don't do anything interesting
-        if (node.StartTagSpan is not { } startTagSpan ||
-            startTagSpan == SourceSpan.Undefined)
-        {
-            context.CodeWriter.Write(nonGenericTypeName);
-            return;
-        }
-
         // Write out "global::" if it's present, and trim it off
         var lastColon = nonGenericTypeName.Span.LastIndexOf(':');
         if (lastColon > -1)
@@ -564,8 +556,8 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
         }
 
         // If the start tag is shorter than the type name, then it must not be a fully qualified tag, so write out
-        // the namespace parts and trim
-        if (startTagSpan.Length < nonGenericTypeName.Length)
+        // the namespace parts and trim. Razor components don't support nested types, so this logic doesn't either.
+        if (node.StartTagSpan.Length < nonGenericTypeName.Length)
         {
             var lastDot = nonGenericTypeName.Span.LastIndexOf('.');
             if (lastDot > -1)

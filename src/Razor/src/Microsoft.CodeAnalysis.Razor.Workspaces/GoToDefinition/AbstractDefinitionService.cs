@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Razor.GoToDefinition;

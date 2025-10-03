@@ -80,11 +80,14 @@ internal static partial class TypeNameHelper
 
     internal static void WriteGloballyQualifiedName(CodeWriter codeWriter, ReadOnlyMemory<char> typeName)
     {
-        WriteGlobalQualifierNameIfNeeded(codeWriter, typeName);
+        WriteGlobalPrefixIfNeeded(codeWriter, typeName);
         codeWriter.Write(typeName);
     }
 
-    internal static void WriteGlobalQualifierNameIfNeeded(CodeWriter codeWriter, ReadOnlyMemory<char> typeName)
+    /// <summary>
+    /// Writes "global::" if the typename doesn't already start with it and isn't a predefined type.
+    /// </summary>
+    internal static void WriteGlobalPrefixIfNeeded(CodeWriter codeWriter, ReadOnlyMemory<char> typeName)
     {
         if (typeName.Length == 0)
         {

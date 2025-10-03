@@ -49,7 +49,7 @@ public sealed class ComponentIntermediateNode : IntermediateNode
 
     public string TypeName { get; set; }
 
-    public SourceSpan? StartTagSpan { get; set; }
+    public SourceSpan StartTagSpan { get; init; }
 
     public override void Accept(IntermediateNodeVisitor visitor)
     {
