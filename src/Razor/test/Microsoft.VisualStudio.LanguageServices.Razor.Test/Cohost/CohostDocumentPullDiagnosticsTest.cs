@@ -409,6 +409,45 @@ public class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOutputHelpe
             }]);
     }
 
+    [Theory]
+    [InlineData("", "\"")]
+    [InlineData("", "'")]
+    [InlineData("@onclick=\"Send\"", "\"")] // The @onclick makes the disabled attribute a TagHelperAttributeSyntax
+    [InlineData("@onclick='Send'", "'")]
+    public Task FilterBadAttributeValueInHtml(string extraTagContent, string quoteChar)
+    {
+        TestCode input = $$"""
+            <button {{extraTagContent}} disabled={{quoteChar}}@(!EnableMyButton){{quoteChar}}>Send</button>
+            <button disabled={{quoteChar}}{|HTML0209:ThisIsNotValid|}{{quoteChar}} />
+
+            @code
+            {
+                private bool EnableMyButton => true;
+
+                Task Send() =>
+                    Task.CompletedTask;
+            }
+            """;
+
+        return VerifyDiagnosticsAsync(input,
+            htmlResponse: [new VSInternalDiagnosticReport
+            {
+                Diagnostics =
+                [
+                    new LspDiagnostic
+                    {
+                        Code = HtmlErrorCodes.UnknownAttributeValueErrorCode,
+                        Range = SourceText.From(input.Text).GetRange(new TextSpan(input.Text.IndexOf("@("), "@(!EnableMyButton)".Length))
+                    },
+                    new LspDiagnostic
+                    {
+                        Code = HtmlErrorCodes.UnknownAttributeValueErrorCode,
+                        Range = SourceText.From(input.Text).GetRange(new TextSpan(input.Text.IndexOf("T"), "ThisIsNotValid".Length))
+                    },
+                ]
+            }]);
+    }
+
     [Fact]
     public Task CombinedAndNestedDiagnostics()
         => VerifyDiagnosticsAsync("""
