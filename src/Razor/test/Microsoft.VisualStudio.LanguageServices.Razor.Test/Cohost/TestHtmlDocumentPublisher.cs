@@ -15,7 +15,7 @@ internal sealed class TestHtmlDocumentPublisher(bool publishResult = true) : IHt
 
     public List<(TextDocument Document, string Text, ChecksumWrapper Checksum)> Publishes { get; } = [];
 
-    public Task<bool> PublishAsync(TextDocument document, ChecksumWrapper checksum, string htmlText, CancellationToken cancellationToken)
+    public Task<bool> TryPublishAsync(TextDocument document, ChecksumWrapper checksum, string htmlText, CancellationToken cancellationToken)
     {
         Publishes.Add((document, htmlText, checksum));
         return Task.FromResult(_publishResult);

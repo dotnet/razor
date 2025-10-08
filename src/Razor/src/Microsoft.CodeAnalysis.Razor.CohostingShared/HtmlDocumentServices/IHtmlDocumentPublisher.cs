@@ -10,5 +10,5 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 internal interface IHtmlDocumentPublisher
 {
-    Task<bool> PublishAsync(TextDocument document, ChecksumWrapper checksum, string htmlText, CancellationToken cancellationToken);
+    Task<bool> TryPublishAsync(TextDocument document, ChecksumWrapper checksum, string htmlText, CancellationToken cancellationToken);
 }

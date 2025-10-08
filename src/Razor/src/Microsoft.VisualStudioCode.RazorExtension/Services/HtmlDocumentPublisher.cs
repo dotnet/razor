@@ -20,7 +20,7 @@ internal sealed class HtmlDocumentPublisher(
 {
     private readonly RazorClientServerManagerProvider _razorClientServerManagerProvider = razorClientServerManagerProvider;
 
-    public async Task<bool> PublishAsync(TextDocument document, ChecksumWrapper checksum, string htmlText, CancellationToken cancellationToken)
+    public async Task<bool> TryPublishAsync(TextDocument document, ChecksumWrapper checksum, string htmlText, CancellationToken cancellationToken)
     {
         var request = new HtmlUpdateParameters(new TextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() }, checksum.ToString(), htmlText);
 

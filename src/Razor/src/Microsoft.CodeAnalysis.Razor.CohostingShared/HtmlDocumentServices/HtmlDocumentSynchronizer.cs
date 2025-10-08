@@ -162,7 +162,7 @@ internal sealed partial class HtmlDocumentSynchronizer(
 
         try
         {
-            var synchronized = await _htmlDocumentPublisher.PublishAsync(document, requestedVersion.Checksum, htmlText, cancellationToken).ConfigureAwait(false);
+            var synchronized = await _htmlDocumentPublisher.TryPublishAsync(document, requestedVersion.Checksum, htmlText, cancellationToken).ConfigureAwait(false);
             var result = new SynchronizationResult(Synchronized: synchronized, requestedVersion.Checksum);
 
             // If we were cancelled, we can't trust that the publish worked.

@@ -28,7 +28,7 @@ internal sealed class HtmlDocumentPublisher(
     private readonly TrackingLSPDocumentManager _documentManager = documentManager as TrackingLSPDocumentManager ?? throw new InvalidOperationException("Expected TrackingLSPDocumentManager");
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<HtmlDocumentPublisher>();
 
-    public async Task<bool> PublishAsync(TextDocument document, ChecksumWrapper checksum, string htmlText, CancellationToken cancellationToken)
+    public async Task<bool> TryPublishAsync(TextDocument document, ChecksumWrapper checksum, string htmlText, CancellationToken cancellationToken)
     {
         var uri = document.CreateUri();
         if (!_documentManager.TryGetDocument(uri, out var documentSnapshot) ||
