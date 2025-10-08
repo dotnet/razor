@@ -379,7 +379,7 @@ public class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOutputHelpe
     public Task FilterPropertyNameInCss()
     {
         TestCode input = """
-            <div style="{|CSS024:/|}****/"></div>
+            <div style="{|CSS024:/****/|}"></div>
             <div style="@(someBool ? "width: 100%" : "width: 50%")">
 
             </div>
@@ -398,12 +398,12 @@ public class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOutputHelpe
                     new LspDiagnostic
                     {
                         Code = CSSErrorCodes.MissingPropertyName,
-                        Range = SourceText.From(input.Text).GetRange(new TextSpan(input.Text.IndexOf("/"), 1))
+                        Range = SourceText.From(input.Text).GetRange(new TextSpan(input.Text.IndexOf("/"), 6))
                     },
                     new LspDiagnostic
                     {
                         Code = CSSErrorCodes.MissingPropertyName,
-                        Range = SourceText.From(input.Text).GetRange(new TextSpan(input.Text.IndexOf("@"), 1))
+                        Range = SourceText.From(input.Text).GetRange(new TextSpan(input.Text.IndexOf("@"), 42))
                     },
                 ]
             }]);
