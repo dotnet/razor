@@ -35,6 +35,7 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
 
         var generatedCSharpText = generatedDocument.SourceText;
         context.Logger?.LogSourceText("FormattingDocument", generatedCSharpText);
+        context.Logger?.LogObject("FormattingDocumentLineInfo", generatedDocument.LineInfo);
         var formattedCSharpText = await FormatCSharpAsync(generatedCSharpText, context.Options, cancellationToken).ConfigureAwait(false);
         context.Logger?.LogSourceText("FormattedFormattingDocument", formattedCSharpText);
 
