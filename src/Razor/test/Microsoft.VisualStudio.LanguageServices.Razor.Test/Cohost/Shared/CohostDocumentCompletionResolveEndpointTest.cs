@@ -57,7 +57,8 @@ public class CohostDocumentCompletionResolveEndpointTest(ITestOutputHelper testO
             RemoteServiceInvoker,
             ClientSettingsManager,
             requestInvoker,
-            snippetCompletionItemProvider: null,
+            ClientCapabilitiesService,
+            new ThrowingSnippetCompletionItemResolveProvider(),
             LoggerFactory);
 
         var textDocumentIdentifier = new TextDocumentIdentifierAndVersion(new TextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() }, Version: 0);

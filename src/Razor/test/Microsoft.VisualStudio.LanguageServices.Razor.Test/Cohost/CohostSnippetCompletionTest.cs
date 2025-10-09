@@ -83,6 +83,7 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
             RemoteServiceInvoker,
             ClientSettingsManager,
             requestInvoker,
+            ClientCapabilitiesService,
             snippetCompletionItemProvider,
             LoggerFactory);
 

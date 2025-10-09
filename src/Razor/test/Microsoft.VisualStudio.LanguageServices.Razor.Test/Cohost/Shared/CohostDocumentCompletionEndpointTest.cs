@@ -893,7 +893,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             RemoteServiceInvoker,
             ClientSettingsManager,
             ClientCapabilitiesService,
-            snippetCompletionItemProvider: null,
+            new ThrowingSnippetCompletionItemResolveProvider(),
             languageServerFeatureOptions,
             requestInvoker,
             completionListCache,
@@ -930,7 +930,8 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             RemoteServiceInvoker,
             ClientSettingsManager,
             new TestHtmlRequestInvoker(),
-            snippetCompletionItemProvider: null,
+            ClientCapabilitiesService,
+            new ThrowingSnippetCompletionItemResolveProvider(),
             LoggerFactory);
 
         var tdi = endpoint.GetTestAccessor().GetRazorTextDocumentIdentifier(item);
