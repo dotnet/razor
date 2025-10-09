@@ -148,7 +148,7 @@ internal class RazorFormattingService : IRazorFormattingService
                 collapseChanges: false,
                 automaticallyAddUsings: false,
                 validate: true,
-                "CSharpOnType",
+                formattingType: "CSharpOnType",
                 cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
@@ -170,7 +170,7 @@ internal class RazorFormattingService : IRazorFormattingService
                 collapseChanges: false,
                 automaticallyAddUsings: false,
                 validate: true,
-                "HtmlOnType",
+                formattingType: "HtmlOnType",
                 cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
@@ -191,7 +191,7 @@ internal class RazorFormattingService : IRazorFormattingService
             collapseChanges: false,
             automaticallyAddUsings: false,
             validate: true,
-            "SingleCSharpEdit",
+            formattingType: "SingleCSharpEdit",
             cancellationToken: cancellationToken).ConfigureAwait(false);
 
         return razorChanges is [{ } change]
@@ -216,7 +216,7 @@ internal class RazorFormattingService : IRazorFormattingService
             collapseChanges: true,
             automaticallyAddUsings: true,
             validate: false,
-            "CSharpCodeAction",
+            formattingType: "CSharpCodeAction",
             cancellationToken: cancellationToken).ConfigureAwait(false);
 
         return razorChanges is [{ } change]
@@ -243,7 +243,7 @@ internal class RazorFormattingService : IRazorFormattingService
             collapseChanges: true,
             automaticallyAddUsings: true,
             validate: false,
-            "CSharpSnippet",
+            formattingType: "CSharpSnippet",
             cancellationToken: cancellationToken).ConfigureAwait(false);
 
         razorChanges = UnwrapCSharpSnippets(razorChanges);
