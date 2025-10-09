@@ -930,6 +930,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             RemoteServiceInvoker,
             ClientSettingsManager,
             new TestHtmlRequestInvoker(),
+            snippetCompletionItemProvider: null,
             LoggerFactory);
 
         var tdi = endpoint.GetTestAccessor().GetRazorTextDocumentIdentifier(item);

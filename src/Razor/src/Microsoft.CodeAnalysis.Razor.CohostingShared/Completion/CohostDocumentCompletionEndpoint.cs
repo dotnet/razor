@@ -260,19 +260,20 @@ internal sealed class CohostDocumentCompletionEndpoint(
             return completionList;
         }
 
-        // If there was a list with items, add them to snippets
-        if (completionList?.Items is { } combinedItems)
-        {
-            builder.AddRange(combinedItems);
-        }
+        var snippetCompletionList = new RazorVSInternalCompletionList { IsIncomplete = true, Items = builder.ToArray() };
+        var resolutionContext = new SnippetCompletionResolutionContext();
+        var resultId = _completionListCache.Add(snippetCompletionList, resolutionContext);
+        snippetCompletionList.SetResultId(resultId, _clientCapabilitiesService.ClientCapabilities);
 
         // Create or update final completion list
         if (completionList is null)
         {
-            completionList = new RazorVSInternalCompletionList { IsIncomplete = true, Items = builder.ToArray() };
+            completionList = snippetCompletionList;
         }
         else
         {
+
+            builder.AddRange(completionList.Items);
             completionList.Items = builder.ToArray();
         }
 

@@ -27,6 +27,19 @@ public class CohostDocumentCompletionResolveEndpointTest(ITestOutputHelper testO
                 """);
     }
 
+    [Fact]
+    public async Task SnippetResolve()
+    {
+        await VerifyCompletionItemResolveAsync(
+            input: """
+                This is a Razor document.
+
+                $$
+
+                The end.
+                """);
+    }
+
     private async Task VerifyCompletionItemResolveAsync(TestCode input)
     {
         var document = CreateProjectAndRazorDocument(input.Text);
@@ -44,6 +57,7 @@ public class CohostDocumentCompletionResolveEndpointTest(ITestOutputHelper testO
             RemoteServiceInvoker,
             ClientSettingsManager,
             requestInvoker,
+            snippetCompletionItemProvider: null,
             LoggerFactory);
 
         var textDocumentIdentifier = new TextDocumentIdentifierAndVersion(new TextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() }, Version: 0);

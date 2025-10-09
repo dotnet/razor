@@ -38,6 +38,9 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
     IClientSettingsManager clientSettingsManager,
     IHtmlRequestInvoker requestInvoker,
+#pragma warning disable RS0030 // Do not use banned APIs
+    [Import(AllowDefault = true)] ISnippetCompletionItemProvider? snippetCompletionItemProvider,
+#pragma warning restore RS0030 // Do not use banned APIs
     ILoggerFactory loggerFactory)
     : AbstractCohostDocumentEndpoint<VSInternalCompletionItem, VSInternalCompletionItem?>(incompatibleProjectService), IDynamicRegistrationProvider
 {
@@ -45,6 +48,7 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
+    private readonly ISnippetCompletionItemProvider? _snippetCompletionItemProvider = snippetCompletionItemProvider;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostDocumentCompletionResolveEndpoint>();
 
     protected override bool MutatesSolutionState => false;
@@ -91,22 +95,39 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
         var data = RazorCompletionResolveData.Unwrap(completionItem);
         completionItem.Data = data.OriginalData;
 
-        if (_completionListCache.TryGetOriginalRequestData(completionItem, out var completionList, out var context) &&
-            context is DelegatedCompletionResolutionContext delegatedContext)
+        if (_completionListCache.TryGetOriginalRequestData(completionItem, out var completionList, out var context))
         {
-            Debug.Assert(delegatedContext.ProjectedKind == RazorLanguageKind.Html);
+            if (context is DelegatedCompletionResolutionContext delegatedContext)
+            {
+                Debug.Assert(delegatedContext.ProjectedKind == RazorLanguageKind.Html);
 
 #if VSCODE
-            Debug.Assert(_requestInvoker is not null);
-            Debug.Assert(_logger is not null);
-            Debug.Assert(nameof(DelegatedCompletionHelper).Length > 0);
+                Debug.Assert(_requestInvoker is not null);
+                Debug.Assert(_logger is not null);
+                Debug.Assert(nameof(DelegatedCompletionHelper).Length > 0);
 
-            // We don't support Html completion resolve in VS Code
-            return completionItem;
+                // We don't support Html completion resolve in VS Code
+                return completionItem;
 #else
-            completionItem.Data = DelegatedCompletionHelper.GetOriginalCompletionItemData(completionItem, completionList, delegatedContext.OriginalCompletionListData);
-            return await ResolveHtmlCompletionItemAsync(completionItem, razorDocument, cancellationToken).ConfigureAwait(false);
+                completionItem.Data = DelegatedCompletionHelper.GetOriginalCompletionItemData(completionItem, completionList, delegatedContext.OriginalCompletionListData);
+                return await ResolveHtmlCompletionItemAsync(completionItem, razorDocument, cancellationToken).ConfigureAwait(false);
 #endif
+            }
+            else if (context is SnippetCompletionResolutionContext snippetContext)
+            {
+                if (CompletionListMerger.TrySplit(completionItem.Data, out var splitData))
+                {
+                    completionItem.Data = splitData[1];
+                }
+
+                if (_snippetCompletionItemProvider is not null &&
+                    _snippetCompletionItemProvider.TryResolveInsertString(completionItem, out var insertString))
+                {
+                    completionItem.InsertText = insertString;
+                }
+
+                return completionItem;
+            }
         }
 
         var clientSettings = _clientSettingsManager.GetClientSettings();
