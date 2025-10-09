@@ -34,9 +34,12 @@ internal class RazorFormattingService : IRazorFormattingService
     private readonly CSharpOnTypeFormattingPass _csharpOnTypeFormattingPass;
     private readonly HtmlOnTypeFormattingPass _htmlOnTypeFormattingPass;
 
+    private IFormattingLoggerFactory _formattingLoggerFactory;
+
     public RazorFormattingService(
         IDocumentMappingService documentMappingService,
         IHostServicesProvider hostServicesProvider,
+        IFormattingLoggerFactory formattingLoggerFactory,
         ILoggerFactory loggerFactory)
     {
         _htmlOnTypeFormattingPass = new HtmlOnTypeFormattingPass(loggerFactory);
@@ -52,6 +55,7 @@ internal class RazorFormattingService : IRazorFormattingService
                 new RazorFormattingPass(loggerFactory),
                 new CSharpFormattingPass(hostServicesProvider, loggerFactory),
             ];
+        _formattingLoggerFactory = formattingLoggerFactory;
     }
 
     public async Task<ImmutableArray<TextChange>> GetDocumentFormattingChangesAsync(
@@ -86,13 +90,20 @@ internal class RazorFormattingService : IRazorFormattingService
             }
         }
 
+        var logger = _formattingLoggerFactory.CreateLogger(documentContext.FilePath, range is null ? "Full" : "Range");
+        logger?.LogObject("Options", options);
+        logger?.LogObject("HtmlChanges", htmlChanges);
+        logger?.LogObject("Range", range);
+        logger?.LogSourceText("InitialDocument", sourceText);
+
         var uri = documentContext.Uri;
         var documentSnapshot = documentContext.Snapshot;
         var hostDocumentVersion = documentContext.Snapshot.Version;
         var context = FormattingContext.Create(
             documentSnapshot,
             codeDocument,
-            options);
+            options,
+            logger);
         var originalText = context.SourceText;
 
         var result = htmlChanges;
@@ -137,6 +148,7 @@ internal class RazorFormattingService : IRazorFormattingService
                 collapseChanges: false,
                 automaticallyAddUsings: false,
                 validate: true,
+                "CSharpOnType",
                 cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
@@ -158,6 +170,7 @@ internal class RazorFormattingService : IRazorFormattingService
                 collapseChanges: false,
                 automaticallyAddUsings: false,
                 validate: true,
+                "HtmlOnType",
                 cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
@@ -178,6 +191,7 @@ internal class RazorFormattingService : IRazorFormattingService
             collapseChanges: false,
             automaticallyAddUsings: false,
             validate: true,
+            "SingleCSharpEdit",
             cancellationToken: cancellationToken).ConfigureAwait(false);
 
         return razorChanges is [{ } change]
@@ -202,6 +216,7 @@ internal class RazorFormattingService : IRazorFormattingService
             collapseChanges: true,
             automaticallyAddUsings: true,
             validate: false,
+            "CSharpCodeAction",
             cancellationToken: cancellationToken).ConfigureAwait(false);
 
         return razorChanges is [{ } change]
@@ -228,6 +243,7 @@ internal class RazorFormattingService : IRazorFormattingService
             collapseChanges: true,
             automaticallyAddUsings: true,
             validate: false,
+            "CSharpSnippet",
             cancellationToken: cancellationToken).ConfigureAwait(false);
 
         razorChanges = UnwrapCSharpSnippets(razorChanges);
@@ -260,16 +276,24 @@ internal class RazorFormattingService : IRazorFormattingService
         bool collapseChanges,
         bool automaticallyAddUsings,
         bool validate,
+        string formattingType,
         CancellationToken cancellationToken)
     {
         // If we only received a single edit, let's always return a single edit back.
         // Otherwise, merge only if explicitly asked.
         collapseChanges |= generatedDocumentChanges.Length == 1;
 
+        var logger = _formattingLoggerFactory.CreateLogger(documentSnapshot.FilePath, formattingType);
+        logger?.LogObject("Options", options);
+        logger?.LogObject("Parameters", new { hostDocumentIndex, triggerCharacter, collapseChanges, automaticallyAddUsings, validate });
+        logger?.LogObject("GeneratedDocumentChanges", generatedDocumentChanges);
+        logger?.LogSourceText("InitialDocument", codeDocument.Source.Text);
+
         var context = FormattingContext.CreateForOnTypeFormatting(
             documentSnapshot,
             codeDocument,
             options,
+            logger,
             automaticallyAddUsings: automaticallyAddUsings,
             hostDocumentIndex,
             triggerCharacter);
