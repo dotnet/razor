@@ -39,6 +39,8 @@ internal class FormattingLoggerFactory : IFormattingLoggerFactory
             return null;
         }
 
-        return new FormattingLogger(logFolder);
+        var logger =  new FormattingLogger(logFolder);
+        logger.LogMessage($"{formattingType} formatting for {documentFilePath}");
+        return logger;
     }
 }
