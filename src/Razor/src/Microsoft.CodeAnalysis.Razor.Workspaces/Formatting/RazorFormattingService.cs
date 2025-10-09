@@ -405,5 +405,10 @@ internal class RazorFormattingService : IRazorFormattingService
             var contentValidationPass = service._validationPasses.OfType<FormattingContentValidationPass>().Single();
             contentValidationPass.DebugAssertsEnabled = debugAssertsEnabled;
         }
+
+        public void SetFormattingLoggerFactory(IFormattingLoggerFactory factory)
+        {
+            service._formattingLoggerFactory = factory;
+        }
     }
 }
