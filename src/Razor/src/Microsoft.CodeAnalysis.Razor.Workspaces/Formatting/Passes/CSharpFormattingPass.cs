@@ -209,7 +209,9 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
             }
         }
 
-        changedText = changedText.WithChanges(formattingChanges.ToArray());
+        var finalFormattingChanges = formattingChanges.ToArray();
+        context.Logger?.LogObject("FinalFormattingChanges", finalFormattingChanges);
+        changedText = changedText.WithChanges(finalFormattingChanges);
         context.Logger?.LogSourceText("FinalFormattedDocument", changedText);
 
         // And we're done, we have a final set of changes to apply. BUT these are changes to the document after Html and Razor
