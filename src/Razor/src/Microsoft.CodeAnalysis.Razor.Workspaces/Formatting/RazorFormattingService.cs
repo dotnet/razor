@@ -42,7 +42,7 @@ internal class RazorFormattingService : IRazorFormattingService
         IFormattingLoggerFactory formattingLoggerFactory,
         ILoggerFactory loggerFactory)
     {
-        _htmlOnTypeFormattingPass = new HtmlOnTypeFormattingPass(loggerFactory);
+        _htmlOnTypeFormattingPass = new HtmlOnTypeFormattingPass();
         _csharpOnTypeFormattingPass = new CSharpOnTypeFormattingPass(documentMappingService, hostServicesProvider, loggerFactory);
         _validationPasses =
         [
@@ -51,8 +51,8 @@ internal class RazorFormattingService : IRazorFormattingService
         ];
 
         _documentFormattingPasses = [
-                new HtmlFormattingPass(loggerFactory),
-                new RazorFormattingPass(loggerFactory),
+                new HtmlFormattingPass(),
+                new RazorFormattingPass(),
                 new CSharpFormattingPass(hostServicesProvider, loggerFactory),
             ];
         _formattingLoggerFactory = formattingLoggerFactory;
