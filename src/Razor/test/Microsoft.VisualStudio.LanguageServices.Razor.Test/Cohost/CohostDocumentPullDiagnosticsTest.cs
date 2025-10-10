@@ -378,9 +378,10 @@ public class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOutputHelpe
     [Fact]
     public Task FilterPropertyNameInCss()
     {
-        TestCode input = """
+        const string CSharpExpression = """@(someBool ? "width: 100%" : "width: 50%")""";
+        TestCode input = $$"""
             <div style="{|CSS024:/****/|}"></div>
-            <div style="@(someBool ? "width: 100%" : "width: 50%")">
+            <div style="{{CSharpExpression}}">
 
             </div>
 
@@ -398,12 +399,12 @@ public class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOutputHelpe
                     new LspDiagnostic
                     {
                         Code = CSSErrorCodes.MissingPropertyName,
-                        Range = SourceText.From(input.Text).GetRange(new TextSpan(input.Text.IndexOf("/"), 6))
+                        Range = SourceText.From(input.Text).GetRange(new TextSpan(input.Text.IndexOf("/"), "/****/".Length))
                     },
                     new LspDiagnostic
                     {
                         Code = CSSErrorCodes.MissingPropertyName,
-                        Range = SourceText.From(input.Text).GetRange(new TextSpan(input.Text.IndexOf("@"), 42))
+                        Range = SourceText.From(input.Text).GetRange(new TextSpan(input.Text.IndexOf("@"), CSharpExpression.Length))
                     },
                 ]
             }]);
