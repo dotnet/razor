@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
+namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal class TestFormattingLoggerFactory(ITestOutputHelper testOutputHelper) : IFormattingLoggerFactory
 {
