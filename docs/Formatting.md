@@ -1,56 +1,58 @@
 ﻿# Troubleshooting formatting issues
 
-There are times when Razor formatting might not do what you want, or might seem to not do
-anything. There are a few explanations for this, and a few steps you can take to help us
-investigate further.
+Razor formatting can sometimes behave unexpectedly or appear to do nothing. This document
+explains common causes and describes concrete steps you can take to reproduce issues and
+help us investigate.
 
-## Formatting seems to do nothing
+## Formatting appears to do nothing
 
-It is a feature of the formatting engine that if a change is detected that would result in any
-non-whitespace character being changed, the entire formatting operation will be abandoned.
-This is to avoid having a formatting operation change your actual code and its meaning,
-rather than just how it looks. Similarly, if the number of diagnostics in a document
-changes before and after formatting, we assume that something has been broken by
-formatting and abandon the operation.
+The formatter deliberately aborts if it detects a change that would modify any non-whitespace
+character. We do this to avoid changing your code's behavior while adjusting only formatting.
+The formatter also aborts if the number of diagnostics in a document changes before and
+after formatting, as we treat that as a sign the formatter introduced a problem.
 
-When either of these two fail-safes trigger, a message should be written to the Razor log in
-the Output window.
+When either safeguard triggers, Razor writes a message to the Razor log in the Output window.
+Check that log first when formatting seems to be a no-op.
 
-## Formatting does something I don't like
+## The formatter changes code in ways I don't want
 
-The Razor formatting is reasonably unopinionated, but it defers to the Html formatter that is
-built into the IDE you're using, and to Roslyn for C# formatting. Sometimes this means it
-can format code in ways you don't agree with, or that perhaps don't match your formatting
-settings for that language. For example, `.editorconfig` is not supported
-(https://github.com/dotnet/razor/issues/4406), so settings defined there may not be applied.
+Razor's formatter delegates HTML formatting to your IDE's HTML formatter and C# formatting to
+Roslyn. That means Razor can produce results you don't expect or that don't match your
+language-specific settings. For example, we do not currently support `.editorconfig` (see
+[dotnet/razor#4406](https://github.com/dotnet/razor/issues/4406)), so settings there may not
+affect Razor formatting.
 
-If formatting does something to change your code in a way you think is incorrect, please file
-an issue, but ensure you include the "before", the "after", and what you wish the result
-to have been. Ideally this should be done by including the actual source files rather than a
-screenshot. If it's possible to reduce the files to a minimal repro, it will make the issue
-easier to track down.
+If the formatter changes your code incorrectly, open an issue and include:
 
-It is usually helpful in these situations to also turn on formatting logging and attach the
-detailed logs to the issue.
+- the original source (before)
+- the formatted result (after)
+- the result you expected
 
-## Formatting crashes
+Attach the actual source files rather than screenshots. Reduce the problem to a minimal
+repro if you can — smaller repros help us diagnose and fix the issue faster.
 
-If you see an error when formatting your document, it usually means that either C# or Html
-has made a formatting change that Razor is failing to deal with. In those situations we can
-usually fix the problem easily, but first we need to be able to understand exactly what it
-is. To make that process easier (or possible), the best thing to do is to turn on
-"Formatting Logging" and attach the detailed logs to any issue you create.
+Also enable formatting logging and attach the logs to the issue; those logs contain useful
+diagnostic information we need to investigate formatting bugs.
 
-## Turning on Formatting Logging
+## Formatting causes an error or crash
 
-To enable detailed logging of the formatting system, set an environment variable called
-`RazorFormattingLogPath` to a folder on your machine, then start your IDE of choice. Perform
-the formatting operation that fails or breaks, and Razor will create a sub-folder for the
-operation and write a number of log files there. Including these files (feel free to ZIP
-them up; they should compress well) in any issue you report — either via the in-built
-feedback mechanism or when creating an issue on GitHub (https://github.com/dotnet/razor) —
-will greatly help us track down the exact problem you are encountering.
+If formatting produces an error, C# or HTML formatting likely produced a change Razor cannot
+handle. We can usually fix these errors quickly, but we need detailed information to find the
+root cause. Turn on Formatting Logging and attach the resulting logs to your issue so we can
+reproduce and resolve the crash.
+
+## Turn on Formatting Logging
+
+1. Create a folder on your machine to receive logs.
+2. Set the environment variable `RazorFormattingLogPath` to that folder.
+3. Start your IDE.
+4. Reproduce the formatting operation that fails or behaves incorrectly.
+
+Razor creates a sub-folder for each operation and writes several log files there. Zip the
+log folder and attach it to the issue you file (either through the IDE feedback mechanism or
+by creating an issue in the dotnet/razor repository). The logs help us identify exactly what
+went wrong.
 
 > [!NOTE]
-> The logs contain your Razor file contents and full file paths, so be aware of this
-when uploading them to public sites like GitHub if that is a concern for you.
+> The logs include your Razor file contents and full file paths. Don't upload them to
+> public sites if that raises privacy or security concerns.
