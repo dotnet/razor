@@ -37,6 +37,10 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
                 { "<a href=>", new[] { kvp("href", "") } },
                 { "<a href='\">  ", new[] { kvp("href", "\">  ") } },
                 { "<a href'", new[] { kvp("href'", "") } },
+                // Test cases for Razor comments in attributes - related to https://github.com/dotnet/razor/issues/12261
+                { "<a id=\"foo\" @* comment *@ class=\"bar\">", new[] { kvp("id", "foo"), kvp("class", "bar") } },
+                { "<a @* comment *@ class=\"bar\">", new[] { kvp("class", "bar") } },
+                { "<a id=\"foo\" @* comment *@>", new[] { kvp("id", "foo") } },
             };
         }
     }
