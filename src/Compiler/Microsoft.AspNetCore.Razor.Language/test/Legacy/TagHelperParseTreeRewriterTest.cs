@@ -41,8 +41,8 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
                 { "<a id=\"foo\" @* comment *@ class=\"bar\">", new[] { kvp("id", "foo"), kvp("class", "bar") } },
                 { "<a @* comment *@ class=\"bar\">", new[] { kvp("class", "bar") } },
                 { "<a id=\"foo\" @* comment *@>", new[] { kvp("id", "foo") } },
-                // Test case with comment inside attribute value - this should probably fail or show as invalid
-                // { "<a class=\"foo @* comment *@ bar\">", new[] { kvp("class", $"foo{csharp} bar") } },
+                // Test case with a commented-out attribute (entire attribute inside comment)
+                { "<a @* id=\"foo\" *@ class=\"bar\">", new[] { kvp("class", "bar") } },
             };
         }
     }
