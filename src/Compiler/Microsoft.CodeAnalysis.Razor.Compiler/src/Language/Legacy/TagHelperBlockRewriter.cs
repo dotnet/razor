@@ -103,6 +103,7 @@ internal static class TagHelperBlockRewriter
             }
             else if (child is MarkupMiscAttributeContentSyntax miscContent)
             {
+                var hasError = false;
                 foreach (var contentChild in miscContent.Children)
                 {
                     if (contentChild is CSharpCodeBlockSyntax codeBlock)
@@ -113,6 +114,7 @@ internal static class TagHelperBlockRewriter
                         var location = new SourceSpan(codeBlock.GetSourceLocation(source), codeBlock.Width);
                         var diagnostic = RazorDiagnosticFactory.CreateParsing_TagHelpersCannotHaveCSharpInTagDeclaration(location, tagName);
                         errorSink.OnError(diagnostic);
+                        hasError = true;
                         break;
                     }
                     else
@@ -126,12 +128,22 @@ internal static class TagHelperBlockRewriter
                             var location = contentChild.GetSourceSpan(source);
                             var diagnostic = RazorDiagnosticFactory.CreateParsing_TagHelperAttributeListMustBeWellFormed(location);
                             errorSink.OnError(diagnostic);
+                            hasError = true;
                             break;
                         }
                     }
                 }
 
-                result = null;
+                if (hasError)
+                {
+                    result = null;
+                }
+                else
+                {
+                    // No error in misc content (e.g., comments, whitespace), add it and continue processing.
+                    attributeBuilder.Add(child);
+                    continue;
+                }
             }
             else
             {

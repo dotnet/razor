@@ -2472,4 +2472,32 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
             builder.AllowCSharpInMarkupAttributeArea = false;
         });
     }
+
+    [Fact]
+    public void Rewrite_TagHelperWithCommentBetweenAttributes()
+    {
+        // Arrange - Test for issue #12261
+        var document = @"<p
+  attribute-1=""true""
+  @* visible *@
+  not-visible></p>";
+
+        ImmutableArray<TagHelperDescriptor> descriptors =
+        [
+            TagHelperDescriptorBuilder.CreateTagHelper("PTagHelper", "SomeAssembly")
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
+                .BoundAttributeDescriptor(attribute => attribute
+                    .Name("attribute-1")
+                    .PropertyName("Attribute1")
+                    .TypeName(typeof(string).FullName))
+                .BoundAttributeDescriptor(attribute => attribute
+                    .Name("not-visible")
+                    .PropertyName("NotVisible")
+                    .TypeName(typeof(bool).FullName))
+                .Build()
+        ];
+
+        // Act & Assert
+        EvaluateData(descriptors, document);
+    }
 }
