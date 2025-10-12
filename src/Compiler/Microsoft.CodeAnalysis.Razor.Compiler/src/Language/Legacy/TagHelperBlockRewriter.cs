@@ -133,6 +133,13 @@ internal static class TagHelperBlockRewriter
 
                 result = null;
             }
+            else if (child is RazorCommentBlockSyntax razorComment)
+            {
+                // Razor comments in attribute lists should be preserved but not treated as attributes.
+                // Continue processing subsequent attributes.
+                attributeBuilder.Add(razorComment);
+                continue;
+            }
             else
             {
                 result = null;
