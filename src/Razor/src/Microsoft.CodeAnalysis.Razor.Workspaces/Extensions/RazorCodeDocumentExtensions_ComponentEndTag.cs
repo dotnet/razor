@@ -36,9 +36,12 @@ internal static partial class RazorCodeDocumentExtensions
                 var startTag = endTag.GetStartTag();
                 if (startTag is MarkupTagHelperStartTagSyntax tagHelperStartTag)
                 {
-                    // Return the position at the start of the start tag's name
-                    // This ensures the position maps to where C# code is generated
-                    return tagHelperStartTag.Name.SpanStart;
+                    // Calculate the offset within the end tag name
+                    var offsetInEndTag = hostDocumentIndex - endTag.Name.SpanStart;
+
+                    // Apply the same offset to the start tag name
+                    // This preserves the relative position within the tag name
+                    return tagHelperStartTag.Name.SpanStart + offsetInEndTag;
                 }
             }
         }
