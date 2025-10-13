@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -235,11 +236,26 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
         {
             var tagHelperDescriptions = tagHelpers.SelectAsArray(BoundElementDescriptionInfo.From);
 
+            var insertText = displayText;
+            var isSnippet = false;
+
+            // Check if snippets are supported and if any of the tag helpers have EditorRequired attributes
+            if (context.Options.SnippetsSupported && tagHelpers.Any())
+            {
+                var tagHelpersArray = tagHelpers.ToImmutableArray();
+                if (TryGetEditorRequiredAttributesSnippet(tagHelpersArray, displayText, context.Options.AutoInsertAttributeQuotes, out var snippetText))
+                {
+                    insertText = snippetText;
+                    isSnippet = true;
+                }
+            }
+
             var razorCompletionItem = RazorCompletionItem.CreateTagHelperElement(
                 displayText: displayText,
-                insertText: displayText,
+                insertText: insertText,
                 descriptionInfo: new(tagHelperDescriptions),
-                commitCharacters: commitChars);
+                commitCharacters: commitChars,
+                isSnippet: isSnippet);
 
             completionItems.Add(razorCompletionItem);
         }
@@ -281,6 +297,60 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
             AttributeContext.FullSnippet => AttributeSnippetCommitCharacters,
             _ => throw new InvalidOperationException("Unexpected context"),
         };
+    }
+
+    private static bool TryGetEditorRequiredAttributesSnippet(
+        ImmutableArray<TagHelperDescriptor> tagHelpers,
+        string tagName,
+        bool autoInsertAttributeQuotes,
+        [NotNullWhen(true)] out string? snippetText)
+    {
+        // Collect all unique EditorRequired attributes from all matching tag helpers
+        using var editorRequiredAttributes = new PooledHashSet<string>(StringHashSetPool.Ordinal);
+
+        foreach (var tagHelper in tagHelpers)
+        {
+            var requiredAttributes = tagHelper.EditorRequiredAttributes;
+            foreach (var attribute in requiredAttributes)
+            {
+                editorRequiredAttributes.Add(attribute.Name);
+            }
+        }
+
+        // If there are no EditorRequired attributes, don't create a snippet
+        if (editorRequiredAttributes.Count == 0)
+        {
+            snippetText = null;
+            return false;
+        }
+
+        // Build snippet with placeholders for each required attribute
+        var builder = new StringBuilder();
+        builder.Append(tagName);
+
+        var tabStopIndex = 1;
+        var attributeNames = editorRequiredAttributes.ToArray();
+        foreach (var attributeName in attributeNames)
+        {
+            builder.Append(' ');
+            builder.Append(attributeName);
+            builder.Append(autoInsertAttributeQuotes ? "=\"$" : "=$");
+            builder.Append(tabStopIndex);
+            if (autoInsertAttributeQuotes)
+            {
+                builder.Append('"');
+            }
+
+            tabStopIndex++;
+        }
+
+        // Add final tab stop for the element content
+        builder.Append(">$0</");
+        builder.Append(tagName);
+        builder.Append('>');
+
+        snippetText = builder.ToString();
+        return true;
     }
 
     private enum AttributeContext
