@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Hover;
@@ -52,6 +53,8 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
             return NoFurtherHandling;
         }
 
+        var originalHostDocumentIndex = hostDocumentIndex;
+
         // Adjust position if on a component end tag to use the start tag position
         hostDocumentIndex = codeDocument.AdjustPositionForComponentEndTag(hostDocumentIndex);
 
@@ -84,6 +87,20 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
                 DocumentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredCSharpDocument(), range.ToLinePositionSpan(), out var hostDocumentSpan))
             {
                 csharpHover.Range = LspFactory.CreateRange(hostDocumentSpan);
+            }
+
+            // If we adjusted from an end tag, we need to make sure the range covers the end tag, not just the start tag
+            if (originalHostDocumentIndex != hostDocumentIndex && csharpHover.Range is not null)
+            {
+                // Find the end tag and update the range to cover it
+                var root = codeDocument.GetRequiredSyntaxRoot();
+                var owner = root.FindInnermostNode(originalHostDocumentIndex, includeWhitespace: false);
+                if (owner?.FirstAncestorOrSelf<MarkupTagHelperEndTagSyntax>() is { } endTag &&
+                    endTag.Name.Span.IntersectsWith(originalHostDocumentIndex))
+                {
+                    var endTagNameSpan = endTag.Name.GetLinePositionSpan(codeDocument.Source);
+                    csharpHover.Range = LspFactory.CreateRange(endTagNameSpan);
+                }
             }
 
             return Results(csharpHover);
