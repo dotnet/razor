@@ -18,7 +18,7 @@ internal static class SyntaxUtilities
             return GetRewrittenMarkupNodeChildren(node, node.ChunkGenerator, includeEditHandler);
         }
 
-        using PooledArrayBuilder<RazorSyntaxNode> newChildren = [];
+        using PooledArrayBuilder<GreenNode> newChildren = [];
         using PooledArrayBuilder<MarkupTextLiteralSyntax> literals = [];
 
         SpanEditHandler? latestEditHandler = null;
@@ -51,9 +51,8 @@ internal static class SyntaxUtilities
                         }
                         else
                         {
-                            // Pop stack
                             AddLiteralIsIfNeeded();
-                            newChildren.Add(contentChild);
+                            newChildren.Add(contentChild.Green);
                         }
                     }
 
@@ -61,14 +60,14 @@ internal static class SyntaxUtilities
 
                 default:
                     AddLiteralIsIfNeeded();
-                    newChildren.Add(child);
+                    newChildren.Add(child.Green);
                     break;
             }
         }
 
         AddLiteralIsIfNeeded();
 
-        return newChildren.ToList(node);
+        return newChildren.ToList<RazorSyntaxNode>(node);
 
         void AddLiteralIsIfNeeded()
         {
@@ -78,7 +77,7 @@ internal static class SyntaxUtilities
 
                 if (includeEditHandler)
                 {
-                    mergedLiteral = mergedLiteral.WithEditHandler(latestEditHandler);
+                    mergedLiteral = mergedLiteral.WithEditHandlerGreen(latestEditHandler);
                 }
 
                 latestEditHandler = null;
@@ -87,37 +86,18 @@ internal static class SyntaxUtilities
         }
     }
 
-    private static MarkupTextLiteralSyntax MergeTextLiterals(params ReadOnlySpan<MarkupTextLiteralSyntax?> literals)
+    private static InternalSyntax.MarkupTextLiteralSyntax MergeTextLiterals(params ReadOnlySpan<MarkupTextLiteralSyntax> literals)
     {
-        SyntaxNode? parent = null;
-        var position = 0;
-        var seenFirstLiteral = false;
-
         using PooledArrayBuilder<SyntaxToken> builder = [];
 
         foreach (var literal in literals)
         {
-            if (literal == null)
-            {
-                continue;
-            }
-
-            if (!seenFirstLiteral)
-            {
-                // Set the parent and position of the merged literal to the value of the first non-null literal.
-                parent = literal.Parent;
-                position = literal.Position;
-                seenFirstLiteral = true;
-            }
-
             builder.AddRange(literal.LiteralTokens);
         }
 
-        return (MarkupTextLiteralSyntax)InternalSyntax.SyntaxFactory
-            .MarkupTextLiteral(
-                literalTokens: builder.ToGreenListNode().ToGreenList<InternalSyntax.SyntaxToken>(),
-                chunkGenerator: null)
-            .CreateRed(parent, position);
+        return InternalSyntax.SyntaxFactory.MarkupTextLiteral(
+            literalTokens: builder.ToGreenListNode().ToGreenList<InternalSyntax.SyntaxToken>(),
+            chunkGenerator: null);
     }
 
     internal static SyntaxList<RazorSyntaxNode> GetRewrittenMarkupEndTagChildren(
@@ -129,7 +109,7 @@ internal static class SyntaxUtilities
             : node.LegacyChildren;
     }
 
-    internal static SyntaxList<RazorSyntaxNode> GetRewrittenMarkupNodeChildren(
+    internal static SyntaxList<SyntaxNode> GetRewrittenMarkupNodeChildren(
         MarkupSyntaxNode node, ISpanChunkGenerator chunkGenerator, bool includeEditHandler = false)
     {
         using PooledArrayBuilder<SyntaxToken> builder = [];
@@ -142,17 +122,15 @@ internal static class SyntaxUtilities
             }
         }
 
-        var markupTransition = InternalSyntax.SyntaxFactory
-            .MarkupTransition(
-                builder.ToGreenListNode().ToGreenList<InternalSyntax.SyntaxToken>(),
-                chunkGenerator)
-            .CreateRed(node, node.Position);
+        var markupTransition = InternalSyntax.SyntaxFactory.MarkupTransition(
+            builder.ToGreenListNode().ToGreenList<InternalSyntax.SyntaxToken>(),
+            chunkGenerator);
 
         if (includeEditHandler && node.GetEditHandler() is { } editHandler)
         {
-            markupTransition = markupTransition.WithEditHandler(editHandler);
+            markupTransition = markupTransition.WithEditHandlerGreen(editHandler);
         }
 
-        return new(markupTransition);
+        return new(markupTransition.CreateRed(node, node.Position));
     }
 }

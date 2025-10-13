@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -52,15 +52,27 @@ internal static class GreenNodeExtensions
         }
     }
 
-
-    public static TNode WithAdditionalAnnotationsGreen<TNode>(this TNode node, IEnumerable<SyntaxAnnotation>? annotations)
+    public static TNode WithAdditionalAnnotationsGreen<TNode>(this TNode node, SyntaxAnnotation annotation)
         where TNode : GreenNode
     {
-        if (annotations == null)
+        var existingAnnotations = node.GetAnnotations();
+
+        using var newAnnotations = new PooledArrayBuilder<SyntaxAnnotation>(capacity: existingAnnotations.Length);
+        newAnnotations.AddRange(existingAnnotations);
+
+        if (!newAnnotations.Contains(annotation))
         {
-            return node;
+            newAnnotations.Add(annotation);
         }
 
+        return newAnnotations.Count != existingAnnotations.Length
+            ? (TNode)node.SetAnnotations(newAnnotations.ToArrayAndClear())
+            : node;
+    }
+
+    public static TNode WithAdditionalAnnotationsGreen<TNode>(this TNode node, IEnumerable<SyntaxAnnotation> annotations)
+        where TNode : GreenNode
+    {
         var existingAnnotations = node.GetAnnotations();
 
         using var newAnnotations = new PooledArrayBuilder<SyntaxAnnotation>(capacity: existingAnnotations.Length);
@@ -79,12 +91,20 @@ internal static class GreenNodeExtensions
             : node;
     }
 
-    public static TNode WithoutAnnotationsGreen<TNode>(this TNode node, IEnumerable<SyntaxAnnotation>? annotations)
+    public static TNode WithoutAnnotationsGreen<TNode>(this TNode node, string annotationKind)
+        where TNode : GreenNode
+    {
+        return node.HasAnnotations(annotationKind)
+            ? node.WithoutAnnotationsGreen(node.GetAnnotations(annotationKind))
+            : node;
+    }
+
+    public static TNode WithoutAnnotationsGreen<TNode>(this TNode node, IEnumerable<SyntaxAnnotation> annotations)
         where TNode : GreenNode
     {
         var existingAnnotations = node.GetAnnotations();
 
-        if (annotations == null || existingAnnotations.Length == 0)
+        if (existingAnnotations.Length == 0)
         {
             return node;
         }

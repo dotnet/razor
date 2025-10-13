@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -532,10 +532,11 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
         }
 
         var annotations = Green.GetAnnotations();
-        if (annotations?.Length > 0)
+        if (annotations.Length > 0)
         {
             return (T)node.Green.WithAdditionalAnnotationsGreen(annotations).CreateRed();
         }
+
         return node;
     }
 

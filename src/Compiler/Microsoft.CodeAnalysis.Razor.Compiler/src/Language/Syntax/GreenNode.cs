@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -273,7 +273,6 @@ internal abstract class GreenNode
         ArgHelper.ThrowIfNullOrWhiteSpace(annotationKind);
 
         var annotations = GetAnnotations();
-
         if (annotations == s_noAnnotations)
         {
             return s_noAnnotationsEnumerable;
@@ -298,7 +297,6 @@ internal abstract class GreenNode
         ArgHelper.ThrowIfNull(annotationKinds);
 
         var annotations = GetAnnotations();
-
         if (annotations == s_noAnnotations)
         {
             return s_noAnnotationsEnumerable;

@@ -10,9 +10,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
 internal static class SyntaxNodeExtensions
 {
-    public static TNode WithAnnotations<TNode>(this TNode node, params SyntaxAnnotation[] annotations) where TNode : SyntaxNode
+    public static TNode WithAnnotations<TNode>(this TNode node, params SyntaxAnnotation[] annotations)
+        where TNode : SyntaxNode
     {
-        return (TNode)node.Green.SetAnnotations(annotations).CreateRed(node.Parent, node.Position);
+        return (TNode)node.Green.SetAnnotations(annotations).CreateRed();
     }
 
     public static object? GetAnnotationValue<TNode>(this TNode node, string key)
