@@ -4,8 +4,10 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -170,9 +172,21 @@ internal abstract class AbstractDefinitionService(
 
             // Remove the tilde and normalize path separators
             var relativePath = filePath.Substring(2).Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
-            resolvedPath = Path.GetFullPath(Path.Combine(projectDirectory, relativePath));
+            var candidatePath = Path.GetFullPath(Path.Combine(projectDirectory, relativePath));
 
-            return project.ContainsDocument(resolvedPath);
+            // Check using path comparison since the project might not have the document loaded yet
+            var matchingPath = project.DocumentFilePaths.FirstOrDefault(d => PathUtilities.OSSpecificPathComparer.Equals(d, candidatePath));
+            if (matchingPath is not null)
+            {
+                resolvedPath = matchingPath;
+                return true;
+            }
+
+            if (project.ContainsDocument(candidatePath))
+            {
+                resolvedPath = candidatePath;
+                return true;
+            }
         }
 
         // Handle relative paths - relative to the current document
@@ -181,6 +195,14 @@ internal abstract class AbstractDefinitionService(
         {
             var normalizedPath = filePath.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
             var candidatePath = Path.GetFullPath(Path.Combine(currentDocumentDirectory, normalizedPath));
+
+            // Check using path comparison since the project might not have the document loaded yet
+            var matchingPath = project.DocumentFilePaths.FirstOrDefault(d => PathUtilities.OSSpecificPathComparer.Equals(d, candidatePath));
+            if (matchingPath is not null)
+            {
+                resolvedPath = matchingPath;
+                return true;
+            }
 
             if (project.ContainsDocument(candidatePath))
             {
