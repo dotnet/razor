@@ -307,20 +307,17 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
         string tagName,
         [NotNullWhen(true)] out string? snippetText)
     {
-        // Collect all unique EditorRequired attributes from all matching tag helpers
-        using var editorRequiredAttributes = new PooledHashSet<string>(StringHashSetPool.Ordinal);
-
-        foreach (var tagHelper in tagHelpers)
+        // For components, there should only be one tag helper descriptor per component name
+        // Get EditorRequired attributes from the first component tag helper
+        var componentTagHelper = tagHelpers.FirstOrDefault(th => th.Kind == TagHelperKind.Component);
+        if (componentTagHelper is null)
         {
-            var requiredAttributes = tagHelper.EditorRequiredAttributes;
-            foreach (var attribute in requiredAttributes)
-            {
-                editorRequiredAttributes.Add(attribute.Name);
-            }
+            snippetText = null;
+            return false;
         }
 
-        // If there are no EditorRequired attributes, don't create a snippet
-        if (editorRequiredAttributes.Count == 0)
+        var requiredAttributes = componentTagHelper.EditorRequiredAttributes;
+        if (requiredAttributes.Length == 0)
         {
             snippetText = null;
             return false;
@@ -331,11 +328,10 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
         builder.Append(tagName);
 
         var tabStopIndex = 1;
-        var attributeNames = editorRequiredAttributes.ToArray();
-        foreach (var attributeName in attributeNames)
+        foreach (var attribute in requiredAttributes)
         {
             builder.Append(' ');
-            builder.Append(attributeName);
+            builder.Append(attribute.Name);
             builder.Append("=\"$");
             builder.Append(tabStopIndex);
             builder.Append('"');

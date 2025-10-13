@@ -772,7 +772,22 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                 """,
             fileKind: RazorFileKind.Component,
             additionalFiles: [("TestComponent.razor", componentCode)]);
-        
+
+        await VerifyCompletionListAsync(
+            document,
+            expectedItemLabels: ["TestComponent", "TestComponent..."],
+            itemToResolve: "TestComponent...",
+            expected: """
+                <TestComponent RequiredParam1="$1" RequiredParam2="$2">$0</TestComponent>
+                """);
+    }
+
+    private async Task VerifyCompletionListAsync(
+        CodeAnalysis.TextDocument document,
+        string[] expectedItemLabels,
+        string? itemToResolve = null,
+        string? expected = null)
+    {
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         ClientSettingsManager.Update(ClientAdvancedSettings.Default with { AutoInsertAttributeQuotes = true, CommitElementsWithSpace = true });
@@ -825,21 +840,27 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
 
         Assert.NotNull(result);
 
-        // Should have both regular and snippet completions
-        var testComponentItems = result.Items.Where(i => i.Label.StartsWith("TestComponent")).ToArray();
-        Assert.Equal(2, testComponentItems.Length);
+        using var _ = HashSetPool<string>.GetPooledObject(out var labelSet);
+        labelSet.AddRange(result.Items.SelectAsArray((item) => item.Label));
 
-        var regularItem = testComponentItems.FirstOrDefault(i => i.Label == "TestComponent");
-        Assert.NotNull(regularItem);
+        foreach (var expectedItemLabel in expectedItemLabels)
+        {
+            Assert.Contains(expectedItemLabel, labelSet);
+        }
 
-        var snippetItem = testComponentItems.FirstOrDefault(i => i.Label == "TestComponent...");
-        Assert.NotNull(snippetItem);
-        Assert.True(snippetItem.InsertTextFormat == InsertTextFormat.Snippet);
-        Assert.Contains("RequiredParam1", snippetItem.InsertText);
-        Assert.Contains("RequiredParam2", snippetItem.InsertText);
-        Assert.Contains("$1", snippetItem.InsertText);
-        Assert.Contains("$2", snippetItem.InsertText);
-        Assert.Contains("$0", snippetItem.InsertText);
+        if (itemToResolve is not null)
+        {
+            var item = Assert.Single(result.Items.Where(i => i.Label == itemToResolve));
+            item = JsonSerializer.Deserialize<VSInternalCompletionItem>(JsonSerializer.SerializeToElement(item, JsonHelpers.JsonSerializerOptions), JsonHelpers.JsonSerializerOptions)!;
+            item.Data ??= result.Data ?? result.ItemDefaults?.Data;
+
+            Assert.NotNull(item);
+
+            if (expected is not null)
+            {
+                await VerifyCompletionResolveAsync(document, completionListCache, item, expected, expectedResolvedItemDescription: null);
+            }
+        }
     }
 
     private async Task<RazorVSInternalCompletionList> VerifyCompletionListAsync(
@@ -962,7 +983,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             item.Data ??= result.Data ?? result.ItemDefaults?.Data;
 
             Assert.NotNull(item);
-            Assert.NotNull(expectedResolvedItemDescription);
 
             await VerifyCompletionResolveAsync(document, completionListCache, item, expected, expectedResolvedItemDescription);
         }
@@ -1015,7 +1035,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         }
     }
 
-    private async Task VerifyCompletionResolveAsync(CodeAnalysis.TextDocument document, CompletionListCache completionListCache, VSInternalCompletionItem item, string? expected, string expectedResolvedItemDescription)
+    private async Task VerifyCompletionResolveAsync(CodeAnalysis.TextDocument document, CompletionListCache completionListCache, VSInternalCompletionItem item, string? expected, string? expectedResolvedItemDescription)
     {
         // We expect data to be a JsonElement, so for tests we have to _not_ strongly type
         item.Data = JsonSerializer.SerializeToElement(item.Data, JsonHelpers.JsonSerializerOptions);
@@ -1061,21 +1081,24 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             Assert.Fail("Expected a TextEdit or Command with TextEdit, but got none. Presumably resolve failed. Result: " + JsonSerializer.SerializeToElement(result).ToString());
         }
 
-        if (result.Description is not null)
+        if (expectedResolvedItemDescription is not null)
         {
-            AssertEx.EqualOrDiff(expectedResolvedItemDescription, FlattenDescription(result.Description));
-        }
-        else if (result.Documentation is { Value: string description })
-        {
-            AssertEx.EqualOrDiff(expectedResolvedItemDescription, description);
-        }
-        else if (result.Documentation is { Value: MarkupContent { Kind.Value: "plaintext" } content })
-        {
-            AssertEx.EqualOrDiff(expectedResolvedItemDescription, content.Value);
-        }
-        else
-        {
-            Assert.Fail("Unhandled description type: " + JsonSerializer.SerializeToElement(result).ToString());
+            if (result.Description is not null)
+            {
+                AssertEx.EqualOrDiff(expectedResolvedItemDescription, FlattenDescription(result.Description));
+            }
+            else if (result.Documentation is { Value: string description })
+            {
+                AssertEx.EqualOrDiff(expectedResolvedItemDescription, description);
+            }
+            else if (result.Documentation is { Value: MarkupContent { Kind.Value: "plaintext" } content })
+            {
+                AssertEx.EqualOrDiff(expectedResolvedItemDescription, content.Value);
+            }
+            else
+            {
+                Assert.Fail("Unhandled description type: " + JsonSerializer.SerializeToElement(result).ToString());
+            }
         }
     }
 
