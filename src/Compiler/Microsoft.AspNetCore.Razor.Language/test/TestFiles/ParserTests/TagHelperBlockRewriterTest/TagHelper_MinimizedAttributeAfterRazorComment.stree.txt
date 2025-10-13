@@ -25,7 +25,7 @@
                     RazorCommentLiteral;[ comment ];
                     RazorCommentStar;[*];
                     RazorCommentTransition;[@];
-                MarkupMinimizedAttributeBlock - [36..44)::8 - [ checked]
+                MarkupMinimizedTagHelperAttribute - [36..44)::8 - checked - Minimized - Bound - [ checked]
                     MarkupTextLiteral - [36..37)::1 - [ ] - Gen<Markup>
                         Whitespace;[ ];
                     MarkupTextLiteral - [37..44)::7 - [checked] - Gen<Markup>

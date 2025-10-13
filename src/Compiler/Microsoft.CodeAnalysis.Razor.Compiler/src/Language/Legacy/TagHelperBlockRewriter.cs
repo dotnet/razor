@@ -140,6 +140,19 @@ internal static class TagHelperBlockRewriter
                 attributeBuilder.Add(razorComment);
                 continue;
             }
+            else if (child is MarkupTextLiteralSyntax textLiteral)
+            {
+                // Whitespace between attributes should be preserved but not treated as attributes.
+                // Continue processing subsequent attributes.
+                var content = textLiteral.GetContent();
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    attributeBuilder.Add(textLiteral);
+                    continue;
+                }
+
+                result = null;
+            }
             else
             {
                 result = null;

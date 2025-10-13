@@ -12,7 +12,7 @@
                     RazorCommentLiteral;[ comment1 ];
                     RazorCommentStar;[*];
                     RazorCommentTransition;[@];
-                MarkupAttributeBlock - [21..33)::12 - [ type="text"]
+                MarkupTagHelperAttribute - [21..33)::12 - type - DoubleQuotes - Bound - [ type="text"]
                     MarkupTextLiteral - [21..22)::1 - [ ] - Gen<Markup>
                         Whitespace;[ ];
                     MarkupTextLiteral - [22..26)::4 - [type] - Gen<Markup>
@@ -20,10 +20,9 @@
                     Equals;[=];
                     MarkupTextLiteral - [27..28)::1 - ["] - Gen<Markup>
                         DoubleQuote;["];
-                    GenericBlock - [28..32)::4
-                        MarkupLiteralAttributeValue - [28..32)::4 - [text]
-                            MarkupTextLiteral - [28..32)::4 - [text] - Gen<Markup>
-                                Text;[text];
+                    MarkupTagHelperAttributeValue - [28..32)::4
+                        MarkupTextLiteral - [28..32)::4 - [text] - Gen<Markup>
+                            Text;[text];
                     MarkupTextLiteral - [32..33)::1 - ["] - Gen<Markup>
                         DoubleQuote;["];
                 MarkupTextLiteral - [33..34)::1 - [ ] - Gen<Markup>
@@ -34,7 +33,7 @@
                     RazorCommentLiteral;[ comment2 ];
                     RazorCommentStar;[*];
                     RazorCommentTransition;[@];
-                MarkupAttributeBlock - [48..61)::13 - [ value="test"]
+                MarkupTagHelperAttribute - [48..61)::13 - value - DoubleQuotes - Bound - [ value="test"]
                     MarkupTextLiteral - [48..49)::1 - [ ] - Gen<Markup>
                         Whitespace;[ ];
                     MarkupTextLiteral - [49..54)::5 - [value] - Gen<Markup>
@@ -42,10 +41,9 @@
                     Equals;[=];
                     MarkupTextLiteral - [55..56)::1 - ["] - Gen<Markup>
                         DoubleQuote;["];
-                    GenericBlock - [56..60)::4
-                        MarkupLiteralAttributeValue - [56..60)::4 - [test]
-                            MarkupTextLiteral - [56..60)::4 - [test] - Gen<Markup>
-                                Text;[test];
+                    MarkupTagHelperAttributeValue - [56..60)::4
+                        MarkupTextLiteral - [56..60)::4 - [test] - Gen<Markup>
+                            Text;[test];
                     MarkupTextLiteral - [60..61)::1 - ["] - Gen<Markup>
                         DoubleQuote;["];
                 MarkupTextLiteral - [61..62)::1 - [ ] - Gen<Markup>
