@@ -35,7 +35,7 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
     public void GetCompletionItems_OnFormElement_ReturnsDataEnhance()
     {
         // Arrange
-        TestCode testCode = "<form $$></form>";
+        TestCode testCode = "<form d$$></form>";
         var context = CreateRazorCompletionContext(testCode);
 
         // Act
@@ -52,7 +52,7 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
     public void GetCompletionItems_OnAnchorElement_ReturnsDataEnhanceNav()
     {
         // Arrange
-        TestCode testCode = "<a $$></a>";
+        TestCode testCode = "<a d$$></a>";
         var context = CreateRazorCompletionContext(testCode);
 
         // Act
@@ -69,7 +69,7 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
     public void GetCompletionItems_OnDivElement_ReturnsDataPermanent()
     {
         // Arrange
-        TestCode testCode = "<div $$></div>";
+        TestCode testCode = "<div d$$></div>";
         var context = CreateRazorCompletionContext(testCode);
 
         // Act
@@ -86,7 +86,7 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
     public void GetCompletionItems_OnNonFormElement_DoesNotReturnDataEnhance()
     {
         // Arrange
-        TestCode testCode = "<div $$></div>";
+        TestCode testCode = "<div d$$></div>";
         var context = CreateRazorCompletionContext(testCode);
 
         // Act
@@ -101,7 +101,7 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
     public void GetCompletionItems_OnNonAnchorElement_DoesNotReturnDataEnhanceNav()
     {
         // Arrange
-        TestCode testCode = "<div $$></div>";
+        TestCode testCode = "<div d$$></div>";
         var context = CreateRazorCompletionContext(testCode);
 
         // Act
@@ -176,7 +176,7 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
             AutoInsertAttributeQuotes: true,
             CommitElementsWithSpace: true,
             UseVsCodeCompletionCommitCharacters: false);
-        TestCode testCode = "<form $$></form>";
+        TestCode testCode = "<form d$$></form>";
         var codeDocument = GetCodeDocument(testCode.Text);
         var syntaxTree = codeDocument.GetRequiredSyntaxTree();
         var tagHelperContext = codeDocument.GetRequiredTagHelperContext();

@@ -39,11 +39,19 @@ internal class BlazorDataAttributeCompletionItemProvider : IRazorCompletionItemP
             return [];
         }
 
+        // Adjust owner similar to TagHelperCompletionProvider
+        owner = owner switch
+        {
+            MarkupStartTagSyntax or MarkupEndTagSyntax or MarkupTagHelperStartTagSyntax or MarkupTagHelperEndTagSyntax or MarkupTagHelperAttributeSyntax => owner,
+            RazorDocumentSyntax => owner,
+            _ => owner.Parent
+        };
+
         // Check if we're in an attribute context
         if (!HtmlFacts.TryGetAttributeInfo(
                 owner,
                 out var containingTagNameToken,
-                out _,
+                out var prefixLocation,
                 out var selectedAttributeName,
                 out var selectedAttributeNameLocation,
                 out var attributes))
@@ -52,8 +60,10 @@ internal class BlazorDataAttributeCompletionItemProvider : IRazorCompletionItemP
         }
 
         // Only provide completions when we're completing an attribute name
-        if (!selectedAttributeNameLocation.HasValue ||
-            !selectedAttributeNameLocation.Value.IntersectsWith(context.AbsoluteIndex))
+        // Similar to TagHelperCompletionProvider logic
+        if (!(selectedAttributeName is null ||
+            selectedAttributeNameLocation?.IntersectsWith(context.AbsoluteIndex) == true ||
+            (prefixLocation?.IntersectsWith(context.AbsoluteIndex) ?? false)))
         {
             return [];
         }
@@ -117,8 +127,7 @@ internal class BlazorDataAttributeCompletionItemProvider : IRazorCompletionItemP
             var isSnippet = false;
 
             // Add snippet text for attribute value if snippets are supported
-            if (context.Options.SnippetsSupported &&
-                owner is not (MarkupAttributeBlockSyntax or MarkupMinimizedAttributeBlockSyntax))
+            if (context.Options.SnippetsSupported)
             {
                 var snippetSuffix = context.Options.AutoInsertAttributeQuotes ? "=\"$0\"" : "=$0";
                 insertText = attributeName + snippetSuffix;
