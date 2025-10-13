@@ -811,6 +811,28 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             htmlItemLabels: ["dir"]);
     }
 
+    [Fact]
+    public async Task BlazorDataAttributeCompletion_DoesNotDuplicateExistingAttribute()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <form data-enhance $$></form>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = " ",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["data-enhance-nav", "data-permanent", "dir", "@..."],
+            unexpectedItemLabels: ["data-enhance"],
+            htmlItemLabels: ["dir"]);
+    }
+
     private async Task<RazorVSInternalCompletionList> VerifyCompletionListAsync(
         TestCode input,
         VSInternalCompletionContext completionContext,

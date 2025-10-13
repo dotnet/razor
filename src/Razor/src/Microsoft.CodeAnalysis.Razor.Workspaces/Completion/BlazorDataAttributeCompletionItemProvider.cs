@@ -34,19 +34,11 @@ internal class BlazorDataAttributeCompletionItemProvider : IRazorCompletionItemP
             return [];
         }
 
-        var owner = context.Owner;
+        var owner = CompletionContextHelper.AdjustSyntaxNodeForCompletion(context.Owner);
         if (owner is null)
         {
             return [];
         }
-
-        // Adjust owner similar to TagHelperCompletionProvider
-        owner = owner switch
-        {
-            MarkupStartTagSyntax or MarkupEndTagSyntax or MarkupTagHelperStartTagSyntax or MarkupTagHelperEndTagSyntax or MarkupTagHelperAttributeSyntax => owner,
-            RazorDocumentSyntax => owner,
-            _ => owner.Parent
-        };
 
         // Check if we're in an attribute context
         if (!HtmlFacts.TryGetAttributeInfo(
@@ -61,10 +53,11 @@ internal class BlazorDataAttributeCompletionItemProvider : IRazorCompletionItemP
         }
 
         // Only provide completions when we're completing an attribute name
-        // Similar to TagHelperCompletionProvider logic
-        if (!(selectedAttributeName is null ||
-            selectedAttributeNameLocation?.IntersectsWith(context.AbsoluteIndex) == true ||
-            (prefixLocation?.IntersectsWith(context.AbsoluteIndex) ?? false)))
+        if (!CompletionContextHelper.IsAttributeNameCompletionContext(
+                selectedAttributeName,
+                selectedAttributeNameLocation,
+                prefixLocation,
+                context.AbsoluteIndex))
         {
             return [];
         }
@@ -128,17 +121,14 @@ internal class BlazorDataAttributeCompletionItemProvider : IRazorCompletionItemP
                 ? ImmutableArray<RazorCommitCharacter>.Empty
                 : (isSnippet ? AttributeSnippetCommitCharacters : AttributeCommitCharacters);
 
-            var descriptionInfo = new BoundAttributeDescriptionInfo(
-                ReturnTypeName: "bool",
-                TypeName: "Blazor",
-                PropertyName: attributeName,
+            var descriptionInfo = new AttributeDescriptionInfo(
+                Name: attributeName,
                 Documentation: description);
 
-            var completionItem = RazorCompletionItem.CreateTagHelperAttribute(
+            var completionItem = RazorCompletionItem.CreateAttribute(
                 displayText: attributeName,
                 insertText: insertText,
-                sortText: null,
-                descriptionInfo: new AggregateBoundAttributeDescription([descriptionInfo]),
+                descriptionInfo: descriptionInfo,
                 commitCharacters: commitCharacters,
                 isSnippet: isSnippet);
 
