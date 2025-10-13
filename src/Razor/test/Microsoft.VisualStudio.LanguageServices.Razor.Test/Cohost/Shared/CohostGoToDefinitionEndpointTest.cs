@@ -813,6 +813,111 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         Assert.Equal(document.CreateUri(), location.DocumentUri.GetRequiredParsedUri());
     }
 
+    [Fact]
+    public async Task StringLiteral_TildePath()
+    {
+        var input = """
+            @{
+                Html.Partial("~/Views/Shared/_Pa$$rtial.cshtml");
+            }
+            """;
+
+        var partialFileContent = """
+            <div>This is a partial view</div>
+            """;
+
+        var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Legacy,
+            additionalFiles: (FileName("Views/Shared/_Partial.cshtml"), partialFileContent));
+
+        Assert.NotNull(result.Value.Second);
+        var locations = result.Value.Second;
+        var location = Assert.Single(locations);
+
+        Assert.Equal(FileUri("Views/Shared/_Partial.cshtml"), location.DocumentUri.GetRequiredParsedUri());
+    }
+
+    [Fact]
+    public async Task StringLiteral_RelativePath()
+    {
+        var input = """
+            @{
+                Html.Partial("_Pa$$rtial.cshtml");
+            }
+            """;
+
+        var partialFileContent = """
+            <div>This is a partial view</div>
+            """;
+
+        var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Legacy,
+            additionalFiles: (FileName("_Partial.cshtml"), partialFileContent));
+
+        Assert.NotNull(result.Value.Second);
+        var locations = result.Value.Second;
+        var location = Assert.Single(locations);
+
+        Assert.Equal(FileUri("_Partial.cshtml"), location.DocumentUri.GetRequiredParsedUri());
+    }
+
+    [Fact]
+    public async Task StringLiteral_NonExistentFile()
+    {
+        var input = """
+            @{
+                Html.Partial("~/Views/Shared/_NonExistent$$File.cshtml");
+            }
+            """;
+
+        var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Legacy);
+
+        // Should return null if file doesn't exist
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task StringLiteral_RazorComponent()
+    {
+        var input = """
+            @{
+                var path = "~/Pages/Cou$$nter.razor";
+            }
+            """;
+
+        var counterFileContent = """
+            @page "/counter"
+
+            <h1>Counter</h1>
+
+            @code {
+                private int currentCount = 0;
+            }
+            """;
+
+        var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Component,
+            additionalFiles: (FileName("Pages/Counter.razor"), counterFileContent));
+
+        Assert.NotNull(result.Value.Second);
+        var locations = result.Value.Second;
+        var location = Assert.Single(locations);
+
+        Assert.Equal(FileUri("Pages/Counter.razor"), location.DocumentUri.GetRequiredParsedUri());
+    }
+
+    [Fact]
+    public async Task StringLiteral_NotInString()
+    {
+        var input = """
+            @{
+                var $$ foo = "bar";
+            }
+            """;
+
+        var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Legacy);
+
+        // Should return null when not in a string literal
+        Assert.Null(result);
+    }
+
     private async Task<SumType<LspLocation, LspLocation[], DocumentLink[]>?> GetGoToDefinitionResultAsync(
         TestCode input,
         RazorFileKind? fileKind = null,

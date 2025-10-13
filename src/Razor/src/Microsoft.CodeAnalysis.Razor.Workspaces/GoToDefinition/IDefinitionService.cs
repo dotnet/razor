@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.GoToDefinition;
 
@@ -19,5 +20,10 @@ internal interface IDefinitionService
         ISolutionQueryOperations solutionQueryOperations,
         bool ignoreComponentAttributes,
         bool includeMvcTagHelpers,
+        CancellationToken cancellationToken);
+
+    Task<LspLocation[]?> GetDefinitionFromStringLiteralAsync(
+        IDocumentSnapshot documentSnapshot,
+        LinePosition position,
         CancellationToken cancellationToken);
 }

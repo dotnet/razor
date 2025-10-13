@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -9,6 +10,8 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
+using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
 namespace Microsoft.CodeAnalysis.Razor.GoToDefinition;
 
@@ -99,5 +102,95 @@ internal abstract class AbstractDefinitionService(
         // them to the file for the component. If the property was defined in a partial class they can
         // at least then press F7 to go there.
         return LspFactory.DefaultRange;
+    }
+
+    public async Task<LspLocation[]?> GetDefinitionFromStringLiteralAsync(
+        IDocumentSnapshot documentSnapshot,
+        LinePosition position,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation($"Attempting to get definition from string literal at position {position}.");
+
+        // Get the C# syntax tree to analyze the string literal
+        var syntaxTree = await documentSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+        // Convert position to absolute index
+        var absoluteIndex = sourceText.Lines.GetPosition(position);
+
+        // Find the token at the current position
+        var token = root.FindToken(absoluteIndex);
+
+        // Check if we're in a string literal
+        if (token.IsKind(CSharpSyntaxKind.StringLiteralToken))
+        {
+            var literalText = token.ValueText;
+            _logger.LogInformation($"Found string literal: {literalText}");
+
+            // Try to resolve the file path
+            if (TryResolveFilePath(documentSnapshot, literalText, out var resolvedPath))
+            {
+                _logger.LogInformation($"Resolved file path: {resolvedPath}");
+                return [LspFactory.CreateLocation(resolvedPath, LspFactory.DefaultRange)];
+            }
+        }
+
+        return null;
+    }
+
+    private bool TryResolveFilePath(IDocumentSnapshot documentSnapshot, string filePath, out string resolvedPath)
+    {
+        resolvedPath = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return false;
+        }
+
+        // Handle tilde paths (~/ or ~\) - these are relative to the project root
+        if (filePath.StartsWith("~/") || filePath.StartsWith("~\\"))
+        {
+            var projectDirectory = Path.GetDirectoryName(documentSnapshot.Project.FilePath);
+            if (projectDirectory is null)
+            {
+                return false;
+            }
+
+            // Remove the tilde and normalize path separators
+            var relativePath = filePath.Substring(2).Replace('/', Path.DirectorySeparatorChar);
+            resolvedPath = Path.Combine(projectDirectory, relativePath);
+
+            if (File.Exists(resolvedPath))
+            {
+                return true;
+            }
+        }
+
+        // Handle absolute paths
+        if (Path.IsPathRooted(filePath))
+        {
+            if (File.Exists(filePath))
+            {
+                resolvedPath = filePath;
+                return true;
+            }
+        }
+
+        // Handle relative paths - relative to the current document
+        var currentDocumentDirectory = Path.GetDirectoryName(documentSnapshot.FilePath);
+        if (currentDocumentDirectory is not null)
+        {
+            var normalizedPath = filePath.Replace('/', Path.DirectorySeparatorChar);
+            var candidatePath = Path.Combine(currentDocumentDirectory, normalizedPath);
+
+            if (File.Exists(candidatePath))
+            {
+                resolvedPath = candidatePath;
+                return true;
+            }
+        }
+
+        return false;
     }
 }
