@@ -1,34 +1,26 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
 
-internal struct SyntaxList<TNode> : IEquatable<SyntaxList<TNode>>
+internal readonly struct SyntaxList<TNode> : IEquatable<SyntaxList<TNode>>
     where TNode : GreenNode
 {
-    private readonly GreenNode _node;
+    private readonly GreenNode? _node;
 
-    public SyntaxList(GreenNode node)
+    public SyntaxList(GreenNode? node)
     {
         _node = node;
     }
 
-    internal GreenNode Node => _node;
+    internal GreenNode? Node => _node;
 
-    public int Count
-    {
-        get
-        {
-            return (_node == null) ? 0 : _node.IsList ? _node.SlotCount : 1;
-        }
-    }
+    public int Count => _node == null ? 0 : (_node.IsList ? _node.SlotCount : 1);
 
-    public TNode this[int index]
+    public TNode? this[int index]
     {
         get
         {
@@ -41,21 +33,31 @@ internal struct SyntaxList<TNode> : IEquatable<SyntaxList<TNode>>
                 Debug.Assert(index >= 0);
                 Debug.Assert(index <= _node.SlotCount);
 
-                return ((TNode)_node.GetSlot(index));
+                return (TNode?)_node.GetSlot(index);
             }
             else if (index == 0)
             {
-                return ((TNode)_node);
+                return (TNode?)_node;
             }
             else
             {
-                throw new InvalidOperationException("This program location is thought to be unreachable.");
+                return Assumed.Unreachable<TNode?>();
             }
         }
     }
 
-    public GreenNode ItemUntyped(int index)
+    internal TNode GetRequiredItem(int index)
     {
+        var node = this[index];
+        Debug.Assert(node is object);
+
+        return node;
+    }
+
+    public GreenNode? ItemUntyped(int index)
+    {
+        Debug.Assert(_node is not null);
+
         var node = _node;
         if (node.IsList)
         {
@@ -73,10 +75,9 @@ internal struct SyntaxList<TNode> : IEquatable<SyntaxList<TNode>>
 
     public bool Any(SyntaxKind kind)
     {
-        for (var i = 0; i < Count; i++)
+        foreach (var element in this)
         {
-            var element = ItemUntyped(i);
-            if ((element.Kind == kind))
+            if (element.Kind == kind)
             {
                 return true;
             }
@@ -89,27 +90,31 @@ internal struct SyntaxList<TNode> : IEquatable<SyntaxList<TNode>>
     {
         get
         {
-            var arr = new TNode[Count];
-            for (var i = 0; i < Count; i++)
+            var count = Count;
+            var result = new TNode[count];
+
+            for (var i = 0; i < count; i++)
             {
-                arr[i] = this[i];
+                result[i] = GetRequiredItem(i);
             }
 
-            return arr;
+            return result;
         }
     }
 
-    public TNode Last
+    public TNode? Last
     {
         get
         {
+            Debug.Assert(_node is not null);
+
             var node = _node;
             if (node.IsList)
             {
-                return ((TNode)node.GetSlot(node.SlotCount - 1));
+                return (TNode?)node.GetSlot(node.SlotCount - 1);
             }
 
-            return ((TNode)node);
+            return (TNode?)node;
         }
     }
 
@@ -120,7 +125,7 @@ internal struct SyntaxList<TNode> : IEquatable<SyntaxList<TNode>>
 
     public static bool operator ==(SyntaxList<TNode> left, SyntaxList<TNode> right)
     {
-        return (left._node == right._node);
+        return left._node == right._node;
     }
 
     public static bool operator !=(SyntaxList<TNode> left, SyntaxList<TNode> right)
@@ -133,9 +138,9 @@ internal struct SyntaxList<TNode> : IEquatable<SyntaxList<TNode>>
         return _node == other._node;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
-        return (obj is SyntaxList<TNode> && (_node == ((SyntaxList<TNode>)obj)._node));
+        return obj is SyntaxList<TNode> other && _node == other._node;
     }
 
     public override int GetHashCode()
@@ -143,7 +148,7 @@ internal struct SyntaxList<TNode> : IEquatable<SyntaxList<TNode>>
         return _node != null ? _node.GetHashCode() : 0;
     }
 
-    public static implicit operator SyntaxList<TNode>(TNode node)
+    public static implicit operator SyntaxList<TNode>(TNode? node)
     {
         return new SyntaxList<TNode>(node);
     }
@@ -176,12 +181,7 @@ internal struct SyntaxList<TNode> : IEquatable<SyntaxList<TNode>>
             return false;
         }
 
-        public TNode Current
-        {
-            get
-            {
-                return _list[_index];
-            }
-        }
+        public readonly TNode Current
+            => _list[_index]!;
     }
 }
