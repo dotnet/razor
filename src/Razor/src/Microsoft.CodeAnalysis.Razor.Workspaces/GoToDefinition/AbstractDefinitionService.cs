@@ -148,20 +148,22 @@ internal abstract class AbstractDefinitionService(
             return false;
         }
 
+        var project = documentSnapshot.Project;
+
         // Handle tilde paths (~/ or ~\) - these are relative to the project root
         if (filePath.StartsWith("~/") || filePath.StartsWith("~\\"))
         {
-            var projectDirectory = Path.GetDirectoryName(documentSnapshot.Project.FilePath);
+            var projectDirectory = Path.GetDirectoryName(project.FilePath);
             if (projectDirectory is null)
             {
                 return false;
             }
 
             // Remove the tilde and normalize path separators
-            var relativePath = filePath.Substring(2).Replace('/', Path.DirectorySeparatorChar);
-            resolvedPath = Path.Combine(projectDirectory, relativePath);
+            var relativePath = filePath.Substring(2).Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
+            resolvedPath = Path.GetFullPath(Path.Combine(projectDirectory, relativePath));
 
-            if (File.Exists(resolvedPath))
+            if (project.TryGetDocument(resolvedPath, out _))
             {
                 return true;
             }
@@ -170,9 +172,10 @@ internal abstract class AbstractDefinitionService(
         // Handle absolute paths
         if (Path.IsPathRooted(filePath))
         {
-            if (File.Exists(filePath))
+            var normalizedPath = Path.GetFullPath(filePath);
+            if (project.TryGetDocument(normalizedPath, out _))
             {
-                resolvedPath = filePath;
+                resolvedPath = normalizedPath;
                 return true;
             }
         }
@@ -181,10 +184,10 @@ internal abstract class AbstractDefinitionService(
         var currentDocumentDirectory = Path.GetDirectoryName(documentSnapshot.FilePath);
         if (currentDocumentDirectory is not null)
         {
-            var normalizedPath = filePath.Replace('/', Path.DirectorySeparatorChar);
-            var candidatePath = Path.Combine(currentDocumentDirectory, normalizedPath);
+            var normalizedPath = filePath.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
+            var candidatePath = Path.GetFullPath(Path.Combine(currentDocumentDirectory, normalizedPath));
 
-            if (File.Exists(candidatePath))
+            if (project.TryGetDocument(candidatePath, out _))
             {
                 resolvedPath = candidatePath;
                 return true;
