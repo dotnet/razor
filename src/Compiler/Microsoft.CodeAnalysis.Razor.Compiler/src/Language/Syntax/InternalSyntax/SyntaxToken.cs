@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.IO;
 
@@ -13,8 +11,8 @@ internal class SyntaxToken : RazorSyntaxNode
     internal SyntaxToken(
         SyntaxKind kind,
         string content,
-        RazorDiagnostic[] diagnostics,
-        SyntaxAnnotation[] annotations = null)
+        RazorDiagnostic[]? diagnostics,
+        SyntaxAnnotation[]? annotations = null)
         : base(kind, content.Length, diagnostics, annotations)
     {
         Content = content;
@@ -24,9 +22,14 @@ internal class SyntaxToken : RazorSyntaxNode
 
     internal override bool IsToken => true;
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position)
     {
         return Assumed.Unreachable<SyntaxNode>();
+    }
+
+    public override string ToString()
+    {
+        return Content;
     }
 
     protected override void WriteTokenTo(TextWriter writer)
@@ -34,12 +37,12 @@ internal class SyntaxToken : RazorSyntaxNode
         writer.Write(Content);
     }
 
-    internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
+    internal override GreenNode SetDiagnostics(RazorDiagnostic[]? diagnostics)
     {
         return new SyntaxToken(Kind, Content, diagnostics, GetAnnotations());
     }
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
     {
         return new SyntaxToken(Kind, Content, GetDiagnostics(), annotations);
     }
@@ -64,7 +67,7 @@ internal class SyntaxToken : RazorSyntaxNode
         visitor.VisitToken(this);
     }
 
-    public override bool IsEquivalentTo(GreenNode other)
+    public override bool IsEquivalentTo(GreenNode? other)
     {
         if (!base.IsEquivalentTo(other))
         {
@@ -79,11 +82,6 @@ internal class SyntaxToken : RazorSyntaxNode
         }
 
         return true;
-    }
-
-    public override string ToString()
-    {
-        return Content;
     }
 
     internal static SyntaxToken CreateMissing(SyntaxKind kind, params RazorDiagnostic[] diagnostics)
