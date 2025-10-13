@@ -13,5 +13,7 @@ internal enum NodeFlags : byte
     ContainsAnnotations = 1 << 1,
     IsMissing = 1 << 2,
 
+    HasAnnotationsDirectly = 1 << 3,
+
     InheritMask = ContainsDiagnostics | ContainsAnnotations | IsMissing
 }

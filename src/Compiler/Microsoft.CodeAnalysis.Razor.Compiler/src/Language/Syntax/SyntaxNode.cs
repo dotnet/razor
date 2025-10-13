@@ -1,9 +1,10 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -394,9 +395,148 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
         return Green.GetDiagnostics();
     }
 
-    public SyntaxAnnotation[] GetAnnotations()
+    /// <summary>
+    /// Determines whether this node has any annotations with the specific annotation kind.
+    /// </summary>
+    public bool HasAnnotations(string annotationKind)
+    {
+        return Green.HasAnnotations(annotationKind);
+    }
+
+    /// <summary>
+    /// Determines whether this node has any annotations with any of the specific annotation kinds.
+    /// </summary>
+    public bool HasAnnotations(IEnumerable<string> annotationKinds)
+    {
+        return Green.HasAnnotations(annotationKinds);
+    }
+
+    /// <summary>
+    /// Determines whether this node has the specific annotation.
+    /// </summary>
+    public bool HasAnnotation([NotNullWhen(true)] SyntaxAnnotation? annotation)
+    {
+        return Green.HasAnnotation(annotation);
+    }
+
+    /// <summary>
+    /// Gets all the annotations with the specified annotation kind. 
+    /// </summary>
+    public IEnumerable<SyntaxAnnotation> GetAnnotations(string annotationKind)
+    {
+        return Green.GetAnnotations(annotationKind);
+    }
+
+    /// <summary>
+    /// Gets all the annotations with the specified annotation kinds. 
+    /// </summary>
+    public IEnumerable<SyntaxAnnotation> GetAnnotations(IEnumerable<string> annotationKinds)
+    {
+        return Green.GetAnnotations(annotationKinds);
+    }
+
+    internal SyntaxAnnotation[] GetAnnotations()
     {
         return Green.GetAnnotations();
+    }
+
+    /// <summary>
+    /// Gets all nodes and tokens with an annotation of the specified annotation kind.
+    /// </summary>
+    public IEnumerable<SyntaxNodeOrToken> GetAnnotatedNodesAndTokens(string annotationKind)
+    {
+        return DescendandNodesAndTokensAndSelf(n => n.ContainsAnnotations)
+            .Where(t => t.HasAnnotations(annotationKind));
+    }
+
+    /// <summary>
+    /// Gets all nodes and tokens with an annotation of the specified annotation kinds.
+    /// </summary>
+    public IEnumerable<SyntaxNodeOrToken> GetAnnotatedNodesAndTokens(params string[] annotationKinds)
+    {
+        return DescendandNodesAndTokensAndSelf(n => n.ContainsAnnotations)
+            .Where(t => t.HasAnnotations(annotationKinds));
+    }
+
+    /// <summary>
+    /// Gets all nodes and tokens with the specified annotation.
+    /// </summary>
+    public IEnumerable<SyntaxNodeOrToken> GetAnnotatedNodesAndTokens(SyntaxAnnotation annotation)
+    {
+        return DescendandNodesAndTokensAndSelf(n => n.ContainsAnnotations)
+            .Where(t => t.HasAnnotation(annotation));
+    }
+
+    /// <summary>
+    /// Gets all nodes with the specified annotation.
+    /// </summary>
+    public IEnumerable<SyntaxNode> GetAnnotatedNodes(SyntaxAnnotation syntaxAnnotation)
+    {
+        return GetAnnotatedNodesAndTokens(syntaxAnnotation).Where(n => n.IsNode).Select(n => n.AsNode()!);
+    }
+
+    /// <summary>
+    /// Gets all nodes with the specified annotation kind.
+    /// </summary>
+    /// <param name="annotationKind"></param>
+    /// <returns></returns>
+    public IEnumerable<SyntaxNode> GetAnnotatedNodes(string annotationKind)
+    {
+        return GetAnnotatedNodesAndTokens(annotationKind).Where(n => n.IsNode).Select(n => n.AsNode()!);
+    }
+
+    /// <summary>
+    /// Gets all tokens with the specified annotation.
+    /// </summary>
+    public IEnumerable<SyntaxToken> GetAnnotatedTokens(SyntaxAnnotation syntaxAnnotation)
+    {
+        return GetAnnotatedNodesAndTokens(syntaxAnnotation).Where(n => n.IsToken).Select(n => n.AsToken());
+    }
+
+    /// <summary>
+    /// Gets all tokens with the specified annotation kind.
+    /// </summary>
+    public IEnumerable<SyntaxToken> GetAnnotatedTokens(string annotationKind)
+    {
+        return GetAnnotatedNodesAndTokens(annotationKind).Where(n => n.IsToken).Select(n => n.AsToken());
+    }
+
+    internal SyntaxNode WithAdditionalAnnotationsInternal(IEnumerable<SyntaxAnnotation> annotations)
+    {
+        return Green.WithAdditionalAnnotationsGreen(annotations).CreateRed();
+    }
+
+    internal SyntaxNode GetNodeWithoutAnnotations(IEnumerable<SyntaxAnnotation> annotations)
+    {
+        return Green.WithoutAnnotationsGreen(annotations).CreateRed();
+    }
+
+    /// <summary>
+    /// Copies all SyntaxAnnotations, if any, from this SyntaxNode instance and attaches them to a new instance based on <paramref name="node" />.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// If no annotations are copied, just returns <paramref name="node" />.
+    /// </para>
+    /// <para>
+    /// It can also be used manually to preserve annotations in a more complex tree
+    /// modification, even if the type of a node changes.
+    /// </para>
+    /// </remarks>
+    [return: NotNullIfNotNull(nameof(node))]
+    public T? CopyAnnotationsTo<T>(T? node) where T : SyntaxNode
+    {
+        if (node == null)
+        {
+            return null;
+        }
+
+        var annotations = Green.GetAnnotations();
+        if (annotations?.Length > 0)
+        {
+            return (T)node.Green.WithAdditionalAnnotationsGreen(annotations).CreateRed();
+        }
+        return node;
     }
 
     public bool IsEquivalentTo(SyntaxNode other)

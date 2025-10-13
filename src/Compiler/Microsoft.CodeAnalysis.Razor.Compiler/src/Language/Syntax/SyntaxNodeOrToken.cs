@@ -271,6 +271,188 @@ internal readonly struct SyntaxNodeOrToken : IEquatable<SyntaxNodeOrToken>
     }
 
     /// <summary>
+    /// Determines whether this node or token (or any sub node or token) as annotations.
+    /// </summary>
+    public bool ContainsAnnotations
+    {
+        get
+        {
+            if (_token != null)
+            {
+                return _token.ContainsAnnotations;
+            }
+
+            if (_nodeOrParent != null)
+            {
+                return _nodeOrParent.ContainsAnnotations;
+            }
+
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Determines whether this node or token has annotations of the specified kind.
+    /// </summary>
+    public bool HasAnnotations(string annotationKind)
+    {
+        if (_token != null)
+        {
+            return _token.HasAnnotations(annotationKind);
+        }
+
+        if (_nodeOrParent != null)
+        {
+            return _nodeOrParent.HasAnnotations(annotationKind);
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether this node or token has annotations of the specified kind.
+    /// </summary>
+    public bool HasAnnotations(IEnumerable<string> annotationKinds)
+    {
+        if (_token != null)
+        {
+            return _token.HasAnnotations(annotationKinds);
+        }
+
+        if (_nodeOrParent != null)
+        {
+            return _nodeOrParent.HasAnnotations(annotationKinds);
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines if this node or token has the specific annotation.
+    /// </summary>
+    public bool HasAnnotation([NotNullWhen(true)] SyntaxAnnotation? annotation)
+    {
+        if (_token != null)
+        {
+            return _token.HasAnnotation(annotation);
+        }
+
+        if (_nodeOrParent != null)
+        {
+            return _nodeOrParent.HasAnnotation(annotation);
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Gets all annotations of the specified annotation kind.
+    /// </summary>
+    public IEnumerable<SyntaxAnnotation> GetAnnotations(string annotationKind)
+    {
+        if (_token != null)
+        {
+            return _token.GetAnnotations(annotationKind);
+        }
+
+        if (_nodeOrParent != null)
+        {
+            return _nodeOrParent.GetAnnotations(annotationKind);
+        }
+
+        return SpecializedCollections.EmptyEnumerable<SyntaxAnnotation>();
+    }
+
+    /// <summary>
+    /// Gets all annotations of the specified annotation kind.
+    /// </summary>
+    public IEnumerable<SyntaxAnnotation> GetAnnotations(IEnumerable<string> annotationKinds)
+    {
+        if (_token != null)
+        {
+            return _token.GetAnnotations(annotationKinds);
+        }
+
+        if (_nodeOrParent != null)
+        {
+            return _nodeOrParent.GetAnnotations(annotationKinds);
+        }
+
+        return SpecializedCollections.EmptyEnumerable<SyntaxAnnotation>();
+    }
+
+    /// <summary>
+    /// Creates a new node or token identical to this one with the specified annotations.
+    /// </summary>
+    public SyntaxNodeOrToken WithAdditionalAnnotations(params SyntaxAnnotation[] annotations)
+    {
+        return WithAdditionalAnnotations((IEnumerable<SyntaxAnnotation>)annotations);
+    }
+
+    /// <summary>
+    /// Creates a new node or token identical to this one with the specified annotations.
+    /// </summary>
+    public SyntaxNodeOrToken WithAdditionalAnnotations(IEnumerable<SyntaxAnnotation> annotations)
+    {
+        ArgHelper.ThrowIfNull(annotations);
+
+        if (_token != null)
+        {
+            return this.AsToken().WithAdditionalAnnotations(annotations);
+        }
+
+        if (_nodeOrParent != null)
+        {
+            return _nodeOrParent.WithAdditionalAnnotations(annotations);
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// Creates a new node or token identical to this one without the specified annotations.
+    /// </summary>
+    public SyntaxNodeOrToken WithoutAnnotations(params SyntaxAnnotation[] annotations)
+    {
+        return WithoutAnnotations((IEnumerable<SyntaxAnnotation>)annotations);
+    }
+
+    /// <summary>
+    /// Creates a new node or token identical to this one without the specified annotations.
+    /// </summary>
+    public SyntaxNodeOrToken WithoutAnnotations(IEnumerable<SyntaxAnnotation> annotations)
+    {
+        ArgHelper.ThrowIfNull(annotations);
+
+        if (_token != null)
+        {
+            return this.AsToken().WithoutAnnotations(annotations);
+        }
+
+        if (_nodeOrParent != null)
+        {
+            return _nodeOrParent.WithoutAnnotations(annotations);
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// Creates a new node or token identical to this one without annotations of the specified kind.
+    /// </summary>
+    public SyntaxNodeOrToken WithoutAnnotations(string annotationKind)
+    {
+        ArgHelper.ThrowIfNull(annotationKind);
+
+        if (HasAnnotations(annotationKind))
+        {
+            return WithoutAnnotations(GetAnnotations(annotationKind));
+        }
+
+        return this;
+    }
+
+    /// <summary>
     /// Determines whether the supplied <see cref="SyntaxNodeOrToken"/> is equal to this
     /// <see cref="SyntaxNodeOrToken"/>.
     /// </summary>
