@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 
@@ -15,7 +13,7 @@ internal abstract class SyntaxList : GreenNode
     {
     }
 
-    internal SyntaxList(RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
+    internal SyntaxList(RazorDiagnostic[]? diagnostics, SyntaxAnnotation[]? annotations)
         : base(SyntaxKind.List, diagnostics, annotations)
     {
     }
@@ -147,7 +145,8 @@ internal abstract class SyntaxList : GreenNode
             _child1 = child1;
         }
 
-        internal WithTwoChildren(RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations, GreenNode child0, GreenNode child1)
+        internal WithTwoChildren(RazorDiagnostic[]? diagnostics, SyntaxAnnotation[]? annotations, GreenNode child0, GreenNode child1)
+            : base(diagnostics, annotations)
         {
             SlotCount = 2;
             AdjustFlagsAndWidth(child0);
@@ -156,7 +155,7 @@ internal abstract class SyntaxList : GreenNode
             _child1 = child1;
         }
 
-        internal override GreenNode GetSlot(int index)
+        internal override GreenNode? GetSlot(int index)
         {
             switch (index)
             {
@@ -175,17 +174,17 @@ internal abstract class SyntaxList : GreenNode
             array[offset + 1].Value = _child1;
         }
 
-        internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position)
         {
-            return new Syntax.SyntaxList.WithTwoChildren(this, parent, position);
+            return new Syntax.SyntaxList.WithTwoChildren(this, parent!, position);
         }
 
-        internal override GreenNode SetDiagnostics(RazorDiagnostic[] errors)
+        internal override GreenNode SetDiagnostics(RazorDiagnostic[]? diagnostics)
         {
-            return new WithTwoChildren(errors, this.GetAnnotations(), _child0, _child1);
+            return new WithTwoChildren(diagnostics, GetAnnotations(), _child0, _child1);
         }
 
-        internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
         {
             return new WithTwoChildren(GetDiagnostics(), annotations, _child0, _child1);
         }
@@ -208,7 +207,7 @@ internal abstract class SyntaxList : GreenNode
             _child2 = child2;
         }
 
-        internal WithThreeChildren(RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations, GreenNode child0, GreenNode child1, GreenNode child2)
+        internal WithThreeChildren(RazorDiagnostic[]? diagnostics, SyntaxAnnotation[]? annotations, GreenNode child0, GreenNode child1, GreenNode child2)
             : base(diagnostics, annotations)
         {
             SlotCount = 3;
@@ -220,7 +219,7 @@ internal abstract class SyntaxList : GreenNode
             _child2 = child2;
         }
 
-        internal override GreenNode GetSlot(int index)
+        internal override GreenNode? GetSlot(int index)
         {
             switch (index)
             {
@@ -242,17 +241,17 @@ internal abstract class SyntaxList : GreenNode
             array[offset + 2].Value = _child2;
         }
 
-        internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position)
         {
-            return new Syntax.SyntaxList.WithThreeChildren(this, parent, position);
+            return new Syntax.SyntaxList.WithThreeChildren(this, parent!, position);
         }
 
-        internal override GreenNode SetDiagnostics(RazorDiagnostic[] errors)
+        internal override GreenNode SetDiagnostics(RazorDiagnostic[]? diagnostics)
         {
-            return new WithThreeChildren(errors, GetAnnotations(), _child0, _child1, _child2);
+            return new WithThreeChildren(diagnostics, GetAnnotations(), _child0, _child1, _child2);
         }
 
-        internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
         {
             return new WithThreeChildren(GetDiagnostics(), annotations, _child0, _child1, _child2);
         }
@@ -268,7 +267,7 @@ internal abstract class SyntaxList : GreenNode
             this.InitializeChildren();
         }
 
-        internal WithManyChildrenBase(RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations, ArrayElement<GreenNode>[] children)
+        internal WithManyChildrenBase(RazorDiagnostic[]? diagnostics, SyntaxAnnotation[]? annotations, ArrayElement<GreenNode>[] children)
             : base(diagnostics, annotations)
         {
             this.children = children;
@@ -308,9 +307,9 @@ internal abstract class SyntaxList : GreenNode
             Array.Copy(children, 0, array, offset, children.Length);
         }
 
-        internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position)
         {
-            return new Syntax.SyntaxList.WithManyChildren(this, parent, position);
+            return new Syntax.SyntaxList.WithManyChildren(this, parent!, position);
         }
     }
 
@@ -321,17 +320,17 @@ internal abstract class SyntaxList : GreenNode
         {
         }
 
-        internal WithManyChildren(RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations, ArrayElement<GreenNode>[] children)
+        internal WithManyChildren(RazorDiagnostic[]? diagnostics, SyntaxAnnotation[]? annotations, ArrayElement<GreenNode>[] children)
             : base(diagnostics, annotations, children)
         {
         }
 
-        internal override GreenNode SetDiagnostics(RazorDiagnostic[] errors)
+        internal override GreenNode SetDiagnostics(RazorDiagnostic[]? diagnostics)
         {
-            return new WithManyChildren(errors, GetAnnotations(), children);
+            return new WithManyChildren(diagnostics, GetAnnotations(), children);
         }
 
-        internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
         {
             return new WithManyChildren(GetDiagnostics(), annotations, children);
         }
@@ -347,7 +346,7 @@ internal abstract class SyntaxList : GreenNode
             _childOffsets = CalculateOffsets(children);
         }
 
-        internal WithLotsOfChildren(RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations, ArrayElement<GreenNode>[] children, int[] childOffsets)
+        internal WithLotsOfChildren(RazorDiagnostic[]? diagnostics, SyntaxAnnotation[]? annotations, ArrayElement<GreenNode>[] children, int[] childOffsets)
             : base(diagnostics, annotations, children)
         {
             _childOffsets = childOffsets;
@@ -386,12 +385,12 @@ internal abstract class SyntaxList : GreenNode
             return childOffsets;
         }
 
-        internal override GreenNode SetDiagnostics(RazorDiagnostic[] errors)
+        internal override GreenNode SetDiagnostics(RazorDiagnostic[]? diagnostics)
         {
-            return new WithLotsOfChildren(errors, this.GetAnnotations(), children, _childOffsets);
+            return new WithLotsOfChildren(diagnostics, GetAnnotations(), children, _childOffsets);
         }
 
-        internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
         {
             return new WithLotsOfChildren(GetDiagnostics(), annotations, children, _childOffsets);
         }

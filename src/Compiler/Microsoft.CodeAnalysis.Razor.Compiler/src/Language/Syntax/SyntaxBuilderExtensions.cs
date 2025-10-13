@@ -50,9 +50,9 @@ internal static class SyntaxBuilderExtensions
             case 1:
                 return builder[0].Node;
             case 2:
-                return InternalSyntax.SyntaxList.List(builder[0].Node, builder[1].Node);
+                return InternalSyntax.SyntaxList.List(builder[0].Node!, builder[1].Node!);
             case 3:
-                return InternalSyntax.SyntaxList.List(builder[0].Node, builder[1].Node, builder[2].Node);
+                return InternalSyntax.SyntaxList.List(builder[0].Node!, builder[1].Node!, builder[2].Node!);
 
             case int count:
                 var copy = new ArrayElement<GreenNode>[count];
