@@ -123,7 +123,10 @@ internal class BlazorDataAttributeCompletionItemProvider : IRazorCompletionItemP
                 isSnippet = true;
             }
 
-            var commitCharacters = isSnippet ? AttributeSnippetCommitCharacters : AttributeCommitCharacters;
+            // VSCode doesn't use commit characters for attribute completions
+            var commitCharacters = context.Options.UseVsCodeCompletionCommitCharacters
+                ? ImmutableArray<RazorCommitCharacter>.Empty
+                : (isSnippet ? AttributeSnippetCommitCharacters : AttributeCommitCharacters);
 
             var descriptionInfo = new BoundAttributeDescriptionInfo(
                 ReturnTypeName: "bool",

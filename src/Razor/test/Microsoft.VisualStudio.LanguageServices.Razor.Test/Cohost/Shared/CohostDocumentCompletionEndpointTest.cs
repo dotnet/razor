@@ -753,17 +753,17 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             input: """
                 This is a Razor document.
 
-                <form d$$></form>
+                <form $$></form>
 
                 The end.
                 """,
             completionContext: new VSInternalCompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
-                TriggerCharacter = "d",
+                TriggerCharacter = " ",
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
-            expectedItemLabels: ["data-enhance", "data-enhance-nav", "data-permanent", "dir"],
+            expectedItemLabels: ["data-enhance", "data-enhance-nav", "data-permanent", "dir", "@..."],
             htmlItemLabels: ["dir"]);
     }
 
@@ -774,17 +774,17 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             input: """
                 This is a Razor document.
 
-                <div d$$></div>
+                <div $$></div>
 
                 The end.
                 """,
             completionContext: new VSInternalCompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
-                TriggerCharacter = "d",
+                TriggerCharacter = " ",
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
-            expectedItemLabels: ["data-enhance-nav", "data-permanent", "dir"],
+            expectedItemLabels: ["data-enhance-nav", "data-permanent", "dir", "@..."],
             unexpectedItemLabels: ["data-enhance"],
             htmlItemLabels: ["dir"]);
     }
@@ -796,17 +796,17 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             input: """
                 This is a Razor document.
 
-                <a d$$></a>
+                <a $$></a>
 
                 The end.
                 """,
             completionContext: new VSInternalCompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
-                TriggerCharacter = "d",
+                TriggerCharacter = " ",
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
-            expectedItemLabels: ["data-enhance-nav", "data-permanent", "dir"],
+            expectedItemLabels: ["data-enhance-nav", "data-permanent", "dir", "@..."],
             unexpectedItemLabels: ["data-enhance"],
             htmlItemLabels: ["dir"]);
     }
