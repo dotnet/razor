@@ -26,24 +26,17 @@ internal static partial class RazorCodeDocumentExtensions
             return hostDocumentIndex;
         }
 
-        // Check if we're on a component end tag
-        if (owner.FirstAncestorOrSelf<MarkupTagHelperEndTagSyntax>() is { } endTag)
+        // Check if we're on a component end tag and the position is within the tag name
+        if (owner.FirstAncestorOrSelf<MarkupTagHelperEndTagSyntax>() is { } endTag &&
+            endTag.Name.Span.IntersectsWith(hostDocumentIndex) &&
+            endTag.GetStartTag() is MarkupTagHelperStartTagSyntax tagHelperStartTag)
         {
-            // Check if the position is within the tag name
-            if (endTag.Name.Span.IntersectsWith(hostDocumentIndex))
-            {
-                // Get the corresponding start tag
-                var startTag = endTag.GetStartTag();
-                if (startTag is MarkupTagHelperStartTagSyntax tagHelperStartTag)
-                {
-                    // Calculate the offset within the end tag name
-                    var offsetInEndTag = hostDocumentIndex - endTag.Name.SpanStart;
+            // Calculate the offset within the end tag name
+            var offsetInEndTag = hostDocumentIndex - endTag.Name.SpanStart;
 
-                    // Apply the same offset to the start tag name
-                    // This preserves the relative position within the tag name
-                    return tagHelperStartTag.Name.SpanStart + offsetInEndTag;
-                }
-            }
+            // Apply the same offset to the start tag name
+            // This preserves the relative position within the tag name
+            return tagHelperStartTag.Name.SpanStart + offsetInEndTag;
         }
 
         return hostDocumentIndex;
