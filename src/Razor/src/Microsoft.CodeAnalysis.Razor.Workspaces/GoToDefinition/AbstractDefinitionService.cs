@@ -4,10 +4,8 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -131,11 +129,15 @@ internal abstract class AbstractDefinitionService(
             var literalText = token.ValueText;
             _logger.LogDebug($"Found string literal: {literalText}");
 
-            // Try to resolve the file path
-            if (TryResolveFilePath(documentSnapshot, literalText, out var resolvedPath))
+            // Only process if it looks like a Razor file path
+            if (literalText.IsRazorFilePath())
             {
-                _logger.LogDebug($"Resolved file path: {resolvedPath}");
-                return [LspFactory.CreateLocation(resolvedPath, LspFactory.DefaultRange)];
+                // Try to resolve the file path
+                if (TryResolveFilePath(documentSnapshot, literalText, out var resolvedPath))
+                {
+                    _logger.LogDebug($"Resolved file path: {resolvedPath}");
+                    return [LspFactory.CreateLocation(resolvedPath, LspFactory.DefaultRange)];
+                }
             }
         }
 
@@ -151,18 +153,10 @@ internal abstract class AbstractDefinitionService(
             return false;
         }
 
-        // Check if the file extension is .cshtml or .razor
-        var extension = Path.GetExtension(filePath);
-        if (!extension.Equals(".cshtml", StringComparison.OrdinalIgnoreCase) &&
-            !extension.Equals(".razor", StringComparison.OrdinalIgnoreCase))
-        {
-            return false;
-        }
-
         var project = documentSnapshot.Project;
 
         // Handle tilde paths (~/ or ~\) - these are relative to the project root
-        if (filePath.StartsWith("~/") || filePath.StartsWith("~\\"))
+        if (filePath is ['~', '/' or '\\', ..])
         {
             var projectDirectory = Path.GetDirectoryName(project.FilePath);
             if (projectDirectory is null)
@@ -173,14 +167,6 @@ internal abstract class AbstractDefinitionService(
             // Remove the tilde and normalize path separators
             var relativePath = filePath.Substring(2).Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
             var candidatePath = Path.GetFullPath(Path.Combine(projectDirectory, relativePath));
-
-            // Check using path comparison since the project might not have the document loaded yet
-            var matchingPath = project.DocumentFilePaths.FirstOrDefault(d => PathUtilities.OSSpecificPathComparer.Equals(d, candidatePath));
-            if (matchingPath is not null)
-            {
-                resolvedPath = matchingPath;
-                return true;
-            }
 
             if (project.ContainsDocument(candidatePath))
             {
@@ -195,14 +181,6 @@ internal abstract class AbstractDefinitionService(
         {
             var normalizedPath = filePath.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
             var candidatePath = Path.GetFullPath(Path.Combine(currentDocumentDirectory, normalizedPath));
-
-            // Check using path comparison since the project might not have the document loaded yet
-            var matchingPath = project.DocumentFilePaths.FirstOrDefault(d => PathUtilities.OSSpecificPathComparer.Equals(d, candidatePath));
-            if (matchingPath is not null)
-            {
-                resolvedPath = matchingPath;
-                return true;
-            }
 
             if (project.ContainsDocument(candidatePath))
             {

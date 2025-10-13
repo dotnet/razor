@@ -71,6 +71,21 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
             return Results(componentLocations);
         }
 
+        // Check if we're in a string literal with a file path (before calling C# which would navigate to String class)
+        if (positionInfo.LanguageKind is RazorLanguageKind.CSharp)
+        {
+            var stringLiteralLocations = await _definitionService.TryGetDefinitionFromStringLiteralAsync(
+                context.Snapshot,
+                positionInfo.Position.ToLinePosition(),
+                cancellationToken)
+                .ConfigureAwait(false);
+
+            if (stringLiteralLocations is { Length: > 0 })
+            {
+                return Results(stringLiteralLocations);
+            }
+        }
+
         if (positionInfo.LanguageKind is RazorLanguageKind.Html or RazorLanguageKind.Razor)
         {
             // If it isn't a Razor construct, and it isn't C#, let the server know to delegate to HTML.
@@ -93,19 +108,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
 
         if (locations is null and not [])
         {
-            // C# didn't return anything, check if we're in a string literal with a file path
-            var stringLiteralLocations = await _definitionService.TryGetDefinitionFromStringLiteralAsync(
-                context.Snapshot,
-                positionInfo.Position.ToLinePosition(),
-                cancellationToken)
-                .ConfigureAwait(false);
-
-            if (stringLiteralLocations is { Length: > 0 })
-            {
-                return Results(stringLiteralLocations);
-            }
-
-            // Nothing found, so we're done.
+            // C# didn't return anything, so we're done.
             return NoFurtherHandling;
         }
 
