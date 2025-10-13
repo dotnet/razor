@@ -96,7 +96,7 @@ internal class RazorSyntaxTreePartialParser
 
     private void ReplaceLastChangeOwner(SyntaxNode editedNode)
     {
-        ModifiedSyntaxTreeRoot = ModifiedSyntaxTreeRoot.ReplaceNode(_lastChangeOwner, editedNode);
+        ModifiedSyntaxTreeRoot = ModifiedSyntaxTreeRoot.ReplaceNode(_lastChangeOwner!, editedNode);
         foreach (var node in ModifiedSyntaxTreeRoot.DescendantNodes())
         {
             if (node.Green == editedNode.Green)

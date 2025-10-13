@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,7 +15,7 @@ internal static class SyntaxNodeExtensions
         return (TNode)node.Green.SetAnnotations(annotations).CreateRed(node.Parent, node.Position);
     }
 
-    public static object GetAnnotationValue<TNode>(this TNode node, string key)
+    public static object? GetAnnotationValue<TNode>(this TNode node, string key)
         where TNode : SyntaxNode
     {
         if (!node.ContainsAnnotations)
@@ -37,7 +35,7 @@ internal static class SyntaxNodeExtensions
         return null;
     }
 
-    public static object GetAnnotationValue(this SyntaxToken token, string key)
+    public static object? GetAnnotationValue(this SyntaxToken token, string key)
     {
         if (!token.ContainsAnnotations)
         {
@@ -309,7 +307,7 @@ internal static class SyntaxNodeExtensions
     {
         private readonly List<RazorDiagnostic> _diagnostics = diagnostics ?? [];
 
-        public override void Visit(SyntaxNode node)
+        public override void Visit(SyntaxNode? node)
         {
             if (node?.ContainsDiagnostics == true)
             {
