@@ -14,8 +14,7 @@ internal sealed class LegacyRazorCompletionFactsService : AbstractRazorCompletio
     [
         new DirectiveAttributeCompletionItemProvider(),
         new DirectiveAttributeParameterCompletionItemProvider(),
-        new DirectiveCompletionItemProvider(),
-        new BlazorDataAttributeCompletionItemProvider()
+        new DirectiveCompletionItemProvider()
     ];
 
     public LegacyRazorCompletionFactsService()

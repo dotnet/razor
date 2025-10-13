@@ -4,6 +4,7 @@
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Editor.Razor;
 
@@ -75,7 +76,8 @@ internal class BlazorDataAttributeCompletionItemProvider : IRazorCompletionItemP
         }
 
         var containingTagName = containingTagNameToken.Content;
-        var completionItems = ImmutableArray.CreateBuilder<RazorCompletionItem>(s_blazorDataAttributes.Length);
+
+        using var completionItems = new PooledArrayBuilder<RazorCompletionItem>();
 
         foreach (var (attributeName, description) in s_blazorDataAttributes)
         {
@@ -86,16 +88,14 @@ internal class BlazorDataAttributeCompletionItemProvider : IRazorCompletionItemP
                 continue;
             }
 
-            // data-enhance-nav can go on any element, no filtering needed
-
             // Check if the attribute already exists on the element
             var alreadyExists = false;
             foreach (var attribute in attributes)
             {
-                var existingAttributeName = attribute.Kind switch
+                var existingAttributeName = attribute switch
                 {
-                    AspNetCore.Razor.Language.SyntaxKind.MarkupAttributeBlock => ((MarkupAttributeBlockSyntax)attribute).Name.GetContent(),
-                    AspNetCore.Razor.Language.SyntaxKind.MarkupMinimizedAttributeBlock => ((MarkupMinimizedAttributeBlockSyntax)attribute).Name.GetContent(),
+                    MarkupAttributeBlockSyntax attributeBlock => attributeBlock.Name.GetContent(),
+                    MarkupMinimizedAttributeBlockSyntax minimizedAttributeBlock => minimizedAttributeBlock.Name.GetContent(),
                     _ => null
                 };
 
