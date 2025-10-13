@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
 public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractRazorEditorTest(testOutputHelper)
 {
-    [IdeFact(Skip = "Go To Def hangs prevents the Roslyn language server from shutting down for some reason")]
+    [IdeFact]
     public async Task GoToDefinition_MethodInSameFile()
     {
         // Open the file
@@ -24,7 +24,7 @@ public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractR
         await TestServices.Editor.WaitForCurrentLineTextAsync("private void IncrementCount()", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "Go To Def hangs prevents the Roslyn language server from shutting down for some reason")]
+    [IdeFact]
     public async Task GoToDefinition_CSharpClass()
     {
         // Open the file
@@ -43,7 +43,7 @@ public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractR
         await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, "Program.cs", saveFile: false, ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "Go To Def hangs prevents the Roslyn language server from shutting down for some reason")]
+    [IdeFact]
     public async Task GoToDefinition_Component()
     {
         // Open the file
@@ -58,7 +58,7 @@ public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractR
         await TestServices.Editor.WaitForActiveWindowAsync("SurveyPrompt.razor", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "Go To Def hangs prevents the Roslyn language server from shutting down for some reason")]
+    [IdeFact]
     public async Task GoToDefinition_ComponentAttribute_InOtherRazorFile()
     {
         // Open the file
@@ -74,7 +74,7 @@ public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractR
         await TestServices.Editor.WaitForCurrentLineTextAsync("public string? Title { get; set; }", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "Go To Def hangs prevents the Roslyn language server from shutting down for some reason")]
+    [IdeFact]
     public async Task GoToDefinition_ComponentAttribute_InSameRazorFile()
     {
         // Create the file
@@ -104,7 +104,7 @@ public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractR
         await TestServices.Editor.WaitForCurrentLineTextAsync("public string? MyProperty { get; set; }", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "Go To Def hangs prevents the Roslyn language server from shutting down for some reason")]
+    [IdeFact]
     public async Task GoToDefinition_ComponentAttribute_Minimized()
     {
         // Create the file
@@ -294,7 +294,7 @@ public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractR
         await TestServices.Editor.WaitForCurrentLineTextAsync("public string FieldName { get; set; }", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "Go To Def hangs prevents the Roslyn language server from shutting down for some reason")]
+    [IdeFact]
     public async Task GoToDefinition_ComponentAttribute_BoundAttribute()
     {
         // Create the files
@@ -338,7 +338,7 @@ public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractR
         await TestServices.Editor.WaitForCurrentLineTextAsync("public string? Value { get; set; }", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "Go To Def hangs prevents the Roslyn language server from shutting down for some reason")]
+    [IdeFact]
     public async Task GoToDefinition_ComponentAttribute_WriteOnlyProperty()
     {
         // Create the file
@@ -367,7 +367,7 @@ public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractR
         await TestServices.Editor.WaitForCurrentLineTextAsync("public string? MyProperty { set { } }", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeTheory(Skip = "Go To Def hangs prevents the Roslyn language server from shutting down for some reason")]
+    [IdeTheory]
     [InlineData("MyProperty:get")]
     [InlineData("MyProperty:set")]
     [InlineData("MyProperty:after")]
