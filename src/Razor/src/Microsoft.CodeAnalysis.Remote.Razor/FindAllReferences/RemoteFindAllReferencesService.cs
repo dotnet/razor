@@ -56,9 +56,6 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
             return NoFurtherHandling;
         }
 
-        // Adjust position if on a component end tag to use the start tag position
-        hostDocumentIndex = codeDocument.AdjustPositionForComponentEndTag(hostDocumentIndex);
-
         var positionInfo = GetPositionInfo(codeDocument, hostDocumentIndex, preferCSharpOverHtml: true);
 
         if (positionInfo.LanguageKind is not RazorLanguageKind.CSharp)
