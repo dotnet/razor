@@ -746,6 +746,71 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         Assert.All(list.Items, item => Assert.DoesNotContain("=", item.CommitCharacters ?? []));
     }
 
+    [Fact]
+    public async Task BlazorDataEnhanceAttributeCompletion_OnFormElement()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <form d$$></form>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "d",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["data-enhance", "data-enhance-nav", "data-permanent", "dir"],
+            htmlItemLabels: ["dir"]);
+    }
+
+    [Fact]
+    public async Task BlazorDataEnhanceNavAttributeCompletion_OnAnyElement()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <div d$$></div>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "d",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["data-enhance-nav", "data-permanent", "dir"],
+            unexpectedItemLabels: ["data-enhance"],
+            htmlItemLabels: ["dir"]);
+    }
+
+    [Fact]
+    public async Task BlazorDataPermanentAttributeCompletion_OnAnchorElement()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <a d$$></a>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "d",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["data-enhance-nav", "data-permanent", "dir"],
+            unexpectedItemLabels: ["data-enhance"],
+            htmlItemLabels: ["dir"]);
+    }
+
     private async Task<RazorVSInternalCompletionList> VerifyCompletionListAsync(
         TestCode input,
         VSInternalCompletionContext completionContext,

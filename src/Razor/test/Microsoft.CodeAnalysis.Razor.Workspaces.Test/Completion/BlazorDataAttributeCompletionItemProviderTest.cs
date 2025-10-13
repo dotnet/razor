@@ -101,9 +101,9 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
     }
 
     [Fact]
-    public void GetCompletionItems_OnNonAnchorElement_DoesNotReturnDataEnhanceNav()
+    public void GetCompletionItems_OnDivElement_ReturnsDataEnhanceNav()
     {
-        // Arrange
+        // Arrange - data-enhance-nav can go on any element, not just anchors
         TestCode testCode = "<div d$$></div>";
         var context = CreateRazorCompletionContext(testCode);
 
@@ -112,7 +112,7 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
 
         // Assert
         var dataEnhanceNav = completions.FirstOrDefault(c => c.DisplayText == "data-enhance-nav");
-        Assert.Null(dataEnhanceNav);
+        Assert.NotNull(dataEnhanceNav);
     }
 
     [Fact]

@@ -86,34 +86,23 @@ internal class BlazorDataAttributeCompletionItemProvider : IRazorCompletionItemP
                 continue;
             }
 
-            // Only show data-enhance-nav for anchor elements
-            if (attributeName == "data-enhance-nav" &&
-                !string.Equals(containingTagName, "a", System.StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
+            // data-enhance-nav can go on any element, no filtering needed
 
             // Check if the attribute already exists on the element
             var alreadyExists = false;
             foreach (var attribute in attributes)
             {
-                if (attribute.Kind == AspNetCore.Razor.Language.SyntaxKind.MarkupAttributeBlock)
+                var existingAttributeName = attribute.Kind switch
                 {
-                    var attrBlock = (MarkupAttributeBlockSyntax)attribute;
-                    if (string.Equals(attrBlock.Name.GetContent(), attributeName, System.StringComparison.Ordinal))
-                    {
-                        alreadyExists = true;
-                        break;
-                    }
-                }
-                else if (attribute.Kind == AspNetCore.Razor.Language.SyntaxKind.MarkupMinimizedAttributeBlock)
+                    AspNetCore.Razor.Language.SyntaxKind.MarkupAttributeBlock => ((MarkupAttributeBlockSyntax)attribute).Name.GetContent(),
+                    AspNetCore.Razor.Language.SyntaxKind.MarkupMinimizedAttributeBlock => ((MarkupMinimizedAttributeBlockSyntax)attribute).Name.GetContent(),
+                    _ => null
+                };
+
+                if (existingAttributeName != null && string.Equals(existingAttributeName, attributeName, System.StringComparison.Ordinal))
                 {
-                    var minAttrBlock = (MarkupMinimizedAttributeBlockSyntax)attribute;
-                    if (string.Equals(minAttrBlock.Name.GetContent(), attributeName, System.StringComparison.Ordinal))
-                    {
-                        alreadyExists = true;
-                        break;
-                    }
+                    alreadyExists = true;
+                    break;
                 }
             }
 
