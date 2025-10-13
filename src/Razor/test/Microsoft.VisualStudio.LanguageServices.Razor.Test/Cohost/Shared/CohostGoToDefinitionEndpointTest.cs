@@ -827,7 +827,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """;
 
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Legacy,
-            additionalFiles: (FilePath("Views/Shared/_Partial.cshtml"), partialFileContent));
+            additionalFiles: (FileName("Views/Shared/_Partial.cshtml"), partialFileContent));
 
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
@@ -850,7 +850,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """;
 
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Legacy,
-            additionalFiles: (FilePath("_Partial.cshtml"), partialFileContent));
+            additionalFiles: (FileName("_Partial.cshtml"), partialFileContent));
 
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
@@ -894,7 +894,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """;
 
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Component,
-            additionalFiles: (FilePath("Pages/Counter.razor"), counterFileContent));
+            additionalFiles: (FileName("Pages/Counter.razor"), counterFileContent));
 
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
