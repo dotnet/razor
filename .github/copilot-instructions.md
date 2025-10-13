@@ -73,6 +73,11 @@ public void Method(string? value)
     
     // Use value here
 }
+
+// ✅ Use GetRequiredAbsoluteIndex for converting LinePosition to absolute index
+// This correctly handles positions past the end of the file per LSP spec
+var absoluteIndex = sourceText.GetRequiredAbsoluteIndex(linePosition);
+// ❌ Don't use: sourceText.Lines.GetPosition(linePosition)
 ```
 
 ### Testing Patterns

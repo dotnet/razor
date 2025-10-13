@@ -813,7 +813,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         Assert.Equal(document.CreateUri(), location.DocumentUri.GetRequiredParsedUri());
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/4325")]
     public async Task StringLiteral_TildePath()
     {
         var input = """
@@ -836,7 +836,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         Assert.Equal(FileUri("Views/Shared/_Partial.cshtml"), location.DocumentUri.GetRequiredParsedUri());
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/4325")]
     public async Task StringLiteral_RelativePath()
     {
         var input = """
@@ -859,7 +859,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         Assert.Equal(FileUri("_Partial.cshtml"), location.DocumentUri.GetRequiredParsedUri());
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/4325")]
     public async Task StringLiteral_NonExistentFile()
     {
         var input = """
@@ -874,7 +874,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         Assert.Null(result);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/4325")]
     public async Task StringLiteral_RazorComponent()
     {
         var input = """
@@ -903,7 +903,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         Assert.Equal(FileUri("Pages/Counter.razor"), location.DocumentUri.GetRequiredParsedUri());
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/4325")]
     public async Task StringLiteral_NotInString()
     {
         var input = """

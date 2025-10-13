@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -104,12 +105,12 @@ internal abstract class AbstractDefinitionService(
         return LspFactory.DefaultRange;
     }
 
-    public async Task<LspLocation[]?> GetDefinitionFromStringLiteralAsync(
+    public async Task<LspLocation[]?> TryGetDefinitionFromStringLiteralAsync(
         IDocumentSnapshot documentSnapshot,
         LinePosition position,
         CancellationToken cancellationToken)
     {
-        _logger.LogInformation($"Attempting to get definition from string literal at position {position}.");
+        _logger.LogDebug($"Attempting to get definition from string literal at position {position}.");
 
         // Get the C# syntax tree to analyze the string literal
         var syntaxTree = await documentSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -117,7 +118,7 @@ internal abstract class AbstractDefinitionService(
         var sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
         // Convert position to absolute index
-        var absoluteIndex = sourceText.Lines.GetPosition(position);
+        var absoluteIndex = sourceText.GetRequiredAbsoluteIndex(position);
 
         // Find the token at the current position
         var token = root.FindToken(absoluteIndex);
@@ -126,12 +127,12 @@ internal abstract class AbstractDefinitionService(
         if (token.IsKind(CSharpSyntaxKind.StringLiteralToken))
         {
             var literalText = token.ValueText;
-            _logger.LogInformation($"Found string literal: {literalText}");
+            _logger.LogDebug($"Found string literal: {literalText}");
 
             // Try to resolve the file path
             if (TryResolveFilePath(documentSnapshot, literalText, out var resolvedPath))
             {
-                _logger.LogInformation($"Resolved file path: {resolvedPath}");
+                _logger.LogDebug($"Resolved file path: {resolvedPath}");
                 return [LspFactory.CreateLocation(resolvedPath, LspFactory.DefaultRange)];
             }
         }
@@ -144,6 +145,14 @@ internal abstract class AbstractDefinitionService(
         resolvedPath = string.Empty;
 
         if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return false;
+        }
+
+        // Check if the file extension is .cshtml or .razor
+        var extension = Path.GetExtension(filePath);
+        if (!extension.Equals(".cshtml", StringComparison.OrdinalIgnoreCase) &&
+            !extension.Equals(".razor", StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }
@@ -163,21 +172,7 @@ internal abstract class AbstractDefinitionService(
             var relativePath = filePath.Substring(2).Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
             resolvedPath = Path.GetFullPath(Path.Combine(projectDirectory, relativePath));
 
-            if (project.TryGetDocument(resolvedPath, out _))
-            {
-                return true;
-            }
-        }
-
-        // Handle absolute paths
-        if (Path.IsPathRooted(filePath))
-        {
-            var normalizedPath = Path.GetFullPath(filePath);
-            if (project.TryGetDocument(normalizedPath, out _))
-            {
-                resolvedPath = normalizedPath;
-                return true;
-            }
+            return project.ContainsDocument(resolvedPath);
         }
 
         // Handle relative paths - relative to the current document
@@ -187,7 +182,7 @@ internal abstract class AbstractDefinitionService(
             var normalizedPath = filePath.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
             var candidatePath = Path.GetFullPath(Path.Combine(currentDocumentDirectory, normalizedPath));
 
-            if (project.TryGetDocument(candidatePath, out _))
+            if (project.ContainsDocument(candidatePath))
             {
                 resolvedPath = candidatePath;
                 return true;

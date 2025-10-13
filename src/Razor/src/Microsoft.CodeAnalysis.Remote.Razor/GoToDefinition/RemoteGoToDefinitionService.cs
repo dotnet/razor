@@ -94,7 +94,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
         if (locations is null and not [])
         {
             // C# didn't return anything, check if we're in a string literal with a file path
-            var stringLiteralLocations = await _definitionService.GetDefinitionFromStringLiteralAsync(
+            var stringLiteralLocations = await _definitionService.TryGetDefinitionFromStringLiteralAsync(
                 context.Snapshot,
                 positionInfo.Position.ToLinePosition(),
                 cancellationToken)
