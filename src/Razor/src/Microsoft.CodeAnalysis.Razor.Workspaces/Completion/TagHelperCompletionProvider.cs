@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -236,28 +235,32 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
         {
             var tagHelperDescriptions = tagHelpers.SelectAsArray(BoundElementDescriptionInfo.From);
 
-            var insertText = displayText;
-            var isSnippet = false;
+            // Always add the regular completion item
+            var razorCompletionItem = RazorCompletionItem.CreateTagHelperElement(
+                displayText: displayText,
+                insertText: displayText,
+                descriptionInfo: new(tagHelperDescriptions),
+                commitCharacters: commitChars,
+                isSnippet: false);
 
-            // Check if snippets are supported and if any of the tag helpers have EditorRequired attributes
+            completionItems.Add(razorCompletionItem);
+
+            // If snippets are supported and the component has EditorRequired attributes, add a snippet completion item
             if (context.Options.SnippetsSupported && tagHelpers.Any())
             {
                 var tagHelpersArray = tagHelpers.ToImmutableArray();
-                if (TryGetEditorRequiredAttributesSnippet(tagHelpersArray, displayText, context.Options.AutoInsertAttributeQuotes, out var snippetText))
+                if (TryGetEditorRequiredAttributesSnippet(tagHelpersArray, displayText, out var snippetText))
                 {
-                    insertText = snippetText;
-                    isSnippet = true;
+                    var snippetCompletionItem = RazorCompletionItem.CreateTagHelperElement(
+                        displayText: $"{displayText}...",
+                        insertText: snippetText,
+                        descriptionInfo: new(tagHelperDescriptions),
+                        commitCharacters: commitChars,
+                        isSnippet: true);
+
+                    completionItems.Add(snippetCompletionItem);
                 }
             }
-
-            var razorCompletionItem = RazorCompletionItem.CreateTagHelperElement(
-                displayText: displayText,
-                insertText: insertText,
-                descriptionInfo: new(tagHelperDescriptions),
-                commitCharacters: commitChars,
-                isSnippet: isSnippet);
-
-            completionItems.Add(razorCompletionItem);
         }
 
         return completionItems.ToImmutableAndClear();
@@ -302,7 +305,6 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
     private static bool TryGetEditorRequiredAttributesSnippet(
         ImmutableArray<TagHelperDescriptor> tagHelpers,
         string tagName,
-        bool autoInsertAttributeQuotes,
         [NotNullWhen(true)] out string? snippetText)
     {
         // Collect all unique EditorRequired attributes from all matching tag helpers
@@ -325,7 +327,7 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
         }
 
         // Build snippet with placeholders for each required attribute
-        var builder = new StringBuilder();
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
         builder.Append(tagName);
 
         var tabStopIndex = 1;
@@ -334,12 +336,9 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
         {
             builder.Append(' ');
             builder.Append(attributeName);
-            builder.Append(autoInsertAttributeQuotes ? "=\"$" : "=$");
+            builder.Append("=\"$");
             builder.Append(tabStopIndex);
-            if (autoInsertAttributeQuotes)
-            {
-                builder.Append('"');
-            }
+            builder.Append('"');
 
             tabStopIndex++;
         }

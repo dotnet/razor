@@ -746,6 +746,102 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         Assert.All(list.Items, item => Assert.DoesNotContain("=", item.CommitCharacters ?? []));
     }
 
+    [Fact]
+    public async Task ComponentWithEditorRequiredAttributes_SnippetsSupported()
+    {
+        var componentCode = """
+            @using Microsoft.AspNetCore.Components
+
+            <div></div>
+
+            @code {
+                [Parameter, EditorRequired]
+                public string RequiredParam1 { get; set; }
+
+                [Parameter, EditorRequired]
+                public string RequiredParam2 { get; set; }
+
+                [Parameter]
+                public string OptionalParam { get; set; }
+            }
+            """;
+
+        var document = CreateProjectAndRazorDocument(
+            """
+                <Test$$
+                """,
+            fileKind: RazorFileKind.Component,
+            additionalFiles: [("TestComponent.razor", componentCode)]);
+        
+        var sourceText = await document.GetTextAsync(DisposalToken);
+
+        ClientSettingsManager.Update(ClientAdvancedSettings.Default with { AutoInsertAttributeQuotes = true, CommitElementsWithSpace = true });
+
+        var response = new RazorVSInternalCompletionList()
+        {
+            Items = [],
+            IsIncomplete = true
+        };
+
+        var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentCompletionName, response)]);
+
+#if VSCODE
+        ISnippetCompletionItemProvider? snippetCompletionItemProvider = null;
+#else
+        var snippetCompletionItemProvider = new SnippetCompletionItemProvider(new SnippetCache());
+#endif
+
+        var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(useVsCodeCompletionCommitCharacters: false);
+
+        var completionListCache = new CompletionListCache();
+        var endpoint = new CohostDocumentCompletionEndpoint(
+            IncompatibleProjectService,
+            RemoteServiceInvoker,
+            ClientSettingsManager,
+            ClientCapabilitiesService,
+            snippetCompletionItemProvider,
+            languageServerFeatureOptions,
+            requestInvoker,
+            completionListCache,
+            NoOpTelemetryReporter.Instance,
+            LoggerFactory);
+
+        var request = new RazorVSInternalCompletionParams()
+        {
+            TextDocument = new TextDocumentIdentifier()
+            {
+                DocumentUri = document.CreateDocumentUri()
+            },
+            Position = sourceText.GetPosition(5),
+            Context = new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "<",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            }
+        };
+
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
+
+        Assert.NotNull(result);
+
+        // Should have both regular and snippet completions
+        var testComponentItems = result.Items.Where(i => i.Label.StartsWith("TestComponent")).ToArray();
+        Assert.Equal(2, testComponentItems.Length);
+
+        var regularItem = testComponentItems.FirstOrDefault(i => i.Label == "TestComponent");
+        Assert.NotNull(regularItem);
+
+        var snippetItem = testComponentItems.FirstOrDefault(i => i.Label == "TestComponent...");
+        Assert.NotNull(snippetItem);
+        Assert.True(snippetItem.InsertTextFormat == InsertTextFormat.Snippet);
+        Assert.Contains("RequiredParam1", snippetItem.InsertText);
+        Assert.Contains("RequiredParam2", snippetItem.InsertText);
+        Assert.Contains("$1", snippetItem.InsertText);
+        Assert.Contains("$2", snippetItem.InsertText);
+        Assert.Contains("$0", snippetItem.InsertText);
+    }
+
     private async Task<RazorVSInternalCompletionList> VerifyCompletionListAsync(
         TestCode input,
         VSInternalCompletionContext completionContext,

@@ -976,15 +976,37 @@ public class TagHelperCompletionProviderTest(ITestOutputHelper testOutput) : Tag
         // Act
         var completions = service.GetCompletionItems(context);
 
-        // Assert
-        var completion = Assert.Single(completions);
-        Assert.Equal("ComponentWithRequiredParams", completion.DisplayText);
-        Assert.True(completion.IsSnippet);
-        Assert.Contains("RequiredParam1", completion.InsertText);
-        Assert.Contains("RequiredParam2", completion.InsertText);
-        Assert.Contains("$1", completion.InsertText);
-        Assert.Contains("$2", completion.InsertText);
-        Assert.Contains("$0", completion.InsertText);
+        // Assert - should have two completions: regular and snippet
+        Assert.Equal(2, completions.Length);
+        
+        RazorCompletionItem regularCompletion = null;
+        RazorCompletionItem snippetCompletion = null;
+        
+        foreach (var completion in completions)
+        {
+            if (completion.DisplayText == "ComponentWithRequiredParams")
+            {
+                regularCompletion = completion;
+            }
+            else if (completion.DisplayText == "ComponentWithRequiredParams...")
+            {
+                snippetCompletion = completion;
+            }
+        }
+        
+        Assert.NotNull(regularCompletion);
+        Assert.False(regularCompletion.IsSnippet);
+        Assert.Equal("ComponentWithRequiredParams", regularCompletion.InsertText);
+        
+        Assert.NotNull(snippetCompletion);
+        Assert.True(snippetCompletion.IsSnippet);
+        Assert.Contains("RequiredParam1", snippetCompletion.InsertText);
+        Assert.Contains("RequiredParam2", snippetCompletion.InsertText);
+        Assert.Contains("$1", snippetCompletion.InsertText);
+        Assert.Contains("$2", snippetCompletion.InsertText);
+        Assert.Contains("$0", snippetCompletion.InsertText);
+        // Verify quotes are always added in snippets
+        Assert.Contains("=\"$1\"", snippetCompletion.InsertText);
     }
 
     [Fact]
