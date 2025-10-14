@@ -82,9 +82,9 @@ internal abstract class DirectiveAttributeCompletionItemProviderBase : IRazorCom
                     var nameStart = directiveAttributeTransition?.SpanStart ?? attributeNameNode.SpanStart;
                     var nameEnd = attributeNameNode?.Span.End ?? directiveAttributeTransition.AssumeNotNull().Span.End;
                     prefixLocation = directiveAttribute.NamePrefix?.Span;
-                    attributeName = string.Concat(directiveAttributeTransition?.GetContent(), attributeNameNode?.GetContent());
+                    attributeName = directiveAttributeTransition.GetContentOrEmpty() + attributeNameNode?.GetContentOrEmpty();
                     attributeNameLocation = new TextSpan(nameStart, nameEnd - nameStart);
-                    parameterName = directiveAttribute.ParameterName?.GetContent();
+                    parameterName = directiveAttribute.ParameterName.GetContentOrEmpty();
                     parameterLocation = directiveAttribute.ParameterName?.Span ?? default;
                     return true;
                 }
@@ -96,9 +96,9 @@ internal abstract class DirectiveAttributeCompletionItemProviderBase : IRazorCom
                     var nameStart = directiveAttributeTransition?.SpanStart ?? attributeNameNode.SpanStart;
                     var nameEnd = attributeNameNode?.Span.End ?? directiveAttributeTransition.AssumeNotNull().Span.End;
                     prefixLocation = minimizedDirectiveAttribute.NamePrefix?.Span;
-                    attributeName = string.Concat(directiveAttributeTransition?.GetContent(), attributeNameNode?.GetContent());
+                    attributeName = directiveAttributeTransition.GetContentOrEmpty() + attributeNameNode.GetContentOrEmpty();
                     attributeNameLocation = new TextSpan(nameStart, nameEnd - nameStart);
-                    parameterName = minimizedDirectiveAttribute.ParameterName?.GetContent();
+                    parameterName = minimizedDirectiveAttribute.ParameterName.GetContentOrEmpty();
                     parameterLocation = minimizedDirectiveAttribute.ParameterName?.Span ?? default;
                     return true;
                 }

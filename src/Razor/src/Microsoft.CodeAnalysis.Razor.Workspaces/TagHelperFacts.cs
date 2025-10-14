@@ -170,7 +170,7 @@ internal static class TagHelperFacts
                 case MarkupTagHelperAttributeSyntax tagHelperAttribute:
                     {
                         var name = tagHelperAttribute.Name.GetContent();
-                        var value = tagHelperAttribute.Value?.GetContent() ?? string.Empty;
+                        var value = tagHelperAttribute.Value.GetContentOrEmpty();
                         stringifiedAttributes.Add(new KeyValuePair<string, string>(name, value));
                         break;
                     }
@@ -185,7 +185,7 @@ internal static class TagHelperFacts
                 case MarkupAttributeBlockSyntax markupAttribute:
                     {
                         var name = markupAttribute.Name.GetContent();
-                        var value = markupAttribute.Value?.GetContent() ?? string.Empty;
+                        var value = markupAttribute.Value.GetContentOrEmpty();
                         stringifiedAttributes.Add(new KeyValuePair<string, string>(name, value));
                         break;
                     }
@@ -200,7 +200,7 @@ internal static class TagHelperFacts
                 case MarkupTagHelperDirectiveAttributeSyntax directiveAttribute:
                     {
                         var name = directiveAttribute.FullName;
-                        var value = directiveAttribute.Value?.GetContent() ?? string.Empty;
+                        var value = directiveAttribute.Value.GetContentOrEmpty();
                         stringifiedAttributes.Add(new KeyValuePair<string, string>(name, value));
                         break;
                     }

@@ -138,7 +138,7 @@ internal class SpanEditHandler
 
     protected internal static bool IsAtEndOfFirstLine(SyntaxNode target, SourceChange change)
     {
-        var endOfFirstLine = target.GetContent().IndexOfAny(new char[] { (char)0x000d, (char)0x000a, (char)0x2028, (char)0x2029 });
+        var endOfFirstLine = target.GetContent().AsSpan().IndexOfAny([(char)0x000d, (char)0x000a, (char)0x2028, (char)0x2029]);
         return (endOfFirstLine == -1 || (change.Span.AbsoluteIndex - target.Position) <= endOfFirstLine);
     }
 

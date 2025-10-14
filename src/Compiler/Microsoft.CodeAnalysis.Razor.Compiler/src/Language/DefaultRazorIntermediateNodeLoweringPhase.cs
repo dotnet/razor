@@ -676,7 +676,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 {
                     AttributeName = name,
                     Prefix = prefix.GetContent(),
-                    Suffix = node.ValueSuffix?.GetContent() ?? string.Empty,
+                    Suffix = node.ValueSuffix.GetContentOrEmpty(),
                     Source = BuildSourceSpanFromNode(node),
                 });
 
@@ -732,7 +732,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 _builder.Push(new CSharpExpressionAttributeValueIntermediateNode()
                 {
-                    Prefix = node.Prefix?.GetContent() ?? string.Empty,
+                    Prefix = node.Prefix.GetContentOrEmpty(),
                     Source = BuildSourceSpanFromNode(node),
                 });
             }
@@ -740,7 +740,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 _builder.Push(new CSharpCodeAttributeValueIntermediateNode()
                 {
-                    Prefix = node.Prefix?.GetContent() ?? string.Empty,
+                    Prefix = node.Prefix.GetContentOrEmpty(),
                     Source = BuildSourceSpanFromNode(node),
                 });
             }
@@ -754,13 +754,13 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         {
             _builder.Push(new HtmlAttributeValueIntermediateNode()
             {
-                Prefix = node.Prefix?.GetContent() ?? string.Empty,
+                Prefix = node.Prefix.GetContentOrEmpty(),
                 Source = BuildSourceSpanFromNode(node),
             });
 
             _builder.Add(IntermediateNodeFactory.HtmlToken(
                 arg: node,
-                contentFactory: static node => node.Value?.GetContent() ?? string.Empty,
+                contentFactory: static node => node.Value.GetContentOrEmpty(),
                 source: BuildSourceSpanFromNode(node.Value)));
 
             _builder.Pop();
@@ -1387,7 +1387,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 AttributeName = name,
                 Prefix = prefix.GetContent(),
-                Suffix = node.ValueSuffix?.GetContent() ?? string.Empty,
+                Suffix = node.ValueSuffix.GetContentOrEmpty(),
                 Source = BuildSourceSpanFromNode(node),
             });
 
@@ -1437,7 +1437,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 _builder.Push(new CSharpExpressionAttributeValueIntermediateNode()
                 {
-                    Prefix = node.Prefix?.GetContent() ?? string.Empty,
+                    Prefix = node.Prefix.GetContentOrEmpty(),
                     Source = BuildSourceSpanFromNode(node),
                 });
             }
@@ -1445,7 +1445,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 _builder.Push(new CSharpCodeAttributeValueIntermediateNode()
                 {
-                    Prefix = node.Prefix?.GetContent() ?? string.Empty,
+                    Prefix = node.Prefix.GetContentOrEmpty(),
                     Source = BuildSourceSpanFromNode(node),
                 });
             }
@@ -1459,13 +1459,13 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         {
             _builder.Push(new HtmlAttributeValueIntermediateNode()
             {
-                Prefix = node.Prefix?.GetContent() ?? string.Empty,
+                Prefix = node.Prefix.GetContentOrEmpty(),
                 Source = BuildSourceSpanFromNode(node),
             });
 
             _builder.Add(IntermediateNodeFactory.HtmlToken(
                 arg: node,
-                contentFactory: static node => node.Value?.GetContent() ?? string.Empty,
+                contentFactory: static node => node.Value.GetContentOrEmpty(),
                 source: BuildSourceSpanFromNode(node.Value)));
 
             _builder.Pop();
@@ -1484,7 +1484,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
                 _builder.Add(IntermediateNodeFactory.HtmlToken(
                     arg: node,
-                    contentFactory: static node => node.GetContent() ?? string.Empty,
+                    contentFactory: static node => node.GetContent(),
                     source: BuildSourceSpanFromNode(node)));
 
                 _builder.Pop();

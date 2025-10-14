@@ -299,9 +299,14 @@ internal static class SyntaxNodeExtensions
         return (TRoot)root.InsertNodesInListCore(nodeInList, newNodes, insertBefore: false);
     }
 
-    public static string GetContent<TNode>(this TNode node) where TNode : SyntaxNode
+    public static string GetContent(this SyntaxNode node)
     {
         return node.Green.ToString();
+    }
+
+    public static string GetContentOrEmpty(this SyntaxNode? node)
+    {
+        return node?.Green.ToString() ?? string.Empty;
     }
 
     private sealed class DiagnosticSyntaxWalker(List<RazorDiagnostic> diagnostics) : SyntaxWalker

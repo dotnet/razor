@@ -22,7 +22,7 @@ internal static class TagHelperBlockRewriter
         var childSpan = startTag.GetLastToken().Parent;
 
         // Self-closing tags are always valid despite descriptors[X].TagStructure.
-        if (childSpan?.GetContent().EndsWith("/>", StringComparison.Ordinal) ?? false)
+        if (childSpan.GetContentOrEmpty().EndsWith("/>", StringComparison.Ordinal))
         {
             return TagMode.SelfClosing;
         }
@@ -120,8 +120,7 @@ internal static class TagHelperBlockRewriter
                         // If the original span content was whitespace it ultimately means the tag
                         // that owns this "attribute" is malformed and is expecting a user to type a new attribute.
                         // ex: <myTH class="btn"| |
-                        var literalContent = contentChild.GetContent();
-                        if (!string.IsNullOrWhiteSpace(literalContent))
+                        if (!contentChild.GetContent().IsNullOrWhiteSpace())
                         {
                             var location = contentChild.GetSourceSpan(source);
                             var diagnostic = RazorDiagnosticFactory.CreateParsing_TagHelperAttributeListMustBeWellFormed(location);
@@ -364,7 +363,7 @@ internal static class TagHelperBlockRewriter
             attributeBlock.ValueSuffix,
             new TagHelperAttributeInfo(
                 result.AttributeName,
-                parameterName?.GetContent(),
+                parameterName.GetContentOrEmpty(),
                 result.AttributeStructure,
                 result.IsBoundAttribute,
                 isDirectiveAttribute: true));
@@ -423,7 +422,7 @@ internal static class TagHelperBlockRewriter
             parameterName,
             new TagHelperAttributeInfo(
                 result.AttributeName,
-                parameterName?.GetContent(),
+                parameterName.GetContentOrEmpty(),
                 result.AttributeStructure,
                 result.IsBoundAttribute,
                 isDirectiveAttribute: true));
@@ -516,15 +515,15 @@ internal static class TagHelperBlockRewriter
     {
         if (attributeBlock is MarkupTagHelperAttributeSyntax tagHelperAttribute)
         {
-            return tagHelperAttribute.Value?.GetContent();
+            return tagHelperAttribute.Value.GetContentOrEmpty();
         }
         else if (attributeBlock is MarkupTagHelperDirectiveAttributeSyntax directiveAttribute)
         {
-            return directiveAttribute.Value?.GetContent();
+            return directiveAttribute.Value.GetContentOrEmpty();
         }
         else if (attributeBlock is MarkupAttributeBlockSyntax attribute)
         {
-            return attribute.Value?.GetContent();
+            return attribute.Value.GetContentOrEmpty();
         }
 
         return null;

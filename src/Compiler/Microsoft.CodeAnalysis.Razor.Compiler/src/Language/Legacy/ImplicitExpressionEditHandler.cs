@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -133,7 +133,7 @@ internal class ImplicitExpressionEditHandler : SpanEditHandler
         return !IsAtEndOfSpan(target, change) &&
                change.Span.AbsoluteIndex > 0 &&
                change.NewText.Length > 0 &&
-               target.GetContent().Last() == '.' &&
+               target.GetContent().EndsWith('.') &&
                ParserHelpers.IsIdentifier(change.NewText, requireIdentifierStart: false) &&
                (change.Span.Length == 0 || ParserHelpers.IsIdentifier(change.GetOriginalText(target), requireIdentifierStart: false));
     }
@@ -144,10 +144,8 @@ internal class ImplicitExpressionEditHandler : SpanEditHandler
     private static bool IsSecondaryDotlessCommitInsertion(SyntaxNode target, SourceChange change)
     {
         // Do not need to worry about other punctuation, just looking for double '.' (after change)
-        return change.NewText.Length == 1 &&
-               change.NewText == "." &&
-               !string.IsNullOrEmpty(target.GetContent()) &&
-               target.GetContent().Last() == '.' &&
+        return change.NewText == "." &&
+               target.GetContent().EndsWith('.') &&
                change.Span.Length == 0;
     }
 
@@ -437,16 +435,20 @@ internal class ImplicitExpressionEditHandler : SpanEditHandler
     private static bool RemainingIsWhitespace(SyntaxNode target, SourceChange change)
     {
         var offset = (change.Span.AbsoluteIndex - target.Position) + change.Span.Length;
-        return string.IsNullOrWhiteSpace(target.GetContent().Substring(offset));
+        var span = target.GetContent().AsSpan(offset);
+
+        return span.IsEmpty || span.IsWhiteSpace();
     }
 
     private PartialParseResultInternal HandleDotlessCommitInsertion(SyntaxNode target)
     {
         var result = PartialParseResultInternal.Accepted;
-        if (!AcceptTrailingDot && target.GetContent().LastOrDefault() == '.')
+
+        if (!AcceptTrailingDot && target.GetContent().EndsWith('.'))
         {
             result |= PartialParseResultInternal.Provisional;
         }
+
         return result;
     }
 

@@ -570,10 +570,11 @@ internal static class TagHelperParseTreeRewriter
                 if (isDisallowedContent)
                 {
                     var content = child.GetContent();
-                    if (!string.IsNullOrWhiteSpace(content))
+                    if (!content.IsNullOrWhiteSpace())
                     {
-                        var trimmedStart = content.AsSpan().TrimStart();
-                        var whitespace = content[..^trimmedStart.Length];
+                        var span = content.AsSpan();
+                        var trimmedStart = span.TrimStart();
+                        var whitespace = span[..^trimmedStart.Length];
                         var errorStart = SourceLocationTracker.Advance(child.GetSourceLocation(_source), whitespace);
                         var length = trimmedStart.TrimEnd().Length;
                         var allowedChildren = CurrentTagHelperTracker.AllowedChildren;
