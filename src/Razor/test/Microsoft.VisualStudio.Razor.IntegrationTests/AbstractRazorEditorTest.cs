@@ -49,19 +49,7 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutput) : Ab
 
         VisualStudioLogging.AddCustomLoggers();
 
-        if (await TestServices.SolutionExplorer.IsSolutionOpenAsync(HangMitigatingCancellationToken))
-        {
-            var dte = await TestServices.Shell.GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(HangMitigatingCancellationToken);
-            if (dte.Debugger.CurrentMode != EnvDTE.dbgDebugMode.dbgDesignMode)
-            {
-                dte.Debugger.TerminateAll();
-            }
-
-            await TestServices.SolutionExplorer.CloseSolutionAndWaitAsync(HangMitigatingCancellationToken);
-        }
-
-        // Our expected test results have spaces not tabs
-        await TestServices.Shell.SetInsertSpacesAsync(ControlledHangMitigatingCancellationToken);
+        await TestServices.Shell.ResetEnvironmentAsync(ControlledHangMitigatingCancellationToken);
 
         _projectFilePath = await CreateAndOpenBlazorProjectAsync(ControlledHangMitigatingCancellationToken);
 
@@ -155,6 +143,13 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutput) : Ab
         //await TestServices.Editor.ValidateNoDiscoColorsAsync(HangMitigatingCancellationToken);
 
         _testLogger!.LogInformation($"#### Razor integration test dispose.");
+
+        using (var disposeSource = new CancellationTokenSource(TimeSpan.FromMinutes(2)))
+        {
+            await TestServices.Shell.CloseActiveToolWindowsAsync(disposeSource.Token);
+
+            await TestServices.Shell.CloseActiveDocumentWindowsAsync(disposeSource.Token);
+        }
 
         TestServices.Output.ClearIntegrationTestLogger();
 
