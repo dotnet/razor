@@ -309,7 +309,7 @@ internal partial class SyntaxRewriter : SyntaxVisitor<SyntaxNode>
         => node.Update((SyntaxToken)VisitToken(node.OpenAngle), (SyntaxToken)VisitToken(node.ForwardSlash), (SyntaxToken)VisitToken(node.Bang), (SyntaxToken)VisitToken(node.Name), (MarkupMiscAttributeContentSyntax)Visit(node.MiscAttributeContent), (SyntaxToken)VisitToken(node.CloseAngle), node.ChunkGenerator);
 
     public override SyntaxNode VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
-        => node.Update((MarkupTagHelperStartTagSyntax)Visit(node.StartTag), VisitList(node.Body), (MarkupTagHelperEndTagSyntax)Visit(node.EndTag));
+        => node.Update((MarkupTagHelperStartTagSyntax)Visit(node.StartTag), VisitList(node.Body), (MarkupTagHelperEndTagSyntax)Visit(node.EndTag), node.TagHelperInfo);
 
     public override SyntaxNode VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
         => node.Update((SyntaxToken)VisitToken(node.OpenAngle), (SyntaxToken)VisitToken(node.Bang), (SyntaxToken)VisitToken(node.Name), VisitList(node.Attributes), (SyntaxToken)VisitToken(node.ForwardSlash), (SyntaxToken)VisitToken(node.CloseAngle), node.ChunkGenerator);
@@ -318,19 +318,19 @@ internal partial class SyntaxRewriter : SyntaxVisitor<SyntaxNode>
         => node.Update((SyntaxToken)VisitToken(node.OpenAngle), (SyntaxToken)VisitToken(node.ForwardSlash), (SyntaxToken)VisitToken(node.Bang), (SyntaxToken)VisitToken(node.Name), (MarkupMiscAttributeContentSyntax)Visit(node.MiscAttributeContent), (SyntaxToken)VisitToken(node.CloseAngle), node.ChunkGenerator);
 
     public override SyntaxNode VisitMarkupTagHelperAttribute(MarkupTagHelperAttributeSyntax node)
-        => node.Update((MarkupTextLiteralSyntax)Visit(node.NamePrefix), (MarkupTextLiteralSyntax)Visit(node.Name), (MarkupTextLiteralSyntax)Visit(node.NameSuffix), (SyntaxToken)VisitToken(node.EqualsToken), (MarkupTextLiteralSyntax)Visit(node.ValuePrefix), (MarkupTagHelperAttributeValueSyntax)Visit(node.Value), (MarkupTextLiteralSyntax)Visit(node.ValueSuffix));
+        => node.Update((MarkupTextLiteralSyntax)Visit(node.NamePrefix), (MarkupTextLiteralSyntax)Visit(node.Name), (MarkupTextLiteralSyntax)Visit(node.NameSuffix), (SyntaxToken)VisitToken(node.EqualsToken), (MarkupTextLiteralSyntax)Visit(node.ValuePrefix), (MarkupTagHelperAttributeValueSyntax)Visit(node.Value), (MarkupTextLiteralSyntax)Visit(node.ValueSuffix), node.TagHelperAttributeInfo);
 
     public override SyntaxNode VisitMarkupMinimizedTagHelperAttribute(MarkupMinimizedTagHelperAttributeSyntax node)
-        => node.Update((MarkupTextLiteralSyntax)Visit(node.NamePrefix), (MarkupTextLiteralSyntax)Visit(node.Name));
+        => node.Update((MarkupTextLiteralSyntax)Visit(node.NamePrefix), (MarkupTextLiteralSyntax)Visit(node.Name), node.TagHelperAttributeInfo);
 
     public override SyntaxNode VisitMarkupTagHelperAttributeValue(MarkupTagHelperAttributeValueSyntax node)
         => node.Update(VisitList(node.Children));
 
     public override SyntaxNode VisitMarkupTagHelperDirectiveAttribute(MarkupTagHelperDirectiveAttributeSyntax node)
-        => node.Update((MarkupTextLiteralSyntax)Visit(node.NamePrefix), (RazorMetaCodeSyntax)Visit(node.Transition), (MarkupTextLiteralSyntax)Visit(node.Name), (RazorMetaCodeSyntax)Visit(node.Colon), (MarkupTextLiteralSyntax)Visit(node.ParameterName), (MarkupTextLiteralSyntax)Visit(node.NameSuffix), (SyntaxToken)VisitToken(node.EqualsToken), (MarkupTextLiteralSyntax)Visit(node.ValuePrefix), (MarkupTagHelperAttributeValueSyntax)Visit(node.Value), (MarkupTextLiteralSyntax)Visit(node.ValueSuffix));
+        => node.Update((MarkupTextLiteralSyntax)Visit(node.NamePrefix), (RazorMetaCodeSyntax)Visit(node.Transition), (MarkupTextLiteralSyntax)Visit(node.Name), (RazorMetaCodeSyntax)Visit(node.Colon), (MarkupTextLiteralSyntax)Visit(node.ParameterName), (MarkupTextLiteralSyntax)Visit(node.NameSuffix), (SyntaxToken)VisitToken(node.EqualsToken), (MarkupTextLiteralSyntax)Visit(node.ValuePrefix), (MarkupTagHelperAttributeValueSyntax)Visit(node.Value), (MarkupTextLiteralSyntax)Visit(node.ValueSuffix), node.TagHelperAttributeInfo);
 
     public override SyntaxNode VisitMarkupMinimizedTagHelperDirectiveAttribute(MarkupMinimizedTagHelperDirectiveAttributeSyntax node)
-        => node.Update((MarkupTextLiteralSyntax)Visit(node.NamePrefix), (RazorMetaCodeSyntax)Visit(node.Transition), (MarkupTextLiteralSyntax)Visit(node.Name), (RazorMetaCodeSyntax)Visit(node.Colon), (MarkupTextLiteralSyntax)Visit(node.ParameterName));
+        => node.Update((MarkupTextLiteralSyntax)Visit(node.NamePrefix), (RazorMetaCodeSyntax)Visit(node.Transition), (MarkupTextLiteralSyntax)Visit(node.Name), (RazorMetaCodeSyntax)Visit(node.Colon), (MarkupTextLiteralSyntax)Visit(node.ParameterName), node.TagHelperAttributeInfo);
 
     public override SyntaxNode VisitCSharpCodeBlock(CSharpCodeBlockSyntax node)
         => node.Update(VisitList(node.Children));
@@ -569,15 +569,15 @@ internal static partial class SyntaxFactory
         => SyntaxFactory.MarkupEndTag(SyntaxFactory.Token(SyntaxKind.OpenAngle), SyntaxFactory.Token(SyntaxKind.ForwardSlash), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.Text), default(MarkupMiscAttributeContentSyntax), SyntaxFactory.Token(SyntaxKind.CloseAngle), chunkGenerator);
 
     /// <summary>Creates a new MarkupTagHelperElementSyntax instance.</summary>
-    public static MarkupTagHelperElementSyntax MarkupTagHelperElement(MarkupTagHelperStartTagSyntax startTag, SyntaxList<RazorSyntaxNode> body, MarkupTagHelperEndTagSyntax endTag)
+    public static MarkupTagHelperElementSyntax MarkupTagHelperElement(MarkupTagHelperStartTagSyntax startTag, SyntaxList<RazorSyntaxNode> body, MarkupTagHelperEndTagSyntax endTag, TagHelperInfo tagHelperInfo)
     {
         ArgHelper.ThrowIfNull(startTag);
-        return (MarkupTagHelperElementSyntax)InternalSyntax.SyntaxFactory.MarkupTagHelperElement(startTag == null ? null : (InternalSyntax.MarkupTagHelperStartTagSyntax)startTag.Green, body.Node.ToGreenList<InternalSyntax.RazorSyntaxNode>(), endTag == null ? null : (InternalSyntax.MarkupTagHelperEndTagSyntax)endTag.Green).CreateRed();
+        return (MarkupTagHelperElementSyntax)InternalSyntax.SyntaxFactory.MarkupTagHelperElement(startTag == null ? null : (InternalSyntax.MarkupTagHelperStartTagSyntax)startTag.Green, body.Node.ToGreenList<InternalSyntax.RazorSyntaxNode>(), endTag == null ? null : (InternalSyntax.MarkupTagHelperEndTagSyntax)endTag.Green, tagHelperInfo).CreateRed();
     }
 
     /// <summary>Creates a new MarkupTagHelperElementSyntax instance.</summary>
-    public static MarkupTagHelperElementSyntax MarkupTagHelperElement(MarkupTagHelperStartTagSyntax startTag)
-        => SyntaxFactory.MarkupTagHelperElement(startTag, default(SyntaxList<RazorSyntaxNode>), default(MarkupTagHelperEndTagSyntax));
+    public static MarkupTagHelperElementSyntax MarkupTagHelperElement(MarkupTagHelperStartTagSyntax startTag, TagHelperInfo tagHelperInfo)
+        => SyntaxFactory.MarkupTagHelperElement(startTag, default(SyntaxList<RazorSyntaxNode>), default(MarkupTagHelperEndTagSyntax), tagHelperInfo);
 
     /// <summary>Creates a new MarkupTagHelperStartTagSyntax instance.</summary>
     public static MarkupTagHelperStartTagSyntax MarkupTagHelperStartTag(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
@@ -618,32 +618,32 @@ internal static partial class SyntaxFactory
         => SyntaxFactory.MarkupTagHelperEndTag(SyntaxFactory.Token(SyntaxKind.OpenAngle), SyntaxFactory.Token(SyntaxKind.ForwardSlash), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.Text), default(MarkupMiscAttributeContentSyntax), SyntaxFactory.Token(SyntaxKind.CloseAngle), chunkGenerator);
 
     /// <summary>Creates a new MarkupTagHelperAttributeSyntax instance.</summary>
-    public static MarkupTagHelperAttributeSyntax MarkupTagHelperAttribute(MarkupTextLiteralSyntax namePrefix, MarkupTextLiteralSyntax name, MarkupTextLiteralSyntax nameSuffix, SyntaxToken equalsToken, MarkupTextLiteralSyntax valuePrefix, MarkupTagHelperAttributeValueSyntax value, MarkupTextLiteralSyntax valueSuffix)
+    public static MarkupTagHelperAttributeSyntax MarkupTagHelperAttribute(MarkupTextLiteralSyntax namePrefix, MarkupTextLiteralSyntax name, MarkupTextLiteralSyntax nameSuffix, SyntaxToken equalsToken, MarkupTextLiteralSyntax valuePrefix, MarkupTagHelperAttributeValueSyntax value, MarkupTextLiteralSyntax valueSuffix, TagHelperAttributeInfo tagHelperAttributeInfo)
     {
         ArgHelper.ThrowIfNull(name);
         if (equalsToken.Kind is not (SyntaxKind.Equals)) return ThrowHelper.ThrowArgumentException<MarkupTagHelperAttributeSyntax>(nameof(equalsToken), $"Invalid SyntaxKind. Expected 'SyntaxKind.Equals', but it was {equalsToken.Kind}");
         ArgHelper.ThrowIfNull(value);
-        return (MarkupTagHelperAttributeSyntax)InternalSyntax.SyntaxFactory.MarkupTagHelperAttribute(namePrefix == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)namePrefix.Green, name == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)name.Green, nameSuffix == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)nameSuffix.Green, (Syntax.InternalSyntax.SyntaxToken)equalsToken.Node, valuePrefix == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)valuePrefix.Green, value == null ? null : (InternalSyntax.MarkupTagHelperAttributeValueSyntax)value.Green, valueSuffix == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)valueSuffix.Green).CreateRed();
+        return (MarkupTagHelperAttributeSyntax)InternalSyntax.SyntaxFactory.MarkupTagHelperAttribute(namePrefix == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)namePrefix.Green, name == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)name.Green, nameSuffix == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)nameSuffix.Green, (Syntax.InternalSyntax.SyntaxToken)equalsToken.Node, valuePrefix == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)valuePrefix.Green, value == null ? null : (InternalSyntax.MarkupTagHelperAttributeValueSyntax)value.Green, valueSuffix == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)valueSuffix.Green, tagHelperAttributeInfo).CreateRed();
     }
 
     /// <summary>Creates a new MarkupTagHelperAttributeSyntax instance.</summary>
-    public static MarkupTagHelperAttributeSyntax MarkupTagHelperAttribute(MarkupTextLiteralSyntax namePrefix, MarkupTextLiteralSyntax name, MarkupTextLiteralSyntax nameSuffix, MarkupTextLiteralSyntax valuePrefix, MarkupTagHelperAttributeValueSyntax value, MarkupTextLiteralSyntax valueSuffix)
-        => SyntaxFactory.MarkupTagHelperAttribute(namePrefix, name, nameSuffix, SyntaxFactory.Token(SyntaxKind.Equals), valuePrefix, value, valueSuffix);
+    public static MarkupTagHelperAttributeSyntax MarkupTagHelperAttribute(MarkupTextLiteralSyntax namePrefix, MarkupTextLiteralSyntax name, MarkupTextLiteralSyntax nameSuffix, MarkupTextLiteralSyntax valuePrefix, MarkupTagHelperAttributeValueSyntax value, MarkupTextLiteralSyntax valueSuffix, TagHelperAttributeInfo tagHelperAttributeInfo)
+        => SyntaxFactory.MarkupTagHelperAttribute(namePrefix, name, nameSuffix, SyntaxFactory.Token(SyntaxKind.Equals), valuePrefix, value, valueSuffix, tagHelperAttributeInfo);
 
     /// <summary>Creates a new MarkupTagHelperAttributeSyntax instance.</summary>
-    public static MarkupTagHelperAttributeSyntax MarkupTagHelperAttribute(MarkupTextLiteralSyntax name)
-        => SyntaxFactory.MarkupTagHelperAttribute(default(MarkupTextLiteralSyntax), name, default(MarkupTextLiteralSyntax), SyntaxFactory.Token(SyntaxKind.Equals), default(MarkupTextLiteralSyntax), SyntaxFactory.MarkupTagHelperAttributeValue(), default(MarkupTextLiteralSyntax));
+    public static MarkupTagHelperAttributeSyntax MarkupTagHelperAttribute(MarkupTextLiteralSyntax name, TagHelperAttributeInfo tagHelperAttributeInfo)
+        => SyntaxFactory.MarkupTagHelperAttribute(default(MarkupTextLiteralSyntax), name, default(MarkupTextLiteralSyntax), SyntaxFactory.Token(SyntaxKind.Equals), default(MarkupTextLiteralSyntax), SyntaxFactory.MarkupTagHelperAttributeValue(), default(MarkupTextLiteralSyntax), tagHelperAttributeInfo);
 
     /// <summary>Creates a new MarkupMinimizedTagHelperAttributeSyntax instance.</summary>
-    public static MarkupMinimizedTagHelperAttributeSyntax MarkupMinimizedTagHelperAttribute(MarkupTextLiteralSyntax namePrefix, MarkupTextLiteralSyntax name)
+    public static MarkupMinimizedTagHelperAttributeSyntax MarkupMinimizedTagHelperAttribute(MarkupTextLiteralSyntax namePrefix, MarkupTextLiteralSyntax name, TagHelperAttributeInfo tagHelperAttributeInfo)
     {
         ArgHelper.ThrowIfNull(name);
-        return (MarkupMinimizedTagHelperAttributeSyntax)InternalSyntax.SyntaxFactory.MarkupMinimizedTagHelperAttribute(namePrefix == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)namePrefix.Green, name == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)name.Green).CreateRed();
+        return (MarkupMinimizedTagHelperAttributeSyntax)InternalSyntax.SyntaxFactory.MarkupMinimizedTagHelperAttribute(namePrefix == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)namePrefix.Green, name == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)name.Green, tagHelperAttributeInfo).CreateRed();
     }
 
     /// <summary>Creates a new MarkupMinimizedTagHelperAttributeSyntax instance.</summary>
-    public static MarkupMinimizedTagHelperAttributeSyntax MarkupMinimizedTagHelperAttribute(MarkupTextLiteralSyntax name)
-        => SyntaxFactory.MarkupMinimizedTagHelperAttribute(default(MarkupTextLiteralSyntax), name);
+    public static MarkupMinimizedTagHelperAttributeSyntax MarkupMinimizedTagHelperAttribute(MarkupTextLiteralSyntax name, TagHelperAttributeInfo tagHelperAttributeInfo)
+        => SyntaxFactory.MarkupMinimizedTagHelperAttribute(default(MarkupTextLiteralSyntax), name, tagHelperAttributeInfo);
 
     /// <summary>Creates a new MarkupTagHelperAttributeValueSyntax instance.</summary>
     public static MarkupTagHelperAttributeValueSyntax MarkupTagHelperAttributeValue(SyntaxList<RazorSyntaxNode> children)
@@ -654,34 +654,34 @@ internal static partial class SyntaxFactory
         => SyntaxFactory.MarkupTagHelperAttributeValue(default(SyntaxList<RazorSyntaxNode>));
 
     /// <summary>Creates a new MarkupTagHelperDirectiveAttributeSyntax instance.</summary>
-    public static MarkupTagHelperDirectiveAttributeSyntax MarkupTagHelperDirectiveAttribute(MarkupTextLiteralSyntax namePrefix, RazorMetaCodeSyntax transition, MarkupTextLiteralSyntax name, RazorMetaCodeSyntax colon, MarkupTextLiteralSyntax parameterName, MarkupTextLiteralSyntax nameSuffix, SyntaxToken equalsToken, MarkupTextLiteralSyntax valuePrefix, MarkupTagHelperAttributeValueSyntax value, MarkupTextLiteralSyntax valueSuffix)
+    public static MarkupTagHelperDirectiveAttributeSyntax MarkupTagHelperDirectiveAttribute(MarkupTextLiteralSyntax namePrefix, RazorMetaCodeSyntax transition, MarkupTextLiteralSyntax name, RazorMetaCodeSyntax colon, MarkupTextLiteralSyntax parameterName, MarkupTextLiteralSyntax nameSuffix, SyntaxToken equalsToken, MarkupTextLiteralSyntax valuePrefix, MarkupTagHelperAttributeValueSyntax value, MarkupTextLiteralSyntax valueSuffix, TagHelperAttributeInfo tagHelperAttributeInfo)
     {
         ArgHelper.ThrowIfNull(transition);
         ArgHelper.ThrowIfNull(name);
         if (equalsToken.Kind is not (SyntaxKind.Equals)) return ThrowHelper.ThrowArgumentException<MarkupTagHelperDirectiveAttributeSyntax>(nameof(equalsToken), $"Invalid SyntaxKind. Expected 'SyntaxKind.Equals', but it was {equalsToken.Kind}");
         ArgHelper.ThrowIfNull(value);
-        return (MarkupTagHelperDirectiveAttributeSyntax)InternalSyntax.SyntaxFactory.MarkupTagHelperDirectiveAttribute(namePrefix == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)namePrefix.Green, transition == null ? null : (InternalSyntax.RazorMetaCodeSyntax)transition.Green, name == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)name.Green, colon == null ? null : (InternalSyntax.RazorMetaCodeSyntax)colon.Green, parameterName == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)parameterName.Green, nameSuffix == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)nameSuffix.Green, (Syntax.InternalSyntax.SyntaxToken)equalsToken.Node, valuePrefix == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)valuePrefix.Green, value == null ? null : (InternalSyntax.MarkupTagHelperAttributeValueSyntax)value.Green, valueSuffix == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)valueSuffix.Green).CreateRed();
+        return (MarkupTagHelperDirectiveAttributeSyntax)InternalSyntax.SyntaxFactory.MarkupTagHelperDirectiveAttribute(namePrefix == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)namePrefix.Green, transition == null ? null : (InternalSyntax.RazorMetaCodeSyntax)transition.Green, name == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)name.Green, colon == null ? null : (InternalSyntax.RazorMetaCodeSyntax)colon.Green, parameterName == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)parameterName.Green, nameSuffix == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)nameSuffix.Green, (Syntax.InternalSyntax.SyntaxToken)equalsToken.Node, valuePrefix == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)valuePrefix.Green, value == null ? null : (InternalSyntax.MarkupTagHelperAttributeValueSyntax)value.Green, valueSuffix == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)valueSuffix.Green, tagHelperAttributeInfo).CreateRed();
     }
 
     /// <summary>Creates a new MarkupTagHelperDirectiveAttributeSyntax instance.</summary>
-    public static MarkupTagHelperDirectiveAttributeSyntax MarkupTagHelperDirectiveAttribute(MarkupTextLiteralSyntax namePrefix, RazorMetaCodeSyntax transition, MarkupTextLiteralSyntax name, RazorMetaCodeSyntax colon, MarkupTextLiteralSyntax parameterName, MarkupTextLiteralSyntax nameSuffix, MarkupTextLiteralSyntax valuePrefix, MarkupTagHelperAttributeValueSyntax value, MarkupTextLiteralSyntax valueSuffix)
-        => SyntaxFactory.MarkupTagHelperDirectiveAttribute(namePrefix, transition, name, colon, parameterName, nameSuffix, SyntaxFactory.Token(SyntaxKind.Equals), valuePrefix, value, valueSuffix);
+    public static MarkupTagHelperDirectiveAttributeSyntax MarkupTagHelperDirectiveAttribute(MarkupTextLiteralSyntax namePrefix, RazorMetaCodeSyntax transition, MarkupTextLiteralSyntax name, RazorMetaCodeSyntax colon, MarkupTextLiteralSyntax parameterName, MarkupTextLiteralSyntax nameSuffix, MarkupTextLiteralSyntax valuePrefix, MarkupTagHelperAttributeValueSyntax value, MarkupTextLiteralSyntax valueSuffix, TagHelperAttributeInfo tagHelperAttributeInfo)
+        => SyntaxFactory.MarkupTagHelperDirectiveAttribute(namePrefix, transition, name, colon, parameterName, nameSuffix, SyntaxFactory.Token(SyntaxKind.Equals), valuePrefix, value, valueSuffix, tagHelperAttributeInfo);
 
     /// <summary>Creates a new MarkupTagHelperDirectiveAttributeSyntax instance.</summary>
-    public static MarkupTagHelperDirectiveAttributeSyntax MarkupTagHelperDirectiveAttribute(RazorMetaCodeSyntax transition, MarkupTextLiteralSyntax name)
-        => SyntaxFactory.MarkupTagHelperDirectiveAttribute(default(MarkupTextLiteralSyntax), transition, name, default(RazorMetaCodeSyntax), default(MarkupTextLiteralSyntax), default(MarkupTextLiteralSyntax), SyntaxFactory.Token(SyntaxKind.Equals), default(MarkupTextLiteralSyntax), SyntaxFactory.MarkupTagHelperAttributeValue(), default(MarkupTextLiteralSyntax));
+    public static MarkupTagHelperDirectiveAttributeSyntax MarkupTagHelperDirectiveAttribute(RazorMetaCodeSyntax transition, MarkupTextLiteralSyntax name, TagHelperAttributeInfo tagHelperAttributeInfo)
+        => SyntaxFactory.MarkupTagHelperDirectiveAttribute(default(MarkupTextLiteralSyntax), transition, name, default(RazorMetaCodeSyntax), default(MarkupTextLiteralSyntax), default(MarkupTextLiteralSyntax), SyntaxFactory.Token(SyntaxKind.Equals), default(MarkupTextLiteralSyntax), SyntaxFactory.MarkupTagHelperAttributeValue(), default(MarkupTextLiteralSyntax), tagHelperAttributeInfo);
 
     /// <summary>Creates a new MarkupMinimizedTagHelperDirectiveAttributeSyntax instance.</summary>
-    public static MarkupMinimizedTagHelperDirectiveAttributeSyntax MarkupMinimizedTagHelperDirectiveAttribute(MarkupTextLiteralSyntax namePrefix, RazorMetaCodeSyntax transition, MarkupTextLiteralSyntax name, RazorMetaCodeSyntax colon, MarkupTextLiteralSyntax parameterName)
+    public static MarkupMinimizedTagHelperDirectiveAttributeSyntax MarkupMinimizedTagHelperDirectiveAttribute(MarkupTextLiteralSyntax namePrefix, RazorMetaCodeSyntax transition, MarkupTextLiteralSyntax name, RazorMetaCodeSyntax colon, MarkupTextLiteralSyntax parameterName, TagHelperAttributeInfo tagHelperAttributeInfo)
     {
         ArgHelper.ThrowIfNull(transition);
         ArgHelper.ThrowIfNull(name);
-        return (MarkupMinimizedTagHelperDirectiveAttributeSyntax)InternalSyntax.SyntaxFactory.MarkupMinimizedTagHelperDirectiveAttribute(namePrefix == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)namePrefix.Green, transition == null ? null : (InternalSyntax.RazorMetaCodeSyntax)transition.Green, name == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)name.Green, colon == null ? null : (InternalSyntax.RazorMetaCodeSyntax)colon.Green, parameterName == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)parameterName.Green).CreateRed();
+        return (MarkupMinimizedTagHelperDirectiveAttributeSyntax)InternalSyntax.SyntaxFactory.MarkupMinimizedTagHelperDirectiveAttribute(namePrefix == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)namePrefix.Green, transition == null ? null : (InternalSyntax.RazorMetaCodeSyntax)transition.Green, name == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)name.Green, colon == null ? null : (InternalSyntax.RazorMetaCodeSyntax)colon.Green, parameterName == null ? null : (InternalSyntax.MarkupTextLiteralSyntax)parameterName.Green, tagHelperAttributeInfo).CreateRed();
     }
 
     /// <summary>Creates a new MarkupMinimizedTagHelperDirectiveAttributeSyntax instance.</summary>
-    public static MarkupMinimizedTagHelperDirectiveAttributeSyntax MarkupMinimizedTagHelperDirectiveAttribute(RazorMetaCodeSyntax transition, MarkupTextLiteralSyntax name)
-        => SyntaxFactory.MarkupMinimizedTagHelperDirectiveAttribute(default(MarkupTextLiteralSyntax), transition, name, default(RazorMetaCodeSyntax), default(MarkupTextLiteralSyntax));
+    public static MarkupMinimizedTagHelperDirectiveAttributeSyntax MarkupMinimizedTagHelperDirectiveAttribute(RazorMetaCodeSyntax transition, MarkupTextLiteralSyntax name, TagHelperAttributeInfo tagHelperAttributeInfo)
+        => SyntaxFactory.MarkupMinimizedTagHelperDirectiveAttribute(default(MarkupTextLiteralSyntax), transition, name, default(RazorMetaCodeSyntax), default(MarkupTextLiteralSyntax), tagHelperAttributeInfo);
 
     /// <summary>Creates a new CSharpCodeBlockSyntax instance.</summary>
     public static CSharpCodeBlockSyntax CSharpCodeBlock(SyntaxList<RazorSyntaxNode> children)

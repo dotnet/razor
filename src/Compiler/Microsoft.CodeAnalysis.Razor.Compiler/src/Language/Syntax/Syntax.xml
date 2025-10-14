@@ -193,6 +193,7 @@
     <Field Name="StartTag" Type="MarkupTagHelperStartTagSyntax" />
     <Field Name="Body" Type="SyntaxList&lt;RazorSyntaxNode&gt;" Optional="true" />
     <Field Name="EndTag" Type="MarkupTagHelperEndTagSyntax" Optional="true" />
+    <Field Name="TagHelperInfo" Type="TagHelperInfo" />
   </Node>
   <Node Name="MarkupTagHelperStartTagSyntax" Base="BaseMarkupStartTagSyntax">
     <Kind Name="MarkupTagHelperStartTag" />
@@ -245,11 +246,13 @@
     <Field Name="ValuePrefix" Type="MarkupTextLiteralSyntax" Optional="true" />
     <Field Name="Value" Type="MarkupTagHelperAttributeValueSyntax" />
     <Field Name="ValueSuffix" Type="MarkupTextLiteralSyntax" Optional="true" />
+    <Field Name="TagHelperAttributeInfo" Type="TagHelperAttributeInfo" />
   </Node>
   <Node Name="MarkupMinimizedTagHelperAttributeSyntax" Base="MarkupSyntaxNode">
     <Kind Name="MarkupMinimizedTagHelperAttribute" />
     <Field Name="NamePrefix" Type="MarkupTextLiteralSyntax" Optional="true" />
     <Field Name="Name" Type="MarkupTextLiteralSyntax" />
+    <Field Name="TagHelperAttributeInfo" Type="TagHelperAttributeInfo" />
   </Node>
   <Node Name="MarkupTagHelperAttributeValueSyntax" Base="RazorBlockSyntax">
     <Kind Name="MarkupTagHelperAttributeValue" />
@@ -269,6 +272,7 @@
     <Field Name="ValuePrefix" Type="MarkupTextLiteralSyntax" Optional="true" />
     <Field Name="Value" Type="MarkupTagHelperAttributeValueSyntax" />
     <Field Name="ValueSuffix" Type="MarkupTextLiteralSyntax" Optional="true" />
+    <Field Name="TagHelperAttributeInfo" Type="TagHelperAttributeInfo" />
   </Node>
   <Node Name="MarkupMinimizedTagHelperDirectiveAttributeSyntax" Base="MarkupSyntaxNode">
     <Kind Name="MarkupMinimizedTagHelperDirectiveAttribute" />
@@ -277,6 +281,7 @@
     <Field Name="Name" Type="MarkupTextLiteralSyntax" />
     <Field Name="Colon" Type="RazorMetaCodeSyntax" Optional="true" />
     <Field Name="ParameterName" Type="MarkupTextLiteralSyntax" Optional="true" />
+    <Field Name="TagHelperAttributeInfo" Type="TagHelperAttributeInfo" />
   </Node>
 
   <!-- CSharp -->

@@ -93,8 +93,7 @@ internal static partial class RazorCodeDocumentExtensions
 
                 foreach (var node in syntaxTree.Root.DescendantNodes())
                 {
-                    if (node is not MarkupTagHelperElementSyntax tagHelperElement ||
-                        tagHelperElement.TagHelperInfo is null)
+                    if (node is not MarkupTagHelperElementSyntax tagHelperElement)
                     {
                         continue;
                     }

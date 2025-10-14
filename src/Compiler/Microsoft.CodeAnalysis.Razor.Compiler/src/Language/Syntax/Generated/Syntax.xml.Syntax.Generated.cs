@@ -1007,6 +1007,7 @@ internal sealed partial class MarkupTagHelperElementSyntax : MarkupSyntaxNode
     public MarkupTagHelperStartTagSyntax StartTag  => GetRedAtZero(ref _startTag);
     public SyntaxList<RazorSyntaxNode> Body  => new SyntaxList<RazorSyntaxNode>(GetRed(ref _body, 1));
     public MarkupTagHelperEndTagSyntax EndTag  => GetRed(ref _endTag, 2);
+    public TagHelperInfo TagHelperInfo => ((InternalSyntax.MarkupTagHelperElementSyntax)Green).TagHelperInfo;
 
     internal override SyntaxNode GetNodeSlot(int index)
         => index switch
@@ -1029,11 +1030,11 @@ internal sealed partial class MarkupTagHelperElementSyntax : MarkupSyntaxNode
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupTagHelperElement(this);
     public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupTagHelperElement(this);
 
-    public MarkupTagHelperElementSyntax Update(MarkupTagHelperStartTagSyntax startTag, SyntaxList<RazorSyntaxNode> body, MarkupTagHelperEndTagSyntax endTag)
+    public MarkupTagHelperElementSyntax Update(MarkupTagHelperStartTagSyntax startTag, SyntaxList<RazorSyntaxNode> body, MarkupTagHelperEndTagSyntax endTag, TagHelperInfo tagHelperInfo)
     {
         if (startTag != StartTag || body != Body || endTag != EndTag)
         {
-            var newNode = SyntaxFactory.MarkupTagHelperElement(startTag, body, endTag);
+            var newNode = SyntaxFactory.MarkupTagHelperElement(startTag, body, endTag, tagHelperInfo);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
@@ -1044,9 +1045,10 @@ internal sealed partial class MarkupTagHelperElementSyntax : MarkupSyntaxNode
         return this;
     }
 
-    public MarkupTagHelperElementSyntax WithStartTag(MarkupTagHelperStartTagSyntax startTag) => Update(startTag, Body, EndTag);
-    public MarkupTagHelperElementSyntax WithBody(SyntaxList<RazorSyntaxNode> body) => Update(StartTag, body, EndTag);
-    public MarkupTagHelperElementSyntax WithEndTag(MarkupTagHelperEndTagSyntax endTag) => Update(StartTag, Body, endTag);
+    public MarkupTagHelperElementSyntax WithStartTag(MarkupTagHelperStartTagSyntax startTag) => Update(startTag, Body, EndTag, TagHelperInfo);
+    public MarkupTagHelperElementSyntax WithBody(SyntaxList<RazorSyntaxNode> body) => Update(StartTag, body, EndTag, TagHelperInfo);
+    public MarkupTagHelperElementSyntax WithEndTag(MarkupTagHelperEndTagSyntax endTag) => Update(StartTag, Body, endTag, TagHelperInfo);
+    public MarkupTagHelperElementSyntax WithTagHelperInfo(TagHelperInfo tagHelperInfo) => Update(StartTag, Body, EndTag, tagHelperInfo);
 
     public MarkupTagHelperElementSyntax AddStartTagAttributes(params RazorSyntaxNode[] items) => WithStartTag(this.StartTag.WithAttributes(this.StartTag.Attributes.AddRange(items)));
 
@@ -1213,6 +1215,7 @@ internal sealed partial class MarkupTagHelperAttributeSyntax : MarkupSyntaxNode
     public MarkupTextLiteralSyntax ValuePrefix  => GetRed(ref _valuePrefix, 4);
     public MarkupTagHelperAttributeValueSyntax Value  => GetRed(ref _value, 5);
     public MarkupTextLiteralSyntax ValueSuffix  => GetRed(ref _valueSuffix, 6);
+    public TagHelperAttributeInfo TagHelperAttributeInfo => ((InternalSyntax.MarkupTagHelperAttributeSyntax)Green).TagHelperAttributeInfo;
 
     internal override SyntaxNode GetNodeSlot(int index)
         => index switch
@@ -1241,11 +1244,11 @@ internal sealed partial class MarkupTagHelperAttributeSyntax : MarkupSyntaxNode
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupTagHelperAttribute(this);
     public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupTagHelperAttribute(this);
 
-    public MarkupTagHelperAttributeSyntax Update(MarkupTextLiteralSyntax namePrefix, MarkupTextLiteralSyntax name, MarkupTextLiteralSyntax nameSuffix, SyntaxToken equalsToken, MarkupTextLiteralSyntax valuePrefix, MarkupTagHelperAttributeValueSyntax value, MarkupTextLiteralSyntax valueSuffix)
+    public MarkupTagHelperAttributeSyntax Update(MarkupTextLiteralSyntax namePrefix, MarkupTextLiteralSyntax name, MarkupTextLiteralSyntax nameSuffix, SyntaxToken equalsToken, MarkupTextLiteralSyntax valuePrefix, MarkupTagHelperAttributeValueSyntax value, MarkupTextLiteralSyntax valueSuffix, TagHelperAttributeInfo tagHelperAttributeInfo)
     {
         if (namePrefix != NamePrefix || name != Name || nameSuffix != NameSuffix || equalsToken != EqualsToken || valuePrefix != ValuePrefix || value != Value || valueSuffix != ValueSuffix)
         {
-            var newNode = SyntaxFactory.MarkupTagHelperAttribute(namePrefix, name, nameSuffix, equalsToken, valuePrefix, value, valueSuffix);
+            var newNode = SyntaxFactory.MarkupTagHelperAttribute(namePrefix, name, nameSuffix, equalsToken, valuePrefix, value, valueSuffix, tagHelperAttributeInfo);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
@@ -1256,13 +1259,14 @@ internal sealed partial class MarkupTagHelperAttributeSyntax : MarkupSyntaxNode
         return this;
     }
 
-    public MarkupTagHelperAttributeSyntax WithNamePrefix(MarkupTextLiteralSyntax namePrefix) => Update(namePrefix, Name, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
-    public MarkupTagHelperAttributeSyntax WithName(MarkupTextLiteralSyntax name) => Update(NamePrefix, name, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
-    public MarkupTagHelperAttributeSyntax WithNameSuffix(MarkupTextLiteralSyntax nameSuffix) => Update(NamePrefix, Name, nameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
-    public MarkupTagHelperAttributeSyntax WithEqualsToken(SyntaxToken equalsToken) => Update(NamePrefix, Name, NameSuffix, equalsToken, ValuePrefix, Value, ValueSuffix);
-    public MarkupTagHelperAttributeSyntax WithValuePrefix(MarkupTextLiteralSyntax valuePrefix) => Update(NamePrefix, Name, NameSuffix, EqualsToken, valuePrefix, Value, ValueSuffix);
-    public MarkupTagHelperAttributeSyntax WithValue(MarkupTagHelperAttributeValueSyntax value) => Update(NamePrefix, Name, NameSuffix, EqualsToken, ValuePrefix, value, ValueSuffix);
-    public MarkupTagHelperAttributeSyntax WithValueSuffix(MarkupTextLiteralSyntax valueSuffix) => Update(NamePrefix, Name, NameSuffix, EqualsToken, ValuePrefix, Value, valueSuffix);
+    public MarkupTagHelperAttributeSyntax WithNamePrefix(MarkupTextLiteralSyntax namePrefix) => Update(namePrefix, Name, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix, TagHelperAttributeInfo);
+    public MarkupTagHelperAttributeSyntax WithName(MarkupTextLiteralSyntax name) => Update(NamePrefix, name, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix, TagHelperAttributeInfo);
+    public MarkupTagHelperAttributeSyntax WithNameSuffix(MarkupTextLiteralSyntax nameSuffix) => Update(NamePrefix, Name, nameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix, TagHelperAttributeInfo);
+    public MarkupTagHelperAttributeSyntax WithEqualsToken(SyntaxToken equalsToken) => Update(NamePrefix, Name, NameSuffix, equalsToken, ValuePrefix, Value, ValueSuffix, TagHelperAttributeInfo);
+    public MarkupTagHelperAttributeSyntax WithValuePrefix(MarkupTextLiteralSyntax valuePrefix) => Update(NamePrefix, Name, NameSuffix, EqualsToken, valuePrefix, Value, ValueSuffix, TagHelperAttributeInfo);
+    public MarkupTagHelperAttributeSyntax WithValue(MarkupTagHelperAttributeValueSyntax value) => Update(NamePrefix, Name, NameSuffix, EqualsToken, ValuePrefix, value, ValueSuffix, TagHelperAttributeInfo);
+    public MarkupTagHelperAttributeSyntax WithValueSuffix(MarkupTextLiteralSyntax valueSuffix) => Update(NamePrefix, Name, NameSuffix, EqualsToken, ValuePrefix, Value, valueSuffix, TagHelperAttributeInfo);
+    public MarkupTagHelperAttributeSyntax WithTagHelperAttributeInfo(TagHelperAttributeInfo tagHelperAttributeInfo) => Update(NamePrefix, Name, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix, tagHelperAttributeInfo);
 
     public MarkupTagHelperAttributeSyntax AddNameLiteralTokens(params SyntaxToken[] items) => WithName(this.Name.WithLiteralTokens(this.Name.LiteralTokens.AddRange(items)));
 
@@ -1281,6 +1285,7 @@ internal sealed partial class MarkupMinimizedTagHelperAttributeSyntax : MarkupSy
 
     public MarkupTextLiteralSyntax NamePrefix  => GetRedAtZero(ref _namePrefix);
     public MarkupTextLiteralSyntax Name  => GetRed(ref _name, 1);
+    public TagHelperAttributeInfo TagHelperAttributeInfo => ((InternalSyntax.MarkupMinimizedTagHelperAttributeSyntax)Green).TagHelperAttributeInfo;
 
     internal override SyntaxNode GetNodeSlot(int index)
         => index switch
@@ -1301,11 +1306,11 @@ internal sealed partial class MarkupMinimizedTagHelperAttributeSyntax : MarkupSy
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupMinimizedTagHelperAttribute(this);
     public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupMinimizedTagHelperAttribute(this);
 
-    public MarkupMinimizedTagHelperAttributeSyntax Update(MarkupTextLiteralSyntax namePrefix, MarkupTextLiteralSyntax name)
+    public MarkupMinimizedTagHelperAttributeSyntax Update(MarkupTextLiteralSyntax namePrefix, MarkupTextLiteralSyntax name, TagHelperAttributeInfo tagHelperAttributeInfo)
     {
         if (namePrefix != NamePrefix || name != Name)
         {
-            var newNode = SyntaxFactory.MarkupMinimizedTagHelperAttribute(namePrefix, name);
+            var newNode = SyntaxFactory.MarkupMinimizedTagHelperAttribute(namePrefix, name, tagHelperAttributeInfo);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
@@ -1316,8 +1321,9 @@ internal sealed partial class MarkupMinimizedTagHelperAttributeSyntax : MarkupSy
         return this;
     }
 
-    public MarkupMinimizedTagHelperAttributeSyntax WithNamePrefix(MarkupTextLiteralSyntax namePrefix) => Update(namePrefix, Name);
-    public MarkupMinimizedTagHelperAttributeSyntax WithName(MarkupTextLiteralSyntax name) => Update(NamePrefix, name);
+    public MarkupMinimizedTagHelperAttributeSyntax WithNamePrefix(MarkupTextLiteralSyntax namePrefix) => Update(namePrefix, Name, TagHelperAttributeInfo);
+    public MarkupMinimizedTagHelperAttributeSyntax WithName(MarkupTextLiteralSyntax name) => Update(NamePrefix, name, TagHelperAttributeInfo);
+    public MarkupMinimizedTagHelperAttributeSyntax WithTagHelperAttributeInfo(TagHelperAttributeInfo tagHelperAttributeInfo) => Update(NamePrefix, Name, tagHelperAttributeInfo);
 
     public MarkupMinimizedTagHelperAttributeSyntax AddNameLiteralTokens(params SyntaxToken[] items) => WithName(this.Name.WithLiteralTokens(this.Name.LiteralTokens.AddRange(items)));
 }
@@ -1389,6 +1395,7 @@ internal sealed partial class MarkupTagHelperDirectiveAttributeSyntax : MarkupSy
     public MarkupTextLiteralSyntax ValuePrefix  => GetRed(ref _valuePrefix, 7);
     public MarkupTagHelperAttributeValueSyntax Value  => GetRed(ref _value, 8);
     public MarkupTextLiteralSyntax ValueSuffix  => GetRed(ref _valueSuffix, 9);
+    public TagHelperAttributeInfo TagHelperAttributeInfo => ((InternalSyntax.MarkupTagHelperDirectiveAttributeSyntax)Green).TagHelperAttributeInfo;
 
     internal override SyntaxNode GetNodeSlot(int index)
         => index switch
@@ -1423,11 +1430,11 @@ internal sealed partial class MarkupTagHelperDirectiveAttributeSyntax : MarkupSy
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupTagHelperDirectiveAttribute(this);
     public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupTagHelperDirectiveAttribute(this);
 
-    public MarkupTagHelperDirectiveAttributeSyntax Update(MarkupTextLiteralSyntax namePrefix, RazorMetaCodeSyntax transition, MarkupTextLiteralSyntax name, RazorMetaCodeSyntax colon, MarkupTextLiteralSyntax parameterName, MarkupTextLiteralSyntax nameSuffix, SyntaxToken equalsToken, MarkupTextLiteralSyntax valuePrefix, MarkupTagHelperAttributeValueSyntax value, MarkupTextLiteralSyntax valueSuffix)
+    public MarkupTagHelperDirectiveAttributeSyntax Update(MarkupTextLiteralSyntax namePrefix, RazorMetaCodeSyntax transition, MarkupTextLiteralSyntax name, RazorMetaCodeSyntax colon, MarkupTextLiteralSyntax parameterName, MarkupTextLiteralSyntax nameSuffix, SyntaxToken equalsToken, MarkupTextLiteralSyntax valuePrefix, MarkupTagHelperAttributeValueSyntax value, MarkupTextLiteralSyntax valueSuffix, TagHelperAttributeInfo tagHelperAttributeInfo)
     {
         if (namePrefix != NamePrefix || transition != Transition || name != Name || colon != Colon || parameterName != ParameterName || nameSuffix != NameSuffix || equalsToken != EqualsToken || valuePrefix != ValuePrefix || value != Value || valueSuffix != ValueSuffix)
         {
-            var newNode = SyntaxFactory.MarkupTagHelperDirectiveAttribute(namePrefix, transition, name, colon, parameterName, nameSuffix, equalsToken, valuePrefix, value, valueSuffix);
+            var newNode = SyntaxFactory.MarkupTagHelperDirectiveAttribute(namePrefix, transition, name, colon, parameterName, nameSuffix, equalsToken, valuePrefix, value, valueSuffix, tagHelperAttributeInfo);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
@@ -1438,16 +1445,17 @@ internal sealed partial class MarkupTagHelperDirectiveAttributeSyntax : MarkupSy
         return this;
     }
 
-    public MarkupTagHelperDirectiveAttributeSyntax WithNamePrefix(MarkupTextLiteralSyntax namePrefix) => Update(namePrefix, Transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
-    public MarkupTagHelperDirectiveAttributeSyntax WithTransition(RazorMetaCodeSyntax transition) => Update(NamePrefix, transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
-    public MarkupTagHelperDirectiveAttributeSyntax WithName(MarkupTextLiteralSyntax name) => Update(NamePrefix, Transition, name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
-    public MarkupTagHelperDirectiveAttributeSyntax WithColon(RazorMetaCodeSyntax colon) => Update(NamePrefix, Transition, Name, colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
-    public MarkupTagHelperDirectiveAttributeSyntax WithParameterName(MarkupTextLiteralSyntax parameterName) => Update(NamePrefix, Transition, Name, Colon, parameterName, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
-    public MarkupTagHelperDirectiveAttributeSyntax WithNameSuffix(MarkupTextLiteralSyntax nameSuffix) => Update(NamePrefix, Transition, Name, Colon, ParameterName, nameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix);
-    public MarkupTagHelperDirectiveAttributeSyntax WithEqualsToken(SyntaxToken equalsToken) => Update(NamePrefix, Transition, Name, Colon, ParameterName, NameSuffix, equalsToken, ValuePrefix, Value, ValueSuffix);
-    public MarkupTagHelperDirectiveAttributeSyntax WithValuePrefix(MarkupTextLiteralSyntax valuePrefix) => Update(NamePrefix, Transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, valuePrefix, Value, ValueSuffix);
-    public MarkupTagHelperDirectiveAttributeSyntax WithValue(MarkupTagHelperAttributeValueSyntax value) => Update(NamePrefix, Transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, value, ValueSuffix);
-    public MarkupTagHelperDirectiveAttributeSyntax WithValueSuffix(MarkupTextLiteralSyntax valueSuffix) => Update(NamePrefix, Transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, valueSuffix);
+    public MarkupTagHelperDirectiveAttributeSyntax WithNamePrefix(MarkupTextLiteralSyntax namePrefix) => Update(namePrefix, Transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix, TagHelperAttributeInfo);
+    public MarkupTagHelperDirectiveAttributeSyntax WithTransition(RazorMetaCodeSyntax transition) => Update(NamePrefix, transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix, TagHelperAttributeInfo);
+    public MarkupTagHelperDirectiveAttributeSyntax WithName(MarkupTextLiteralSyntax name) => Update(NamePrefix, Transition, name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix, TagHelperAttributeInfo);
+    public MarkupTagHelperDirectiveAttributeSyntax WithColon(RazorMetaCodeSyntax colon) => Update(NamePrefix, Transition, Name, colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix, TagHelperAttributeInfo);
+    public MarkupTagHelperDirectiveAttributeSyntax WithParameterName(MarkupTextLiteralSyntax parameterName) => Update(NamePrefix, Transition, Name, Colon, parameterName, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix, TagHelperAttributeInfo);
+    public MarkupTagHelperDirectiveAttributeSyntax WithNameSuffix(MarkupTextLiteralSyntax nameSuffix) => Update(NamePrefix, Transition, Name, Colon, ParameterName, nameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix, TagHelperAttributeInfo);
+    public MarkupTagHelperDirectiveAttributeSyntax WithEqualsToken(SyntaxToken equalsToken) => Update(NamePrefix, Transition, Name, Colon, ParameterName, NameSuffix, equalsToken, ValuePrefix, Value, ValueSuffix, TagHelperAttributeInfo);
+    public MarkupTagHelperDirectiveAttributeSyntax WithValuePrefix(MarkupTextLiteralSyntax valuePrefix) => Update(NamePrefix, Transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, valuePrefix, Value, ValueSuffix, TagHelperAttributeInfo);
+    public MarkupTagHelperDirectiveAttributeSyntax WithValue(MarkupTagHelperAttributeValueSyntax value) => Update(NamePrefix, Transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, value, ValueSuffix, TagHelperAttributeInfo);
+    public MarkupTagHelperDirectiveAttributeSyntax WithValueSuffix(MarkupTextLiteralSyntax valueSuffix) => Update(NamePrefix, Transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, valueSuffix, TagHelperAttributeInfo);
+    public MarkupTagHelperDirectiveAttributeSyntax WithTagHelperAttributeInfo(TagHelperAttributeInfo tagHelperAttributeInfo) => Update(NamePrefix, Transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, ValueSuffix, tagHelperAttributeInfo);
 
     public MarkupTagHelperDirectiveAttributeSyntax AddTransitionMetaCode(params SyntaxToken[] items) => WithTransition(this.Transition.WithMetaCode(this.Transition.MetaCode.AddRange(items)));
 
@@ -1474,6 +1482,7 @@ internal sealed partial class MarkupMinimizedTagHelperDirectiveAttributeSyntax :
     public MarkupTextLiteralSyntax Name  => GetRed(ref _name, 2);
     public RazorMetaCodeSyntax Colon  => GetRed(ref _colon, 3);
     public MarkupTextLiteralSyntax ParameterName  => GetRed(ref _parameterName, 4);
+    public TagHelperAttributeInfo TagHelperAttributeInfo => ((InternalSyntax.MarkupMinimizedTagHelperDirectiveAttributeSyntax)Green).TagHelperAttributeInfo;
 
     internal override SyntaxNode GetNodeSlot(int index)
         => index switch
@@ -1500,11 +1509,11 @@ internal sealed partial class MarkupMinimizedTagHelperDirectiveAttributeSyntax :
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupMinimizedTagHelperDirectiveAttribute(this);
     public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupMinimizedTagHelperDirectiveAttribute(this);
 
-    public MarkupMinimizedTagHelperDirectiveAttributeSyntax Update(MarkupTextLiteralSyntax namePrefix, RazorMetaCodeSyntax transition, MarkupTextLiteralSyntax name, RazorMetaCodeSyntax colon, MarkupTextLiteralSyntax parameterName)
+    public MarkupMinimizedTagHelperDirectiveAttributeSyntax Update(MarkupTextLiteralSyntax namePrefix, RazorMetaCodeSyntax transition, MarkupTextLiteralSyntax name, RazorMetaCodeSyntax colon, MarkupTextLiteralSyntax parameterName, TagHelperAttributeInfo tagHelperAttributeInfo)
     {
         if (namePrefix != NamePrefix || transition != Transition || name != Name || colon != Colon || parameterName != ParameterName)
         {
-            var newNode = SyntaxFactory.MarkupMinimizedTagHelperDirectiveAttribute(namePrefix, transition, name, colon, parameterName);
+            var newNode = SyntaxFactory.MarkupMinimizedTagHelperDirectiveAttribute(namePrefix, transition, name, colon, parameterName, tagHelperAttributeInfo);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
@@ -1515,11 +1524,12 @@ internal sealed partial class MarkupMinimizedTagHelperDirectiveAttributeSyntax :
         return this;
     }
 
-    public MarkupMinimizedTagHelperDirectiveAttributeSyntax WithNamePrefix(MarkupTextLiteralSyntax namePrefix) => Update(namePrefix, Transition, Name, Colon, ParameterName);
-    public MarkupMinimizedTagHelperDirectiveAttributeSyntax WithTransition(RazorMetaCodeSyntax transition) => Update(NamePrefix, transition, Name, Colon, ParameterName);
-    public MarkupMinimizedTagHelperDirectiveAttributeSyntax WithName(MarkupTextLiteralSyntax name) => Update(NamePrefix, Transition, name, Colon, ParameterName);
-    public MarkupMinimizedTagHelperDirectiveAttributeSyntax WithColon(RazorMetaCodeSyntax colon) => Update(NamePrefix, Transition, Name, colon, ParameterName);
-    public MarkupMinimizedTagHelperDirectiveAttributeSyntax WithParameterName(MarkupTextLiteralSyntax parameterName) => Update(NamePrefix, Transition, Name, Colon, parameterName);
+    public MarkupMinimizedTagHelperDirectiveAttributeSyntax WithNamePrefix(MarkupTextLiteralSyntax namePrefix) => Update(namePrefix, Transition, Name, Colon, ParameterName, TagHelperAttributeInfo);
+    public MarkupMinimizedTagHelperDirectiveAttributeSyntax WithTransition(RazorMetaCodeSyntax transition) => Update(NamePrefix, transition, Name, Colon, ParameterName, TagHelperAttributeInfo);
+    public MarkupMinimizedTagHelperDirectiveAttributeSyntax WithName(MarkupTextLiteralSyntax name) => Update(NamePrefix, Transition, name, Colon, ParameterName, TagHelperAttributeInfo);
+    public MarkupMinimizedTagHelperDirectiveAttributeSyntax WithColon(RazorMetaCodeSyntax colon) => Update(NamePrefix, Transition, Name, colon, ParameterName, TagHelperAttributeInfo);
+    public MarkupMinimizedTagHelperDirectiveAttributeSyntax WithParameterName(MarkupTextLiteralSyntax parameterName) => Update(NamePrefix, Transition, Name, Colon, parameterName, TagHelperAttributeInfo);
+    public MarkupMinimizedTagHelperDirectiveAttributeSyntax WithTagHelperAttributeInfo(TagHelperAttributeInfo tagHelperAttributeInfo) => Update(NamePrefix, Transition, Name, Colon, ParameterName, tagHelperAttributeInfo);
 
     public MarkupMinimizedTagHelperDirectiveAttributeSyntax AddTransitionMetaCode(params SyntaxToken[] items) => WithTransition(this.Transition.WithMetaCode(this.Transition.MetaCode.AddRange(items)));
 

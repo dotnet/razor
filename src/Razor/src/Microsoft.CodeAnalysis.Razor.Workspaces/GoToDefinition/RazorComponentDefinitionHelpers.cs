@@ -63,7 +63,7 @@ internal static class RazorComponentDefinitionHelpers
             return false;
         }
 
-        if (tagHelperElement.TagHelperInfo?.BindingResult is not TagHelperBinding binding)
+        if (tagHelperElement.TagHelperInfo.BindingResult is not TagHelperBinding binding)
         {
             logger.LogInformation($"MarkupTagHelperElement does not contain TagHelperInfo.");
             return false;

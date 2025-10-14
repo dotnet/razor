@@ -211,10 +211,13 @@ internal static class TagHelperBlockRewriter
         {
             var rewritten = SyntaxFactory.MarkupMinimizedTagHelperAttribute(
                 attributeBlock.NamePrefix,
-                attributeBlock.Name);
-
-            rewritten = rewritten.WithTagHelperAttributeInfo(
-                    new TagHelperAttributeInfo(result.AttributeName, parameterName: null, result.AttributeStructure, result.IsBoundAttribute, isDirectiveAttribute: false));
+                attributeBlock.Name,
+                new TagHelperAttributeInfo(
+                    result.AttributeName,
+                    parameterName: null,
+                    result.AttributeStructure,
+                    result.IsBoundAttribute,
+                    isDirectiveAttribute: false));
 
             result.RewrittenAttribute = rewritten;
 
@@ -289,10 +292,14 @@ internal static class TagHelperBlockRewriter
                 attributeBlock.EqualsToken,
                 attributeBlock.ValuePrefix,
                 rewrittenValue,
-                attributeBlock.ValueSuffix);
+                attributeBlock.ValueSuffix,
+                new TagHelperAttributeInfo(
+                    result.AttributeName,
+                    parameterName: null,
+                    result.AttributeStructure,
+                    result.IsBoundAttribute,
+                    isDirectiveAttribute: false));
 
-            rewritten = rewritten.WithTagHelperAttributeInfo(
-                new TagHelperAttributeInfo(result.AttributeName, parameterName: null, result.AttributeStructure, result.IsBoundAttribute, isDirectiveAttribute: false));
 
             result.RewrittenAttribute = rewritten;
 
@@ -354,10 +361,13 @@ internal static class TagHelperBlockRewriter
             attributeBlock.EqualsToken,
             attributeBlock.ValuePrefix,
             rewrittenValue,
-            attributeBlock.ValueSuffix);
-
-        rewritten = rewritten.WithTagHelperAttributeInfo(
-            new TagHelperAttributeInfo(result.AttributeName, parameterName?.GetContent(), result.AttributeStructure, result.IsBoundAttribute, isDirectiveAttribute: true));
+            attributeBlock.ValueSuffix,
+            new TagHelperAttributeInfo(
+                result.AttributeName,
+                parameterName?.GetContent(),
+                result.AttributeStructure,
+                result.IsBoundAttribute,
+                isDirectiveAttribute: true));
 
         return rewritten;
     }
@@ -410,10 +420,13 @@ internal static class TagHelperBlockRewriter
             transition,
             attributeNameSyntax,
             colon,
-            parameterName);
-
-        rewritten = rewritten.WithTagHelperAttributeInfo(
-            new TagHelperAttributeInfo(result.AttributeName, parameterName?.GetContent(), result.AttributeStructure, result.IsBoundAttribute, isDirectiveAttribute: true));
+            parameterName,
+            new TagHelperAttributeInfo(
+                result.AttributeName,
+                parameterName?.GetContent(),
+                result.AttributeStructure,
+                result.IsBoundAttribute,
+                isDirectiveAttribute: true));
 
         return rewritten;
     }

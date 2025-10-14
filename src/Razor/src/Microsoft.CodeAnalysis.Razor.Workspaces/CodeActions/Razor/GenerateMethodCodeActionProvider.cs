@@ -105,12 +105,13 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
         eventParameterType = null;
         allowAsync = true;
 
-        var attributeName = markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.Name;
+        var tagHelperAttributeInfo = markupTagHelperDirectiveAttribute.TagHelperAttributeInfo;
+        var attributeName = tagHelperAttributeInfo.Name;
 
         // For attributes with a parameter, the attribute name actually includes the parameter, so we have to parse it
         // out ourself in order to find the attribute tag helper properly. We only do this for parameters that are valid
         // places to put C# method names.
-        if (markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.ParameterName is "after" or "set")
+        if (tagHelperAttributeInfo.ParameterName is "after" or "set")
         {
             attributeName = attributeName[..attributeName.IndexOf(':')];
         }
@@ -132,7 +133,7 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
                     else if (tagHelperDescriptor.Kind == TagHelperKind.Bind)
                     {
                         // A bind tag helper, so either @bind-XX:after or @bind-XX:set, the latter of which has a parameter
-                        if (markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.ParameterName == "set" &&
+                        if (tagHelperAttributeInfo.ParameterName == "set" &&
                             ComponentAttributeIntermediateNode.TryGetEventCallbackArgument(attribute.TypeName.AsMemory(), out var argument))
                         {
                             // Set has a parameter
@@ -181,11 +182,13 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
         eventParameterType = null;
         allowAsync = true;
 
+        var tagHelperAttributeInfo = markupTagHelperDirectiveAttribute.TagHelperAttributeInfo;
+
         foreach (var tagHelperDescriptor in binding.Descriptors)
         {
             foreach (var attribute in tagHelperDescriptor.BoundAttributes)
             {
-                if (attribute.Name == markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.Name)
+                if (attribute.Name == tagHelperAttributeInfo.Name)
                 {
                     if (attribute.IsEventCallbackProperty())
                     {

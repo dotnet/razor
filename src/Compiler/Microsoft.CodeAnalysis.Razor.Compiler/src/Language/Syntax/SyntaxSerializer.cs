@@ -126,7 +126,7 @@ internal abstract partial class SyntaxSerializer(StringBuilder builder) : Syntax
 
     private void WriteTagHelperElement(MarkupTagHelperElementSyntax node)
     {
-        var tagHelperInfo = node.TagHelperInfo.AssumeNotNull();
+        var tagHelperInfo = node.TagHelperInfo;
 
         // Write tag name
         WriteSeparator();

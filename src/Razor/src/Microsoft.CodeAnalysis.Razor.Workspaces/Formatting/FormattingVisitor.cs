@@ -212,7 +212,7 @@ internal sealed class FormattingVisitor : SyntaxWalker
         var causesIndentation = isComponent;
         if (node.Parent is MarkupTagHelperElementSyntax parentComponent &&
             IsComponentTagHelperNode(parentComponent) &&
-            ParentHasProperty(parentComponent, node.TagHelperInfo?.TagName))
+            ParentHasProperty(parentComponent, node.TagHelperInfo.TagName))
         {
             causesIndentation = false;
         }
@@ -242,7 +242,7 @@ internal sealed class FormattingVisitor : SyntaxWalker
 
         static bool IsComponentTagHelperNode(MarkupTagHelperElementSyntax node)
         {
-            return node.TagHelperInfo?.BindingResult?.Descriptors is { Length: > 0 } descriptors &&
+            return node.TagHelperInfo.BindingResult.Descriptors is { Length: > 0 } descriptors &&
                    descriptors.Any(static d => d.IsComponentOrChildContentTagHelper());
         }
 
@@ -271,7 +271,7 @@ internal sealed class FormattingVisitor : SyntaxWalker
             //
             // This code will not count "ChildContent" as causing indentation because its parent
             // has a property called "ChildContent".
-            if (parentComponent.TagHelperInfo?.BindingResult.Descriptors.Any(d => d.BoundAttributes.Any(a => a.Name == propertyName)) ?? false)
+            if (parentComponent.TagHelperInfo.BindingResult.Descriptors.Any(d => d.BoundAttributes.Any(a => a.Name == propertyName)))
             {
                 return true;
             }
@@ -281,7 +281,7 @@ internal sealed class FormattingVisitor : SyntaxWalker
 
         static bool HasUnspecifiedCascadingTypeParameter(MarkupTagHelperElementSyntax node)
         {
-            if (node.TagHelperInfo?.BindingResult?.Descriptors is not { Length: > 0 } descriptors)
+            if (node.TagHelperInfo.BindingResult.Descriptors is not { Length: > 0 } descriptors)
             {
                 return false;
             }
