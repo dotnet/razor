@@ -71,7 +71,7 @@ internal sealed class FormattingVisitor : SyntaxWalker
 
             var isInCodeBlockDirective =
                 node.Parent?.Parent?.Parent is RazorDirectiveSyntax directive &&
-                directive.DirectiveDescriptor.Kind == DirectiveKind.CodeBlock;
+                directive.IsDirectiveKind(DirectiveKind.CodeBlock);
 
             if (isInCodeBlockDirective)
             {
@@ -301,12 +301,14 @@ internal sealed class FormattingVisitor : SyntaxWalker
             var typeParameterNames = descriptors.SelectMany(d => d.GetTypeParameters().Select(p => p.Name)).ToArray();
 
             var attributes = node.StartTag.Attributes.OfType<MarkupTagHelperAttributeSyntax>();
+
             foreach (var attribute in attributes)
             {
-                if (attribute.TagHelperAttributeInfo.Bound)
+                var attributeInfo = attribute.TagHelperAttributeInfo;
+
+                if (attributeInfo.Bound)
                 {
-                    var name = attribute.TagHelperAttributeInfo.Name;
-                    if (typeParameterNames.Contains(name))
+                    if (typeParameterNames.Contains(attributeInfo.Name))
                     {
                         return false;
                     }

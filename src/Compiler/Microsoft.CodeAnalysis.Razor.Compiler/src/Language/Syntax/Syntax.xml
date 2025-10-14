@@ -371,6 +371,7 @@
     <Field Name="Body" Type="CSharpSyntaxNode" Override="true">
       <Kind Name="RazorDirectiveBody" />
     </Field>
+    <Field Name="DirectiveDescriptor" Type="DirectiveDescriptor" Optional="true" />
   </Node>
   <Node Name="RazorDirectiveBodySyntax" Base="CSharpSyntaxNode">
     <Kind Name="RazorDirectiveBody" />

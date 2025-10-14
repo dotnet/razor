@@ -369,7 +369,7 @@ internal partial class SyntaxRewriter : SyntaxVisitor<SyntaxNode>
         => node.Update((CSharpCodeBlockSyntax)Visit(node.CSharpCode));
 
     public override SyntaxNode VisitRazorDirective(RazorDirectiveSyntax node)
-        => node.Update((CSharpTransitionSyntax)Visit(node.Transition), (CSharpSyntaxNode)Visit(node.Body));
+        => node.Update((CSharpTransitionSyntax)Visit(node.Transition), (CSharpSyntaxNode)Visit(node.Body), node.DirectiveDescriptor);
 
     public override SyntaxNode VisitRazorDirectiveBody(RazorDirectiveBodySyntax node)
         => node.Update((RazorSyntaxNode)Visit(node.Keyword), (CSharpCodeBlockSyntax)Visit(node.CSharpCode));
@@ -796,12 +796,16 @@ internal static partial class SyntaxFactory
         => SyntaxFactory.CSharpImplicitExpressionBody(SyntaxFactory.CSharpCodeBlock());
 
     /// <summary>Creates a new RazorDirectiveSyntax instance.</summary>
-    public static RazorDirectiveSyntax RazorDirective(CSharpTransitionSyntax transition, CSharpSyntaxNode body)
+    public static RazorDirectiveSyntax RazorDirective(CSharpTransitionSyntax transition, CSharpSyntaxNode body, DirectiveDescriptor directiveDescriptor)
     {
         ArgHelper.ThrowIfNull(transition);
         ArgHelper.ThrowIfNull(body);
-        return (RazorDirectiveSyntax)InternalSyntax.SyntaxFactory.RazorDirective(transition == null ? null : (InternalSyntax.CSharpTransitionSyntax)transition.Green, body == null ? null : (InternalSyntax.CSharpSyntaxNode)body.Green).CreateRed();
+        return (RazorDirectiveSyntax)InternalSyntax.SyntaxFactory.RazorDirective(transition == null ? null : (InternalSyntax.CSharpTransitionSyntax)transition.Green, body == null ? null : (InternalSyntax.CSharpSyntaxNode)body.Green, directiveDescriptor).CreateRed();
     }
+
+    /// <summary>Creates a new RazorDirectiveSyntax instance.</summary>
+    public static RazorDirectiveSyntax RazorDirective(CSharpTransitionSyntax transition, CSharpSyntaxNode body)
+        => SyntaxFactory.RazorDirective(transition, body, default(DirectiveDescriptor));
 
     /// <summary>Creates a new RazorDirectiveBodySyntax instance.</summary>
     public static RazorDirectiveBodySyntax RazorDirectiveBody(RazorSyntaxNode keyword, CSharpCodeBlockSyntax csharpCode)

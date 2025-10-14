@@ -2144,6 +2144,7 @@ internal sealed partial class RazorDirectiveSyntax : CSharpRazorBlockSyntax
 
     public override CSharpTransitionSyntax Transition  => GetRedAtZero(ref _transition);
     public override CSharpSyntaxNode Body  => GetRed(ref _body, 1);
+    public DirectiveDescriptor DirectiveDescriptor => ((InternalSyntax.RazorDirectiveSyntax)Green).DirectiveDescriptor;
 
     internal override SyntaxNode GetNodeSlot(int index)
         => index switch
@@ -2164,11 +2165,11 @@ internal sealed partial class RazorDirectiveSyntax : CSharpRazorBlockSyntax
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitRazorDirective(this);
     public override void Accept(SyntaxVisitor visitor) => visitor.VisitRazorDirective(this);
 
-    public RazorDirectiveSyntax Update(CSharpTransitionSyntax transition, CSharpSyntaxNode body)
+    public RazorDirectiveSyntax Update(CSharpTransitionSyntax transition, CSharpSyntaxNode body, DirectiveDescriptor directiveDescriptor)
     {
         if (transition != Transition || body != Body)
         {
-            var newNode = SyntaxFactory.RazorDirective(transition, body);
+            var newNode = SyntaxFactory.RazorDirective(transition, body, directiveDescriptor);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
@@ -2180,9 +2181,10 @@ internal sealed partial class RazorDirectiveSyntax : CSharpRazorBlockSyntax
     }
 
     internal override CSharpRazorBlockSyntax WithTransitionCore(CSharpTransitionSyntax transition) => WithTransition(transition);
-    public new RazorDirectiveSyntax WithTransition(CSharpTransitionSyntax transition) => Update(transition, Body);
+    public new RazorDirectiveSyntax WithTransition(CSharpTransitionSyntax transition) => Update(transition, Body, DirectiveDescriptor);
     internal override CSharpRazorBlockSyntax WithBodyCore(CSharpSyntaxNode body) => WithBody(body);
-    public new RazorDirectiveSyntax WithBody(CSharpSyntaxNode body) => Update(Transition, body);
+    public new RazorDirectiveSyntax WithBody(CSharpSyntaxNode body) => Update(Transition, body, DirectiveDescriptor);
+    public RazorDirectiveSyntax WithDirectiveDescriptor(DirectiveDescriptor directiveDescriptor) => Update(Transition, Body, directiveDescriptor);
 }
 
 internal sealed partial class RazorDirectiveBodySyntax : CSharpSyntaxNode

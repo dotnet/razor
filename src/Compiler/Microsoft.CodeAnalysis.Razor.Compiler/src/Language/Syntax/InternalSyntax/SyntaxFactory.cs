@@ -21,4 +21,9 @@ internal static partial class SyntaxFactory
     {
         return SyntaxToken.CreateMissing(kind, diagnostics);
     }
+
+    public static RazorDirectiveSyntax RazorDirective(CSharpTransitionSyntax transition, CSharpSyntaxNode body)
+    {
+        return RazorDirective(transition, body, directiveDescriptor: null);
+    }
 }

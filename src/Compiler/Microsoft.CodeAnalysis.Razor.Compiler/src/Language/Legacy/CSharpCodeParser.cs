@@ -1895,15 +1895,16 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                 {
                     node = SyntaxFactory.CSharpStatementLiteral(new SyntaxList<SyntaxToken>(SyntaxFactory.MissingToken(expectedTokenKindIfMissing)), chunkGenerator);
                 }
+
                 directiveBuilder.Add(node);
+
                 var directiveCodeBlock = SyntaxFactory.CSharpCodeBlock(directiveBuilder.ToList());
 
                 var directiveBody = SyntaxFactory.RazorDirectiveBody(keywordBlock, directiveCodeBlock);
-                var directive = SyntaxFactory.RazorDirective(transition, directiveBody);
+                var directive = SyntaxFactory.RazorDirective(transition, directiveBody, descriptor);
 
                 var diagnostics = directiveErrorSink.GetErrorsAndClear();
                 directive = directive.WithDiagnosticsGreen(diagnostics);
-                directive = directive.WithDirectiveDescriptor(descriptor);
                 return directive;
             }
         }

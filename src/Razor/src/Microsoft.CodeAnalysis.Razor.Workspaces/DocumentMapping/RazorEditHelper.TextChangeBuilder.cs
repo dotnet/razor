@@ -163,10 +163,10 @@ internal static partial class RazorEditHelper
                 var root = codeDocument.GetRequiredSyntaxRoot();
                 var nodeToInsertAfter = root
                     .DescendantNodes()
-                    .LastOrDefault(t => t is RazorDirectiveSyntax { DirectiveDescriptor: var descriptor }
-                    && (descriptor == ComponentPageDirective.Directive
-                        || descriptor == NamespaceDirective.Directive
-                        || descriptor == PageDirective.Directive));
+                    .LastOrDefault(static t => t is RazorDirectiveSyntax directive &&
+                        (directive.IsDirective(ComponentPageDirective.Directive) ||
+                         directive.IsDirective(NamespaceDirective.Directive) ||
+                         directive.IsDirective(PageDirective.Directive)));
 
                 if (nodeToInsertAfter is null)
                 {

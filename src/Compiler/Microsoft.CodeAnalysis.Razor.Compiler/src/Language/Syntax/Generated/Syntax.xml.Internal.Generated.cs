@@ -3103,8 +3103,9 @@ internal sealed partial class RazorDirectiveSyntax : CSharpRazorBlockSyntax
 {
     internal readonly CSharpTransitionSyntax _transition;
     internal readonly CSharpSyntaxNode _body;
+    internal readonly DirectiveDescriptor _directiveDescriptor;
 
-    internal RazorDirectiveSyntax(SyntaxKind kind, CSharpTransitionSyntax transition, CSharpSyntaxNode body, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
+    internal RazorDirectiveSyntax(SyntaxKind kind, CSharpTransitionSyntax transition, CSharpSyntaxNode body, DirectiveDescriptor directiveDescriptor, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
         SlotCount = 2;
@@ -3112,9 +3113,10 @@ internal sealed partial class RazorDirectiveSyntax : CSharpRazorBlockSyntax
         _transition = transition;
         AdjustFlagsAndWidth(body);
         _body = body;
+        _directiveDescriptor = directiveDescriptor;
     }
 
-    internal RazorDirectiveSyntax(SyntaxKind kind, CSharpTransitionSyntax transition, CSharpSyntaxNode body)
+    internal RazorDirectiveSyntax(SyntaxKind kind, CSharpTransitionSyntax transition, CSharpSyntaxNode body, DirectiveDescriptor directiveDescriptor)
         : base(kind)
     {
         SlotCount = 2;
@@ -3122,10 +3124,12 @@ internal sealed partial class RazorDirectiveSyntax : CSharpRazorBlockSyntax
         _transition = transition;
         AdjustFlagsAndWidth(body);
         _body = body;
+        _directiveDescriptor = directiveDescriptor;
     }
 
     public override CSharpTransitionSyntax Transition => _transition;
     public override CSharpSyntaxNode Body => _body;
+    public DirectiveDescriptor DirectiveDescriptor => _directiveDescriptor;
 
     internal override GreenNode GetSlot(int index)
         => index switch
@@ -3140,11 +3144,11 @@ internal sealed partial class RazorDirectiveSyntax : CSharpRazorBlockSyntax
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitRazorDirective(this);
     public override void Accept(SyntaxVisitor visitor) => visitor.VisitRazorDirective(this);
 
-    public RazorDirectiveSyntax Update(CSharpTransitionSyntax transition, CSharpSyntaxNode body)
+    public RazorDirectiveSyntax Update(CSharpTransitionSyntax transition, CSharpSyntaxNode body, DirectiveDescriptor directiveDescriptor)
     {
         if (transition != Transition || body != Body)
         {
-            var newNode = SyntaxFactory.RazorDirective(transition, body);
+            var newNode = SyntaxFactory.RazorDirective(transition, body, directiveDescriptor);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
                 newNode = newNode.WithDiagnosticsGreen(diags);
@@ -3158,10 +3162,10 @@ internal sealed partial class RazorDirectiveSyntax : CSharpRazorBlockSyntax
     }
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
-        => new RazorDirectiveSyntax(Kind, _transition, _body, diagnostics, GetAnnotations());
+        => new RazorDirectiveSyntax(Kind, _transition, _body, _directiveDescriptor, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new RazorDirectiveSyntax(Kind, _transition, _body, GetDiagnostics(), annotations);
+        => new RazorDirectiveSyntax(Kind, _transition, _body, _directiveDescriptor, GetDiagnostics(), annotations);
 }
 
 internal sealed partial class RazorDirectiveBodySyntax : CSharpSyntaxNode
@@ -3440,7 +3444,7 @@ internal partial class SyntaxRewriter : SyntaxVisitor<GreenNode>
         => node.Update((CSharpCodeBlockSyntax)Visit(node.CSharpCode));
 
     public override GreenNode VisitRazorDirective(RazorDirectiveSyntax node)
-        => node.Update((CSharpTransitionSyntax)Visit(node.Transition), (CSharpSyntaxNode)Visit(node.Body));
+        => node.Update((CSharpTransitionSyntax)Visit(node.Transition), (CSharpSyntaxNode)Visit(node.Body), node.DirectiveDescriptor);
 
     public override GreenNode VisitRazorDirectiveBody(RazorDirectiveBodySyntax node)
         => node.Update((RazorSyntaxNode)Visit(node.Keyword), (CSharpCodeBlockSyntax)Visit(node.CSharpCode));
@@ -3825,12 +3829,12 @@ internal static partial class SyntaxFactory
         return result;
     }
 
-    public static RazorDirectiveSyntax RazorDirective(CSharpTransitionSyntax transition, CSharpSyntaxNode body)
+    public static RazorDirectiveSyntax RazorDirective(CSharpTransitionSyntax transition, CSharpSyntaxNode body, DirectiveDescriptor directiveDescriptor)
     {
         ArgHelper.ThrowIfNull(transition);
         ArgHelper.ThrowIfNull(body);
 
-        var result = new RazorDirectiveSyntax(SyntaxKind.RazorDirective, transition, body);
+        var result = new RazorDirectiveSyntax(SyntaxKind.RazorDirective, transition, body, directiveDescriptor);
 
         return result;
     }
