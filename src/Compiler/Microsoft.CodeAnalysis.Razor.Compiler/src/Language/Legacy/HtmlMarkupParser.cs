@@ -751,7 +751,16 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         }
 
         // End tag block
-        var startTag = SyntaxFactory.MarkupStartTag(openAngleToken, bangToken, tagNameToken, attributes, forwardSlashToken, closeAngleToken, chunkGenerator);
+        var startTag = SyntaxFactory.MarkupStartTag(
+            openAngleToken,
+            bangToken,
+            tagNameToken,
+            attributes,
+            forwardSlashToken,
+            closeAngleToken,
+            chunkGenerator,
+            isMarkupTransition: false);
+
         if (string.Equals(tagName, ScriptTagName, StringComparison.OrdinalIgnoreCase))
         {
             // If the script tag expects javascript content then we should do minimal parsing until we reach
@@ -823,9 +832,10 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 attributes: miscAttributeContentBuilder.ToList(),
                 forwardSlash: forwardSlashToken,
                 closeAngle: closeAngleToken,
-                chunkGenerator);
+                chunkGenerator,
+                isMarkupTransition: true);
 
-            return GetNodeWithEditHandler(startTextTag).AsMarkupTransition();
+            return GetNodeWithEditHandler(startTextTag);
         }
     }
 
@@ -933,7 +943,16 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         }
 
         // End tag block
-        var endTag = SyntaxFactory.MarkupEndTag(openAngleToken, forwardSlashToken, bangToken, tagNameToken, miscAttributeContent, closeAngleToken, chunkGenerator);
+        var endTag = SyntaxFactory.MarkupEndTag(
+            openAngleToken,
+            forwardSlashToken,
+            bangToken,
+            tagNameToken,
+            miscAttributeContent,
+            closeAngleToken,
+            chunkGenerator,
+            isMarkupTransition: false);
+
         return GetNodeWithEditHandler(endTag);
     }
 
@@ -981,8 +1000,10 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             name: tagNameToken,
             miscAttributeContent: miscAttributeContent,
             closeAngle: closeAngleToken,
-            chunkGenerator);
-        return GetNodeWithEditHandler(endTextTag).AsMarkupTransition();
+            chunkGenerator,
+            isMarkupTransition: true);
+
+        return GetNodeWithEditHandler(endTextTag);
     }
 
     private void ParseAttributes(in SyntaxListBuilder<RazorSyntaxNode> builder)
@@ -1550,7 +1571,9 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 name: tagNameToken,
                 miscAttributeContent: miscContent,
                 closeAngle: closeAngleToken,
-                chunkGenerator);
+                chunkGenerator,
+                isMarkupTransition: false);
+
             endTag = GetNodeWithEditHandler(endTag);
         }
 

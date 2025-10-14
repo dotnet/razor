@@ -1247,8 +1247,9 @@ internal sealed partial class MarkupStartTagSyntax : BaseMarkupStartTagSyntax
     internal readonly SyntaxToken _forwardSlash;
     internal readonly SyntaxToken _closeAngle;
     internal readonly ISpanChunkGenerator _chunkGenerator;
+    internal readonly bool _isMarkupTransition;
 
-    internal MarkupStartTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, GreenNode attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
+    internal MarkupStartTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, GreenNode attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator, bool isMarkupTransition, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
         SlotCount = 6;
@@ -1274,9 +1275,10 @@ internal sealed partial class MarkupStartTagSyntax : BaseMarkupStartTagSyntax
         AdjustFlagsAndWidth(closeAngle);
         _closeAngle = closeAngle;
         _chunkGenerator = chunkGenerator;
+        _isMarkupTransition = isMarkupTransition;
     }
 
-    internal MarkupStartTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, GreenNode attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
+    internal MarkupStartTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, GreenNode attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator, bool isMarkupTransition)
         : base(kind)
     {
         SlotCount = 6;
@@ -1302,6 +1304,7 @@ internal sealed partial class MarkupStartTagSyntax : BaseMarkupStartTagSyntax
         AdjustFlagsAndWidth(closeAngle);
         _closeAngle = closeAngle;
         _chunkGenerator = chunkGenerator;
+        _isMarkupTransition = isMarkupTransition;
     }
 
     public override SyntaxToken OpenAngle => _openAngle;
@@ -1311,6 +1314,7 @@ internal sealed partial class MarkupStartTagSyntax : BaseMarkupStartTagSyntax
     public override SyntaxToken ForwardSlash => _forwardSlash;
     public override SyntaxToken CloseAngle => _closeAngle;
     public override ISpanChunkGenerator ChunkGenerator => _chunkGenerator;
+    public bool IsMarkupTransition => _isMarkupTransition;
 
     internal override GreenNode GetSlot(int index)
         => index switch
@@ -1329,11 +1333,11 @@ internal sealed partial class MarkupStartTagSyntax : BaseMarkupStartTagSyntax
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupStartTag(this);
     public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupStartTag(this);
 
-    public MarkupStartTagSyntax Update(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, InternalSyntax.SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
+    public MarkupStartTagSyntax Update(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, InternalSyntax.SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator, bool isMarkupTransition)
     {
         if (openAngle != OpenAngle || bang != Bang || name != Name || attributes != Attributes || forwardSlash != ForwardSlash || closeAngle != CloseAngle)
         {
-            var newNode = SyntaxFactory.MarkupStartTag(openAngle, bang, name, attributes, forwardSlash, closeAngle, chunkGenerator);
+            var newNode = SyntaxFactory.MarkupStartTag(openAngle, bang, name, attributes, forwardSlash, closeAngle, chunkGenerator, isMarkupTransition);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
                 newNode = newNode.WithDiagnosticsGreen(diags);
@@ -1347,10 +1351,10 @@ internal sealed partial class MarkupStartTagSyntax : BaseMarkupStartTagSyntax
     }
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
-        => new MarkupStartTagSyntax(Kind, _openAngle, _bang, _name, _attributes, _forwardSlash, _closeAngle, _chunkGenerator, diagnostics, GetAnnotations());
+        => new MarkupStartTagSyntax(Kind, _openAngle, _bang, _name, _attributes, _forwardSlash, _closeAngle, _chunkGenerator, _isMarkupTransition, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new MarkupStartTagSyntax(Kind, _openAngle, _bang, _name, _attributes, _forwardSlash, _closeAngle, _chunkGenerator, GetDiagnostics(), annotations);
+        => new MarkupStartTagSyntax(Kind, _openAngle, _bang, _name, _attributes, _forwardSlash, _closeAngle, _chunkGenerator, _isMarkupTransition, GetDiagnostics(), annotations);
 }
 
 internal sealed partial class MarkupEndTagSyntax : BaseMarkupEndTagSyntax
@@ -1362,8 +1366,9 @@ internal sealed partial class MarkupEndTagSyntax : BaseMarkupEndTagSyntax
     internal readonly MarkupMiscAttributeContentSyntax _miscAttributeContent;
     internal readonly SyntaxToken _closeAngle;
     internal readonly ISpanChunkGenerator _chunkGenerator;
+    internal readonly bool _isMarkupTransition;
 
-    internal MarkupEndTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
+    internal MarkupEndTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator, bool isMarkupTransition, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
         SlotCount = 6;
@@ -1386,9 +1391,10 @@ internal sealed partial class MarkupEndTagSyntax : BaseMarkupEndTagSyntax
         AdjustFlagsAndWidth(closeAngle);
         _closeAngle = closeAngle;
         _chunkGenerator = chunkGenerator;
+        _isMarkupTransition = isMarkupTransition;
     }
 
-    internal MarkupEndTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
+    internal MarkupEndTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator, bool isMarkupTransition)
         : base(kind)
     {
         SlotCount = 6;
@@ -1411,6 +1417,7 @@ internal sealed partial class MarkupEndTagSyntax : BaseMarkupEndTagSyntax
         AdjustFlagsAndWidth(closeAngle);
         _closeAngle = closeAngle;
         _chunkGenerator = chunkGenerator;
+        _isMarkupTransition = isMarkupTransition;
     }
 
     public override SyntaxToken OpenAngle => _openAngle;
@@ -1420,6 +1427,7 @@ internal sealed partial class MarkupEndTagSyntax : BaseMarkupEndTagSyntax
     public override MarkupMiscAttributeContentSyntax MiscAttributeContent => _miscAttributeContent;
     public override SyntaxToken CloseAngle => _closeAngle;
     public override ISpanChunkGenerator ChunkGenerator => _chunkGenerator;
+    public bool IsMarkupTransition => _isMarkupTransition;
 
     internal override GreenNode GetSlot(int index)
         => index switch
@@ -1438,11 +1446,11 @@ internal sealed partial class MarkupEndTagSyntax : BaseMarkupEndTagSyntax
     public override TResult Accept<TResult>(SyntaxVisitor<TResult> visitor) => visitor.VisitMarkupEndTag(this);
     public override void Accept(SyntaxVisitor visitor) => visitor.VisitMarkupEndTag(this);
 
-    public MarkupEndTagSyntax Update(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
+    public MarkupEndTagSyntax Update(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator, bool isMarkupTransition)
     {
         if (openAngle != OpenAngle || forwardSlash != ForwardSlash || bang != Bang || name != Name || miscAttributeContent != MiscAttributeContent || closeAngle != CloseAngle)
         {
-            var newNode = SyntaxFactory.MarkupEndTag(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, chunkGenerator);
+            var newNode = SyntaxFactory.MarkupEndTag(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, chunkGenerator, isMarkupTransition);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
                 newNode = newNode.WithDiagnosticsGreen(diags);
@@ -1456,10 +1464,10 @@ internal sealed partial class MarkupEndTagSyntax : BaseMarkupEndTagSyntax
     }
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
-        => new MarkupEndTagSyntax(Kind, _openAngle, _forwardSlash, _bang, _name, _miscAttributeContent, _closeAngle, _chunkGenerator, diagnostics, GetAnnotations());
+        => new MarkupEndTagSyntax(Kind, _openAngle, _forwardSlash, _bang, _name, _miscAttributeContent, _closeAngle, _chunkGenerator, _isMarkupTransition, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new MarkupEndTagSyntax(Kind, _openAngle, _forwardSlash, _bang, _name, _miscAttributeContent, _closeAngle, _chunkGenerator, GetDiagnostics(), annotations);
+        => new MarkupEndTagSyntax(Kind, _openAngle, _forwardSlash, _bang, _name, _miscAttributeContent, _closeAngle, _chunkGenerator, _isMarkupTransition, GetDiagnostics(), annotations);
 }
 
 internal sealed partial class MarkupTagHelperElementSyntax : MarkupSyntaxNode
@@ -3378,10 +3386,10 @@ internal partial class SyntaxRewriter : SyntaxVisitor<GreenNode>
         => node.Update((MarkupStartTagSyntax)Visit(node.StartTag), VisitList(node.Body), (MarkupEndTagSyntax)Visit(node.EndTag));
 
     public override GreenNode VisitMarkupStartTag(MarkupStartTagSyntax node)
-        => node.Update((SyntaxToken)Visit(node.OpenAngle), (SyntaxToken)Visit(node.Bang), (SyntaxToken)Visit(node.Name), VisitList(node.Attributes), (SyntaxToken)Visit(node.ForwardSlash), (SyntaxToken)Visit(node.CloseAngle), node.ChunkGenerator);
+        => node.Update((SyntaxToken)Visit(node.OpenAngle), (SyntaxToken)Visit(node.Bang), (SyntaxToken)Visit(node.Name), VisitList(node.Attributes), (SyntaxToken)Visit(node.ForwardSlash), (SyntaxToken)Visit(node.CloseAngle), node.ChunkGenerator, node.IsMarkupTransition);
 
     public override GreenNode VisitMarkupEndTag(MarkupEndTagSyntax node)
-        => node.Update((SyntaxToken)Visit(node.OpenAngle), (SyntaxToken)Visit(node.ForwardSlash), (SyntaxToken)Visit(node.Bang), (SyntaxToken)Visit(node.Name), (MarkupMiscAttributeContentSyntax)Visit(node.MiscAttributeContent), (SyntaxToken)Visit(node.CloseAngle), node.ChunkGenerator);
+        => node.Update((SyntaxToken)Visit(node.OpenAngle), (SyntaxToken)Visit(node.ForwardSlash), (SyntaxToken)Visit(node.Bang), (SyntaxToken)Visit(node.Name), (MarkupMiscAttributeContentSyntax)Visit(node.MiscAttributeContent), (SyntaxToken)Visit(node.CloseAngle), node.ChunkGenerator, node.IsMarkupTransition);
 
     public override GreenNode VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
         => node.Update((MarkupTagHelperStartTagSyntax)Visit(node.StartTag), VisitList(node.Body), (MarkupTagHelperEndTagSyntax)Visit(node.EndTag), node.TagHelperInfo);
@@ -3590,7 +3598,7 @@ internal static partial class SyntaxFactory
         return result;
     }
 
-    public static MarkupStartTagSyntax MarkupStartTag(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
+    public static MarkupStartTagSyntax MarkupStartTag(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator, bool isMarkupTransition)
     {
         ArgHelper.ThrowIfNull(openAngle);
         if (openAngle.Kind != SyntaxKind.OpenAngle)
@@ -3606,10 +3614,10 @@ internal static partial class SyntaxFactory
         if (closeAngle.Kind != SyntaxKind.CloseAngle)
             ThrowHelper.ThrowArgumentException(nameof(closeAngle), $"Invalid SyntaxKind. Expected 'SyntaxKind.CloseAngle', but it was {closeAngle.Kind}");
 
-        return new MarkupStartTagSyntax(SyntaxKind.MarkupStartTag, openAngle, bang, name, attributes.Node, forwardSlash, closeAngle, chunkGenerator);
+        return new MarkupStartTagSyntax(SyntaxKind.MarkupStartTag, openAngle, bang, name, attributes.Node, forwardSlash, closeAngle, chunkGenerator, isMarkupTransition);
     }
 
-    public static MarkupEndTagSyntax MarkupEndTag(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
+    public static MarkupEndTagSyntax MarkupEndTag(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator, bool isMarkupTransition)
     {
         ArgHelper.ThrowIfNull(openAngle);
         if (openAngle.Kind != SyntaxKind.OpenAngle)
@@ -3626,7 +3634,7 @@ internal static partial class SyntaxFactory
         if (closeAngle.Kind != SyntaxKind.CloseAngle)
             ThrowHelper.ThrowArgumentException(nameof(closeAngle), $"Invalid SyntaxKind. Expected 'SyntaxKind.CloseAngle', but it was {closeAngle.Kind}");
 
-        return new MarkupEndTagSyntax(SyntaxKind.MarkupEndTag, openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, chunkGenerator);
+        return new MarkupEndTagSyntax(SyntaxKind.MarkupEndTag, openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, chunkGenerator, isMarkupTransition);
     }
 
     public static MarkupTagHelperElementSyntax MarkupTagHelperElement(MarkupTagHelperStartTagSyntax startTag, Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> body, MarkupTagHelperEndTagSyntax endTag, TagHelperInfo tagHelperInfo)

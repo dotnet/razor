@@ -890,8 +890,8 @@ internal static class TagHelperBlockRewriter
             {
                 node = node switch
                 {
-                    MarkupStartTagSyntax start => start.Update(start.OpenAngle, start.Bang, start.Name, start.Attributes, start.ForwardSlash, start.CloseAngle, newGenerator),
-                    MarkupEndTagSyntax end => end.Update(end.OpenAngle, end.ForwardSlash, end.Bang, end.Name, end.MiscAttributeContent, end.CloseAngle, newGenerator),
+                    MarkupStartTagSyntax start => start.Update(start.OpenAngle, start.Bang, start.Name, start.Attributes, start.ForwardSlash, start.CloseAngle, newGenerator, start.IsMarkupTransition),
+                    MarkupEndTagSyntax end => end.Update(end.OpenAngle, end.ForwardSlash, end.Bang, end.Name, end.MiscAttributeContent, end.CloseAngle, newGenerator, end.IsMarkupTransition),
                     MarkupEphemeralTextLiteralSyntax ephemeral => ephemeral.Update(ephemeral.LiteralTokens, newGenerator),
                     MarkupTagHelperStartTagSyntax start => start.Update(start.OpenAngle, start.Bang, start.Name, start.Attributes, start.ForwardSlash, start.CloseAngle, newGenerator),
                     MarkupTagHelperEndTagSyntax end => end.Update(end.OpenAngle, end.ForwardSlash, end.Bang, end.Name, end.MiscAttributeContent, end.CloseAngle, newGenerator),
