@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -47,6 +48,17 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutput) : Ab
         _testLogger.LogInformation($"#### Razor integration test initialize.");
 
         VisualStudioLogging.AddCustomLoggers();
+
+        if (await TestServices.SolutionExplorer.IsSolutionOpenAsync(HangMitigatingCancellationToken))
+        {
+            var dte = await TestServices.Shell.GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(HangMitigatingCancellationToken);
+            if (dte.Debugger.CurrentMode != EnvDTE.dbgDebugMode.dbgDesignMode)
+            {
+                dte.Debugger.TerminateAll();
+            }
+
+            await TestServices.SolutionExplorer.CloseSolutionAndWaitAsync(HangMitigatingCancellationToken);
+        }
 
         // Our expected test results have spaces not tabs
         await TestServices.Shell.SetInsertSpacesAsync(ControlledHangMitigatingCancellationToken);
