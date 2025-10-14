@@ -583,6 +583,29 @@ internal static class StringExtensions
                 builder.Dispose();
             }
         }
+        /// <summary>
+        ///  Builds a string using a <see cref="MemoryBuilder{T}"/> of <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/>
+        ///  through the specified action delegate.
+        /// </summary>
+        /// <param name="action">
+        ///  The delegate that operates on the memory builder to construct the string content.
+        /// </param>
+        /// <returns>
+        ///  A string built from the chunks added to the memory builder by the action delegate.
+        /// </returns>
+        public static string Build(MemoryBuilderAction<ReadOnlyMemory<char>> action)
+        {
+            var builder = new MemoryBuilder<ReadOnlyMemory<char>>();
+            try
+            {
+                action(ref builder);
+                return builder.CreateString();
+            }
+            finally
+            {
+                builder.Dispose();
+            }
+        }
 
         /// <summary>
         ///  Attempts to build a string using a <see cref="MemoryBuilder{T}"/> of <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/>
@@ -607,6 +630,35 @@ internal static class StringExtensions
             try
             {
                 if (func(ref builder, state))
+                {
+                    return builder.CreateString();
+                }
+
+                return null;
+            }
+            finally
+            {
+                builder.Dispose();
+            }
+        }
+
+        /// <summary>
+        ///  Attempts to build a string using a <see cref="MemoryBuilder{T}"/> of <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/>
+        ///  through the specified function delegate.
+        /// </summary>
+        /// <param name="func">
+        ///  The delegate that operates on the memory builder and returns a boolean indicating success.
+        /// </param>
+        /// <returns>
+        ///  A string built from the chunks added to the memory builder if the function returns <see langword="true"/>;
+        ///  otherwise, <see langword="null"/>.
+        /// </returns>
+        public static string? TryBuild(MemoryBuilderFunc<ReadOnlyMemory<char>, bool> func)
+        {
+            var builder = new MemoryBuilder<ReadOnlyMemory<char>>();
+            try
+            {
+                if (func(ref builder))
                 {
                     return builder.CreateString();
                 }
