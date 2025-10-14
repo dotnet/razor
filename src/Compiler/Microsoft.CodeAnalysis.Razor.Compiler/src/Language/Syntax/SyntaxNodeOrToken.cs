@@ -204,6 +204,18 @@ internal readonly struct SyntaxNodeOrToken : IEquatable<SyntaxNodeOrToken>
         }
     }
 
+    public void AppendContent(ref MemoryBuilder<ReadOnlyMemory<char>> builder)
+    {
+        if (_token != null)
+        {
+            _token.AppendContent(ref builder);
+        }
+        else
+        {
+            _nodeOrParent?.AppendContent(ref builder);
+        }
+    }
+
     /// <summary>
     /// Returns the string representation of this node or token, not including its leading and trailing
     /// trivia.

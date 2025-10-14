@@ -5,13 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
@@ -22,14 +18,8 @@ internal abstract class GreenNode
     private static readonly SyntaxAnnotation[] s_noAnnotations = [];
     private static readonly IEnumerable<SyntaxAnnotation> s_noAnnotationsEnumerable = SpecializedCollections.EmptyEnumerable<SyntaxAnnotation>();
 
-    private static readonly ConditionalWeakTable<GreenNode, RazorDiagnostic[]> DiagnosticsTable = new();
+    private static readonly ConditionalWeakTable<GreenNode, RazorDiagnostic[]> s_diagnosticsTable = new();
     private static readonly ConditionalWeakTable<GreenNode, SyntaxAnnotation[]> s_annotationsTable = new();
-
-    /// <summary>
-    /// Pool of StringWriters for use in <see cref="ToString()"/>. Users should not dispose the StringWriter directly
-    /// (but should dispose of the PooledObject returned from Pool.GetPooledObject).
-    /// </summary>
-    private static readonly ObjectPool<StringWriter> StringWriterPool = DefaultPool.Create(Policy.Instance);
 
     private int _width;
     private byte _slotCount;
@@ -56,7 +46,7 @@ internal abstract class GreenNode
         if (diagnostics?.Length > 0)
         {
             Flags |= NodeFlags.ContainsDiagnostics;
-            DiagnosticsTable.Add(this, diagnostics);
+            s_diagnosticsTable.Add(this, diagnostics);
         }
 
         if (annotations?.Length > 0)
@@ -199,7 +189,7 @@ internal abstract class GreenNode
     {
         if (ContainsDiagnostics)
         {
-            if (DiagnosticsTable.TryGetValue(this, out var diagnostics))
+            if (s_diagnosticsTable.TryGetValue(this, out var diagnostics))
             {
                 return diagnostics;
             }
@@ -338,57 +328,19 @@ internal abstract class GreenNode
     #endregion
 
     #region Text
+
     private string GetDebuggerDisplay()
     {
-        using var _ = StringBuilderPool.GetPooledObject(out var builder);
-        builder.Append(GetType().Name);
-        builder.Append('<');
-        builder.Append(Kind.ToString());
-        builder.Append('>');
-
-        return builder.ToString();
+        return string.Build((ref builder) =>
+        {
+            builder.Append(GetType().Name);
+            builder.Append("<");
+            builder.Append(Kind.ToString());
+            builder.Append(">");
+        });
     }
 
-    public override string ToString()
-    {
-        // If there is only a single value in our slots, then we can just defer to the ToString
-        // implementation on that item, as it may avoid the need to allocate a string
-        if (TryGetSingleSlotValue(out var loneSlotValue))
-        {
-            return loneSlotValue.ToString();
-        }
-
-        using var _ = StringWriterPool.GetPooledObject(out var writer);
-
-        WriteTo(writer);
-
-        return writer.ToString();
-
-        bool TryGetSingleSlotValue([NotNullWhen(true)] out GreenNode? result)
-        {
-            result = null;
-
-            var slotCount = SlotCount;
-            for (var i = 0; i < slotCount; i++)
-            {
-                var slotValue = GetSlot(i);
-                if (slotValue is not null)
-                {
-                    if (result is not null)
-                    {
-                        result = null;
-                        return false;
-                    }
-
-                    result = slotValue;
-                }
-            }
-
-            return result is not null;
-        }
-    }
-
-    public void WriteTo(TextWriter writer)
+    public void AppendContent(ref MemoryBuilder<ReadOnlyMemory<char>> builder)
     {
         // Use an actual Stack so we can write out deeply recursive structures without overflowing.
         using var stack = new PooledArrayBuilder<GreenNode>();
@@ -397,19 +349,19 @@ internal abstract class GreenNode
 
         while (stack.Count > 0)
         {
-            var node = stack.Pop();
+            var current = stack.Pop();
 
-            if (node.IsToken)
+            if (current.IsToken)
             {
-                node.WriteTokenTo(writer);
+                builder.Append(((InternalSyntax.SyntaxToken)current).Content);
                 continue;
             }
 
-            var slotCount = node.SlotCount;
+            var slotCount = current.SlotCount;
 
             for (var i = slotCount - 1; i >= 0; i--)
             {
-                if (node.GetSlot(i) is GreenNode child)
+                if (current.GetSlot(i) is GreenNode child)
                 {
                     stack.Push(child);
                 }
@@ -417,10 +369,13 @@ internal abstract class GreenNode
         }
     }
 
-    protected virtual void WriteTokenTo(TextWriter writer)
+    public override string ToString()
     {
-        throw new NotImplementedException();
+        return _width == 0
+            ? string.Empty
+            : string.Build(AppendContent);
     }
+
     #endregion
 
     #region Equivalence
@@ -499,30 +454,4 @@ internal abstract class GreenNode
     public abstract TResult Accept<TResult>(InternalSyntax.SyntaxVisitor<TResult> visitor);
 
     public abstract void Accept(InternalSyntax.SyntaxVisitor visitor);
-
-    private sealed class Policy : IPooledObjectPolicy<StringWriter>
-    {
-        public static readonly Policy Instance = new();
-
-        private Policy()
-        {
-        }
-
-        public StringWriter Create()
-            => new StringWriter(new StringBuilder(), CultureInfo.InvariantCulture);
-
-        public bool Return(StringWriter writer)
-        {
-            var builder = writer.GetStringBuilder();
-
-            // Very similar to StringBuilderPool.Policy implementation.
-            builder.Clear();
-            if (builder.Capacity > DefaultPool.MaximumObjectSize)
-            {
-                builder.Capacity = DefaultPool.MaximumObjectSize;
-            }
-
-            return true;
-        }
-    }
 }

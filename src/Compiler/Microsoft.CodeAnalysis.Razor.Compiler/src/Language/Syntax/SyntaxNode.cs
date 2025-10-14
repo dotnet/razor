@@ -677,6 +677,11 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
         }
     }
 
+    public void AppendContent(ref MemoryBuilder<ReadOnlyMemory<char>> builder)
+    {
+        Green.AppendContent(ref builder);
+    }
+
     public override string ToString()
     {
         return Green.ToString();

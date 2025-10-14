@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.IO;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
 
@@ -30,11 +29,6 @@ internal class SyntaxToken : RazorSyntaxNode
     public override string ToString()
     {
         return Content;
-    }
-
-    protected override void WriteTokenTo(TextWriter writer)
-    {
-        writer.Write(Content);
     }
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[]? diagnostics)

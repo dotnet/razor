@@ -80,6 +80,11 @@ internal readonly struct SyntaxToken : IEquatable<SyntaxToken>
 
     public string Text => ToString();
 
+    public void AppendContent(ref MemoryBuilder<ReadOnlyMemory<char>> builder)
+    {
+        builder.Append(Content);
+    }
+
     public override string ToString()
         => Node?.ToString() ?? string.Empty;
 
