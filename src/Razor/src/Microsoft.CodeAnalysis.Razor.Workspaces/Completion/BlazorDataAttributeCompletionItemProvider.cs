@@ -1,6 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -63,7 +64,7 @@ internal class BlazorDataAttributeCompletionItemProvider : IRazorCompletionItemP
         }
 
         // Don't provide completions if the user is typing a directive attribute (starts with @)
-        if (selectedAttributeName?.StartsWith("@", System.StringComparison.Ordinal) == true)
+        if (selectedAttributeName?.StartsWith('@') == true)
         {
             return [];
         }

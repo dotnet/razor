@@ -13,17 +13,15 @@ internal static class CompletionContextHelper
     /// </summary>
     /// <param name="owner">The original syntax node owner.</param>
     /// <returns>The adjusted owner node.</returns>
-    /// <remarks>
-    /// This method is trying to find the nearest Start or End tag. Most of the time, that's a level up, but if the index the user is typing at
-    /// is a token of a start or end tag directly, we already have the node we want.
-    /// Invoking completion in an empty file will give us RazorDocumentSyntax which always has null parent.
-    /// Either the parent is a context we can handle, or it's not and we shouldn't show completions.
-    /// </remarks>
     public static RazorSyntaxNode? AdjustSyntaxNodeForCompletion(RazorSyntaxNode? owner)
         => owner switch
         {
+            // This provider is trying to find the nearest Start or End tag. Most of the time, that's a level up, but if the index the user is typing at
+            // is a token of a start or end tag directly, we already have the node we want.
             MarkupStartTagSyntax or MarkupEndTagSyntax or MarkupTagHelperStartTagSyntax or MarkupTagHelperEndTagSyntax or MarkupTagHelperAttributeSyntax => owner,
+            // Invoking completion in an empty file will give us RazorDocumentSyntax which always has null parent
             RazorDocumentSyntax => owner,
+            // Either the parent is a context we can handle, or it's not and we shouldn't show completions.
             _ => owner?.Parent
         };
 
