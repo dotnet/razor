@@ -308,7 +308,19 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             cancellationToken).ConfigureAwait(false);
 
         // If we couldn't resolve, fall back to what we were passed in
-        return result ?? request;
+        result ??= request;
+
+        // Check if this is a TagHelperElementWithUsing completion and add the @using statement
+        var associatedRazorCompletion = razorResolutionContext.CompletionItems.FirstOrDefault(completion => completion.DisplayText == result.Label);
+        if (associatedRazorCompletion?.DescriptionInfo is TagHelperElementWithUsingDescription descriptionInfo)
+        {
+            var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+            var addUsingEdit = AddUsingsHelper.CreateAddUsingTextEdit(descriptionInfo.Namespace, codeDocument);
+
+            result.AdditionalTextEdits = [addUsingEdit];
+        }
+
+        return result;
     }
 
     private async ValueTask<VSInternalCompletionItem> ResolveCSharpCompletionItemAsync(RemoteDocumentContext context, VSInternalCompletionItem request, VSInternalCompletionList containingCompletionList, DelegatedCompletionResolutionContext resolutionContext, RazorFormattingOptions formattingOptions, CancellationToken cancellationToken)

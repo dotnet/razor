@@ -95,4 +95,10 @@ internal sealed class RazorCompletionItem
         string displayText, string insertText,
         ImmutableArray<RazorCommitCharacter> commitCharacters)
         => new(RazorCompletionItemKind.DirectiveAttributeParameterEventValue, displayText, insertText, sortText: null, descriptionInfo: AggregateBoundAttributeDescription.Empty, commitCharacters, isSnippet: false);
+
+    public static RazorCompletionItem CreateTagHelperElementWithUsing(
+        string displayText, string insertText,
+        TagHelperElementWithUsingDescription descriptionInfo,
+        ImmutableArray<RazorCommitCharacter> commitCharacters)
+        => new(RazorCompletionItemKind.TagHelperElementWithUsing, displayText, insertText, sortText: null, descriptionInfo, commitCharacters, isSnippet: false);
 }

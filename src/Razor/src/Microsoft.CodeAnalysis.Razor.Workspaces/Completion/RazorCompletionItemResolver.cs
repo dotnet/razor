@@ -131,6 +131,28 @@ internal class RazorCompletionItemResolver : CompletionItemResolver
 
                     break;
                 }
+            case RazorCompletionItemKind.TagHelperElementWithUsing:
+                {
+                    if (associatedRazorCompletion.DescriptionInfo is not TagHelperElementWithUsingDescription descriptionInfo)
+                    {
+                        break;
+                    }
+
+                    if (useDescriptionProperty)
+                    {
+                        tagHelperClassifiedTextTooltip = await ClassifiedTagHelperTooltipFactory
+                            .TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo.ElementDescription, componentAvailabilityService, cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        tagHelperMarkupTooltip = await MarkupTagHelperTooltipFactory
+                            .TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo.ElementDescription, componentAvailabilityService, documentationKind, cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+
+                    break;
+                }
         }
 
         if (tagHelperMarkupTooltip != null)
