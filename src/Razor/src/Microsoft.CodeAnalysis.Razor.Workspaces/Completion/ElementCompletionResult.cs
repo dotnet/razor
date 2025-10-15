@@ -10,24 +10,13 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 internal sealed class ElementCompletionResult
 {
     public IReadOnlyDictionary<string, IEnumerable<TagHelperDescriptor>> Completions { get; }
-    public IReadOnlyDictionary<string, IEnumerable<TagHelperDescriptor>> CompletionsWithUsing { get; }
 
-    private ElementCompletionResult(
-        IReadOnlyDictionary<string, IEnumerable<TagHelperDescriptor>> completions,
-        IReadOnlyDictionary<string, IEnumerable<TagHelperDescriptor>> completionsWithUsing)
+    private ElementCompletionResult(IReadOnlyDictionary<string, IEnumerable<TagHelperDescriptor>> completions)
     {
         Completions = completions;
-        CompletionsWithUsing = completionsWithUsing;
     }
 
     internal static ElementCompletionResult Create(Dictionary<string, HashSet<TagHelperDescriptor>> completions)
-    {
-        return Create(completions, new Dictionary<string, HashSet<TagHelperDescriptor>>());
-    }
-
-    internal static ElementCompletionResult Create(
-        Dictionary<string, HashSet<TagHelperDescriptor>> completions,
-        Dictionary<string, HashSet<TagHelperDescriptor>> completionsWithUsing)
     {
         if (completions is null)
         {
@@ -43,15 +32,6 @@ internal sealed class ElementCompletionResult
             readonlyCompletions.Add(key, value);
         }
 
-        var readonlyCompletionsWithUsing = new Dictionary<string, IEnumerable<TagHelperDescriptor>>(
-            capacity: completionsWithUsing.Count,
-            comparer: completionsWithUsing.Comparer);
-
-        foreach (var (key, value) in completionsWithUsing)
-        {
-            readonlyCompletionsWithUsing.Add(key, value);
-        }
-
-        return new ElementCompletionResult(readonlyCompletions, readonlyCompletionsWithUsing);
+        return new ElementCompletionResult(readonlyCompletions);
     }
 }

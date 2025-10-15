@@ -173,8 +173,7 @@ internal class TagHelperCompletionService : ITagHelperCompletionService
         var catchAllDescriptors = new HashSet<TagHelperDescriptor>();
         var prefix = completionContext.DocumentContext.Prefix ?? string.Empty;
         var possibleChildDescriptors = TagHelperFacts.GetTagHelpersGivenParent(completionContext.DocumentContext, completionContext.ContainingParentTagName);
-        var (filteredDescriptors, fullyQualifiedDescriptors) = FilterFullyQualifiedCompletionsWithTracking(possibleChildDescriptors);
-        possibleChildDescriptors = filteredDescriptors;
+        possibleChildDescriptors = FilterFullyQualifiedCompletions(possibleChildDescriptors);
         foreach (var possibleDescriptor in possibleChildDescriptors)
         {
             var addRuleCompletions = false;
@@ -251,41 +250,7 @@ internal class TagHelperCompletionService : ITagHelperCompletionService
             }
         }
 
-        // Process fully qualified descriptors that were filtered out to create "with using" completions
-        var completionsWithUsing = new Dictionary<string, HashSet<TagHelperDescriptor>>(StringComparer.Ordinal);
-        foreach (var fullyQualifiedDescriptor in fullyQualifiedDescriptors)
-        {
-            if (fullyQualifiedDescriptor.BoundAttributes.Any(static boundAttribute => boundAttribute.IsDirectiveAttribute))
-            {
-                // Skip directive attributes
-                continue;
-            }
-
-            foreach (var rule in fullyQualifiedDescriptor.TagMatchingRules)
-            {
-                if (rule.TagName == TagHelperMatchingConventions.ElementCatchAllName)
-                {
-                    continue;
-                }
-
-                // Extract the short name from the fully qualified name
-                // e.g., "MyNamespace.MyComponent" -> "MyComponent"
-                var tagName = rule.TagName;
-                if (!string.IsNullOrEmpty(tagName) &&
-                    TagHelperMatchingConventions.SatisfiesAttributes(rule, tagAttributes))
-                {
-                    if (!completionsWithUsing.TryGetValue(tagName, out var descriptors))
-                    {
-                        descriptors = new HashSet<TagHelperDescriptor>();
-                        completionsWithUsing[tagName] = descriptors;
-                    }
-
-                    descriptors.Add(fullyQualifiedDescriptor);
-                }
-            }
-        }
-
-        var result = ElementCompletionResult.Create(elementCompletions, completionsWithUsing);
+        var result = ElementCompletionResult.Create(elementCompletions);
         return result;
 
         static void UpdateCompletions(string tagName, TagHelperDescriptor possibleDescriptor, Dictionary<string, HashSet<TagHelperDescriptor>> elementCompletions, HashSet<TagHelperDescriptor>? tagHelperDescriptors = null)
@@ -369,13 +334,7 @@ internal class TagHelperCompletionService : ITagHelperCompletionService
         }
     }
 
-    internal static ImmutableArray<TagHelperDescriptor> FilterFullyQualifiedCompletions(ImmutableArray<TagHelperDescriptor> possibleChildDescriptors)
-    {
-        var (filteredDescriptors, _) = FilterFullyQualifiedCompletionsWithTracking(possibleChildDescriptors);
-        return filteredDescriptors;
-    }
-
-    private static (ImmutableArray<TagHelperDescriptor> FilteredDescriptors, ImmutableArray<TagHelperDescriptor> FilteredOutFullyQualified) FilterFullyQualifiedCompletionsWithTracking(ImmutableArray<TagHelperDescriptor> possibleChildDescriptors)
+    private static ImmutableArray<TagHelperDescriptor> FilterFullyQualifiedCompletions(ImmutableArray<TagHelperDescriptor> possibleChildDescriptors)
     {
         // Iterate once through the list to tease apart fully qualified and short name TagHelpers
         using var fullyQualifiedTagHelpers = new PooledArrayBuilder<TagHelperDescriptor>();
@@ -396,7 +355,6 @@ internal class TagHelperCompletionService : ITagHelperCompletionService
         // Re-combine the short named & fully qualified TagHelpers but filter out any fully qualified TagHelpers that have a short
         // named representation already.
         using var filteredList = new PooledArrayBuilder<TagHelperDescriptor>(capacity: shortNameTagHelpers.Count);
-        using var filteredOutList = new PooledArrayBuilder<TagHelperDescriptor>();
         filteredList.AddRange(shortNameTagHelpers);
 
         foreach (var fullyQualifiedTagHelper in fullyQualifiedTagHelpers)
@@ -408,12 +366,10 @@ internal class TagHelperCompletionService : ITagHelperCompletionService
             }
             else
             {
-                // There's already a shortname variant of this item, don't include it in the main list.
-                // But we'll track it for creating "with using" completions.
-                filteredOutList.Add(fullyQualifiedTagHelper);
+                // There's already a shortname variant of this item, don't include it.
             }
         }
 
-        return (filteredList.ToImmutableAndClear(), filteredOutList.ToImmutableAndClear());
+        return filteredList.ToImmutableAndClear();
     }
 }

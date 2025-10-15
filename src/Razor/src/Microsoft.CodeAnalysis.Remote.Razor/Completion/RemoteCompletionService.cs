@@ -310,12 +310,16 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         // If we couldn't resolve, fall back to what we were passed in
         result ??= request;
 
-        // Check if this is a TagHelperElementWithUsing completion and add the @using statement
-        var associatedRazorCompletion = razorResolutionContext.CompletionItems.FirstOrDefault(completion => completion.DisplayText == result.Label);
-        if (associatedRazorCompletion?.DescriptionInfo is TagHelperElementWithUsingDescription descriptionInfo)
+        // Check if this is a completion item with @using hint (format: "ComponentName - @using Namespace")
+        // and add the @using statement as an additional edit
+        const string usingMarker = " - @using ";
+        if (result.Label.Contains(usingMarker))
         {
+            var markerIndex = result.Label.IndexOf(usingMarker);
+            var @namespace = result.Label[(markerIndex + usingMarker.Length)..];
+
             var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-            var addUsingEdit = AddUsingsHelper.CreateAddUsingTextEdit(descriptionInfo.Namespace, codeDocument);
+            var addUsingEdit = AddUsingsHelper.CreateAddUsingTextEdit(@namespace, codeDocument);
 
             result.AdditionalTextEdits = [addUsingEdit];
         }

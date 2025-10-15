@@ -242,32 +242,28 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
                 commitCharacters: commitChars);
 
             completionItems.Add(razorCompletionItem);
-        }
 
-        // Add completion items for fully qualified components that need @using statements
-        foreach (var (shortName, tagHelpers) in completionResult.CompletionsWithUsing)
-        {
-            foreach (var tagHelper in tagHelpers)
+            // Check if this is a fully qualified name (contains a dot), which means there's an out-of-scope component
+            // For these, add an additional completion item with @using hint
+            if (displayText.Contains('.'))
             {
-                // Extract namespace from the fully qualified name
-                var lastDotIndex = tagHelper.Name.LastIndexOf('.');
+                // Extract namespace from the fully qualified name (everything before the last dot)
+                var lastDotIndex = displayText.LastIndexOf('.');
                 if (lastDotIndex > 0)
                 {
-                    var @namespace = tagHelper.Name[..lastDotIndex];
-                    var displayText = $"{shortName} - @using {@namespace}";
+                    var @namespace = displayText[..lastDotIndex];
+                    var shortName = displayText[(lastDotIndex + 1)..]; // Get the short name after the last dot
+                    var displayTextWithUsing = $"{shortName} - @using {@namespace}";
 
-                    var tagHelperDescriptions = ImmutableArray.Create(BoundElementDescriptionInfo.From(tagHelper));
-                    var descriptionInfo = new TagHelperElementWithUsingDescription(
-                        new(tagHelperDescriptions),
-                        @namespace);
-
-                    var razorCompletionItem = RazorCompletionItem.CreateTagHelperElementWithUsing(
-                        displayText: displayText,
+                    // Create a completion item with modified display text
+                    // The insertText is just the short name, and we'll add the @using during resolve
+                    var razorCompletionItemWithUsing = RazorCompletionItem.CreateTagHelperElement(
+                        displayText: displayTextWithUsing,
                         insertText: shortName,
-                        descriptionInfo: descriptionInfo,
+                        descriptionInfo: new(tagHelperDescriptions),
                         commitCharacters: commitChars);
 
-                    completionItems.Add(razorCompletionItem);
+                    completionItems.Add(razorCompletionItemWithUsing);
                 }
             }
         }
