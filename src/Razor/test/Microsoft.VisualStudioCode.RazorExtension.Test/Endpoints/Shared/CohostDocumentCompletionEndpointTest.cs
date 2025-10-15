@@ -773,76 +773,22 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             fileKind: RazorFileKind.Component,
             additionalFiles: [("TestComponent.razor", componentCode)]);
 
-        var sourceText = await document.GetTextAsync(DisposalToken);
-
-        ClientSettingsManager.Update(ClientAdvancedSettings.Default with { AutoInsertAttributeQuotes = true, CommitElementsWithSpace = true });
-
-        var response = new RazorVSInternalCompletionList()
-        {
-            Items = [],
-            IsIncomplete = true
-        };
-
-        var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentCompletionName, response)]);
-
-#if VSCODE
-        ISnippetCompletionItemProvider? snippetCompletionItemProvider = null;
-#else
-        var snippetCompletionItemProvider = new SnippetCompletionItemProvider(new SnippetCache());
-#endif
-
-        var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(useVsCodeCompletionCommitCharacters: false);
-
-        var completionListCache = new CompletionListCache();
-        var endpoint = new CohostDocumentCompletionEndpoint(
-            IncompatibleProjectService,
-            RemoteServiceInvoker,
-            ClientSettingsManager,
-            ClientCapabilitiesService,
-            snippetCompletionItemProvider,
-            languageServerFeatureOptions,
-            requestInvoker,
-            completionListCache,
-            NoOpTelemetryReporter.Instance,
-            LoggerFactory);
-
-        var request = new RazorVSInternalCompletionParams()
-        {
-            TextDocument = new TextDocumentIdentifier()
+        await VerifyCompletionListAsync(
+            document,
+            expectedItemLabels: ["TestComponent", "TestComponent (and attributes...)"],
+            verifySnippetItem: (snippetItem) =>
             {
-                DocumentUri = document.CreateDocumentUri()
-            },
-            Position = sourceText.GetPosition(5),
-            Context = new VSInternalCompletionContext()
-            {
-                InvokeKind = VSInternalCompletionInvokeKind.Typing,
-                TriggerCharacter = "<",
-                TriggerKind = CompletionTriggerKind.TriggerCharacter
-            }
-        };
-
-        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
-
-        Assert.NotNull(result);
-
-        using var _ = HashSetPool<string>.GetPooledObject(out var labelSet);
-        labelSet.AddRange(result.Items.SelectAsArray((item) => item.Label));
-
-        // Should have both regular and snippet completions
-        Assert.Contains("TestComponent", labelSet);
-        Assert.Contains("TestComponent...", labelSet);
-
-        // Verify the snippet item has the correct insert text
-        var snippetItem = result.Items.First(i => i.Label == "TestComponent...");
-        Assert.Equal(InsertTextFormat.Snippet, snippetItem.InsertTextFormat);
-        Assert.Equal("TestComponent RequiredParam1=\"$1\" RequiredParam2=\"$2\">$0</TestComponent>", snippetItem.InsertText);
+                Assert.Equal(InsertTextFormat.Snippet, snippetItem.InsertTextFormat);
+                Assert.Equal("TestComponent RequiredParam1=\"$1\" RequiredParam2=\"$2\">$0</TestComponent>", snippetItem.InsertText);
+            });
     }
 
     private async Task VerifyCompletionListAsync(
         CodeAnalysis.TextDocument document,
         string[] expectedItemLabels,
         string? itemToResolve = null,
-        string? expected = null)
+        string? expected = null,
+        Action<VSInternalCompletionItem>? verifySnippetItem = null)
     {
         var sourceText = await document.GetTextAsync(DisposalToken);
 
@@ -902,6 +848,12 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         foreach (var expectedItemLabel in expectedItemLabels)
         {
             Assert.Contains(expectedItemLabel, labelSet);
+        }
+
+        if (verifySnippetItem is not null)
+        {
+            var snippetItem = result.Items.First(i => i.InsertTextFormat == InsertTextFormat.Snippet);
+            verifySnippetItem(snippetItem);
         }
 
         if (itemToResolve is not null)

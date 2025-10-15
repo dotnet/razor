@@ -252,7 +252,7 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
                 if (TryGetEditorRequiredAttributesSnippet(tagHelpersArray, displayText, out var snippetText))
                 {
                     var snippetCompletionItem = RazorCompletionItem.CreateTagHelperElement(
-                        displayText: $"{displayText}...",
+                        displayText: $"{displayText} (and attributes...)",
                         insertText: snippetText,
                         descriptionInfo: new(tagHelperDescriptions),
                         commitCharacters: commitChars,

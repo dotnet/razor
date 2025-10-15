@@ -988,7 +988,7 @@ public class TagHelperCompletionProviderTest(ITestOutputHelper testOutput) : Tag
             {
                 regularCompletion = completion;
             }
-            else if (completion.DisplayText == "ComponentWithRequiredParams...")
+            else if (completion.DisplayText == "ComponentWithRequiredParams (and attributes...)")
             {
                 snippetCompletion = completion;
             }
