@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -328,21 +329,118 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             htmlItemLabels: ["div", "h1"]);
     }
 
-    // NOTE: Test for out-of-scope component completions with @using statements
-    // The feature works by detecting fully qualified component names (containing ".") in the completion list
-    // and adding an additional "ShortName - @using Namespace" completion item. When resolved and committed,
-    // this item inserts both the short component name and adds the @using statement.
-    // 
-    // In the default test environment, all standard ASP.NET Core components are already imported,
-    // so fully qualified names don't appear in completions. To properly test this feature, a custom
-    // test project setup would be needed with components in unimported namespaces.
-    //
-    // The implementation can be verified by:
-    // 1. TagHelperCompletionProvider adds "with using" items for any completion containing "."
-    // 2. RemoteCompletionService detects the " - @using " pattern and adds AdditionalTextEdits
-    //
-    // Manual testing: Create a Blazor project, remove @using statements from _Imports.razor,
-    // type "<InputText" and verify "InputText - @using Microsoft.AspNetCore.Components.Forms" appears.
+    [Fact]
+    public async Task ComponentCompletionWithUsing()
+    {
+        // Create a component in a custom namespace that won't be imported by default
+        var customComponent = """
+            @namespace MyApp.Components
+
+            <h3>CustomWidget</h3>
+
+            @code {
+                [Parameter] public string? Title { get; set; }
+            }
+            """;
+
+        var document = CreateProjectAndRazorDocument(
+            contents: "<$$",
+            additionalFiles: [(Path.Combine(TestProjectData.SomeProjectPath, "CustomWidget.razor"), customComponent)]);
+        
+        var sourceText = await document.GetTextAsync(DisposalToken);
+
+        ClientSettingsManager.Update(ClientAdvancedSettings.Default);
+
+        var response = new RazorVSInternalCompletionList()
+        {
+            Items = [new VSInternalCompletionItem() { Label = "div" }],
+            IsIncomplete = true
+        };
+
+        var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentCompletionName, response)]);
+
+#if VSCODE
+        ISnippetCompletionItemProvider? snippetCompletionItemProvider = null;
+#else
+        var snippetCompletionItemProvider = new SnippetCompletionItemProvider(new SnippetCache());
+        var snippetInfos = ImmutableArray.Create(new SnippetInfo("snippet", "snippet", "snippet", string.Empty, SnippetLanguage.Html));
+        snippetCompletionItemProvider.SnippetCache.Update(SnippetLanguage.Html, snippetInfos);
+#endif
+
+        var languageServerFeatureOptions = new TestLanguageServerFeatureOptions();
+        var completionListCache = new CompletionListCache();
+        var endpoint = new CohostDocumentCompletionEndpoint(
+            IncompatibleProjectService,
+            RemoteServiceInvoker,
+            ClientSettingsManager,
+            ClientCapabilitiesService,
+            snippetCompletionItemProvider,
+            languageServerFeatureOptions,
+            requestInvoker,
+            completionListCache,
+            NoOpTelemetryReporter.Instance,
+            LoggerFactory);
+
+        var request = new RazorVSInternalCompletionParams()
+        {
+            TextDocument = new TextDocumentIdentifier()
+            {
+                DocumentUri = document.CreateDocumentUri()
+            },
+            Position = sourceText.GetPosition(1),
+            Context = new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "<",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            }
+        };
+
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
+
+        Assert.NotNull(result);
+
+        // Verify that we get the fully qualified component name
+        var fullyQualifiedItem = result.Items.FirstOrDefault(i => i.Label == "MyApp.Components.CustomWidget");
+        Assert.NotNull(fullyQualifiedItem);
+
+        // Verify that we also get the "with using" variant
+        var withUsingItem = result.Items.FirstOrDefault(i => i.Label == "CustomWidget - @using MyApp.Components");
+        Assert.NotNull(withUsingItem);
+
+        // Now test resolution of the "with using" item
+        var resolveEndpoint = new CohostDocumentCompletionResolveEndpoint(
+            IncompatibleProjectService,
+            completionListCache,
+            RemoteServiceInvoker,
+            ClientSettingsManager,
+            new TestHtmlRequestInvoker(),
+            ClientCapabilitiesService,
+            new ThrowingSnippetCompletionItemResolveProvider(),
+            LoggerFactory);
+
+        // Clone and prep the item for resolution (must serialize/deserialize to mimic real behavior)
+        withUsingItem = JsonSerializer.Deserialize<VSInternalCompletionItem>(
+            JsonSerializer.SerializeToElement(withUsingItem, JsonHelpers.JsonSerializerOptions), 
+            JsonHelpers.JsonSerializerOptions)!;
+        withUsingItem.Data ??= result.Data ?? result.ItemDefaults?.Data;
+        
+        // Serialize the Data field as JsonElement as expected by the resolve endpoint
+        withUsingItem.Data = JsonSerializer.SerializeToElement(withUsingItem.Data, JsonHelpers.JsonSerializerOptions);
+
+        var resolvedItem = await resolveEndpoint.GetTestAccessor().HandleRequestAsync(withUsingItem, document, DisposalToken);
+
+        Assert.NotNull(resolvedItem);
+        Assert.Equal("CustomWidget - @using MyApp.Components", resolvedItem.Label);
+        
+        // Verify AdditionalTextEdits contains the @using statement
+        Assert.NotNull(resolvedItem.AdditionalTextEdits);
+        var additionalEdit = Assert.Single(resolvedItem.AdditionalTextEdits);
+        Assert.Contains("@using MyApp.Components", additionalEdit.NewText);
+        
+        // Verify the edit is at the start of the file (line 0)
+        Assert.Equal(0, additionalEdit.Range.Start.Line);
+    }
 
     [Fact]
     public async Task HtmlElementNamesAndTagHelpersCompletion_EndOfDocument()
