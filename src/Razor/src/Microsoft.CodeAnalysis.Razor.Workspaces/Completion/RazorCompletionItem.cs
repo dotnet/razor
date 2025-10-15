@@ -24,6 +24,11 @@ internal sealed class RazorCompletionItem
     public bool IsSnippet { get; }
 
     /// <summary>
+    /// For component completions, the namespace to auto-insert via @using statement when committed.
+    /// </summary>
+    public string? AutoInsertNamespace { get; }
+
+    /// <summary>
     /// Creates a new Razor completion item
     /// </summary>
     /// <param name="kind">The type of completion item this is. Used for icons and resolving extra information like tooltip text.</param>
@@ -33,6 +38,7 @@ internal sealed class RazorCompletionItem
     /// <param name="descriptionInfo">An object that provides description information for this completion item.</param>
     /// <param name="commitCharacters">Characters that can be used to commit the completion item.</param>
     /// <param name="isSnippet">Indicates whether the completion item's <see cref="InsertText"/> is an LSP snippet or not.</param>
+    /// <param name="autoInsertNamespace">For component completions, the namespace to auto-insert via @using statement when committed.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="displayText"/> or <paramref name="insertText"/> are <see langword="null"/>.</exception>
     private RazorCompletionItem(
         RazorCompletionItemKind kind,
@@ -41,7 +47,8 @@ internal sealed class RazorCompletionItem
         string? sortText,
         object descriptionInfo,
         ImmutableArray<RazorCommitCharacter> commitCharacters,
-        bool isSnippet)
+        bool isSnippet,
+        string? autoInsertNamespace = null)
     {
         ArgHelper.ThrowIfNull(displayText);
         ArgHelper.ThrowIfNull(insertText);
@@ -53,6 +60,7 @@ internal sealed class RazorCompletionItem
         DescriptionInfo = descriptionInfo;
         CommitCharacters = commitCharacters.NullToEmpty();
         IsSnippet = isSnippet;
+        AutoInsertNamespace = autoInsertNamespace;
     }
 
     public static RazorCompletionItem CreateDirective(
@@ -82,8 +90,9 @@ internal sealed class RazorCompletionItem
     public static RazorCompletionItem CreateTagHelperElement(
         string displayText, string insertText,
         AggregateBoundElementDescription descriptionInfo,
-        ImmutableArray<RazorCommitCharacter> commitCharacters)
-        => new(RazorCompletionItemKind.TagHelperElement, displayText, insertText, sortText: null, descriptionInfo, commitCharacters, isSnippet: false);
+        ImmutableArray<RazorCommitCharacter> commitCharacters,
+        string? autoInsertNamespace = null)
+        => new(RazorCompletionItemKind.TagHelperElement, displayText, insertText, sortText: null, descriptionInfo, commitCharacters, isSnippet: false, autoInsertNamespace);
 
     public static RazorCompletionItem CreateTagHelperAttribute(
         string displayText, string insertText, string? sortText,
@@ -95,10 +104,4 @@ internal sealed class RazorCompletionItem
         string displayText, string insertText,
         ImmutableArray<RazorCommitCharacter> commitCharacters)
         => new(RazorCompletionItemKind.DirectiveAttributeParameterEventValue, displayText, insertText, sortText: null, descriptionInfo: AggregateBoundAttributeDescription.Empty, commitCharacters, isSnippet: false);
-
-    public static RazorCompletionItem CreateTagHelperElementWithUsing(
-        string displayText, string insertText,
-        TagHelperElementWithUsingDescription descriptionInfo,
-        ImmutableArray<RazorCommitCharacter> commitCharacters)
-        => new(RazorCompletionItemKind.TagHelperElementWithUsing, displayText, insertText, sortText: null, descriptionInfo, commitCharacters, isSnippet: false);
 }

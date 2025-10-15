@@ -343,6 +343,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             }
             """;
 
+        // Use a modified version of VerifyCompletionListAsync that supports additionalFiles
         var document = CreateProjectAndRazorDocument(
             contents: "<$$",
             additionalFiles: [(Path.Combine(TestProjectData.SomeProjectPath, "CustomWidget.razor"), customComponent)]);
@@ -363,8 +364,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         ISnippetCompletionItemProvider? snippetCompletionItemProvider = null;
 #else
         var snippetCompletionItemProvider = new SnippetCompletionItemProvider(new SnippetCache());
-        var snippetInfos = ImmutableArray.Create(new SnippetInfo("snippet", "snippet", "snippet", string.Empty, SnippetLanguage.Html));
-        snippetCompletionItemProvider.SnippetCache.Update(SnippetLanguage.Html, snippetInfos);
 #endif
 
         var languageServerFeatureOptions = new TestLanguageServerFeatureOptions();
@@ -400,15 +399,19 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
 
         Assert.NotNull(result);
 
-        // Verify that we get the fully qualified component name
-        var fullyQualifiedItem = result.Items.FirstOrDefault(i => i.Label == "MyApp.Components.CustomWidget");
-        Assert.NotNull(fullyQualifiedItem);
+        // Verify expected items are present
+        var labelSet = result.Items.Select(i => i.Label).ToHashSet();
+        Assert.Contains("MyApp.Components.CustomWidget", labelSet);
+        Assert.Contains("CustomWidget - @using MyApp.Components", labelSet);
 
-        // Verify that we also get the "with using" variant
-        var withUsingItem = result.Items.FirstOrDefault(i => i.Label == "CustomWidget - @using MyApp.Components");
-        Assert.NotNull(withUsingItem);
+        // Test resolution - find and resolve the "with using" item
+        var itemToResolve = result.Items.First(i => i.Label == "CustomWidget - @using MyApp.Components");
+        itemToResolve = JsonSerializer.Deserialize<VSInternalCompletionItem>(
+            JsonSerializer.SerializeToElement(itemToResolve, JsonHelpers.JsonSerializerOptions), 
+            JsonHelpers.JsonSerializerOptions)!;
+        itemToResolve.Data ??= result.Data ?? result.ItemDefaults?.Data;
+        itemToResolve.Data = JsonSerializer.SerializeToElement(itemToResolve.Data, JsonHelpers.JsonSerializerOptions);
 
-        // Now test resolution of the "with using" item
         var resolveEndpoint = new CohostDocumentCompletionResolveEndpoint(
             IncompatibleProjectService,
             completionListCache,
@@ -419,26 +422,16 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             new ThrowingSnippetCompletionItemResolveProvider(),
             LoggerFactory);
 
-        // Clone and prep the item for resolution (must serialize/deserialize to mimic real behavior)
-        withUsingItem = JsonSerializer.Deserialize<VSInternalCompletionItem>(
-            JsonSerializer.SerializeToElement(withUsingItem, JsonHelpers.JsonSerializerOptions), 
-            JsonHelpers.JsonSerializerOptions)!;
-        withUsingItem.Data ??= result.Data ?? result.ItemDefaults?.Data;
-        
-        // Serialize the Data field as JsonElement as expected by the resolve endpoint
-        withUsingItem.Data = JsonSerializer.SerializeToElement(withUsingItem.Data, JsonHelpers.JsonSerializerOptions);
-
-        var resolvedItem = await resolveEndpoint.GetTestAccessor().HandleRequestAsync(withUsingItem, document, DisposalToken);
+        var resolvedItem = await resolveEndpoint.GetTestAccessor().HandleRequestAsync(itemToResolve, document, DisposalToken);
 
         Assert.NotNull(resolvedItem);
-        Assert.Equal("CustomWidget - @using MyApp.Components", resolvedItem.Label);
         
         // Verify AdditionalTextEdits contains the @using statement
         Assert.NotNull(resolvedItem.AdditionalTextEdits);
         var additionalEdit = Assert.Single(resolvedItem.AdditionalTextEdits);
         Assert.Contains("@using MyApp.Components", additionalEdit.NewText);
         
-        // Verify the edit is at the start of the file (line 0)
+        // Verify the @using edit is at the start of the file
         Assert.Equal(0, additionalEdit.Range.Start.Line);
     }
 

@@ -255,13 +255,13 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
                     var shortName = displayText[(lastDotIndex + 1)..]; // Get the short name after the last dot
                     var displayTextWithUsing = $"{shortName} - @using {@namespace}";
 
-                    // Create a completion item with modified display text
-                    // The insertText is just the short name, and we'll add the @using during resolve
+                    // Create a completion item with modified display text and namespace for auto-insert
                     var razorCompletionItemWithUsing = RazorCompletionItem.CreateTagHelperElement(
                         displayText: displayTextWithUsing,
                         insertText: shortName,
                         descriptionInfo: new(tagHelperDescriptions),
-                        commitCharacters: commitChars);
+                        commitCharacters: commitChars,
+                        autoInsertNamespace: @namespace);
 
                     completionItems.Add(razorCompletionItemWithUsing);
                 }
