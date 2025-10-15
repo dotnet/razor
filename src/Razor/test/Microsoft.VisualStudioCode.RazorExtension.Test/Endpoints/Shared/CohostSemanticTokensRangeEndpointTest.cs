@@ -96,6 +96,19 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
 
     [Theory]
     [CombinatorialData]
+    public async Task FullyQualifiedComponent(bool colorBackground, bool miscellaneousFile)
+    {
+        var input = """
+            @page "/"
+
+            <Microsoft.AspNetCore.Components.Web.PageTitle>Hello</Microsoft.AspNetCore.Components.Web.PageTitle>
+            """;
+
+        await VerifySemanticTokensAsync(input, colorBackground, miscellaneousFile);
+    }
+
+    [Theory]
+    [CombinatorialData]
     public async Task Legacy_Compatibility(bool colorBackground, bool miscellaneousFile)
     {
         // Same test as above, but with only the things that work in FUSE and non-FUSE, to prevent regressions

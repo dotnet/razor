@@ -70,6 +70,17 @@ internal readonly struct SemanticRange : IComparable<SemanticRange>
             return result;
         }
 
+        // If we have ranges with the same start position, we want a Razor produced token to win over a non-Razor produced token
+        // This is checked before comparing end positions to ensure Razor tokens that span multiple C# tokens are processed first
+        if (FromRazor && !other.FromRazor)
+        {
+            return -1;
+        }
+        else if (other.FromRazor && !FromRazor)
+        {
+            return 1;
+        }
+
         result = EndLine.CompareTo(other.EndLine);
         if (result != 0)
         {
@@ -80,16 +91,6 @@ internal readonly struct SemanticRange : IComparable<SemanticRange>
         if (result != 0)
         {
             return result;
-        }
-
-        // If we have ranges that are the same, we want a Razor produced token to win over a non-Razor produced token
-        if (FromRazor && !other.FromRazor)
-        {
-            return -1;
-        }
-        else if (other.FromRazor && !FromRazor)
-        {
-            return 1;
         }
 
         return 0;

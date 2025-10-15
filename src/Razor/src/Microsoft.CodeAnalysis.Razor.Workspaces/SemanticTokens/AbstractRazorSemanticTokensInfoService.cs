@@ -346,6 +346,19 @@ internal abstract partial class AbstractRazorSemanticTokensInfoService(
                 {
                     return false;
                 }
+
+                // If the previous range was from Razor and the current range is from C#,
+                // and the current range is contained within the previous range, skip it.
+                // This handles cases like fully qualified component names where Razor provides
+                // a single token but C# provides multiple tokens for the parts.
+                if (previousRange.FromRazor &&
+                    !currentRange.FromRazor &&
+                    previousRange.EndLine == currentRange.EndLine &&
+                    previousRange.StartCharacter <= currentRange.StartCharacter &&
+                    previousRange.EndCharacter >= currentRange.EndCharacter)
+                {
+                    return false;
+                }
             }
             else
             {

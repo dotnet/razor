@@ -1,0 +1,11 @@
+Line Δ, Char Δ, Length, Type, Modifier(s), Text
+0 0 1 razorTransition [] [@]
+0 1 4 razorDirective [] [page]
+0 5 3 string [razorCode] ["/"]
+2 0 1 markupTagDelimiter [] [<]
+0 1 45 razorComponentElement [] [Microsoft.AspNetCore.Components.Web.PageTitle]
+0 45 1 markupTagDelimiter [] [>]
+0 6 1 markupTagDelimiter [] [<]
+0 1 1 markupTagDelimiter [] [/]
+0 1 45 razorComponentElement [] [Microsoft.AspNetCore.Components.Web.PageTitle]
+0 45 1 markupTagDelimiter [] [>]
