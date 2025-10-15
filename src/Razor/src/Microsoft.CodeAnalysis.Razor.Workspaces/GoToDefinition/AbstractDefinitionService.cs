@@ -129,15 +129,11 @@ internal abstract class AbstractDefinitionService(
             var literalText = token.ValueText;
             _logger.LogDebug($"Found string literal: {literalText}");
 
-            // Only process if it looks like a Razor file path
-            if (literalText.IsRazorFilePath())
+            // Try to resolve the file path
+            if (TryResolveFilePath(documentSnapshot, literalText, out var resolvedPath))
             {
-                // Try to resolve the file path
-                if (TryResolveFilePath(documentSnapshot, literalText, out var resolvedPath))
-                {
-                    _logger.LogDebug($"Resolved file path: {resolvedPath}");
-                    return [LspFactory.CreateLocation(resolvedPath, LspFactory.DefaultRange)];
-                }
+                _logger.LogDebug($"Resolved file path: {resolvedPath}");
+                return [LspFactory.CreateLocation(resolvedPath, LspFactory.DefaultRange)];
             }
         }
 
@@ -149,6 +145,12 @@ internal abstract class AbstractDefinitionService(
         resolvedPath = string.Empty;
 
         if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return false;
+        }
+
+        // Only process if it looks like a Razor file path
+        if (!filePath.IsRazorFilePath())
         {
             return false;
         }
