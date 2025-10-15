@@ -349,7 +349,7 @@ internal abstract partial class AbstractRazorSemanticTokensInfoService(
 
                 // Razor ranges are allowed to extend past C# ranges though, so we need to check for that too.
                 if (previousRange.StartCharacter <= currentRange.StartCharacter &&
-                    previousRange.EndCharacter >= currentRange.EndCharacter)
+                    (previousRange.EndCharacter >= currentRange.EndCharacter || previousRange.EndLine > currentRange.EndLine))
                 {
                     return false;
                 }
