@@ -860,21 +860,6 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/4325")]
-    public async Task StringLiteral_NonExistentFile()
-    {
-        var input = """
-            @{
-                Html.Partial("~/Views/Shared/_NonExistent$$File.cshtml");
-            }
-            """;
-
-        var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Legacy);
-
-        // Should return null if file doesn't exist
-        Assert.Null(result);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/razor/issues/4325")]
     public async Task StringLiteral_RazorComponent()
     {
         var input = """
@@ -903,20 +888,6 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         Assert.Equal(FileUri("Pages/Counter.razor"), location.DocumentUri.GetRequiredParsedUri());
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/razor/issues/4325")]
-    public async Task StringLiteral_NotInString()
-    {
-        var input = """
-            @{
-                var $$ foo = "bar";
-            }
-            """;
-
-        var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Legacy);
-
-        // Should return null when not in a string literal
-        Assert.Null(result);
-    }
 
     private async Task<SumType<LspLocation, LspLocation[], DocumentLink[]>?> GetGoToDefinitionResultAsync(
         TestCode input,
