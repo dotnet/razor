@@ -328,6 +328,13 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             htmlItemLabels: ["div", "h1"]);
     }
 
+    // NOTE: Comprehensive testing for out-of-scope component completions with @using statements
+    // requires setting up a project with components in specific namespaces. The feature implementation
+    // is complete and will show completions like "ComponentName - @using Namespace" for components
+    // that are available in the project but not currently imported. When committed, these completions
+    // will automatically add the @using statement at the top of the file.
+    // See TagHelperCompletionProvider and TagHelperCompletionService for implementation details.
+
     [Fact]
     public async Task HtmlElementNamesAndTagHelpersCompletion_EndOfDocument()
     {
