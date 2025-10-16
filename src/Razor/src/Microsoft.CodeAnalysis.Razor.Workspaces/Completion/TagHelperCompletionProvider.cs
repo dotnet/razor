@@ -240,27 +240,18 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
             var razorCompletionItem = RazorCompletionItem.CreateTagHelperElement(
                 displayText: displayText,
                 insertText: displayText,
-                descriptionInfo: new(tagHelperDescriptions),
+                descriptionInfo: descriptionInfo,
                 commitCharacters: commitChars,
                 isSnippet: false);
 
             completionItems.Add(razorCompletionItem);
 
-            // If snippets are supported and the component has EditorRequired attributes, add a snippet completion item
-            if (context.Options.SnippetsSupported)
-            {
-                if (TryGetEditorRequiredAttributesSnippet(tagHelpers, displayText, out var snippetText))
-                {
-                    var snippetCompletionItem = RazorCompletionItem.CreateTagHelperElement(
-                        displayText: SR.FormatComponentCompletionWithRequiredAttributesLabel(displayText),
-                        insertText: snippetText,
-                        descriptionInfo: new(tagHelperDescriptions),
-                        commitCharacters: commitChars,
-                        isSnippet: true);
-
-                    completionItems.Add(snippetCompletionItem);
-                }
-            }
+            AddCompletionItemWithRequiredAttributesSnippet(
+                ref completionItems.AsRef(),
+                context,
+                tagHelpers,
+                displayText,
+                commitChars);
 
             AddCompletionItemWithUsingDirective(ref completionItems.AsRef(), context, commitChars, displayText, descriptionInfo);
         }
@@ -329,6 +320,31 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
             AttributeContext.FullSnippet => AttributeSnippetCommitCharacters,
             _ => throw new InvalidOperationException("Unexpected context"),
         };
+    }
+
+    private static void AddCompletionItemWithRequiredAttributesSnippet(
+        ref PooledArrayBuilder<RazorCompletionItem> completionItems,
+        RazorCompletionContext context,
+        IEnumerable<TagHelperDescriptor> tagHelpers,
+        string displayText,
+        ImmutableArray<RazorCommitCharacter> commitChars)
+    {
+        // If snippets are supported and the component has EditorRequired attributes, add a snippet completion item
+        if (context.Options.SnippetsSupported)
+        {
+            if (TryGetEditorRequiredAttributesSnippet(tagHelpers, displayText, out var snippetText))
+            {
+                var tagHelperDescriptions = tagHelpers.SelectAsArray(BoundElementDescriptionInfo.From);
+                var snippetCompletionItem = RazorCompletionItem.CreateTagHelperElement(
+                    displayText: SR.FormatComponentCompletionWithRequiredAttributesLabel(displayText),
+                    insertText: snippetText,
+                    descriptionInfo: new(tagHelperDescriptions),
+                    commitCharacters: commitChars,
+                    isSnippet: true);
+
+                completionItems.Add(snippetCompletionItem);
+            }
+        }
     }
 
     private static bool TryGetEditorRequiredAttributesSnippet(
