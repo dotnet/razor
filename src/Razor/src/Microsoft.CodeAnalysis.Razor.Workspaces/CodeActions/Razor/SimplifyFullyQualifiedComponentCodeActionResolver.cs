@@ -51,40 +51,31 @@ internal class SimplifyFullyQualifiedComponentCodeActionResolver : IRazorCodeAct
             });
         }
 
-        // Find all instances of the fully qualified component tag and replace them
+        // Find the component tag at the stored position and replace it
         var syntaxTree = codeDocument.GetSyntaxTree();
         if (syntaxTree?.Root is not null)
         {
-            using var textEdits = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>();
-
-            foreach (var node in syntaxTree.Root.DescendantNodes())
+            var owner = syntaxTree.Root.FindInnermostNode(actionParams.StartTagSpanStart, includeWhitespace: false)?.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
+            if (owner is MarkupTagHelperElementSyntax tagHelperElement &&
+                tagHelperElement.StartTag is not null)
             {
-                if (node is MarkupTagHelperElementSyntax tagHelperElement &&
-                    tagHelperElement.StartTag is not null)
+                using var textEdits = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>();
+
+                // Calculate the simple name (everything after the last dot)
+                var lastDotIndex = actionParams.FullyQualifiedName.LastIndexOf('.');
+                var simpleName = actionParams.FullyQualifiedName[(lastDotIndex + 1)..];
+
+                // Replace start tag
+                var startTagRange = tagHelperElement.StartTag.Name.GetRange(codeDocument.Source);
+                textEdits.Add(LspFactory.CreateTextEdit(startTagRange, simpleName));
+
+                // Replace end tag if it exists
+                if (tagHelperElement.EndTag is not null)
                 {
-                    var tagName = tagHelperElement.StartTag.Name.Content;
-                    if (tagName == actionParams.FullyQualifiedName)
-                    {
-                        // Calculate the simple name (everything after the last dot)
-                        var lastDotIndex = tagName.LastIndexOf('.');
-                        var simpleName = tagName[(lastDotIndex + 1)..];
-
-                        // Replace start tag
-                        var startTagRange = tagHelperElement.StartTag.Name.GetRange(codeDocument.Source);
-                        textEdits.Add(LspFactory.CreateTextEdit(startTagRange, simpleName));
-
-                        // Replace end tag if it exists
-                        if (tagHelperElement.EndTag is not null)
-                        {
-                            var endTagRange = tagHelperElement.EndTag.Name.GetRange(codeDocument.Source);
-                            textEdits.Add(LspFactory.CreateTextEdit(endTagRange, simpleName));
-                        }
-                    }
+                    var endTagRange = tagHelperElement.EndTag.Name.GetRange(codeDocument.Source);
+                    textEdits.Add(LspFactory.CreateTextEdit(endTagRange, simpleName));
                 }
-            }
 
-            if (textEdits.Count > 0)
-            {
                 documentChanges.Add(new TextDocumentEdit()
                 {
                     TextDocument = codeDocumentIdentifier,
@@ -109,9 +100,9 @@ internal class SimplifyFullyQualifiedComponentCodeActionResolver : IRazorCodeAct
 
         foreach (var node in syntaxTree.Root.DescendantNodes())
         {
-            if (node is RazorDirectiveSyntax directiveNode)
+            if (node.IsUsingDirective())
             {
-                foreach (var child in directiveNode.DescendantNodes())
+                foreach (var child in node.DescendantNodes())
                 {
                     if (child.GetChunkGenerator() is AddImportChunkGenerator { IsStatic: false } usingStatement)
                     {

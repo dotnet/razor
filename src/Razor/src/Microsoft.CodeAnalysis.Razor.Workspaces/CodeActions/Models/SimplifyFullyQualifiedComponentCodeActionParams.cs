@@ -10,6 +10,9 @@ internal sealed class SimplifyFullyQualifiedComponentCodeActionParams
     [JsonPropertyName("fullyQualifiedName")]
     public required string FullyQualifiedName { get; set; }
 
-    [JsonPropertyName("@namespace")]
+    [JsonPropertyName("namespace")]
     public required string Namespace { get; set; }
+
+    [JsonPropertyName("startTagSpanStart")]
+    public required int StartTagSpanStart { get; set; }
 }

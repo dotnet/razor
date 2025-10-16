@@ -85,40 +85,6 @@ public class SimplifyComponentTests(ITestOutputHelper testOutputHelper) : Cohost
     }
 
     [Fact]
-    public async Task SimplifyFullyQualifiedComponent_MultipleInstances()
-    {
-        await VerifyCodeActionAsync(
-            input: """
-                <Microsoft.AspNetCore.Components.Authorization.Auth[||]orizeRouteView />
-
-                <Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView>
-                    <div>Content</div>
-                </Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView>
-                """,
-            expected: """
-                @using Microsoft.AspNetCore.Components.Authorization
-
-                <AuthorizeRouteView />
-
-                <AuthorizeRouteView>
-                    <div>Content</div>
-                </AuthorizeRouteView>
-                """,
-            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent,
-            additionalFiles: [
-                (FilePath("AuthorizeRouteView.razor"), """
-                    <div>
-                        Hello World
-                    </div>
-                    
-                    @code {
-                        [Parameter]
-                        public RenderFragment? ChildContent { get; set; }
-                    }
-                    """)]);
-    }
-
-    [Fact]
     public async Task DoNotOfferOnUnqualifiedComponent()
     {
         await VerifyCodeActionAsync(

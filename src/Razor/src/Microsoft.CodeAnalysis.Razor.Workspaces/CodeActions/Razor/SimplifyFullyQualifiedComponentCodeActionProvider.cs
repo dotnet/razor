@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
@@ -47,7 +46,7 @@ internal class SimplifyFullyQualifiedComponentCodeActionProvider : IRazorCodeAct
         }
 
         // Check whether the code action is applicable to the element
-        if (!IsApplicableTo(markupElementSyntax, context.CodeDocument, out var fullyQualifiedName, out var @namespace))
+        if (!IsApplicableTo(markupElementSyntax, out var fullyQualifiedName, out var @namespace))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
@@ -56,7 +55,8 @@ internal class SimplifyFullyQualifiedComponentCodeActionProvider : IRazorCodeAct
         var actionParams = new SimplifyFullyQualifiedComponentCodeActionParams
         {
             FullyQualifiedName = fullyQualifiedName,
-            Namespace = @namespace
+            Namespace = @namespace,
+            StartTagSpanStart = markupElementSyntax.StartTag.Span.Start
         };
 
         var resolutionParams = new RazorCodeActionResolutionParams()
@@ -72,7 +72,7 @@ internal class SimplifyFullyQualifiedComponentCodeActionProvider : IRazorCodeAct
         return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>([codeAction]);
     }
 
-    internal static bool IsApplicableTo(MarkupTagHelperElementSyntax markupElementSyntax, RazorCodeDocument codeDocument, out string fullyQualifiedName, out string @namespace)
+    internal static bool IsApplicableTo(MarkupTagHelperElementSyntax markupElementSyntax, out string fullyQualifiedName, out string @namespace)
     {
         fullyQualifiedName = string.Empty;
         @namespace = string.Empty;
@@ -84,15 +84,9 @@ internal class SimplifyFullyQualifiedComponentCodeActionProvider : IRazorCodeAct
             return false;
         }
 
-        // Get the component descriptors
-        if (markupElementSyntax is not { TagHelperInfo.BindingResult.Descriptors: [.. var descriptors] })
-        {
-            return false;
-        }
-
-        // Find the component descriptor
-        var boundTagHelper = descriptors.FirstOrDefault(static d => d.Kind == TagHelperKind.Component);
-        if (boundTagHelper == null)
+        // Validate that the component is valid by checking that it has a component descriptor
+        if (markupElementSyntax is not { TagHelperInfo.BindingResult.Descriptors: [.. var descriptors] } ||
+            descriptors.FirstOrDefault(static d => d.Kind == TagHelperKind.Component) is null)
         {
             return false;
         }
@@ -107,38 +101,6 @@ internal class SimplifyFullyQualifiedComponentCodeActionProvider : IRazorCodeAct
 
         @namespace = tagName[..lastDotIndex];
 
-        // Check if the using directive already exists
-        var hasUsing = HasUsingDirective(codeDocument, @namespace);
-
-        // Only offer if we can simplify (either using already exists, or we can add it)
         return true;
-    }
-
-    private static bool HasUsingDirective(RazorCodeDocument codeDocument, string @namespace)
-    {
-        var syntaxTree = codeDocument.GetSyntaxTree();
-        if (syntaxTree?.Root is null)
-        {
-            return false;
-        }
-
-        foreach (var node in syntaxTree.Root.DescendantNodes())
-        {
-            if (node is RazorDirectiveSyntax directiveNode)
-            {
-                foreach (var child in directiveNode.DescendantNodes())
-                {
-                    if (child.GetChunkGenerator() is AddImportChunkGenerator { IsStatic: false } usingStatement)
-                    {
-                        if (usingStatement.ParsedNamespace == @namespace)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-
-        return false;
     }
 }
