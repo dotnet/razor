@@ -110,14 +110,13 @@ internal class BlazorDataAttributeCompletionItemProvider : IRazorCompletionItemP
             }
 
             var insertText = attributeName;
-            var isSnippet = false;
+            var isSnippet = context.Options.SnippetsSupported;
 
             // Add snippet text for attribute value if snippets are supported
-            if (context.Options.SnippetsSupported)
+            if (isSnippet)
             {
                 var snippetSuffix = context.Options.AutoInsertAttributeQuotes ? "=\"$0\"" : "=$0";
                 insertText = attributeName + snippetSuffix;
-                isSnippet = true;
             }
 
             // VSCode doesn't use commit characters for attribute completions
