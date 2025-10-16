@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Xunit;
 using Xunit.Abstractions;
-using WorkItem = Microsoft.AspNetCore.Razor.Test.Common.WorkItemAttribute;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
