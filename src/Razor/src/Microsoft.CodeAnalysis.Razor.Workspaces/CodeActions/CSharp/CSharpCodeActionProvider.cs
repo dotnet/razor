@@ -37,6 +37,7 @@ internal class CSharpCodeActionProvider(LanguageServerFeatureOptions languageSer
         RazorPredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString,
         RazorPredefinedCodeRefactoringProviderNames.ConvertPlaceholderToInterpolatedString,
         RazorPredefinedCodeRefactoringProviderNames.ConvertToInterpolatedString,
+        "AddAccessibilityModifiers", // IDE0040: Accessibility modifiers required
         RazorPredefinedCodeFixProviderNames.ImplementAbstractClass,
         RazorPredefinedCodeFixProviderNames.ImplementInterface,
         RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable,

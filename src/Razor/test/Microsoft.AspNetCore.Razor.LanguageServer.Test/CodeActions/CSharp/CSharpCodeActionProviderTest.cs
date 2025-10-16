@@ -298,6 +298,42 @@ $$Path;
         Assert.Equal(expectedNames, providedNames);
     }
 
+    [Fact]
+    public async Task ProvideAsync_AddAccessibilityModifiers_ReturnsProvidedCodeAction()
+    {
+        // Arrange
+        var documentPath = "c:/Test.razor";
+        var contents = "@code { $$void Method() { } }";
+        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
+        var request = new VSCodeActionParams()
+        {
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new(new Uri(documentPath)) },
+            Range = LspFactory.DefaultRange,
+            Context = new VSInternalCodeActionContext()
+        };
+
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(8, 4));
+
+        var provider = new CSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance);
+
+        ImmutableArray<RazorVSInternalCodeAction> codeActions =
+        [
+            new RazorVSInternalCodeAction()
+            {
+                Title = "Add accessibility modifiers",
+                Name = "AddAccessibilityModifiers"
+            }
+        ];
+
+        // Act
+        var providedCodeActions = await provider.ProvideAsync(context, codeActions, DisposalToken);
+
+        // Assert
+        Assert.NotEmpty(providedCodeActions);
+        Assert.Equal("AddAccessibilityModifiers", providedCodeActions[0].Name);
+    }
+
     private static RazorCodeActionContext CreateRazorCodeActionContext(
         VSCodeActionParams request,
         int absoluteIndex,
