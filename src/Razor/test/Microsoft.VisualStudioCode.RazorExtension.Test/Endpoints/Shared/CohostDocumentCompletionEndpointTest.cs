@@ -23,6 +23,8 @@ using Roslyn.Test.Utilities;
 using Roslyn.Text.Adornments;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.CodeAnalysis.Text;
+
 #if !VSCODE
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.Razor.Snippets;
@@ -992,7 +994,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
 
             Assert.NotNull(item);
 
-            await VerifyCompletionResolveAsync(document, completionListCache, item, expected, expectedResolvedItemDescription);
+            await VerifyCompletionResolveAsync(document, completionListCache, item, expected, expectedResolvedItemDescription, request.Position);
         }
 
         return result;
@@ -1043,7 +1045,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         }
     }
 
-    private async Task VerifyCompletionResolveAsync(CodeAnalysis.TextDocument document, CompletionListCache completionListCache, VSInternalCompletionItem item, string? expected, string? expectedResolvedItemDescription)
+    private async Task VerifyCompletionResolveAsync(CodeAnalysis.TextDocument document, CompletionListCache completionListCache, VSInternalCompletionItem item, string? expected, string expectedResolvedItemDescription, Position position)
     {
         // We expect data to be a JsonElement, so for tests we have to _not_ strongly type
         item.Data = JsonSerializer.SerializeToElement(item.Data, JsonHelpers.JsonSerializerOptions);
@@ -1066,47 +1068,64 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
 
         Assert.NotNull(result);
 
+        SourceText? changedText = null;
         if (result.TextEdit is { Value: TextEdit edit })
         {
             Assert.NotNull(expected);
 
             var text = await document.GetTextAsync(DisposalToken).ConfigureAwait(false);
-            var changedText = text.WithChanges(text.GetTextChange(edit));
-
-            AssertEx.EqualOrDiff(expected, changedText.ToString());
+            changedText = text.WithChanges(text.GetTextChange(edit));
         }
         else if (result.Command is { Arguments: [_, TextEdit textEdit, ..] })
         {
             Assert.NotNull(expected);
 
             var text = await document.GetTextAsync(DisposalToken).ConfigureAwait(false);
-            var changedText = text.WithChanges(text.GetTextChange(textEdit));
+            changedText = text.WithChanges(text.GetTextChange(textEdit));
+        }
+        else if (result.InsertText is { } insertText)
+        {
+            // We'll let expected be null here, since its just simple text insertion
 
-            AssertEx.EqualOrDiff(expected, changedText.ToString());
+            var text = await document.GetTextAsync(DisposalToken).ConfigureAwait(false);
+            var insertIndex = text.GetRequiredAbsoluteIndex(position);
+            changedText = text.WithChanges(new TextChange(new TextSpan(insertIndex, 0), insertText));
         }
         else if (expected is not null)
         {
             Assert.Fail("Expected a TextEdit or Command with TextEdit, but got none. Presumably resolve failed. Result: " + JsonSerializer.SerializeToElement(result).ToString());
         }
 
-        if (expectedResolvedItemDescription is not null)
+        if (result.AdditionalTextEdits is not null)
         {
-            if (result.Description is not null)
-            {
-                AssertEx.EqualOrDiff(expectedResolvedItemDescription, FlattenDescription(result.Description));
-            }
-            else if (result.Documentation is { Value: string description })
-            {
-                AssertEx.EqualOrDiff(expectedResolvedItemDescription, description);
-            }
-            else if (result.Documentation is { Value: MarkupContent { Kind.Value: "plaintext" } content })
-            {
-                AssertEx.EqualOrDiff(expectedResolvedItemDescription, content.Value);
-            }
-            else
-            {
-                Assert.Fail("Unhandled description type: " + JsonSerializer.SerializeToElement(result).ToString());
-            }
+            // Can't be only additional texts. They're additional!
+            Assert.NotNull(changedText);
+            Assert.NotNull(expected);
+
+            changedText = changedText.WithChanges(result.AdditionalTextEdits.Select(changedText.GetTextChange));
+        }
+
+        if (expected is not null)
+        {
+            Assert.NotNull(changedText);
+            AssertEx.EqualOrDiff(expected, changedText.ToString());
+        }
+
+        if (result.Description is not null)
+        {
+            AssertEx.EqualOrDiff(expectedResolvedItemDescription, FlattenDescription(result.Description));
+        }
+        else if (result.Documentation is { Value: string description })
+        {
+            AssertEx.EqualOrDiff(expectedResolvedItemDescription, description);
+        }
+        else if (result.Documentation is { Value: MarkupContent { Kind.Value: "plaintext" } content })
+        {
+            AssertEx.EqualOrDiff(expectedResolvedItemDescription, content.Value);
+        }
+        else
+        {
+            Assert.Fail("Unhandled description type: " + JsonSerializer.SerializeToElement(result).ToString());
         }
     }
 
