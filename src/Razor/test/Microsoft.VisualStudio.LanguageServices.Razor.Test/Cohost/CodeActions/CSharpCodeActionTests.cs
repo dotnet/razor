@@ -372,4 +372,332 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
 
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.AddDebuggerDisplay);
     }
+
+    [Fact]
+    public async Task AddAccessibilityModifiers_Method()
+    {
+        var input = """
+            @code {
+                [||]void Method()
+                {
+                }
+            }
+            """;
+
+        var expected = """
+            @code {
+                private void Method()
+                {
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, "AddAccessibilityModifiers");
+    }
+
+    [Fact]
+    public async Task AddAccessibilityModifiers_Class()
+    {
+        var input = """
+            @code {
+                [||]class MyClass
+                {
+                }
+            }
+            """;
+
+        var expected = """
+            @code {
+                private class MyClass
+                {
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, "AddAccessibilityModifiers");
+    }
+
+    [Fact]
+    public async Task AddAccessibilityModifiers_Property()
+    {
+        var input = """
+            @code {
+                [||]string Name { get; set; }
+            }
+            """;
+
+        var expected = """
+            @code {
+                private string Name { get; set; }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, "AddAccessibilityModifiers");
+    }
+
+    [Fact]
+    public async Task AddAccessibilityModifiers_Field()
+    {
+        var input = """
+            @code {
+                [||]int _count;
+            }
+            """;
+
+        var expected = """
+            @code {
+                private int _count;
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, "AddAccessibilityModifiers");
+    }
+
+    [Fact]
+    public async Task AddAccessibilityModifiers_FunctionsBlock()
+    {
+        var input = """
+            @functions {
+                [||]void Method()
+                {
+                }
+            }
+            """;
+
+        var expected = """
+            @functions {
+                private void Method()
+                {
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, "AddAccessibilityModifiers");
+    }
+
+    [Fact]
+    public async Task AddAccessibilityModifiers_NestedClass()
+    {
+        var input = """
+            @code {
+                public class OuterClass
+                {
+                    [||]class InnerClass
+                    {
+                    }
+                }
+            }
+            """;
+
+        var expected = """
+            @code {
+                public class OuterClass
+                {
+                    private class InnerClass
+                    {
+                    }
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, "AddAccessibilityModifiers");
+    }
+
+    [Fact]
+    public async Task AddAccessibilityModifiers_Struct()
+    {
+        var input = """
+            @code {
+                [||]struct MyStruct
+                {
+                }
+            }
+            """;
+
+        var expected = """
+            @code {
+                private struct MyStruct
+                {
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, "AddAccessibilityModifiers");
+    }
+
+    [Fact]
+    public async Task AddAccessibilityModifiers_Interface()
+    {
+        var input = """
+            @code {
+                [||]interface IMyInterface
+                {
+                }
+            }
+            """;
+
+        var expected = """
+            @code {
+                private interface IMyInterface
+                {
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, "AddAccessibilityModifiers");
+    }
+
+    [Fact]
+    public async Task AddAccessibilityModifiers_Event()
+    {
+        var input = """
+            @code {
+                [||]event System.EventHandler MyEvent;
+            }
+            """;
+
+        var expected = """
+            @code {
+                private event System.EventHandler MyEvent;
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, "AddAccessibilityModifiers");
+    }
+
+    [Fact]
+    public async Task AddAccessibilityModifiers_Delegate()
+    {
+        var input = """
+            @code {
+                [||]delegate void MyDelegate();
+            }
+            """;
+
+        var expected = """
+            @code {
+                private delegate void MyDelegate();
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, "AddAccessibilityModifiers");
+    }
+
+    [Fact]
+    public async Task AddAccessibilityModifiers_MultipleMembers()
+    {
+        var input = """
+            @code {
+                [||]int _count;
+                string _name;
+            }
+            """;
+
+        var expected = """
+            @code {
+                private int _count;
+                string _name;
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, "AddAccessibilityModifiers");
+    }
+
+    [Fact]
+    public async Task AddAccessibilityModifiers_WithAttributes()
+    {
+        var input = """
+            @code {
+                [System.Obsolete]
+                [||]void Method()
+                {
+                }
+            }
+            """;
+
+        var expected = """
+            @code {
+                [System.Obsolete]
+                private void Method()
+                {
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, "AddAccessibilityModifiers");
+    }
+
+    [Fact]
+    public async Task AddAccessibilityModifiers_AsyncMethod()
+    {
+        var input = """
+            @code {
+                [||]async Task MethodAsync()
+                {
+                    await Task.Delay(100);
+                }
+            }
+            """;
+
+        var expected = """
+            @code {
+                private async Task MethodAsync()
+                {
+                    await Task.Delay(100);
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, "AddAccessibilityModifiers");
+    }
+
+    [Fact]
+    public async Task AddAccessibilityModifiers_StaticMethod()
+    {
+        var input = """
+            @code {
+                [||]static void Method()
+                {
+                }
+            }
+            """;
+
+        var expected = """
+            @code {
+                private static void Method()
+                {
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, "AddAccessibilityModifiers");
+    }
+
+    [Fact]
+    public async Task AddAccessibilityModifiers_Constructor()
+    {
+        var input = """
+            @code {
+                public class MyClass
+                {
+                    [||]MyClass()
+                    {
+                    }
+                }
+            }
+            """;
+
+        var expected = """
+            @code {
+                public class MyClass
+                {
+                    private MyClass()
+                    {
+                    }
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, "AddAccessibilityModifiers");
+    }
 }
