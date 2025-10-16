@@ -363,7 +363,7 @@ public class DirectiveAttributeCompletionItemProviderTest : RazorToolingIntegrat
         var owner = syntaxTree.Root.FindInnermostNode(testCode.Position, includeWhitespace: true, walkMarkersBack: true);
         owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, testCode.Position);
 
-        return new RazorCompletionContext(testCode.Position, owner, syntaxTree, tagHelperContext);
+        return new RazorCompletionContext(testCode.Position, owner, syntaxTree, tagHelperContext, codeDocument);
     }
 
     private RazorSyntaxNode GetOwner(string testCodeText)
