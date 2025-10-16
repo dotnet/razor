@@ -246,10 +246,9 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
             completionItems.Add(razorCompletionItem);
 
             // If snippets are supported and the component has EditorRequired attributes, add a snippet completion item
-            if (context.Options.SnippetsSupported && tagHelpers.Any())
+            if (context.Options.SnippetsSupported)
             {
-                var tagHelpersArray = tagHelpers.ToImmutableArray();
-                if (TryGetEditorRequiredAttributesSnippet(tagHelpersArray, displayText, out var snippetText))
+                if (TryGetEditorRequiredAttributesSnippet(tagHelpers, displayText, out var snippetText))
                 {
                     var snippetCompletionItem = RazorCompletionItem.CreateTagHelperElement(
                         displayText: $"{displayText} (and req'd attributes...)",
@@ -303,7 +302,7 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
     }
 
     private static bool TryGetEditorRequiredAttributesSnippet(
-        ImmutableArray<TagHelperDescriptor> tagHelpers,
+        IEnumerable<TagHelperDescriptor> tagHelpers,
         string tagName,
         [NotNullWhen(true)] out string? snippetText)
     {
