@@ -8,11 +8,11 @@ using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal record RazorCompletionContext(
+    RazorCodeDocument CodeDocument,
     int AbsoluteIndex,
     RazorSyntaxNode? Owner,
     RazorSyntaxTree SyntaxTree,
     TagHelperDocumentContext TagHelperDocumentContext,
-    RazorCodeDocument CodeDocument,
     CompletionReason Reason = CompletionReason.Invoked,
     RazorCompletionOptions Options = default,
     HashSet<string>? ExistingCompletions = null)

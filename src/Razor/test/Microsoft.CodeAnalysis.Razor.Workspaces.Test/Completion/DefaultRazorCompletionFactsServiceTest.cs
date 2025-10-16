@@ -28,7 +28,7 @@ public class DefaultRazorCompletionFactsServiceTest(ITestOutputHelper testOutput
             commitCharacters: [],
             isSnippet: false);
 
-        var context = new RazorCompletionContext(AbsoluteIndex: 0, Owner: null, syntaxTree, tagHelperDocumentContext, codeDocument);
+        var context = new RazorCompletionContext(codeDocument, AbsoluteIndex: 0, Owner: null, SyntaxTree: syntaxTree, TagHelperDocumentContext: tagHelperDocumentContext);
         var provider1 = StrictMock.Of<IRazorCompletionItemProvider>(p =>
             p.GetCompletionItems(context) == ImmutableArray.Create(completionItem1));
 

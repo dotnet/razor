@@ -52,11 +52,11 @@ internal class RazorCompletionListProvider(
         owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, absoluteIndex);
 
         var razorCompletionContext = new RazorCompletionContext(
+            codeDocument,
             absoluteIndex,
             owner,
             syntaxTree,
             tagHelperContext,
-            codeDocument,
             reason,
             completionOptions,
             existingCompletions);
