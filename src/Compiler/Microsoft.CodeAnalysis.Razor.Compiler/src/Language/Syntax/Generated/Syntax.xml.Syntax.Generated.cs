@@ -48,8 +48,7 @@ internal sealed partial class RazorDocumentSyntax : RazorSyntaxNode
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -87,8 +86,7 @@ internal sealed partial class RazorCommentBlockSyntax : RazorSyntaxNode
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -134,8 +132,7 @@ internal sealed partial class RazorMetaCodeSyntax : RazorSyntaxNode
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -174,8 +171,7 @@ internal sealed partial class GenericBlockSyntax : RazorBlockSyntax
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -221,8 +217,7 @@ internal sealed partial class UnclassifiedTextLiteralSyntax : RazorSyntaxNode
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -269,8 +264,7 @@ internal sealed partial class MarkupBlockSyntax : RazorBlockSyntax
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -316,8 +310,7 @@ internal sealed partial class MarkupTransitionSyntax : MarkupSyntaxNode
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -363,8 +356,7 @@ internal sealed partial class MarkupTextLiteralSyntax : MarkupSyntaxNode
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -410,8 +402,7 @@ internal sealed partial class MarkupEphemeralTextLiteralSyntax : MarkupSyntaxNod
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -450,8 +441,7 @@ internal sealed partial class MarkupCommentBlockSyntax : RazorBlockSyntax
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -504,8 +494,7 @@ internal sealed partial class MarkupMinimizedAttributeBlockSyntax : MarkupSyntax
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -574,8 +563,7 @@ internal sealed partial class MarkupAttributeBlockSyntax : MarkupSyntaxNode
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -618,8 +606,7 @@ internal sealed partial class MarkupMiscAttributeContentSyntax : MarkupSyntaxNod
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -670,8 +657,7 @@ internal sealed partial class MarkupLiteralAttributeValueSyntax : MarkupSyntaxNo
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -721,8 +707,7 @@ internal sealed partial class MarkupDynamicAttributeValueSyntax : MarkupSyntaxNo
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -854,8 +839,7 @@ internal sealed partial class MarkupElementSyntax : MarkupSyntaxNode
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -916,8 +900,7 @@ internal sealed partial class MarkupStartTagSyntax : BaseMarkupStartTagSyntax
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -984,8 +967,7 @@ internal sealed partial class MarkupEndTagSyntax : BaseMarkupEndTagSyntax
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -1060,8 +1042,7 @@ internal sealed partial class MarkupTagHelperElementSyntax : MarkupSyntaxNode
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -1124,8 +1105,7 @@ internal sealed partial class MarkupTagHelperStartTagSyntax : BaseMarkupStartTag
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -1190,8 +1170,7 @@ internal sealed partial class MarkupTagHelperEndTagSyntax : BaseMarkupEndTagSynt
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -1278,8 +1257,7 @@ internal sealed partial class MarkupTagHelperAttributeSyntax : MarkupSyntaxNode
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -1340,8 +1318,7 @@ internal sealed partial class MarkupMinimizedTagHelperAttributeSyntax : MarkupSy
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -1380,8 +1357,7 @@ internal sealed partial class MarkupTagHelperAttributeValueSyntax : RazorBlockSy
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -1464,8 +1440,7 @@ internal sealed partial class MarkupTagHelperDirectiveAttributeSyntax : MarkupSy
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -1543,8 +1518,7 @@ internal sealed partial class MarkupMinimizedTagHelperDirectiveAttributeSyntax :
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -1596,8 +1570,7 @@ internal sealed partial class CSharpCodeBlockSyntax : RazorBlockSyntax
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -1636,8 +1609,7 @@ internal sealed partial class CSharpTransitionSyntax : CSharpSyntaxNode
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -1681,8 +1653,7 @@ internal sealed partial class CSharpStatementLiteralSyntax : CSharpSyntaxNode
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -1728,8 +1699,7 @@ internal sealed partial class CSharpExpressionLiteralSyntax : CSharpSyntaxNode
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -1775,8 +1745,7 @@ internal sealed partial class CSharpEphemeralTextLiteralSyntax : CSharpSyntaxNod
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -1815,8 +1784,7 @@ internal sealed partial class CSharpTemplateBlockSyntax : RazorBlockSyntax
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -1885,8 +1853,7 @@ internal sealed partial class CSharpStatementSyntax : CSharpRazorBlockSyntax
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -1942,8 +1909,7 @@ internal sealed partial class CSharpStatementBodySyntax : CSharpSyntaxNode
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -2000,8 +1966,7 @@ internal sealed partial class CSharpExplicitExpressionSyntax : CSharpRazorBlockS
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -2057,8 +2022,7 @@ internal sealed partial class CSharpExplicitExpressionBodySyntax : CSharpSyntaxN
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -2115,8 +2079,7 @@ internal sealed partial class CSharpImplicitExpressionSyntax : CSharpRazorBlockS
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -2154,8 +2117,7 @@ internal sealed partial class CSharpImplicitExpressionBodySyntax : CSharpSyntaxN
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -2207,8 +2169,7 @@ internal sealed partial class RazorDirectiveSyntax : CSharpRazorBlockSyntax
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;
@@ -2261,8 +2222,7 @@ internal sealed partial class RazorDirectiveBodySyntax : CSharpSyntaxNode
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                 newNode = newNode.WithDiagnostics(diagnostics);
-            var annotations = GetAnnotations();
-            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            return newNode;
         }
 
         return this;

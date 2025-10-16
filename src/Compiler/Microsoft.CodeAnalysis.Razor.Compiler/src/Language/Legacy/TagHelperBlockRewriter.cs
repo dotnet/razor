@@ -638,8 +638,6 @@ internal static class TagHelperBlockRewriter
                 var firstToken = firstChild.GetFirstToken();
                 var newFirstToken = SyntaxFactory.Token(firstToken.Kind, node.Transition.Transition.Content + firstToken.Content);
 
-                firstToken.CopyAnnotationsTo(newFirstToken);
-
                 var newFirstChild = firstChild.ReplaceToken(firstToken, newFirstToken);
                 builder.AddRange(rewrittenBody.Children.Replace(firstChild, newFirstChild));
 

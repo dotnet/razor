@@ -88,9 +88,9 @@ internal class SourceWriter : AbstractFileWriter
                     WriteLine($"internal abstract partial class {abstractNode.Name} : {(abstractNode.Base == "SyntaxNode" ? "GreenNode" : abstractNode.Base)}");
                     using (Block())
                     {
-                        // ctor with diagnostics and annotations
-                        WriteLine($"internal {abstractNode.Name}(SyntaxKind kind, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)");
-                        WriteIndentedLine(": base(kind, diagnostics, annotations)");
+                        // ctor with diagnostics
+                        WriteLine($"internal {abstractNode.Name}(SyntaxKind kind, RazorDiagnostic[] diagnostics)");
+                        WriteIndentedLine(": base(kind, diagnostics)");
                         using (Block())
                         {
                             if (abstractNode.Name == "DirectiveTriviaSyntax")
@@ -101,7 +101,7 @@ internal class SourceWriter : AbstractFileWriter
 
                         WriteLine();
 
-                        // ctor without diagnostics and annotations
+                        // ctor without diagnostics
                         WriteLine($"internal {abstractNode.Name}(SyntaxKind kind)");
                         WriteIndentedLine(": base(kind)");
                         using (Block())
@@ -181,14 +181,14 @@ internal class SourceWriter : AbstractFileWriter
                             WriteLine($"internal readonly {field.Type} {GetFieldName(field)};");
                         }
 
-                        // write constructor with diagnostics and annotations
+                        // write constructor with diagnostics
                         WriteLine();
                         Write($"internal {node.Name}(SyntaxKind kind");
 
                         WriteGreenNodeConstructorArgs(nodeFields, valueFields);
 
-                        WriteLine(", RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)");
-                        WriteIndentedLine(": base(kind, diagnostics, annotations)");
+                        WriteLine(", RazorDiagnostic[] diagnostics)");
+                        WriteIndentedLine(": base(kind, diagnostics)");
                         using (Block())
                         {
                             WriteCtorBody(valueFields, nodeFields);
@@ -209,7 +209,7 @@ internal class SourceWriter : AbstractFileWriter
                         WriteLine("    }");
                         WriteLine(); */
 
-                        // write constructor without diagnostics and annotations
+                        // write constructor without diagnostics
                         WriteLine();
                         Write($"internal {node.Name}(SyntaxKind kind");
 
@@ -293,7 +293,6 @@ internal class SourceWriter : AbstractFileWriter
                         WriteGreenAcceptMethods(node);
                         WriteGreenUpdateMethod(node);
                         WriteSetDiagnostics(node);
-                        WriteSetAnnotations(node);
                     }
 
                     break;
@@ -346,22 +345,6 @@ internal class SourceWriter : AbstractFileWriter
         }
     }
 
-    private void WriteSetAnnotations(Node node)
-    {
-        WriteLine();
-        WriteLine("internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)");
-        using (Indent())
-        {
-            Write($"=> new {node.Name}(");
-            WriteCommaSeparatedList(
-                "Kind",
-                node.Fields.Select(GetFieldName),
-                "GetDiagnostics()",
-                "annotations");
-            WriteLine(");");
-        }
-    }
-
     private void WriteSetDiagnostics(Node node)
     {
         WriteLine();
@@ -372,8 +355,7 @@ internal class SourceWriter : AbstractFileWriter
             WriteCommaSeparatedList(
                 "Kind",
                 node.Fields.Select(GetFieldName),
-                "diagnostics",
-                "GetAnnotations()");
+                "diagnostics");
             WriteLine(");");
         }
     }
@@ -457,9 +439,6 @@ internal class SourceWriter : AbstractFileWriter
                     WriteLine("var diags = GetDiagnostics();");
                     WriteLine("if (diags != null && diags.Length > 0)");
                     WriteIndentedLine("newNode = newNode.WithDiagnosticsGreen(diags);");
-                    WriteLine("var annotations = GetAnnotations();");
-                    WriteLine("if (annotations != null && annotations.Length > 0)");
-                    WriteIndentedLine("newNode = newNode.WithAnnotationsGreen(annotations);");
                     WriteLine("return newNode;");
                 }
             }
@@ -1249,8 +1228,7 @@ internal class SourceWriter : AbstractFileWriter
                     WriteLine("var diagnostics = GetDiagnostics();");
                     WriteLine("if (diagnostics != null && diagnostics.Length > 0)");
                     WriteIndentedLine("newNode = newNode.WithDiagnostics(diagnostics);");
-                    WriteLine("var annotations = GetAnnotations();");
-                    WriteLine("return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;");
+                    WriteLine("return newNode;");
                 }
             }
 
