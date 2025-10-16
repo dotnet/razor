@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Roslyn.Test.Utilities;
 using Roslyn.Text.Adornments;
-using WorkItem = Roslyn.Test.Utilities.WorkItemAttribute;
 using Xunit;
 using Xunit.Abstractions;
 #if !VSCODE
@@ -748,7 +747,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     }
 
     [Fact]
-    [WorkItem("https://github.com/dotnet/razor/issues/9378")]
+    [Roslyn.Test.Utilities.WorkItemAttribute("https://github.com/dotnet/razor/issues/9378")]
     public async Task BlazorDataEnhanceAttributeCompletion_OnFormElement()
     {
         await VerifyCompletionListAsync(
@@ -770,7 +769,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     }
 
     [Fact]
-    [WorkItem("https://github.com/dotnet/razor/issues/9378")]
+    [Roslyn.Test.Utilities.WorkItemAttribute("https://github.com/dotnet/razor/issues/9378")]
     public async Task BlazorDataEnhanceNavAttributeCompletion_OnAnyElement()
     {
         await VerifyCompletionListAsync(
@@ -793,7 +792,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     }
 
     [Fact]
-    [WorkItem("https://github.com/dotnet/razor/issues/9378")]
+    [Roslyn.Test.Utilities.WorkItemAttribute("https://github.com/dotnet/razor/issues/9378")]
     public async Task BlazorDataPermanentAttributeCompletion_OnAnchorElement()
     {
         await VerifyCompletionListAsync(
@@ -816,7 +815,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     }
 
     [Fact]
-    [WorkItem("https://github.com/dotnet/razor/issues/9378")]
+    [Roslyn.Test.Utilities.WorkItemAttribute("https://github.com/dotnet/razor/issues/9378")]
     public async Task BlazorDataAttributeCompletion_DoesNotDuplicateExistingAttribute()
     {
         await VerifyCompletionListAsync(
