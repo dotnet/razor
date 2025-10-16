@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Resources;
 using Roslyn.Test.Utilities;
 using Roslyn.Text.Adornments;
 using Xunit;
@@ -764,9 +765,9 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                 TriggerCharacter = "<",
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
-            expectedItemLabels: ["LayoutView", "EditForm", "ValidationMessage", "div", "Router", "Router (and req'd attributes...)"],
+            expectedItemLabels: ["LayoutView", "EditForm", "ValidationMessage", "div", "Router", SR.FormatComponentCompletionWithRequiredAttributesLabel("Router")],
             htmlItemLabels: ["div"],
-            itemToResolve: "Router (and req'd attributes...)",
+            itemToResolve: SR.FormatComponentCompletionWithRequiredAttributesLabel("Router"),
             expectedResolvedItemDescription: "Microsoft.AspNetCore.Components.Routing.Router",
             expected: $"""
                 This is a Razor document.
