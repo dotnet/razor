@@ -259,6 +259,23 @@ internal class RazorCompletionListProvider(
                     completionItem = tagHelperAttributeCompletionItem;
                     return true;
                 }
+            case RazorCompletionItemKind.Attribute:
+                {
+                    var attributeCompletionItem = new VSInternalCompletionItem()
+                    {
+                        Label = razorCompletionItem.DisplayText,
+                        InsertText = razorCompletionItem.InsertText,
+                        FilterText = razorCompletionItem.DisplayText,
+                        SortText = razorCompletionItem.SortText,
+                        InsertTextFormat = insertTextFormat,
+                        Kind = CompletionItemKind.Property,
+                    };
+
+                    attributeCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
+
+                    completionItem = attributeCompletionItem;
+                    return true;
+                }
         }
 
         completionItem = null;

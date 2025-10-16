@@ -100,4 +100,10 @@ internal sealed class RazorCompletionItem
         string displayText, string insertText,
         ImmutableArray<RazorCommitCharacter> commitCharacters)
         => new(RazorCompletionItemKind.DirectiveAttributeParameterEventValue, displayText, insertText, sortText: null, descriptionInfo: AggregateBoundAttributeDescription.Empty, commitCharacters, isSnippet: false);
+
+    public static RazorCompletionItem CreateAttribute(
+        string displayText, string insertText,
+        AttributeDescriptionInfo descriptionInfo,
+        ImmutableArray<RazorCommitCharacter> commitCharacters, bool isSnippet)
+        => new(RazorCompletionItemKind.Attribute, displayText, insertText, sortText: null, descriptionInfo, commitCharacters, isSnippet);
 }
