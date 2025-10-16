@@ -885,6 +885,34 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         Assert.Equal(FileUri("Pages/Counter.razor"), location.DocumentUri.GetRequiredParsedUri());
     }
 
+    [Theory, WorkItem("https://github.com/dotnet/razor/issues/4325")]
+    [InlineData("~/Pages/Counter")]
+    [InlineData("Not a file")]
+    [InlineData("~/Program.cs")]
+    [InlineData("File.razor is cool")]
+    public async Task StringLiteral_NotFileReference(string literalContents)
+    {
+        var input = $$"""
+            @{
+                var path = "$${{literalContents}}";
+            }
+            """;
+
+        var result = await GetGoToDefinitionResultAsync(input);
+
+        Assert.NotNull(result.Value.Second);
+        var locations = result.Value.Second;
+        var location = Assert.Single(locations);
+        Assert.EndsWith("String.cs", location.DocumentUri.UriString);
+
+        // Note: The location is in a generated C# "metadata-as-source" file, which has a different
+        // number of using directives in .NET Framework vs. .NET Core, so rather than relying on line
+        // numbers we do some vague notion of actual navigation and test the actual source line that
+        // the user would see.
+        var line = File.ReadLines(location.DocumentUri.GetRequiredParsedUri().LocalPath).ElementAt(location.Range.Start.Line);
+        Assert.Contains("public sealed class String", line);
+    }
+
     private async Task<SumType<LspLocation, LspLocation[], DocumentLink[]>?> GetGoToDefinitionResultAsync(
         TestCode input,
         RazorFileKind? fileKind = null,
