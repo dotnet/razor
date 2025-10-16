@@ -82,28 +82,31 @@ internal class BlazorDataAttributeCompletionItemProvider : IRazorCompletionItemP
                 continue;
             }
 
-            // Check if the attribute already exists on the element
-            var alreadyExists = false;
-            foreach (var attribute in attributes)
+            // If not currently editing this attribute, check if it already exists
+            if (selectedAttributeName != attributeName)
             {
-                var existingAttributeName = attribute switch
+                var alreadyExists = false;
+                foreach (var attribute in attributes)
                 {
-                    MarkupAttributeBlockSyntax attributeBlock => attributeBlock.Name.GetContent(),
-                    MarkupMinimizedAttributeBlockSyntax minimizedAttributeBlock => minimizedAttributeBlock.Name.GetContent(),
-                    _ => null
-                };
+                    var existingAttributeName = attribute switch
+                    {
+                        MarkupAttributeBlockSyntax attributeBlock => attributeBlock.Name.GetContent(),
+                        MarkupMinimizedAttributeBlockSyntax minimizedAttributeBlock => minimizedAttributeBlock.Name.GetContent(),
+                        _ => null
+                    };
 
-                if (existingAttributeName == attributeName)
-                {
-                    alreadyExists = true;
-                    break;
+                    if (existingAttributeName == attributeName)
+                    {
+                        alreadyExists = true;
+                        break;
+                    }
                 }
-            }
 
-            if (alreadyExists && selectedAttributeName != attributeName)
-            {
-                // Attribute already exists and is not the one currently being edited
-                continue;
+                if (alreadyExists)
+                {
+                    // Attribute already exists and is not the one currently being edited
+                    continue;
+                }
             }
 
             var insertText = attributeName;
