@@ -1223,7 +1223,7 @@ internal class SourceWriter : AbstractFileWriter
             {
                 if (IsDerivedOrListOfDerived("SyntaxNode", field.Type) ||
                     IsDerivedOrListOfDerived("SyntaxToken", field.Type) ||
-                    field.Type is "SyntaxNodeOrTokenList" or "ISpanChunkGenerator" or "SpanEditHandler")
+                    field.Type is "SyntaxNodeOrTokenList" or "ISpanChunkGenerator" or "SpanEditHandler" or "DirectiveDescriptor")
                 {
                     if (nCompared > 0)
                     {
@@ -1506,7 +1506,7 @@ internal class SourceWriter : AbstractFileWriter
 
     private bool IsValueField(Field field)
     {
-        return !IsNodeOrNodeList(field.Type);
+        return !IsNodeOrNodeList(field.Type) && field.Type != "DirectiveDescriptor";
     }
 
     private int RequiredFactoryArgumentCount(Node nd, bool includeKind = true)
@@ -1646,6 +1646,10 @@ internal class SourceWriter : AbstractFileWriter
                 else if (f.Type == "SyntaxNodeOrTokenList")
                 {
                     return $"{GetParameterName(f)}.Node.ToGreenList<GreenNode>()";
+                }
+                else if (f.Type == "DirectiveDescriptor")
+                {
+                    return $"{GetParameterName(f)}";
                 }
                 else
                 {

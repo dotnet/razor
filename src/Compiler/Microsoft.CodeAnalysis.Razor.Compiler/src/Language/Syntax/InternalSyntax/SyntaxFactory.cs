@@ -30,4 +30,7 @@ internal static partial class SyntaxFactory
 
     public static MarkupTextLiteralSyntax MarkupTextLiteral(SyntaxList<SyntaxToken> literalTokens)
         => MarkupTextLiteral(literalTokens, chunkGenerator: null, editHandler: null);
+
+    public static RazorDirectiveSyntax RazorDirective(CSharpTransitionSyntax transition, CSharpSyntaxNode body)
+        => RazorDirective(transition, body, directiveDescriptor: null);
 }
