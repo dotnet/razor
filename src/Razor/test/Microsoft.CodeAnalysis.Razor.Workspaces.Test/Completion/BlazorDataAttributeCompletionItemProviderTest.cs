@@ -32,6 +32,7 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
     }
 
     [Fact]
+    [Roslyn.Test.Utilities.WorkItem("https://github.com/dotnet/razor/issues/9378")]
     public void GetCompletionItems_OnFormElement_ReturnsDataEnhance()
     {
         // Arrange
@@ -50,6 +51,7 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
     }
 
     [Fact]
+    [Roslyn.Test.Utilities.WorkItem("https://github.com/dotnet/razor/issues/9378")]
     public void GetCompletionItems_OnAnchorElement_ReturnsDataEnhanceNav()
     {
         // Arrange
@@ -68,6 +70,7 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
     }
 
     [Fact]
+    [Roslyn.Test.Utilities.WorkItem("https://github.com/dotnet/razor/issues/9378")]
     public void GetCompletionItems_OnDivElement_ReturnsDataPermanent()
     {
         // Arrange
@@ -86,6 +89,7 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
     }
 
     [Fact]
+    [Roslyn.Test.Utilities.WorkItem("https://github.com/dotnet/razor/issues/9378")]
     public void GetCompletionItems_OnNonFormElement_DoesNotReturnDataEnhance()
     {
         // Arrange
@@ -101,6 +105,7 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
     }
 
     [Fact]
+    [Roslyn.Test.Utilities.WorkItem("https://github.com/dotnet/razor/issues/9378")]
     public void GetCompletionItems_OnDivElement_ReturnsDataEnhanceNav()
     {
         // Arrange - data-enhance-nav can go on any element, not just anchors
@@ -116,6 +121,7 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
     }
 
     [Fact]
+    [Roslyn.Test.Utilities.WorkItem("https://github.com/dotnet/razor/issues/9378")]
     public void GetCompletionItems_OnNonComponentFile_ReturnsEmpty()
     {
         // Arrange - need to test with non-component file, which requires different setup
@@ -141,6 +147,7 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
     }
 
     [Fact]
+    [Roslyn.Test.Utilities.WorkItem("https://github.com/dotnet/razor/issues/9378")]
     public void GetCompletionItems_OnDirectiveAttribute_ReturnsEmpty()
     {
         // Arrange
@@ -155,6 +162,7 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
     }
 
     [Fact]
+    [Roslyn.Test.Utilities.WorkItem("https://github.com/dotnet/razor/issues/9378")]
     public void GetCompletionItems_ExistingDataEnhanceAttribute_DoesNotDuplicateOnDifferentAttribute()
     {
         // Arrange
@@ -171,6 +179,7 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
     }
 
     [Fact]
+    [Roslyn.Test.Utilities.WorkItem("https://github.com/dotnet/razor/issues/9378")]
     public void GetCompletionItems_WithSnippetsDisabled_ReturnsPlainText()
     {
         // Arrange
