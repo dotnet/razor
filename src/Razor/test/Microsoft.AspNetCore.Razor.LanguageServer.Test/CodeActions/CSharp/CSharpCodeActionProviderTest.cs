@@ -370,6 +370,42 @@ $$Path;
         Assert.Equal("RemoveUnusedLocalFunction", providedCodeActions[0].Name);
     }
 
+    [Fact]
+    public async Task ProvideAsync_RemoveUnusedValuesCodeAction_IsSupported()
+    {
+        // Arrange
+        var documentPath = "c:/Test.razor";
+        var contents = "@code { void Method(int $$unusedParam) { } }";
+        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
+        var request = new VSCodeActionParams()
+        {
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new(new Uri(documentPath)) },
+            Range = LspFactory.DefaultRange,
+            Context = new VSInternalCodeActionContext()
+        };
+
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(8, 4));
+
+        var provider = new CSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance);
+
+        ImmutableArray<RazorVSInternalCodeAction> codeActions =
+        [
+            new RazorVSInternalCodeAction()
+            {
+                Title = "Remove unused parameter",
+                Name = "RemoveUnusedValues"
+            }
+        ];
+
+        // Act
+        var providedCodeActions = await provider.ProvideAsync(context, codeActions, DisposalToken);
+
+        // Assert
+        Assert.Single(providedCodeActions);
+        Assert.Equal("RemoveUnusedValues", providedCodeActions[0].Name);
+    }
+
     private static RazorCodeActionContext CreateRazorCodeActionContext(
         VSCodeActionParams request,
         int absoluteIndex,
