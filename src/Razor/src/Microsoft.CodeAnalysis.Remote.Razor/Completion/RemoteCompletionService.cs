@@ -308,16 +308,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             cancellationToken).ConfigureAwait(false);
 
         // If we couldn't resolve, fall back to what we were passed in
-        result ??= request;
-
-        // Check if this completion item has additional text edits (e.g., @using statements) and apply them
-        var associatedRazorCompletion = razorResolutionContext.CompletionItems.FirstOrDefault(c => c.DisplayText == result.Label);
-        if (associatedRazorCompletion?.AdditionalTextEdits is { Length: > 0 } additionalEdits)
-        {
-            result.AdditionalTextEdits = additionalEdits.ToArray();
-        }
-
-        return result;
+        return result ?? request;
     }
 
     private async ValueTask<VSInternalCompletionItem> ResolveCSharpCompletionItemAsync(RemoteDocumentContext context, VSInternalCompletionItem request, VSInternalCompletionList containingCompletionList, DelegatedCompletionResolutionContext resolutionContext, RazorFormattingOptions formattingOptions, CancellationToken cancellationToken)

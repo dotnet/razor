@@ -22,11 +22,7 @@ internal sealed class RazorCompletionItem
     public object DescriptionInfo { get; }
     public ImmutableArray<RazorCommitCharacter> CommitCharacters { get; }
     public bool IsSnippet { get; }
-
-    /// <summary>
-    /// For component completions, additional text edits to apply when the completion is committed (e.g., @using statements).
-    /// </summary>
-    public ImmutableArray<Roslyn.LanguageServer.Protocol.TextEdit> AdditionalTextEdits { get; }
+    public TextEdit[]? AdditionalTextEdits { get; }
 
     /// <summary>
     /// Creates a new Razor completion item
@@ -48,7 +44,7 @@ internal sealed class RazorCompletionItem
         object descriptionInfo,
         ImmutableArray<RazorCommitCharacter> commitCharacters,
         bool isSnippet,
-        ImmutableArray<Roslyn.LanguageServer.Protocol.TextEdit> additionalTextEdits = default)
+        TextEdit[]? additionalTextEdits = null)
     {
         ArgHelper.ThrowIfNull(displayText);
         ArgHelper.ThrowIfNull(insertText);
@@ -60,7 +56,7 @@ internal sealed class RazorCompletionItem
         DescriptionInfo = descriptionInfo;
         CommitCharacters = commitCharacters.NullToEmpty();
         IsSnippet = isSnippet;
-        AdditionalTextEdits = additionalTextEdits.NullToEmpty();
+        AdditionalTextEdits = additionalTextEdits;
     }
 
     public static RazorCompletionItem CreateDirective(
@@ -91,7 +87,7 @@ internal sealed class RazorCompletionItem
         string displayText, string insertText,
         AggregateBoundElementDescription descriptionInfo,
         ImmutableArray<RazorCommitCharacter> commitCharacters,
-        ImmutableArray<Roslyn.LanguageServer.Protocol.TextEdit> additionalTextEdits = default)
+        TextEdit[]? additionalTextEdits = null)
         => new(RazorCompletionItemKind.TagHelperElement, displayText, insertText, sortText: null, descriptionInfo, commitCharacters, isSnippet: false, additionalTextEdits);
 
     public static RazorCompletionItem CreateTagHelperAttribute(

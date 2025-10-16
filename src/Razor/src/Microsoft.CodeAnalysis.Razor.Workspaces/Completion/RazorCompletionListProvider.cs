@@ -137,6 +137,7 @@ internal class RazorCompletionListProvider(
                         SortText = razorCompletionItem.SortText,
                         InsertTextFormat = insertTextFormat,
                         Kind = razorCompletionItem.IsSnippet ? CompletionItemKind.Snippet : CompletionItemKind.Keyword,
+                        AdditionalTextEdits = razorCompletionItem.AdditionalTextEdits,
                     };
 
                     directiveCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
@@ -160,6 +161,7 @@ internal class RazorCompletionListProvider(
                         SortText = razorCompletionItem.SortText,
                         InsertTextFormat = insertTextFormat,
                         Kind = tagHelperCompletionItemKind,
+                        AdditionalTextEdits = razorCompletionItem.AdditionalTextEdits,
                     };
 
                     directiveAttributeCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
@@ -177,6 +179,7 @@ internal class RazorCompletionListProvider(
                         SortText = razorCompletionItem.SortText,
                         InsertTextFormat = insertTextFormat,
                         Kind = tagHelperCompletionItemKind,
+                        AdditionalTextEdits = razorCompletionItem.AdditionalTextEdits,
                     };
 
                     parameterCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
@@ -194,6 +197,7 @@ internal class RazorCompletionListProvider(
                         SortText = razorCompletionItem.SortText,
                         InsertTextFormat = insertTextFormat,
                         Kind = CompletionItemKind.Event,
+                        AdditionalTextEdits = razorCompletionItem.AdditionalTextEdits,
                     };
 
                     eventValueCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
@@ -211,6 +215,7 @@ internal class RazorCompletionListProvider(
                         SortText = razorCompletionItem.SortText,
                         InsertTextFormat = insertTextFormat,
                         Kind = tagHelperCompletionItemKind,
+                        AdditionalTextEdits = razorCompletionItem.AdditionalTextEdits,
                     };
 
                     markupTransitionCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
@@ -228,6 +233,7 @@ internal class RazorCompletionListProvider(
                         SortText = razorCompletionItem.SortText,
                         InsertTextFormat = insertTextFormat,
                         Kind = tagHelperCompletionItemKind,
+                        AdditionalTextEdits = razorCompletionItem.AdditionalTextEdits,
                     };
 
                     tagHelperElementCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
@@ -245,6 +251,7 @@ internal class RazorCompletionListProvider(
                         SortText = razorCompletionItem.SortText,
                         InsertTextFormat = insertTextFormat,
                         Kind = tagHelperCompletionItemKind,
+                        AdditionalTextEdits = razorCompletionItem.AdditionalTextEdits,
                     };
 
                     tagHelperAttributeCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
