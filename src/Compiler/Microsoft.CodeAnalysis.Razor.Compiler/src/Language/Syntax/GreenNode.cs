@@ -212,18 +212,38 @@ internal abstract partial class GreenNode
 
     #region Text
     private string GetDebuggerDisplay()
-    {
-        return string.Build(this, static (ref builder, node) =>
-        {
-            builder.Append(node.GetType().Name);
-            builder.Append("<");
-            builder.Append(node.Kind.ToString());
-            builder.Append(">");
-        });
-    }
+        => $"{GetType().Name}<{Kind}>";
 
     public override string ToString()
     {
+        // Simple case: Zero width is just an empty string.
+        if (_width == 0)
+        {
+            return string.Empty;
+        }
+
+        // Special case: See if there's just a single non-zero-width descendant token.
+        // If so, we can just return the content of that token rather than creating a new string for it.
+        foreach (var token in Tokens())
+        {
+            if (token.Width == _width)
+            {
+                // If this token has the same width as this node, just return it's content.
+                return token.Content;
+            }
+
+            // If this is a zero-width token, skip it.
+            if (token.Width == 0)
+            {
+                continue;
+            }
+
+            // Otherwise, this is a non-zero-width token but there much be more tokens that make up the
+            // total width. Break out of the loop to allocate a new string with all of the content.
+            break;
+        }
+
+        // At this point, we know that we have multiple tokens and need to allocate a string.
         return string.Create(length: _width, this, static (span, node) =>
         {
             foreach (var token in node.Tokens())

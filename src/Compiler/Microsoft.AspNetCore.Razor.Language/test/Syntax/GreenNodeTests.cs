@@ -934,4 +934,288 @@ public class GreenNodeTests
         Assert.Equal("Hello World!", result);
         Assert.Equal(result.Length, root.Width);
     }
+
+    [Fact]
+    public void ToString_ZeroWidth_ReturnsEmptyString()
+    {
+        // This test verifies the first optimization: if _width == 0, return string.Empty
+
+        // Arrange - Create a node with zero width (empty token)
+        var token = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "");
+        
+        // Act
+        var result = token.ToString();
+
+        // Assert
+        Assert.Equal(string.Empty, result);
+        Assert.Same(string.Empty, result); // Verify it's the same instance, not a new allocation
+        Assert.Equal(0, token.Width);
+    }
+
+    [Fact]
+    public void ToString_SingleTokenOptimization_ReturnsSameTokenContent()
+    {
+        // This test verifies the second optimization: single token returns token.Content directly
+
+        // Arrange - Create a node with exactly one token
+        var tokenContent = "Hello World";
+        var token = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, tokenContent);
+        var node = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token);
+
+        // Act
+        var result = node.ToString();
+
+        // Assert
+        Assert.Equal(tokenContent, result);
+        // Verify it's the same string instance (optimization check)
+        Assert.Same(tokenContent, result);
+    }
+
+    [Fact]
+    public void ToString_SingleTokenDirectCall_ReturnsSameTokenContent()
+    {
+        // Test the optimization when calling ToString() directly on a token
+
+        // Arrange
+        var tokenContent = "Direct token call";
+        var token = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, tokenContent);
+
+        // Act
+        var result = token.ToString();
+
+        // Assert
+        Assert.Equal(tokenContent, result);
+        Assert.Same(tokenContent, result); // Should be the same instance
+    }
+
+    [Fact]
+    public void ToString_MultipleTokens_AllocatesNewString()
+    {
+        // This test verifies that when there are multiple tokens, a new string is allocated
+
+        // Arrange - Create a node with multiple tokens
+        var token1Content = "Hello";
+        var token2Content = " World";
+        
+        var token1 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, token1Content);
+        var child1 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token1);
+
+        var token2 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, token2Content);
+        var child2 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token2);
+
+        var root = InternalSyntax.SyntaxFactory.GenericBlock([child1, child2]);
+
+        // Act
+        var result = root.ToString();
+
+        // Assert
+        Assert.Equal("Hello World", result);
+        // Verify it's NOT the same instance as either token (new allocation)
+        Assert.NotSame(token1Content, result);
+        Assert.NotSame(token2Content, result);
+    }
+
+    [Fact]
+    public void ToString_EmptyTokensInComplexTree_ReturnsEmptyString()
+    {
+        // Test zero width optimization with a more complex tree structure
+
+        // Arrange - Create a tree with only empty tokens
+        var emptyToken1 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "");
+        var child1 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(emptyToken1);
+
+        var emptyToken2 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Whitespace, "");
+        var child2 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(emptyToken2);
+
+        var root = InternalSyntax.SyntaxFactory.GenericBlock([child1, child2]);
+
+        // Act
+        var result = root.ToString();
+
+        // Assert
+        Assert.Equal(string.Empty, result);
+        Assert.Same(string.Empty, result);
+        Assert.Equal(0, root.Width);
+    }
+
+    [Fact]
+    public void ToString_SingleEmptyTokenInNode_ReturnsEmptyString()
+    {
+        // Test single token optimization when that token is empty
+
+        // Arrange
+        var emptyToken = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "");
+        var node = InternalSyntax.SyntaxFactory.MarkupTextLiteral(emptyToken);
+
+        // Act
+        var result = node.ToString();
+
+        // Assert
+        Assert.Equal(string.Empty, result);
+        Assert.Same(string.Empty, result); // Should return string.Empty directly
+    }
+
+    [Fact]
+    public void ToString_SingleTokenWithLongContent_ReturnsTokenContent()
+    {
+        // Test single token optimization with longer content
+
+        // Arrange
+        var longContent = "This is a much longer piece of content that would normally require allocation but should be optimized";
+        var token = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, longContent);
+        var node = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token);
+
+        // Act
+        var result = node.ToString();
+
+        // Assert
+        Assert.Equal(longContent, result);
+        Assert.Same(longContent, result); // Should be the same instance
+    }
+
+    [Fact]
+    public void ToString_OptimizationPathVsAllocationPath_ProduceSameResult()
+    {
+        // Verify that both code paths produce the same result
+
+        // Arrange - Single token (optimization path)
+        var content = "Test Content";
+        var singleToken = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, content);
+        var singleNode = InternalSyntax.SyntaxFactory.MarkupTextLiteral(singleToken);
+
+        // Arrange - Multiple tokens that concatenate to same content (allocation path)
+        var token1 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "Test");
+        var child1 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token1);
+
+        var token2 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, " ");
+        var child2 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token2);
+
+        var token3 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "Content");
+        var child3 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token3);
+
+        var multiNode = InternalSyntax.SyntaxFactory.GenericBlock([child1, child2, child3]);
+
+        // Act
+        var singleResult = singleNode.ToString();
+        var multiResult = multiNode.ToString();
+
+        // Assert
+        Assert.Equal(singleResult, multiResult);
+        Assert.Same(content, singleResult); // Single token should be optimized
+        Assert.NotSame(content, multiResult); // Multiple tokens should allocate new string
+    }
+
+    [Fact]
+    public void ToString_SingleTokenOptimization_SkipsZeroWidthTokens()
+    {
+        // This test verifies the optimization when there are zero-width tokens followed by a single non-zero-width token
+        // The algorithm should skip the zero-width tokens and use the single token optimization for the non-zero-width token
+
+        // Arrange - Create a tree with zero-width tokens followed by one non-zero-width token
+        var zeroWidthToken1 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "");
+        var child1 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(zeroWidthToken1);
+
+        var zeroWidthToken2 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Whitespace, "");
+        var child2 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(zeroWidthToken2);
+
+        var nonZeroTokenContent = "ActualContent";
+        var nonZeroToken = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, nonZeroTokenContent);
+        var child3 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(nonZeroToken);
+
+        var root = InternalSyntax.SyntaxFactory.GenericBlock([child1, child2, child3]);
+
+        // Act
+        var result = root.ToString();
+
+        // Assert
+        Assert.Equal(nonZeroTokenContent, result);
+        // Verify it uses the single token optimization (same string instance)
+        Assert.Same(nonZeroTokenContent, result);
+        Assert.Equal(nonZeroTokenContent.Length, root.Width);
+    }
+
+    [Fact]
+    public void ToString_SingleTokenOptimization_WithMultipleZeroWidthTokensAndOneNonZero()
+    {
+        // Test edge case with many zero-width tokens and one content token
+
+        // Arrange - Create multiple zero-width tokens followed by one with content
+        var emptyToken1 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "");
+        var child1 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(emptyToken1);
+
+        var emptyToken2 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Whitespace, "");
+        var child2 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(emptyToken2);
+
+        var emptyToken3 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "");
+        var child3 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(emptyToken3);
+
+        var contentTokenValue = "OnlyRealToken";
+        var contentToken = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, contentTokenValue);
+        var child4 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(contentToken);
+
+        var root = InternalSyntax.SyntaxFactory.GenericBlock([child1, child2, child3, child4]);
+
+        // Act
+        var result = root.ToString();
+
+        // Assert
+        Assert.Equal(contentTokenValue, result);
+        Assert.Same(contentTokenValue, result); // Should use single token optimization
+    }
+
+    [Fact]
+    public void ToString_NoOptimization_WithZeroWidthTokenBetweenNonZeroTokens()
+    {
+        // Test that optimization is NOT used when there are multiple non-zero-width tokens,
+        // even if separated by zero-width tokens
+
+        // Arrange
+        var token1Content = "First";
+        var token1 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, token1Content);
+        var child1 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token1);
+
+        var zeroWidthToken = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "");
+        var child2 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(zeroWidthToken);
+
+        var token3Content = "Second";
+        var token3 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, token3Content);
+        var child3 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token3);
+
+        var root = InternalSyntax.SyntaxFactory.GenericBlock([child1, child2, child3]);
+
+        // Act
+        var result = root.ToString();
+
+        // Assert
+        Assert.Equal("FirstSecond", result);
+        // Should NOT use optimization (new string allocation)
+        Assert.NotSame(token1Content, result);
+        Assert.NotSame(token3Content, result);
+    }
+
+    [Fact]
+    public void ToString_SingleTokenOptimization_WithTrailingZeroWidthTokens()
+    {
+        // Test optimization when non-zero-width token is followed by zero-width tokens
+
+        // Arrange
+        var contentTokenValue = "MainContent";
+        var contentToken = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, contentTokenValue);
+        var child1 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(contentToken);
+
+        var emptyToken1 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "");
+        var child2 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(emptyToken1);
+
+        var emptyToken2 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Whitespace, "");
+        var child3 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(emptyToken2);
+
+        var root = InternalSyntax.SyntaxFactory.GenericBlock([child1, child2, child3]);
+
+        // Act
+        var result = root.ToString();
+
+        // Assert
+        Assert.Equal(contentTokenValue, result);
+        Assert.Same(contentTokenValue, result); // Should use single token optimization
+    }
 }
