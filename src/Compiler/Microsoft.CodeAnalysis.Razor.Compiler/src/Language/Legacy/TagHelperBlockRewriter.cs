@@ -236,10 +236,13 @@ internal static class TagHelperBlockRewriter
         {
             var rewritten = SyntaxFactory.MarkupMinimizedTagHelperAttribute(
                 attributeBlock.NamePrefix,
-                attributeBlock.Name);
-
-            rewritten = rewritten.WithTagHelperAttributeInfo(
-                    new TagHelperAttributeInfo(result.AttributeName, parameterName: null, result.AttributeStructure, result.IsBoundAttribute, isDirectiveAttribute: false));
+                attributeBlock.Name,
+                new TagHelperAttributeInfo(
+                    result.AttributeName,
+                    parameterName: null,
+                    result.AttributeStructure,
+                    result.IsBoundAttribute,
+                    isDirectiveAttribute: false));
 
             result.RewrittenAttribute = rewritten;
 
@@ -314,10 +317,13 @@ internal static class TagHelperBlockRewriter
                 attributeBlock.EqualsToken,
                 attributeBlock.ValuePrefix,
                 rewrittenValue,
-                attributeBlock.ValueSuffix);
-
-            rewritten = rewritten.WithTagHelperAttributeInfo(
-                new TagHelperAttributeInfo(result.AttributeName, parameterName: null, result.AttributeStructure, result.IsBoundAttribute, isDirectiveAttribute: false));
+                attributeBlock.ValueSuffix,
+                new TagHelperAttributeInfo(
+                    result.AttributeName,
+                    parameterName: null,
+                    result.AttributeStructure,
+                    result.IsBoundAttribute,
+                    isDirectiveAttribute: false));
 
             result.RewrittenAttribute = rewritten;
 
@@ -368,7 +374,7 @@ internal static class TagHelperBlockRewriter
             parameterName = SyntaxFactory.MarkupTextLiteral(parameterNameToken);
         }
 
-        var rewritten = SyntaxFactory.MarkupTagHelperDirectiveAttribute(
+        return SyntaxFactory.MarkupTagHelperDirectiveAttribute(
             attributeBlock.NamePrefix,
             transition,
             attributeNameSyntax,
@@ -378,12 +384,13 @@ internal static class TagHelperBlockRewriter
             attributeBlock.EqualsToken,
             attributeBlock.ValuePrefix,
             rewrittenValue,
-            attributeBlock.ValueSuffix);
-
-        rewritten = rewritten.WithTagHelperAttributeInfo(
-            new TagHelperAttributeInfo(result.AttributeName, parameterName?.GetContent(), result.AttributeStructure, result.IsBoundAttribute, isDirectiveAttribute: true));
-
-        return rewritten;
+            attributeBlock.ValueSuffix,
+            new TagHelperAttributeInfo(
+                result.AttributeName,
+                parameterName?.GetContent(),
+                result.AttributeStructure,
+                result.IsBoundAttribute,
+                isDirectiveAttribute: true));
     }
 
     private static MarkupMinimizedTagHelperDirectiveAttributeSyntax RewriteToMinimizedDirectiveAttribute(
@@ -428,17 +435,18 @@ internal static class TagHelperBlockRewriter
             parameterName = SyntaxFactory.MarkupTextLiteral(parameterNameToken);
         }
 
-        var rewritten = SyntaxFactory.MarkupMinimizedTagHelperDirectiveAttribute(
+        return SyntaxFactory.MarkupMinimizedTagHelperDirectiveAttribute(
             attributeBlock.NamePrefix,
             transition,
             attributeNameSyntax,
             colon,
-            parameterName);
-
-        rewritten = rewritten.WithTagHelperAttributeInfo(
-            new TagHelperAttributeInfo(result.AttributeName, parameterName?.GetContent(), result.AttributeStructure, result.IsBoundAttribute, isDirectiveAttribute: true));
-
-        return rewritten;
+            parameterName,
+            new TagHelperAttributeInfo(
+                result.AttributeName,
+                parameterName?.GetContent(),
+                result.AttributeStructure,
+                result.IsBoundAttribute,
+                isDirectiveAttribute: true));
     }
 
     private static MarkupTagHelperAttributeValueSyntax RewriteAttributeValue(TryParseResult result, RazorBlockSyntax attributeValue, RazorParserOptions options)
