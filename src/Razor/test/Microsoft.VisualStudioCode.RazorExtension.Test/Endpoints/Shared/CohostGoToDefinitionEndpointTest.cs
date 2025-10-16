@@ -144,7 +144,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """;
 
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Component,
-            additionalFiles: (FileName("SurveyPrompt.razor"), surveyPrompt.Text));
+            additionalFiles: (FilePath("SurveyPrompt.razor"), surveyPrompt.Text));
 
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
@@ -176,7 +176,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """;
 
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Component,
-            additionalFiles: (FileName("SurveyPrompt.razor"), surveyPrompt.Text));
+            additionalFiles: (FilePath("SurveyPrompt.razor"), surveyPrompt.Text));
 
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
@@ -213,7 +213,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """;
 
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Component,
-            additionalFiles: (FileName("SurveyPrompt.razor"), surveyPrompt.Text));
+            additionalFiles: (FilePath("SurveyPrompt.razor"), surveyPrompt.Text));
 
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
@@ -254,7 +254,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """;
 
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Component,
-            additionalFiles: (FileName("SurveyPrompt.cs"), surveyPrompt.Text));
+            additionalFiles: (FilePath("SurveyPrompt.cs"), surveyPrompt.Text));
 
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
@@ -295,7 +295,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """;
 
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Component,
-            additionalFiles: (FileName("SurveyPrompt.cs"), surveyPrompt.Text));
+            additionalFiles: (FilePath("SurveyPrompt.cs"), surveyPrompt.Text));
 
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
@@ -342,7 +342,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """;
 
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Component,
-            additionalFiles: (FileName("SurveyPrompt.razor"), surveyPrompt.Text));
+            additionalFiles: (FilePath("SurveyPrompt.razor"), surveyPrompt.Text));
 
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
@@ -393,7 +393,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """,
             fileKind: RazorFileKind.Legacy,
             additionalFiles:
-                (FileName("AuthorViewComponent.cs"),
+                (FilePath("AuthorViewComponent.cs"),
                     (expected = """
                         using Microsoft.AspNetCore.Mvc;
 
@@ -425,7 +425,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """,
             fileKind: RazorFileKind.Legacy,
             additionalFiles:
-                (FileName("AboutBoxTagHelper.cs"),
+                (FilePath("AboutBoxTagHelper.cs"),
                     (expected = """
                         using Microsoft.AspNetCore.Razor.TagHelpers;
 
@@ -460,7 +460,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """,
             fileKind: RazorFileKind.Legacy,
             additionalFiles:
-                [(FileName("AboutBoxTagHelper_1.cs"),
+                [(FilePath("AboutBoxTagHelper_1.cs"),
                     (expected = """
                         using Microsoft.AspNetCore.Razor.TagHelpers;
 
@@ -475,7 +475,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
                             }
                         }
                         """).Text),
-                (FileName("AboutBoxTagHelper_2.cs"),
+                (FilePath("AboutBoxTagHelper_2.cs"),
                     """
                     using Microsoft.AspNetCore.Razor.TagHelpers;
 
@@ -503,7 +503,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """,
             fileKind: RazorFileKind.Legacy,
             additionalFiles:
-                (FileName("AboutBoxTagHelper.cs"),
+                (FilePath("AboutBoxTagHelper.cs"),
                     (expected = """
                         using Microsoft.AspNetCore.Razor.TagHelpers;
 
@@ -540,7 +540,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """,
             fileKind: RazorFileKind.Legacy,
             additionalFiles:
-                [(FileName("AboutBoxTagHelper_1.cs"),
+                [(FilePath("AboutBoxTagHelper_1.cs"),
                     """
                     using Microsoft.AspNetCore.Razor.TagHelpers;
 
@@ -555,7 +555,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
                         }
                     }
                     """),
-                (FileName("AboutBoxTagHelper_2.cs"),
+                (FilePath("AboutBoxTagHelper_2.cs"),
                     (expected = """
                         using Microsoft.AspNetCore.Razor.TagHelpers;
 
@@ -583,7 +583,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """,
             fileKind: RazorFileKind.Legacy,
             additionalFiles:
-                (FileName("FooTagHelper.cs"), """
+                (FilePath("FooTagHelper.cs"), """
                     using Microsoft.AspNetCore.Razor.TagHelpers;
 
                     [HtmlTargetElement("*", Attributes = FooAttributeName)]
@@ -612,7 +612,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """,
             fileKind: RazorFileKind.Legacy,
             additionalFiles:
-                (FileName("FooTagHelper.cs"),
+                (FilePath("FooTagHelper.cs"),
                     (expected = """
                         using Microsoft.AspNetCore.Razor.TagHelpers;
 
@@ -646,7 +646,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """,
             fileKind: RazorFileKind.Legacy,
             additionalFiles:
-                (FileName("FooTagHelper.cs"), """
+                (FilePath("FooTagHelper.cs"), """
                     using Microsoft.AspNetCore.Razor.TagHelpers;
 
                     [HtmlTargetElement("*", Attributes = FooAttributeName)]
@@ -675,7 +675,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """,
             fileKind: RazorFileKind.Legacy,
             additionalFiles:
-                (FileName("FooTagHelper.cs"),
+                (FilePath("FooTagHelper.cs"),
                     (expected = """
                         using Microsoft.AspNetCore.Razor.TagHelpers;
 
@@ -709,7 +709,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """,
             fileKind: RazorFileKind.Legacy,
             additionalFiles:
-                (FileName("TagHelpers.cs"), """
+                (FilePath("TagHelpers.cs"), """
                     using Microsoft.AspNetCore.Razor.TagHelpers;
 
                     [HtmlTargetElement("label", Attributes = FooAttributeName)]
@@ -749,7 +749,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """,
             fileKind: RazorFileKind.Legacy,
             additionalFiles:
-                (FileName("TagHelpers.cs"),
+                (FilePath("TagHelpers.cs"),
                     (expected = """
                         using Microsoft.AspNetCore.Razor.TagHelpers;
 
@@ -789,9 +789,6 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         Assert.Equal(expected.Spans[1], SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
-    private static string FileName(string projectRelativeFileName)
-        => Path.Combine(TestProjectData.SomeProjectPath, projectRelativeFileName);
-
     private async Task VerifyGoToDefinitionAsync(
         TestCode input,
         RazorFileKind? fileKind = null,
@@ -827,7 +824,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """;
 
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Legacy,
-            additionalFiles: (FileName("Views/Shared/_Partial.cshtml"), partialFileContent));
+            additionalFiles: (FilePath("Views/Shared/_Partial.cshtml"), partialFileContent));
 
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
@@ -850,7 +847,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """;
 
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Legacy,
-            additionalFiles: (FileName("_Partial.cshtml"), partialFileContent));
+            additionalFiles: (FilePath("_Partial.cshtml"), partialFileContent));
 
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
@@ -879,7 +876,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """;
 
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Component,
-            additionalFiles: (FileName("Pages/Counter.razor"), counterFileContent));
+            additionalFiles: (FilePath("Pages/Counter.razor"), counterFileContent));
 
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
@@ -887,7 +884,6 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
 
         Assert.Equal(FileUri("Pages/Counter.razor"), location.DocumentUri.GetRequiredParsedUri());
     }
-
 
     private async Task<SumType<LspLocation, LspLocation[], DocumentLink[]>?> GetGoToDefinitionResultAsync(
         TestCode input,
