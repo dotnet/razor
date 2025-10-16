@@ -331,6 +331,67 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     }
 
     [Fact]
+    public async Task Component_FullyQualified()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <$$
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "<",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["EditForm", "SectionOutlet - @using Microsoft.AspNetCore.Components.Sections", "Microsoft.AspNetCore.Components.Sections.SectionOutlet"],
+            htmlItemLabels: ["div", "h1"],
+            itemToResolve: "Microsoft.AspNetCore.Components.Sections.SectionOutlet",
+            expectedResolvedItemDescription: "Microsoft.AspNetCore.Components.Sections.SectionOutlet",
+            expected: """
+            This is a Razor document.
+            
+            <Microsoft.AspNetCore.Components.Sections.SectionOutlet
+            
+            The end.
+            """);
+    }
+
+    [Fact]
+    public async Task Completion_WithUsing()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <$$
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "<",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["EditForm", "SectionOutlet - @using Microsoft.AspNetCore.Components.Sections", "Microsoft.AspNetCore.Components.Sections.SectionOutlet"],
+            htmlItemLabels: ["div", "h1"],
+            itemToResolve: "SectionOutlet - @using Microsoft.AspNetCore.Components.Sections",
+            expectedResolvedItemDescription: "Microsoft.AspNetCore.Components.Sections.SectionOutlet",
+            expected: """
+            @using Microsoft.AspNetCore.Components.Sections
+            This is a Razor document.
+            
+            <SectionOutlet
+            
+            The end.
+            """);
+    }
+
+    [Fact]
     public async Task HtmlElementNamesAndTagHelpersCompletion_EndOfDocument()
     {
         await VerifyCompletionListAsync(
