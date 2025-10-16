@@ -1900,11 +1900,10 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                 var directiveCodeBlock = SyntaxFactory.CSharpCodeBlock(directiveBuilder.ToList());
 
                 var directiveBody = SyntaxFactory.RazorDirectiveBody(keywordBlock, directiveCodeBlock);
-                var directive = SyntaxFactory.RazorDirective(transition, directiveBody);
+                var directive = SyntaxFactory.RazorDirective(transition, directiveBody, descriptor);
 
                 var diagnostics = directiveErrorSink.GetErrorsAndClear();
                 directive = directive.WithDiagnosticsGreen(diagnostics);
-                directive = directive.WithDirectiveDescriptor(descriptor);
                 return directive;
             }
         }
