@@ -24,9 +24,15 @@ internal sealed class RazorCompletionItem
     public bool IsSnippet { get; }
 
     /// <summary>
-    /// For component completions, the namespace to auto-insert via @using statement when committed.
+    /// For component completions, additional text edits to apply when the completion is committed (e.g., @using statements).
     /// </summary>
-    public string? AutoInsertNamespace { get; }
+    public ImmutableArray<Roslyn.LanguageServer.Protocol.TextEdit> AdditionalTextEdits { get; }
+
+    /// <summary>
+    /// For component completions, the namespace to auto-insert via @using statement when committed.
+    /// Internal-only property used during completion item creation before TextEdits are generated.
+    /// </summary>
+    internal string? AutoInsertNamespace { get; }
 
     /// <summary>
     /// Creates a new Razor completion item
@@ -39,6 +45,7 @@ internal sealed class RazorCompletionItem
     /// <param name="commitCharacters">Characters that can be used to commit the completion item.</param>
     /// <param name="isSnippet">Indicates whether the completion item's <see cref="InsertText"/> is an LSP snippet or not.</param>
     /// <param name="autoInsertNamespace">For component completions, the namespace to auto-insert via @using statement when committed.</param>
+    /// <param name="additionalTextEdits">Additional text edits to apply when the completion is committed.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="displayText"/> or <paramref name="insertText"/> are <see langword="null"/>.</exception>
     private RazorCompletionItem(
         RazorCompletionItemKind kind,
@@ -48,7 +55,8 @@ internal sealed class RazorCompletionItem
         object descriptionInfo,
         ImmutableArray<RazorCommitCharacter> commitCharacters,
         bool isSnippet,
-        string? autoInsertNamespace = null)
+        string? autoInsertNamespace = null,
+        ImmutableArray<Roslyn.LanguageServer.Protocol.TextEdit> additionalTextEdits = default)
     {
         ArgHelper.ThrowIfNull(displayText);
         ArgHelper.ThrowIfNull(insertText);
@@ -61,6 +69,7 @@ internal sealed class RazorCompletionItem
         CommitCharacters = commitCharacters.NullToEmpty();
         IsSnippet = isSnippet;
         AutoInsertNamespace = autoInsertNamespace;
+        AdditionalTextEdits = additionalTextEdits.NullToEmpty();
     }
 
     public static RazorCompletionItem CreateDirective(
@@ -104,4 +113,10 @@ internal sealed class RazorCompletionItem
         string displayText, string insertText,
         ImmutableArray<RazorCommitCharacter> commitCharacters)
         => new(RazorCompletionItemKind.DirectiveAttributeParameterEventValue, displayText, insertText, sortText: null, descriptionInfo: AggregateBoundAttributeDescription.Empty, commitCharacters, isSnippet: false);
+
+    /// <summary>
+    /// Creates a copy of this completion item with the specified additional text edits.
+    /// </summary>
+    public RazorCompletionItem WithAdditionalTextEdits(ImmutableArray<Roslyn.LanguageServer.Protocol.TextEdit> additionalTextEdits)
+        => new(Kind, DisplayText, InsertText, SortText, DescriptionInfo, CommitCharacters, IsSnippet, AutoInsertNamespace, additionalTextEdits);
 }

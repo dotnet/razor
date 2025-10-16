@@ -310,14 +310,11 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         // If we couldn't resolve, fall back to what we were passed in
         result ??= request;
 
-        // Check if this completion item has an auto-insert namespace and add the @using statement
+        // Check if this completion item has additional text edits (e.g., @using statements) and apply them
         var associatedRazorCompletion = razorResolutionContext.CompletionItems.FirstOrDefault(c => c.DisplayText == result.Label);
-        if (associatedRazorCompletion?.AutoInsertNamespace is { } @namespace)
+        if (associatedRazorCompletion?.AdditionalTextEdits is { Length: > 0 } additionalEdits)
         {
-            var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-            var addUsingEdit = AddUsingsHelper.CreateAddUsingTextEdit(@namespace, codeDocument);
-
-            result.AdditionalTextEdits = [addUsingEdit];
+            result.AdditionalTextEdits = additionalEdits.ToArray();
         }
 
         return result;
