@@ -176,7 +176,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             """;
 
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Component,
-            additionalFiles: (FileName("SurveyPrompt.razor"), surveyPrompt.Text));
+            additionalFiles: (FilePath("SurveyPrompt.razor"), surveyPrompt.Text));
 
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
