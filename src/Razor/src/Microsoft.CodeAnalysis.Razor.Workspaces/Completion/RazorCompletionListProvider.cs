@@ -56,6 +56,7 @@ internal class RazorCompletionListProvider(
             owner,
             syntaxTree,
             tagHelperContext,
+            codeDocument,
             reason,
             completionOptions,
             existingCompletions);
@@ -69,9 +70,6 @@ internal class RazorCompletionListProvider(
         {
             return null;
         }
-
-        // Process completion items that need @using statements added and populate their AdditionalTextEdits
-        razorCompletionItems = PopulateAdditionalTextEdits(razorCompletionItems, codeDocument);
 
         var completionList = CreateLSPCompletionList(razorCompletionItems, clientCapabilities);
 
@@ -258,43 +256,5 @@ internal class RazorCompletionListProvider(
 
         completionItem = null;
         return false;
-    }
-
-    private static ImmutableArray<RazorCompletionItem> PopulateAdditionalTextEdits(
-        ImmutableArray<RazorCompletionItem> completionItems,
-        RazorCodeDocument codeDocument)
-    {
-        var hasItemsWithNamespace = false;
-        foreach (var item in completionItems)
-        {
-            if (item.AutoInsertNamespace is not null)
-            {
-                hasItemsWithNamespace = true;
-                break;
-            }
-        }
-
-        if (!hasItemsWithNamespace)
-        {
-            return completionItems;
-        }
-
-        using var updatedItems = new PooledArrayBuilder<RazorCompletionItem>(completionItems.Length);
-
-        foreach (var item in completionItems)
-        {
-            if (item.AutoInsertNamespace is { } @namespace)
-            {
-                var textEdit = Formatting.AddUsingsHelper.CreateAddUsingTextEdit(@namespace, codeDocument);
-                var updatedItem = item.WithAdditionalTextEdits(ImmutableArray.Create(textEdit));
-                updatedItems.Add(updatedItem);
-            }
-            else
-            {
-                updatedItems.Add(item);
-            }
-        }
-
-        return updatedItems.ToImmutable();
     }
 }

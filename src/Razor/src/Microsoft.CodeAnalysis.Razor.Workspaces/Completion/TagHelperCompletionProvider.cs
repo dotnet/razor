@@ -255,13 +255,17 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
                     var shortName = displayText[(lastDotIndex + 1)..]; // Get the short name after the last dot
                     var displayTextWithUsing = $"{shortName} - @using {@namespace}";
 
-                    // Create a completion item with modified display text and namespace for auto-insert
+                    // Create the @using text edit
+                    var addUsingEdit = Formatting.AddUsingsHelper.CreateAddUsingTextEdit(@namespace, context.CodeDocument);
+                    var additionalTextEdits = ImmutableArray.Create(addUsingEdit);
+
+                    // Create a completion item with modified display text and additional text edits
                     var razorCompletionItemWithUsing = RazorCompletionItem.CreateTagHelperElement(
                         displayText: displayTextWithUsing,
                         insertText: shortName,
                         descriptionInfo: new(tagHelperDescriptions),
                         commitCharacters: commitChars,
-                        autoInsertNamespace: @namespace);
+                        additionalTextEdits: additionalTextEdits);
 
                     completionItems.Add(razorCompletionItemWithUsing);
                 }

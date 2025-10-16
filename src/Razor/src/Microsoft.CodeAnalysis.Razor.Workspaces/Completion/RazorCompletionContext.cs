@@ -12,6 +12,7 @@ internal record RazorCompletionContext(
     RazorSyntaxNode? Owner,
     RazorSyntaxTree SyntaxTree,
     TagHelperDocumentContext TagHelperDocumentContext,
+    RazorCodeDocument CodeDocument,
     CompletionReason Reason = CompletionReason.Invoked,
     RazorCompletionOptions Options = default,
     HashSet<string>? ExistingCompletions = null)
