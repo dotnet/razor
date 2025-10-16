@@ -298,6 +298,78 @@ $$Path;
         Assert.Equal(expectedNames, providedNames);
     }
 
+    [Fact]
+    public async Task ProvideAsync_RemoveUnusedMembersCodeAction_IsSupported()
+    {
+        // Arrange
+        var documentPath = "c:/Test.razor";
+        var contents = "@code { $$private int unusedField; }";
+        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
+        var request = new VSCodeActionParams()
+        {
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new(new Uri(documentPath)) },
+            Range = LspFactory.DefaultRange,
+            Context = new VSInternalCodeActionContext()
+        };
+
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(8, 4));
+
+        var provider = new CSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance);
+
+        ImmutableArray<RazorVSInternalCodeAction> codeActions =
+        [
+            new RazorVSInternalCodeAction()
+            {
+                Title = "Remove unused private members",
+                Name = "RemoveUnusedMembers"
+            }
+        ];
+
+        // Act
+        var providedCodeActions = await provider.ProvideAsync(context, codeActions, DisposalToken);
+
+        // Assert
+        Assert.Single(providedCodeActions);
+        Assert.Equal("RemoveUnusedMembers", providedCodeActions[0].Name);
+    }
+
+    [Fact]
+    public async Task ProvideAsync_RemoveUnusedLocalFunctionCodeAction_IsSupported()
+    {
+        // Arrange
+        var documentPath = "c:/Test.razor";
+        var contents = "@code { void Method() { $$void UnusedLocalFunction() { } } }";
+        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
+        var request = new VSCodeActionParams()
+        {
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new(new Uri(documentPath)) },
+            Range = LspFactory.DefaultRange,
+            Context = new VSInternalCodeActionContext()
+        };
+
+        var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(8, 4));
+
+        var provider = new CSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance);
+
+        ImmutableArray<RazorVSInternalCodeAction> codeActions =
+        [
+            new RazorVSInternalCodeAction()
+            {
+                Title = "Remove unused local function",
+                Name = "RemoveUnusedLocalFunction"
+            }
+        ];
+
+        // Act
+        var providedCodeActions = await provider.ProvideAsync(context, codeActions, DisposalToken);
+
+        // Assert
+        Assert.Single(providedCodeActions);
+        Assert.Equal("RemoveUnusedLocalFunction", providedCodeActions[0].Name);
+    }
+
     private static RazorCodeActionContext CreateRazorCodeActionContext(
         VSCodeActionParams request,
         int absoluteIndex,
