@@ -17,6 +17,7 @@ internal static class RazorCodeActionFactory
     private readonly static Guid s_createExtractToCodeBehindTelemetryId = new("f63167f7-fdc6-450f-8b7b-b240892f4a27");
     private readonly static Guid s_createExtractToComponentTelemetryId = new("af67b0a3-f84b-4808-97a7-b53e85b22c64");
     private readonly static Guid s_simplifyComponentTelemetryId = new("2207f68c-419e-4baa-8493-2e7769e5c91d");
+    private readonly static Guid s_simplifyFullyQualifiedComponentTelemetryId = new("a8c7e9f2-4d1b-4a3c-9e5f-7b8d6c4e2a1f");
     private readonly static Guid s_generateMethodTelemetryId = new("c14fa003-c752-45fc-bb29-3a123ae5ecef");
     private readonly static Guid s_generateAsyncMethodTelemetryId = new("9058ca47-98e2-4f11-bf7c-a16a444dd939");
     private readonly static Guid s_promoteUsingDirectiveTelemetryId = new("751f9012-e37b-444a-9211-b4ebce91d96e");
@@ -135,6 +136,19 @@ internal static class RazorCodeActionFactory
             Data = data,
             TelemetryId = s_simplifyComponentTelemetryId,
             Name = LanguageServerConstants.CodeActions.SimplifyTagToSelfClosing,
+        };
+        return codeAction;
+    }
+
+    public static RazorVSInternalCodeAction CreateSimplifyFullyQualifiedComponent(RazorCodeActionResolutionParams resolutionParams)
+    {
+        var data = JsonSerializer.SerializeToElement(resolutionParams);
+        var codeAction = new RazorVSInternalCodeAction()
+        {
+            Title = SR.Simplify_Fully_Qualified_Component_Title,
+            Data = data,
+            TelemetryId = s_simplifyFullyQualifiedComponentTelemetryId,
+            Name = LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent,
         };
         return codeAction;
     }
