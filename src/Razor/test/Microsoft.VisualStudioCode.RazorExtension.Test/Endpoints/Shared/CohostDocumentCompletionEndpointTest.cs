@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -332,109 +331,64 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     }
 
     [Fact]
-    public async Task ComponentCompletionWithUsing()
+    public async Task Component_FullyQualified()
     {
-        // Create a component in a custom namespace that won't be imported by default
-        var customComponent = """
-            @namespace MyApp.Components
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
 
-            <h3>CustomWidget</h3>
+                <$$
 
-            @code {
-                [Parameter] public string? Title { get; set; }
-            }
-            """;
-
-        // Use a modified version of VerifyCompletionListAsync that supports additionalFiles
-        var document = CreateProjectAndRazorDocument(
-            contents: "<$$",
-            additionalFiles: [(Path.Combine(TestProjectData.SomeProjectPath, "CustomWidget.razor"), customComponent)]);
-        
-        var sourceText = await document.GetTextAsync(DisposalToken);
-
-        ClientSettingsManager.Update(ClientAdvancedSettings.Default);
-
-        var response = new RazorVSInternalCompletionList()
-        {
-            Items = [new VSInternalCompletionItem() { Label = "div" }],
-            IsIncomplete = true
-        };
-
-        var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentCompletionName, response)]);
-
-#if VSCODE
-        ISnippetCompletionItemProvider? snippetCompletionItemProvider = null;
-#else
-        var snippetCompletionItemProvider = new SnippetCompletionItemProvider(new SnippetCache());
-#endif
-
-        var languageServerFeatureOptions = new TestLanguageServerFeatureOptions();
-        var completionListCache = new CompletionListCache();
-        var endpoint = new CohostDocumentCompletionEndpoint(
-            IncompatibleProjectService,
-            RemoteServiceInvoker,
-            ClientSettingsManager,
-            ClientCapabilitiesService,
-            snippetCompletionItemProvider,
-            languageServerFeatureOptions,
-            requestInvoker,
-            completionListCache,
-            NoOpTelemetryReporter.Instance,
-            LoggerFactory);
-
-        var request = new RazorVSInternalCompletionParams()
-        {
-            TextDocument = new TextDocumentIdentifier()
-            {
-                DocumentUri = document.CreateDocumentUri()
-            },
-            Position = sourceText.GetPosition(1),
-            Context = new VSInternalCompletionContext()
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "<",
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
-            }
-        };
+            },
+            expectedItemLabels: ["EditForm", "SectionOutlet - @using Microsoft.AspNetCore.Components.Sections", "Microsoft.AspNetCore.Components.Sections.SectionOutlet"],
+            htmlItemLabels: ["div", "h1"],
+            itemToResolve: "Microsoft.AspNetCore.Components.Sections.SectionOutlet",
+            expectedResolvedItemDescription: "Microsoft.AspNetCore.Components.Sections.SectionOutlet",
+            expected: """
+            This is a Razor document.
+            
+            <Microsoft.AspNetCore.Components.Sections.SectionOutlet
+            
+            The end.
+            """);
+    }
 
-        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
+    [Fact]
+    public async Task Completion_WithUsing()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
 
-        Assert.NotNull(result);
+                <$$
 
-        // Verify expected items are present
-        var labelSet = result.Items.Select(i => i.Label).ToHashSet();
-        Assert.Contains("MyApp.Components.CustomWidget", labelSet);
-        Assert.Contains("CustomWidget - @using MyApp.Components", labelSet);
-
-        // Test resolution - find and resolve the "with using" item
-        var itemToResolve = result.Items.First(i => i.Label == "CustomWidget - @using MyApp.Components");
-        itemToResolve = JsonSerializer.Deserialize<VSInternalCompletionItem>(
-            JsonSerializer.SerializeToElement(itemToResolve, JsonHelpers.JsonSerializerOptions), 
-            JsonHelpers.JsonSerializerOptions)!;
-        itemToResolve.Data ??= result.Data ?? result.ItemDefaults?.Data;
-        itemToResolve.Data = JsonSerializer.SerializeToElement(itemToResolve.Data, JsonHelpers.JsonSerializerOptions);
-
-        var resolveEndpoint = new CohostDocumentCompletionResolveEndpoint(
-            IncompatibleProjectService,
-            completionListCache,
-            RemoteServiceInvoker,
-            ClientSettingsManager,
-            new TestHtmlRequestInvoker(),
-            ClientCapabilitiesService,
-            new ThrowingSnippetCompletionItemResolveProvider(),
-            LoggerFactory);
-
-        var resolvedItem = await resolveEndpoint.GetTestAccessor().HandleRequestAsync(itemToResolve, document, DisposalToken);
-
-        Assert.NotNull(resolvedItem);
-        
-        // Verify AdditionalTextEdits contains the @using statement
-        Assert.NotNull(resolvedItem.AdditionalTextEdits);
-        var additionalEdit = Assert.Single(resolvedItem.AdditionalTextEdits);
-        Assert.Contains("@using MyApp.Components", additionalEdit.NewText);
-        
-        // Verify the @using edit is at the start of the file
-        Assert.Equal(0, additionalEdit.Range.Start.Line);
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "<",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["EditForm", "SectionOutlet - @using Microsoft.AspNetCore.Components.Sections", "Microsoft.AspNetCore.Components.Sections.SectionOutlet"],
+            htmlItemLabels: ["div", "h1"],
+            itemToResolve: "SectionOutlet - @using Microsoft.AspNetCore.Components.Sections",
+            expectedResolvedItemDescription: "Microsoft.AspNetCore.Components.Sections.SectionOutlet",
+            expected: """
+            @using Microsoft.AspNetCore.Components.Sections
+            This is a Razor document.
+            
+            <SectionOutlet
+            
+            The end.
+            """);
     }
 
     [Fact]
