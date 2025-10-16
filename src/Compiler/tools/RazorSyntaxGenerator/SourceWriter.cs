@@ -431,7 +431,8 @@ internal class SourceWriter : AbstractFileWriter
             int nCompared = 0;
             foreach (var field in node.Fields)
             {
-                if (IsDerivedOrListOfDerived("SyntaxNode", field.Type) || IsDerivedOrListOfDerived("SyntaxToken", field.Type) || field.Type == "SyntaxNodeOrTokenList")
+                if (IsDerivedOrListOfDerived("SyntaxNode", field.Type) ||
+                    IsDerivedOrListOfDerived("SyntaxToken", field.Type) || field.Type == "SyntaxNodeOrTokenList")
                 {
                     if (nCompared > 0)
                     {
