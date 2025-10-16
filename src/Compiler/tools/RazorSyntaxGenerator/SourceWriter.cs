@@ -1221,7 +1221,9 @@ internal class SourceWriter : AbstractFileWriter
             var nCompared = 0;
             foreach (var field in node.Fields)
             {
-                if (IsDerivedOrListOfDerived("SyntaxNode", field.Type) || IsDerivedOrListOfDerived("SyntaxToken", field.Type) || field.Type is "SyntaxNodeOrTokenList" or "ISpanChunkGenerator")
+                if (IsDerivedOrListOfDerived("SyntaxNode", field.Type) ||
+                    IsDerivedOrListOfDerived("SyntaxToken", field.Type) ||
+                    field.Type is "SyntaxNodeOrTokenList" or "ISpanChunkGenerator" or "SpanEditHandler")
                 {
                     if (nCompared > 0)
                     {

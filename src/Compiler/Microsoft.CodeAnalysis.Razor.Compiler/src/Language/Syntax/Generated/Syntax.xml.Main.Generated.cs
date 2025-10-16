@@ -261,25 +261,25 @@ internal partial class SyntaxRewriter : SyntaxVisitor<SyntaxNode>
         => node.Update((SyntaxToken)VisitToken(node.StartCommentTransition), (SyntaxToken)VisitToken(node.StartCommentStar), (SyntaxToken)VisitToken(node.Comment), (SyntaxToken)VisitToken(node.EndCommentStar), (SyntaxToken)VisitToken(node.EndCommentTransition));
 
     public override SyntaxNode VisitRazorMetaCode(RazorMetaCodeSyntax node)
-        => node.Update(VisitList(node.MetaCode), node.ChunkGenerator);
+        => node.Update(VisitList(node.MetaCode), node.ChunkGenerator, node.EditHandler);
 
     public override SyntaxNode VisitGenericBlock(GenericBlockSyntax node)
         => node.Update(VisitList(node.Children));
 
     public override SyntaxNode VisitUnclassifiedTextLiteral(UnclassifiedTextLiteralSyntax node)
-        => node.Update(VisitList(node.LiteralTokens), node.ChunkGenerator);
+        => node.Update(VisitList(node.LiteralTokens), node.ChunkGenerator, node.EditHandler);
 
     public override SyntaxNode VisitMarkupBlock(MarkupBlockSyntax node)
         => node.Update(VisitList(node.Children));
 
     public override SyntaxNode VisitMarkupTransition(MarkupTransitionSyntax node)
-        => node.Update(VisitList(node.TransitionTokens), node.ChunkGenerator);
+        => node.Update(VisitList(node.TransitionTokens), node.ChunkGenerator, node.EditHandler);
 
     public override SyntaxNode VisitMarkupTextLiteral(MarkupTextLiteralSyntax node)
-        => node.Update(VisitList(node.LiteralTokens), node.ChunkGenerator);
+        => node.Update(VisitList(node.LiteralTokens), node.ChunkGenerator, node.EditHandler);
 
     public override SyntaxNode VisitMarkupEphemeralTextLiteral(MarkupEphemeralTextLiteralSyntax node)
-        => node.Update(VisitList(node.LiteralTokens), node.ChunkGenerator);
+        => node.Update(VisitList(node.LiteralTokens), node.ChunkGenerator, node.EditHandler);
 
     public override SyntaxNode VisitMarkupCommentBlock(MarkupCommentBlockSyntax node)
         => node.Update(VisitList(node.Children));
@@ -303,19 +303,19 @@ internal partial class SyntaxRewriter : SyntaxVisitor<SyntaxNode>
         => node.Update((MarkupStartTagSyntax)Visit(node.StartTag), VisitList(node.Body), (MarkupEndTagSyntax)Visit(node.EndTag));
 
     public override SyntaxNode VisitMarkupStartTag(MarkupStartTagSyntax node)
-        => node.Update((SyntaxToken)VisitToken(node.OpenAngle), (SyntaxToken)VisitToken(node.Bang), (SyntaxToken)VisitToken(node.Name), VisitList(node.Attributes), (SyntaxToken)VisitToken(node.ForwardSlash), (SyntaxToken)VisitToken(node.CloseAngle), node.ChunkGenerator);
+        => node.Update((SyntaxToken)VisitToken(node.OpenAngle), (SyntaxToken)VisitToken(node.Bang), (SyntaxToken)VisitToken(node.Name), VisitList(node.Attributes), (SyntaxToken)VisitToken(node.ForwardSlash), (SyntaxToken)VisitToken(node.CloseAngle), node.ChunkGenerator, node.EditHandler);
 
     public override SyntaxNode VisitMarkupEndTag(MarkupEndTagSyntax node)
-        => node.Update((SyntaxToken)VisitToken(node.OpenAngle), (SyntaxToken)VisitToken(node.ForwardSlash), (SyntaxToken)VisitToken(node.Bang), (SyntaxToken)VisitToken(node.Name), (MarkupMiscAttributeContentSyntax)Visit(node.MiscAttributeContent), (SyntaxToken)VisitToken(node.CloseAngle), node.ChunkGenerator);
+        => node.Update((SyntaxToken)VisitToken(node.OpenAngle), (SyntaxToken)VisitToken(node.ForwardSlash), (SyntaxToken)VisitToken(node.Bang), (SyntaxToken)VisitToken(node.Name), (MarkupMiscAttributeContentSyntax)Visit(node.MiscAttributeContent), (SyntaxToken)VisitToken(node.CloseAngle), node.ChunkGenerator, node.EditHandler);
 
     public override SyntaxNode VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
         => node.Update((MarkupTagHelperStartTagSyntax)Visit(node.StartTag), VisitList(node.Body), (MarkupTagHelperEndTagSyntax)Visit(node.EndTag));
 
     public override SyntaxNode VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
-        => node.Update((SyntaxToken)VisitToken(node.OpenAngle), (SyntaxToken)VisitToken(node.Bang), (SyntaxToken)VisitToken(node.Name), VisitList(node.Attributes), (SyntaxToken)VisitToken(node.ForwardSlash), (SyntaxToken)VisitToken(node.CloseAngle), node.ChunkGenerator);
+        => node.Update((SyntaxToken)VisitToken(node.OpenAngle), (SyntaxToken)VisitToken(node.Bang), (SyntaxToken)VisitToken(node.Name), VisitList(node.Attributes), (SyntaxToken)VisitToken(node.ForwardSlash), (SyntaxToken)VisitToken(node.CloseAngle), node.ChunkGenerator, node.EditHandler);
 
     public override SyntaxNode VisitMarkupTagHelperEndTag(MarkupTagHelperEndTagSyntax node)
-        => node.Update((SyntaxToken)VisitToken(node.OpenAngle), (SyntaxToken)VisitToken(node.ForwardSlash), (SyntaxToken)VisitToken(node.Bang), (SyntaxToken)VisitToken(node.Name), (MarkupMiscAttributeContentSyntax)Visit(node.MiscAttributeContent), (SyntaxToken)VisitToken(node.CloseAngle), node.ChunkGenerator);
+        => node.Update((SyntaxToken)VisitToken(node.OpenAngle), (SyntaxToken)VisitToken(node.ForwardSlash), (SyntaxToken)VisitToken(node.Bang), (SyntaxToken)VisitToken(node.Name), (MarkupMiscAttributeContentSyntax)Visit(node.MiscAttributeContent), (SyntaxToken)VisitToken(node.CloseAngle), node.ChunkGenerator, node.EditHandler);
 
     public override SyntaxNode VisitMarkupTagHelperAttribute(MarkupTagHelperAttributeSyntax node)
         => node.Update((MarkupTextLiteralSyntax)Visit(node.NamePrefix), (MarkupTextLiteralSyntax)Visit(node.Name), (MarkupTextLiteralSyntax)Visit(node.NameSuffix), (SyntaxToken)VisitToken(node.EqualsToken), (MarkupTextLiteralSyntax)Visit(node.ValuePrefix), (MarkupTagHelperAttributeValueSyntax)Visit(node.Value), (MarkupTextLiteralSyntax)Visit(node.ValueSuffix));
@@ -336,16 +336,16 @@ internal partial class SyntaxRewriter : SyntaxVisitor<SyntaxNode>
         => node.Update(VisitList(node.Children));
 
     public override SyntaxNode VisitCSharpTransition(CSharpTransitionSyntax node)
-        => node.Update((SyntaxToken)VisitToken(node.Transition), node.ChunkGenerator);
+        => node.Update((SyntaxToken)VisitToken(node.Transition), node.ChunkGenerator, node.EditHandler);
 
     public override SyntaxNode VisitCSharpStatementLiteral(CSharpStatementLiteralSyntax node)
-        => node.Update(VisitList(node.LiteralTokens), node.ChunkGenerator);
+        => node.Update(VisitList(node.LiteralTokens), node.ChunkGenerator, node.EditHandler);
 
     public override SyntaxNode VisitCSharpExpressionLiteral(CSharpExpressionLiteralSyntax node)
-        => node.Update(VisitList(node.LiteralTokens), node.ChunkGenerator);
+        => node.Update(VisitList(node.LiteralTokens), node.ChunkGenerator, node.EditHandler);
 
     public override SyntaxNode VisitCSharpEphemeralTextLiteral(CSharpEphemeralTextLiteralSyntax node)
-        => node.Update(VisitList(node.LiteralTokens), node.ChunkGenerator);
+        => node.Update(VisitList(node.LiteralTokens), node.ChunkGenerator, node.EditHandler);
 
     public override SyntaxNode VisitCSharpTemplateBlock(CSharpTemplateBlockSyntax node)
         => node.Update(VisitList(node.Children));
@@ -405,12 +405,12 @@ internal static partial class SyntaxFactory
         => SyntaxFactory.RazorCommentBlock(SyntaxFactory.Token(SyntaxKind.RazorCommentTransition), SyntaxFactory.Token(SyntaxKind.RazorCommentStar), SyntaxFactory.Token(SyntaxKind.RazorCommentLiteral), SyntaxFactory.Token(SyntaxKind.RazorCommentStar), SyntaxFactory.Token(SyntaxKind.RazorCommentTransition));
 
     /// <summary>Creates a new RazorMetaCodeSyntax instance.</summary>
-    public static RazorMetaCodeSyntax RazorMetaCode(SyntaxTokenList metaCode, ISpanChunkGenerator chunkGenerator)
-        => (RazorMetaCodeSyntax)InternalSyntax.SyntaxFactory.RazorMetaCode(metaCode.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator).CreateRed();
+    public static RazorMetaCodeSyntax RazorMetaCode(SyntaxTokenList metaCode, ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => (RazorMetaCodeSyntax)InternalSyntax.SyntaxFactory.RazorMetaCode(metaCode.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator, editHandler).CreateRed();
 
     /// <summary>Creates a new RazorMetaCodeSyntax instance.</summary>
-    public static RazorMetaCodeSyntax RazorMetaCode(ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.RazorMetaCode(default(SyntaxTokenList), chunkGenerator);
+    public static RazorMetaCodeSyntax RazorMetaCode(ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => SyntaxFactory.RazorMetaCode(default(SyntaxTokenList), chunkGenerator, editHandler);
 
     /// <summary>Creates a new GenericBlockSyntax instance.</summary>
     public static GenericBlockSyntax GenericBlock(SyntaxList<RazorSyntaxNode> children)
@@ -421,12 +421,12 @@ internal static partial class SyntaxFactory
         => SyntaxFactory.GenericBlock(default(SyntaxList<RazorSyntaxNode>));
 
     /// <summary>Creates a new UnclassifiedTextLiteralSyntax instance.</summary>
-    public static UnclassifiedTextLiteralSyntax UnclassifiedTextLiteral(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator)
-        => (UnclassifiedTextLiteralSyntax)InternalSyntax.SyntaxFactory.UnclassifiedTextLiteral(literalTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator).CreateRed();
+    public static UnclassifiedTextLiteralSyntax UnclassifiedTextLiteral(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => (UnclassifiedTextLiteralSyntax)InternalSyntax.SyntaxFactory.UnclassifiedTextLiteral(literalTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator, editHandler).CreateRed();
 
     /// <summary>Creates a new UnclassifiedTextLiteralSyntax instance.</summary>
-    public static UnclassifiedTextLiteralSyntax UnclassifiedTextLiteral(ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.UnclassifiedTextLiteral(default(SyntaxTokenList), chunkGenerator);
+    public static UnclassifiedTextLiteralSyntax UnclassifiedTextLiteral(ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => SyntaxFactory.UnclassifiedTextLiteral(default(SyntaxTokenList), chunkGenerator, editHandler);
 
     /// <summary>Creates a new MarkupBlockSyntax instance.</summary>
     public static MarkupBlockSyntax MarkupBlock(SyntaxList<RazorSyntaxNode> children)
@@ -437,28 +437,28 @@ internal static partial class SyntaxFactory
         => SyntaxFactory.MarkupBlock(default(SyntaxList<RazorSyntaxNode>));
 
     /// <summary>Creates a new MarkupTransitionSyntax instance.</summary>
-    public static MarkupTransitionSyntax MarkupTransition(SyntaxTokenList transitionTokens, ISpanChunkGenerator chunkGenerator)
-        => (MarkupTransitionSyntax)InternalSyntax.SyntaxFactory.MarkupTransition(transitionTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator).CreateRed();
+    public static MarkupTransitionSyntax MarkupTransition(SyntaxTokenList transitionTokens, ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => (MarkupTransitionSyntax)InternalSyntax.SyntaxFactory.MarkupTransition(transitionTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator, editHandler).CreateRed();
 
     /// <summary>Creates a new MarkupTransitionSyntax instance.</summary>
-    public static MarkupTransitionSyntax MarkupTransition(ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.MarkupTransition(default(SyntaxTokenList), chunkGenerator);
+    public static MarkupTransitionSyntax MarkupTransition(ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => SyntaxFactory.MarkupTransition(default(SyntaxTokenList), chunkGenerator, editHandler);
 
     /// <summary>Creates a new MarkupTextLiteralSyntax instance.</summary>
-    public static MarkupTextLiteralSyntax MarkupTextLiteral(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator)
-        => (MarkupTextLiteralSyntax)InternalSyntax.SyntaxFactory.MarkupTextLiteral(literalTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator).CreateRed();
+    public static MarkupTextLiteralSyntax MarkupTextLiteral(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => (MarkupTextLiteralSyntax)InternalSyntax.SyntaxFactory.MarkupTextLiteral(literalTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator, editHandler).CreateRed();
 
     /// <summary>Creates a new MarkupTextLiteralSyntax instance.</summary>
-    public static MarkupTextLiteralSyntax MarkupTextLiteral(ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.MarkupTextLiteral(default(SyntaxTokenList), chunkGenerator);
+    public static MarkupTextLiteralSyntax MarkupTextLiteral(ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => SyntaxFactory.MarkupTextLiteral(default(SyntaxTokenList), chunkGenerator, editHandler);
 
     /// <summary>Creates a new MarkupEphemeralTextLiteralSyntax instance.</summary>
-    public static MarkupEphemeralTextLiteralSyntax MarkupEphemeralTextLiteral(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator)
-        => (MarkupEphemeralTextLiteralSyntax)InternalSyntax.SyntaxFactory.MarkupEphemeralTextLiteral(literalTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator).CreateRed();
+    public static MarkupEphemeralTextLiteralSyntax MarkupEphemeralTextLiteral(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => (MarkupEphemeralTextLiteralSyntax)InternalSyntax.SyntaxFactory.MarkupEphemeralTextLiteral(literalTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator, editHandler).CreateRed();
 
     /// <summary>Creates a new MarkupEphemeralTextLiteralSyntax instance.</summary>
-    public static MarkupEphemeralTextLiteralSyntax MarkupEphemeralTextLiteral(ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.MarkupEphemeralTextLiteral(default(SyntaxTokenList), chunkGenerator);
+    public static MarkupEphemeralTextLiteralSyntax MarkupEphemeralTextLiteral(ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => SyntaxFactory.MarkupEphemeralTextLiteral(default(SyntaxTokenList), chunkGenerator, editHandler);
 
     /// <summary>Creates a new MarkupCommentBlockSyntax instance.</summary>
     public static MarkupCommentBlockSyntax MarkupCommentBlock(SyntaxList<RazorSyntaxNode> children)
@@ -531,42 +531,42 @@ internal static partial class SyntaxFactory
         => SyntaxFactory.MarkupElement(default(MarkupStartTagSyntax), body, default(MarkupEndTagSyntax));
 
     /// <summary>Creates a new MarkupStartTagSyntax instance.</summary>
-    public static MarkupStartTagSyntax MarkupStartTag(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
+    public static MarkupStartTagSyntax MarkupStartTag(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
     {
         if (openAngle.Kind is not (SyntaxKind.OpenAngle)) return ThrowHelper.ThrowArgumentException<MarkupStartTagSyntax>(nameof(openAngle), $"Invalid SyntaxKind. Expected 'SyntaxKind.OpenAngle', but it was {openAngle.Kind}");
         if (bang.Kind is not (SyntaxKind.Bang or SyntaxKind.None)) return ThrowHelper.ThrowArgumentException<MarkupStartTagSyntax>(nameof(bang), $"Invalid SyntaxKind. Expected 'SyntaxKind.Bang or SyntaxKind.None', but it was {bang.Kind}");
         if (name.Kind is not (SyntaxKind.Text)) return ThrowHelper.ThrowArgumentException<MarkupStartTagSyntax>(nameof(name), $"Invalid SyntaxKind. Expected 'SyntaxKind.Text', but it was {name.Kind}");
         if (forwardSlash.Kind is not (SyntaxKind.ForwardSlash or SyntaxKind.None)) return ThrowHelper.ThrowArgumentException<MarkupStartTagSyntax>(nameof(forwardSlash), $"Invalid SyntaxKind. Expected 'SyntaxKind.ForwardSlash or SyntaxKind.None', but it was {forwardSlash.Kind}");
         if (closeAngle.Kind is not (SyntaxKind.CloseAngle)) return ThrowHelper.ThrowArgumentException<MarkupStartTagSyntax>(nameof(closeAngle), $"Invalid SyntaxKind. Expected 'SyntaxKind.CloseAngle', but it was {closeAngle.Kind}");
-        return (MarkupStartTagSyntax)InternalSyntax.SyntaxFactory.MarkupStartTag((Syntax.InternalSyntax.SyntaxToken)openAngle.Node, (Syntax.InternalSyntax.SyntaxToken)bang.Node, (Syntax.InternalSyntax.SyntaxToken)name.Node, attributes.Node.ToGreenList<InternalSyntax.RazorSyntaxNode>(), (Syntax.InternalSyntax.SyntaxToken)forwardSlash.Node, (Syntax.InternalSyntax.SyntaxToken)closeAngle.Node, chunkGenerator).CreateRed();
+        return (MarkupStartTagSyntax)InternalSyntax.SyntaxFactory.MarkupStartTag((Syntax.InternalSyntax.SyntaxToken)openAngle.Node, (Syntax.InternalSyntax.SyntaxToken)bang.Node, (Syntax.InternalSyntax.SyntaxToken)name.Node, attributes.Node.ToGreenList<InternalSyntax.RazorSyntaxNode>(), (Syntax.InternalSyntax.SyntaxToken)forwardSlash.Node, (Syntax.InternalSyntax.SyntaxToken)closeAngle.Node, chunkGenerator, editHandler).CreateRed();
     }
 
     /// <summary>Creates a new MarkupStartTagSyntax instance.</summary>
-    public static MarkupStartTagSyntax MarkupStartTag(SyntaxList<RazorSyntaxNode> attributes, ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.MarkupStartTag(SyntaxFactory.Token(SyntaxKind.OpenAngle), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.Text), attributes, default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.CloseAngle), chunkGenerator);
+    public static MarkupStartTagSyntax MarkupStartTag(SyntaxList<RazorSyntaxNode> attributes, ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => SyntaxFactory.MarkupStartTag(SyntaxFactory.Token(SyntaxKind.OpenAngle), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.Text), attributes, default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.CloseAngle), chunkGenerator, editHandler);
 
     /// <summary>Creates a new MarkupStartTagSyntax instance.</summary>
-    public static MarkupStartTagSyntax MarkupStartTag(ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.MarkupStartTag(SyntaxFactory.Token(SyntaxKind.OpenAngle), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.Text), default(SyntaxList<RazorSyntaxNode>), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.CloseAngle), chunkGenerator);
+    public static MarkupStartTagSyntax MarkupStartTag(ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => SyntaxFactory.MarkupStartTag(SyntaxFactory.Token(SyntaxKind.OpenAngle), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.Text), default(SyntaxList<RazorSyntaxNode>), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.CloseAngle), chunkGenerator, editHandler);
 
     /// <summary>Creates a new MarkupEndTagSyntax instance.</summary>
-    public static MarkupEndTagSyntax MarkupEndTag(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
+    public static MarkupEndTagSyntax MarkupEndTag(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
     {
         if (openAngle.Kind is not (SyntaxKind.OpenAngle)) return ThrowHelper.ThrowArgumentException<MarkupEndTagSyntax>(nameof(openAngle), $"Invalid SyntaxKind. Expected 'SyntaxKind.OpenAngle', but it was {openAngle.Kind}");
         if (forwardSlash.Kind is not (SyntaxKind.ForwardSlash)) return ThrowHelper.ThrowArgumentException<MarkupEndTagSyntax>(nameof(forwardSlash), $"Invalid SyntaxKind. Expected 'SyntaxKind.ForwardSlash', but it was {forwardSlash.Kind}");
         if (bang.Kind is not (SyntaxKind.Bang or SyntaxKind.None)) return ThrowHelper.ThrowArgumentException<MarkupEndTagSyntax>(nameof(bang), $"Invalid SyntaxKind. Expected 'SyntaxKind.Bang or SyntaxKind.None', but it was {bang.Kind}");
         if (name.Kind is not (SyntaxKind.Text)) return ThrowHelper.ThrowArgumentException<MarkupEndTagSyntax>(nameof(name), $"Invalid SyntaxKind. Expected 'SyntaxKind.Text', but it was {name.Kind}");
         if (closeAngle.Kind is not (SyntaxKind.CloseAngle)) return ThrowHelper.ThrowArgumentException<MarkupEndTagSyntax>(nameof(closeAngle), $"Invalid SyntaxKind. Expected 'SyntaxKind.CloseAngle', but it was {closeAngle.Kind}");
-        return (MarkupEndTagSyntax)InternalSyntax.SyntaxFactory.MarkupEndTag((Syntax.InternalSyntax.SyntaxToken)openAngle.Node, (Syntax.InternalSyntax.SyntaxToken)forwardSlash.Node, (Syntax.InternalSyntax.SyntaxToken)bang.Node, (Syntax.InternalSyntax.SyntaxToken)name.Node, miscAttributeContent == null ? null : (InternalSyntax.MarkupMiscAttributeContentSyntax)miscAttributeContent.Green, (Syntax.InternalSyntax.SyntaxToken)closeAngle.Node, chunkGenerator).CreateRed();
+        return (MarkupEndTagSyntax)InternalSyntax.SyntaxFactory.MarkupEndTag((Syntax.InternalSyntax.SyntaxToken)openAngle.Node, (Syntax.InternalSyntax.SyntaxToken)forwardSlash.Node, (Syntax.InternalSyntax.SyntaxToken)bang.Node, (Syntax.InternalSyntax.SyntaxToken)name.Node, miscAttributeContent == null ? null : (InternalSyntax.MarkupMiscAttributeContentSyntax)miscAttributeContent.Green, (Syntax.InternalSyntax.SyntaxToken)closeAngle.Node, chunkGenerator, editHandler).CreateRed();
     }
 
     /// <summary>Creates a new MarkupEndTagSyntax instance.</summary>
-    public static MarkupEndTagSyntax MarkupEndTag(MarkupMiscAttributeContentSyntax miscAttributeContent, ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.MarkupEndTag(SyntaxFactory.Token(SyntaxKind.OpenAngle), SyntaxFactory.Token(SyntaxKind.ForwardSlash), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.Text), miscAttributeContent, SyntaxFactory.Token(SyntaxKind.CloseAngle), chunkGenerator);
+    public static MarkupEndTagSyntax MarkupEndTag(MarkupMiscAttributeContentSyntax miscAttributeContent, ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => SyntaxFactory.MarkupEndTag(SyntaxFactory.Token(SyntaxKind.OpenAngle), SyntaxFactory.Token(SyntaxKind.ForwardSlash), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.Text), miscAttributeContent, SyntaxFactory.Token(SyntaxKind.CloseAngle), chunkGenerator, editHandler);
 
     /// <summary>Creates a new MarkupEndTagSyntax instance.</summary>
-    public static MarkupEndTagSyntax MarkupEndTag(ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.MarkupEndTag(SyntaxFactory.Token(SyntaxKind.OpenAngle), SyntaxFactory.Token(SyntaxKind.ForwardSlash), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.Text), default(MarkupMiscAttributeContentSyntax), SyntaxFactory.Token(SyntaxKind.CloseAngle), chunkGenerator);
+    public static MarkupEndTagSyntax MarkupEndTag(ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => SyntaxFactory.MarkupEndTag(SyntaxFactory.Token(SyntaxKind.OpenAngle), SyntaxFactory.Token(SyntaxKind.ForwardSlash), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.Text), default(MarkupMiscAttributeContentSyntax), SyntaxFactory.Token(SyntaxKind.CloseAngle), chunkGenerator, editHandler);
 
     /// <summary>Creates a new MarkupTagHelperElementSyntax instance.</summary>
     public static MarkupTagHelperElementSyntax MarkupTagHelperElement(MarkupTagHelperStartTagSyntax startTag, SyntaxList<RazorSyntaxNode> body, MarkupTagHelperEndTagSyntax endTag)
@@ -580,42 +580,42 @@ internal static partial class SyntaxFactory
         => SyntaxFactory.MarkupTagHelperElement(startTag, default(SyntaxList<RazorSyntaxNode>), default(MarkupTagHelperEndTagSyntax));
 
     /// <summary>Creates a new MarkupTagHelperStartTagSyntax instance.</summary>
-    public static MarkupTagHelperStartTagSyntax MarkupTagHelperStartTag(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
+    public static MarkupTagHelperStartTagSyntax MarkupTagHelperStartTag(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
     {
         if (openAngle.Kind is not (SyntaxKind.OpenAngle)) return ThrowHelper.ThrowArgumentException<MarkupTagHelperStartTagSyntax>(nameof(openAngle), $"Invalid SyntaxKind. Expected 'SyntaxKind.OpenAngle', but it was {openAngle.Kind}");
         if (bang.Kind is not (SyntaxKind.Bang or SyntaxKind.None)) return ThrowHelper.ThrowArgumentException<MarkupTagHelperStartTagSyntax>(nameof(bang), $"Invalid SyntaxKind. Expected 'SyntaxKind.Bang or SyntaxKind.None', but it was {bang.Kind}");
         if (name.Kind is not (SyntaxKind.Text)) return ThrowHelper.ThrowArgumentException<MarkupTagHelperStartTagSyntax>(nameof(name), $"Invalid SyntaxKind. Expected 'SyntaxKind.Text', but it was {name.Kind}");
         if (forwardSlash.Kind is not (SyntaxKind.ForwardSlash or SyntaxKind.None)) return ThrowHelper.ThrowArgumentException<MarkupTagHelperStartTagSyntax>(nameof(forwardSlash), $"Invalid SyntaxKind. Expected 'SyntaxKind.ForwardSlash or SyntaxKind.None', but it was {forwardSlash.Kind}");
         if (closeAngle.Kind is not (SyntaxKind.CloseAngle)) return ThrowHelper.ThrowArgumentException<MarkupTagHelperStartTagSyntax>(nameof(closeAngle), $"Invalid SyntaxKind. Expected 'SyntaxKind.CloseAngle', but it was {closeAngle.Kind}");
-        return (MarkupTagHelperStartTagSyntax)InternalSyntax.SyntaxFactory.MarkupTagHelperStartTag((Syntax.InternalSyntax.SyntaxToken)openAngle.Node, (Syntax.InternalSyntax.SyntaxToken)bang.Node, (Syntax.InternalSyntax.SyntaxToken)name.Node, attributes.Node.ToGreenList<InternalSyntax.RazorSyntaxNode>(), (Syntax.InternalSyntax.SyntaxToken)forwardSlash.Node, (Syntax.InternalSyntax.SyntaxToken)closeAngle.Node, chunkGenerator).CreateRed();
+        return (MarkupTagHelperStartTagSyntax)InternalSyntax.SyntaxFactory.MarkupTagHelperStartTag((Syntax.InternalSyntax.SyntaxToken)openAngle.Node, (Syntax.InternalSyntax.SyntaxToken)bang.Node, (Syntax.InternalSyntax.SyntaxToken)name.Node, attributes.Node.ToGreenList<InternalSyntax.RazorSyntaxNode>(), (Syntax.InternalSyntax.SyntaxToken)forwardSlash.Node, (Syntax.InternalSyntax.SyntaxToken)closeAngle.Node, chunkGenerator, editHandler).CreateRed();
     }
 
     /// <summary>Creates a new MarkupTagHelperStartTagSyntax instance.</summary>
-    public static MarkupTagHelperStartTagSyntax MarkupTagHelperStartTag(SyntaxList<RazorSyntaxNode> attributes, ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.MarkupTagHelperStartTag(SyntaxFactory.Token(SyntaxKind.OpenAngle), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.Text), attributes, default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.CloseAngle), chunkGenerator);
+    public static MarkupTagHelperStartTagSyntax MarkupTagHelperStartTag(SyntaxList<RazorSyntaxNode> attributes, ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => SyntaxFactory.MarkupTagHelperStartTag(SyntaxFactory.Token(SyntaxKind.OpenAngle), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.Text), attributes, default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.CloseAngle), chunkGenerator, editHandler);
 
     /// <summary>Creates a new MarkupTagHelperStartTagSyntax instance.</summary>
-    public static MarkupTagHelperStartTagSyntax MarkupTagHelperStartTag(ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.MarkupTagHelperStartTag(SyntaxFactory.Token(SyntaxKind.OpenAngle), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.Text), default(SyntaxList<RazorSyntaxNode>), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.CloseAngle), chunkGenerator);
+    public static MarkupTagHelperStartTagSyntax MarkupTagHelperStartTag(ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => SyntaxFactory.MarkupTagHelperStartTag(SyntaxFactory.Token(SyntaxKind.OpenAngle), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.Text), default(SyntaxList<RazorSyntaxNode>), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.CloseAngle), chunkGenerator, editHandler);
 
     /// <summary>Creates a new MarkupTagHelperEndTagSyntax instance.</summary>
-    public static MarkupTagHelperEndTagSyntax MarkupTagHelperEndTag(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
+    public static MarkupTagHelperEndTagSyntax MarkupTagHelperEndTag(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
     {
         if (openAngle.Kind is not (SyntaxKind.OpenAngle)) return ThrowHelper.ThrowArgumentException<MarkupTagHelperEndTagSyntax>(nameof(openAngle), $"Invalid SyntaxKind. Expected 'SyntaxKind.OpenAngle', but it was {openAngle.Kind}");
         if (forwardSlash.Kind is not (SyntaxKind.ForwardSlash)) return ThrowHelper.ThrowArgumentException<MarkupTagHelperEndTagSyntax>(nameof(forwardSlash), $"Invalid SyntaxKind. Expected 'SyntaxKind.ForwardSlash', but it was {forwardSlash.Kind}");
         if (bang.Kind is not (SyntaxKind.Bang or SyntaxKind.None)) return ThrowHelper.ThrowArgumentException<MarkupTagHelperEndTagSyntax>(nameof(bang), $"Invalid SyntaxKind. Expected 'SyntaxKind.Bang or SyntaxKind.None', but it was {bang.Kind}");
         if (name.Kind is not (SyntaxKind.Text)) return ThrowHelper.ThrowArgumentException<MarkupTagHelperEndTagSyntax>(nameof(name), $"Invalid SyntaxKind. Expected 'SyntaxKind.Text', but it was {name.Kind}");
         if (closeAngle.Kind is not (SyntaxKind.CloseAngle)) return ThrowHelper.ThrowArgumentException<MarkupTagHelperEndTagSyntax>(nameof(closeAngle), $"Invalid SyntaxKind. Expected 'SyntaxKind.CloseAngle', but it was {closeAngle.Kind}");
-        return (MarkupTagHelperEndTagSyntax)InternalSyntax.SyntaxFactory.MarkupTagHelperEndTag((Syntax.InternalSyntax.SyntaxToken)openAngle.Node, (Syntax.InternalSyntax.SyntaxToken)forwardSlash.Node, (Syntax.InternalSyntax.SyntaxToken)bang.Node, (Syntax.InternalSyntax.SyntaxToken)name.Node, miscAttributeContent == null ? null : (InternalSyntax.MarkupMiscAttributeContentSyntax)miscAttributeContent.Green, (Syntax.InternalSyntax.SyntaxToken)closeAngle.Node, chunkGenerator).CreateRed();
+        return (MarkupTagHelperEndTagSyntax)InternalSyntax.SyntaxFactory.MarkupTagHelperEndTag((Syntax.InternalSyntax.SyntaxToken)openAngle.Node, (Syntax.InternalSyntax.SyntaxToken)forwardSlash.Node, (Syntax.InternalSyntax.SyntaxToken)bang.Node, (Syntax.InternalSyntax.SyntaxToken)name.Node, miscAttributeContent == null ? null : (InternalSyntax.MarkupMiscAttributeContentSyntax)miscAttributeContent.Green, (Syntax.InternalSyntax.SyntaxToken)closeAngle.Node, chunkGenerator, editHandler).CreateRed();
     }
 
     /// <summary>Creates a new MarkupTagHelperEndTagSyntax instance.</summary>
-    public static MarkupTagHelperEndTagSyntax MarkupTagHelperEndTag(MarkupMiscAttributeContentSyntax miscAttributeContent, ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.MarkupTagHelperEndTag(SyntaxFactory.Token(SyntaxKind.OpenAngle), SyntaxFactory.Token(SyntaxKind.ForwardSlash), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.Text), miscAttributeContent, SyntaxFactory.Token(SyntaxKind.CloseAngle), chunkGenerator);
+    public static MarkupTagHelperEndTagSyntax MarkupTagHelperEndTag(MarkupMiscAttributeContentSyntax miscAttributeContent, ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => SyntaxFactory.MarkupTagHelperEndTag(SyntaxFactory.Token(SyntaxKind.OpenAngle), SyntaxFactory.Token(SyntaxKind.ForwardSlash), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.Text), miscAttributeContent, SyntaxFactory.Token(SyntaxKind.CloseAngle), chunkGenerator, editHandler);
 
     /// <summary>Creates a new MarkupTagHelperEndTagSyntax instance.</summary>
-    public static MarkupTagHelperEndTagSyntax MarkupTagHelperEndTag(ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.MarkupTagHelperEndTag(SyntaxFactory.Token(SyntaxKind.OpenAngle), SyntaxFactory.Token(SyntaxKind.ForwardSlash), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.Text), default(MarkupMiscAttributeContentSyntax), SyntaxFactory.Token(SyntaxKind.CloseAngle), chunkGenerator);
+    public static MarkupTagHelperEndTagSyntax MarkupTagHelperEndTag(ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => SyntaxFactory.MarkupTagHelperEndTag(SyntaxFactory.Token(SyntaxKind.OpenAngle), SyntaxFactory.Token(SyntaxKind.ForwardSlash), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.Text), default(MarkupMiscAttributeContentSyntax), SyntaxFactory.Token(SyntaxKind.CloseAngle), chunkGenerator, editHandler);
 
     /// <summary>Creates a new MarkupTagHelperAttributeSyntax instance.</summary>
     public static MarkupTagHelperAttributeSyntax MarkupTagHelperAttribute(MarkupTextLiteralSyntax namePrefix, MarkupTextLiteralSyntax name, MarkupTextLiteralSyntax nameSuffix, SyntaxToken equalsToken, MarkupTextLiteralSyntax valuePrefix, MarkupTagHelperAttributeValueSyntax value, MarkupTextLiteralSyntax valueSuffix)
@@ -692,39 +692,39 @@ internal static partial class SyntaxFactory
         => SyntaxFactory.CSharpCodeBlock(default(SyntaxList<RazorSyntaxNode>));
 
     /// <summary>Creates a new CSharpTransitionSyntax instance.</summary>
-    public static CSharpTransitionSyntax CSharpTransition(SyntaxToken transition, ISpanChunkGenerator chunkGenerator)
+    public static CSharpTransitionSyntax CSharpTransition(SyntaxToken transition, ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
     {
         if (transition.Kind is not (SyntaxKind.Transition)) return ThrowHelper.ThrowArgumentException<CSharpTransitionSyntax>(nameof(transition), $"Invalid SyntaxKind. Expected 'SyntaxKind.Transition', but it was {transition.Kind}");
-        return (CSharpTransitionSyntax)InternalSyntax.SyntaxFactory.CSharpTransition((Syntax.InternalSyntax.SyntaxToken)transition.Node, chunkGenerator).CreateRed();
+        return (CSharpTransitionSyntax)InternalSyntax.SyntaxFactory.CSharpTransition((Syntax.InternalSyntax.SyntaxToken)transition.Node, chunkGenerator, editHandler).CreateRed();
     }
 
     /// <summary>Creates a new CSharpTransitionSyntax instance.</summary>
-    public static CSharpTransitionSyntax CSharpTransition(ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.CSharpTransition(SyntaxFactory.Token(SyntaxKind.Transition), chunkGenerator);
+    public static CSharpTransitionSyntax CSharpTransition(ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => SyntaxFactory.CSharpTransition(SyntaxFactory.Token(SyntaxKind.Transition), chunkGenerator, editHandler);
 
     /// <summary>Creates a new CSharpStatementLiteralSyntax instance.</summary>
-    public static CSharpStatementLiteralSyntax CSharpStatementLiteral(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator)
-        => (CSharpStatementLiteralSyntax)InternalSyntax.SyntaxFactory.CSharpStatementLiteral(literalTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator).CreateRed();
+    public static CSharpStatementLiteralSyntax CSharpStatementLiteral(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => (CSharpStatementLiteralSyntax)InternalSyntax.SyntaxFactory.CSharpStatementLiteral(literalTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator, editHandler).CreateRed();
 
     /// <summary>Creates a new CSharpStatementLiteralSyntax instance.</summary>
-    public static CSharpStatementLiteralSyntax CSharpStatementLiteral(ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.CSharpStatementLiteral(default(SyntaxTokenList), chunkGenerator);
+    public static CSharpStatementLiteralSyntax CSharpStatementLiteral(ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => SyntaxFactory.CSharpStatementLiteral(default(SyntaxTokenList), chunkGenerator, editHandler);
 
     /// <summary>Creates a new CSharpExpressionLiteralSyntax instance.</summary>
-    public static CSharpExpressionLiteralSyntax CSharpExpressionLiteral(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator)
-        => (CSharpExpressionLiteralSyntax)InternalSyntax.SyntaxFactory.CSharpExpressionLiteral(literalTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator).CreateRed();
+    public static CSharpExpressionLiteralSyntax CSharpExpressionLiteral(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => (CSharpExpressionLiteralSyntax)InternalSyntax.SyntaxFactory.CSharpExpressionLiteral(literalTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator, editHandler).CreateRed();
 
     /// <summary>Creates a new CSharpExpressionLiteralSyntax instance.</summary>
-    public static CSharpExpressionLiteralSyntax CSharpExpressionLiteral(ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.CSharpExpressionLiteral(default(SyntaxTokenList), chunkGenerator);
+    public static CSharpExpressionLiteralSyntax CSharpExpressionLiteral(ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => SyntaxFactory.CSharpExpressionLiteral(default(SyntaxTokenList), chunkGenerator, editHandler);
 
     /// <summary>Creates a new CSharpEphemeralTextLiteralSyntax instance.</summary>
-    public static CSharpEphemeralTextLiteralSyntax CSharpEphemeralTextLiteral(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator)
-        => (CSharpEphemeralTextLiteralSyntax)InternalSyntax.SyntaxFactory.CSharpEphemeralTextLiteral(literalTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator).CreateRed();
+    public static CSharpEphemeralTextLiteralSyntax CSharpEphemeralTextLiteral(SyntaxTokenList literalTokens, ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => (CSharpEphemeralTextLiteralSyntax)InternalSyntax.SyntaxFactory.CSharpEphemeralTextLiteral(literalTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator, editHandler).CreateRed();
 
     /// <summary>Creates a new CSharpEphemeralTextLiteralSyntax instance.</summary>
-    public static CSharpEphemeralTextLiteralSyntax CSharpEphemeralTextLiteral(ISpanChunkGenerator chunkGenerator)
-        => SyntaxFactory.CSharpEphemeralTextLiteral(default(SyntaxTokenList), chunkGenerator);
+    public static CSharpEphemeralTextLiteralSyntax CSharpEphemeralTextLiteral(ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)
+        => SyntaxFactory.CSharpEphemeralTextLiteral(default(SyntaxTokenList), chunkGenerator, editHandler);
 
     /// <summary>Creates a new CSharpTemplateBlockSyntax instance.</summary>
     public static CSharpTemplateBlockSyntax CSharpTemplateBlock(SyntaxList<RazorSyntaxNode> children)
