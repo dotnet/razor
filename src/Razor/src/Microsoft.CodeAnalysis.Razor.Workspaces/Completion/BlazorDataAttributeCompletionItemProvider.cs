@@ -93,7 +93,7 @@ internal class BlazorDataAttributeCompletionItemProvider : IRazorCompletionItemP
                     _ => null
                 };
 
-                if (existingAttributeName != null && string.Equals(existingAttributeName, attributeName, System.StringComparison.Ordinal))
+                if (existingAttributeName == attributeName)
                 {
                     alreadyExists = true;
                     break;
