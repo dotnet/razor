@@ -380,6 +380,9 @@ internal abstract partial class GreenNode
     internal abstract SyntaxNode CreateRed(SyntaxNode? parent, int position);
     #endregion
 
+    public TokenEnumerable Tokens()
+        => new(this);
+
     public Enumerator GetEnumerator()
         => new(this);
 

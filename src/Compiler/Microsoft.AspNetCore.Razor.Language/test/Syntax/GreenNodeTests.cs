@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Generic;
 using Xunit;
 
@@ -316,5 +317,300 @@ public class GreenNodeTests
         Assert.Same(token, elements[1]);
         Assert.True(nodeTypes[0]);   // First element is a node
         Assert.False(nodeTypes[1]);  // Second element is a token
+    }
+
+    [Fact]
+    public void Tokens_SingleToken_ReturnsOnlyToken()
+    {
+        // Tree structure:
+        //   Text: "Hello" (token)
+
+        // Arrange
+        var token = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "Hello");
+
+        // Act
+        var tokens = new List<InternalSyntax.SyntaxToken>();
+        foreach (var t in token.Tokens())
+        {
+            tokens.Add(t);
+        }
+
+        // Assert
+        Assert.Single(tokens);
+        Assert.Same(token, tokens[0]);
+    }
+
+    [Fact]
+    public void Tokens_NodeWithSingleToken_ReturnsOnlyToken()
+    {
+        // Tree structure:
+        //   MarkupTextLiteral (node)
+        //   └── Text: "Hello" (token)
+
+        // Arrange
+        var token = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "Hello");
+        var node = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token);
+
+        // Act
+        var tokens = new List<InternalSyntax.SyntaxToken>();
+        foreach (var t in node.Tokens())
+        {
+            tokens.Add(t);
+        }
+
+        // Assert
+        Assert.Single(tokens);
+        Assert.Same(token, tokens[0]);
+    }
+
+    [Fact]
+    public void Tokens_ComplexTree_ReturnsOnlyTokensInOrder()
+    {
+        // Tree structure:
+        //   GenericBlock (root)
+        //   ├── MarkupTextLiteral (child1)
+        //   │   └── Text: "Hello" (token1)
+        //   ├── MarkupTextLiteral (child2)
+        //   │   └── Whitespace: " " (token2)
+        //   └── GenericBlock (child3)
+        //       └── MarkupTextLiteral (grandchild)
+        //           └── Text: "World" (token3)
+
+        // Arrange
+        var token1 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "Hello");
+        var child1 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token1);
+
+        var token2 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Whitespace, " ");
+        var child2 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token2);
+
+        var token3 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "World");
+        var grandchild = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token3);
+
+        var child3 = InternalSyntax.SyntaxFactory.GenericBlock(grandchild);
+        var root = InternalSyntax.SyntaxFactory.GenericBlock([child1, child2, child3]);
+
+        // Act
+        var tokens = new List<InternalSyntax.SyntaxToken>();
+        foreach (var token in root.Tokens())
+        {
+            tokens.Add(token);
+        }
+
+        // Assert
+        Assert.Equal(3, tokens.Count);
+        Assert.Same(token1, tokens[0]);  // "Hello"
+        Assert.Same(token2, tokens[1]);  // " "
+        Assert.Same(token3, tokens[2]);  // "World"
+    }
+
+    [Fact]
+    public void Tokens_MixedMarkupAndCode_ReturnsAllTokensInDepthFirstOrder()
+    {
+        // Tree structure:
+        //   GenericBlock (root)
+        //   ├── MarkupTextLiteral (htmlNode)
+        //   │   └── Text: "<div>" (htmlToken)
+        //   ├── CSharpTransition (transitionNode)
+        //   │   └── Transition: "@" (transitionToken)
+        //   └── CSharpExpressionLiteral (codeNode)
+        //       └── Identifier: "Model" (codeToken)
+
+        // Arrange
+        var htmlToken = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "<div>");
+        var htmlNode = InternalSyntax.SyntaxFactory.MarkupTextLiteral(htmlToken);
+
+        var transitionToken = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Transition, "@");
+        var transitionNode = InternalSyntax.SyntaxFactory.CSharpTransition(transitionToken);
+
+        var codeToken = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Identifier, "Model");
+        var codeNode = InternalSyntax.SyntaxFactory.CSharpExpressionLiteral(codeToken);
+
+        var root = InternalSyntax.SyntaxFactory.GenericBlock([htmlNode, transitionNode, codeNode]);
+
+        // Act
+        var tokens = new List<InternalSyntax.SyntaxToken>();
+        foreach (var token in root.Tokens())
+        {
+            tokens.Add(token);
+        }
+
+        // Assert
+        Assert.Equal(3, tokens.Count);
+        Assert.Same(htmlToken, tokens[0]);      // "<div>"
+        Assert.Same(transitionToken, tokens[1]); // "@"
+        Assert.Same(codeToken, tokens[2]);      // "Model"
+    }
+
+    [Fact]
+    public void Tokens_EmptyToken_ReturnsEmptyToken()
+    {
+        // Tree structure:
+        //   MarkupTextLiteral (node)
+        //   └── Text: "" (token)
+
+        // Arrange
+        var token = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "");
+        var node = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token);
+
+        // Act
+        var tokens = new List<InternalSyntax.SyntaxToken>();
+        foreach (var t in node.Tokens())
+        {
+            tokens.Add(t);
+        }
+
+        // Assert
+        Assert.Single(tokens);
+        Assert.Same(token, tokens[0]);
+        Assert.Equal("", tokens[0].Content);
+    }
+
+    [Fact]
+    public void Tokens_CanBeEnumeratedMultipleTimes()
+    {
+        // Tree structure:
+        //   GenericBlock (root)
+        //   ├── MarkupTextLiteral (child1)
+        //   │   └── Text: "A" (token1)
+        //   └── MarkupTextLiteral (child2)
+        //       └── Text: "B" (token2)
+
+        // Arrange
+        var token1 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "A");
+        var child1 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token1);
+
+        var token2 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "B");
+        var child2 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token2);
+
+        var root = InternalSyntax.SyntaxFactory.GenericBlock([child1, child2]);
+
+        // Act - enumerate twice
+        var firstEnumeration = new List<InternalSyntax.SyntaxToken>();
+        foreach (var token in root.Tokens())
+        {
+            firstEnumeration.Add(token);
+        }
+
+        var secondEnumeration = new List<InternalSyntax.SyntaxToken>();
+        foreach (var token in root.Tokens())
+        {
+            secondEnumeration.Add(token);
+        }
+
+        // Assert
+        Assert.Equal(2, firstEnumeration.Count);
+        Assert.Equal(2, secondEnumeration.Count);
+        
+        Assert.Same(token1, firstEnumeration[0]);
+        Assert.Same(token2, firstEnumeration[1]);
+        
+        Assert.Same(token1, secondEnumeration[0]);
+        Assert.Same(token2, secondEnumeration[1]);
+    }
+
+    [Fact]
+    public void Tokens_WithManualEnumerator_WorksCorrectly()
+    {
+        // Tree structure:
+        //   MarkupTextLiteral (node)
+        //   └── Text: "Test" (token)
+
+        // Arrange
+        var token = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "Test");
+        var node = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token);
+
+        // Act
+        var tokenEnumerable = node.Tokens();
+        var enumerator = tokenEnumerable.GetEnumerator();
+        
+        var tokens = new List<InternalSyntax.SyntaxToken>();
+        while (enumerator.MoveNext())
+        {
+            tokens.Add(enumerator.Current);
+        }
+
+        // Assert
+        Assert.Single(tokens);
+        Assert.Same(token, tokens[0]);
+    }
+
+    [Fact]
+    public void Tokens_FilterOutNodesAndKeepOnlyTokens()
+    {
+        // Tree structure:
+        //   GenericBlock (root) <- filtered out
+        //   └── MarkupTextLiteral (child) <- filtered out
+        //       └── Text: "OnlyThis" (token) <- kept
+
+        // Arrange
+        var token = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "OnlyThis");
+        var child = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token);
+        var root = InternalSyntax.SyntaxFactory.GenericBlock(child);
+
+        // Act
+        var tokens = new List<InternalSyntax.SyntaxToken>();
+        foreach (var t in root.Tokens())
+        {
+            tokens.Add(t);
+        }
+
+        // Assert
+        Assert.Single(tokens);
+        Assert.Same(token, tokens[0]);
+        Assert.Equal("OnlyThis", tokens[0].Content);
+        Assert.True(tokens[0].IsToken);
+    }
+
+    [Fact]
+    public void TokenEnumerable_Enumerator_Current_ThrowsBeforeFirstMoveNext()
+    {
+        // Arrange
+        var token = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "Test");
+        var node = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token);
+        var enumerator = node.Tokens().GetEnumerator();
+
+        // Act & Assert
+        try
+        {
+            _ = enumerator.Current;
+        }
+        catch (Exception ex)
+        {
+            // Note: We can't use Assert.Throws because enumerator is a ref-struct
+            // and can't be captured in a lambda.
+            Assert.IsType<NullReferenceException>(ex);
+        }
+    }
+
+    [Fact]
+    public void TokenEnumerable_Enumerator_Current_ReturnsCorrectToken()
+    {
+        // Tree structure:
+        //   GenericBlock (root)
+        //   ├── MarkupTextLiteral (child1)
+        //   │   └── Text: "First" (token1)
+        //   └── MarkupTextLiteral (child2)
+        //       └── Text: "Second" (token2)
+
+        // Arrange
+        var token1 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "First");
+        var child1 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token1);
+
+        var token2 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "Second");
+        var child2 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token2);
+
+        var root = InternalSyntax.SyntaxFactory.GenericBlock([child1, child2]);
+        var enumerator = root.Tokens().GetEnumerator();
+
+        // Act & Assert
+        Assert.True(enumerator.MoveNext());
+        Assert.Same(token1, enumerator.Current);
+        Assert.Equal("First", enumerator.Current.Content);
+
+        Assert.True(enumerator.MoveNext());
+        Assert.Same(token2, enumerator.Current);
+        Assert.Equal("Second", enumerator.Current.Content);
+
+        Assert.False(enumerator.MoveNext());
     }
 }
