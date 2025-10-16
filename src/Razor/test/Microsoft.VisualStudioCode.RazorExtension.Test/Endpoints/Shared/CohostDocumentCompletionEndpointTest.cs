@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -749,128 +748,33 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     }
 
     [Fact]
-    public async Task ComponentWithEditorRequiredAttributes_SnippetsSupported()
+    public async Task ComponentWithEditorRequiredAttributes()
     {
-        var componentCode = """
-            @using Microsoft.AspNetCore.Components
-
-            <div></div>
-
-            @code {
-                [Parameter, EditorRequired]
-                public string RequiredParam1 { get; set; }
-
-                [Parameter, EditorRequired]
-                public string RequiredParam2 { get; set; }
-
-                [Parameter]
-                public string OptionalParam { get; set; }
-            }
-            """;
-
-        var document = CreateProjectAndRazorDocument(
-            """
-                <Test$$
-                """,
-            fileKind: RazorFileKind.Component,
-            additionalFiles: [("TestComponent.razor", componentCode)]);
-
         await VerifyCompletionListAsync(
-            document,
-            expectedItemLabels: ["TestComponent", "TestComponent (and attributes...)"],
-            verifySnippetItem: (snippetItem) =>
-            {
-                Assert.Equal(InsertTextFormat.Snippet, snippetItem.InsertTextFormat);
-                Assert.Equal("TestComponent RequiredParam1=\"$1\" RequiredParam2=\"$2\">$0</TestComponent>", snippetItem.InsertText);
-            });
-    }
+            input: """
+                This is a Razor document.
 
-    private async Task VerifyCompletionListAsync(
-        CodeAnalysis.TextDocument document,
-        string[] expectedItemLabels,
-        string? itemToResolve = null,
-        string? expected = null,
-        Action<VSInternalCompletionItem>? verifySnippetItem = null)
-    {
-        var sourceText = await document.GetTextAsync(DisposalToken);
+                <$$
 
-        ClientSettingsManager.Update(ClientAdvancedSettings.Default with { AutoInsertAttributeQuotes = true, CommitElementsWithSpace = true });
-
-        var response = new RazorVSInternalCompletionList()
-        {
-            Items = [],
-            IsIncomplete = true
-        };
-
-        var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentCompletionName, response)]);
-
-#if VSCODE
-        ISnippetCompletionItemProvider? snippetCompletionItemProvider = null;
-#else
-        var snippetCompletionItemProvider = new SnippetCompletionItemProvider(new SnippetCache());
-#endif
-
-        var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(useVsCodeCompletionCommitCharacters: false);
-
-        var completionListCache = new CompletionListCache();
-        var endpoint = new CohostDocumentCompletionEndpoint(
-            IncompatibleProjectService,
-            RemoteServiceInvoker,
-            ClientSettingsManager,
-            ClientCapabilitiesService,
-            snippetCompletionItemProvider,
-            languageServerFeatureOptions,
-            requestInvoker,
-            completionListCache,
-            NoOpTelemetryReporter.Instance,
-            LoggerFactory);
-
-        var request = new RazorVSInternalCompletionParams()
-        {
-            TextDocument = new TextDocumentIdentifier()
-            {
-                DocumentUri = document.CreateDocumentUri()
-            },
-            Position = sourceText.GetPosition(5),
-            Context = new VSInternalCompletionContext()
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "<",
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
-            }
-        };
+            },
+            expectedItemLabels: ["LayoutView", "EditForm", "ValidationMessage", "div", "Router", "Router (and req'd attributes...)"],
+            htmlItemLabels: ["div"],
+            itemToResolve: "Router (and req'd attributes...)",
+            expectedResolvedItemDescription: "Microsoft.AspNetCore.Components.Routing.Router",
+            expected: $"""
+                This is a Razor document.
 
-        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
+                <Router AppAssembly="$1" Found="$2">$0</Router>
 
-        Assert.NotNull(result);
-
-        using var _ = HashSetPool<string>.GetPooledObject(out var labelSet);
-        labelSet.AddRange(result.Items.SelectAsArray((item) => item.Label));
-
-        foreach (var expectedItemLabel in expectedItemLabels)
-        {
-            Assert.Contains(expectedItemLabel, labelSet);
-        }
-
-        if (verifySnippetItem is not null)
-        {
-            var snippetItem = result.Items.First(i => i.InsertTextFormat == InsertTextFormat.Snippet);
-            verifySnippetItem(snippetItem);
-        }
-
-        if (itemToResolve is not null)
-        {
-            var item = Assert.Single(result.Items.Where(i => i.Label == itemToResolve));
-            item = JsonSerializer.Deserialize<VSInternalCompletionItem>(JsonSerializer.SerializeToElement(item, JsonHelpers.JsonSerializerOptions), JsonHelpers.JsonSerializerOptions)!;
-            item.Data ??= result.Data ?? result.ItemDefaults?.Data;
-
-            Assert.NotNull(item);
-
-            if (expected is not null)
-            {
-                await VerifyCompletionResolveAsync(document, completionListCache, item, expected, expectedResolvedItemDescription: null);
-            }
-        }
+                The end.
+                """);
     }
 
     private async Task<RazorVSInternalCompletionList> VerifyCompletionListAsync(
@@ -993,6 +897,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             item.Data ??= result.Data ?? result.ItemDefaults?.Data;
 
             Assert.NotNull(item);
+            Assert.NotNull(expectedResolvedItemDescription);
 
             await VerifyCompletionResolveAsync(document, completionListCache, item, expected, expectedResolvedItemDescription, request.Position);
         }
