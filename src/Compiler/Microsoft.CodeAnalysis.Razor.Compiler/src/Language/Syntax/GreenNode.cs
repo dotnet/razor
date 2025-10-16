@@ -232,15 +232,15 @@ internal abstract partial class GreenNode
                 return token.Content;
             }
 
-            // If this is a zero-width token, skip it.
-            if (token.Width == 0)
+            // At this point, if this is a zero-width token, we know there must be more
+            // non-zero-width tokens. Break out of the loop to allocate a new string with all
+            // of the content.
+            if (token.Width != 0)
             {
-                continue;
+                break;
             }
 
-            // Otherwise, this is a non-zero-width token but there much be more tokens that make up the
-            // total width. Break out of the loop to allocate a new string with all of the content.
-            break;
+            // This was just a zero-width token - continue looping.
         }
 
         // At this point, we know that we have multiple tokens and need to allocate a string.
