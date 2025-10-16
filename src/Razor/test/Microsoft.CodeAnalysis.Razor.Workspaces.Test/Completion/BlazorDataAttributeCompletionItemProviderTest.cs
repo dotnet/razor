@@ -132,6 +132,7 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
         var owner = syntaxTree.Root.FindInnermostNode(testCode.Position, includeWhitespace: true, walkMarkersBack: true);
         owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, testCode.Position);
         var context = new RazorCompletionContext(
+            codeDocument,
             testCode.Position,
             owner,
             syntaxTree,
@@ -195,6 +196,7 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
         var owner = syntaxTree.Root.FindInnermostNode(testCode.Position, includeWhitespace: true, walkMarkersBack: true);
         owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, testCode.Position);
         var context = new RazorCompletionContext(
+            codeDocument,
             testCode.Position,
             owner,
             syntaxTree,
@@ -228,6 +230,6 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
         var owner = syntaxTree.Root.FindInnermostNode(testCode.Position, includeWhitespace: true, walkMarkersBack: true);
         owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, testCode.Position);
 
-        return new RazorCompletionContext(testCode.Position, owner, syntaxTree, tagHelperContext, CompletionReason.Typing, _defaultRazorCompletionOptions);
+        return new RazorCompletionContext(codeDocument, testCode.Position, owner, syntaxTree, tagHelperContext, CompletionReason.Typing, _defaultRazorCompletionOptions);
     }
 }

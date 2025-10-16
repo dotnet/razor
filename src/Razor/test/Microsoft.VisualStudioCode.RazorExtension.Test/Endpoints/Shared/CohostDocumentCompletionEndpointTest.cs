@@ -24,6 +24,7 @@ using Roslyn.Text.Adornments;
 using Xunit;
 using Xunit.Abstractions;
 using Microsoft.CodeAnalysis.Text;
+using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 
 #if !VSCODE
 using Microsoft.VisualStudio.ProjectSystem;
