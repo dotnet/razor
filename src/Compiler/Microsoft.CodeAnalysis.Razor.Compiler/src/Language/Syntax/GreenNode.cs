@@ -5,7 +5,6 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
@@ -214,13 +213,13 @@ internal abstract partial class GreenNode
     #region Text
     private string GetDebuggerDisplay()
     {
-        using var _ = StringBuilderPool.GetPooledObject(out var builder);
-        builder.Append(GetType().Name);
-        builder.Append('<');
-        builder.Append(Kind.ToString());
-        builder.Append('>');
-
-        return builder.ToString();
+        return string.Build(this, static (ref builder, node) =>
+        {
+            builder.Append(node.GetType().Name);
+            builder.Append("<");
+            builder.Append(node.Kind.ToString());
+            builder.Append(">");
+        });
     }
 
     public override string ToString()
