@@ -758,6 +758,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             attributes,
             forwardSlashToken,
             closeAngleToken,
+            isMarkupTransition: false,
             chunkGenerator,
             GetEditHandler());
 
@@ -825,17 +826,16 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
 
             isWellFormed = true;
             chunkGenerator = SpanChunkGenerator.Null;
-            var startTextTag = SyntaxFactory.MarkupStartTag(
+            return SyntaxFactory.MarkupStartTag(
                 openAngleToken,
                 bang: null,
                 name: tagNameToken,
                 attributes: miscAttributeContentBuilder.ToList(),
                 forwardSlash: forwardSlashToken,
                 closeAngle: closeAngleToken,
+                isMarkupTransition: true,
                 chunkGenerator,
                 GetEditHandler());
-
-            return startTextTag.AsMarkupTransition();
         }
     }
 
@@ -950,6 +950,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             tagNameToken,
             miscAttributeContent,
             closeAngleToken,
+            isMarkupTransition: false,
             chunkGenerator,
             GetEditHandler());
     }
@@ -991,17 +992,16 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         }
 
         chunkGenerator = SpanChunkGenerator.Null;
-        var endTextTag = SyntaxFactory.MarkupEndTag(
+        return SyntaxFactory.MarkupEndTag(
             openAngleToken,
             forwardSlashToken,
             bang: null,
             name: tagNameToken,
             miscAttributeContent: miscAttributeContent,
             closeAngle: closeAngleToken,
+            isMarkupTransition: true,
             chunkGenerator,
             GetEditHandler());
-
-        return endTextTag.AsMarkupTransition();
     }
 
     private void ParseAttributes(in SyntaxListBuilder<RazorSyntaxNode> builder)
@@ -1569,6 +1569,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 name: tagNameToken,
                 miscAttributeContent: miscContent,
                 closeAngle: closeAngleToken,
+                isMarkupTransition: false,
                 chunkGenerator,
                 GetEditHandler());
         }

@@ -8,7 +8,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 internal partial class MarkupEndTagSyntax : ILegacySyntax
 {
     public MarkupEndTagSyntax Update(ISpanChunkGenerator? chunkGenerator, SpanEditHandler? editHandler)
-        => Update(OpenAngle, ForwardSlash, Bang, Name, MiscAttributeContent, CloseAngle, chunkGenerator, editHandler);
+        => Update(OpenAngle, ForwardSlash, Bang, Name, MiscAttributeContent, CloseAngle, IsMarkupTransition, chunkGenerator, editHandler);
 
     SyntaxNode ILegacySyntax.Update(ISpanChunkGenerator? chunkGenerator, SpanEditHandler? editHandler)
         => Update(chunkGenerator, editHandler);
