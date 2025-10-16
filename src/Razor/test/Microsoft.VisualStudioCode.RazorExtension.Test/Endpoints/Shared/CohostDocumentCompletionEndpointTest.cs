@@ -23,7 +23,8 @@ using Roslyn.Test.Utilities;
 using Roslyn.Text.Adornments;
 using Xunit;
 using Xunit.Abstractions;
-using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
+using Microsoft.CodeAnalysis.Text;
+
 #if !VSCODE
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.Razor.Snippets;
@@ -327,6 +328,67 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             },
             expectedItemLabels: ["div", "h1", "LayoutView", "EditForm", "ValidationMessage"],
             htmlItemLabels: ["div", "h1"]);
+    }
+
+    [Fact]
+    public async Task Component_FullyQualified()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <$$
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "<",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["EditForm", "SectionOutlet - @using Microsoft.AspNetCore.Components.Sections", "Microsoft.AspNetCore.Components.Sections.SectionOutlet"],
+            htmlItemLabels: ["div", "h1"],
+            itemToResolve: "Microsoft.AspNetCore.Components.Sections.SectionOutlet",
+            expectedResolvedItemDescription: "Microsoft.AspNetCore.Components.Sections.SectionOutlet",
+            expected: """
+            This is a Razor document.
+            
+            <Microsoft.AspNetCore.Components.Sections.SectionOutlet
+            
+            The end.
+            """);
+    }
+
+    [Fact]
+    public async Task Completion_WithUsing()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <$$
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "<",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["EditForm", "SectionOutlet - @using Microsoft.AspNetCore.Components.Sections", "Microsoft.AspNetCore.Components.Sections.SectionOutlet"],
+            htmlItemLabels: ["div", "h1"],
+            itemToResolve: "SectionOutlet - @using Microsoft.AspNetCore.Components.Sections",
+            expectedResolvedItemDescription: "Microsoft.AspNetCore.Components.Sections.SectionOutlet",
+            expected: """
+            @using Microsoft.AspNetCore.Components.Sections
+            This is a Razor document.
+            
+            <SectionOutlet
+            
+            The end.
+            """);
     }
 
     [Fact]
@@ -960,7 +1022,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             Assert.NotNull(item);
             Assert.NotNull(expectedResolvedItemDescription);
 
-            await VerifyCompletionResolveAsync(document, completionListCache, item, expected, expectedResolvedItemDescription);
+            await VerifyCompletionResolveAsync(document, completionListCache, item, expected, expectedResolvedItemDescription, request.Position);
         }
 
         return result;
@@ -1011,7 +1073,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         }
     }
 
-    private async Task VerifyCompletionResolveAsync(CodeAnalysis.TextDocument document, CompletionListCache completionListCache, VSInternalCompletionItem item, string? expected, string expectedResolvedItemDescription)
+    private async Task VerifyCompletionResolveAsync(CodeAnalysis.TextDocument document, CompletionListCache completionListCache, VSInternalCompletionItem item, string? expected, string expectedResolvedItemDescription, Position position)
     {
         // We expect data to be a JsonElement, so for tests we have to _not_ strongly type
         item.Data = JsonSerializer.SerializeToElement(item.Data, JsonHelpers.JsonSerializerOptions);
@@ -1034,27 +1096,47 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
 
         Assert.NotNull(result);
 
+        SourceText? changedText = null;
         if (result.TextEdit is { Value: TextEdit edit })
         {
             Assert.NotNull(expected);
 
             var text = await document.GetTextAsync(DisposalToken).ConfigureAwait(false);
-            var changedText = text.WithChanges(text.GetTextChange(edit));
-
-            AssertEx.EqualOrDiff(expected, changedText.ToString());
+            changedText = text.WithChanges(text.GetTextChange(edit));
         }
         else if (result.Command is { Arguments: [_, TextEdit textEdit, ..] })
         {
             Assert.NotNull(expected);
 
             var text = await document.GetTextAsync(DisposalToken).ConfigureAwait(false);
-            var changedText = text.WithChanges(text.GetTextChange(textEdit));
+            changedText = text.WithChanges(text.GetTextChange(textEdit));
+        }
+        else if (result.InsertText is { } insertText)
+        {
+            // We'll let expected be null here, since its just simple text insertion
 
-            AssertEx.EqualOrDiff(expected, changedText.ToString());
+            var text = await document.GetTextAsync(DisposalToken).ConfigureAwait(false);
+            var insertIndex = text.GetRequiredAbsoluteIndex(position);
+            changedText = text.WithChanges(new TextChange(new TextSpan(insertIndex, 0), insertText));
         }
         else if (expected is not null)
         {
             Assert.Fail("Expected a TextEdit or Command with TextEdit, but got none. Presumably resolve failed. Result: " + JsonSerializer.SerializeToElement(result).ToString());
+        }
+
+        if (result.AdditionalTextEdits is not null)
+        {
+            // Can't be only additional texts. They're additional!
+            Assert.NotNull(changedText);
+            Assert.NotNull(expected);
+
+            changedText = changedText.WithChanges(result.AdditionalTextEdits.Select(changedText.GetTextChange));
+        }
+
+        if (expected is not null)
+        {
+            Assert.NotNull(changedText);
+            AssertEx.EqualOrDiff(expected, changedText.ToString());
         }
 
         if (result.Description is not null)
