@@ -613,4 +613,325 @@ public class GreenNodeTests
 
         Assert.False(enumerator.MoveNext());
     }
+
+    [Fact]
+    public void ToString_SingleToken_ReturnsTokenContent()
+    {
+        // Tree structure:
+        //   Text: "Hello" (token)
+
+        // Arrange
+        var token = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "Hello");
+
+        // Act
+        var result = token.ToString();
+
+        // Assert
+        Assert.Equal("Hello", result);
+    }
+
+    [Fact]
+    public void ToString_EmptyToken_ReturnsEmptyString()
+    {
+        // Tree structure:
+        //   Text: "" (token)
+
+        // Arrange
+        var token = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "");
+
+        // Act
+        var result = token.ToString();
+
+        // Assert
+        Assert.Equal("", result);
+    }
+
+    [Fact]
+    public void ToString_NodeWithSingleToken_ReturnsTokenContent()
+    {
+        // Tree structure:
+        //   MarkupTextLiteral (node)
+        //   └── Text: "Hello World" (token)
+
+        // Arrange
+        var token = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "Hello World");
+        var node = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token);
+
+        // Act
+        var result = node.ToString();
+
+        // Assert
+        Assert.Equal("Hello World", result);
+    }
+
+    [Fact]
+    public void ToString_ComplexTree_ConcatenatesAllTokensInDepthFirstOrder()
+    {
+        // Tree structure:
+        //   GenericBlock (root)
+        //   ├── MarkupTextLiteral (child1)
+        //   │   └── Text: "Hello" (token1)
+        //   ├── MarkupTextLiteral (child2)
+        //   │   └── Whitespace: " " (token2)
+        //   └── GenericBlock (child3)
+        //       └── MarkupTextLiteral (grandchild)
+        //           └── Text: "World" (token3)
+
+        // Arrange
+        var token1 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "Hello");
+        var child1 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token1);
+
+        var token2 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Whitespace, " ");
+        var child2 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token2);
+
+        var token3 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "World");
+        var grandchild = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token3);
+
+        var child3 = InternalSyntax.SyntaxFactory.GenericBlock(grandchild);
+        var root = InternalSyntax.SyntaxFactory.GenericBlock([child1, child2, child3]);
+
+        // Act
+        var result = root.ToString();
+
+        // Assert
+        Assert.Equal("Hello World", result);
+    }
+
+    [Fact]
+    public void ToString_MixedMarkupAndCode_ConcatenatesAllTokenContent()
+    {
+        // Tree structure:
+        //   GenericBlock (root)
+        //   ├── MarkupTextLiteral (htmlNode)
+        //   │   └── Text: "<div>" (htmlToken)
+        //   ├── CSharpTransition (transitionNode)
+        //   │   └── Transition: "@" (transitionToken)
+        //   └── CSharpExpressionLiteral (codeNode)
+        //       └── Identifier: "Model" (codeToken)
+
+        // Arrange
+        var htmlToken = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "<div>");
+        var htmlNode = InternalSyntax.SyntaxFactory.MarkupTextLiteral(htmlToken);
+
+        var transitionToken = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Transition, "@");
+        var transitionNode = InternalSyntax.SyntaxFactory.CSharpTransition(transitionToken);
+
+        var codeToken = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Identifier, "Model");
+        var codeNode = InternalSyntax.SyntaxFactory.CSharpExpressionLiteral(codeToken);
+
+        var root = InternalSyntax.SyntaxFactory.GenericBlock([htmlNode, transitionNode, codeNode]);
+
+        // Act
+        var result = root.ToString();
+
+        // Assert
+        Assert.Equal("<div>@Model", result);
+    }
+
+    [Fact]
+    public void ToString_MultipleNestedNodes_ConcatenatesInCorrectOrder()
+    {
+        // Tree structure:
+        //   GenericBlock (root)
+        //   ├── MarkupTextLiteral (child1)
+        //   │   └── Text: "Start" (token1)
+        //   └── GenericBlock (child2)
+        //       ├── MarkupTextLiteral (grandchild1)
+        //       │   └── Text: "Middle" (token2)
+        //       └── MarkupTextLiteral (grandchild2)
+        //           └── Text: "End" (token3)
+
+        // Arrange
+        var token1 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "Start");
+        var child1 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token1);
+
+        var token2 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "Middle");
+        var grandchild1 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token2);
+
+        var token3 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "End");
+        var grandchild2 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token3);
+
+        var child2 = InternalSyntax.SyntaxFactory.GenericBlock([grandchild1, grandchild2]);
+        var root = InternalSyntax.SyntaxFactory.GenericBlock([child1, child2]);
+
+        // Act
+        var result = root.ToString();
+
+        // Assert
+        Assert.Equal("StartMiddleEnd", result);
+    }
+
+    [Fact]
+    public void ToString_WithWhitespaceTokens_PreservesWhitespace()
+    {
+        // Tree structure:
+        //   GenericBlock (root)
+        //   ├── MarkupTextLiteral (child1)
+        //   │   └── Text: "Hello" (token1)
+        //   ├── MarkupTextLiteral (child2)
+        //   │   └── Whitespace: "   " (token2)
+        //   └── MarkupTextLiteral (child3)
+        //       └── Text: "World" (token3)
+
+        // Arrange
+        var token1 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "Hello");
+        var child1 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token1);
+
+        var token2 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Whitespace, "   ");
+        var child2 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token2);
+
+        var token3 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "World");
+        var child3 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token3);
+
+        var root = InternalSyntax.SyntaxFactory.GenericBlock([child1, child2, child3]);
+
+        // Act
+        var result = root.ToString();
+
+        // Assert
+        Assert.Equal("Hello   World", result);
+    }
+
+    [Fact]
+    public void ToString_WithSpecialCharacters_PreservesAllCharacters()
+    {
+        // Tree structure:
+        //   GenericBlock (root)
+        //   ├── MarkupTextLiteral (child1)
+        //   │   └── Text: "Line1\n" (token1)
+        //   └── MarkupTextLiteral (child2)
+        //       └── Text: "Line2\t\r" (token2)
+
+        // Arrange
+        var token1 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "Line1\n");
+        var child1 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token1);
+
+        var token2 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "Line2\t\r");
+        var child2 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token2);
+
+        var root = InternalSyntax.SyntaxFactory.GenericBlock([child1, child2]);
+
+        // Act
+        var result = root.ToString();
+
+        // Assert
+        Assert.Equal("Line1\nLine2\t\r", result);
+    }
+
+    [Fact]
+    public void ToString_WithUnicodeCharacters_PreservesUnicode()
+    {
+        // Tree structure:
+        //   MarkupTextLiteral (node)
+        //   └── Text: "Hello 🌍 World! ñáéíóú" (token)
+
+        // Arrange
+        var token = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "Hello 🌍 World! ñáéíóú");
+        var node = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token);
+
+        // Act
+        var result = node.ToString();
+
+        // Assert
+        Assert.Equal("Hello 🌍 World! ñáéíóú", result);
+    }
+
+    [Fact]
+    public void ToString_EmptyNodeWithEmptyTokens_ReturnsEmptyString()
+    {
+        // Tree structure:
+        //   GenericBlock (root)
+        //   ├── MarkupTextLiteral (child1)
+        //   │   └── Text: "" (token1)
+        //   └── MarkupTextLiteral (child2)
+        //       └── Text: "" (token2)
+
+        // Arrange
+        var token1 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "");
+        var child1 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token1);
+
+        var token2 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "");
+        var child2 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token2);
+
+        var root = InternalSyntax.SyntaxFactory.GenericBlock([child1, child2]);
+
+        // Act
+        var result = root.ToString();
+
+        // Assert
+        Assert.Equal("", result);
+    }
+
+    [Fact]
+    public void ToString_ComplexRazorExample_ConcatenatesCorrectly()
+    {
+        // Tree structure representing something like: "if (condition) { @Model.Name }"
+        //   GenericBlock (root)
+        //   ├── MarkupTextLiteral
+        //   │   └── Text: "if (condition) { " (token1)
+        //   ├── CSharpTransition
+        //   │   └── Transition: "@" (token2)
+        //   ├── CSharpExpressionLiteral
+        //   │   └── Identifier: "Model" (token3)
+        //   ├── MarkupTextLiteral
+        //   │   └── Text: "." (token4)
+        //   ├── CSharpExpressionLiteral
+        //   │   └── Identifier: "Name" (token5)
+        //   └── MarkupTextLiteral
+        //       └── Text: " }" (token6)
+
+        // Arrange
+        var token1 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "if (condition) { ");
+        var child1 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token1);
+
+        var token2 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Transition, "@");
+        var child2 = InternalSyntax.SyntaxFactory.CSharpTransition(token2);
+
+        var token3 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Identifier, "Model");
+        var child3 = InternalSyntax.SyntaxFactory.CSharpExpressionLiteral(token3);
+
+        var token4 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, ".");
+        var child4 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token4);
+
+        var token5 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Identifier, "Name");
+        var child5 = InternalSyntax.SyntaxFactory.CSharpExpressionLiteral(token5);
+
+        var token6 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, " }");
+        var child6 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token6);
+
+        var root = InternalSyntax.SyntaxFactory.GenericBlock([child1, child2, child3, child4, child5, child6]);
+
+        // Act
+        var result = root.ToString();
+
+        // Assert
+        Assert.Equal("if (condition) { @Model.Name }", result);
+    }
+
+    [Fact]
+    public void ToString_WidthMatchesStringLength()
+    {
+        // Tree structure:
+        //   GenericBlock (root)
+        //   ├── MarkupTextLiteral (child1)
+        //   │   └── Text: "Hello" (token1)
+        //   └── MarkupTextLiteral (child2)
+        //       └── Text: " World!" (token2)
+
+        // Arrange
+        var token1 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, "Hello");
+        var child1 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token1);
+
+        var token2 = InternalSyntax.SyntaxFactory.Token(SyntaxKind.Text, " World!");
+        var child2 = InternalSyntax.SyntaxFactory.MarkupTextLiteral(token2);
+
+        var root = InternalSyntax.SyntaxFactory.GenericBlock([child1, child2]);
+
+        // Act
+        var result = root.ToString();
+
+        // Assert
+        Assert.Equal("Hello World!", result);
+        Assert.Equal(result.Length, root.Width);
+    }
 }

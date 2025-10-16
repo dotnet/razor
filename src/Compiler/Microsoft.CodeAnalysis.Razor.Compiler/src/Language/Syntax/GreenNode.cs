@@ -4,12 +4,8 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.IO;
 using System.Runtime.CompilerServices;
-using System.Text;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
@@ -20,12 +16,6 @@ internal abstract partial class GreenNode
     private static readonly SyntaxAnnotation[] EmptyAnnotations = [];
     private static readonly ConditionalWeakTable<GreenNode, RazorDiagnostic[]> DiagnosticsTable = new();
     private static readonly ConditionalWeakTable<GreenNode, SyntaxAnnotation[]> AnnotationsTable = new();
-
-    /// <summary>
-    /// Pool of StringWriters for use in <see cref="ToString()"/>. Users should not dispose the StringWriter directly
-    /// (but should dispose of the PooledObject returned from Pool.GetPooledObject).
-    /// </summary>
-    private static readonly ObjectPool<StringWriter> StringWriterPool = DefaultPool.Create(Policy.Instance);
 
     private int _width;
     private byte _slotCount;
@@ -235,75 +225,21 @@ internal abstract partial class GreenNode
 
     public override string ToString()
     {
-        // If there is only a single value in our slots, then we can just defer to the ToString
-        // implementation on that item, as it may avoid the need to allocate a string
-        if (TryGetSingleSlotValue(out var loneSlotValue))
+        return string.Create(length: _width, this, static (span, node) =>
         {
-            return loneSlotValue.ToString();
-        }
-
-        using var _ = StringWriterPool.GetPooledObject(out var writer);
-
-        WriteTo(writer);
-
-        return writer.ToString();
-
-        bool TryGetSingleSlotValue([NotNullWhen(true)] out GreenNode? result)
-        {
-            result = null;
-
-            var slotCount = SlotCount;
-            for (var i = 0; i < slotCount; i++)
+            foreach (var token in node.Tokens())
             {
-                var slotValue = GetSlot(i);
-                if (slotValue is not null)
-                {
-                    if (result is not null)
-                    {
-                        result = null;
-                        return false;
-                    }
+                var content = token.Content.AsSpan();
 
-                    result = slotValue;
+                if (content.Length > 0)
+                {
+                    content.CopyTo(span);
+                    span = span[content.Length..];
                 }
             }
 
-            return result is not null;
-        }
-    }
-
-    public void WriteTo(TextWriter writer)
-    {
-        // Use an actual Stack so we can write out deeply recursive structures without overflowing.
-        using var stack = new PooledArrayBuilder<GreenNode>();
-
-        stack.Push(this);
-
-        while (stack.Count > 0)
-        {
-            var node = stack.Pop();
-
-            if (node.IsToken)
-            {
-                node.WriteTokenTo(writer);
-                continue;
-            }
-
-            var slotCount = node.SlotCount;
-
-            for (var i = slotCount - 1; i >= 0; i--)
-            {
-                if (node.GetSlot(i) is GreenNode child)
-                {
-                    stack.Push(child);
-                }
-            }
-        }
-    }
-
-    protected virtual void WriteTokenTo(TextWriter writer)
-    {
-        throw new NotImplementedException();
+            Debug.Assert(span.IsEmpty);
+        });
     }
     #endregion
 
@@ -389,30 +325,4 @@ internal abstract partial class GreenNode
     public abstract TResult Accept<TResult>(InternalSyntax.SyntaxVisitor<TResult> visitor);
 
     public abstract void Accept(InternalSyntax.SyntaxVisitor visitor);
-
-    private sealed class Policy : IPooledObjectPolicy<StringWriter>
-    {
-        public static readonly Policy Instance = new();
-
-        private Policy()
-        {
-        }
-
-        public StringWriter Create()
-            => new StringWriter(new StringBuilder(), CultureInfo.InvariantCulture);
-
-        public bool Return(StringWriter writer)
-        {
-            var builder = writer.GetStringBuilder();
-
-            // Very similar to StringBuilderPool.Policy implementation.
-            builder.Clear();
-            if (builder.Capacity > DefaultPool.MaximumObjectSize)
-            {
-                builder.Capacity = DefaultPool.MaximumObjectSize;
-            }
-
-            return true;
-        }
-    }
 }
