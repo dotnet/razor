@@ -14,7 +14,7 @@ using Microsoft.Extensions.ObjectPool;
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
 [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-internal abstract class GreenNode
+internal abstract partial class GreenNode
 {
     private static readonly RazorDiagnostic[] EmptyDiagnostics = [];
     private static readonly SyntaxAnnotation[] EmptyAnnotations = [];
@@ -379,6 +379,9 @@ internal abstract class GreenNode
 
     internal abstract SyntaxNode CreateRed(SyntaxNode? parent, int position);
     #endregion
+
+    public Enumerator GetEnumerator()
+        => new(this);
 
     public abstract TResult Accept<TResult>(InternalSyntax.SyntaxVisitor<TResult> visitor);
 
