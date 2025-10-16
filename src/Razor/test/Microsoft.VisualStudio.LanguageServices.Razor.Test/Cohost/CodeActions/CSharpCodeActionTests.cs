@@ -372,4 +372,292 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
 
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.AddDebuggerDisplay);
     }
+
+    [Fact]
+    public async Task RemoveUnusedVariable()
+    {
+        var input = """
+            @code {
+                void Method()
+                {
+                    var [||]unused = 5;
+                }
+            }
+            """;
+
+        var expected = """
+            @code {
+                void Method()
+                {
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable);
+    }
+
+    [Fact]
+    public async Task RemoveUnusedVariable_WithUsedVariable()
+    {
+        var input = """
+            @code {
+                void Method()
+                {
+                    var [||]unused = 5;
+                    var used = 10;
+                    System.Console.WriteLine(used);
+                }
+            }
+            """;
+
+        var expected = """
+            @code {
+                void Method()
+                {
+                    var used = 10;
+                    System.Console.WriteLine(used);
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable);
+    }
+
+    [Fact]
+    public async Task RemoveUnusedMembers_Field()
+    {
+        var input = """
+            @code {
+                class MyClass
+                {
+                    private int [||]_unusedField;
+                }
+            }
+            """;
+
+        var expected = """
+            @code {
+                class MyClass
+                {
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedMembers);
+    }
+
+    [Fact]
+    public async Task RemoveUnusedMembers_Method()
+    {
+        var input = """
+            @code {
+                class MyClass
+                {
+                    private void [||]UnusedMethod()
+                    {
+                    }
+                }
+            }
+            """;
+
+        var expected = """
+            @code {
+                class MyClass
+                {
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedMembers);
+    }
+
+    [Fact]
+    public async Task RemoveUnusedMembers_Property()
+    {
+        var input = """
+            @code {
+                class MyClass
+                {
+                    private int [||]UnusedProperty { get; set; }
+                }
+            }
+            """;
+
+        var expected = """
+            @code {
+                class MyClass
+                {
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedMembers);
+    }
+
+    [Fact]
+    public async Task RemoveUnusedMembers_MultipleMembers()
+    {
+        var input = """
+            @code {
+                class MyClass
+                {
+                    private int _usedField = 5;
+                    private int [||]_unusedField;
+
+                    public void UsedMethod()
+                    {
+                        System.Console.WriteLine(_usedField);
+                    }
+                }
+            }
+            """;
+
+        var expected = """
+            @code {
+                class MyClass
+                {
+                    private int _usedField = 5;
+
+                    public void UsedMethod()
+                    {
+                        System.Console.WriteLine(_usedField);
+                    }
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedMembers);
+    }
+
+    [Fact]
+    public async Task RemoveUnusedLocalFunction()
+    {
+        var input = """
+            @code {
+                void Method()
+                {
+                    void [||]UnusedLocalFunction()
+                    {
+                    }
+                }
+            }
+            """;
+
+        var expected = """
+            @code {
+                void Method()
+                {
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedLocalFunction);
+    }
+
+    [Fact]
+    public async Task RemoveUnusedLocalFunction_WithUsedFunction()
+    {
+        var input = """
+            @code {
+                void Method()
+                {
+                    void [||]UnusedLocalFunction()
+                    {
+                    }
+
+                    void UsedLocalFunction()
+                    {
+                    }
+
+                    UsedLocalFunction();
+                }
+            }
+            """;
+
+        var expected = """
+            @code {
+                void Method()
+                {
+                    void UsedLocalFunction()
+                    {
+                    }
+
+                    UsedLocalFunction();
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedLocalFunction);
+    }
+
+    [Fact]
+    public async Task RemoveUnusedValues_Parameter()
+    {
+        var input = """
+            @code {
+                void Method(int [||]unusedParam)
+                {
+                }
+            }
+            """;
+
+        var expected = """
+            @code {
+                void Method()
+                {
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedValues);
+    }
+
+    [Fact]
+    public async Task RemoveUnusedValues_MultipleParameters()
+    {
+        var input = """
+            @code {
+                void Method(int usedParam, int [||]unusedParam)
+                {
+                    System.Console.WriteLine(usedParam);
+                }
+            }
+            """;
+
+        var expected = """
+            @code {
+                void Method(int usedParam)
+                {
+                    System.Console.WriteLine(usedParam);
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedValues);
+    }
+
+    [Fact]
+    public async Task RemoveUnusedValues_ValueAssignment()
+    {
+        var input = """
+            @code {
+                void Method()
+                {
+                    int x = 5;
+                    [||]x = 10;
+                }
+            }
+            """;
+
+        var expected = """
+            @code {
+                void Method()
+                {
+                    int x = 5;
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedValues);
+    }
 }
