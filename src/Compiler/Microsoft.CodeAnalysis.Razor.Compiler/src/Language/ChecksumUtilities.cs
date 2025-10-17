@@ -25,14 +25,14 @@ internal static class ChecksumUtilities
         return Convert.ToHexStringLower(bytesArray);
 #else
         const int StackAllocThreshold = 256; // reasonable for stackalloc
-        int charCount = bytes.Length * 2;
+        var charCount = bytes.Length * 2;
 
         // As this should be getting called with a Checksum array of length 32, this shouldn't allocate
-        Span<char> buffer = charCount <= StackAllocThreshold
+        var buffer = charCount <= StackAllocThreshold
             ? stackalloc char[charCount]
             : new char[charCount];
 
-        int bufferIndex = 0;
+        var bufferIndex = 0;
         foreach (var b in bytes)
         {
             // Write hex chars directly
