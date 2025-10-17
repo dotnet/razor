@@ -113,7 +113,7 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
             using (context.CodeWriter.BuildAsyncLambda())
             {
                 // We remove and redirect writers so TagHelper authors can retrieve content.
-                context.RenderChildren(node, new RuntimeNodeWriter());
+                context.RenderChildren(node, RuntimeNodeWriter.Instance);
             }
 
             context.CodeWriter.WriteEndMethodInvocation();
@@ -236,7 +236,7 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
                     .Write(attributeValueStyleParameter)
                     .WriteEndMethodInvocation();
 
-                context.RenderChildren(node, new TagHelperHtmlAttributeRuntimeNodeWriter());
+                context.RenderChildren(node, TagHelperHtmlAttributeRuntimeNodeWriter.Instance);
 
                 context.CodeWriter
                     .WriteMethodInvocation(
@@ -255,7 +255,7 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
                 // We're building a writing scope around the provided chunks which captures everything written from the
                 // page. Therefore, we do not want to write to any other buffer since we're using the pages buffer to
                 // ensure we capture all content that's written, directly or indirectly.
-                context.RenderChildren(node, new RuntimeNodeWriter());
+                context.RenderChildren(node, RuntimeNodeWriter.Instance);
 
                 context.CodeWriter
                     .WriteStartAssignment(StringValueBufferVariableName)
@@ -358,7 +358,7 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
             {
                 context.CodeWriter.WriteMethodInvocation(BeginWriteTagHelperAttributeMethodName);
 
-                context.RenderChildren(node, new LiteralRuntimeNodeWriter());
+                context.RenderChildren(node, LiteralRuntimeNodeWriter.Instance);
 
                 context.CodeWriter
                     .WriteStartAssignment(StringValueBufferVariableName)

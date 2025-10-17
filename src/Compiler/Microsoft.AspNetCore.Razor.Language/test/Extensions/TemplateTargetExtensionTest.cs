@@ -27,11 +27,7 @@ public class TemplateTargetExtensionTest
             TemplateTypeName = "global::TestTemplate"
         };
 
-        var nodeWriter = new RuntimeNodeWriter()
-        {
-            PushWriterMethod = "TestPushWriter",
-            PopWriterMethod = "TestPopWriter"
-        };
+        var nodeWriter = new TestRuntimeNodeWriter();
 
         using var context = TestCodeRenderingContext.CreateRuntime(nodeWriter: nodeWriter);
 
@@ -48,5 +44,11 @@ public class TemplateTargetExtensionTest
 
         var output = context.CodeWriter.GetText().ToString();
         Assert.Equal(expected, output);
+    }
+
+    public class TestRuntimeNodeWriter : RuntimeNodeWriter
+    {
+        public override string PushWriterMethod { get; } = "TestPushWriter";
+        public override string PopWriterMethod { get; } = "TestPopWriter";
     }
 }

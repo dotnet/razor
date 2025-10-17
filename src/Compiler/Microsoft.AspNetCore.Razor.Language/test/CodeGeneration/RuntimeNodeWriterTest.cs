@@ -22,7 +22,7 @@ public class RuntimeNodeWriterTest : RazorProjectEngineTestBase
     public void WriteUsingDirective_NoSource_WritesContent()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new UsingDirectiveIntermediateNode()
@@ -46,7 +46,7 @@ public class RuntimeNodeWriterTest : RazorProjectEngineTestBase
     public void WriteUsingDirective_WithSource_WritesContentWithLinePragma()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new UsingDirectiveIntermediateNode()
@@ -77,7 +77,7 @@ using System
     public void WriteUsingDirective_WithSourceAndLineDirectives_WritesContentWithLinePragmaAndMapping()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new UsingDirectiveIntermediateNode()
@@ -111,10 +111,7 @@ using System
     public void WriteCSharpExpression_SkipsLinePragma_WithoutSource()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter()
-        {
-            WriteCSharpExpressionMethod = "Test"
-        };
+        var writer = new TestRuntimeNodeWriter();
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
@@ -139,10 +136,7 @@ i++);
     public void WriteCSharpExpression_WritesLinePragma_WithSource()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter()
-        {
-            WriteCSharpExpressionMethod = "Test"
-        };
+        var writer = new TestRuntimeNodeWriter();
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
@@ -174,10 +168,7 @@ i++
     public void WriteCSharpExpression_WithExtensionNode_WritesPadding()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter()
-        {
-            WriteCSharpExpressionMethod = "Test"
-        };
+        var writer = new TestRuntimeNodeWriter();
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
@@ -207,10 +198,7 @@ iRender Children
     public void WriteCSharpExpression_WithSource_WritesPadding()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter()
-        {
-            WriteCSharpExpressionMethod = "Test"
-        };
+        var writer = new TestRuntimeNodeWriter();
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
@@ -254,7 +242,7 @@ Render Children
     public void WriteCSharpCode_WhitespaceContent_DoesNothing()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpCodeIntermediateNode();
@@ -273,7 +261,7 @@ Render Children
     public void WriteCSharpCode_SkipsLinePragma_WithoutSource()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpCodeIntermediateNode();
@@ -296,7 +284,7 @@ Render Children
     public void WriteCSharpCode_WritesLinePragma_WithSource()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpCodeIntermediateNode();
@@ -327,7 +315,7 @@ if (true) { }
     public void WriteCSharpCode_WritesPadding_WithSource()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpCodeIntermediateNode();
@@ -358,7 +346,7 @@ if (true) { }
     public void WriteHtmlLiteral_WithinMaxSize_WritesSingleLiteral()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         // Act
@@ -377,7 +365,7 @@ if (true) { }
     public void WriteHtmlLiteral_GreaterThanMaxSize_WritesMultipleLiterals()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         // Act
@@ -397,7 +385,7 @@ WriteLiteral(""World"");
     public void WriteHtmlLiteral_GreaterThanMaxSize_SingleEmojisSplit()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         // Act
@@ -417,7 +405,7 @@ WriteLiteral(""👦"");
     public void WriteHtmlLiteral_GreaterThanMaxSize_SequencedZeroWithJoinedEmojisSplit()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         // Act
@@ -439,7 +427,7 @@ WriteLiteral(""👧‍👧"");
     public void WriteHtmlContent_RendersContentCorrectly()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new HtmlContentIntermediateNode();
@@ -461,7 +449,7 @@ WriteLiteral(""👧‍👧"");
     public void WriteHtmlContent_LargeStringLiteral_UsesMultipleWrites()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new HtmlContentIntermediateNode();
@@ -485,7 +473,7 @@ WriteLiteral(@""{1}"");
     public void WriteHtmlAttribute_RendersCorrectly()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         var content = "<input checked=\"hello-world @false\" />";
         var source = TestRazorSourceDocument.Create(content);
         var codeDocument = ProjectEngine.CreateCodeDocument(source);
@@ -514,7 +502,7 @@ EndWriteAttribute();
     public void WriteHtmlAttributeValue_RendersCorrectly()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         var content = "<input checked=\"hello-world @false\" />";
         var source = TestRazorSourceDocument.Create(content);
         var codeDocument = ProjectEngine.CreateCodeDocument(source);
@@ -540,7 +528,7 @@ EndWriteAttribute();
     public void WriteCSharpExpressionAttributeValue_RendersCorrectly()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         var content = "<input checked=\"hello-world @false\" />";
         var source = TestRazorSourceDocument.Create(content);
         var codeDocument = ProjectEngine.CreateCodeDocument(source);
@@ -574,7 +562,7 @@ false
     public void WriteCSharpCodeAttributeValue_BuffersResult()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
 
         var content = "<input checked=\"hello-world @if(@true){ }\" />";
         var source = TestRazorSourceDocument.Create(content);
@@ -612,10 +600,7 @@ if(@true){ }
     public void BeginWriterScope_UsesSpecifiedWriter_RendersCorrectly()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter()
-        {
-            PushWriterMethod = "TestPushWriter"
-        };
+        var writer = new TestRuntimeNodeWriter();
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
@@ -635,10 +620,7 @@ if(@true){ }
     public void EndWriterScope_RendersCorrectly()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter()
-        {
-            PopWriterMethod = "TestPopWriter"
-        };
+        var writer = new TestRuntimeNodeWriter();
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
@@ -667,5 +649,12 @@ if(@true){ }
         {
             throw new NotImplementedException();
         }
+    }
+
+    public class TestRuntimeNodeWriter : RuntimeNodeWriter
+    {
+        public override string WriteCSharpExpressionMethod { get; } = "Test";
+        public override string PushWriterMethod { get; } = "TestPushWriter";
+        public override string PopWriterMethod { get; } = "TestPopWriter";
     }
 }

@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -13,21 +12,23 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 public class RuntimeNodeWriter : IntermediateNodeWriter
 {
-    public virtual string WriteCSharpExpressionMethod { get; set; } = "Write";
+    public static readonly RuntimeNodeWriter Instance = new RuntimeNodeWriter();
 
-    public virtual string WriteHtmlContentMethod { get; set; } = "WriteLiteral";
+    public virtual string WriteCSharpExpressionMethod { get; } = "Write";
 
-    public virtual string BeginWriteAttributeMethod { get; set; } = "BeginWriteAttribute";
+    public virtual string WriteHtmlContentMethod { get; } = "WriteLiteral";
 
-    public virtual string EndWriteAttributeMethod { get; set; } = "EndWriteAttribute";
+    public virtual string BeginWriteAttributeMethod { get; } = "BeginWriteAttribute";
 
-    public virtual string WriteAttributeValueMethod { get; set; } = "WriteAttributeValue";
+    public virtual string EndWriteAttributeMethod { get; } = "EndWriteAttribute";
 
-    public virtual string PushWriterMethod { get; set; } = "PushWriter";
+    public virtual string WriteAttributeValueMethod { get; } = "WriteAttributeValue";
 
-    public virtual string PopWriterMethod { get; set; } = "PopWriter";
+    public virtual string PushWriterMethod { get; } = "PushWriter";
 
-    public string TemplateTypeName { get; set; } = "Microsoft.AspNetCore.Mvc.Razor.HelperResult";
+    public virtual string PopWriterMethod { get; } = "PopWriter";
+
+    public string TemplateTypeName { get; } = "Microsoft.AspNetCore.Mvc.Razor.HelperResult";
 
     public override void WriteUsingDirective(CodeRenderingContext context, UsingDirectiveIntermediateNode node)
     {
