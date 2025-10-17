@@ -37,7 +37,13 @@ internal class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : IRazorCo
 
         var file = documentContext.Uri.GetDocumentFilePath();
         var folder = Path.GetDirectoryName(file).AssumeNotNull();
-        var importsFile = Path.GetFullPath(Path.Combine(folder, "..", importsFileName));
+        folder = Path.GetDirectoryName(folder);
+        if (folder is null)
+        {
+            return null;
+        }
+
+        var importsFile = Path.GetFullPath(Path.Combine(folder, importsFileName));
         var importFileUri = new DocumentUri(LspFactory.CreateFilePathUri(importsFile));
 
         using var edits = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
