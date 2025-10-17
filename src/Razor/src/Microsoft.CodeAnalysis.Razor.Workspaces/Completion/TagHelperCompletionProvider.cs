@@ -235,7 +235,7 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
             var razorCompletionItem = RazorCompletionItem.CreateTagHelperElement(
                 displayText: displayText,
                 insertText: displayText,
-                descriptionInfo: descriptionInfo,
+                descriptionInfo,
                 commitCharacters: commitChars,
                 isSnippet: false);
 
