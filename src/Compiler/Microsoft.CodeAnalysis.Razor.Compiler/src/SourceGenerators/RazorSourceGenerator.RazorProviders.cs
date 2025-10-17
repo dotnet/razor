@@ -94,8 +94,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             }
             else
             {
-                // If the TargetPath is not provided, we effectively assume its in the root of the project.
-                relativePath = Path.GetFileName(additionalText.Path);
+                // If the TargetPath is not provided, it could be a Misc Files situation, or just a project that isn't using the
+                // Web or Razor SDK. In this case, we just use the physical path.
+                relativePath = additionalText.Path;
             }
 
             options.TryGetValue("build_metadata.AdditionalFiles.CssScope", out var cssScope);
