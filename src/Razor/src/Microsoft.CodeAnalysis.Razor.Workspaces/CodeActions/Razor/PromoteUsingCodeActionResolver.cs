@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
@@ -36,7 +35,7 @@ internal class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : IRazorCo
 
         var importsFileName = PromoteUsingCodeActionProvider.GetImportsFileName(documentContext.FileKind);
 
-        var file = FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath());
+        var file = documentContext.Uri.GetDocumentFilePath();
         var folder = Path.GetDirectoryName(file).AssumeNotNull();
         var importsFile = Path.GetFullPath(Path.Combine(folder, "..", importsFileName));
         var importFileUri = new DocumentUri(LspFactory.CreateFilePathUri(importsFile));
