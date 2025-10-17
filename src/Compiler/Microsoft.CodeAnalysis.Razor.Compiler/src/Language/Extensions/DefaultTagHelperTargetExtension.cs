@@ -327,9 +327,9 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
         if (!object.ReferenceEquals(firstUseOfAttribute, node))
         {
             // If we get here, this value has already been used. We just need to copy the value.
-            context.CodeWriter
-                .WriteStartAssignment(GetPropertyAccessor(node))
-                .Write(GetPropertyAccessor(firstUseOfAttribute))
+            WritePropertyAccessorStartAssignment(context.CodeWriter, node);
+
+            WritePropertyAccessor(context.CodeWriter, firstUseOfAttribute)
                 .WriteLine(";");
 
             return;
@@ -342,7 +342,7 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
             {
                 context.RenderChildren(node);
 
-                context.CodeWriter.WriteStartAssignment(GetPropertyAccessor(node));
+                WritePropertyAccessorStartAssignment(context.CodeWriter, node);
                 if (node.Children.Count == 1 && node.Children.First() is HtmlContentIntermediateNode htmlNode)
                 {
                     var content = GetContent(htmlNode);
@@ -362,8 +362,9 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
 
                 context.CodeWriter
                     .WriteStartAssignment(StringValueBufferVariableName)
-                    .WriteMethodInvocation(EndWriteTagHelperAttributeMethodName)
-                    .WriteStartAssignment(GetPropertyAccessor(node))
+                    .WriteMethodInvocation(EndWriteTagHelperAttributeMethodName);
+
+                WritePropertyAccessorStartAssignment(context.CodeWriter, node)
                     .Write(StringValueBufferVariableName)
                     .WriteLine(";");
             }
@@ -377,8 +378,8 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
 
                 using (context.BuildLinePragma(node.Source))
                 {
-                    var accessor = GetPropertyAccessor(node);
-                    var assignmentPrefixLength = accessor.Length + " = ".Length;
+                    var accessorLength = GetPropertyAccessorLength(node);
+                    var assignmentPrefixLength = accessorLength + " = ".Length;
                     if (node.BoundAttribute.IsEnum &&
                         node.Children is [CSharpIntermediateToken token])
                     {
@@ -389,8 +390,7 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
                             context.CodeWriter.WritePadding(assignmentPrefixLength, node.Source, context);
                         }
 
-                        context.CodeWriter
-                            .WriteStartAssignment(accessor)
+                        WritePropertyAccessorStartAssignment(context.CodeWriter, node)
                             .Write("global::")
                             .Write(node.BoundAttribute.TypeName)
                             .Write(".");
@@ -402,7 +402,7 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
                             context.CodeWriter.WritePadding(assignmentPrefixLength, node.Source, context);
                         }
 
-                        context.CodeWriter.WriteStartAssignment(GetPropertyAccessor(node));
+                        WritePropertyAccessorStartAssignment(context.CodeWriter, node);
                     }
 
                     if (node.Children.Count == 0 &&
@@ -422,7 +422,7 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
             }
             else
             {
-                context.CodeWriter.WriteStartAssignment(GetPropertyAccessor(node));
+                WritePropertyAccessorStartAssignment(context.CodeWriter, node);
 
                 if (node.BoundAttribute.IsEnum &&
                     node.Children is [CSharpIntermediateToken token])
@@ -457,8 +457,9 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
                     ExecutionContextVariableName,
                     ExecutionContextAddTagHelperAttributeMethodName)
                 .WriteStringLiteral(node.AttributeName)
-                .WriteParameterSeparator()
-                .Write(GetPropertyAccessor(node))
+                .WriteParameterSeparator();
+
+            WritePropertyAccessor(context.CodeWriter, node)
                 .WriteParameterSeparator()
                 .Write($"global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.{node.AttributeStructure}")
                 .WriteEndMethodInvocation();
@@ -650,16 +651,47 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
         return uniqueId;
     }
 
-    private static string GetPropertyAccessor(DefaultTagHelperPropertyIntermediateNode node)
+    private static int GetPropertyAccessorLength(DefaultTagHelperPropertyIntermediateNode node)
     {
-        var propertyAccessor = node.FieldName + "." + node.PropertyName;
+        var propertyAccessorLength =
+            node.FieldName.Length
+            + ".".Length
+            + node.PropertyName.Length;
+
+        if (node.IsIndexerNameMatch)
+        {
+            propertyAccessorLength +=
+                "[\"".Length
+                + (node.AttributeName.Length - node.BoundAttribute.IndexerNamePrefix.Length)
+                + "\"]".Length;
+        }
+
+        return propertyAccessorLength;
+    }
+
+    private static CodeWriter WritePropertyAccessor(CodeWriter writer, DefaultTagHelperPropertyIntermediateNode node)
+    {
+        writer
+            .Write(node.FieldName)
+            .Write(".")
+            .Write(node.PropertyName);
 
         if (node.IsIndexerNameMatch)
         {
             var dictionaryKey = node.AttributeName.Substring(node.BoundAttribute.IndexerNamePrefix.Length);
-            propertyAccessor += $"[\"{dictionaryKey}\"]";
+
+            writer
+                .Write("[\"")
+                .Write(dictionaryKey)
+                .Write("\"]");
         }
 
-        return propertyAccessor;
+        return writer;
+    }
+
+    private static CodeWriter WritePropertyAccessorStartAssignment(CodeWriter writer, DefaultTagHelperPropertyIntermediateNode node)
+    {
+        return WritePropertyAccessor(writer, node)
+            .Write(" = ");
     }
 }
