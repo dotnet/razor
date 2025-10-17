@@ -24,6 +24,7 @@ using Roslyn.Text.Adornments;
 using Xunit;
 using Xunit.Abstractions;
 using Microsoft.CodeAnalysis.Text;
+using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 
 #if !VSCODE
 using Microsoft.VisualStudio.ProjectSystem;
@@ -837,6 +838,97 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
 
                 The end.
                 """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/9378")]
+    public async Task BlazorDataEnhanceAttributeCompletion_OnFormElement()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <form $$></form>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = " ",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["data-enhance", "data-enhance-nav", "data-permanent", "dir", "@..."],
+            htmlItemLabels: ["dir"]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/9378")]
+    public async Task BlazorDataEnhanceNavAttributeCompletion_OnAnyElement()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <div $$></div>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = " ",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["data-enhance-nav", "data-permanent", "dir", "@..."],
+            unexpectedItemLabels: ["data-enhance"],
+            htmlItemLabels: ["dir"]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/9378")]
+    public async Task BlazorDataPermanentAttributeCompletion_OnAnchorElement()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <a $$></a>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = " ",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["data-enhance-nav", "data-permanent", "dir", "@..."],
+            unexpectedItemLabels: ["data-enhance"],
+            htmlItemLabels: ["dir"]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/9378")]
+    public async Task BlazorDataAttributeCompletion_DoesNotDuplicateExistingAttribute()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <form data-enhance $$></form>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = " ",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["data-enhance-nav", "data-permanent", "dir", "@..."],
+            unexpectedItemLabels: ["data-enhance"],
+            htmlItemLabels: ["dir"]);
     }
 
     private async Task<RazorVSInternalCompletionList> VerifyCompletionListAsync(
