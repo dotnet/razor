@@ -3,8 +3,10 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Globalization;
-using Microsoft.AspNetCore.Razor.PooledObjects;
+
+#if NET9_0_OR_GREATER
+using System.Runtime.InteropServices;
+#endif
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -17,15 +19,32 @@ internal static class ChecksumUtilities
             throw new ArgumentNullException(nameof(bytes));
         }
 
-        using var _ = StringBuilderPool.GetPooledObject(out var builder);
-        builder.EnsureCapacity(bytes.Length);
+#if NET9_0_OR_GREATER
+        var bytesArray = ImmutableCollectionsMarshal.AsArray(bytes)!;
 
+        return Convert.ToHexStringLower(bytesArray);
+#else
+        const int StackAllocThreshold = 256; // reasonable for stackalloc
+        int charCount = bytes.Length * 2;
+
+        // As this should be getting called with a Checksum array of length 32, this shouldn't allocate
+        Span<char> buffer = charCount <= StackAllocThreshold
+            ? stackalloc char[charCount]
+            : new char[charCount];
+
+        int bufferIndex = 0;
         foreach (var b in bytes)
         {
-            // The x2 format means lowercase hex, where each byte is a 2-character string.
-            builder.Append(b.ToString("x2", CultureInfo.InvariantCulture));
+            // Write hex chars directly
+            buffer[bufferIndex++] = GetHexChar(b >> 4);
+            buffer[bufferIndex++] = GetHexChar(b & 0xF);
         }
 
-        return builder.ToString();
+        // Allocate the final string
+        return buffer.ToString();
+
+        static char GetHexChar(int value)
+            => (char)(value < 10 ? '0' + value : 'a' + (value - 10));
+#endif
     }
 }
