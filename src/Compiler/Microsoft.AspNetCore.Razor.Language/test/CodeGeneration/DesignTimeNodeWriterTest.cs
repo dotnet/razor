@@ -377,7 +377,7 @@ if (true) { }
         var codeDocument = ProjectEngine.CreateCodeDocument(source);
         var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
-        var node = (CSharpExpressionAttributeValueIntermediateNode) documentNode.Children.OfType<HtmlAttributeIntermediateNode>().Single().Children[1];
+        var node = (CSharpExpressionAttributeValueIntermediateNode)documentNode.Children.OfType<HtmlAttributeIntermediateNode>().Single().Children[1];
 
         using var context = TestCodeRenderingContext.CreateDesignTime(source: source);
 
@@ -409,7 +409,7 @@ if (true) { }
         var codeDocument = ProjectEngine.CreateCodeDocument(sourceDocument);
         var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
-        var node = (CSharpCodeAttributeValueIntermediateNode) documentNode.Children.OfType<HtmlAttributeIntermediateNode>().Single().Children[1];
+        var node = (CSharpCodeAttributeValueIntermediateNode)documentNode.Children.OfType<HtmlAttributeIntermediateNode>().Single().Children[1];
 
         using var context = TestCodeRenderingContext.CreateDesignTime(source: sourceDocument);
 
