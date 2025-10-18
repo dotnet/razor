@@ -48,7 +48,7 @@ public class TemplateTargetExtensionTest
 
     public class TestRuntimeNodeWriter : RuntimeNodeWriter
     {
-        public override string PushWriterMethod { get; } = "TestPushWriter";
-        public override string PopWriterMethod { get; } = "TestPopWriter";
+        public override string PushWriterMethod { get => "TestPushWriter"; }
+        public override string PopWriterMethod { get => "TestPopWriter"; }
     }
 }

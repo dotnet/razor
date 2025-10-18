@@ -7,5 +7,5 @@ internal class TagHelperHtmlAttributeRuntimeNodeWriter : RuntimeNodeWriter
 {
     public static new readonly TagHelperHtmlAttributeRuntimeNodeWriter Instance = new TagHelperHtmlAttributeRuntimeNodeWriter();
 
-    public override string WriteAttributeValueMethod { get; } = "AddHtmlAttributeValue";
+    public override string WriteAttributeValueMethod { get => "AddHtmlAttributeValue"; }
 }

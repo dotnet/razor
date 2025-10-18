@@ -14,21 +14,21 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
 {
     public static readonly RuntimeNodeWriter Instance = new RuntimeNodeWriter();
 
-    public virtual string WriteCSharpExpressionMethod { get; } = "Write";
+    public virtual string WriteCSharpExpressionMethod { get => "Write"; }
 
-    public virtual string WriteHtmlContentMethod { get; } = "WriteLiteral";
+    public virtual string WriteHtmlContentMethod { get => "WriteLiteral"; }
 
-    public virtual string BeginWriteAttributeMethod { get; } = "BeginWriteAttribute";
+    public virtual string BeginWriteAttributeMethod { get => "BeginWriteAttribute"; }
 
-    public virtual string EndWriteAttributeMethod { get; } = "EndWriteAttribute";
+    public virtual string EndWriteAttributeMethod { get => "EndWriteAttribute"; }
 
-    public virtual string WriteAttributeValueMethod { get; } = "WriteAttributeValue";
+    public virtual string WriteAttributeValueMethod { get => "WriteAttributeValue"; }
 
-    public virtual string PushWriterMethod { get; } = "PushWriter";
+    public virtual string PushWriterMethod { get => "PushWriter"; }
 
-    public virtual string PopWriterMethod { get; } = "PopWriter";
+    public virtual string PopWriterMethod { get => "PopWriter"; }
 
-    public string TemplateTypeName { get; } = "Microsoft.AspNetCore.Mvc.Razor.HelperResult";
+    public string TemplateTypeName { get => "Microsoft.AspNetCore.Mvc.Razor.HelperResult"; }
 
     public override void WriteUsingDirective(CodeRenderingContext context, UsingDirectiveIntermediateNode node)
     {

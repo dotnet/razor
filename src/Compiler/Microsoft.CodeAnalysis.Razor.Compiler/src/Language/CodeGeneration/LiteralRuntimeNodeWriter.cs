@@ -7,5 +7,5 @@ internal class LiteralRuntimeNodeWriter : RuntimeNodeWriter
 {
     public static new readonly LiteralRuntimeNodeWriter Instance = new LiteralRuntimeNodeWriter();
 
-    public override string WriteCSharpExpressionMethod { get; } = "WriteLiteral";
+    public override string WriteCSharpExpressionMethod { get => "WriteLiteral"; }
 }
