@@ -7,55 +7,42 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 public sealed partial class CodeWriter
 {
-    private sealed class IndentCache
+    private static class IndentCache
     {
         private const int MaxCachedIndentSize = 80;
 
-        // Caches for combination of common tab sizes (2, 4) and the _useTabs bool
-        private static readonly IndentCache?[] s_caches = new IndentCache?[4];
-
-        private readonly ReadOnlyMemory<char>?[] _indents;
-        private readonly bool _useTabs;
-        private readonly int _tabSize;
-
-        private IndentCache(bool useTabs, int tabSize)
-        {
-            _useTabs = useTabs;
-            _tabSize = tabSize;
-
-            _indents = new ReadOnlyMemory<char>?[MaxCachedIndentSize + 1];
-        }
+        // Caches for combination of useTabs and common tab sizes (2, 4)
+        private static ReadOnlyMemory<char>?[]? s_tabsTwo;
+        private static ReadOnlyMemory<char>?[]? s_tabsFour;
+        private static ReadOnlyMemory<char>?[]? s_spacesTwo;
+        private static ReadOnlyMemory<char>?[]? s_spacesFour;
 
         public static ReadOnlyMemory<char> GetIndentString(int size, bool useTabs, int tabSize)
         {
-            var cacheIndex = tabSize switch
-            {
-                2 => useTabs ? 0 : 1,
-                4 => useTabs ? 2 : 3,
-                _ => -1,
-            };
-
-            // Only cache common tab sizes and small indents
-            if (cacheIndex == -1 || size > MaxCachedIndentSize)
+            // Don't initialize anything if we're not going to use it
+            if (size > MaxCachedIndentSize)
             {
                 return CreateIndent(size, useTabs, tabSize);
             }
 
-            if (s_caches[cacheIndex] is not IndentCache indentCache)
+            return (useTabs, tabSize) switch
             {
-                indentCache = new IndentCache(useTabs, tabSize);
-                s_caches[cacheIndex] = indentCache;
-            }
-
-            return indentCache.GetOrCacheIndent(size);
+                (true, 2) => GetOrCacheIndent(ref s_tabsTwo, size, useTabs, tabSize),
+                (true, 4) => GetOrCacheIndent(ref s_tabsFour, size, useTabs, tabSize),
+                (false, 2) => GetOrCacheIndent(ref s_spacesTwo, size, useTabs, tabSize),
+                (false, 4) => GetOrCacheIndent(ref s_spacesFour, size, useTabs, tabSize),
+                _ => CreateIndent(size, useTabs, tabSize)
+            };
         }
 
-        private ReadOnlyMemory<char> GetOrCacheIndent(int size)
+        private static ReadOnlyMemory<char> GetOrCacheIndent(ref ReadOnlyMemory<char>?[]? indents, int size, bool useTabs, int tabSize)
         {
-            if (_indents[size] is not ReadOnlyMemory<char> cachedIndent)
+            indents ??= new ReadOnlyMemory<char>?[MaxCachedIndentSize + 1];
+
+            if (indents[size] is not ReadOnlyMemory<char> cachedIndent)
             {
-                cachedIndent = CreateIndent(size, _useTabs, _tabSize);
-                _indents[size] = cachedIndent;
+                cachedIndent = CreateIndent(size, useTabs, tabSize);
+                indents[size] = cachedIndent;
             }
 
             return cachedIndent;
