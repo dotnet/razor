@@ -7,10 +7,13 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 public sealed partial class CodeWriter
 {
-    private static class IndentCache
+    internal static class IndentCache
     {
-        private static readonly ReadOnlyMemory<char> s_tabs = new string('\t', 64).AsMemory();
-        private static readonly ReadOnlyMemory<char> s_spaces = new string(' ', 128).AsMemory();
+        internal const int MaxTabCount = 64;
+        internal const int MaxSpaceCount = 128;
+
+        private static readonly ReadOnlyMemory<char> s_tabs = new string('\t', MaxTabCount).AsMemory();
+        private static readonly ReadOnlyMemory<char> s_spaces = new string(' ', MaxSpaceCount).AsMemory();
 
         public static ReadOnlyMemory<char> GetIndentString(int size, bool useTabs, int tabSize)
         {
@@ -31,8 +34,11 @@ public sealed partial class CodeWriter
             {
                 var (tabCount, spaceCount) = state;
 
-                s_tabs.Span[..tabCount].CopyTo(destination);
-                s_spaces.Span[..spaceCount].CopyTo(destination[tabCount..]);
+                var tabs = SliceOrCreate(tabCount, s_tabs);
+                var spaces = SliceOrCreate(spaceCount, s_spaces);
+
+                tabs.Span.CopyTo(destination);
+                spaces.Span.CopyTo(destination[tabCount..]);
             }).AsMemory();
         }
 
