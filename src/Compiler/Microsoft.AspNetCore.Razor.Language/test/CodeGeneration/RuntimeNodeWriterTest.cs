@@ -111,7 +111,7 @@ using System
     public void WriteCSharpExpression_SkipsLinePragma_WithoutSource()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
