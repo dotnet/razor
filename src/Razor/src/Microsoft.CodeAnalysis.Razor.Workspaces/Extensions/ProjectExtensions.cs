@@ -126,6 +126,11 @@ internal static class ProjectExtensions
         SourceGeneratedDocument? candidateDoc = null;
         foreach (var doc in generatedDocuments)
         {
+            if (!doc.IsRazorSourceGeneratedDocument())
+            {
+                continue;
+            }
+
             if (doc.HintName == fullPathHintName)
             {
                 // If the full path matches, we've found it for sure
