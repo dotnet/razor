@@ -49,7 +49,7 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
         => VerifyDocumentSymbolsAsync(
             """
             @functions {
-                class {|ASP.File1.C:C|}
+                class {|ASP.c_.users.example.src.SomeProject.File1.C:C|}
                 {
                     private void {|HandleString(string s):HandleString|}(string s)
                     {
