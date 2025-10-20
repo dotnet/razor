@@ -43,12 +43,6 @@ internal class RenameService(
             return null;
         }
 
-        // If we're in C# then there is no point checking for a component tag, because there won't be one
-        if (positionInfo.LanguageKind == RazorLanguageKind.CSharp)
-        {
-            return null;
-        }
-
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         var originTagHelpers = await GetOriginTagHelpersAsync(documentContext, positionInfo.HostDocumentIndex, cancellationToken).ConfigureAwait(false);
