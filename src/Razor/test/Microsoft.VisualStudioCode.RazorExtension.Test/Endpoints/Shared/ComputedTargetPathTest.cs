@@ -22,8 +22,7 @@ public class ComputedTargetPathTest(ITestOutputHelper testOutputHelper) : Cohost
 
         _ = await document.Project.GetCompilationAsync(DisposalToken);
 
-        Assert.True(document.TryComputeHintNameFromRazorDocument(out var hintName));
-        var generatedDocument = await document.Project.TryGetSourceGeneratedDocumentFromHintNameAsync(hintName, DisposalToken);
+        var generatedDocument = await document.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(document, DisposalToken);
         Assert.NotNull(generatedDocument);
     }
 
@@ -47,8 +46,7 @@ public class ComputedTargetPathTest(ITestOutputHelper testOutputHelper) : Cohost
 
         doc1 = project.GetAdditionalDocument(doc1.Id).AssumeNotNull();
 
-        Assert.True(doc1.TryComputeHintNameFromRazorDocument(out var hintName));
-        var generatedDocument = await doc1.Project.TryGetSourceGeneratedDocumentFromHintNameAsync(hintName, DisposalToken);
+        var generatedDocument = await doc1.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(document, DisposalToken);
         Assert.NotNull(generatedDocument);
     }
 
@@ -69,8 +67,7 @@ public class ComputedTargetPathTest(ITestOutputHelper testOutputHelper) : Cohost
 
         _ = await doc1.Project.GetCompilationAsync(DisposalToken);
 
-        Assert.True(doc1.TryComputeHintNameFromRazorDocument(out var hintName));
-        var generatedDocument = await doc1.Project.TryGetSourceGeneratedDocumentFromHintNameAsync(hintName, DisposalToken);
+        var generatedDocument = await doc1.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(document, DisposalToken);
         Assert.NotNull(generatedDocument);
     }
 
@@ -99,12 +96,10 @@ public class ComputedTargetPathTest(ITestOutputHelper testOutputHelper) : Cohost
         // Make sure we have a doc1 from the final project
         doc1 = doc2.Project.GetAdditionalDocument(doc1.Id).AssumeNotNull();
 
-        Assert.True(doc1.TryComputeHintNameFromRazorDocument(out var hintName1));
-        var generatedDocument = await doc1.Project.TryGetSourceGeneratedDocumentFromHintNameAsync(hintName1, DisposalToken);
+        var generatedDocument = await doc1.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(doc1, DisposalToken);
         Assert.NotNull(generatedDocument);
 
-        Assert.True(doc2.TryComputeHintNameFromRazorDocument(out var hintName2));
-        generatedDocument = await doc2.Project.TryGetSourceGeneratedDocumentFromHintNameAsync(hintName2, DisposalToken);
+        generatedDocument = await doc2.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(doc2, DisposalToken);
         Assert.NotNull(generatedDocument);
     }
 
@@ -126,8 +121,7 @@ public class ComputedTargetPathTest(ITestOutputHelper testOutputHelper) : Cohost
                 """),
             filePath: doc1Path);
 
-        Assert.True(doc1.TryComputeHintNameFromRazorDocument(out var hintName));
-        var generatedDocument = await doc1.Project.TryGetSourceGeneratedDocumentFromHintNameAsync(hintName, DisposalToken);
+        var generatedDocument = await doc1.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(doc1, DisposalToken);
         Assert.NotNull(generatedDocument);
     }
 }

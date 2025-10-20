@@ -169,8 +169,7 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
 
         var compilation = await project.GetCompilationAsync(DisposalToken);
 
-        Assert.True(razorDocument.TryComputeHintNameFromRazorDocument(out var hintName));
-        var generatedDocument = await project.TryGetSourceGeneratedDocumentFromHintNameAsync(hintName, DisposalToken);
+        var generatedDocument = await project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(razorDocument, DisposalToken);
 
         var node = await GetSyntaxNodeAsync(generatedDocument.AssumeNotNull(), razorFile.Position, razorDocument);
 
@@ -227,10 +226,9 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
         AssertEx.EqualOrDiff(expectedCSharpFile, csharpText.ToString());
 
         // Normally in VS, TryApplyChanges would be called, and that calls into our edit mapping service.
-        Assert.True(razorDocument.TryComputeHintNameFromRazorDocument(out var hintName));
-        var generatedDoc = await project.TryGetSourceGeneratedDocumentFromHintNameAsync(hintName, DisposalToken);
+        var generatedDoc = await project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(razorDocument, DisposalToken);
         Assert.NotNull(generatedDoc);
-        var renamedGeneratedDoc = await solution.GetRequiredProject(project.Id).TryGetSourceGeneratedDocumentFromHintNameAsync(hintName, DisposalToken);
+        var renamedGeneratedDoc = await solution.GetRequiredProject(project.Id).TryGetSourceGeneratedDocumentForRazorDocumentAsync(razorDocument, DisposalToken);
         Assert.NotNull(renamedGeneratedDoc);
 
         // It could be argued this class is really a RazorSourceGeneratedDocumentSpanMappingService test :)
