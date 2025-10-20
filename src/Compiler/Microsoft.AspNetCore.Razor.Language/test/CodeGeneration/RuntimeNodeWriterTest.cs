@@ -111,7 +111,7 @@ using System
     public void WriteCSharpExpression_SkipsLinePragma_WithoutSource()
     {
         // Arrange
-        var writer = new TestRuntimeNodeWriter();
+        var writer = new RuntimeNodeWriter();
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
@@ -125,7 +125,7 @@ using System
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
         Assert.Equal(
-@"Test(
+@"Write(
 i++);
 ",
             csharp,
@@ -136,7 +136,7 @@ i++);
     public void WriteCSharpExpression_WritesLinePragma_WithSource()
     {
         // Arrange
-        var writer = new TestRuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
@@ -150,7 +150,7 @@ i++);
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
         Assert.Equal(
-@"Test(
+@"Write(
 #nullable restore
 #line (1,1)-(1,4) ""test.cshtml""
 i++
@@ -168,7 +168,7 @@ i++
     public void WriteCSharpExpression_WithExtensionNode_WritesPadding()
     {
         // Arrange
-        var writer = new TestRuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
@@ -186,7 +186,7 @@ i++
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
         Assert.Equal(
-@"Test(
+@"Write(
 iRender Children
 ++);
 ",
@@ -198,7 +198,7 @@ iRender Children
     public void WriteCSharpExpression_WithSource_WritesPadding()
     {
         // Arrange
-        var writer = new TestRuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
@@ -216,7 +216,7 @@ iRender Children
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
         Assert.Equal(
-@"Test(
+@"Write(
 #nullable restore
 #line (1,1)-(1,2) ""test.cshtml""
 i
@@ -600,7 +600,7 @@ if(@true){ }
     public void BeginWriterScope_UsesSpecifiedWriter_RendersCorrectly()
     {
         // Arrange
-        var writer = new TestRuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
@@ -610,7 +610,7 @@ if(@true){ }
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
         Assert.Equal(
-@"TestPushWriter(MyWriter);
+@"PushWriter(MyWriter);
 ",
             csharp,
             ignoreLineEndingDifferences: true);
@@ -620,7 +620,7 @@ if(@true){ }
     public void EndWriterScope_RendersCorrectly()
     {
         // Arrange
-        var writer = new TestRuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
@@ -630,7 +630,7 @@ if(@true){ }
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
         Assert.Equal(
-@"TestPopWriter();
+@"PopWriter();
 ",
             csharp,
             ignoreLineEndingDifferences: true);
@@ -649,12 +649,5 @@ if(@true){ }
         {
             throw new NotImplementedException();
         }
-    }
-
-    public class TestRuntimeNodeWriter : RuntimeNodeWriter
-    {
-        public override string WriteCSharpExpressionMethod { get => "Test"; }
-        public override string PushWriterMethod { get => "TestPushWriter"; }
-        public override string PopWriterMethod { get => "TestPopWriter"; }
     }
 }

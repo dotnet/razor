@@ -12,6 +12,10 @@ public class DesignTimeNodeWriter : IntermediateNodeWriter
 {
     public static readonly DesignTimeNodeWriter Instance = new DesignTimeNodeWriter();
 
+    private DesignTimeNodeWriter()
+    {
+    }
+
     public override void WriteUsingDirective(CodeRenderingContext context, UsingDirectiveIntermediateNode node)
     {
         if (node.Source is { FilePath: not null } sourceSpan)
