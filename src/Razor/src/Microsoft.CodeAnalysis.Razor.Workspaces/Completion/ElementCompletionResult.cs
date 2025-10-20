@@ -19,12 +19,8 @@ internal sealed class ElementCompletionResult
 
     internal static ElementCompletionResult Create(Dictionary<string, HashSet<TagHelperDescriptor>> completions)
     {
-        if (completions is null)
-        {
-            throw new ArgumentNullException(nameof(completions));
-        }
-
-        var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<TagHelperDescriptor>>(completions.Comparer);
+        var pool = AspNetCore.Razor.PooledObjects.DictionaryBuilderPool<string, ImmutableArray<TagHelperDescriptor>>.Create(completions.Comparer);
+        using var builder = new AspNetCore.Razor.PooledObjects.PooledDictionaryBuilder<string, ImmutableArray<TagHelperDescriptor>>(pool);
 
         foreach (var (key, value) in completions)
         {

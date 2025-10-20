@@ -321,7 +321,7 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
     private static void AddCompletionItemWithRequiredAttributesSnippet(
         ref PooledArrayBuilder<RazorCompletionItem> completionItems,
         RazorCompletionContext context,
-        IEnumerable<TagHelperDescriptor> tagHelpers,
+        ImmutableArray<TagHelperDescriptor> tagHelpers,
         string displayText,
         AggregateBoundElementDescription descriptionInfo,
         ImmutableArray<RazorCommitCharacter> commitChars)
@@ -346,7 +346,7 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
     }
 
     private static bool TryGetEditorRequiredAttributesSnippet(
-        IEnumerable<TagHelperDescriptor> tagHelpers,
+        ImmutableArray<TagHelperDescriptor> tagHelpers,
         string tagName,
         [NotNullWhen(true)] out string? snippetText)
     {
