@@ -26,10 +26,14 @@ internal static partial class RazorWrapperFactory
         {
             var result = Object.GetElementCompletions(Unwrap(completionContext));
 
-            return result.Completions.ToImmutableDictionary(
-                keySelector: kvp => kvp.Key,
-                elementSelector: kvp => WrapAll(kvp.Value, Wrap),
-                keyComparer: result.Completions.KeyComparer);
+            // Use StringComparer.Ordinal for the output dictionary, which implements both IComparer and IEqualityComparer
+            var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<IRazorTagHelperDescriptor>>(StringComparer.Ordinal);
+            foreach (var (key, value) in result.Completions)
+            {
+                builder.Add(key, WrapAll(value, Wrap));
+            }
+
+            return builder.ToImmutable();
         }
     }
 }
