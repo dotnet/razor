@@ -29,7 +29,7 @@ internal static partial class RazorWrapperFactory
             return result.Completions.ToImmutableDictionary(
                 keySelector: kvp => kvp.Key,
                 elementSelector: kvp => WrapAll(kvp.Value, Wrap),
-                keyComparer: result.Comparer);
+                keyComparer: result.Completions.KeyComparer);
         }
     }
 }

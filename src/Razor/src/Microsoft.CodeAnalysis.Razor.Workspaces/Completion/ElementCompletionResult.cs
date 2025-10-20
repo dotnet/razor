@@ -4,21 +4,17 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal sealed class ElementCompletionResult
 {
-    public ReadOnlyDictionary<string, ImmutableArray<TagHelperDescriptor>> Completions { get; }
+    public ImmutableDictionary<string, ImmutableArray<TagHelperDescriptor>> Completions { get; }
 
-    public IEqualityComparer<string> Comparer { get; }
-
-    private ElementCompletionResult(ReadOnlyDictionary<string, ImmutableArray<TagHelperDescriptor>> completions, IEqualityComparer<string> comparer)
+    private ElementCompletionResult(ImmutableDictionary<string, ImmutableArray<TagHelperDescriptor>> completions)
     {
         Completions = completions;
-        Comparer = comparer;
     }
 
     internal static ElementCompletionResult Create(Dictionary<string, HashSet<TagHelperDescriptor>> completions)
@@ -28,15 +24,13 @@ internal sealed class ElementCompletionResult
             throw new ArgumentNullException(nameof(completions));
         }
 
-        var readonlyCompletions = new Dictionary<string, ImmutableArray<TagHelperDescriptor>>(
-            capacity: completions.Count,
-            comparer: completions.Comparer);
+        var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<TagHelperDescriptor>>(completions.Comparer);
 
         foreach (var (key, value) in completions)
         {
-            readonlyCompletions.Add(key, value.ToImmutableArray());
+            builder.Add(key, value.ToImmutableArray());
         }
 
-        return new ElementCompletionResult(new ReadOnlyDictionary<string, ImmutableArray<TagHelperDescriptor>>(readonlyCompletions), completions.Comparer);
+        return new ElementCompletionResult(builder.ToImmutable());
     }
 }
