@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
@@ -19,8 +20,8 @@ internal sealed class ElementCompletionResult
 
     internal static ElementCompletionResult Create(Dictionary<string, HashSet<TagHelperDescriptor>> completions)
     {
-        var pool = AspNetCore.Razor.PooledObjects.DictionaryBuilderPool<string, ImmutableArray<TagHelperDescriptor>>.Create(completions.Comparer);
-        using var builder = new AspNetCore.Razor.PooledObjects.PooledDictionaryBuilder<string, ImmutableArray<TagHelperDescriptor>>(pool);
+        var pool = DictionaryBuilderPool<string, ImmutableArray<TagHelperDescriptor>>.Create(completions.Comparer);
+        using var builder = new PooledDictionaryBuilder<string, ImmutableArray<TagHelperDescriptor>>(pool);
 
         foreach (var (key, value) in completions)
         {
