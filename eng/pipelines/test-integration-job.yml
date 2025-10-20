@@ -144,7 +144,6 @@ steps:
     inputs:
       targetPath: '$(Build.SourcesDirectory)\artifacts\log\${{ parameters.configuration }}'
       publishLocation: 'pipeline'
-      #ArtifactName: '$(System.JobAttempt)-Logs ${{ parameters.configuration }} $(Build.BuildNumber)'
-      #publishLocation: Container
+      ArtifactName: '$(System.JobAttempt)-Logs ${{ parameters.configuration }} $(Build.BuildNumber)'
     continueOnError: true
     condition: always()
