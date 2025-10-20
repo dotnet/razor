@@ -1358,9 +1358,8 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
 
         foreach (var expectedCompletion in expected.Completions)
         {
-            var actualValue = actual.Completions[expectedCompletion.Key];
-            Assert.NotNull(actualValue);
-            Assert.Equal(expectedCompletion.Value, actualValue);
+            Assert.True(actual.Completions.TryGetValue(expectedCompletion.Key, out var actualValue), $"Key '{expectedCompletion.Key}' not found in actual completions");
+            Assert.True(expectedCompletion.Value.SequenceEqual(actualValue), $"Values for key '{expectedCompletion.Key}' do not match");
         }
     }
 

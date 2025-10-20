@@ -26,12 +26,10 @@ internal static partial class RazorWrapperFactory
         {
             var result = Object.GetElementCompletions(Unwrap(completionContext));
 
-            var completions = (Dictionary<string, IEnumerable<TagHelperDescriptor>>)result.Completions;
-
-            return completions.ToImmutableDictionary(
+            return result.Completions.ToImmutableDictionary(
                 keySelector: kvp => kvp.Key,
                 elementSelector: kvp => WrapAll(kvp.Value, Wrap),
-                keyComparer: completions.Comparer);
+                keyComparer: result.Comparer);
         }
     }
 }

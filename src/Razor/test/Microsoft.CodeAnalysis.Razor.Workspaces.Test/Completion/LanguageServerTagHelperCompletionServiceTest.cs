@@ -1436,9 +1436,8 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
 
         foreach (var (key, value) in expected.Completions)
         {
-            var actualValue = actual.Completions[key];
-            Assert.NotNull(actualValue);
-            Assert.Equal(value, actualValue);
+            Assert.True(actual.Completions.TryGetValue(key, out var actualValue), $"Key '{key}' not found in actual completions");
+            Assert.True(value.SequenceEqual(actualValue), $"Values for key '{key}' do not match");
         }
     }
 
