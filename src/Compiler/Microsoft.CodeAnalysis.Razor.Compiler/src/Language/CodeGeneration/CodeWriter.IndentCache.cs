@@ -30,15 +30,10 @@ public sealed partial class CodeWriter
                 return SliceOrCreate(tabCount, s_tabs);
             }
 
-            return string.Create(length: tabCount + spaceCount, (tabCount, spaceCount), static (destination, state) =>
+            return string.Create(length: tabCount + spaceCount, state: tabCount, static (destination, tabCount) =>
             {
-                var (tabCount, spaceCount) = state;
-
-                var tabs = SliceOrCreate(tabCount, s_tabs);
-                var spaces = SliceOrCreate(spaceCount, s_spaces);
-
-                tabs.Span.CopyTo(destination);
-                spaces.Span.CopyTo(destination[tabCount..]);
+                destination[..tabCount].Fill('\t');
+                destination[tabCount..].Fill(' ');
             }).AsMemory();
         }
 
