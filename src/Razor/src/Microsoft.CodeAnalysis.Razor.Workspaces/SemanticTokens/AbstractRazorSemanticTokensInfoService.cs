@@ -72,7 +72,17 @@ internal abstract partial class AbstractRazorSemanticTokensInfoService(
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var textSpan = codeDocument.Source.Text.GetTextSpan(span);
+        TextSpan textSpan;
+        try
+        {
+            textSpan = codeDocument.Source.Text.GetTextSpan(span);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"The requested span {span} is out of range for document {documentContext.Uri}.");
+            return null;
+        }
+
         using var _ = s_pool.GetPooledObject(out var combinedSemanticRanges);
 
         SemanticTokensVisitor.AddSemanticRanges(combinedSemanticRanges, codeDocument, textSpan, _semanticTokensLegendService, colorBackground);
