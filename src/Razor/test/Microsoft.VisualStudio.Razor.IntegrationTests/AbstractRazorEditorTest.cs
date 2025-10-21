@@ -139,16 +139,11 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutput) : Ab
 
     public override async Task DisposeAsync()
     {
-        // TODO: Would be good to have this as a last ditch check, but need to improve the detection and reporting here to be more robust
-        //await TestServices.Editor.ValidateNoDiscoColorsAsync(HangMitigatingCancellationToken);
-
         _testLogger!.LogInformation($"#### Razor integration test dispose.");
 
-        using (var disposeSource = new CancellationTokenSource(TimeSpan.FromMinutes(2)))
+        using (var disposeSource = new CancellationTokenSource(TimeSpan.FromMinutes(5)))
         {
-            await TestServices.Shell.CloseActiveToolWindowsAsync(disposeSource.Token);
-
-            await TestServices.Shell.CloseActiveDocumentWindowsAsync(disposeSource.Token);
+            await TestServices.Shell.CloseEverythingAsync(disposeSource.Token);
         }
 
         TestServices.Output.ClearIntegrationTestLogger();

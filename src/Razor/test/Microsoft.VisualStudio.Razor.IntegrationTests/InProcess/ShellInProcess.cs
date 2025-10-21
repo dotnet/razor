@@ -52,7 +52,29 @@ internal partial class ShellInProcess
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        // Make sure there is no solution open
+        await CloseEverythingAsync(cancellationToken);
+
+        await TestServices.Shell.SetInsertSpacesAsync(cancellationToken);
+    }
+
+    internal async Task CloseEverythingAsync(CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        await CloseActiveToolWindowsAsync(cancellationToken);
+
+        await CloseActiveDocumentWindowsAsync(cancellationToken);
+
+        // A little wait to allow virtual documents to be cleaned up etc.
+        await Task.Delay(500, cancellationToken);
+
+        await CloseSolutionIfOpenAsync(cancellationToken);
+    }
+
+    internal async Task CloseSolutionIfOpenAsync(CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
         if (await TestServices.SolutionExplorer.IsSolutionOpenAsync(cancellationToken))
         {
             var dte = await TestServices.Shell.GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
@@ -63,13 +85,6 @@ internal partial class ShellInProcess
 
             await TestServices.SolutionExplorer.CloseSolutionAndWaitAsync(cancellationToken);
         }
-
-        await CloseActiveDocumentWindowsAsync(cancellationToken);
-
-        await CloseActiveToolWindowsAsync(cancellationToken);
-
-        // Our expected test results have spaces not tabs
-        await TestServices.Shell.SetInsertSpacesAsync(cancellationToken);
     }
 
     internal async Task CloseActiveToolWindowsAsync(CancellationToken cancellationToken)
