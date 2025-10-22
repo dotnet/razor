@@ -264,4 +264,26 @@ public class SimplifyFullyQualifiedComponentTests(ITestOutputHelper testOutputHe
                 """,
             codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent);
     }
+
+    [Fact]
+    public async Task SimplifyFullyQualifiedComponent_NamespaceAlreadyInScope()
+    {
+        // Microsoft.AspNetCore.Components.Forms is automatically in scope, so no using directive should be added
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                <Microsoft.AspNetCore.Components.Forms.Input[||]Text />
+
+                <div></div>
+                """,
+            expected: """
+                <div></div>
+
+                <InputText />
+
+                <div></div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent);
+    }
 }

@@ -1,12 +1,11 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Linq;
+using System;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
@@ -37,26 +36,33 @@ internal class SimplifyFullyQualifiedComponentCodeActionResolver : IRazorCodeAct
 
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new(documentContext.Uri) };
 
-        // Check if the using directive already exists
-        var syntaxTree = codeDocument.GetSyntaxTree();
-        if (syntaxTree is null)
-        {
-            return null;
-        }
+        // Check if we need to add a using directive.
+        // We check the tag helpers available in the document to see if the simple component name
+        // can already be used without qualification. This would be the case if:
+        // 1. The namespace is already imported via a @using directive in this file or an _Imports.razor file
+        // 2. The namespace is in the set of default/global usings for the project
+        var needsUsing = true;
+        var tagHelpers = codeDocument.GetRequiredTagHelpers();
 
-        var existingUsings = syntaxTree.GetUsingDirectives();
-        var namespaceAlreadyExists = existingUsings.Any(u =>
+        // Look through all tag helpers to find one that matches our component and can be used
+        // with the simple (non-fully-qualified) name. The presence of such a tag helper indicates
+        // that the namespace is already in scope.
+        foreach (var tagHelper in tagHelpers)
         {
-            foreach (var child in u.DescendantNodes())
+            // We need a component tag helper that:
+            // 1. Is not a fully qualified name match (can be used with simple name)
+            // 2. Has the same component name we're trying to use
+            // 3. Is from the same namespace we would add a using for
+            if (tagHelper.Kind == TagHelperKind.Component &&
+                !tagHelper.IsFullyQualifiedNameMatch &&
+                string.Equals(tagHelper.Name, actionParams.ComponentName, StringComparison.Ordinal) &&
+                string.Equals(tagHelper.TypeNamespace, actionParams.Namespace, StringComparison.Ordinal))
             {
-                if (child.GetChunkGenerator() is AddImportChunkGenerator { IsStatic: false } usingStatement)
-                {
-                    return usingStatement.ParsedNamespace == actionParams.Namespace;
-                }
+                // Found it - the namespace is already in scope
+                needsUsing = false;
+                break;
             }
-
-            return false;
-        });
+        }
 
         // Build the tag simplification edits (at the original positions in the document)
         using var tagEdits = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>();
@@ -81,10 +87,10 @@ internal class SimplifyFullyQualifiedComponentCodeActionResolver : IRazorCodeAct
             Range = startTagRange,
         });
 
-        // Add using directive if it doesn't already exist (at the top of the file)
+        // Add using directive if needed (at the top of the file)
         // This must come after the tag edits because the using directive will be inserted at the top,
         // which would change line numbers for subsequent edits
-        if (!namespaceAlreadyExists)
+        if (needsUsing)
         {
             var addUsingEdit = AddUsingsHelper.CreateAddUsingTextEdit(actionParams.Namespace, codeDocument);
             tagEdits.Add(addUsingEdit);
