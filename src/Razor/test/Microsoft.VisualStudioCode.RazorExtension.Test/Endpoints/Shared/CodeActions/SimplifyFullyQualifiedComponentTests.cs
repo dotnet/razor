@@ -29,13 +29,7 @@ public class SimplifyFullyQualifiedComponentTests(ITestOutputHelper testOutputHe
 
                 <div></div>
                 """,
-            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent,
-            additionalFiles: [
-                (FilePath("Microsoft/AspNetCore/Components/Authorization/AuthorizeRouteView.razor"), """
-                    <div>
-                        Authorize Route View
-                    </div>
-                    """)]);
+            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent);
     }
 
     [Fact]
@@ -60,13 +54,7 @@ public class SimplifyFullyQualifiedComponentTests(ITestOutputHelper testOutputHe
 
                 <div></div>
                 """,
-            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent,
-            additionalFiles: [
-                (FilePath("Microsoft/AspNetCore/Components/Authorization/AuthorizeRouteView.razor"), """
-                    <div>
-                        Authorize Route View
-                    </div>
-                    """)]);
+            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent);
     }
 
     [Fact]
@@ -92,18 +80,7 @@ public class SimplifyFullyQualifiedComponentTests(ITestOutputHelper testOutputHe
 
                 <div></div>
                 """,
-            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent,
-            additionalFiles: [
-                (FilePath("Microsoft/AspNetCore/Components/Authorization/AuthorizeRouteView.razor"), """
-                    <div>
-                        Authorize Route View
-                    </div>
-                    
-                    @code {
-                        [Parameter]
-                        public RenderFragment ChildContent { get; set; } = null!;
-                    }
-                    """)]);
+            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent);
     }
 
     [Fact]
@@ -125,18 +102,7 @@ public class SimplifyFullyQualifiedComponentTests(ITestOutputHelper testOutputHe
 
                 <div></div>
                 """,
-            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent,
-            additionalFiles: [
-                (FilePath("Microsoft/AspNetCore/Components/Authorization/AuthorizeRouteView.razor"), """
-                    <div>
-                        Authorize Route View
-                    </div>
-                    
-                    @code {
-                        [Parameter]
-                        public string Resource { get; set; } = null!;
-                    }
-                    """)]);
+            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent);
     }
 
     [Fact]
@@ -244,12 +210,6 @@ public class SimplifyFullyQualifiedComponentTests(ITestOutputHelper testOutputHe
 
                 <div></div>
                 """,
-            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent,
-            additionalFiles: [
-                (FilePath("Microsoft/AspNetCore/Components/Authorization/AuthorizeRouteView.razor"), """
-                    <div>
-                        Authorize Route View
-                    </div>
-                    """)]);
+            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent);
     }
 }

@@ -53,14 +53,7 @@ internal class SimplifyFullyQualifiedComponentCodeActionProvider : IRazorCodeAct
         }
 
         // Check whether the element represents a fully qualified component
-        if (!IsFullyQualifiedComponent(markupElementSyntax, out var fullyQualifiedName, out var componentName))
-        {
-            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
-        }
-
-        // Extract the namespace from the fully qualified name
-        var @namespace = GetNamespaceFromFullyQualifiedName(fullyQualifiedName);
-        if (string.IsNullOrEmpty(@namespace))
+        if (!IsFullyQualifiedComponent(markupElementSyntax, out var @namespace, out var componentName))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
@@ -117,9 +110,9 @@ internal class SimplifyFullyQualifiedComponentCodeActionProvider : IRazorCodeAct
         return false;
     }
 
-    private static bool IsFullyQualifiedComponent(MarkupTagHelperElementSyntax element, out string fullyQualifiedName, out string componentName)
+    private static bool IsFullyQualifiedComponent(MarkupTagHelperElementSyntax element, out string @namespace, out string componentName)
     {
-        fullyQualifiedName = string.Empty;
+        @namespace = string.Empty;
         componentName = string.Empty;
 
         if (element.TagHelperInfo?.BindingResult?.Descriptors is not [.. var descriptors])
@@ -139,27 +132,17 @@ internal class SimplifyFullyQualifiedComponentCodeActionProvider : IRazorCodeAct
             return false;
         }
 
-        fullyQualifiedName = boundTagHelper.Name;
+        var fullyQualifiedName = boundTagHelper.Name;
 
-        // Extract the component name (last part after the last dot)
+        // Extract the namespace and component name
         var lastDotIndex = fullyQualifiedName.LastIndexOf('.');
         if (lastDotIndex < 0)
         {
             return false;
         }
 
+        @namespace = fullyQualifiedName.Substring(0, lastDotIndex);
         componentName = fullyQualifiedName.Substring(lastDotIndex + 1);
         return true;
-    }
-
-    private static string GetNamespaceFromFullyQualifiedName(string fullyQualifiedName)
-    {
-        var lastDotIndex = fullyQualifiedName.LastIndexOf('.');
-        if (lastDotIndex < 0)
-        {
-            return string.Empty;
-        }
-
-        return fullyQualifiedName.Substring(0, lastDotIndex);
     }
 }

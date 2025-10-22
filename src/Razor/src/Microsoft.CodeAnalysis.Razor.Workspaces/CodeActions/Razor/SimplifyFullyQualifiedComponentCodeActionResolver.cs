@@ -37,8 +37,6 @@ internal class SimplifyFullyQualifiedComponentCodeActionResolver : IRazorCodeAct
 
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new(documentContext.Uri) };
 
-        using var documentChanges = new PooledArrayBuilder<TextDocumentEdit>();
-
         // Check if the using directive already exists
         var syntaxTree = codeDocument.GetSyntaxTree();
         if (syntaxTree is null)
@@ -60,18 +58,11 @@ internal class SimplifyFullyQualifiedComponentCodeActionResolver : IRazorCodeAct
             return false;
         });
 
-        // First, add the tag simplification edits (at the original positions in the document)
-        using var tagEdits = new PooledArrayBuilder<TextEdit>();
+        // Build the tag simplification edits (at the original positions in the document)
+        using var tagEdits = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>();
 
-        // Replace the fully qualified name with the simple component name in start tag
-        var startTagRange = text.GetRange(actionParams.StartTagSpanStart, actionParams.StartTagSpanEnd);
-        tagEdits.Add(new TextEdit
-        {
-            NewText = actionParams.ComponentName,
-            Range = startTagRange,
-        });
-
-        // Replace the fully qualified name with the simple component name in end tag (if it exists)
+        // Replace the fully qualified name with the simple component name in end tag first (if it exists)
+        // The end tag edit must come before the start tag edit, as clients may not re-order them
         if (actionParams.EndTagSpanStart >= 0 && actionParams.EndTagSpanEnd >= 0)
         {
             var endTagRange = text.GetRange(actionParams.EndTagSpanStart, actionParams.EndTagSpanEnd);
@@ -82,24 +73,29 @@ internal class SimplifyFullyQualifiedComponentCodeActionResolver : IRazorCodeAct
             });
         }
 
-        documentChanges.Add(new TextDocumentEdit()
+        // Replace the fully qualified name with the simple component name in start tag
+        var startTagRange = text.GetRange(actionParams.StartTagSpanStart, actionParams.StartTagSpanEnd);
+        tagEdits.Add(new TextEdit
         {
-            TextDocument = codeDocumentIdentifier,
-            Edits = tagEdits.ToArray().Select(e => (SumType<TextEdit, AnnotatedTextEdit>)e).ToArray()
+            NewText = actionParams.ComponentName,
+            Range = startTagRange,
         });
 
-        // Then, add using directive if it doesn't already exist (at the top of the file)
+        // Add using directive if it doesn't already exist (at the top of the file)
         // This must come after the tag edits because the using directive will be inserted at the top,
         // which would change line numbers for subsequent edits
         if (!namespaceAlreadyExists)
         {
             var addUsingEdit = AddUsingsHelper.CreateAddUsingTextEdit(actionParams.Namespace, codeDocument);
-            documentChanges.Add(new TextDocumentEdit()
-            {
-                TextDocument = codeDocumentIdentifier,
-                Edits = [addUsingEdit]
-            });
+            tagEdits.Add(addUsingEdit);
         }
+
+        using var documentChanges = new PooledArrayBuilder<TextDocumentEdit>();
+        documentChanges.Add(new TextDocumentEdit()
+        {
+            TextDocument = codeDocumentIdentifier,
+            Edits = tagEdits.ToArray()
+        });
 
         return new WorkspaceEdit
         {
