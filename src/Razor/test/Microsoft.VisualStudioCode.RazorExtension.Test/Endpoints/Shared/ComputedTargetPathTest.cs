@@ -22,7 +22,7 @@ public class ComputedTargetPathTest(ITestOutputHelper testOutputHelper) : Cohost
     // What the source generator would produce for TestProjectData.SomeProjectPath
     private static readonly string s_hintNamePrefix = PlatformInformation.IsWindows
         ? "c__users_example_src_SomeProject"
-        : "home_example_SomeProject";
+        : "_home_example_SomeProject";
 
     [Theory]
     [InlineData(true, false)]
