@@ -28,13 +28,13 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     private VSCodeRemoteServiceInvoker? _remoteServiceInvoker;
     private IFilePathService? _filePathService;
     private ISemanticTokensLegendService? _semanticTokensLegendService;
-    private Workspace? _workspace;
+    private Workspace? _localWorkspace;
 
     private protected override IRemoteServiceInvoker RemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
     private protected override IClientSettingsManager ClientSettingsManager => _clientSettingsManager.AssumeNotNull();
     private protected override IFilePathService FilePathService => _filePathService.AssumeNotNull();
     private protected ISemanticTokensLegendService SemanticTokensLegendService => _semanticTokensLegendService.AssumeNotNull();
-    private protected Workspace Workspace => _workspace.AssumeNotNull();
+    private protected override Workspace LocalWorkspace => _localWorkspace.AssumeNotNull();
 
     protected override async Task InitializeAsync()
     {
@@ -42,10 +42,10 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
 
         InProcServiceFactory.TestAccessor.SetExportProvider(OOPExportProvider);
 
-        _workspace = CreateWorkspace();
+        _localWorkspace = CreateWorkspace();
 
         var workspaceProvider = new VSCodeWorkspaceProvider();
-        workspaceProvider.SetWorkspace(Workspace);
+        workspaceProvider.SetWorkspace(LocalWorkspace);
 
         _remoteServiceInvoker = new VSCodeRemoteServiceInvoker(workspaceProvider, LoggerFactory);
         AddDisposable(_remoteServiceInvoker);
@@ -94,7 +94,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         bool inGlobalNamespace = false,
         bool miscellaneousFile = false)
     {
-        return CreateProjectAndRazorDocument(Workspace, contents, fileKind, documentFilePath, additionalFiles, inGlobalNamespace, miscellaneousFile);
+        return CreateProjectAndRazorDocument(LocalWorkspace, contents, fileKind, documentFilePath, additionalFiles, inGlobalNamespace, miscellaneousFile);
     }
 
     private AdhocWorkspace CreateWorkspace()

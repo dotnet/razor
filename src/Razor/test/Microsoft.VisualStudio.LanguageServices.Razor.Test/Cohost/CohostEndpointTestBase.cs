@@ -28,12 +28,14 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     private IClientSettingsManager? _clientSettingsManager;
     private IFilePathService? _filePathService;
     private ISemanticTokensLegendService? _semanticTokensLegendService;
+    private CodeAnalysis.Workspace? _localWorkspace;
 
     private protected override IRemoteServiceInvoker RemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
     private protected TestRemoteServiceInvoker TestRemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
     private protected override IClientSettingsManager ClientSettingsManager => _clientSettingsManager.AssumeNotNull();
     private protected override IFilePathService FilePathService => _filePathService.AssumeNotNull();
     private protected ISemanticTokensLegendService SemanticTokensLegendService => _semanticTokensLegendService.AssumeNotNull();
+    private protected override CodeAnalysis.Workspace LocalWorkspace => _localWorkspace.AssumeNotNull();
 
     /// <summary>
     /// The export provider for Roslyn "devenv" services, if tests opt-in to using them
@@ -52,6 +54,25 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         _filePathService = new VisualStudioFilePathService(FeatureOptions);
 
         _semanticTokensLegendService = TestRazorSemanticTokensLegendService.GetInstance(supportsVSExtensions: true);
+
+        _localWorkspace = CreateWorkspace();
+    }
+
+    private CodeAnalysis.Workspace? CreateWorkspace()
+    {
+        var composition = ConfigureRoslynDevenvComposition(TestComposition.Roslyn);
+
+        // We can't enforce that the composition is entirely valid, because we don't have a full MEF catalog, but we
+        // can assume there should be no errors related to Razor, and having this array makes debugging failures a lot
+        // easier.
+        var errors = composition.GetCompositionErrors().ToArray();
+        Assert.Empty(errors.Where(e => e.Contains("Razor")));
+
+        RoslynDevenvExportProvider = composition.ExportProviderFactory.CreateExportProvider();
+        AddDisposable(RoslynDevenvExportProvider);
+        var workspace = TestWorkspace.CreateWithDiagnosticAnalyzers(RoslynDevenvExportProvider);
+        AddDisposable(workspace);
+        return workspace;
     }
 
     private protected override RemoteClientLSPInitializationOptions GetRemoteClientLSPInitializationOptions()
@@ -137,20 +158,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         (string fileName, string contents)[]? additionalFiles,
         bool inGlobalNamespace)
     {
-        var composition = ConfigureRoslynDevenvComposition(TestComposition.Roslyn);
-
-        // We can't enforce that the composition is entirely valid, because we don't have a full MEF catalog, but we
-        // can assume there should be no errors related to Razor, and having this array makes debugging failures a lot
-        // easier.
-        var errors = composition.GetCompositionErrors().ToArray();
-        Assert.Empty(errors.Where(e => e.Contains("Razor")));
-
-        RoslynDevenvExportProvider = composition.ExportProviderFactory.CreateExportProvider();
-        AddDisposable(RoslynDevenvExportProvider);
-        var workspace = TestWorkspace.CreateWithDiagnosticAnalyzers(RoslynDevenvExportProvider);
-        AddDisposable(workspace);
-
-        var razorDocument = CreateProjectAndRazorDocument(workspace, projectId, miscellaneousFile, documentId, documentFilePath, contents, additionalFiles, inGlobalNamespace);
+        var razorDocument = CreateProjectAndRazorDocument(LocalWorkspace, projectId, miscellaneousFile, documentId, documentFilePath, contents, additionalFiles, inGlobalNamespace);
 
         // If we're creating remote and local workspaces, then we'll return the local document, and have to allow
         // the remote service invoker to map from the local solution to the remote one.
