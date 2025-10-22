@@ -90,16 +90,16 @@ internal class SimplifyFullyQualifiedComponentCodeActionResolver : IRazorCodeAct
             tagEdits.Add(addUsingEdit);
         }
 
-        using var documentChanges = new PooledArrayBuilder<TextDocumentEdit>();
-        documentChanges.Add(new TextDocumentEdit()
-        {
-            TextDocument = codeDocumentIdentifier,
-            Edits = tagEdits.ToArray()
-        });
-
         return new WorkspaceEdit
         {
-            DocumentChanges = documentChanges.ToArray(),
+            DocumentChanges = new TextDocumentEdit[]
+            {
+                new TextDocumentEdit()
+                {
+                    TextDocument = codeDocumentIdentifier,
+                    Edits = tagEdits.ToArray()
+                }
+            }
         };
     }
 }

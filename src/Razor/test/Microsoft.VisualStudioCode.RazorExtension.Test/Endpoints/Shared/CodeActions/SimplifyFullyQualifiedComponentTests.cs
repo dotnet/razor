@@ -212,4 +212,56 @@ public class SimplifyFullyQualifiedComponentTests(ITestOutputHelper testOutputHe
                 """,
             codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent);
     }
+
+    [Fact]
+    public async Task SimplifyFullyQualifiedComponent_SelfClosingNoSpace()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                <Microsoft.AspNetCore.Components.Authorization.AuthorizeRoute[||]View/>
+
+                <div></div>
+                """,
+            expected: """
+                @using Microsoft.AspNetCore.Components.Authorization
+                <div></div>
+
+                <AuthorizeRouteView/>
+
+                <div></div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent);
+    }
+
+    [Fact]
+    public async Task SimplifyFullyQualifiedComponent_MultilineWithAttributes()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                <Microsoft.AspNetCore.Components.Authorization.AuthorizeRoute[||]View
+                Resource="test"
+                class="goo">
+                content
+                </Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView>
+
+                <div></div>
+                """,
+            expected: """
+                @using Microsoft.AspNetCore.Components.Authorization
+                <div></div>
+
+                <AuthorizeRouteView
+                Resource="test"
+                class="goo">
+                content
+                </AuthorizeRouteView>
+
+                <div></div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent);
+    }
 }
