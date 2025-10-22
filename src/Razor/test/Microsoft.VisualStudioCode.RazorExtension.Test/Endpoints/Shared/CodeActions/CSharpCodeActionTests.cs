@@ -372,4 +372,107 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
 
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.AddDebuggerDisplay);
     }
+
+    [Fact]
+    public async Task RemoveUnusedVariable_Local()
+    {
+        var input = """
+            @code
+            {
+                void M()
+                {
+                    int {|IDE0059:[||]x|} = 5;
+                }
+            }
+            """;
+
+        var expected = """
+            @code
+            {
+                void M()
+                {
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable);
+    }
+
+    [Fact(Skip = "RemoveUnusedMembers code action is not triggered in test scenarios - requires full analyzer support")]
+    public async Task RemoveUnusedVariable_Parameter()
+    {
+        var input = """
+            @code
+            {
+                void M(int {|IDE0060:[||]unusedParameter|})
+                {
+                }
+            }
+            """;
+
+        var expected = """
+            @code
+            {
+                void M()
+                {
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedMembers);
+    }
+
+    [Fact(Skip = "RemoveUnusedMembers code action is not triggered in test scenarios - requires full analyzer support")]
+    public async Task RemoveUnusedVariable_PrivateField()
+    {
+        var input = """
+            @code
+            {
+                private int {|IDE0051:[||]_field|};
+                
+                void M()
+                {
+                }
+            }
+            """;
+
+        var expected = """
+            @code
+            {
+                void M()
+                {
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedMembers);
+    }
+
+    [Fact(Skip = "RemoveUnusedMembers code action is not triggered in test scenarios - requires full analyzer support")]
+    public async Task RemoveUnusedVariable_PrivateMethod()
+    {
+        var input = """
+            @code
+            {
+                private void {|IDE0051:[||]UnusedMethod|}()
+                {
+                }
+                
+                void M()
+                {
+                }
+            }
+            """;
+
+        var expected = """
+            @code
+            {
+                void M()
+                {
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedMembers);
+    }
 }
