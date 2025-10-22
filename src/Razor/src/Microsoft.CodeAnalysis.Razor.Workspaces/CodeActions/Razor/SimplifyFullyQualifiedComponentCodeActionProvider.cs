@@ -40,7 +40,7 @@ internal class SimplifyFullyQualifiedComponentCodeActionProvider : IRazorCodeAct
         }
 
         // Find the element at the cursor position
-        var owner = syntaxTree.Root.FindInnermostNode(context.StartAbsoluteIndex, includeWhitespace: false)?.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
+        var owner = syntaxTree.Root.FindInnermostNode(context.StartAbsoluteIndex, includeWhitespace: true)?.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
         if (owner is not MarkupTagHelperElementSyntax markupElementSyntax)
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
@@ -97,8 +97,11 @@ internal class SimplifyFullyQualifiedComponentCodeActionProvider : IRazorCodeAct
                 continue;
             }
 
-            var diagnosticStart = context.SourceText.GetRequiredAbsoluteIndex(diagnostic.Range.Start);
-            var diagnosticEnd = context.SourceText.GetRequiredAbsoluteIndex(diagnostic.Range.End);
+            if (!context.SourceText.TryGetAbsoluteIndex(diagnostic.Range.Start, out var diagnosticStart) ||
+                !context.SourceText.TryGetAbsoluteIndex(diagnostic.Range.End, out var diagnosticEnd))
+            {
+                continue;
+            }
 
             // Check if diagnostic overlaps with the start tag
             if (diagnosticStart < startTagSpan.End && diagnosticEnd > startTagSpan.Start)
