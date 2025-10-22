@@ -77,6 +77,8 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var (additionalText, globalOptions) = pair;
             var options = globalOptions.GetOptions(additionalText);
 
+            globalOptions.GlobalOptions.TryGetValue("build_property.MSBuildProjectDirectory", out var projectPath);
+
             string relativePath;
             if (options.TryGetValue("build_metadata.AdditionalFiles.TargetPath", out var encodedRelativePath))
             {
@@ -91,6 +93,14 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 }
 
                 relativePath = Encoding.UTF8.GetString(Convert.FromBase64String(encodedRelativePath));
+            }
+            else if (projectPath is { Length: > 0 } &&
+                additionalText.Path.StartsWith(projectPath, StringComparison.OrdinalIgnoreCase))
+            {
+                // Fallback, when TargetPath isn't specified but we know about the project directory, we can do our own calulation of
+                // the project relative path, and use that as the target path. This is an easy way for a project that isn't using the
+                // Razor SDK to still get TargetPath functionality without the complexity of specifying metadata on every item.
+                relativePath = additionalText.Path[projectPath.Length..].TrimStart(['/', '\\']);
             }
             else
             {
