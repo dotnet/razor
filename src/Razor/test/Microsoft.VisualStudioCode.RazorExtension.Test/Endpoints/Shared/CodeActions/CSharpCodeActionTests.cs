@@ -414,7 +414,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable);
     }
 
-    [Fact(Skip = "RemoveUnusedVariable code action is not triggered when the only statement in a single-line explicit block is unused")]
+    [Fact]
     public async Task RemoveUnusedVariable_ExplicitStatement_SingleLine_OnlyVariable()
     {
         var input = """
@@ -422,8 +422,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             """;
 
         var expected = """
-            @{
-            }
+            @{}
             """;
 
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable);
