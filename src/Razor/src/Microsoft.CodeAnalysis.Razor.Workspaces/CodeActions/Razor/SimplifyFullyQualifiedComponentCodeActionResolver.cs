@@ -60,7 +60,37 @@ internal class SimplifyFullyQualifiedComponentCodeActionResolver : IRazorCodeAct
             return false;
         });
 
-        // Add using directive if it doesn't already exist
+        // First, add the tag simplification edits (at the original positions in the document)
+        using var tagEdits = new PooledArrayBuilder<TextEdit>();
+
+        // Replace the fully qualified name with the simple component name in start tag
+        var startTagRange = text.GetRange(actionParams.StartTagSpanStart, actionParams.StartTagSpanEnd);
+        tagEdits.Add(new TextEdit
+        {
+            NewText = actionParams.ComponentName,
+            Range = startTagRange,
+        });
+
+        // Replace the fully qualified name with the simple component name in end tag (if it exists)
+        if (actionParams.EndTagSpanStart >= 0 && actionParams.EndTagSpanEnd >= 0)
+        {
+            var endTagRange = text.GetRange(actionParams.EndTagSpanStart, actionParams.EndTagSpanEnd);
+            tagEdits.Add(new TextEdit
+            {
+                NewText = actionParams.ComponentName,
+                Range = endTagRange,
+            });
+        }
+
+        documentChanges.Add(new TextDocumentEdit()
+        {
+            TextDocument = codeDocumentIdentifier,
+            Edits = tagEdits.ToArray().Select(e => (SumType<TextEdit, AnnotatedTextEdit>)e).ToArray()
+        });
+
+        // Then, add using directive if it doesn't already exist (at the top of the file)
+        // This must come after the tag edits because the using directive will be inserted at the top,
+        // which would change line numbers for subsequent edits
         if (!namespaceAlreadyExists)
         {
             var addUsingEdit = AddUsingsHelper.CreateAddUsingTextEdit(actionParams.Namespace, codeDocument);
@@ -68,37 +98,6 @@ internal class SimplifyFullyQualifiedComponentCodeActionResolver : IRazorCodeAct
             {
                 TextDocument = codeDocumentIdentifier,
                 Edits = [addUsingEdit]
-            });
-        }
-
-        // Replace the fully qualified name with the simple component name in start tag
-        var startTagRange = text.GetRange(actionParams.StartTagSpanStart, actionParams.StartTagSpanEnd);
-        documentChanges.Add(new TextDocumentEdit()
-        {
-            TextDocument = codeDocumentIdentifier,
-            Edits = [
-                new TextEdit
-                {
-                    NewText = actionParams.ComponentName,
-                    Range = startTagRange,
-                }
-            ]
-        });
-
-        // Replace the fully qualified name with the simple component name in end tag (if it exists)
-        if (actionParams.EndTagSpanStart >= 0 && actionParams.EndTagSpanEnd >= 0)
-        {
-            var endTagRange = text.GetRange(actionParams.EndTagSpanStart, actionParams.EndTagSpanEnd);
-            documentChanges.Add(new TextDocumentEdit()
-            {
-                TextDocument = codeDocumentIdentifier,
-                Edits = [
-                    new TextEdit
-                    {
-                        NewText = actionParams.ComponentName,
-                        Range = endTagRange,
-                    }
-                ]
             });
         }
 
