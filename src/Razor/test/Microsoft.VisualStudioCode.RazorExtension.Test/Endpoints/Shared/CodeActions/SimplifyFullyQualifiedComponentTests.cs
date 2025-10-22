@@ -286,4 +286,22 @@ public class SimplifyFullyQualifiedComponentTests(ITestOutputHelper testOutputHe
                 """,
             codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent);
     }
+
+    [Fact]
+    public async Task DoNotOfferWhenCursorInsideTagContent()
+    {
+        // Code action should not be offered when cursor is positioned within element content
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                <Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView>
+                    [||]<p>Content inside</p>
+                </Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView>
+
+                <div></div>
+                """,
+            expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent);
+    }
 }
