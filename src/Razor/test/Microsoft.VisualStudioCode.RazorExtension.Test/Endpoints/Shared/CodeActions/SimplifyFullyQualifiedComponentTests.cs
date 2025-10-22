@@ -1,5 +1,5 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -17,15 +17,15 @@ public class SimplifyFullyQualifiedComponentTests(ITestOutputHelper testOutputHe
             input: """
                 <div></div>
 
-                <Microsoft.AspNetCore.Components.Authorization.AuthorizeRoute[||]View />
+                <Microsoft.AspNetCore.Components.Sections.Section[||]Outlet />
 
                 <div></div>
                 """,
             expected: """
-                @using Microsoft.AspNetCore.Components.Authorization
+                @using Microsoft.AspNetCore.Components.Sections
                 <div></div>
 
-                <AuthorizeRouteView />
+                <SectionOutlet />
 
                 <div></div>
                 """,
@@ -37,20 +37,20 @@ public class SimplifyFullyQualifiedComponentTests(ITestOutputHelper testOutputHe
     {
         await VerifyCodeActionAsync(
             input: """
-                @using Microsoft.AspNetCore.Components.Authorization
+                @using Microsoft.AspNetCore.Components.Sections
 
                 <div></div>
 
-                <Microsoft.AspNetCore.Components.Authorization.AuthorizeRoute[||]View />
+                <Microsoft.AspNetCore.Components.Sections.Section[||]Outlet />
 
                 <div></div>
                 """,
             expected: """
-                @using Microsoft.AspNetCore.Components.Authorization
+                @using Microsoft.AspNetCore.Components.Sections
 
                 <div></div>
 
-                <AuthorizeRouteView />
+                <SectionOutlet />
 
                 <div></div>
                 """,
@@ -64,19 +64,19 @@ public class SimplifyFullyQualifiedComponentTests(ITestOutputHelper testOutputHe
             input: """
                 <div></div>
 
-                <Microsoft.AspNetCore.Components.Authorization.AuthorizeRoute[||]View>
+                <Microsoft.AspNetCore.Components.Sections.Section[||]Outlet>
                     <p>Content</p>
-                </Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView>
+                </Microsoft.AspNetCore.Components.Sections.SectionOutlet>
 
                 <div></div>
                 """,
             expected: """
-                @using Microsoft.AspNetCore.Components.Authorization
+                @using Microsoft.AspNetCore.Components.Sections
                 <div></div>
 
-                <AuthorizeRouteView>
+                <SectionOutlet>
                     <p>Content</p>
-                </AuthorizeRouteView>
+                </SectionOutlet>
 
                 <div></div>
                 """,
@@ -90,15 +90,15 @@ public class SimplifyFullyQualifiedComponentTests(ITestOutputHelper testOutputHe
             input: """
                 <div></div>
 
-                <Microsoft.AspNetCore.Components.Authorization.AuthorizeRoute[||]View Resource="test" />
+                <Microsoft.AspNetCore.Components.Sections.Section[||]Outlet SectionName="test" />
 
                 <div></div>
                 """,
             expected: """
-                @using Microsoft.AspNetCore.Components.Authorization
+                @using Microsoft.AspNetCore.Components.Sections
                 <div></div>
 
-                <AuthorizeRouteView Resource="test" />
+                <SectionOutlet SectionName="test" />
 
                 <div></div>
                 """,
@@ -196,17 +196,17 @@ public class SimplifyFullyQualifiedComponentTests(ITestOutputHelper testOutputHe
             input: """
                 <div></div>
 
-                <Microsoft.AspNetCore.Components.Authorization.AuthorizeRoute[||]View />
-                <Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView />
+                <Microsoft.AspNetCore.Components.Sections.Section[||]Outlet />
+                <Microsoft.AspNetCore.Components.Sections.SectionOutlet />
 
                 <div></div>
                 """,
             expected: """
-                @using Microsoft.AspNetCore.Components.Authorization
+                @using Microsoft.AspNetCore.Components.Sections
                 <div></div>
 
-                <AuthorizeRouteView />
-                <Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView />
+                <SectionOutlet />
+                <Microsoft.AspNetCore.Components.Sections.SectionOutlet />
 
                 <div></div>
                 """,
@@ -220,15 +220,15 @@ public class SimplifyFullyQualifiedComponentTests(ITestOutputHelper testOutputHe
             input: """
                 <div></div>
 
-                <Microsoft.AspNetCore.Components.Authorization.AuthorizeRoute[||]View/>
+                <Microsoft.AspNetCore.Components.Sections.Section[||]Outlet/>
 
                 <div></div>
                 """,
             expected: """
-                @using Microsoft.AspNetCore.Components.Authorization
+                @using Microsoft.AspNetCore.Components.Sections
                 <div></div>
 
-                <AuthorizeRouteView/>
+                <SectionOutlet/>
 
                 <div></div>
                 """,
@@ -242,23 +242,23 @@ public class SimplifyFullyQualifiedComponentTests(ITestOutputHelper testOutputHe
             input: """
                 <div></div>
 
-                <Microsoft.AspNetCore.Components.Authorization.AuthorizeRoute[||]View
-                Resource="test"
-                class="goo">
-                content
-                </Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView>
+                <Microsoft.AspNetCore.Components.Sections.Section[||]Outlet
+                    SectionName="test"
+                    class="goo">
+                    content
+                </Microsoft.AspNetCore.Components.Sections.SectionOutlet>
 
                 <div></div>
                 """,
             expected: """
-                @using Microsoft.AspNetCore.Components.Authorization
+                @using Microsoft.AspNetCore.Components.Sections
                 <div></div>
 
-                <AuthorizeRouteView
-                Resource="test"
-                class="goo">
-                content
-                </AuthorizeRouteView>
+                <SectionOutlet
+                    SectionName="test"
+                    class="goo">
+                    content
+                </SectionOutlet>
 
                 <div></div>
                 """,

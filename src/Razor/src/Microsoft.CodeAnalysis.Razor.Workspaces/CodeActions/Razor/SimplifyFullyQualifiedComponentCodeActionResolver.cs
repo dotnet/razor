@@ -1,7 +1,6 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,11 +37,10 @@ internal class SimplifyFullyQualifiedComponentCodeActionResolver : IRazorCodeAct
 
         // Check if we need to add a using directive.
         // We check the tag helpers available in the document to see if the simple component name
-        // can already be used without qualification. This would be the case if:
-        // 1. The namespace is already imported via a @using directive in this file or an _Imports.razor file
-        // 2. The namespace is in the set of default/global usings for the project
+        // can already be used without qualification. This would be the case if the namespace is
+        // already imported via a @using directive in this file or an _Imports.razor file.
         var needsUsing = true;
-        var tagHelpers = codeDocument.GetRequiredTagHelpers();
+        var tagHelpers = codeDocument.GetRequiredTagHelperContext().TagHelpers;
 
         // Look through all tag helpers to find one that matches our component and can be used
         // with the simple (non-fully-qualified) name. The presence of such a tag helper indicates
@@ -51,12 +49,13 @@ internal class SimplifyFullyQualifiedComponentCodeActionResolver : IRazorCodeAct
         {
             // We need a component tag helper that:
             // 1. Is not a fully qualified name match (can be used with simple name)
-            // 2. Has the same component name we're trying to use
+            // 2. Would match the unqualified tag name we'll be transforming to
             // 3. Is from the same namespace we would add a using for
             if (tagHelper.Kind == TagHelperKind.Component &&
                 !tagHelper.IsFullyQualifiedNameMatch &&
-                string.Equals(tagHelper.Name, actionParams.ComponentName, StringComparison.Ordinal) &&
-                string.Equals(tagHelper.TypeNamespace, actionParams.Namespace, StringComparison.Ordinal))
+                tagHelper.TagMatchingRules is [{ TagName: { } matchingTagName }] &&
+                matchingTagName == actionParams.ComponentName &&
+                tagHelper.TypeNamespace == actionParams.Namespace)
             {
                 // Found it - the namespace is already in scope
                 needsUsing = false;

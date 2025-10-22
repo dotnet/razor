@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
@@ -141,8 +141,8 @@ internal class SimplifyFullyQualifiedComponentCodeActionProvider : IRazorCodeAct
             return false;
         }
 
-        @namespace = fullyQualifiedName.Substring(0, lastDotIndex);
-        componentName = fullyQualifiedName.Substring(lastDotIndex + 1);
+        @namespace = fullyQualifiedName[..lastDotIndex];
+        componentName = fullyQualifiedName[(lastDotIndex + 1)..];
         return true;
     }
 }
