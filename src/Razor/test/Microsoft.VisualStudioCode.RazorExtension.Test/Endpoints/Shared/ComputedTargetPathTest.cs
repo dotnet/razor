@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -18,171 +19,97 @@ namespace Microsoft.VisualStudioCode.RazorExtension.Test.Endpoints.Shared;
 
 public class ComputedTargetPathTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [Fact]
-    public async Task GetHintName()
+    // What the source generator would produce for TestProjectData.SomeProjectPath
+    private static readonly string s_hintNamePrefix = PlatformInformation.IsWindows
+        ? "c__users_example_src_SomeProject"
+        : "home_example_SomeProject";
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    public async Task SingleDocument(bool projectPath, bool generateConfigFile)
     {
-        // Creating a misc files project will mean that there is no globalconfig created, so no target paths will be set
-        var document = CreateProjectAndRazorDocument("");
+        var builder = new RazorProjectBuilder
+        {
+            ProjectFilePath = projectPath ? TestProjectData.SomeProject.FilePath : null,
+            GenerateGlobalConfigFile = generateConfigFile,
+            GenerateAdditionalDocumentMetadata = false,
+            GenerateMSBuildProjectDirectory = false
+        };
+
+        var id = builder.AddAdditionalDocument(FilePath("File1.razor"), SourceText.From(""));
+
+        var solution = LocalWorkspace.CurrentSolution;
+        solution = builder.Build(solution);
+
+        var document = solution.GetAdditionalDocument(id).AssumeNotNull();
 
         _ = await document.Project.GetCompilationAsync(DisposalToken);
 
         var generatedDocument = await document.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(document, DisposalToken);
         Assert.NotNull(generatedDocument);
+        Assert.Equal($"{s_hintNamePrefix}_File1_razor.g.cs", generatedDocument.HintName);
     }
 
-    [Fact]
-    public async Task NoGlobalConfig_WithProjectFilePath()
+    [Theory]
+    [CombinatorialData]
+    public async Task TwoDocumentsWithTheSameBaseFileName(bool generateTargetPath)
     {
-        var doc1Path = FilePath(@"Pages\Index.razor");
+        // This test just proves the "correct" behaviour, with the Razor SDL
+        var builder = new RazorProjectBuilder
+        {
+            ProjectFilePath = TestProjectData.SomeProject.FilePath,
+            GenerateAdditionalDocumentMetadata = generateTargetPath
+        };
 
-        var document = CreateProjectAndRazorDocument("");
+        var doc1Id = builder.AddAdditionalDocument(FilePath(@"Pages\Index.razor"), SourceText.From(""));
+        var doc2Id = builder.AddAdditionalDocument(FilePath(@"Components\Index.razor"), SourceText.From(""));
 
-        var doc1 = document.Project.AddAdditionalDocument(
-            doc1Path,
-            SourceText.From("""
-                <div>This is a page</div>
-                """),
-            filePath: doc1Path);
+        var solution = LocalWorkspace.CurrentSolution;
+        solution = builder.Build(solution);
 
-        var project = doc1.Project.RemoveAnalyzerConfigDocument(doc1.Project.AnalyzerConfigDocuments.First().Id);
-
-        _ = await project.GetCompilationAsync(DisposalToken);
-
-        doc1 = project.GetAdditionalDocument(doc1.Id).AssumeNotNull();
-
-        var generatedDocument = await doc1.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(document, DisposalToken);
-        Assert.NotNull(generatedDocument);
-    }
-
-    [Fact]
-    public async Task NoGlobalConfig_NoProjectFilePath()
-    {
-        var doc1Path = FilePath(@"Pages\Index.razor");
-
-        // Creating a misc files project will mean that there is no globalconfig created, so no target paths will be set
-        var document = CreateProjectAndRazorDocument("", miscellaneousFile: true);
-
-        var doc1 = document.Project.AddAdditionalDocument(
-            doc1Path,
-            SourceText.From("""
-                <div>This is a page</div>
-                """),
-            filePath: doc1Path);
-
-        _ = await doc1.Project.GetCompilationAsync(DisposalToken);
-
-        var generatedDocument = await doc1.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(document, DisposalToken);
-        Assert.NotNull(generatedDocument);
-    }
-
-    [Fact]
-    public async Task NoGlobalConfig_MultipleFilesWithTheSameName()
-    {
-        var doc1Path = FilePath(@"Pages\Index.razor");
-        var doc2Path = FilePath(@"Components\Index.razor");
-
-        // Creating a misc files project will mean that there is no globalconfig created, so no target paths will be set
-        var document = CreateProjectAndRazorDocument("", miscellaneousFile: true);
-
-        var doc1 = document.Project.AddAdditionalDocument(
-            doc1Path,
-            SourceText.From("""
-                <div>This is a page</div>
-                """),
-            filePath: doc1Path);
-        var doc2 = doc1.Project.AddAdditionalDocument(
-            doc2Path,
-            SourceText.From("""
-                <div>This is a component</div>
-                """),
-            filePath: doc2Path);
-
-        // Make sure we have a doc1 from the final project
-        doc1 = doc2.Project.GetAdditionalDocument(doc1.Id).AssumeNotNull();
+        var doc1 = solution.GetAdditionalDocument(doc1Id).AssumeNotNull();
+        var doc2 = solution.GetAdditionalDocument(doc2Id).AssumeNotNull();
 
         var generatedDocument = await doc1.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(doc1, DisposalToken);
         Assert.NotNull(generatedDocument);
+        Assert.Equal($"Pages_Index_razor.g.cs", generatedDocument.HintName);
 
         generatedDocument = await doc2.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(doc2, DisposalToken);
         Assert.NotNull(generatedDocument);
+        Assert.Equal($"Components_Index_razor.g.cs", generatedDocument.HintName);
     }
 
-    [Fact]
-    public async Task NotAllFilesHaveTargetPaths()
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    public async Task TwoDocumentsWithTheSameBaseFileName_FullPathHintName(bool projectPath, bool generateConfigFile)
     {
-        var doc1Path = FilePath(@"Pages\Index.razor");
+        var builder = new RazorProjectBuilder
+        {
+            ProjectFilePath = projectPath ? TestProjectData.SomeProject.FilePath : null,
+            GenerateGlobalConfigFile = generateConfigFile,
+            GenerateAdditionalDocumentMetadata = false,
+            GenerateMSBuildProjectDirectory = false
+        };
 
-        // This will create a project with a globalconfig, and target paths for a single razor file
-        var document = CreateProjectAndRazorDocument("""
-            <div>This is a normal file with a target path
-            """);
+        var doc1Id = builder.AddAdditionalDocument(FilePath(@"Pages\Index.razor"), SourceText.From(""));
+        var doc2Id = builder.AddAdditionalDocument(FilePath(@"Components\Index.razor"), SourceText.From(""));
 
-        // Now add a file without updating the globalconfig
-        var doc1 = document.Project.AddAdditionalDocument(
-            doc1Path,
-            SourceText.From("""
-                <div>This is an extra document</div>
-                """),
-            filePath: doc1Path);
+        var solution = LocalWorkspace.CurrentSolution;
+        solution = builder.Build(solution);
+
+        var doc1 = solution.GetAdditionalDocument(doc1Id).AssumeNotNull();
+        var doc2 = solution.GetAdditionalDocument(doc2Id).AssumeNotNull();
 
         var generatedDocument = await doc1.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(doc1, DisposalToken);
         Assert.NotNull(generatedDocument);
-    }
-
-    [Fact]
-    public async Task WithSuppliedMSBuildProjectPath_MultipleFilesWithTheSameName()
-    {
-        var doc1Path = FilePath(@"Pages\Index.razor");
-        var doc2Path = FilePath(@"Components\Index.razor");
-
-        // Creating a misc files project will mean that there is no globalconfig created, so no target paths will be set
-        var document = CreateProjectAndRazorDocument("", miscellaneousFile: true);
-
-        var globalConfigContent = new StringBuilder();
-        globalConfigContent.AppendLine($"""
-         is_global = true
-
-         build_property.MSBuildProjectDirectory = {TestProjectData.SomeProjectPath}
-         """);
-
-        var globalConfigDoc = document.Project.AddAnalyzerConfigDocument(
-                    name: ".globalconfig",
-                    text: SourceText.From(globalConfigContent.ToString()),
-                    filePath: FilePath(".globalconfig"));
-
-        var doc1 = globalConfigDoc.Project.AddAdditionalDocument(
-            doc1Path,
-            SourceText.From("""
-                <div>This is a page</div>
-                """),
-            filePath: doc1Path);
-        var doc2 = doc1.Project.AddAdditionalDocument(
-            doc2Path,
-            SourceText.From("""
-                <div>This is a component</div>
-                """),
-            filePath: doc2Path);
-
-        // Make sure we have a doc1 from the final project
-        doc1 = doc2.Project.GetAdditionalDocument(doc1.Id).AssumeNotNull();
-
-        var generatedDocument = await doc1.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(doc1, DisposalToken);
-        Assert.NotNull(generatedDocument);
-        var className = await GetClassNameAsync(generatedDocument, DisposalToken);
-        Assert.Equal("Pages_Index", className);
+        Assert.Equal($"{s_hintNamePrefix}_Pages_Index_razor.g.cs", generatedDocument.HintName);
 
         generatedDocument = await doc2.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(doc2, DisposalToken);
         Assert.NotNull(generatedDocument);
-        className = await GetClassNameAsync(generatedDocument, DisposalToken);
-        Assert.Equal("Components_Index", className);
-    }
-
-    private async Task<string> GetClassNameAsync(SourceGeneratedDocument generatedDocument, CancellationToken cancellationToken)
-    {
-        var root = await generatedDocument.GetSyntaxRootAsync(cancellationToken);
-        Assert.NotNull(root);
-        var classDeclaration = root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
-
-        return classDeclaration.Identifier.ValueText;
+        Assert.Equal($"{s_hintNamePrefix}_Components_Index_razor.g.cs", generatedDocument.HintName);
     }
 }
