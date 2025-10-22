@@ -37,6 +37,8 @@ internal class RazorProjectBuilder(ProjectId? id = null)
 
     public bool ReferenceRazorSourceGenerator { get; set; } = true;
     public bool GenerateGlobalConfigFile { get; set; } = true;
+    public bool GenerateMSBuildProjectDirectory { get; set; } = true;
+    public bool GenerateAdditionalDocumentMetadata { get; set; } = true;
 
     private readonly List<PortableExecutableReference> _references = [];
     private readonly List<(DocumentId id, string name, SourceText text, string filePath)> _documents = [];
@@ -117,18 +119,29 @@ internal class RazorProjectBuilder(ProjectId? id = null)
                 build_property.SuppressRazorSourceGenerator = true
                 """);
 
-            var projectBasePath = Path.GetDirectoryName(ProjectFilePath).AssumeNotNull();
-            foreach (var additionalDocument in _additionalDocuments)
+            if (GenerateMSBuildProjectDirectory)
             {
-                if (additionalDocument.filePath is not null &&
-                    additionalDocument.filePath.StartsWith(projectBasePath))
+                globalConfigContent.AppendLine($"""
+                    build_property.MSBuildProjectDirectory = {Path.GetDirectoryName(ProjectFilePath).AssumeNotNull()}
+                    """);
+            }
+
+            var projectBasePath = Path.GetDirectoryName(ProjectFilePath).AssumeNotNull();
+
+            if (GenerateAdditionalDocumentMetadata)
+            {
+                foreach (var additionalDocument in _additionalDocuments)
                 {
-                    var relativePath = additionalDocument.filePath[(projectBasePath.Length + 1)..];
-                    globalConfigContent.AppendLine($"""
+                    if (additionalDocument.filePath is not null &&
+                        additionalDocument.filePath.StartsWith(projectBasePath))
+                    {
+                        var relativePath = additionalDocument.filePath[(projectBasePath.Length + 1)..];
+                        globalConfigContent.AppendLine($"""
 
                             [{additionalDocument.filePath.AssumeNotNull().Replace('\\', '/')}]
                             build_metadata.AdditionalFiles.TargetPath = {Convert.ToBase64String(Encoding.UTF8.GetBytes(relativePath))}
                             """);
+                    }
                 }
             }
 
