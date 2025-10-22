@@ -148,7 +148,7 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
                 """,
            useLsp);
 
-    private protected override TestComposition ConfigureRoslynDevenvComposition(TestComposition composition)
+    private protected override TestComposition ConfigureLocalComposition(TestComposition composition)
     {
         return composition
             .AddParts(typeof(RazorSourceGeneratedDocumentSpanMappingService))
@@ -251,7 +251,7 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
     {
         // Normally in cohosting tests we directly construct and invoke the endpoints, but in this scenario Roslyn is going to do it
         // using a service in their MEF composition, so we have to jump through an extra hook to hook up our test invoker.
-        var invoker = RoslynDevenvExportProvider.AssumeNotNull().GetExportedValue<ExportableRemoteServiceInvoker>();
+        var invoker = LocalExportProvider.AssumeNotNull().GetExportedValue<ExportableRemoteServiceInvoker>();
         invoker.SetInvoker(RemoteServiceInvoker);
 
         var tree = node.SyntaxTree;

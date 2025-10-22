@@ -11,6 +11,8 @@ using Basic.Reference.Assemblies;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Mef;
+using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -32,15 +34,23 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
     private TestIncompatibleProjectService _incompatibleProjectService = null!;
     private RemoteClientInitializationOptions _clientInitializationOptions;
     private RemoteClientLSPInitializationOptions _clientLSPInitializationOptions;
+    private CodeAnalysis.Workspace? _localWorkspace;
+    private ExportProvider? _localExportProvider;
 
     private protected abstract IRemoteServiceInvoker RemoteServiceInvoker { get; }
     private protected abstract IClientSettingsManager ClientSettingsManager { get; }
     private protected abstract IFilePathService FilePathService { get; }
-    private protected abstract CodeAnalysis.Workspace LocalWorkspace { get; }
+    private protected abstract TestComposition LocalComposition { get; }
 
     private protected TestIncompatibleProjectService IncompatibleProjectService => _incompatibleProjectService.AssumeNotNull();
     private protected RemoteLanguageServerFeatureOptions FeatureOptions => OOPExportProvider.GetExportedValue<RemoteLanguageServerFeatureOptions>();
     private protected RemoteClientCapabilitiesService ClientCapabilitiesService => (RemoteClientCapabilitiesService)OOPExportProvider.GetExportedValue<IClientCapabilitiesService>();
+    private protected CodeAnalysis.Workspace LocalWorkspace => _localWorkspace.AssumeNotNull();
+
+    /// <summary>
+    /// The export provider for client services (Roslyn)
+    /// </summary>
+    private protected ExportProvider LocalExportProvider => _localExportProvider.AssumeNotNull();
 
     /// <summary>
     /// The export provider for Razor OOP services (not Roslyn)
@@ -93,7 +103,29 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
         traceSource.Listeners.Add(new XunitTraceListener(TestOutputHelper));
         await RemoteWorkspaceProvider.TestAccessor.InitializeRemoteExportProviderBuilderAsync(Path.GetTempPath(), traceSource, DisposalToken);
         _ = RemoteWorkspaceProvider.Instance.GetWorkspace();
+
+        _localWorkspace = CreateLocalWorkspace();
     }
+
+    private AdhocWorkspace CreateLocalWorkspace()
+    {
+        var composition = ConfigureLocalComposition(LocalComposition);
+
+        // We can't enforce that the composition is entirely valid, because we don't have a full MEF catalog, but we
+        // can assume there should be no errors related to Razor, and having this array makes debugging failures a lot
+        // easier.
+        var errors = composition.GetCompositionErrors().ToArray();
+        Assert.Empty(errors.Where(e => e.Contains("Razor")));
+
+        _localExportProvider = composition.ExportProviderFactory.CreateExportProvider();
+        AddDisposable(_localExportProvider);
+        var workspace = TestWorkspace.CreateWithDiagnosticAnalyzers(_localExportProvider);
+        AddDisposable(workspace);
+        return workspace;
+    }
+
+    private protected virtual TestComposition ConfigureLocalComposition(TestComposition composition)
+        => composition;
 
     private protected abstract RemoteClientLSPInitializationOptions GetRemoteClientLSPInitializationOptions();
 

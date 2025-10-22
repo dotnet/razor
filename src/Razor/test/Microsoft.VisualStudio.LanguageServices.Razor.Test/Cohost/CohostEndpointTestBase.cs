@@ -2,22 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
-using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Razor.Settings;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -28,19 +24,14 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     private IClientSettingsManager? _clientSettingsManager;
     private IFilePathService? _filePathService;
     private ISemanticTokensLegendService? _semanticTokensLegendService;
-    private CodeAnalysis.Workspace? _localWorkspace;
 
     private protected override IRemoteServiceInvoker RemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
     private protected TestRemoteServiceInvoker TestRemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
     private protected override IClientSettingsManager ClientSettingsManager => _clientSettingsManager.AssumeNotNull();
     private protected override IFilePathService FilePathService => _filePathService.AssumeNotNull();
     private protected ISemanticTokensLegendService SemanticTokensLegendService => _semanticTokensLegendService.AssumeNotNull();
-    private protected override CodeAnalysis.Workspace LocalWorkspace => _localWorkspace.AssumeNotNull();
 
-    /// <summary>
-    /// The export provider for Roslyn "devenv" services, if tests opt-in to using them
-    /// </summary>
-    private protected ExportProvider? RoslynDevenvExportProvider { get; private set; }
+    private protected override TestComposition LocalComposition => TestComposition.Roslyn;
 
     protected override async Task InitializeAsync()
     {
@@ -54,25 +45,6 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         _filePathService = new VisualStudioFilePathService(FeatureOptions);
 
         _semanticTokensLegendService = TestRazorSemanticTokensLegendService.GetInstance(supportsVSExtensions: true);
-
-        _localWorkspace = CreateWorkspace();
-    }
-
-    private CodeAnalysis.Workspace? CreateWorkspace()
-    {
-        var composition = ConfigureRoslynDevenvComposition(TestComposition.Roslyn);
-
-        // We can't enforce that the composition is entirely valid, because we don't have a full MEF catalog, but we
-        // can assume there should be no errors related to Razor, and having this array makes debugging failures a lot
-        // easier.
-        var errors = composition.GetCompositionErrors().ToArray();
-        Assert.Empty(errors.Where(e => e.Contains("Razor")));
-
-        RoslynDevenvExportProvider = composition.ExportProviderFactory.CreateExportProvider();
-        AddDisposable(RoslynDevenvExportProvider);
-        var workspace = TestWorkspace.CreateWithDiagnosticAnalyzers(RoslynDevenvExportProvider);
-        AddDisposable(workspace);
-        return workspace;
     }
 
     private protected override RemoteClientLSPInitializationOptions GetRemoteClientLSPInitializationOptions()
@@ -105,9 +77,6 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
             TokenTypes = []
         };
     }
-
-    private protected virtual TestComposition ConfigureRoslynDevenvComposition(TestComposition composition)
-        => composition;
 
     protected TextDocument CreateProjectAndRazorDocument(
         string contents,
