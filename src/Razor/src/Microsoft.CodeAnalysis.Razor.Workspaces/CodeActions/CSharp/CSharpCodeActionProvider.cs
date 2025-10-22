@@ -40,7 +40,6 @@ internal class CSharpCodeActionProvider(LanguageServerFeatureOptions languageSer
         RazorPredefinedCodeFixProviderNames.ImplementAbstractClass,
         RazorPredefinedCodeFixProviderNames.ImplementInterface,
         RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable,
-        RazorPredefinedCodeFixProviderNames.RemoveUnusedMembers,
     ];
 
     // We don't support any code actions in implicit expressions at the moment, but rather than simply returning early
