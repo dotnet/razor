@@ -398,6 +398,41 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable);
     }
 
+    [Fact]
+    public async Task RemoveUnusedVariable_ExplicitStatement_SingleLine()
+    {
+        var input = """
+            @{ var {|IDE0059:[||]x|} = 1; var y = 2; }
+            """;
+
+        var expected = """
+            @{
+                var y = 2; 
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable);
+    }
+
+    [Fact]
+    public async Task RemoveUnusedVariable_ExplicitStatement_MultiLine()
+    {
+        var input = """
+            @{
+                var {|IDE0059:[||]x|} = 1;
+                var y = 2;
+            }
+            """;
+
+        var expected = """
+            @{
+                var y = 2;
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable);
+    }
+
     [Fact(Skip = "RemoveUnusedMembers code action is not triggered in test scenarios - requires full analyzer support")]
     public async Task RemoveUnusedVariable_Parameter()
     {
