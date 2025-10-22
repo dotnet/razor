@@ -39,9 +39,15 @@ internal class SimplifyFullyQualifiedComponentCodeActionProvider : IRazorCodeAct
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        // Find the element at the cursor position
-        var owner = syntaxTree.Root.FindInnermostNode(context.StartAbsoluteIndex, includeWhitespace: true)?.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
-        if (owner is not MarkupTagHelperElementSyntax markupElementSyntax)
+        // Find the start tag at the cursor position - we only want to trigger on the start tag, not content
+        var owner = syntaxTree.Root.FindInnermostNode(context.StartAbsoluteIndex, includeWhitespace: true)?.FirstAncestorOrSelf<MarkupTagHelperStartTagSyntax>();
+        if (owner is not MarkupTagHelperStartTagSyntax startTag)
+        {
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
+        }
+
+        // Get the parent element to access tag helper binding information
+        if (startTag.Parent is not MarkupTagHelperElementSyntax markupElementSyntax)
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
