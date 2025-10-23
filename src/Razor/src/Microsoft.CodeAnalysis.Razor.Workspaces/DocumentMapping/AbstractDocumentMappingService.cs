@@ -108,8 +108,7 @@ internal abstract class AbstractDocumentMappingService(ILogger logger) : IDocume
                 // gave us, and see if we can map that.
 
                 // Get the end of the start line
-                var endSync = csharpSourceText.TryGetAbsoluteIndex(startLine, csharpSourceText.Lines[startLine].Span.Length, out var endIndex);
-                if (endSync is false)
+                if (!csharpSourceText.TryGetAbsoluteIndex(startLine, csharpSourceText.Lines[startLine].Span.Length, out var endIndex))
                 {
                     break;
                 }
