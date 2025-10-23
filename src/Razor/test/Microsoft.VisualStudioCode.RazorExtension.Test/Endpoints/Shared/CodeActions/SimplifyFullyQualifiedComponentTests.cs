@@ -305,4 +305,33 @@ public class SimplifyFullyQualifiedComponentTests(ITestOutputHelper testOutputHe
             expected: null,
             codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent);
     }
+
+    [Fact]
+    public async Task DoNotOfferOnLegacyRazorFile()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                <Microsoft.AspNetCore.Components.Forms.Input[||]Text />
+
+                <div></div>
+                """,
+            expected: null,
+            fileKind: RazorFileKind.Legacy,
+            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent);
+    }
+
+    [Fact]
+    public async Task DoNotOfferInCSharpCode()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @{
+                    var x = "Microsoft.AspNetCore.Components.Forms.Input[||]Text";
+                }
+                """,
+            expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent);
+    }
 }
