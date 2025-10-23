@@ -362,4 +362,39 @@ public class SimplifyFullyQualifiedComponentTests(ITestOutputHelper testOutputHe
             expected: null,
             codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent);
     }
+
+    [Fact]
+    public async Task DoNotOfferInAttribute()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                <Microsoft.AspNetCore.Components.Forms.InputText class="bo[||]ld"></Microsoft.AspNetCore.Components.Forms.InputText>
+                """,
+            expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent);
+    }
+
+    [Fact]
+    public async Task SimplifyFullyQualifiedComponent_EndTag()
+    {
+        // Microsoft.AspNetCore.Components.Forms is automatically in scope, so no using directive should be added
+        await VerifyCodeActionAsync(
+            input: """
+                <div></div>
+
+                <Microsoft.AspNetCore.Components.Forms.InputText>
+                </Microsoft.AspNetCore.Components.Forms.Input[||]Text>
+
+                <div></div>
+                """,
+            expected: """
+                <div></div>
+
+                <InputText>
+                </InputText>
+
+                <div></div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent);
+    }
 }
