@@ -318,8 +318,7 @@ public class SimplifyFullyQualifiedComponentTests(ITestOutputHelper testOutputHe
                 <div></div>
                 """,
             expected: null,
-            fileKind: RazorFileKind.Legacy,
-            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent);
+            fileKind: RazorFileKind.Legacy);
     }
 
     [Fact]
@@ -331,7 +330,6 @@ public class SimplifyFullyQualifiedComponentTests(ITestOutputHelper testOutputHe
                     var x = "Microsoft.AspNetCore.Components.Forms.Input[||]Text";
                 }
                 """,
-            expected: null,
-            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent);
+            expected: null);
     }
 }
