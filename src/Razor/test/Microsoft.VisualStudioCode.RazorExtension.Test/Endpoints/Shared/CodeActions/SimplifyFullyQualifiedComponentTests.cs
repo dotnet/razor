@@ -318,6 +318,37 @@ public class SimplifyFullyQualifiedComponentTests(ITestOutputHelper testOutputHe
                 <div></div>
                 """,
             expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    public async Task DoNotOfferOnLegacyRazorFile2()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @addTagHelper *, SomeProject
+
+                <lab[||]}el foo="Dave" />
+                """,
+            additionalFiles:
+                [(FilePath("FooTagHelper.cs"),
+                    """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    [HtmlTargetElement("*", Attributes = FooAttributeName)]
+                    public class FooTaghelper : TagHelper
+                    {
+                        private const string FooAttributeName = "foo";
+
+                        public override void Process(TagHelperContext context, TagHelperOutput output)
+                        {
+                            output.Attributes.Add("foo", "bar");
+                        }
+                    }
+                    """)],
+            expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent,
             fileKind: RazorFileKind.Legacy);
     }
 
@@ -326,10 +357,9 @@ public class SimplifyFullyQualifiedComponentTests(ITestOutputHelper testOutputHe
     {
         await VerifyCodeActionAsync(
             input: """
-                @{
-                    var x = "Microsoft.AspNetCore.Components.Forms.Input[||]Text";
-                }
+                <Microsoft.AspNetCore.Components.Forms.InputText Value="@va[||]lue"></Microsoft.AspNetCore.Components.Forms.InputText>
                 """,
-            expected: null);
+            expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.SimplifyFullyQualifiedComponent);
     }
 }
