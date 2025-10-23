@@ -106,7 +106,6 @@ internal abstract class AbstractDocumentMappingService(ILogger logger) : IDocume
             {
                 // Construct a theoretical edit that is just for the first line of the edit that the C# formatter
                 // gave us, and see if we can map that.
-                var firstNewLine = change.NewText.AssumeNotNull().IndexOfAny(['\n', '\r']);
 
                 // Get the end of the start line
                 var endSync = csharpSourceText.TryGetAbsoluteIndex((startLine, csharpSourceText.Lines[startLine].Span.Length), out var endIndex);
@@ -120,6 +119,7 @@ internal abstract class AbstractDocumentMappingService(ILogger logger) : IDocume
                 if (mappedStart && mappedEnd)
                 {
                     // If there's a newline in the new text, only take the part before it
+                    var firstNewLine = change.NewText.AssumeNotNull().IndexOfAny(['\n', '\r']);
                     var newText = firstNewLine >= 0 ? change.NewText[..firstNewLine] : change.NewText;
                     yield return new TextChange(TextSpan.FromBounds(hostStartIndex, hostEndIndex), newText);
                     continue;
