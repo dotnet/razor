@@ -33,14 +33,13 @@ internal class SimplifyFullyQualifiedComponentCodeActionProvider : IRazorCodeAct
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        var syntaxTree = context.CodeDocument.GetSyntaxTree();
-        if (syntaxTree?.Root is null)
+        if (!context.CodeDocument.TryGetSyntaxRoot(out var syntaxRoot))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         // Find the start tag at the cursor position - we only want to trigger on the start tag, not content
-        var owner = syntaxTree.Root.FindInnermostNode(context.StartAbsoluteIndex, includeWhitespace: true)?.FirstAncestorOrSelf<MarkupTagHelperStartTagSyntax>();
+        var owner = syntaxRoot.FindInnermostNode(context.StartAbsoluteIndex, includeWhitespace: true)?.FirstAncestorOrSelf<MarkupTagHelperStartTagSyntax>();
         if (owner is not MarkupTagHelperStartTagSyntax startTag)
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
@@ -124,10 +123,13 @@ internal class SimplifyFullyQualifiedComponentCodeActionProvider : IRazorCodeAct
         @namespace = string.Empty;
         componentName = string.Empty;
 
-        if (element.TagHelperInfo?.BindingResult?.Descriptors is not [.. var descriptors])
+        // TagHelperInfo and BindingResult should not be null thanks to recent changes in main
+        if (element.TagHelperInfo?.BindingResult is not { } bindingResult)
         {
             return false;
         }
+
+        var descriptors = bindingResult.Descriptors;
 
         var boundTagHelper = descriptors.FirstOrDefault(static d => d.Kind == TagHelperKind.Component);
         if (boundTagHelper is null)

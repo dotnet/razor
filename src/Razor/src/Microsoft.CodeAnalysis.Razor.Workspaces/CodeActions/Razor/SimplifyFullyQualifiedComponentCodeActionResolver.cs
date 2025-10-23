@@ -64,6 +64,7 @@ internal class SimplifyFullyQualifiedComponentCodeActionResolver : IRazorCodeAct
         }
 
         // Build the tag simplification edits (at the original positions in the document)
+        // No capacity needed - tagEdits will never contain more than 4 elements (start tag, end tag, using directive, and annotation)
         using var tagEdits = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>();
 
         // Replace the fully qualified name with the simple component name in end tag first (if it exists)
@@ -95,7 +96,7 @@ internal class SimplifyFullyQualifiedComponentCodeActionResolver : IRazorCodeAct
             tagEdits.Add(addUsingEdit);
         }
 
-        return new WorkspaceEdit
+        return new WorkspaceEdit()
         {
             DocumentChanges = new TextDocumentEdit[]
             {
