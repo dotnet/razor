@@ -113,9 +113,7 @@ internal abstract class AbstractDocumentMappingService(ILogger logger) : IDocume
                     break;
                 }
 
-                mappedEnd = this.TryMapToRazorDocumentPosition(csharpDocument, endIndex, out _, out hostEndIndex);
-
-                if (mappedEnd)
+                if (this.TryMapToRazorDocumentPosition(csharpDocument, endIndex, out _, out hostEndIndex))
                 {
                     // If there's a newline in the new text, only take the part before it
                     var firstNewLine = change.NewText.AssumeNotNull().IndexOfAny(['\n', '\r']);
