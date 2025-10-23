@@ -108,7 +108,7 @@ internal abstract class AbstractDocumentMappingService(ILogger logger) : IDocume
                 // gave us, and see if we can map that.
 
                 // Get the end of the start line
-                var endSync = csharpSourceText.TryGetAbsoluteIndex((startLine, csharpSourceText.Lines[startLine].Span.Length), out var endIndex);
+                var endSync = csharpSourceText.TryGetAbsoluteIndex(startLine, csharpSourceText.Lines[startLine].Span.Length, out var endIndex);
                 if (endSync is false)
                 {
                     break;
@@ -116,7 +116,7 @@ internal abstract class AbstractDocumentMappingService(ILogger logger) : IDocume
 
                 mappedEnd = this.TryMapToRazorDocumentPosition(csharpDocument, endIndex, out _, out hostEndIndex);
 
-                if (mappedStart && mappedEnd)
+                if (mappedEnd)
                 {
                     // If there's a newline in the new text, only take the part before it
                     var firstNewLine = change.NewText.AssumeNotNull().IndexOfAny(['\n', '\r']);
