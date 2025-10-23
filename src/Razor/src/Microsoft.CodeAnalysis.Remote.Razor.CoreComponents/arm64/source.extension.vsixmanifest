@@ -10,7 +10,7 @@
     </Metadata>
     <Installation AllUsers="true" Experimental="true">
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,)">
-            <ProductArchitecture>amd64</ProductArchitecture>
+            <ProductArchitecture>arm64</ProductArchitecture>
         </InstallationTarget>
     </Installation>
 
