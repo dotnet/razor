@@ -123,8 +123,10 @@ internal class SimplifyFullyQualifiedComponentCodeActionProvider : IRazorCodeAct
         @namespace = string.Empty;
         componentName = string.Empty;
 
-        // TagHelperInfo and BindingResult should not be null thanks to recent changes in main
-        var descriptors = element.TagHelperInfo!.BindingResult!.Descriptors;
+        if (element is not { TagHelperInfo.BindingResult.Descriptors: var descriptors })
+        {
+            return false;
+        }
 
         var boundTagHelper = descriptors.FirstOrDefault(static d => d.Kind == TagHelperKind.Component);
         if (boundTagHelper is null)
