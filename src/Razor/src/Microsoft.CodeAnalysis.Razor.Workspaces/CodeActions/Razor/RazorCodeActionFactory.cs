@@ -21,7 +21,7 @@ internal static class RazorCodeActionFactory
     private readonly static Guid s_generateAsyncMethodTelemetryId = new("9058ca47-98e2-4f11-bf7c-a16a444dd939");
     private readonly static Guid s_promoteUsingDirectiveTelemetryId = new("751f9012-e37b-444a-9211-b4ebce91d96e");
     private readonly static Guid s_wrapAttributesTelemetryId = new("1df50ba6-4ed1-40d8-8fe2-1c4c1b08e8b5");
-    private readonly static Guid s_simplifyFullyQualifiedComponentTelemetryId = new("d8b3c4e5-6f7a-4b8c-9d0e-1f2a3b4c5d6e");
+    private readonly static Guid s_simplifyFullyQualifiedComponentTelemetryId = new("f8640324-2037-49fd-9697-2227690c33c3");
 
     public static RazorVSInternalCodeAction CreateWrapAttributes(RazorCodeActionResolutionParams resolutionParams)
         => new RazorVSInternalCodeAction
