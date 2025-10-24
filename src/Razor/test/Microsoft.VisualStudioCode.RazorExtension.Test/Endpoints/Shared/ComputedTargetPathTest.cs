@@ -1,15 +1,11 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Xunit;
