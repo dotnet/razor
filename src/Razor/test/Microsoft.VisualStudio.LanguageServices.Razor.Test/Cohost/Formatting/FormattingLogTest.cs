@@ -45,7 +45,7 @@ public class FormattingLogTest(FormattingTestContext context, HtmlFormattingFixt
         var sourceText = await document.GetTextAsync();
         var htmlEdits = htmlChanges.Select(c => sourceText.GetTextEdit(c.ToTextChange())).ToArray();
 
-        await GetFormattingEditsAsync(document, htmlEdits, span: default, options.CodeBlockBraceOnNextLine, options.InsertSpaces, options.TabSize, options.ToRazorFormattingOptions().CSharpSyntaxFormattingOptions);
+        await GetFormattingEditsAsync(document, htmlEdits, span: default, options.CodeBlockBraceOnNextLine, options.InsertSpaces, options.TabSize, options.ToRazorFormattingOptions().CSharpSyntaxFormattingOptions.AssumeNotNull());
     }
 
     private string GetResource(string name, [CallerMemberName] string? testName = null)
