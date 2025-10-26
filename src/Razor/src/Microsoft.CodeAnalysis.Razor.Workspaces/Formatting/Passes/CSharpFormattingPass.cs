@@ -28,6 +28,7 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
         // Process changes from previous passes
         var changedText = context.SourceText.WithChanges(changes);
         var changedContext = await context.WithTextAsync(changedText, cancellationToken).ConfigureAwait(false);
+        context.Logger?.LogObject("SourceMappings", changedContext.CodeDocument.GetRequiredCSharpDocument().SourceMappings);
 
         // To format C# code we generate a C# document that represents the indentation semantics the user would be
         // expecting in their Razor file. See the doc comments on CSharpDocumentGenerator for more info
