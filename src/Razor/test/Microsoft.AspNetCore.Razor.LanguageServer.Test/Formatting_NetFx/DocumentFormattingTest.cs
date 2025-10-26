@@ -3286,7 +3286,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             .ToString())
 
                     @{
-                    var x = @<p>Hi there!</p>
+                    var x = @<p>Hi there!</p>;
                     }
                     @x()
                     @(@x())
@@ -3329,7 +3329,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             .ToString())
 
                         @{
-                            var x = @<p>Hi there!</p>
+                            var x = @<p>Hi there!</p>;
                         }
                         @x()
                         @(@x())
