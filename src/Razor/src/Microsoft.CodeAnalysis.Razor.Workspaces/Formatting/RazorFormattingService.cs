@@ -51,7 +51,7 @@ internal class RazorFormattingService : IRazorFormattingService
         ];
 
         _documentFormattingPasses = [
-                new HtmlFormattingPass(),
+                new HtmlFormattingPass(documentMappingService),
                 new RazorFormattingPass(),
                 new CSharpFormattingPass(hostServicesProvider, loggerFactory),
             ];
