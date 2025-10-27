@@ -132,11 +132,13 @@ internal sealed class CSharpOnTypeFormattingPass(
 
         // We make an optimistic attempt at fixing corner cases.
         var cleanupChanges = CleanupDocument(changedContext, linePositionSpanAfterFormatting);
-        var cleanedText = formattedText.WithChanges(cleanupChanges);
-        context.Logger?.LogSourceText("AfterCleanupDocument", cleanedText);
+        var cleanedText = formattedText;
 
         if (!cleanupChanges.IsEmpty)
         {
+            cleanedText = formattedText.WithChanges(cleanupChanges);
+            context.Logger?.LogSourceText("AfterCleanupDocument", cleanedText);
+
             changedContext = await changedContext.WithTextAsync(cleanedText, cancellationToken).ConfigureAwait(false);
         }
 
