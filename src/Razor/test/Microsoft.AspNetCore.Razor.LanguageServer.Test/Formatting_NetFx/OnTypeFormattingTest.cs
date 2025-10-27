@@ -1163,4 +1163,31 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             triggerCharacter: '}',
             expectedChangedLines: 1);
     }
+
+    [FormattingTestFact]
+    public async Task Semicolon_VariableDeclaration()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
+                    <div>
+                        @if (true)
+                        {
+
+
+                        var a = 1;$$
+                        }
+                    </div>
+                    """,
+            expected: """
+                    <div>
+                        @if (true)
+                        {
+                    
+                    
+                            var a = 1;
+                        }
+                    </div>
+                    """,
+            triggerCharacter: ';');
+    }
 }
