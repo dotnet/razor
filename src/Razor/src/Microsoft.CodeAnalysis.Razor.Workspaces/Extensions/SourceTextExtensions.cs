@@ -345,7 +345,7 @@ internal static class SourceTextExtensions
             {
                 crlfCount++;
             }
-            else
+            else if (line.EndIncludingLineBreak != line.End)
             {
                 lfCount++;
             }
