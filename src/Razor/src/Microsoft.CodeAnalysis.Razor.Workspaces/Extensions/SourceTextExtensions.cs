@@ -341,11 +341,12 @@ internal static class SourceTextExtensions
 
         foreach (var line in text.Lines)
         {
-            if (line.EndIncludingLineBreak - line.End == 2)
+            var lineBreakLength = line.EndIncludingLineBreak - line.End;
+            if (lineBreakLength == 2)
             {
                 crlfCount++;
             }
-            else if (line.EndIncludingLineBreak != line.End)
+            else if (lineBreakLength != 0)
             {
                 lfCount++;
             }
