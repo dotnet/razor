@@ -3,11 +3,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
@@ -64,27 +62,12 @@ internal class UnboundDirectiveAttributeAddUsingCodeActionProvider : IRazorCodeA
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        // Check if the namespace is already imported
-        var syntaxTree = context.CodeDocument.GetSyntaxTree();
-        if (syntaxTree is not null)
-        {
-            var existingUsings = syntaxTree.EnumerateUsingDirectives()
-                .SelectMany(d => d.DescendantNodes())
-                .Select(n => n.GetChunkGenerator())
-                .OfType<AddImportChunkGenerator>()
-                .Where(g => !g.IsStatic)
-                .Select(g => g.ParsedNamespace)
-                .ToImmutableArray();
-
-            if (existingUsings.Contains(missingNamespace))
-            {
-                return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
-            }
-        }
-
         // Create the code action
+        // We need to pass a fully qualified name to TryCreateAddUsingResolutionParams,
+        // which will extract the namespace. We append a dummy type name since the method
+        // expects a format like "Namespace.TypeName" and extracts everything before the last dot.
         if (AddUsingsCodeActionResolver.TryCreateAddUsingResolutionParams(
-            missingNamespace + ".Dummy", // Dummy type name to extract namespace
+            missingNamespace + ".Component", // Append dummy type name for namespace extraction
             context.Request.TextDocument,
             additionalEdit: null,
             context.DelegatedDocumentUri,
