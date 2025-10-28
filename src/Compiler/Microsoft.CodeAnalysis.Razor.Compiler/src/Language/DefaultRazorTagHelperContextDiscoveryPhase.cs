@@ -73,7 +73,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
         return mem;
     }
 
-    internal abstract class DirectiveVisitor : SyntaxWalker
+    internal abstract class DirectiveVisitor : SyntaxWalker, IPoolableObject
     {
         private bool _isInitialized;
         private string? _filePath;
