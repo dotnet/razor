@@ -8,8 +8,11 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 internal abstract class CustomObjectPool<T> : DefaultObjectPool<T>
     where T : class
 {
+    protected const int DefaultPoolSize = DefaultPool.DefaultPoolSize;
+    protected const int DefaultMaximumObjectSize = DefaultPool.DefaultMaximumObjectSize;
+
     protected CustomObjectPool(PooledObjectPolicy policy, Optional<int> poolSize)
-        : base(policy, poolSize.HasValue ? poolSize.Value : DefaultPool.DefaultPoolSize)
+        : base(policy, poolSize.HasValue ? poolSize.Value : DefaultPoolSize)
     {
     }
 

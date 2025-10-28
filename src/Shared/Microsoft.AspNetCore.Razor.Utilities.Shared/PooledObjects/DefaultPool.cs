@@ -8,7 +8,7 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 internal static class DefaultPool
 {
     public const int DefaultPoolSize = 20;
-    public const int MaximumObjectSize = 512;
+    public const int DefaultMaximumObjectSize = 512;
 
     public static ObjectPool<T> Create<T>(IPooledObjectPolicy<T> policy, int size = DefaultPoolSize)
         where T : class

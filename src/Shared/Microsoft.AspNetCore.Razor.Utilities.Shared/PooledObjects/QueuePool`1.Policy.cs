@@ -9,7 +9,7 @@ internal partial class QueuePool<T>
 {
     private sealed class Policy : PooledObjectPolicy
     {
-        public static readonly Policy Default = new(DefaultPool.MaximumObjectSize);
+        public static readonly Policy Default = new(DefaultMaximumObjectSize);
 
         private readonly int _maximumObjectSize;
 

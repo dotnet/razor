@@ -9,7 +9,7 @@ internal partial class HashSetPool<T>
 {
     private sealed class Policy : PooledObjectPolicy
     {
-        public static readonly Policy Default = new(comparer: null, DefaultPool.MaximumObjectSize);
+        public static readonly Policy Default = new(comparer: null, DefaultMaximumObjectSize);
 
         private readonly IEqualityComparer<T>? _comparer;
         private readonly int _maximumObjectSize;

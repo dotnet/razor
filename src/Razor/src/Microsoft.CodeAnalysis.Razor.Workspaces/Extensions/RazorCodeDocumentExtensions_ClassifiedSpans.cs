@@ -467,7 +467,7 @@ internal static partial class RazorCodeDocumentExtensions
 
             // Significantly larger than DefaultPool.MaximumObjectSize as there shouldn't be much concurrency
             // of these arrays (we limit the number of pooled items to 5) and they are commonly large
-            public const int MaximumObjectSize = DefaultPool.MaximumObjectSize * 32;
+            public const int MaximumObjectSize = DefaultPool.DefaultMaximumObjectSize * 32;
 
             private Policy()
             {

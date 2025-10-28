@@ -10,7 +10,7 @@ internal partial class DictionaryPool<TKey, TValue>
 {
     private sealed class Policy : PooledObjectPolicy
     {
-        public static readonly Policy Default = new(comparer: null, DefaultPool.MaximumObjectSize);
+        public static readonly Policy Default = new(comparer: null, DefaultMaximumObjectSize);
 
         private readonly IEqualityComparer<TKey>? _comparer;
         private readonly int _maximumObjectSize;
