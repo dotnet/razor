@@ -127,7 +127,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     }
 
     [Fact]
-    [WorkItem("https://github.com/dotnet/razor/issues/10846")]
+    [WorkItem("https://github.com/dotnet/razor/issues/8442")]
     public async Task CSharpClassMembersInComponentParameterWithoutLeadingAt()
     {
         await VerifyCompletionListAsync(
@@ -148,7 +148,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     }
 
     [Fact]
-    [WorkItem("https://github.com/dotnet/razor/issues/10846")]
+    [WorkItem("https://github.com/dotnet/razor/issues/8442")]
     public async Task CSharpClassMembersInComponentParameterWithLeadingAt()
     {
         await VerifyCompletionListAsync(
@@ -169,7 +169,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     }
 
     [Fact]
-    [WorkItem("https://github.com/dotnet/razor/issues/10846")]
+    [WorkItem("https://github.com/dotnet/razor/issues/8442")]
     public async Task CSharpClassMembersInComponentParameterWithLeadingAt_Incomplete()
     {
         await VerifyCompletionListAsync(
