@@ -127,6 +127,69 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/10846")]
+    public async Task CSharpClassMembersInComponentParameterWithoutLeadingAt()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <EditForm Model="DateTime.$$"></EditForm>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = ".",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/10846")]
+    public async Task CSharpClassMembersInComponentParameterWithLeadingAt()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <EditForm Model="@DateTime.$$"></EditForm>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = ".",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/10846")]
+    public async Task CSharpClassMembersInComponentParameterWithLeadingAt_Incomplete()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <EditForm Model="@DateTime.$$
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = ".",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"]);
+    }
+
+    [Fact]
     public async Task CSharpClassesInCodeBlock()
     {
         await VerifyCompletionListAsync(
