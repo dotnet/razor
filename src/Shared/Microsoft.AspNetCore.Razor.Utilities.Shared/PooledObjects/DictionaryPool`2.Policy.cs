@@ -33,7 +33,9 @@ internal partial class DictionaryPool<TKey, TValue>
                 return Default;
             }
 
-            return new(comparer.Value, maximumObjectSize.Value);
+            return new(
+                comparer.GetValueOrDefault(null),
+                maximumObjectSize.GetValueOrDefault(DefaultMaximumObjectSize));
         }
 
         public override Dictionary<TKey, TValue> Create() => new(_comparer);

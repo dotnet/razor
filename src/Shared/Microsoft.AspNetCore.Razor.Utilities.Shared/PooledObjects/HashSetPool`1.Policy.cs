@@ -9,7 +9,7 @@ internal partial class HashSetPool<T>
 {
     private sealed class Policy : PooledObjectPolicy
     {
-        public static readonly Policy Default = new(comparer: null, DefaultMaximumObjectSize);
+        public static readonly Policy Default = new(comparer: EqualityComparer<T>.Default, DefaultMaximumObjectSize);
 
         public IEqualityComparer<T> Comparer { get; }
 
@@ -33,7 +33,9 @@ internal partial class HashSetPool<T>
                 return Default;
             }
 
-            return new(comparer.Value, maximumObjectSize.Value);
+            return new(
+                comparer.GetValueOrDefault(EqualityComparer<T>.Default) ?? EqualityComparer<T>.Default,
+                maximumObjectSize.GetValueOrDefault(DefaultMaximumObjectSize));
         }
 
         public override HashSet<T> Create() => new(Comparer);

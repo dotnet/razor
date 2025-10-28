@@ -23,9 +23,10 @@ internal sealed partial class ArrayBuilderPool<T> : CustomObjectPool<ImmutableAr
     }
 
     public static ArrayBuilderPool<T> Create(
+        Optional<int> initialCapacity = default,
         Optional<int> maximumObjectSize = default,
         Optional<int> poolSize = default)
-        => new(Policy.Create(maximumObjectSize), poolSize);
+        => new(Policy.Create(initialCapacity, maximumObjectSize), poolSize);
 
     public static ArrayBuilderPool<T> Create(PooledObjectPolicy policy, Optional<int> poolSize = default)
         => new(policy, poolSize);

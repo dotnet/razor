@@ -25,7 +25,7 @@ internal partial class StackPool<T>
                 return Default;
             }
 
-            return new(maximumObjectSize.Value);
+            return new(maximumObjectSize.GetValueOrDefault(DefaultMaximumObjectSize));
         }
 
         public override Stack<T> Create() => new();

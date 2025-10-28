@@ -25,7 +25,7 @@ internal partial class QueuePool<T>
                 return Default;
             }
 
-            return new(maximumObjectSize.Value);
+            return new(maximumObjectSize.GetValueOrDefault(DefaultMaximumObjectSize));
         }
 
         public override Queue<T> Create() => new();

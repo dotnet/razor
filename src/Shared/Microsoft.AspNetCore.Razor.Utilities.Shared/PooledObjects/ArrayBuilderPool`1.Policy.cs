@@ -9,23 +9,36 @@ internal partial class ArrayBuilderPool<T>
 {
     private sealed class Policy : PooledObjectPolicy
     {
-        public static readonly Policy Default = new(DefaultMaximumObjectSize);
+        // This is the default initial capacity for ImmutableArray<T>.Builder.
+        private const int DefaultInitialCapacity = 8;
 
+        public static readonly Policy Default = new(DefaultInitialCapacity, DefaultMaximumObjectSize);
+
+        private readonly int _initialCapacity;
         private readonly int _maximumObjectSize;
 
-        private Policy(int maximumObjectSize)
+        private Policy(int initialCapacity, int maximumObjectSize)
         {
+            ArgHelper.ThrowIfNegative(initialCapacity);
+            ArgHelper.ThrowIfNegative(maximumObjectSize);
+
+            _initialCapacity = initialCapacity;
             _maximumObjectSize = maximumObjectSize;
         }
 
-        public static Policy Create(Optional<int> maximumObjectSize = default)
+        public static Policy Create(
+            Optional<int> initialCapacity = default,
+            Optional<int> maximumObjectSize = default)
         {
-            if (!maximumObjectSize.HasValue || maximumObjectSize.Value == Default._maximumObjectSize)
+            if ((!initialCapacity.HasValue || initialCapacity.Value == Default._initialCapacity) &&
+                (!maximumObjectSize.HasValue || maximumObjectSize.Value == Default._maximumObjectSize))
             {
                 return Default;
             }
 
-            return new(maximumObjectSize.Value);
+            return new(
+                initialCapacity.GetValueOrDefault(DefaultInitialCapacity),
+                maximumObjectSize.GetValueOrDefault(DefaultMaximumObjectSize));
         }
 
         public override ImmutableArray<T>.Builder Create()

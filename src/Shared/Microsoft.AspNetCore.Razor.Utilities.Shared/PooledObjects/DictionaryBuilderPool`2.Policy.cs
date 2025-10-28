@@ -26,7 +26,7 @@ internal partial class DictionaryBuilderPool<TKey, TValue>
                 return Default;
             }
 
-            return new(keyComparer.Value);
+            return new(keyComparer.GetValueOrDefault(null));
         }
 
         public override ImmutableDictionary<TKey, TValue>.Builder Create()

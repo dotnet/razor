@@ -9,6 +9,9 @@ public readonly struct Optional<T>(T value)
 
     public T Value { get; } = value;
 
+    public T GetValueOrDefault(T defaultValue)
+        => HasValue ? Value : defaultValue;
+
     public static implicit operator Optional<T>(T value)
         => new(value);
 

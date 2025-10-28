@@ -1,5 +1,6 @@
 ﻿#nullable enable
 Microsoft.AspNetCore.Razor.Optional<T>
+Microsoft.AspNetCore.Razor.Optional<T>.GetValueOrDefault(T defaultValue) -> T
 Microsoft.AspNetCore.Razor.Optional<T>.HasValue.get -> bool
 Microsoft.AspNetCore.Razor.Optional<T>.Optional() -> void
 Microsoft.AspNetCore.Razor.Optional<T>.Optional(T value) -> void

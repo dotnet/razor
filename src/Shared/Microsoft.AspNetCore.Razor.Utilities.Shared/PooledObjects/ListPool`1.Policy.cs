@@ -25,7 +25,7 @@ internal partial class ListPool<T>
                 return Default;
             }
 
-            return new(maximumObjectSize.Value);
+            return new(maximumObjectSize.GetValueOrDefault(DefaultMaximumObjectSize));
         }
 
         public override List<T> Create() => [];

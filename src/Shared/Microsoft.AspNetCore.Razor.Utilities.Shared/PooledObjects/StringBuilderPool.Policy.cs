@@ -25,7 +25,7 @@ internal partial class StringBuilderPool
                 return Default;
             }
 
-            return new(maximumObjectSize.Value);
+            return new(maximumObjectSize.GetValueOrDefault(DefaultMaximumObjectSize));
         }
 
         public override StringBuilder Create() => new();
