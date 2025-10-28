@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -17,11 +16,8 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 /// </remarks>
 internal static partial class StringHashSetPool
 {
-    public static readonly ObjectPool<HashSet<string>> Ordinal = HashSetPool<string>.Create(StringComparer.Ordinal);
-    public static readonly ObjectPool<HashSet<string>> OrdinalIgnoreCase = HashSetPool<string>.Create(StringComparer.OrdinalIgnoreCase);
-
-    public static ObjectPool<HashSet<string>> Create(IEqualityComparer<string> comparer)
-        => HashSetPool<string>.Create(comparer);
+    public static readonly HashSetPool<string> Ordinal = HashSetPool<string>.Create(StringComparer.Ordinal);
+    public static readonly HashSetPool<string> OrdinalIgnoreCase = HashSetPool<string>.Create(StringComparer.OrdinalIgnoreCase);
 
     public static PooledObject<HashSet<string>> GetPooledObject()
         => Ordinal.GetPooledObject();

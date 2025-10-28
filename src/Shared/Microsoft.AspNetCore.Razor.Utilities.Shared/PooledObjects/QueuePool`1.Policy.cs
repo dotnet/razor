@@ -6,9 +6,9 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
-internal static partial class QueuePool<T>
+internal partial class QueuePool<T>
 {
-    private class Policy : IPooledObjectPolicy<Queue<T>>
+    private sealed class Policy : IPooledObjectPolicy<Queue<T>>
     {
         public static readonly Policy Instance = new();
 
@@ -16,7 +16,7 @@ internal static partial class QueuePool<T>
         {
         }
 
-        public Queue<T> Create() => new Queue<T>();
+        public Queue<T> Create() => new();
 
         public bool Return(Queue<T> queue)
         {

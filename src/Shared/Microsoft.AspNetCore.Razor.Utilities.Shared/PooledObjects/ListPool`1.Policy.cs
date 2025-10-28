@@ -6,9 +6,9 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
-internal static partial class ListPool<T>
+internal partial class ListPool<T>
 {
-    private class Policy : IPooledObjectPolicy<List<T>>
+    private sealed class Policy : IPooledObjectPolicy<List<T>>
     {
         public static readonly Policy Instance = new();
 
@@ -16,7 +16,7 @@ internal static partial class ListPool<T>
         {
         }
 
-        public List<T> Create() => new();
+        public List<T> Create() => [];
 
         public bool Return(List<T> list)
         {

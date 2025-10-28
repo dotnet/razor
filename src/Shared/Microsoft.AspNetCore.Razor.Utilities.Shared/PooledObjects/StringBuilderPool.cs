@@ -14,9 +14,20 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 /// Instances originating from this pool are intended to be short-lived and are suitable
 /// for temporary work. Do not return them as the results of methods or store them in fields.
 /// </remarks>
-internal static partial class StringBuilderPool
+internal sealed partial class StringBuilderPool : DefaultObjectPool<StringBuilder>
 {
-    public static readonly ObjectPool<StringBuilder> Default = DefaultPool.Create(Policy.Instance);
+    public static readonly StringBuilderPool Default = Create();
+
+    private StringBuilderPool(IPooledObjectPolicy<StringBuilder> policy, int size)
+        : base(policy, size)
+    {
+    }
+
+    public static StringBuilderPool Create(IPooledObjectPolicy<StringBuilder> policy, int size = DefaultPool.DefaultPoolSize)
+        => new(policy, size);
+
+    public static StringBuilderPool Create(int size = DefaultPool.DefaultPoolSize)
+        => new(Policy.Instance, size);
 
     public static PooledObject<StringBuilder> GetPooledObject()
         => Default.GetPooledObject();

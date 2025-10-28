@@ -6,9 +6,9 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
-internal static partial class StopwatchPool
+internal partial class StopwatchPool
 {
-    private class Policy : IPooledObjectPolicy<Stopwatch>
+    private sealed class Policy : IPooledObjectPolicy<Stopwatch>
     {
         public static readonly Policy Instance = new();
 

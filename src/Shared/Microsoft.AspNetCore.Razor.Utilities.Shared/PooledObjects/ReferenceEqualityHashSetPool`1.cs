@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Utilities;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -18,7 +17,7 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 internal static partial class ReferenceEqualityHashSetPool<T>
     where T : class
 {
-    public static readonly ObjectPool<HashSet<T>> Default = HashSetPool<T>.Create(ReferenceEqualityComparer<T>.Instance);
+    public static readonly HashSetPool<T> Default = HashSetPool<T>.Create(ReferenceEqualityComparer<T>.Instance);
 
     public static PooledObject<HashSet<T>> GetPooledObject()
         => Default.GetPooledObject();

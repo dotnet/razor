@@ -6,21 +6,19 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
-internal static partial class DictionaryPool<TKey, TValue>
+internal partial class DictionaryPool<TKey, TValue>
     where TKey : notnull
 {
-    private class Policy : IPooledObjectPolicy<Dictionary<TKey, TValue>>
+    private sealed class Policy(IEqualityComparer<TKey>? comparer) : IPooledObjectPolicy<Dictionary<TKey, TValue>>
     {
         public static readonly Policy Instance = new();
 
-        private readonly IEqualityComparer<TKey>? _comparer;
-
-        public Policy(IEqualityComparer<TKey>? comparer = null)
+        private Policy()
+            : this(comparer: null)
         {
-            _comparer = comparer;
         }
 
-        public Dictionary<TKey, TValue> Create() => new(_comparer);
+        public Dictionary<TKey, TValue> Create() => new(comparer);
 
         public bool Return(Dictionary<TKey, TValue> map)
         {

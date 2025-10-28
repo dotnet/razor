@@ -14,12 +14,20 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 /// Instances originating from this pool are intended to be short-lived and are suitable
 /// for temporary work. Do not return them as the results of methods or store them in fields.
 /// </remarks>
-internal static partial class ListPool<T>
+internal sealed partial class ListPool<T> : DefaultObjectPool<List<T>>
 {
-    public static readonly ObjectPool<List<T>> Default = DefaultPool.Create(Policy.Instance);
+    public static readonly ListPool<T> Default = Create();
 
-    public static ObjectPool<List<T>> Create(int size = 20)
-        => DefaultPool.Create(Policy.Instance, size);
+    private ListPool(IPooledObjectPolicy<List<T>> policy, int size)
+        : base(policy, size)
+    {
+    }
+
+    public static ListPool<T> Create(IPooledObjectPolicy<List<T>> policy, int size = DefaultPool.DefaultPoolSize)
+        => new(policy, size);
+
+    public static ListPool<T> Create(int size = DefaultPool.DefaultPoolSize)
+        => new(Policy.Instance, size);
 
     public static PooledObject<List<T>> GetPooledObject()
         => Default.GetPooledObject();

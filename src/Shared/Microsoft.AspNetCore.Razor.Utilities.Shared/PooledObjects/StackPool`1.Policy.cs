@@ -6,9 +6,9 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
-internal static partial class StackPool<T>
+internal partial class StackPool<T>
 {
-    private class Policy : IPooledObjectPolicy<Stack<T>>
+    private sealed class Policy : IPooledObjectPolicy<Stack<T>>
     {
         public static readonly Policy Instance = new();
 

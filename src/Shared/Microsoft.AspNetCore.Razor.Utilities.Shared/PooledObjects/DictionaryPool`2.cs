@@ -14,13 +14,26 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 /// Instances originating from this pool are intended to be short-lived and are suitable
 /// for temporary work. Do not return them as the results of methods or store them in fields.
 /// </remarks>
-internal static partial class DictionaryPool<TKey, TValue>
+internal sealed partial class DictionaryPool<TKey, TValue> : DefaultObjectPool<Dictionary<TKey, TValue>>
     where TKey : notnull
 {
-    public static readonly ObjectPool<Dictionary<TKey, TValue>> Default = DefaultPool.Create(Policy.Instance);
+    public static readonly DictionaryPool<TKey, TValue> Default = Create();
 
-    public static ObjectPool<Dictionary<TKey, TValue>> Create(IEqualityComparer<TKey> comparer)
-        => DefaultPool.Create(new Policy(comparer));
+    private DictionaryPool(IPooledObjectPolicy<Dictionary<TKey, TValue>> policy, int size)
+        : base(policy, size)
+    {
+    }
+
+    public static DictionaryPool<TKey, TValue> Create(
+        IEqualityComparer<TKey> comparer, int size = DefaultPool.DefaultPoolSize)
+        => new(new Policy(comparer), size);
+
+    public static DictionaryPool<TKey, TValue> Create(
+        IPooledObjectPolicy<Dictionary<TKey, TValue>> policy, int size = DefaultPool.DefaultPoolSize)
+        => new(policy, size);
+
+    public static DictionaryPool<TKey, TValue> Create(int size = DefaultPool.DefaultPoolSize)
+        => new(Policy.Instance, size);
 
     public static PooledObject<Dictionary<TKey, TValue>> GetPooledObject()
         => Default.GetPooledObject();

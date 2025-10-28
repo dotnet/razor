@@ -14,12 +14,23 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 /// Instances originating from this pool are intended to be short-lived and are suitable
 /// for temporary work. Do not return them as the results of methods or store them in fields.
 /// </remarks>
-internal static partial class HashSetPool<T>
+internal sealed partial class HashSetPool<T> : DefaultObjectPool<HashSet<T>>
 {
-    public static readonly ObjectPool<HashSet<T>> Default = DefaultPool.Create(Policy.Instance);
+    public static readonly HashSetPool<T> Default = Create();
 
-    public static ObjectPool<HashSet<T>> Create(IEqualityComparer<T> comparer)
-        => DefaultPool.Create(new Policy(comparer));
+    private HashSetPool(IPooledObjectPolicy<HashSet<T>> policy, int size)
+        : base(policy, size)
+    {
+    }
+
+    public static HashSetPool<T> Create(IEqualityComparer<T> comparer, int size = DefaultPool.DefaultPoolSize)
+        => new(new Policy(comparer), size);
+
+    public static HashSetPool<T> Create(IPooledObjectPolicy<HashSet<T>> policy, int size = DefaultPool.DefaultPoolSize)
+        => new(policy, size);
+
+    public static HashSetPool<T> Create(int size = DefaultPool.DefaultPoolSize)
+        => new(Policy.Instance, size);
 
     public static PooledObject<HashSet<T>> GetPooledObject()
         => Default.GetPooledObject();

@@ -14,9 +14,20 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 /// Instances originating from this pool are intended to be short-lived and are suitable
 /// for temporary work. Do not return them as the results of methods or store them in fields.
 /// </remarks>
-internal static partial class StopwatchPool
+internal sealed partial class StopwatchPool : DefaultObjectPool<Stopwatch>
 {
-    public static readonly ObjectPool<Stopwatch> Default = DefaultPool.Create(Policy.Instance);
+    public static readonly StopwatchPool Default = Create();
+
+    private StopwatchPool(IPooledObjectPolicy<Stopwatch> policy, int size)
+        : base(policy, size)
+    {
+    }
+
+    public static StopwatchPool Create(IPooledObjectPolicy<Stopwatch> policy, int size = DefaultPool.DefaultPoolSize)
+        => new(policy, size);
+
+    public static StopwatchPool Create(int size = DefaultPool.DefaultPoolSize)
+        => new(Policy.Instance, size);
 
     public static PooledObject<Stopwatch> GetPooledObject()
         => Default.GetPooledObject();

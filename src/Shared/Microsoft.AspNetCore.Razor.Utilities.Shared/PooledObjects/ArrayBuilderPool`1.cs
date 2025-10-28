@@ -14,9 +14,21 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 /// Instances originating from this pool are intended to be short-lived and are suitable
 /// for temporary work. Do not return them as the results of methods or store them in fields.
 /// </remarks>
-internal static partial class ArrayBuilderPool<T>
+internal sealed partial class ArrayBuilderPool<T> : DefaultObjectPool<ImmutableArray<T>.Builder>
 {
-    public static readonly ObjectPool<ImmutableArray<T>.Builder> Default = DefaultPool.Create(Policy.Instance);
+    public static readonly ArrayBuilderPool<T> Default = Create();
+
+    private ArrayBuilderPool(IPooledObjectPolicy<ImmutableArray<T>.Builder> policy, int size)
+        : base(policy, size)
+    {
+    }
+
+    public static ArrayBuilderPool<T> Create(
+        IPooledObjectPolicy<ImmutableArray<T>.Builder> policy, int size = DefaultPool.DefaultPoolSize)
+        => new(policy, size);
+
+    public static ArrayBuilderPool<T> Create(int size = DefaultPool.DefaultPoolSize)
+        => new(Policy.Instance, size);
 
     public static PooledObject<ImmutableArray<T>.Builder> GetPooledObject()
         => Default.GetPooledObject();

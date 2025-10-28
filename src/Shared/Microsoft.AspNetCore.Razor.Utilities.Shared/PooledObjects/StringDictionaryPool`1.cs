@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -17,8 +16,8 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 /// </remarks>
 internal static partial class StringDictionaryPool<TValue>
 {
-    public static readonly ObjectPool<Dictionary<string, TValue>> Ordinal = DictionaryPool<string, TValue>.Create(StringComparer.Ordinal);
-    public static readonly ObjectPool<Dictionary<string, TValue>> OrdinalIgnoreCase = DictionaryPool<string, TValue>.Create(StringComparer.OrdinalIgnoreCase);
+    public static readonly DictionaryPool<string, TValue> Ordinal = DictionaryPool<string, TValue>.Create(StringComparer.Ordinal);
+    public static readonly DictionaryPool<string, TValue> OrdinalIgnoreCase = DictionaryPool<string, TValue>.Create(StringComparer.OrdinalIgnoreCase);
 
     public static PooledObject<Dictionary<string, TValue>> GetPooledObject()
         => Ordinal.GetPooledObject();

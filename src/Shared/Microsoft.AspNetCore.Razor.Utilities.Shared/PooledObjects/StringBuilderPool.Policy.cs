@@ -6,9 +6,9 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
-internal static partial class StringBuilderPool
+internal partial class StringBuilderPool
 {
-    private class Policy : IPooledObjectPolicy<StringBuilder>
+    private sealed class Policy : IPooledObjectPolicy<StringBuilder>
     {
         public static readonly Policy Instance = new();
 
