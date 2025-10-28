@@ -11,14 +11,15 @@ internal partial class HashSetPool<T>
     {
         public static readonly Policy Default = new(comparer: null, DefaultMaximumObjectSize);
 
-        private readonly IEqualityComparer<T>? _comparer;
+        public IEqualityComparer<T> Comparer { get; }
+
         private readonly int _maximumObjectSize;
 
         private Policy(IEqualityComparer<T>? comparer, int maximumObjectSize)
         {
             ArgHelper.ThrowIfNegative(maximumObjectSize);
 
-            _comparer = comparer;
+            Comparer = comparer ?? EqualityComparer<T>.Default;
             _maximumObjectSize = maximumObjectSize;
         }
 
@@ -26,7 +27,7 @@ internal partial class HashSetPool<T>
             Optional<IEqualityComparer<T>?> comparer = default,
             Optional<int> maximumObjectSize = default)
         {
-            if ((!comparer.HasValue || comparer.Value == Default._comparer) &&
+            if ((!comparer.HasValue || comparer.Value is null || comparer.Value == Default.Comparer) &&
                 (!maximumObjectSize.HasValue || maximumObjectSize.Value == Default._maximumObjectSize))
             {
                 return Default;
@@ -35,7 +36,7 @@ internal partial class HashSetPool<T>
             return new(comparer.Value, maximumObjectSize.Value);
         }
 
-        public override HashSet<T> Create() => new(_comparer);
+        public override HashSet<T> Create() => new(Comparer);
 
         public override bool Return(HashSet<T> set)
         {
