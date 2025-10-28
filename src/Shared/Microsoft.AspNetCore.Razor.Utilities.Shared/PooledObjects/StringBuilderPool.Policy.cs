@@ -2,23 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Text;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
 internal partial class StringBuilderPool
 {
-    private sealed class Policy : IPooledObjectPolicy<StringBuilder>
+    private sealed class Policy : PooledObjectPolicy
     {
-        public static readonly Policy Instance = new();
+        public static readonly Policy Default = new();
 
         private Policy()
         {
         }
 
-        public StringBuilder Create() => new();
+        public override StringBuilder Create() => new();
 
-        public bool Return(StringBuilder builder)
+        public override bool Return(StringBuilder builder)
         {
             builder.Clear();
 

@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
 internal partial class DictionaryPool<TKey, TValue>
     where TKey : notnull
 {
-    private sealed class Policy(IEqualityComparer<TKey>? comparer) : IPooledObjectPolicy<Dictionary<TKey, TValue>>
+    private sealed class Policy(IEqualityComparer<TKey>? comparer) : PooledObjectPolicy
     {
         public static readonly Policy Instance = new();
 
@@ -18,9 +17,9 @@ internal partial class DictionaryPool<TKey, TValue>
         {
         }
 
-        public Dictionary<TKey, TValue> Create() => new(comparer);
+        public override Dictionary<TKey, TValue> Create() => new(comparer);
 
-        public bool Return(Dictionary<TKey, TValue> map)
+        public override bool Return(Dictionary<TKey, TValue> map)
         {
             var count = map.Count;
 

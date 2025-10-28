@@ -2,23 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
 internal partial class ListPool<T>
 {
-    private sealed class Policy : IPooledObjectPolicy<List<T>>
+    private sealed class Policy : PooledObjectPolicy
     {
-        public static readonly Policy Instance = new();
+        public static readonly Policy Default = new();
 
         private Policy()
         {
         }
 
-        public List<T> Create() => [];
+        public override List<T> Create() => [];
 
-        public bool Return(List<T> list)
+        public override bool Return(List<T> list)
         {
             var count = list.Count;
 

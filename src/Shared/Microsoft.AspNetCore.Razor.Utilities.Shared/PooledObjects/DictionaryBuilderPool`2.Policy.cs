@@ -3,25 +3,24 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
 internal partial class DictionaryBuilderPool<TKey, TValue>
 {
-    private sealed class Policy(IEqualityComparer<TKey>? keyComparer) : IPooledObjectPolicy<ImmutableDictionary<TKey, TValue>.Builder>
+    private sealed class Policy(IEqualityComparer<TKey>? keyComparer) : PooledObjectPolicy
     {
-        public static readonly Policy Instance = new();
+        public static readonly Policy Default = new();
 
         private Policy()
             : this(keyComparer: null)
         {
         }
 
-        public ImmutableDictionary<TKey, TValue>.Builder Create()
+        public override ImmutableDictionary<TKey, TValue>.Builder Create()
             => ImmutableDictionary.CreateBuilder<TKey, TValue>(keyComparer);
 
-        public bool Return(ImmutableDictionary<TKey, TValue>.Builder builder)
+        public override bool Return(ImmutableDictionary<TKey, TValue>.Builder builder)
         {
             builder.Clear();
 

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Text;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -14,20 +13,21 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 /// Instances originating from this pool are intended to be short-lived and are suitable
 /// for temporary work. Do not return them as the results of methods or store them in fields.
 /// </remarks>
-internal sealed partial class StringBuilderPool : DefaultObjectPool<StringBuilder>
+internal sealed partial class StringBuilderPool : CustomObjectPool<StringBuilder>
 {
     public static readonly StringBuilderPool Default = Create();
 
-    private StringBuilderPool(IPooledObjectPolicy<StringBuilder> policy, int size)
+    private StringBuilderPool(PooledObjectPolicy policy, int size)
         : base(policy, size)
     {
     }
 
-    public static StringBuilderPool Create(IPooledObjectPolicy<StringBuilder> policy, int size = DefaultPool.DefaultPoolSize)
+    public static StringBuilderPool Create(
+        PooledObjectPolicy policy, int size = DefaultPool.DefaultPoolSize)
         => new(policy, size);
 
     public static StringBuilderPool Create(int size = DefaultPool.DefaultPoolSize)
-        => new(Policy.Instance, size);
+        => new(Policy.Default, size);
 
     public static PooledObject<StringBuilder> GetPooledObject()
         => Default.GetPooledObject();

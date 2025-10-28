@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Diagnostics;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -14,20 +13,21 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 /// Instances originating from this pool are intended to be short-lived and are suitable
 /// for temporary work. Do not return them as the results of methods or store them in fields.
 /// </remarks>
-internal sealed partial class StopwatchPool : DefaultObjectPool<Stopwatch>
+internal sealed partial class StopwatchPool : CustomObjectPool<Stopwatch>
 {
     public static readonly StopwatchPool Default = Create();
 
-    private StopwatchPool(IPooledObjectPolicy<Stopwatch> policy, int size)
+    private StopwatchPool(PooledObjectPolicy policy, int size)
         : base(policy, size)
     {
     }
 
-    public static StopwatchPool Create(IPooledObjectPolicy<Stopwatch> policy, int size = DefaultPool.DefaultPoolSize)
+    public static StopwatchPool Create(
+        PooledObjectPolicy policy, int size = DefaultPool.DefaultPoolSize)
         => new(policy, size);
 
     public static StopwatchPool Create(int size = DefaultPool.DefaultPoolSize)
-        => new(Policy.Instance, size);
+        => new(Policy.Default, size);
 
     public static PooledObject<Stopwatch> GetPooledObject()
         => Default.GetPooledObject();

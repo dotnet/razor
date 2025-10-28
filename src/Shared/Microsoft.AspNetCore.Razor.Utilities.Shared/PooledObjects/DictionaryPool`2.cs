@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -14,12 +13,12 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 /// Instances originating from this pool are intended to be short-lived and are suitable
 /// for temporary work. Do not return them as the results of methods or store them in fields.
 /// </remarks>
-internal sealed partial class DictionaryPool<TKey, TValue> : DefaultObjectPool<Dictionary<TKey, TValue>>
+internal sealed partial class DictionaryPool<TKey, TValue> : CustomObjectPool<Dictionary<TKey, TValue>>
     where TKey : notnull
 {
     public static readonly DictionaryPool<TKey, TValue> Default = Create();
 
-    private DictionaryPool(IPooledObjectPolicy<Dictionary<TKey, TValue>> policy, int size)
+    private DictionaryPool(PooledObjectPolicy policy, int size)
         : base(policy, size)
     {
     }
@@ -29,7 +28,7 @@ internal sealed partial class DictionaryPool<TKey, TValue> : DefaultObjectPool<D
         => new(new Policy(comparer), size);
 
     public static DictionaryPool<TKey, TValue> Create(
-        IPooledObjectPolicy<Dictionary<TKey, TValue>> policy, int size = DefaultPool.DefaultPoolSize)
+        PooledObjectPolicy policy, int size = DefaultPool.DefaultPoolSize)
         => new(policy, size);
 
     public static DictionaryPool<TKey, TValue> Create(int size = DefaultPool.DefaultPoolSize)

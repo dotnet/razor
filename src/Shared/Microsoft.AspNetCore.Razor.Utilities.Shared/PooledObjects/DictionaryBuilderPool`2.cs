@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -15,12 +14,12 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 /// Instances originating from this pool are intended to be short-lived and are suitable
 /// for temporary work. Do not return them as the results of methods or store them in fields.
 /// </remarks>
-internal sealed partial class DictionaryBuilderPool<TKey, TValue> : DefaultObjectPool<ImmutableDictionary<TKey, TValue>.Builder>
+internal sealed partial class DictionaryBuilderPool<TKey, TValue> : CustomObjectPool<ImmutableDictionary<TKey, TValue>.Builder>
     where TKey : notnull
 {
     public static readonly DictionaryBuilderPool<TKey, TValue> Default = Create();
 
-    private DictionaryBuilderPool(IPooledObjectPolicy<ImmutableDictionary<TKey, TValue>.Builder> policy, int size)
+    private DictionaryBuilderPool(PooledObjectPolicy policy, int size)
         : base(policy, size)
     {
     }
@@ -30,15 +29,16 @@ internal sealed partial class DictionaryBuilderPool<TKey, TValue> : DefaultObjec
         => new(new Policy(keyComparer), size);
 
     public static DictionaryBuilderPool<TKey, TValue> Create(
-        IPooledObjectPolicy<ImmutableDictionary<TKey, TValue>.Builder> policy, int size = DefaultPool.DefaultPoolSize)
+        PooledObjectPolicy policy, int size = DefaultPool.DefaultPoolSize)
         => new(policy, size);
 
     public static DictionaryBuilderPool<TKey, TValue> Create(int size = DefaultPool.DefaultPoolSize)
-        => new(Policy.Instance, size);
+        => new(Policy.Default, size);
 
     public static PooledObject<ImmutableDictionary<TKey, TValue>.Builder> GetPooledObject()
         => Default.GetPooledObject();
 
-    public static PooledObject<ImmutableDictionary<TKey, TValue>.Builder> GetPooledObject(out ImmutableDictionary<TKey, TValue>.Builder builder)
+    public static PooledObject<ImmutableDictionary<TKey, TValue>.Builder> GetPooledObject(
+        out ImmutableDictionary<TKey, TValue>.Builder builder)
         => Default.GetPooledObject(out builder);
 }
