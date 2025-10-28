@@ -57,7 +57,7 @@ internal sealed class OOPSimplifyFullyQualifiedComponentCodeActionProvider : Sim
 internal sealed class OOPComponentAccessibilityCodeActionProvider(IFileSystem fileSystem) : ComponentAccessibilityCodeActionProvider(fileSystem);
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
-internal sealed class OOPAddUsingsCodeActionProvider : AddUsingsCodeActionProvider;
+internal sealed class OOPUnboundDirectiveAttributeAddUsingCodeActionProvider : UnboundDirectiveAttributeAddUsingCodeActionProvider;
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
 internal sealed class OOPGenerateMethodCodeActionProvider : GenerateMethodCodeActionProvider;
