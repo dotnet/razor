@@ -56,25 +56,21 @@ internal class AddUsingsCodeActionProvider : IRazorCodeActionProvider
 
                 if (boundTagHelper is not null && boundTagHelper.IsFullyQualifiedNameMatch)
                 {
-                    // Extract namespace from the fully qualified name
-                    var lastDotIndex = fullyQualifiedName.LastIndexOf('.');
-                    if (lastDotIndex > 0)
+                    // Create the add using code action
+                    if (AddUsingsCodeActionResolver.TryCreateAddUsingResolutionParams(
+                        fullyQualifiedName,
+                        context.Request.TextDocument,
+                        additionalEdit: null,
+                        context.DelegatedDocumentUri,
+                        out var extractedNamespace,
+                        out var resolutionParams))
                     {
-                        var @namespace = fullyQualifiedName[..lastDotIndex];
-                        var componentName = fullyQualifiedName[(lastDotIndex + 1)..];
+                        // Extract component name for the title
+                        var lastDotIndex = fullyQualifiedName.LastIndexOf('.');
+                        var componentName = lastDotIndex > 0 ? fullyQualifiedName[(lastDotIndex + 1)..] : null;
 
-                        // Create the add using code action
-                        if (AddUsingsCodeActionResolver.TryCreateAddUsingResolutionParams(
-                            fullyQualifiedName,
-                            context.Request.TextDocument,
-                            additionalEdit: null,
-                            context.DelegatedDocumentUri,
-                            out var extractedNamespace,
-                            out var resolutionParams))
-                        {
-                            var addUsingCodeAction = RazorCodeActionFactory.CreateAddComponentUsing(extractedNamespace, componentName, resolutionParams);
-                            return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>([addUsingCodeAction]);
-                        }
+                        var addUsingCodeAction = RazorCodeActionFactory.CreateAddComponentUsing(extractedNamespace, componentName, resolutionParams);
+                        return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>([addUsingCodeAction]);
                     }
                 }
             }
