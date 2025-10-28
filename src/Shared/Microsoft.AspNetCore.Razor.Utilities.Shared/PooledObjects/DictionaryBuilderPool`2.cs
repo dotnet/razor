@@ -23,6 +23,7 @@ internal sealed partial class DictionaryBuilderPool<TKey, TValue> : CustomObject
         : base(policy, poolSize)
     {
     }
+
     public static DictionaryBuilderPool<TKey, TValue> Create(
         Optional<IEqualityComparer<TKey>?> keyComparer = default,
         Optional<int> poolSize = default)

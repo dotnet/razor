@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -173,7 +172,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
         /// A larger pool of <see cref="TagHelperDescriptor"/> lists to handle scenarios where tag helpers
         /// originate from a large number of assemblies.
         /// </summary>
-        private static readonly ObjectPool<List<TagHelperDescriptor>> s_pool = ListPool<TagHelperDescriptor>.Create(100);
+        private static readonly ListPool<TagHelperDescriptor> s_pool = ListPool<TagHelperDescriptor>.Create(poolSize: 100);
 
         /// <summary>
         /// A map from assembly name to list of <see cref="TagHelperDescriptor"/>. Lists are allocated from and returned to
