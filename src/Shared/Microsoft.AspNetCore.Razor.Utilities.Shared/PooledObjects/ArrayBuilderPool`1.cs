@@ -17,17 +17,18 @@ internal sealed partial class ArrayBuilderPool<T> : CustomObjectPool<ImmutableAr
 {
     public static readonly ArrayBuilderPool<T> Default = Create();
 
-    private ArrayBuilderPool(PooledObjectPolicy policy, int size)
-        : base(policy, size)
+    private ArrayBuilderPool(PooledObjectPolicy policy, Optional<int> poolSize)
+        : base(policy, poolSize)
     {
     }
 
     public static ArrayBuilderPool<T> Create(
-        PooledObjectPolicy policy, int size = DefaultPool.DefaultPoolSize)
-        => new(policy, size);
+        Optional<int> maximumObjectSize = default,
+        Optional<int> poolSize = default)
+        => new(Policy.Create(maximumObjectSize), poolSize);
 
-    public static ArrayBuilderPool<T> Create(int size = DefaultPool.DefaultPoolSize)
-        => new(Policy.Default, size);
+    public static ArrayBuilderPool<T> Create(PooledObjectPolicy policy, Optional<int> poolSize = default)
+        => new(policy, poolSize);
 
     public static PooledObject<ImmutableArray<T>.Builder> GetPooledObject()
         => Default.GetPooledObject();

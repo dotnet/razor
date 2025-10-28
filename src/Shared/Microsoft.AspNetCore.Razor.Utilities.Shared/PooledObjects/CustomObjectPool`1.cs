@@ -5,10 +5,14 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
-internal abstract class CustomObjectPool<T>(
-    CustomObjectPool<T>.PooledObjectPolicy policy, int size) : DefaultObjectPool<T>(policy, size)
+internal abstract class CustomObjectPool<T> : DefaultObjectPool<T>
     where T : class
 {
+    protected CustomObjectPool(PooledObjectPolicy policy, Optional<int> poolSize)
+        : base(policy, poolSize.HasValue ? poolSize.Value : DefaultPool.DefaultPoolSize)
+    {
+    }
+
     public abstract class PooledObjectPolicy : IPooledObjectPolicy<T>
     {
         public abstract T Create();

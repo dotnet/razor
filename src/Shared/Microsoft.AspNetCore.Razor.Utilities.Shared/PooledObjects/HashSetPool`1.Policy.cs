@@ -7,16 +7,35 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
 internal partial class HashSetPool<T>
 {
-    private sealed class Policy(IEqualityComparer<T>? comparer) : PooledObjectPolicy
+    private sealed class Policy : PooledObjectPolicy
     {
-        public static readonly Policy Default = new();
+        public static readonly Policy Default = new(comparer: null, DefaultPool.MaximumObjectSize);
 
-        private Policy()
-            : this(comparer: null)
+        private readonly IEqualityComparer<T>? _comparer;
+        private readonly int _maximumObjectSize;
+
+        private Policy(IEqualityComparer<T>? comparer, int maximumObjectSize)
         {
+            ArgHelper.ThrowIfNegative(maximumObjectSize);
+
+            _comparer = comparer;
+            _maximumObjectSize = maximumObjectSize;
         }
 
-        public override HashSet<T> Create() => new(comparer);
+        public static Policy Create(
+            Optional<IEqualityComparer<T>?> comparer = default,
+            Optional<int> maximumObjectSize = default)
+        {
+            if ((!comparer.HasValue || comparer.Value == Default._comparer) &&
+                (!maximumObjectSize.HasValue || maximumObjectSize.Value == Default._maximumObjectSize))
+            {
+                return Default;
+            }
+
+            return new(comparer.Value, maximumObjectSize.Value);
+        }
+
+        public override HashSet<T> Create() => new(_comparer);
 
         public override bool Return(HashSet<T> set)
         {
@@ -24,7 +43,7 @@ internal partial class HashSetPool<T>
 
             set.Clear();
 
-            if (count > DefaultPool.MaximumObjectSize)
+            if (count > _maximumObjectSize)
             {
                 set.TrimExcess();
             }

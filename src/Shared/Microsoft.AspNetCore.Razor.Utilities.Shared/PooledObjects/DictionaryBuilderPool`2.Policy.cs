@@ -8,17 +8,29 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
 internal partial class DictionaryBuilderPool<TKey, TValue>
 {
-    private sealed class Policy(IEqualityComparer<TKey>? keyComparer) : PooledObjectPolicy
+    private sealed class Policy : PooledObjectPolicy
     {
-        public static readonly Policy Default = new();
+        public static readonly Policy Default = new(keyComparer: null);
 
-        private Policy()
-            : this(keyComparer: null)
+        private readonly IEqualityComparer<TKey>? _keyComparer;
+
+        private Policy(IEqualityComparer<TKey>? keyComparer)
         {
+            _keyComparer = keyComparer;
+        }
+
+        public static Policy Create(Optional<IEqualityComparer<TKey>?> keyComparer = default)
+        {
+            if (!keyComparer.HasValue || keyComparer.Value == Default._keyComparer)
+            {
+                return Default;
+            }
+
+            return new(keyComparer.Value);
         }
 
         public override ImmutableDictionary<TKey, TValue>.Builder Create()
-            => ImmutableDictionary.CreateBuilder<TKey, TValue>(keyComparer);
+            => ImmutableDictionary.CreateBuilder<TKey, TValue>(_keyComparer);
 
         public override bool Return(ImmutableDictionary<TKey, TValue>.Builder builder)
         {

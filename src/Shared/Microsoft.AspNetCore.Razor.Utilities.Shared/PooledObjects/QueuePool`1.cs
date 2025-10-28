@@ -9,16 +9,18 @@ internal sealed partial class QueuePool<T> : CustomObjectPool<Queue<T>>
 {
     public static readonly QueuePool<T> Default = Create();
 
-    private QueuePool(PooledObjectPolicy policy, int size)
-        : base(policy, size)
+    private QueuePool(PooledObjectPolicy policy, Optional<int> poolSize)
+        : base(policy, poolSize)
     {
     }
 
-    public static QueuePool<T> Create(PooledObjectPolicy policy, int size = DefaultPool.DefaultPoolSize)
-        => new(policy, size);
+    public static QueuePool<T> Create(
+        Optional<int> maximumObjectSize = default,
+        Optional<int> poolSize = default)
+        => new(Policy.Create(maximumObjectSize), poolSize);
 
-    public static QueuePool<T> Create(int size = DefaultPool.DefaultPoolSize)
-        => new(Policy.Default, size);
+    public static QueuePool<T> Create(PooledObjectPolicy policy, Optional<int> poolSize = default)
+        => new(policy, poolSize);
 
     public static PooledObject<Queue<T>> GetPooledObject()
         => Default.GetPooledObject();

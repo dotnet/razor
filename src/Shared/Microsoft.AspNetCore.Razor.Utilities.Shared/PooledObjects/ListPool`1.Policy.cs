@@ -9,10 +9,23 @@ internal partial class ListPool<T>
 {
     private sealed class Policy : PooledObjectPolicy
     {
-        public static readonly Policy Default = new();
+        public static readonly Policy Default = new(DefaultPool.MaximumObjectSize);
 
-        private Policy()
+        private readonly int _maximumObjectSize;
+
+        private Policy(int maximumObjectSize)
         {
+            _maximumObjectSize = maximumObjectSize;
+        }
+
+        public static Policy Create(Optional<int> maximumObjectSize = default)
+        {
+            if (!maximumObjectSize.HasValue || maximumObjectSize.Value == Default._maximumObjectSize)
+            {
+                return Default;
+            }
+
+            return new(maximumObjectSize.Value);
         }
 
         public override List<T> Create() => [];
@@ -23,7 +36,7 @@ internal partial class ListPool<T>
 
             list.Clear();
 
-            if (count > DefaultPool.MaximumObjectSize)
+            if (count > _maximumObjectSize)
             {
                 list.TrimExcess();
             }

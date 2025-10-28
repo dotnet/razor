@@ -9,10 +9,23 @@ internal partial class StringBuilderPool
 {
     private sealed class Policy : PooledObjectPolicy
     {
-        public static readonly Policy Default = new();
+        public static readonly Policy Default = new(DefaultPool.MaximumObjectSize);
 
-        private Policy()
+        private readonly int _maximumObjectSize;
+
+        private Policy(int maximumObjectSize)
         {
+            _maximumObjectSize = maximumObjectSize;
+        }
+
+        public static Policy Create(Optional<int> maximumObjectSize = default)
+        {
+            if (!maximumObjectSize.HasValue || maximumObjectSize.Value == Default._maximumObjectSize)
+            {
+                return Default;
+            }
+
+            return new(maximumObjectSize.Value);
         }
 
         public override StringBuilder Create() => new();
@@ -21,9 +34,9 @@ internal partial class StringBuilderPool
         {
             builder.Clear();
 
-            if (builder.Capacity > DefaultPool.MaximumObjectSize)
+            if (builder.Capacity > _maximumObjectSize)
             {
-                builder.Capacity = DefaultPool.MaximumObjectSize;
+                builder.Capacity = _maximumObjectSize;
             }
 
             return true;
