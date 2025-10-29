@@ -10,7 +10,13 @@
     </Metadata>
     <Installation AllUsers="true" Experimental="true">
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,)">
-            <ProductArchitecture>arm64</ProductArchitecture>
+
+            <!-- https://github.com/dotnet/razor/issues/12411
+
+                 Our current build tools don't support arm64. Use a valid arch (amd64) to pass VSIX checks in the tools.
+                 VS doesn't seem to check this anyway so its fine. 
+            -->
+            <ProductArchitecture>amd64</ProductArchitecture>
         </InstallationTarget>
     </Installation>
 
