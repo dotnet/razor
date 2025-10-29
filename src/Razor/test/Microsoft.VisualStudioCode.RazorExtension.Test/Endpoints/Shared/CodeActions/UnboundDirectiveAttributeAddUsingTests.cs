@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading.Tasks;
@@ -22,7 +22,7 @@ public class UnboundDirectiveAttributeAddUsingTests(ITestOutputHelper testOutput
             <button @onclick="HandleClick"></button>
             """;
 
-        await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.AddUsing);
+        await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.AddUsing, addDefaultImports: false);
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class UnboundDirectiveAttributeAddUsingTests(ITestOutputHelper testOutput
             <button @onclick="HandleClick"></button>
             """;
 
-        await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.AddUsing);
+        await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.AddUsing, addDefaultImports: false);
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public class UnboundDirectiveAttributeAddUsingTests(ITestOutputHelper testOutput
             <input @onchange="HandleChange" />
             """;
 
-        await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.AddUsing);
+        await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.AddUsing, addDefaultImports: false);
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public class UnboundDirectiveAttributeAddUsingTests(ITestOutputHelper testOutput
             <button @on[||]click="HandleClick"></button>
             """;
 
-        await VerifyCodeActionAsync(input, expected: null, LanguageServerConstants.CodeActions.AddUsing);
+        await VerifyCodeActionAsync(input, expected: null, LanguageServerConstants.CodeActions.AddUsing, addDefaultImports: false);
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public class UnboundDirectiveAttributeAddUsingTests(ITestOutputHelper testOutput
             <button @on[||]click="HandleClick"></button>
             """;
 
-        await VerifyCodeActionAsync(input, expected: null, LanguageServerConstants.CodeActions.AddUsing);
+        await VerifyCodeActionAsync(input, expected: null, LanguageServerConstants.CodeActions.AddUsing, addDefaultImports: false);
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class UnboundDirectiveAttributeAddUsingTests(ITestOutputHelper testOutput
             <button cl[||]ass="btn"></button>
             """;
 
-        await VerifyCodeActionAsync(input, expected: null, LanguageServerConstants.CodeActions.AddUsing);
+        await VerifyCodeActionAsync(input, expected: null, LanguageServerConstants.CodeActions.AddUsing, addDefaultImports: false);
     }
 
     [Fact]
@@ -105,7 +105,7 @@ public class UnboundDirectiveAttributeAddUsingTests(ITestOutputHelper testOutput
             <input @bind="value" />
             """;
 
-        await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.AddUsing);
+        await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.AddUsing, addDefaultImports: false);
     }
 
     [Fact]
@@ -120,6 +120,6 @@ public class UnboundDirectiveAttributeAddUsingTests(ITestOutputHelper testOutput
             <input @bind-value="value" />
             """;
 
-        await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.AddUsing);
+        await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.AddUsing, addDefaultImports: false);
     }
 }
