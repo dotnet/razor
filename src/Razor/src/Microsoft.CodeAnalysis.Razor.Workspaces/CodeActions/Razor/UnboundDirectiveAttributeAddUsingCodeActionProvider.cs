@@ -40,23 +40,31 @@ internal class UnboundDirectiveAttributeAddUsingCodeActionProvider : IRazorCodeA
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        // Find the directive attribute ancestor
-        var directiveAttribute = owner.FirstAncestorOrSelf<MarkupTagHelperDirectiveAttributeSyntax>();
-        if (directiveAttribute?.TagHelperAttributeInfo is not { } attributeInfo)
+        // Find a regular markup attribute (not a tag helper attribute) that starts with '@'
+        // Unbound directive attributes are just regular attributes that happen to start with '@'
+        var attributeBlock = owner.FirstAncestorOrSelf<MarkupAttributeBlockSyntax>();
+        if (attributeBlock is null)
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        // Check if it's an unbound directive attribute
-        if (attributeInfo.Bound || !attributeInfo.IsDirectiveAttribute)
+        // Get the attribute name - the '@' is typically in the NamePrefix
+        var namePrefix = attributeBlock.NamePrefix?.GetContent() ?? string.Empty;
+        var attributeName = attributeBlock.Name.GetContent();
+
+        // Check if this is a directive attribute (starts with '@')
+        if (!namePrefix.Contains("@"))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        // Try to find the missing namespace
+        // The full attribute name for matching includes the '@'
+        var fullAttributeName = "@" + attributeName;
+
+        // Try to find the missing namespace for this directive attribute
         if (!TryGetMissingDirectiveAttributeNamespace(
             context.CodeDocument,
-            attributeInfo,
+            fullAttributeName,
             out var missingNamespace))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
@@ -91,30 +99,27 @@ internal class UnboundDirectiveAttributeAddUsingCodeActionProvider : IRazorCodeA
 
     private static bool TryGetMissingDirectiveAttributeNamespace(
         RazorCodeDocument codeDocument,
-        TagHelperAttributeInfo attributeInfo,
+        string attributeName,
         [NotNullWhen(true)] out string? missingNamespace)
     {
         missingNamespace = null;
 
         var tagHelperContext = codeDocument.GetRequiredTagHelperContext();
-        var attributeName = attributeInfo.Name;
 
-        // For attributes with parameters, extract just the attribute name
-        if (attributeInfo.ParameterName is not null)
+        // For attributes with parameters (e.g., @bind:after), extract just the base attribute name
+        var baseAttributeName = attributeName;
+        var colonIndex = attributeName.IndexOf(':');
+        if (colonIndex > 0)
         {
-            var colonIndex = attributeName.IndexOf(':');
-            if (colonIndex >= 0)
-            {
-                attributeName = attributeName[..colonIndex];
-            }
+            baseAttributeName = attributeName[..colonIndex];
         }
 
-        // Search for matching bound attribute descriptors
+        // Search for matching bound attribute descriptors in all available tag helpers
         foreach (var tagHelper in tagHelperContext.TagHelpers)
         {
             foreach (var boundAttribute in tagHelper.BoundAttributes)
             {
-                if (boundAttribute.Name == attributeName)
+                if (boundAttribute.Name == baseAttributeName)
                 {
                     // Extract namespace from the type name
                     var typeName = boundAttribute.TypeName;
