@@ -122,4 +122,19 @@ public class UnboundDirectiveAttributeAddUsingTests(ITestOutputHelper testOutput
 
         await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.AddUsing, addDefaultImports: false);
     }
+
+    [Fact]
+    public async Task AddUsing_BindWithParameter()
+    {
+        var input = """
+            <input @bind:[||]after="HandleAfter" />
+            """;
+
+        var expected = """
+            @using Microsoft.AspNetCore.Components.Web
+            <input @bind:after="HandleAfter" />
+            """;
+
+        await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.AddUsing, addDefaultImports: false);
+    }
 }

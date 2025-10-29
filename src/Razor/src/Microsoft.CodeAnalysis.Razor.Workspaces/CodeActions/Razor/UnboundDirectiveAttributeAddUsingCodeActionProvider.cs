@@ -67,30 +67,22 @@ internal class UnboundDirectiveAttributeAddUsingCodeActionProvider : IRazorCodeA
         }
 
         // Create the code action
-        // We need to pass a fully qualified name to TryCreateAddUsingResolutionParams,
-        // which will extract the namespace. We append a dummy type name since the method
-        // expects a format like "Namespace.TypeName" and extracts everything before the last dot.
-        if (AddUsingsCodeActionResolver.TryCreateAddUsingResolutionParams(
-            missingNamespace + ".Component", // Append dummy type name for namespace extraction
+        var resolutionParams = AddUsingsCodeActionResolver.CreateAddUsingResolutionParams(
+            missingNamespace,
             context.Request.TextDocument,
             additionalEdit: null,
-            context.DelegatedDocumentUri,
-            out var extractedNamespace,
-            out var resolutionParams))
-        {
-            var addUsingCodeAction = RazorCodeActionFactory.CreateAddComponentUsing(
-                extractedNamespace,
-                newTagName: null,
-                resolutionParams);
+            context.DelegatedDocumentUri);
 
-            // Set high priority and order to show prominently
-            addUsingCodeAction.Priority = VSInternalPriorityLevel.High;
-            addUsingCodeAction.Order = -999;
+        var addUsingCodeAction = RazorCodeActionFactory.CreateAddComponentUsing(
+            missingNamespace,
+            newTagName: null,
+            resolutionParams);
 
-            return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>([addUsingCodeAction]);
-        }
+        // Set high priority and order to show prominently
+        addUsingCodeAction.Priority = VSInternalPriorityLevel.High;
+        addUsingCodeAction.Order = -999;
 
-        return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
+        return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>([addUsingCodeAction]);
     }
 
     private static bool TryGetMissingDirectiveAttributeNamespace(
@@ -100,23 +92,23 @@ internal class UnboundDirectiveAttributeAddUsingCodeActionProvider : IRazorCodeA
     {
         missingNamespace = null;
 
-        var tagHelperContext = codeDocument.GetRequiredTagHelperContext();
+        // Get all tag helpers, not just those in scope, since we want to suggest adding a using
+        var tagHelpers = codeDocument.GetTagHelpers();
+        if (tagHelpers is null)
+        {
+            return false;
+        }
 
-        // Remove the '@' prefix for matching against tag helper descriptors
-        // The attribute name from syntax is "@onclick" but descriptors use "onclick"
-        var nameWithoutAt = attributeName.StartsWith("@") ? attributeName[1..] : attributeName;
-
-        // For attributes with parameters (e.g., @bind:after becomes bind:after then bind), 
-        // extract just the base attribute name
-        var baseAttributeName = nameWithoutAt;
-        var colonIndex = nameWithoutAt.IndexOf(':');
+        // For attributes with parameters (e.g., @bind:after), extract just the base attribute name
+        var baseAttributeName = attributeName;
+        var colonIndex = attributeName.IndexOf(':');
         if (colonIndex > 0)
         {
-            baseAttributeName = nameWithoutAt[..colonIndex];
+            baseAttributeName = attributeName[..colonIndex];
         }
 
         // Search for matching bound attribute descriptors in all available tag helpers
-        foreach (var tagHelper in tagHelperContext.TagHelpers)
+        foreach (var tagHelper in tagHelpers)
         {
             foreach (var boundAttribute in tagHelper.BoundAttributes)
             {
