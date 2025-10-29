@@ -81,7 +81,7 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
                 // The Html formatter in VS Code wraps long lines, based on a user setting, but when there
                 // are long C# string literals that ends up breaking the code. For example:
                 //
-                // @("this is a long string that spans past some user set maximmum limit")
+                // @("this is a long string that spans past some user set maximum limit")
                 //
                 // could become
                 //
@@ -91,7 +91,7 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
                 // That doesn't compile, and depending on the scenario, can even cause a crash inside the
                 // Roslyn formatter.
                 //
-                // Strictly speaking if literal is a verbatim string, or multline raw string literal, then
+                // Strictly speaking if literal is a verbatim string, or multiline raw string literal, then
                 // it would compile, but it would also change the value of the string, and since these edits
                 // come from the Html formatter which clearly has no idea it's doing that, it is safer to
                 // disregard them all equally, and let the user make the final decision.

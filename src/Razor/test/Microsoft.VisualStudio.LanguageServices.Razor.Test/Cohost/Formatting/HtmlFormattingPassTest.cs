@@ -23,10 +23,6 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Test.Cohost.Formatting;
 
-/// <summary>
-/// Not tests of the formatting log, but tests that use formatting logs sent in
-/// by users reporting issues.
-/// </summary>
 [Collection(HtmlFormattingCollection.Name)]
 public class HtmlFormattingPassTest(FormattingTestContext context, HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
     : FormattingTestBase(context, fixture.Service, testOutput), IClassFixture<FormattingTestContext>
