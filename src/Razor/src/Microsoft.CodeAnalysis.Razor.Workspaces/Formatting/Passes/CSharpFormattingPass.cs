@@ -1,4 +1,5 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+﻿
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -151,11 +152,7 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
                 // or skip the opening brace of a lambda definition we insert, but Roslyn might place it on the
                 // next line. In that case, we can't place it on the next line ourselves because Roslyn doesn't
                 // adjust the indentation of opening braces of lambdas in that scenario.
-                if (iFormatted + 1 < formattedCSharpText.Lines.Count &&
-                    formattedCSharpText.Lines[iFormatted + 1] is { Span.Length: > 0 } nextLine &&
-                    nextLine.GetFirstNonWhitespaceOffset() is { } firstNonWhitespace &&
-                    nextLine.Start + firstNonWhitespace == nextLine.End - 1 &&
-                    nextLine.CharAt(firstNonWhitespace) == '{')
+                if (NextLineIsOnlyAnOpenBrace(formattedCSharpText, iFormatted))
                 {
                     iFormatted++;
                 }
@@ -164,10 +161,7 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
                 // it up to the previous line, so we would want to skip the next line in the original document
                 // in that case. Fortunately its illegal to have `@code {\r\n {` in a Razor file, so there can't
                 // be false positives here.
-                if (iOriginal + 1 < changedText.Lines.Count &&
-                    changedText.Lines[iOriginal + 1] is { } nextOriginalLine &&
-                    nextOriginalLine.GetFirstNonWhitespaceOffset() is { } firstChar &&
-                    nextOriginalLine.CharAt(firstChar) == '{')
+                if (NextLineIsOnlyAnOpenBrace(changedText, iOriginal))
                 {
                     iOriginal++;
                 }
@@ -225,6 +219,13 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
         // above is fairly naive anyway, and a lot of them will be no-ops, so it's nice to have this final step as a filter.
         return SourceTextDiffer.GetMinimalTextChanges(context.SourceText, changedText, DiffKind.Char);
     }
+
+    private static bool NextLineIsOnlyAnOpenBrace(SourceText text, int lineNumber)
+        => lineNumber + 1 < text.Lines.Count &&
+            text.Lines[lineNumber + 1] is { Span.Length: > 0 } nextLine &&
+            nextLine.GetFirstNonWhitespaceOffset() is { } firstNonWhitespace &&
+            nextLine.Start + firstNonWhitespace == nextLine.End - 1 &&
+            nextLine.CharAt(firstNonWhitespace) == '{';
 
     private async Task<SourceText> FormatCSharpAsync(SourceText generatedCSharpText, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
