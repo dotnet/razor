@@ -118,23 +118,25 @@ internal class UnboundDirectiveAttributeAddUsingCodeActionProvider : IRazorCodeA
                     var typeName = boundAttribute.TypeName;
 
                     // Apply heuristics to determine the namespace
-                    if (typeName.Contains(".Web.") || typeName.EndsWith(".Web.EventHandlers"))
+                    // Check for Web namespace indicators (event args types are defined there)
+                    if (typeName.Contains(".Web.") || typeName.Contains(".Web>") ||
+                        typeName.Contains("EventArgs") || typeName.Contains("EventCallback"))
                     {
                         missingNamespace = "Microsoft.AspNetCore.Components.Web";
                         return true;
                     }
-                    else if (typeName.Contains(".Forms."))
+                    else if (typeName.Contains(".Forms.") || typeName.Contains(".Forms>"))
                     {
                         missingNamespace = "Microsoft.AspNetCore.Components.Forms";
                         return true;
                     }
                     else
                     {
-                        // Extract namespace from type name (everything before the last dot)
-                        var lastDotIndex = typeName.LastIndexOf('.');
-                        if (lastDotIndex > 0)
+                        // Extract namespace from type name using the existing method
+                        var extractedNamespace = AddUsingsCodeActionResolver.GetNamespaceFromFQN(typeName);
+                        if (!string.IsNullOrEmpty(extractedNamespace))
                         {
-                            missingNamespace = typeName[..lastDotIndex];
+                            missingNamespace = extractedNamespace;
                             return true;
                         }
                     }
