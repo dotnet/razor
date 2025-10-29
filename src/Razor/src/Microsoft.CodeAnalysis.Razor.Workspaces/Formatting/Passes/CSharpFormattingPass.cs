@@ -147,7 +147,7 @@ internal sealed partial class CSharpFormattingPass(IHostServicesProvider hostSer
             else if (lineInfo.SkipNextLineIfBrace)
             {
                 // If the next line is a brace, we skip it. This is used to skip the opening brace of a class
-                // that we insert, but Roslyn settings might place on the same like as the class declaration,
+                // that we insert, but Roslyn settings might place on the same line as the class declaration,
                 // or skip the opening brace of a lambda definition we insert, but Roslyn might place it on the
                 // next line. In that case, we can't place it on the next line ourselves because Roslyn doesn't
                 // adjust the indentation of opening braces of lambdas in that scenario.

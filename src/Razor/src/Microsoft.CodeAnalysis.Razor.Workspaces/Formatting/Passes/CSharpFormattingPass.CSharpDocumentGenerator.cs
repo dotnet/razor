@@ -611,7 +611,7 @@ internal partial class CSharpFormattingPass
                 //          }
                 //     </div>;
                 //
-                // If we convert that to C# the like we normally do, we end up with statements in a C# context where only
+                // If we convert that to C# the way we normally do, we end up with statements in a C# context where only
                 // expressions are valid. To avoid that, we need to emit C# such that we can be sure we're in a context
                 // where statements are valid. To do this we emit a block bodied lambda expression. Ironically this whole
                 // formatting engine arguably exists because the compiler loves to emit lambda expressions, but they're
@@ -629,7 +629,7 @@ internal partial class CSharpFormattingPass
 
                 // Roslyn may move the opening brace to the next line, depending on its options. Unlike with code block
                 // formatting where we put the opening brace on the next line ourselves (and Roslyn might bring it back)
-                // if we do that for lambdas, Roslyn wont' adjust the opening brace position at all. See, told you lambdas
+                // if we do that for lambdas, Roslyn won't adjust the opening brace position at all. See, told you lambdas
                 // were annoying to format.
                 _builder.AppendLine("() => {");
                 return CreateLineInfo(skipNextLineIfBrace: true);
