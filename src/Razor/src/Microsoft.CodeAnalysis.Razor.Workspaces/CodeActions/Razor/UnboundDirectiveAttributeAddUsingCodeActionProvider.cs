@@ -48,23 +48,19 @@ internal class UnboundDirectiveAttributeAddUsingCodeActionProvider : IRazorCodeA
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        // Get the attribute name - the '@' is typically in the NamePrefix
-        var namePrefix = attributeBlock.NamePrefix?.GetContent() ?? string.Empty;
+        // Get the attribute name - it includes the '@' prefix for directive attributes
         var attributeName = attributeBlock.Name.GetContent();
 
         // Check if this is a directive attribute (starts with '@')
-        if (!namePrefix.Contains("@"))
+        if (string.IsNullOrEmpty(attributeName) || !attributeName.StartsWith("@"))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        // The full attribute name for matching includes the '@'
-        var fullAttributeName = "@" + attributeName;
-
         // Try to find the missing namespace for this directive attribute
         if (!TryGetMissingDirectiveAttributeNamespace(
             context.CodeDocument,
-            fullAttributeName,
+            attributeName,
             out var missingNamespace))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
@@ -106,12 +102,17 @@ internal class UnboundDirectiveAttributeAddUsingCodeActionProvider : IRazorCodeA
 
         var tagHelperContext = codeDocument.GetRequiredTagHelperContext();
 
-        // For attributes with parameters (e.g., @bind:after), extract just the base attribute name
-        var baseAttributeName = attributeName;
-        var colonIndex = attributeName.IndexOf(':');
+        // Remove the '@' prefix for matching against tag helper descriptors
+        // The attribute name from syntax is "@onclick" but descriptors use "onclick"
+        var nameWithoutAt = attributeName.StartsWith("@") ? attributeName[1..] : attributeName;
+
+        // For attributes with parameters (e.g., @bind:after becomes bind:after then bind), 
+        // extract just the base attribute name
+        var baseAttributeName = nameWithoutAt;
+        var colonIndex = nameWithoutAt.IndexOf(':');
         if (colonIndex > 0)
         {
-            baseAttributeName = attributeName[..colonIndex];
+            baseAttributeName = nameWithoutAt[..colonIndex];
         }
 
         // Search for matching bound attribute descriptors in all available tag helpers
