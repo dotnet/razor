@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
@@ -321,32 +322,72 @@ internal static class FormattingUtilities
         }
     }
 
-    /// <summary>
-    /// Sometimes the Html language server will send back an edit that contains a tilde, because the generated
-    /// document we send them has lots of tildes. In those cases, we need to do some extra work to compute the
-    /// minimal text edits
-    /// </summary>
+    /// <inheritdoc cref="FixHtmlTextChanges(SourceText, ImmutableArray{TextChange})" />
     public static TextEdit[] FixHtmlTextEdits(SourceText htmlSourceText, TextEdit[] edits)
     {
         // Avoid computing a minimal diff if we don't need to
-        if (!edits.Any(static e => e.NewText.Contains("~")))
+        if (!edits.Any(static e => e.NewText.Contains('~')))
             return edits;
 
         var changes = edits.SelectAsArray(htmlSourceText.GetTextChange);
 
-        var fixedChanges = htmlSourceText.MinimizeTextChanges(changes);
+        var fixedChanges = FixHtmlTextChanges(htmlSourceText, changes);
         return [.. fixedChanges.Select(htmlSourceText.GetTextEdit)];
     }
 
-    internal static SumType<TextEdit, AnnotatedTextEdit>[] FixHtmlTextEdits(SourceText htmlSourceText, SumType<TextEdit, AnnotatedTextEdit>[] edits)
+    /// <inheritdoc cref="FixHtmlTextChanges(SourceText, ImmutableArray{TextChange})" />
+    public static SumType<TextEdit, AnnotatedTextEdit>[] FixHtmlTextEdits(SourceText htmlSourceText, SumType<TextEdit, AnnotatedTextEdit>[] edits)
     {
         // Avoid computing a minimal diff if we don't need to
-        if (!edits.Any(static e => ((TextEdit)e).NewText.Contains("~")))
+        if (!edits.Any(static e => ((TextEdit)e).NewText.Contains('~')))
             return edits;
 
         var changes = edits.SelectAsArray(e => htmlSourceText.GetTextChange((TextEdit)e));
 
-        var fixedChanges = htmlSourceText.MinimizeTextChanges(changes);
+        var fixedChanges = FixHtmlTextChanges(htmlSourceText, changes);
         return [.. fixedChanges.Select(htmlSourceText.GetTextEdit)];
     }
+
+    /// <summary>
+    /// Computes a set of changes at word granularity to avoid Html edits that want to change C#
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// There is a lot of uncertainty when we're dealing with edits that come from the Html formatter
+    /// because we are not responsible for it. It could make all sorts of strange edits, and it could
+    /// structure those edits is all sorts of ways. eg, it could have individual character edits, or
+    /// it could have a single edit that replaces a whole section of text, or the whole document.
+    /// Since the Html formatter doesn't understand Razor, and in fact doesn't even format the actual
+    /// Razor document directly (all C# is replaced), we have to be selective about what edits we will
+    /// actually use, but being selective is tricky because we might be missing some intentional edits
+    /// that the formatter made.
+    /// </para>
+    ///
+    /// <para>
+    /// To solve this, and work around various issues due to the Html formatter seeing a much simpler
+    /// document that we are actually dealing with, the first thing we do is take the changes it suggests
+    /// and apply them to the document it saw, then use our own algorithm to produce a set of changes
+    /// that more closely match what we want to get out of it. Specifically, we only want to see changes
+    /// to whitespace, or Html, not changes that include C#. Fortunately since we encode all C# as tildes
+    /// it means we can do a word-based diff, and all C# will essentially be equal to all other C#, so
+    /// won't appear in the diff.
+    /// </para>
+    ///
+    /// <para>
+    /// So we end up with a set of changes that are only ever to whitespace, or legitimate Html (though
+    /// in reality the formatter doesn't change that anyway).
+    /// </para>
+    /// </remarks>
+    public static ImmutableArray<TextChange> FixHtmlTextChanges(SourceText htmlSourceText, ImmutableArray<TextChange> changes)
+    {
+        // Avoid computing a minimal diff if we don't need to. Slightly wasteful if we've come from one
+        // of the other overloads, but worth it if we haven't (and worth it for them to validate before
+        // doing the work to convert edits to changes).
+        if (!changes.Any(static e => e.NewText?.Contains('~') ?? false))
+            return changes;
+
+        var changedText = htmlSourceText.WithChanges(changes);
+        return SourceTextDiffer.GetMinimalTextChanges(htmlSourceText, changedText, DiffKind.Word);
+    }
+
 }

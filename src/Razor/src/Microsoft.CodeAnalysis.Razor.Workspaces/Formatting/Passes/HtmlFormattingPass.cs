@@ -23,7 +23,29 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
 
         if (changes.Length > 0)
         {
+            // Edits that come from the Html formatter are not necessarily trustworthy, so we need to fix them to ensure
+            // they're not going to break any C# code in the document.
+            var htmlSourceText = context.CodeDocument.GetHtmlSourceText();
+            context.Logger?.LogSourceText("HtmlSourceText", htmlSourceText);
+
+            changes = FormattingUtilities.FixHtmlTextChanges(htmlSourceText, changes);
+
+            if (changes.Length == 0)
+            {
+                return [];
+            }
+
+            // Now that the changes are on our terms, we can apply our own filtering without having to worry
+            // that we're missing something important. We could still, in theory, be missing something the Html
+            // formatter intentionally did, but we also know the Html formatter made its decisions without an
+            // awareness of Razor anyway, so it's not a reliable source.
             var filteredChanges = await FilterIncomingChangesAsync(context, changes, cancellationToken).ConfigureAwait(false);
+
+            if (filteredChanges.Length == 0)
+            {
+                return [];
+            }
+
             changedText = changedText.WithChanges(filteredChanges);
 
             context.Logger?.LogSourceText("AfterHtmlFormatter", changedText);
@@ -49,6 +71,7 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
             var comment = node?.FirstAncestorOrSelf<RazorCommentBlockSyntax>();
             if (comment is not null && change.Span.Start > comment.SpanStart)
             {
+                context.Logger?.LogMessage($"Dropping change {change} because it's in a Razor comment");
                 continue;
             }
 
@@ -75,6 +98,7 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
                     sourceText[change.Span.Start - 1] == '@' &&
                     sourceText[change.Span.Start] == '<')
                 {
+                    context.Logger?.LogMessage($"Dropping change {change} because it breaks a C# template");
                     continue;
                 }
 
@@ -110,6 +134,7 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
                     csharpSyntaxRoot.FindNode(new TextSpan(csharpIndex, 0), getInnermostNodeForTie: true) is { } csharpNode &&
                     csharpNode is CSharp.Syntax.LiteralExpressionSyntax or CSharp.Syntax.InterpolatedStringTextSyntax)
                 {
+                    context.Logger?.LogMessage($"Dropping change {change} because it breaks a C# string literal");
                     continue;
                 }
             }
