@@ -84,23 +84,27 @@ internal sealed class CohostHoverEndpoint(
             return htmlHover;
         }
 
-        // This logic is to prepend HTML hover content to the razor hover content if both exist.
-        // The razor content comes through as a ContainerElement, while the html content comes
-        // through as MarkupContent. We need to extract the html content and insert it at the
-        // start of the combined ContainerElement.
-        if (htmlHover != null
-            && htmlHover.Range == razorHover.Range
-            && razorHover is VSInternalHover razorVsInternalHover
-            && razorVsInternalHover.RawContent is ContainerElement razorContainerElement)
+        if (htmlHover is null
+            || htmlHover.Range != razorHover.Range)
         {
-            var htmlStringResponse = htmlHover.Contents.Match(
-                static s => s,
-                static markedString => null,
-                static stringOrMarkedStringArray => null,
-                static markupContent => markupContent.Value
-            );
+            return razorHover;
+        }
 
-            if (htmlStringResponse is not null)
+        var htmlStringResponse = htmlHover.Contents.Match(
+            static s => s,
+            static markedString => null,
+            static stringOrMarkedStringArray => null,
+            static markupContent => markupContent.Value
+        );
+
+        if (htmlStringResponse is not null)
+        {
+            // This logic is to prepend HTML hover content to the razor hover content if both exist.
+            // The razor content comes through as a ContainerElement, while the html content comes
+            // through as MarkupContent. We need to extract the html content and insert it at the
+            // start of the combined ContainerElement.
+            if (razorHover is VSInternalHover razorVsInternalHover
+                && razorVsInternalHover.RawContent is ContainerElement razorContainerElement)
             {
                 var htmlStringClassifiedTextElement = ClassifiedTextElement.CreatePlainText(htmlStringResponse);
                 var verticalSpacingTextElement = ClassifiedTextElement.CreatePlainText(string.Empty);
@@ -110,6 +114,24 @@ internal sealed class CohostHoverEndpoint(
 
                 // Modify the existing hover's RawContent to prepend the HTML content.
                 razorVsInternalHover.RawContent = new ContainerElement(razorContainerElement.Style, [htmlContainerElement, .. razorContainerElement.Elements]);
+            }
+            else
+            {
+                var razorStringResponse = razorHover.Contents.Match(
+                    static s => s,
+                    static markedString => null,
+                    static stringOrMarkedStringArray => null,
+                    static markupContent => markupContent.Value
+                );
+
+                if (razorStringResponse is not null)
+                {
+                    razorHover.Contents = new MarkupContent()
+                    {
+                        Kind = MarkupKind.Markdown,
+                        Value = htmlStringResponse + "\n\n---\n\n" + razorStringResponse
+                    };
+                }
             }
         }
 
