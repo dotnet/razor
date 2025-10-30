@@ -225,17 +225,21 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
             => types.DeclaredAccessibility == Accessibility.Public &&
                types.Name == "BindAttributes";
 
-        protected override void Collect(IAssemblySymbol assembly, ICollection<TagHelperDescriptor> results, CancellationToken cancellationToken)
+        public override void Collect(TagHelperDescriptorProviderContext context, CancellationToken cancellationToken)
         {
+            // Overrides the outermost version of Collect as TagHelperCollector.Collect(context, token)
+            // caches results per assembly. This provider needs to operate on the full set of calculated
+            // descriptors to handle case #4.
+
             // First, collect the initial set of tag helpers from this assembly. This calls
             // the Collect(INamedTypeSymbol, ...) overload below for cases #2 & #3.
-            base.Collect(assembly, results, cancellationToken);
+            base.Collect(context, cancellationToken);
 
             // Then, for case #4 we look at the tag helpers that were already created corresponding to components
             // and pattern match on properties.
-            using var componentBindTagHelpers = new PooledArrayBuilder<TagHelperDescriptor>(capacity: results.Count);
+            using var componentBindTagHelpers = new PooledArrayBuilder<TagHelperDescriptor>(capacity: context.Results.Count);
 
-            foreach (var tagHelper in results)
+            foreach (var tagHelper in context.Results)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -244,7 +248,7 @@ internal sealed class BindTagHelperDescriptorProvider() : TagHelperDescriptorPro
 
             foreach (var tagHelper in componentBindTagHelpers)
             {
-                results.Add(tagHelper);
+                context.Results.Add(tagHelper);
             }
         }
 
