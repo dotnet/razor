@@ -3,7 +3,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Text;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -11,45 +10,11 @@ namespace Microsoft.CodeAnalysis.Razor.TextDifferencing;
 
 internal partial class SourceTextDiffer
 {
-    private sealed class WordDiffer : SourceTextDiffer
+    private sealed class WordDiffer(SourceText oldText, SourceText newText)
+        : TextSpanDiffer(oldText, newText)
     {
-        private readonly ImmutableArray<TextSpan> _oldWords;
-        private readonly ImmutableArray<TextSpan> _newWords;
-
-        private char[] _oldBuffer;
-        private char[] _newBuffer;
-        private char[] _appendBuffer;
-
-        protected override int OldSourceLength { get; }
-        protected override int NewSourceLength { get; }
-
-        public WordDiffer(SourceText oldText, SourceText newText) : base(oldText, newText)
+        protected override ImmutableArray<TextSpan> Tokenize(SourceText text)
         {
-            _oldBuffer = RentArray(1024);
-            _newBuffer = RentArray(1024);
-            _appendBuffer = RentArray(1024);
-
-            _oldWords = TokenizeWords(oldText);
-            _newWords = TokenizeWords(newText);
-
-            OldSourceLength = _oldWords.Length;
-            NewSourceLength = _newWords.Length;
-        }
-
-        public override void Dispose()
-        {
-            ReturnArray(_oldBuffer);
-            ReturnArray(_newBuffer);
-            ReturnArray(_appendBuffer);
-        }
-
-        private static ImmutableArray<TextSpan> TokenizeWords(SourceText text)
-        {
-            if (text.Length == 0)
-            {
-                return [];
-            }
-
             using var builder = new PooledArrayBuilder<TextSpan>();
 
             var currentSpanStart = 0;
@@ -76,72 +41,18 @@ internal partial class SourceTextDiffer
             builder.Add(TextSpan.FromBounds(currentSpanStart, text.Length));
 
             return builder.ToImmutableAndClear();
+        }
 
+        private static int Classify(char c)
+        {
             // The type of classification doesn't matter as long as its unique and equatible
-            static int Classify(char c)
-                => c switch
-                {
-                    '/' => 0,
-                    '"' => 1,
-                    _ when char.IsWhiteSpace(c) => 2,
-                    _ => 3,
-                };
-        }
-
-        protected override bool SourceEqual(int oldSourceIndex, int newSourceIndex)
-        {
-            var oldWord = _oldWords[oldSourceIndex];
-            var newWord = _newWords[newSourceIndex];
-            if (oldWord.Length != newWord.Length)
+            return c switch
             {
-                return false;
-            }
-
-            var length = oldWord.Length;
-
-            // Copy the text into char arrays for comparison. Note: To avoid allocation,
-            // we try to reuse the same char buffers and only grow them when a longer
-            // line is encountered.
-            var oldChars = EnsureBuffer(ref _oldBuffer, oldWord.Length);
-            var newChars = EnsureBuffer(ref _newBuffer, newWord.Length);
-
-            OldText.CopyTo(oldWord.Start, oldChars, 0, length);
-            NewText.CopyTo(newWord.Start, newChars, 0, length);
-
-            for (var i = 0; i < length; i++)
-            {
-                if (oldChars[i] != newChars[i])
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        protected override int GetEditPosition(DiffEdit edit)
-            => _oldWords[edit.Position].Start;
-
-        protected override int AppendEdit(DiffEdit edit, StringBuilder builder)
-        {
-            if (edit.Kind == DiffEditKind.Insert)
-            {
-                Assumes.NotNull(edit.NewTextPosition);
-                var newWordIndex = edit.NewTextPosition.GetValueOrDefault();
-
-                for (var i = 0; i < edit.Length; i++)
-                {
-                    var word = _newWords[newWordIndex + i];
-                    var buffer = EnsureBuffer(ref _appendBuffer, word.Length);
-                    NewText.CopyTo(word.Start, buffer, 0, word.Length);
-
-                    builder.Append(buffer, 0, word.Length);
-                }
-
-                return _oldWords[edit.Position].Start;
-            }
-
-            return _oldWords[edit.Position + edit.Length - 1].End;
+                '/' => 0,
+                '"' => 1,
+                _ when char.IsWhiteSpace(c) => 2,
+                _ => 3,
+            };
         }
     }
 }
