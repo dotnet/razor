@@ -77,7 +77,7 @@ internal sealed class CohostHoverEndpoint(
         return MergeHtmlAndRazorHoverResponses(razorResponse.Result, htmlHover);
     }
 
-    private LspHover? MergeHtmlAndRazorHoverResponses(LspHover? razorHover, LspHover? htmlHover)
+    private static LspHover? MergeHtmlAndRazorHoverResponses(LspHover? razorHover, LspHover? htmlHover)
     {
         if (razorHover is null)
         {
