@@ -389,5 +389,4 @@ internal static class FormattingUtilities
         var changedText = htmlSourceText.WithChanges(changes);
         return SourceTextDiffer.GetMinimalTextChanges(htmlSourceText, changedText, DiffKind.Word);
     }
-
 }
