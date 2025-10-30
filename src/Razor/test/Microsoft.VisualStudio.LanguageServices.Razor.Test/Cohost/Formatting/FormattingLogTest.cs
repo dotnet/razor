@@ -58,6 +58,16 @@ public class FormattingLogTest(FormattingTestContext context, HtmlFormattingFixt
         return VerifyMixedIndentationAsync(contents, htmlChangesFile);
     }
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12416")]
+    public Task RealWorldMixedIndentation()
+    {
+        var contents = GetResource("InitialDocument.txt");
+        var htmlChangesFile = GetResource("HtmlChanges.json");
+
+        return VerifyMixedIndentationAsync(contents, htmlChangesFile);
+    }
+
     private async Task VerifyMixedIndentationAsync(string contents, string htmlChangesFile)
     {
         var document = CreateProjectAndRazorDocument(contents);
