@@ -59,8 +59,7 @@ internal partial class SourceTextDiffer
             // whitespace characters in the same "word", and we don't really care about contiguous quotes
             // or slashes, so we can keep it simple and just capture a "word" when the classification of
             // the current character changes.
-            var index = 1;
-            while (index < text.Length)
+            for (var index = 1; index < text.Length; index++)
             {
                 var classification = Classify(text[index]);
                 if (classification != currentClassification)
@@ -70,8 +69,6 @@ internal partial class SourceTextDiffer
                     currentSpanStart = index;
                     currentClassification = classification;
                 }
-
-                index++;
             }
 
             // It's impossible for the loop to capture the last word
