@@ -29,7 +29,6 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
             context.Logger?.LogSourceText("HtmlSourceText", htmlSourceText);
 
             changes = FormattingUtilities.FixHtmlTextChanges(htmlSourceText, changes);
-
             if (changes.Length == 0)
             {
                 return [];
@@ -40,7 +39,6 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
             // formatter intentionally did, but we also know the Html formatter made its decisions without an
             // awareness of Razor anyway, so it's not a reliable source.
             var filteredChanges = await FilterIncomingChangesAsync(context, changes, cancellationToken).ConfigureAwait(false);
-
             if (filteredChanges.Length == 0)
             {
                 return [];
