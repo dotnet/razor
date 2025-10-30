@@ -30,12 +30,32 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
             }
             """;
 
-        await VerifyHoverAsync(code, async (hover, document) =>
+        // This verifies Hover calls into both csharp and HTML and aggregates their results
+        const string htmlDescription = "html description";
+        var htmlResponse = new VSInternalHover();
+
+        htmlResponse.Range = new Roslyn.LanguageServer.Protocol.Range()
+        {
+            Start = new Roslyn.LanguageServer.Protocol.Position(0, 1),
+            End = new Roslyn.LanguageServer.Protocol.Position(0, "<PageTitle".Length),
+        };
+        htmlResponse.Contents = new MarkupContent()
+        {
+            Kind = MarkupKind.Markdown,
+            Value = htmlDescription,
+        };
+
+        await VerifyHoverAsync(code, htmlResponse, async (hover, document) =>
         {
             await VerifyRangeAsync(hover, code.Span, document);
 
             hover.VerifyContents(
                 Container(
+                    Container(
+                        ClassifiedText(
+                            Text(htmlDescription)),
+                        ClassifiedText(
+                            Text(string.Empty))),
                     Container(
                         Image,
                         ClassifiedText( // class Microsoft.AspNetCore.Components.Web.PageTitle
@@ -310,10 +330,13 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
         });
     }
 
-    private async Task VerifyHoverAsync(TestCode input, Func<Hover, TextDocument, Task> verifyHover)
+    private Task VerifyHoverAsync(TestCode input, Func<Hover, TextDocument, Task> verifyHover)
+        => VerifyHoverAsync(input, htmlResponse: null, verifyHover);
+
+    private async Task VerifyHoverAsync(TestCode input, Hover? htmlResponse, Func<Hover, TextDocument, Task> verifyHover)
     {
         var document = CreateProjectAndRazorDocument(input.Text);
-        var result = await GetHoverResultAsync(document, input);
+        var result = await GetHoverResultAsync(document, input, htmlResponse);
 
         Assert.NotNull(result);
         await verifyHover(result, document);
