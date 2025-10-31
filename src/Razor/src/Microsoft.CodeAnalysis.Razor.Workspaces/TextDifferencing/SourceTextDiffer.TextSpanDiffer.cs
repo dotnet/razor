@@ -11,11 +11,11 @@ internal partial class SourceTextDiffer
 {
     private abstract class TextSpanDiffer : SourceTextDiffer
     {
-        private readonly ImmutableArray<TextSpan> _oldLines = [];
-        private readonly ImmutableArray<TextSpan> _newLines = [];
+        private readonly ImmutableArray<TextSpan> _oldSpans = [];
+        private readonly ImmutableArray<TextSpan> _newSpans = [];
 
-        private char[] _oldLineBuffer;
-        private char[] _newLineBuffer;
+        private char[] _oldBuffer;
+        private char[] _newBuffer;
         private char[] _appendBuffer;
 
         protected override int OldSourceLength { get; }
@@ -24,44 +24,44 @@ internal partial class SourceTextDiffer
         public TextSpanDiffer(SourceText oldText, SourceText newText)
             : base(oldText, newText)
         {
-            _oldLineBuffer = RentArray(1024);
-            _newLineBuffer = RentArray(1024);
+            _oldBuffer = RentArray(1024);
+            _newBuffer = RentArray(1024);
             _appendBuffer = RentArray(1024);
 
             if (oldText.Length > 0)
             {
-                _oldLines = Tokenize(oldText);
+                _oldSpans = Tokenize(oldText);
             }
 
             if (newText.Length > 0)
             {
-                _newLines = Tokenize(newText);
+                _newSpans = Tokenize(newText);
             }
 
-            OldSourceLength = _oldLines.Length;
-            NewSourceLength = _newLines.Length;
+            OldSourceLength = _oldSpans.Length;
+            NewSourceLength = _newSpans.Length;
         }
 
         protected abstract ImmutableArray<TextSpan> Tokenize(SourceText text);
 
         public override void Dispose()
         {
-            ReturnArray(_oldLineBuffer);
-            ReturnArray(_newLineBuffer);
+            ReturnArray(_oldBuffer);
+            ReturnArray(_newBuffer);
             ReturnArray(_appendBuffer);
         }
 
         protected override bool SourceEqual(int oldSourceIndex, int newSourceIndex)
         {
-            var oldLine = _oldLines[oldSourceIndex];
-            var newLine = _newLines[newSourceIndex];
+            var oldSpan = _oldSpans[oldSourceIndex];
+            var newSpan = _newSpans[newSourceIndex];
 
-            if (oldLine.Length != newLine.Length)
+            if (oldSpan.Length != newSpan.Length)
             {
                 return false;
             }
 
-            var length = oldLine.Length;
+            var length = oldSpan.Length;
 
             // Simple case: Both lines are empty.
             if (length == 0)
@@ -72,11 +72,11 @@ internal partial class SourceTextDiffer
             // Copy the text into char arrays for comparison. Note: To avoid allocation,
             // we try to reuse the same char buffers and only grow them when a longer
             // line is encountered.
-            var oldChars = EnsureBuffer(ref _oldLineBuffer, length);
-            var newChars = EnsureBuffer(ref _newLineBuffer, length);
+            var oldChars = EnsureBuffer(ref _oldBuffer, length);
+            var newChars = EnsureBuffer(ref _newBuffer, length);
 
-            OldText.CopyTo(oldLine.Start, oldChars, 0, length);
-            NewText.CopyTo(newLine.Start, newChars, 0, length);
+            OldText.CopyTo(oldSpan.Start, oldChars, 0, length);
+            NewText.CopyTo(newSpan.Start, newChars, 0, length);
 
             for (var i = 0; i < length; i++)
             {
@@ -90,7 +90,7 @@ internal partial class SourceTextDiffer
         }
 
         protected override int GetEditPosition(DiffEdit edit)
-            => _oldLines[edit.Position].Start;
+            => _oldSpans[edit.Position].Start;
 
         protected override int AppendEdit(DiffEdit edit, StringBuilder builder)
         {
@@ -101,21 +101,21 @@ internal partial class SourceTextDiffer
 
                 for (var i = 0; i < edit.Length; i++)
                 {
-                    var newLine = _newLines[newTextPosition + i];
+                    var newSpan = _newSpans[newTextPosition + i];
 
-                    if (newLine.Length > 0)
+                    if (newSpan.Length > 0)
                     {
-                        var buffer = EnsureBuffer(ref _appendBuffer, newLine.Length);
-                        NewText.CopyTo(newLine.Start, buffer, 0, newLine.Length);
+                        var buffer = EnsureBuffer(ref _appendBuffer, newSpan.Length);
+                        NewText.CopyTo(newSpan.Start, buffer, 0, newSpan.Length);
 
-                        builder.Append(buffer, 0, newLine.Length);
+                        builder.Append(buffer, 0, newSpan.Length);
                     }
                 }
 
-                return _oldLines[edit.Position].Start;
+                return _oldSpans[edit.Position].Start;
             }
 
-            return _oldLines[edit.Position + edit.Length - 1].End;
+            return _oldSpans[edit.Position + edit.Length - 1].End;
         }
     }
 }
