@@ -28,18 +28,18 @@ internal partial class SourceTextDiffer
             _newLineBuffer = RentArray(1024);
             _appendBuffer = RentArray(1024);
 
-            OldSourceLength = _oldLines.Length;
-            NewSourceLength = _newLines.Length;
-
-            if (OldSourceLength > 0)
+            if (oldText.Length > 0)
             {
                 _oldLines = Tokenize(oldText);
             }
 
-            if (NewSourceLength > 0)
+            if (newText.Length > 0)
             {
                 _newLines = Tokenize(newText);
             }
+
+            OldSourceLength = _oldLines.Length;
+            NewSourceLength = _newLines.Length;
         }
 
         protected abstract ImmutableArray<TextSpan> Tokenize(SourceText text);
