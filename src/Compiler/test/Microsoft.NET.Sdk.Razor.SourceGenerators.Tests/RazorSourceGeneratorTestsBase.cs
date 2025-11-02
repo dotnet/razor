@@ -151,6 +151,8 @@ public abstract class RazorSourceGeneratorTestsBase
         });
         var app = appBuilder.Build();
         
+        // Create a service scope to properly handle scoped services like IViewBufferScope.
+        // ASP.NET Core's DI validation prevents resolving scoped services from the root provider.
         using var scope = app.Services.CreateScope();
         var httpContext = new DefaultHttpContext
         {
