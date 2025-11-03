@@ -3605,5 +3605,72 @@ namespace MyApp
             var newCouNterSource = result.GeneratedSources.FirstOrDefault(s => s.HintName.Contains("NewCouNter"));
             Assert.Contains("public partial class NewCouNter", newCouNterSource.SourceText.ToString());
         }
+
+        [Fact]
+        public async Task RazorClassLibrary_Change_Updates_DependentProject_WhenReferencedAsCompilation()
+        {
+            var rclProject = CreateTestProject(new()
+            {
+                ["LibComponent.razor"] = "<p>Library component</p>",
+            });
+            rclProject = rclProject.WithAssemblyName("RazorClassLibrary");
+
+            var rclCompilation = await rclProject.GetCompilationAsync();
+            var rclDriver = await GetDriverAsync(rclProject);
+            var rclRun = RunGenerator(rclCompilation!, ref rclDriver, out var rclOutputCompilation);
+            Assert.Empty(rclRun.Diagnostics);
+            Assert.Single(rclRun.GeneratedSources); // LibComponent
+
+            // Explicitly use a CompilationReference
+            var rclReference = rclOutputCompilation.ToMetadataReference();
+
+            // Create the main project that references the RCL and uses its component.
+            var mainProject = CreateTestProject(new()
+            {
+                ["Pages/Index.razor"] = "<LibComponent />",
+            });
+            mainProject = mainProject.AddMetadataReference(rclReference);
+
+            var mainCompilation = await mainProject.GetCompilationAsync();
+            var (mainDriver, mainAdditionalTexts) = await GetDriverWithAdditionalTextAsync(mainProject);
+            var mainRun = RunGenerator(mainCompilation!, ref mainDriver);
+            Assert.Empty(mainRun.Diagnostics);
+            Assert.Single(mainRun.GeneratedSources);
+
+            // Rename the component in the RCL: LibComponent -> RenamedComponent
+            rclProject = CreateTestProject(new()
+            {
+                ["RenamedComponent.razor"] = "<p>Library component</p>",
+            }).WithAssemblyName("RazorClassLibrary");
+
+            rclCompilation = await rclProject.GetCompilationAsync();
+            rclDriver = await GetDriverAsync(rclProject);
+            rclRun = RunGenerator(rclCompilation!, ref rclDriver, out rclOutputCompilation);
+            Assert.Empty(rclRun.Diagnostics);
+            Assert.Single(rclRun.GeneratedSources); // RenamedComponent
+
+            var rclReference2 = rclOutputCompilation.ToMetadataReference();
+
+            // Update main project to point to the new reference (with renamed component).
+            mainProject = mainProject.RemoveMetadataReference(rclReference)
+                                     .AddMetadataReference(rclReference2);
+            mainCompilation = await mainProject.GetCompilationAsync();
+
+            // Re-run generator: expect missing component diagnostic (RZ10012).
+            mainRun = RunGenerator(mainCompilation!, ref mainDriver);
+            var missing = Assert.Single(mainRun.Diagnostics);
+            Assert.Equal("RZ10012", missing.Id);
+
+            // Update main project's Index.razor to use the renamed component.
+            var updatedIndex = new TestAdditionalText("Pages/Index.razor", SourceText.From("<RenamedComponent />", Encoding.UTF8));
+            mainDriver = mainDriver.ReplaceAdditionalText(
+                mainAdditionalTexts.First(t => t.Path.EndsWith("Index.razor", StringComparison.OrdinalIgnoreCase)),
+                updatedIndex);
+
+            // Re-run generator: should compile cleanly again.
+            mainRun = RunGenerator(mainCompilation!, ref mainDriver);
+            Assert.Empty(mainRun.Diagnostics);
+            Assert.Single(mainRun.GeneratedSources);
+        }
     }
 }
