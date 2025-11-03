@@ -51,7 +51,8 @@ internal class UnboundDirectiveAttributeAddUsingCodeActionProvider : IRazorCodeA
 
         // Make sure the cursor is actually on the name part, since the attribute block is the whole attribute, including
         // value and even some whitespace
-        if (!attributeBlock.Name.Span.Contains(context.StartAbsoluteIndex))
+        var nameSpan = attributeBlock.Name.Span;
+        if (context.StartAbsoluteIndex < nameSpan.Start || context.StartAbsoluteIndex > nameSpan.End)
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
