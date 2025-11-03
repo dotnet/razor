@@ -93,8 +93,7 @@ internal class UnboundDirectiveAttributeAddUsingCodeActionProvider : IRazorCodeA
         }
 
         // Get all tag helpers, not just those in scope, since we want to suggest adding a using
-        var tagHelpers = codeDocument.GetTagHelpers();
-        if (tagHelpers is null)
+        if (!codeDocument.TryGetTagHelpers(out var tagHelpers))
         {
             return false;
         }
