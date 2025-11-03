@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +19,7 @@ public class MemoryCacheTest(ITestOutputHelper testOutput) : ToolingTestBase(tes
     public async Task ConcurrentSets_DoesNotThrow()
     {
         // Arrange
-        var cache = new TestMemoryCache();
+        var cache = new MemoryCache<string, IReadOnlyList<int>>();
         var entries = Enumerable.Range(0, 500);
         var repeatCount = 4;
 
@@ -30,7 +29,7 @@ public class MemoryCacheTest(ITestOutputHelper testOutput) : ToolingTestBase(tes
         {
             // 2 is an arbitrarily low number, we're just trying to emulate concurrency
             await Task.Delay(2);
-            cache.Set(entry.ToString(CultureInfo.InvariantCulture), Array.Empty<uint>());
+            cache.Set(entry.ToString(), value: []);
         });
 
         // Act & Assert
@@ -40,17 +39,18 @@ public class MemoryCacheTest(ITestOutputHelper testOutput) : ToolingTestBase(tes
     [Fact]
     public void LastAccessIsUpdated()
     {
-        var cache = new TestMemoryCache();
-        var key = GetKey();
-        var value = new List<uint>();
+        var cache = new MemoryCache<string, IReadOnlyList<int>>();
+        var cacheAccessor = cache.GetTestAccessor();
 
-        cache.Set(key, value);
-        var oldAccessTime = cache.GetAccessTime(key);
+        var key = GetNewKey();
+
+        cache.Set(key, value: []);
+        Assert.True(cacheAccessor.TryGetLastAccess(key, out var oldAccessTime));
 
         Thread.Sleep(millisecondsTimeout: 10);
 
         cache.TryGetValue(key, out _);
-        var newAccessTime = cache.GetAccessTime(key);
+        Assert.True(cacheAccessor.TryGetLastAccess(key, out var newAccessTime));
 
         Assert.True(newAccessTime > oldAccessTime, "New AccessTime should be greater than old");
     }
@@ -58,9 +58,9 @@ public class MemoryCacheTest(ITestOutputHelper testOutput) : ToolingTestBase(tes
     [Fact]
     public void BasicAdd()
     {
-        var cache = new TestMemoryCache();
-        var key = GetKey();
-        var value = new List<uint> { 1, 2, 3 };
+        var cache = new MemoryCache<string, IReadOnlyList<int>>();
+        var key = GetNewKey();
+        var value = new List<int> { 1, 2, 3 };
 
         cache.Set(key, value);
 
@@ -72,64 +72,41 @@ public class MemoryCacheTest(ITestOutputHelper testOutput) : ToolingTestBase(tes
     [Fact]
     public void Compaction()
     {
-        var cache = new TestMemoryCache();
-        var sizeLimit = TestMemoryCache.SizeLimit;
+        const int SizeLimit = 10;
 
-        for (var i = 0; i < sizeLimit; i++)
+        var cache = new MemoryCache<string, IReadOnlyList<int>>(SizeLimit);
+        var cacheAccessor = cache.GetTestAccessor();
+
+        var wasCompacted = false;
+        cacheAccessor.Compacted += () => wasCompacted = true;
+
+        for (var i = 0; i < SizeLimit; i++)
         {
-            var key = GetKey();
-            var value = new List<uint> { (uint)i };
-            cache.Set(key, value);
-            Assert.False(cache._wasCompacted, "It got compacted early.");
+            cache.Set(GetNewKey(), [i]);
+            Assert.False(wasCompacted, "It got compacted early.");
         }
 
-        cache.Set(GetKey(), new List<uint> { (uint)sizeLimit + 1 });
-        Assert.True(cache._wasCompacted, "Compaction is not happening");
+        cache.Set(GetNewKey(), [SizeLimit]);
+        Assert.True(wasCompacted, "Compaction is not happening");
     }
 
     [Fact]
     public void MissingKey()
     {
-        var cache = new TestMemoryCache();
-        var key = GetKey();
+        var cache = new MemoryCache<string, IReadOnlyList<int>>();
+        var key = GetNewKey();
 
-        cache.TryGetValue(key, out var value);
-
-        Assert.Null(value);
+        Assert.False(cache.TryGetValue(key, out _));
     }
 
     [Fact]
     public void NullKey()
     {
-        var cache = new TestMemoryCache();
+        var cache = new MemoryCache<string, IReadOnlyList<int>>();
 
         Assert.Throws<ArgumentNullException>(() => cache.TryGetValue(key: null!, out var result));
     }
 
-    private static string GetKey()
-    {
-        return Guid.NewGuid().ToString();
-    }
-
-    private class TestMemoryCache : MemoryCache<string, IReadOnlyList<uint>>
-    {
-        public static int SizeLimit = 10;
-        public bool _wasCompacted = false;
-
-        public TestMemoryCache()
-            : base(SizeLimit)
-        {
-        }
-
-        public DateTime GetAccessTime(string key)
-        {
-            return _dict[key].LastAccess;
-        }
-
-        protected override void Compact()
-        {
-            _wasCompacted = true;
-            base.Compact();
-        }
-    }
+    private static string GetNewKey()
+        => Guid.NewGuid().ToString();
 }

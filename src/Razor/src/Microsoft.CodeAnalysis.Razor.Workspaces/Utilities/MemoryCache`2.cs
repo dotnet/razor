@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor.Utilities;
 
 // We've created our own MemoryCache here, ideally we would use the one in Microsoft.Extensions.Caching.Memory,
 // but until we update O# that causes an Assembly load problem.
-internal class MemoryCache<TKey, TValue>
+internal partial class MemoryCache<TKey, TValue>
     where TKey : notnull
     where TValue : class
 {
@@ -22,6 +22,8 @@ internal class MemoryCache<TKey, TValue>
 
     private readonly object _compactLock;
     private readonly int _sizeLimit;
+
+    private Action? _compactedHandler;
 
     public MemoryCache(int sizeLimit = DefaultSizeLimit, int concurrencyLevel = DefaultConcurrencyLevel)
     {
@@ -70,6 +72,8 @@ internal class MemoryCache<TKey, TValue>
         {
             _dict.Remove(kvps[i].Key);
         }
+
+        _compactedHandler?.Invoke();
     }
 
     protected class CacheEntry
