@@ -11,7 +11,7 @@ internal partial class MemoryCache<TKey, TValue>
 {
     internal TestAccessor GetTestAccessor() => new(this);
 
-    internal ref struct TestAccessor(MemoryCache<TKey, TValue> instance)
+    internal struct TestAccessor(MemoryCache<TKey, TValue> instance)
     {
         public event Action Compacted
         {
