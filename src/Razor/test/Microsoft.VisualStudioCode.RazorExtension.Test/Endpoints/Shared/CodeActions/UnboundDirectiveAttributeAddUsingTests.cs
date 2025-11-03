@@ -94,6 +94,16 @@ public class UnboundDirectiveAttributeAddUsingTests(ITestOutputHelper testOutput
     }
 
     [Fact]
+    public async Task NoCodeAction_WhenNotOnAttributeName()
+    {
+        var input = """
+            <input @onchange="HandleCha[||]nge" />
+            """;
+
+        await VerifyCodeActionAsync(input, expected: null, LanguageServerConstants.CodeActions.AddUsing, addDefaultImports: false);
+    }
+
+    [Fact]
     public async Task AddUsing_Bind()
     {
         var input = """

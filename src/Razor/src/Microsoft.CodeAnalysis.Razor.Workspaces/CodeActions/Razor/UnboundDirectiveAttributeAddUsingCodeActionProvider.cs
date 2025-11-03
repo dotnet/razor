@@ -49,6 +49,13 @@ internal class UnboundDirectiveAttributeAddUsingCodeActionProvider : IRazorCodeA
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
+        // Make sure the cursor is actually on the name part, since the attribute block is the whole attribute, including
+        // value and even some whitespace
+        if (!attributeBlock.Name.Span.Contains(context.StartAbsoluteIndex))
+        {
+            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
+        }
+
         // Try to find the missing namespace for this directive attribute
         if (!TryGetMissingDirectiveAttributeNamespace(context.CodeDocument, attributeBlock, out var missingNamespace))
         {
