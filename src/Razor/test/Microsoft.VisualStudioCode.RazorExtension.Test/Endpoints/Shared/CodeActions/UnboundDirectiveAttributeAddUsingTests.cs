@@ -122,7 +122,7 @@ public class UnboundDirectiveAttributeAddUsingTests(ITestOutputHelper testOutput
         await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.AddUsing, addDefaultImports: false);
     }
 
-    [Fact(Skip = "bind:after attribute matching finds System namespace instead of Web"), WorkItem("https://github.com/dotnet/razor/issues/9747")]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/9747")]
     public async Task AddUsing_BindWithParameter()
     {
         var input = """
