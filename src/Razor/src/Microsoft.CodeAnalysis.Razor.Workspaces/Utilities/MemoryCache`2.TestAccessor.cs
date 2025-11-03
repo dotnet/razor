@@ -21,7 +21,7 @@ internal partial class MemoryCache<TKey, TValue>
 
         public readonly bool TryGetLastAccess(TKey key, out DateTime result)
         {
-            if (instance._dict.TryGetValue(key, out var value))
+            if (instance._map.TryGetValue(key, out var value))
             {
                 result = value.LastAccess;
                 return true;
