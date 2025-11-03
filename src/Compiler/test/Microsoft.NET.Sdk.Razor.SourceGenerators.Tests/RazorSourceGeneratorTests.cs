@@ -3606,7 +3606,7 @@ namespace MyApp
             Assert.Contains("public partial class NewCouNter", newCouNterSource.SourceText.ToString());
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/12316")]
         public async Task RazorClassLibrary_Change_Updates_DependentProject_WhenReferencedAsCompilation()
         {
             var rclProject = CreateTestProject(new()
