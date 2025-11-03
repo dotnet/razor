@@ -120,7 +120,7 @@ internal class UnboundDirectiveAttributeAddUsingCodeActionProvider : IRazorCodeA
                 // No need to worry about multiple matches, because Razor syntax has no way to disambiguate anyway.
                 // Currently only compiler can create directive attribute tag helpers anyway.
                 if (boundAttribute.IsDirectiveAttribute &&
-                    MemoryExtensions.SequenceEqual(boundAttribute.Name.AsSpan(), baseAttributeName))
+                    boundAttribute.Name.AsSpan().SequenceEqual(baseAttributeName))
                 {
                     if (boundAttribute.Parent.TypeNamespace is { } typeNamespace)
                     {
