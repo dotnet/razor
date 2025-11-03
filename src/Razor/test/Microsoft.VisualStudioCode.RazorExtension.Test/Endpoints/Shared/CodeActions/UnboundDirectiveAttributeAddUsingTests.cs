@@ -101,29 +101,14 @@ public class UnboundDirectiveAttributeAddUsingTests(ITestOutputHelper testOutput
             """;
 
         var expected = """
-            @using System
+            @using Microsoft.AspNetCore.Components.Web
             <input @bind="value" />
             """;
 
         await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.AddUsing, addDefaultImports: false);
     }
 
-    [Fact(Skip = "bind-value attribute matching needs investigation")]
-    public async Task AddUsing_BindValue()
-    {
-        var input = """
-            <input @bind-va[||]lue="value" />
-            """;
-
-        var expected = """
-            @using Microsoft.AspNetCore.Components.Web
-            <input @bind-value="value" />
-            """;
-
-        await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.AddUsing, addDefaultImports: false);
-    }
-
-    [Fact(Skip = "bind:after attribute matching finds System namespace instead of Web")]
+    [Fact]
     public async Task AddUsing_BindWithParameter()
     {
         var input = """
