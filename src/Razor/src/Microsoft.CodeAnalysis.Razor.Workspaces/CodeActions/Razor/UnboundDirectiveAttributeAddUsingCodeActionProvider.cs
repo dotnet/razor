@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -99,11 +100,11 @@ internal class UnboundDirectiveAttributeAddUsingCodeActionProvider : IRazorCodeA
         }
 
         // For attributes with parameters (e.g., @bind:after), extract just the base attribute name
-        var baseAttributeName = attributeName;
-        var colonIndex = attributeName.IndexOf(':');
+        var baseAttributeName = attributeName.AsSpan();
+        var colonIndex = baseAttributeName.IndexOf(':');
         if (colonIndex > 0)
         {
-            baseAttributeName = attributeName[..colonIndex];
+            baseAttributeName = baseAttributeName[..colonIndex];
         }
 
         // Search for matching bound attribute descriptors in all available tag helpers
@@ -119,7 +120,7 @@ internal class UnboundDirectiveAttributeAddUsingCodeActionProvider : IRazorCodeA
                 // No need to worry about multiple matches, because Razor syntax has no way to disambiguate anyway.
                 // Currently only compiler can create directive attribute tag helpers anyway.
                 if (boundAttribute.IsDirectiveAttribute &&
-                    boundAttribute.Name == baseAttributeName)
+                    MemoryExtensions.SequenceEqual(boundAttribute.Name.AsSpan(), baseAttributeName))
                 {
                     if (boundAttribute.Parent.TypeNamespace is { } typeNamespace)
                     {
