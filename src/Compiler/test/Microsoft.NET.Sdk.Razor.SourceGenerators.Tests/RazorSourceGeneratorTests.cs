@@ -3643,7 +3643,7 @@ namespace MyApp
                 ["RenamedComponent.razor"] = "<p>Library component</p>",
             }).WithAssemblyName("RazorClassLibrary");
 
-            rclCompilation = await rclProject.GetCompilationAsync();
+            rclCompilation = await rclProject.GetCompilationAsync()!;
             rclDriver = await GetDriverAsync(rclProject);
             rclRun = RunGenerator(rclCompilation!, ref rclDriver, out rclOutputCompilation);
             Assert.Empty(rclRun.Diagnostics);
@@ -3671,6 +3671,19 @@ namespace MyApp
             mainRun = RunGenerator(mainCompilation!, ref mainDriver);
             Assert.Empty(mainRun.Diagnostics);
             Assert.Single(mainRun.GeneratedSources);
+
+            // Update the compilation, which will cause us to re-run. 
+            RazorEventListener eventListener = new RazorEventListener();
+
+            mainCompilation = mainCompilation!.WithOptions(mainCompilation.Options.WithModuleName("newMain"));
+            mainRun = RunGenerator(mainCompilation!, ref mainDriver);
+            Assert.Empty(mainRun.Diagnostics);
+            Assert.Single(mainRun.GeneratedSources);
+
+            // Confirm that the tag helpers from metadata refs _didn't_ re-run
+            Assert.Collection(eventListener.Events,
+                     e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
+                     e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName));
         }
     }
 }
