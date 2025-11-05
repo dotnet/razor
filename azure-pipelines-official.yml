@@ -3,10 +3,9 @@
 #
 
 variables:
-# Hard-coding DncEngInternalBuildPool to avoid broken NetCore1ESPool-Svc-Internal temporarily
-# - template: /eng/common/templates-official/variables/pool-providers.yml@self
-- name: DncEngInternalBuildPool
-  value: NetCore1ESPool-Internal
+# Defines $(DncEngInternalBuildPool)
+- template: /eng/common/templates-official/variables/pool-providers.yml@self
+
 - name: Build.Repository.Clean
   value: true
 - name: _TeamName
