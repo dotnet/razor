@@ -3,7 +3,10 @@
 #
 
 variables:
-- template: /eng/common/templates-official/variables/pool-providers.yml@self
+# Hard-coding DncEngInternalBuildPool to avoid broken NetCore1ESPool-Svc-Internal temporarily
+# - template: /eng/common/templates-official/variables/pool-providers.yml@self
+- name: DncEngInternalBuildPool
+  value: NetCore1ESPool-Internal
 - name: Build.Repository.Clean
   value: true
 - name: _TeamName
@@ -75,7 +78,7 @@ extends:
       autoBaseline: true
     sdl:
       sourceAnalysisPool:
-        name: NetCore1ESPool-Internal
+        name: $(DncEngInternalBuildPool)
         image: 1es-windows-2022
         os: windows
       policheck:
@@ -84,7 +87,7 @@ extends:
         enabled: true
         configFile: '$(Build.SourcesDirectory)/eng/TSAConfig.gdntsa'
     pool:
-      name: NetCore1ESPool-Internal
+      name: $(DncEngInternalBuildPool)
       image: windows.vs2022preview.amd64
       os: windows
     customBuildTags:
@@ -420,7 +423,7 @@ extends:
         - job: insert
           displayName: Insert to VS
           pool:
-            name: NetCore1ESPool-Internal
+            name: $(DncEngInternalBuildPool)
             demands: ImageOverride -equals windows.vs2022.amd64
           steps:
           - download: current
