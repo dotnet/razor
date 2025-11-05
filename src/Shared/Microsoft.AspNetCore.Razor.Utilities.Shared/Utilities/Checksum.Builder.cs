@@ -44,6 +44,8 @@ internal readonly partial record struct Checksum
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static Span<byte> GetBuffer(int length = 8)
         {
+            Debug.Assert(length <= 8, $"length should never be greater than 8.");
+
             var buffer = s_buffer ??= new byte[8];
             return buffer.AsSpan(0, length);
         }
