@@ -107,7 +107,7 @@ extends:
           enablePublishBuildArtifacts: false
           enablePublishTestResults: false
           enablePublishUsingPipelines: false
-          enableSourcebuild: true
+          enableSourcebuild: false
           jobs:
           # Code check
           - ${{ if in(variables['Build.Reason'], 'PullRequest') }}:
