@@ -379,51 +379,75 @@ public class MemoryCacheTest(ITestOutputHelper testOutput) : ToolingTestBase(tes
         var cache = new MemoryCache<string, IReadOnlyList<int>>(SizeLimit);
         var cacheAccessor = cache.GetTestAccessor();
 
-        using var cancellationSource = new CancellationTokenSource();
+        var hotAccessEstablished = new TaskCompletionSource<bool>();
+        var coldEntryAdded = false;
 
         // Add initial entries
-        var initialKeys = new List<string>();
+        var initialKeys = new string[SizeLimit];
+
         for (var i = 0; i < SizeLimit; i++)
         {
             var key = $"initial-{i}";
-            initialKeys.Add(key);
+            initialKeys[i] = key;
             cache.Set(key, [i]);
         }
 
-        // Continuously access first few entries to make them "hot"
-        var hotKeys = initialKeys.Take(2).ToList();
+        // Continuously access first couple entries to make them "hot"
+        var hotKeys = initialKeys.Take(2).ToArray();
         var keepHotTask = Task.Run(async () =>
         {
             try
             {
-                while (!cancellationSource.IsCancellationRequested)
+                // Establish hot key access
+                for (var i = 0; i < 10; i++)
                 {
-                    foreach (var key in hotKeys)
-                    {
-                        _ = cache.TryGetValue(key, out _);
-                    }
+                    await AccessHotKeysAsync(hotKeys, cache);
+                }
 
-                    await Task.Delay(1, cancellationSource.Token);
+                hotAccessEstablished.TrySetResult(true);
+
+                // Continue accessing hot keys while waiting for cold entry to be added
+                while (!coldEntryAdded)
+                {
+                    await AccessHotKeysAsync(hotKeys, cache);
+                }
+
+                // Continue accessing hot keys until finished.
+                for (var i = 0; i < 100; i++)
+                {
+                    await AccessHotKeysAsync(hotKeys, cache);
                 }
             }
             catch (OperationCanceledException)
             {
                 // Expected when cancellation token is canceled
             }
+
+            async Task AccessHotKeysAsync(string[] hotKeys, MemoryCache<string, IReadOnlyList<int>> cache)
+            {
+                foreach (var key in hotKeys)
+                {
+                    _ = cache.TryGetValue(key, out _);
+                }
+
+                await Task.Delay(1, DisposalToken);
+            }
         });
 
         // Trigger compaction
-        await Task.Delay(10); // Let hot access pattern establish
+        await hotAccessEstablished.Task;
         cache.Set("trigger-compaction", [999]);
 
-        cancellationSource.Cancel();
+        // Signal that the cold entry was added
+        coldEntryAdded = true;
+
         await keepHotTask;
 
         // Verify hot entries are more likely to survive
         var hotSurvivalCount = hotKeys.Count(key => cache.TryGetValue(key, out _));
         var coldSurvivalCount = initialKeys.Skip(2).Count(key => cache.TryGetValue(key, out _));
 
-        // Hot entries should have better survival rate (though this is probabilistic)
+        // Hot entries should have better survival rate
         Assert.True(hotSurvivalCount >= coldSurvivalCount,
             $"Hot entries ({hotSurvivalCount}) should survive at least as well as cold entries ({coldSurvivalCount})");
     }
