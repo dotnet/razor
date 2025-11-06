@@ -44,7 +44,7 @@ internal sealed class RemoteDataTipRangeService(in ServiceArgs args) : RazorDocu
         var razorIndex = codeDocument.Source.Text.GetRequiredAbsoluteIndex(position);
         var csharpDocument = codeDocument.GetRequiredCSharpDocument();
 
-        if (!_documentMappingService.TryMapToCSharpDocumentPosition(csharpDocument, razorIndex, out var csharpPosition, out var _))
+        if (!_documentMappingService.TryMapToCSharpDocumentPosition(csharpDocument, razorIndex, out var csharpPosition, out _))
         {
             return NoFurtherHandling;
         }
@@ -52,8 +52,7 @@ internal sealed class RemoteDataTipRangeService(in ServiceArgs args) : RazorDocu
         var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         var csharpResult = await ExternalAccess.Razor.Cohost.Handlers.DataTipRange.GetDataTipRangeAsync(generatedDocument, csharpPosition, cancellationToken).ConfigureAwait(false);
-        if (csharpResult is null
-            || csharpResult.ExpressionRange is null)
+        if (csharpResult?.ExpressionRange is null)
         {
             return NoFurtherHandling;
         }
