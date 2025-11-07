@@ -102,7 +102,7 @@ internal static class CodeActionExtensions
         // Extension will work (it expects Data to be unwrapped), and when it tries to resolve the children, they
         // will come to us because they're wrapped, and we'll send them on to Roslyn.
         //
-        // We we extract each nested code action, wrap its data with our context, then copy across a couple of things
+        // We extract each nested code action, wrap its data with our context, then copy across a couple of things
         // from its data to our new wrapped data, and we're done. We end up with data that is an odd hybrid of Razor
         // and Roslyn expectations, but thanks to the dynamic nature of JSON, it works out.
         using var mappedNestedActions = new PooledArrayBuilder<RazorVSInternalCodeAction>();
