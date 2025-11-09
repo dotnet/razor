@@ -149,6 +149,38 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
         }
     }
 
+    private static void AddParameterNameCompletions(
+        TagHelperDescriptor descriptor,
+        BoundAttributeDescriptor attributeDescriptor,
+        DirectiveAttributeCompletionContext context,
+        Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>)> attributeCompletions)
+    {
+        if (!TagHelperMatchingConventions.CanSatisfyBoundAttribute(context.SelectedAttributeName, attributeDescriptor))
+        {
+            // Don't add parameters when the selected attribute name can't satisfy the given attribute descriptor in parameter name contexts
+            return;
+        }
+
+        foreach (var parameterDescriptor in attributeDescriptor.Parameters)
+        {
+            if (!context.ExistingAttributes.IsDefault
+                && context.ExistingAttributes.Any(
+                    (parameterDescriptor, attributeDescriptor),
+                    static (name, arg) =>
+                        TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(arg.parameterDescriptor, name, arg.attributeDescriptor)))
+            {
+                // There's already an existing attribute that satisfies this parameter, don't show it in the completion list.
+                continue;
+            }
+
+            var descriptionInfo = BoundAttributeDescriptionInfo.From(parameterDescriptor, descriptor.TypeName);
+            var displayName = parameterDescriptor.Name;
+
+            // Doesn't compile in this commit, but will be fixed in next commit
+            AddCompletion(displayName, parameterDescriptor, descriptor, context, attributeCompletions);
+        }
+    }
+
     private static ImmutableArray<RazorCompletionItem> CreateCompletionItems(DirectiveAttributeCompletionContext context, Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>)> attributeCompletions)
     {
         using var completionItems = new PooledArrayBuilder<RazorCompletionItem>(capacity: attributeCompletions.Count);
@@ -298,10 +330,8 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
     // Internal for testing
     internal static ImmutableArray<RazorCompletionItem> GetAttributeParameterCompletions(
-        string attributeName,
-        string? parameterName,
         string containingTagName,
-        ImmutableArray<string> attributes,
+        DirectiveAttributeCompletionContext context,
         TagHelperDocumentContext tagHelperDocumentContext)
     {
         var descriptorsForTag = TagHelperFacts.GetTagHelpersGivenTag(tagHelperDocumentContext, containingTagName, parentTag: null);
@@ -324,30 +354,8 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                     continue;
                 }
 
-                if (TagHelperMatchingConventions.CanSatisfyBoundAttribute(attributeName, attributeDescriptor))
-                {
-                    foreach (var parameterDescriptor in boundAttributeParameters)
-                    {
-                        if (attributes.Any(
-                                (parameterDescriptor, attributeDescriptor),
-                                static (name, arg) =>
-                                    TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(arg.parameterDescriptor, name, arg.attributeDescriptor)))
-                        {
-                            // There's already an existing attribute that satisfies this parameter, don't show it in the completion list.
-                            continue;
-                        }
-
-                        if (!attributeCompletions.TryGetValue(parameterDescriptor.Name, out var attributeDescriptions))
-                        {
-                            attributeDescriptions = [];
-                            attributeCompletions[parameterDescriptor.Name] = attributeDescriptions;
-                        }
-
-                        var tagHelperTypeName = descriptor.TypeName;
-                        var descriptionInfo = BoundAttributeDescriptionInfo.From(parameterDescriptor, tagHelperTypeName);
-                        attributeDescriptions.Add(descriptionInfo);
-                    }
-                }
+                // Doesn't compile in this commit, but will be moved in next commit
+                AddParameterNameCompletions(descriptor, attributeDescriptor, context, attributeCompletions);
             }
         }
 
@@ -355,7 +363,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
         foreach (var (displayText, value) in attributeCompletions)
         {
-            if (displayText == parameterName)
+            if (displayText == context.SelectedParameterName)
             {
                 // This completion is identical to the selected parameter, don't provide for completions for what's already
                 // present in the document.
