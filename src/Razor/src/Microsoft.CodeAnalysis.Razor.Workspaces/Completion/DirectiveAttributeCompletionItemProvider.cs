@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -68,7 +69,6 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
         var inSnippetContext = InSnippetContext(owner, context.Options);
         var directiveAttributeCompletionContext = new DirectiveAttributeCompletionContext(attributeName, parameterName, attributes, inSnippetContext, isAttributeRequest, isParameterRequest, context.Options);
 
-        // TODO: Merge GetAttributeCompletions and GetAttributeParameterCompletions into a single method
         return GetAttributeCompletions(containingTagName, directiveAttributeCompletionContext, context.TagHelperDocumentContext);
 
         static bool InSnippetContext(
@@ -97,7 +97,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
         }
 
         // Use ordinal dictionary because attributes are case sensitive when matching
-        using var _ = SpecializedPools.GetPooledStringDictionary<(ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>)>(out var attributeCompletions);
+        using var _ = SpecializedPools.GetPooledStringDictionary<(ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>, RazorCompletionItemKind kind)>(out var attributeCompletions);
 
         foreach (var descriptor in descriptorsForTag)
         {
@@ -110,6 +110,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                 }
 
                 AddAttributeNameCompletions(descriptor, attributeDescriptor, context, attributeCompletions);
+                AddParameterNameCompletions(descriptor, attributeDescriptor, context, attributeCompletions);
             }
         }
 
@@ -121,12 +122,18 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
         TagHelperDescriptor descriptor,
         BoundAttributeDescriptor attributeDescriptor,
         DirectiveAttributeCompletionContext context,
-        Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>)> attributeCompletions)
+        Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>, RazorCompletionItemKind kind)> attributeCompletions)
     {
+        if (!context.InAttributeName)
+        {
+            // Only add attribute name completions when in an attribute name context
+            return;
+        }
+
         var isIndexer = context.SelectedAttributeName.EndsWith("...", StringComparison.Ordinal);
         var descriptionInfo = BoundAttributeDescriptionInfo.From(attributeDescriptor, isIndexer, descriptor.TypeName);
 
-        if (!TryAddCompletion(attributeDescriptor.Name, attributeDescriptor, descriptor, context, attributeCompletions) && attributeDescriptor.Parameters.Length > 0)
+        if (!TryAddCompletion(attributeDescriptor.Name, descriptionInfo, descriptor, context, RazorCompletionItemKind.DirectiveAttribute, attributeCompletions) && attributeDescriptor.Parameters.Length > 0)
         {
             // This attribute has parameters and the base attribute name (@bind) is already satisfied. We need to check if there are any valid
             // parameters left to be provided, if so, we need to still represent the base attribute name in the completion list.
@@ -137,7 +144,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                     && !context.ExistingAttributes.Any(name => TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(parameterDescriptor, name, attributeDescriptor)))
                 {
                     // This bound attribute parameter has not had a completion entry added for it, re-represent the base attribute name in the completion list
-                    AddCompletion(attributeDescriptor.Name, attributeDescriptor, descriptor, context, attributeCompletions);
+                    AddCompletion(attributeDescriptor.Name, descriptionInfo, descriptor, context, RazorCompletionItemKind.DirectiveAttribute, attributeCompletions);
                     break;
                 }
             }
@@ -145,7 +152,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
         if (!attributeDescriptor.IndexerNamePrefix.IsNullOrEmpty())
         {
-            TryAddCompletion(attributeDescriptor.IndexerNamePrefix + "...", attributeDescriptor, descriptor, context, attributeCompletions);
+            TryAddCompletion(attributeDescriptor.IndexerNamePrefix + "...", descriptionInfo, descriptor, context, RazorCompletionItemKind.DirectiveAttribute, attributeCompletions);
         }
     }
 
@@ -153,39 +160,59 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
         TagHelperDescriptor descriptor,
         BoundAttributeDescriptor attributeDescriptor,
         DirectiveAttributeCompletionContext context,
-        Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>)> attributeCompletions)
+        Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>, RazorCompletionItemKind)> attributeCompletions)
     {
-        if (!TagHelperMatchingConventions.CanSatisfyBoundAttribute(context.SelectedAttributeName, attributeDescriptor))
+        if (context.InAttributeName && !attributeDescriptor.IndexerNamePrefix.IsNullOrEmpty())
+        {
+            // Don't add parameters on indexers in attribute name contexts
+            return;
+        }
+        else if (context.InParameterName && !TagHelperMatchingConventions.CanSatisfyBoundAttribute(context.SelectedAttributeName, attributeDescriptor))
         {
             // Don't add parameters when the selected attribute name can't satisfy the given attribute descriptor in parameter name contexts
             return;
         }
 
-        foreach (var parameterDescriptor in attributeDescriptor.Parameters)
+        // Then add regular parameter completions
+        AddCompletionsForParameters(attributeDescriptor.Parameters, descriptor, attributeDescriptor, descriptor.TypeName, context, attributeCompletions);
+
+        return;
+
+        static void AddCompletionsForParameters(
+            ImmutableArray<BoundAttributeParameterDescriptor> parameterDescriptors,
+            TagHelperDescriptor descriptor,
+            BoundAttributeDescriptor attributeDescriptor,
+            string parentTagHelperTypeName,
+            DirectiveAttributeCompletionContext context,
+            Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>, RazorCompletionItemKind)> attributeCompletions)
         {
-            if (!context.ExistingAttributes.IsDefault
-                && context.ExistingAttributes.Any(
-                    (parameterDescriptor, attributeDescriptor),
-                    static (name, arg) =>
-                        TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(arg.parameterDescriptor, name, arg.attributeDescriptor)))
+            foreach (var parameterDescriptor in parameterDescriptors)
             {
-                // There's already an existing attribute that satisfies this parameter, don't show it in the completion list.
-                continue;
+                if (!context.ExistingAttributes.IsDefault
+                    && context.ExistingAttributes.Any(
+                        (parameterDescriptor, attributeDescriptor),
+                        static (name, arg) =>
+                            TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(arg.parameterDescriptor, name, arg.attributeDescriptor)))
+                {
+                    // There's already an existing attribute that satisfies this parameter, don't show it in the completion list.
+                    continue;
+                }
+
+                var descriptionInfo = BoundAttributeDescriptionInfo.From(parameterDescriptor, parentTagHelperTypeName);
+                var displayName = context.InParameterName
+                    ? parameterDescriptor.Name
+                    : $"{attributeDescriptor.Name}:{parameterDescriptor.Name}";
+
+                AddCompletion(displayName, descriptionInfo, descriptor, context, RazorCompletionItemKind.DirectiveAttributeParameter, attributeCompletions);
             }
-
-            var descriptionInfo = BoundAttributeDescriptionInfo.From(parameterDescriptor, descriptor.TypeName);
-            var displayName = parameterDescriptor.Name;
-
-            // Doesn't compile in this commit, but will be fixed in next commit
-            AddCompletion(displayName, parameterDescriptor, descriptor, context, attributeCompletions);
         }
     }
 
-    private static ImmutableArray<RazorCompletionItem> CreateCompletionItems(DirectiveAttributeCompletionContext context, Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>)> attributeCompletions)
+    private static ImmutableArray<RazorCompletionItem> CreateCompletionItems(DirectiveAttributeCompletionContext context, Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>, RazorCompletionItemKind kind)> attributeCompletions)
     {
         using var completionItems = new PooledArrayBuilder<RazorCompletionItem>(capacity: attributeCompletions.Count);
 
-        foreach (var (displayText, (attributeDescriptions, commitCharacters)) in attributeCompletions)
+        foreach (var (displayText, (attributeDescriptions, commitCharacters, kind)) in attributeCompletions)
         {
             var originalInsertTextMemory = displayText.AsMemory();
 
@@ -228,12 +255,10 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                 insertText = insertTextMemory.Span == originalInsertTextMemory.Span ? displayText : insertTextMemory.ToString();
             }
 
-            var razorCompletionItem = RazorCompletionItem.CreateDirectiveAttribute(
-                displayText,
-                insertText,
-                descriptionInfo: new(attributeDescriptions),
-                commitCharacters,
-                isSnippet);
+            Debug.Assert(kind is RazorCompletionItemKind.DirectiveAttribute or RazorCompletionItemKind.DirectiveAttributeParameter);
+            var razorCompletionItem = (kind == RazorCompletionItemKind.DirectiveAttribute)
+                ? RazorCompletionItem.CreateDirectiveAttribute(displayText, insertText, descriptionInfo: new(attributeDescriptions), commitCharacters, isSnippet)
+                : RazorCompletionItem.CreateDirectiveAttributeParameter(displayText, insertText, descriptionInfo: new(attributeDescriptions), commitCharacters, isSnippet);
 
             completionItems.Add(razorCompletionItem);
         }
@@ -243,10 +268,11 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
     private static bool TryAddCompletion(
         string attributeName,
-        BoundAttributeDescriptor boundAttributeDescriptor,
+        BoundAttributeDescriptionInfo descriptionInfo,
         TagHelperDescriptor tagHelperDescriptor,
         DirectiveAttributeCompletionContext context,
-        Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>)> attributeCompletions)
+        RazorCompletionItemKind kind,
+        Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>, RazorCompletionItemKind kind)> attributeCompletions)
     {
         if (context.SelectedAttributeName != attributeName &&
             !context.ExistingAttributes.IsDefault &&
@@ -257,27 +283,24 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             return false;
         }
 
-        AddCompletion(attributeName, boundAttributeDescriptor, tagHelperDescriptor, context, attributeCompletions);
+        AddCompletion(attributeName, descriptionInfo, tagHelperDescriptor, context, kind, attributeCompletions);
         return true;
     }
 
     private static void AddCompletion(
         string attributeName,
-        BoundAttributeDescriptor boundAttributeDescriptor,
+        BoundAttributeDescriptionInfo descriptionInfo,
         TagHelperDescriptor tagHelperDescriptor,
         DirectiveAttributeCompletionContext context,
-        Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>)> attributeCompletions)
+        RazorCompletionItemKind kind,
+        Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>, RazorCompletionItemKind kind)> attributeCompletions)
     {
         if (!attributeCompletions.TryGetValue(attributeName, out var attributeDetails))
         {
-            attributeDetails = ([], []);
+            attributeDetails = ([], [], RazorCompletionItemKind.Attribute);
         }
 
-        (var attributeDescriptions, var commitCharacters) = attributeDetails;
-
-        var indexerCompletion = attributeName.EndsWith("...", StringComparison.Ordinal);
-        var tagHelperTypeName = tagHelperDescriptor.TypeName;
-        var descriptionInfo = BoundAttributeDescriptionInfo.From(boundAttributeDescriptor, isIndexer: indexerCompletion, tagHelperTypeName);
+        (var attributeDescriptions, var commitCharacters, _) = attributeDetails;
 
         if (!attributeDescriptions.Contains(descriptionInfo))
         {
@@ -325,60 +348,6 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             }
         }
 
-        attributeCompletions[attributeName] = (attributeDescriptions, commitCharacters);
-    }
-
-    // Internal for testing
-    internal static ImmutableArray<RazorCompletionItem> GetAttributeParameterCompletions(
-        string containingTagName,
-        DirectiveAttributeCompletionContext context,
-        TagHelperDocumentContext tagHelperDocumentContext)
-    {
-        var descriptorsForTag = TagHelperFacts.GetTagHelpersGivenTag(tagHelperDocumentContext, containingTagName, parentTag: null);
-        if (descriptorsForTag.Length == 0)
-        {
-            // If the current tag has no possible descriptors then we can't have any additional attributes.
-            return [];
-        }
-
-        // Use ordinal dictionary because attributes are case sensitive when matching
-        using var _ = SpecializedPools.GetPooledStringDictionary<HashSet<BoundAttributeDescriptionInfo>>(out var attributeCompletions);
-
-        foreach (var descriptor in descriptorsForTag)
-        {
-            foreach (var attributeDescriptor in descriptor.BoundAttributes)
-            {
-                var boundAttributeParameters = attributeDescriptor.Parameters;
-                if (boundAttributeParameters.Length == 0)
-                {
-                    continue;
-                }
-
-                // Doesn't compile in this commit, but will be moved in next commit
-                AddParameterNameCompletions(descriptor, attributeDescriptor, context, attributeCompletions);
-            }
-        }
-
-        using var completionItems = new PooledArrayBuilder<RazorCompletionItem>(capacity: attributeCompletions.Count);
-
-        foreach (var (displayText, value) in attributeCompletions)
-        {
-            if (displayText == context.SelectedParameterName)
-            {
-                // This completion is identical to the selected parameter, don't provide for completions for what's already
-                // present in the document.
-                continue;
-            }
-
-            var razorCompletionItem = RazorCompletionItem.CreateDirectiveAttributeParameter(
-                displayText: displayText,
-                insertText: displayText,
-                descriptionInfo: new([.. value]));
-
-            completionItems.Add(razorCompletionItem);
-        }
-
-        return completionItems.ToImmutableAndClear();
+        attributeCompletions[attributeName] = (attributeDescriptions, commitCharacters, kind);
     }
 }
-
