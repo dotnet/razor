@@ -113,6 +113,44 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             }
         }
 
+        // Use the mapping populated above to create completion items
+        return CreateCompletionItems(context, attributeCompletions);
+    }
+
+    private static void AddAttributeNameCompletions(
+        TagHelperDescriptor descriptor,
+        BoundAttributeDescriptor attributeDescriptor,
+        DirectiveAttributeCompletionContext context,
+        Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>)> attributeCompletions)
+    {
+        var isIndexer = context.SelectedAttributeName.EndsWith("...", StringComparison.Ordinal);
+        var descriptionInfo = BoundAttributeDescriptionInfo.From(attributeDescriptor, isIndexer, descriptor.TypeName);
+
+        if (!TryAddCompletion(attributeDescriptor.Name, attributeDescriptor, descriptor, context, attributeCompletions) && attributeDescriptor.Parameters.Length > 0)
+        {
+            // This attribute has parameters and the base attribute name (@bind) is already satisfied. We need to check if there are any valid
+            // parameters left to be provided, if so, we need to still represent the base attribute name in the completion list.
+
+            foreach (var parameterDescriptor in attributeDescriptor.Parameters)
+            {
+                if (!context.ExistingAttributes.IsDefault
+                    && !context.ExistingAttributes.Any(name => TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(parameterDescriptor, name, attributeDescriptor)))
+                {
+                    // This bound attribute parameter has not had a completion entry added for it, re-represent the base attribute name in the completion list
+                    AddCompletion(attributeDescriptor.Name, attributeDescriptor, descriptor, context, attributeCompletions);
+                    break;
+                }
+            }
+        }
+
+        if (!attributeDescriptor.IndexerNamePrefix.IsNullOrEmpty())
+        {
+            TryAddCompletion(attributeDescriptor.IndexerNamePrefix + "...", attributeDescriptor, descriptor, context, attributeCompletions);
+        }
+    }
+
+    private static ImmutableArray<RazorCompletionItem> CreateCompletionItems(DirectiveAttributeCompletionContext context, Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>)> attributeCompletions)
+    {
         using var completionItems = new PooledArrayBuilder<RazorCompletionItem>(capacity: attributeCompletions.Count);
 
         foreach (var (displayText, (attributeDescriptions, commitCharacters)) in attributeCompletions)
@@ -169,38 +207,6 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
         }
 
         return completionItems.ToImmutableAndClear();
-    }
-
-    private static void AddAttributeNameCompletions(
-        TagHelperDescriptor descriptor,
-        BoundAttributeDescriptor attributeDescriptor,
-        DirectiveAttributeCompletionContext context,
-        Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>)> attributeCompletions)
-    {
-        var isIndexer = context.SelectedAttributeName.EndsWith("...", StringComparison.Ordinal);
-        var descriptionInfo = BoundAttributeDescriptionInfo.From(attributeDescriptor, isIndexer, descriptor.TypeName);
-
-        if (!TryAddCompletion(attributeDescriptor.Name, attributeDescriptor, descriptor, context, attributeCompletions) && attributeDescriptor.Parameters.Length > 0)
-        {
-            // This attribute has parameters and the base attribute name (@bind) is already satisfied. We need to check if there are any valid
-            // parameters left to be provided, if so, we need to still represent the base attribute name in the completion list.
-
-            foreach (var parameterDescriptor in attributeDescriptor.Parameters)
-            {
-                if (!context.ExistingAttributes.IsDefault
-                    && !context.ExistingAttributes.Any(name => TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(parameterDescriptor, name, attributeDescriptor)))
-                {
-                    // This bound attribute parameter has not had a completion entry added for it, re-represent the base attribute name in the completion list
-                    AddCompletion(attributeDescriptor.Name, attributeDescriptor, descriptor, context, attributeCompletions);
-                    break;
-                }
-            }
-        }
-
-        if (!attributeDescriptor.IndexerNamePrefix.IsNullOrEmpty())
-        {
-            TryAddCompletion(attributeDescriptor.IndexerNamePrefix + "...", attributeDescriptor, descriptor, context, attributeCompletions);
-        }
     }
 
     private static bool TryAddCompletion(
