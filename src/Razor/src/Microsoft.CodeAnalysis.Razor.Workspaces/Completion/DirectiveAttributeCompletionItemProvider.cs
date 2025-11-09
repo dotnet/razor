@@ -99,6 +99,9 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
         // Use ordinal dictionary because attributes are case sensitive when matching
         using var _ = SpecializedPools.GetPooledStringDictionary<(ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>, RazorCompletionItemKind kind)>(out var attributeCompletions);
 
+        // Collect indexer descriptors and their parent tag helper type names
+        var indexerDescriptors = CollectIndexerDescriptors(descriptorsForTag, context);
+
         foreach (var descriptor in descriptorsForTag)
         {
             foreach (var attributeDescriptor in descriptor.BoundAttributes)
@@ -110,12 +113,44 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                 }
 
                 AddAttributeNameCompletions(descriptor, attributeDescriptor, context, attributeCompletions);
-                AddParameterNameCompletions(descriptor, attributeDescriptor, context, attributeCompletions);
+                AddParameterNameCompletions(descriptor, attributeDescriptor, indexerDescriptors, context, attributeCompletions);
             }
         }
 
         // Use the mapping populated above to create completion items
         return CreateCompletionItems(context, attributeCompletions);
+    }
+
+    private static ImmutableArray<(BoundAttributeDescriptor, string)> CollectIndexerDescriptors(
+        ImmutableArray<TagHelperDescriptor> descriptorsForTag,
+        DirectiveAttributeCompletionContext context)
+    {
+        if (context.InParameterName)
+        {
+            // No need to calculate the indexers When in a parameter name
+            return [];
+        }
+
+        using var allIndexers = new PooledArrayBuilder<(BoundAttributeDescriptor, string)>();
+
+        foreach (var descriptor in descriptorsForTag)
+        {
+            foreach (var attributeDescriptor in descriptor.BoundAttributes)
+            {
+                if (!attributeDescriptor.IsDirectiveAttribute)
+                {
+                    // We don't care about non-directive attributes
+                    continue;
+                }
+
+                if (!attributeDescriptor.IndexerNamePrefix.IsNullOrEmpty())
+                {
+                    allIndexers.Add((attributeDescriptor, descriptor.TypeName));
+                }
+            }
+        }
+
+        return allIndexers.ToImmutableAndClear();
     }
 
     private static void AddAttributeNameCompletions(
@@ -159,6 +194,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
     private static void AddParameterNameCompletions(
         TagHelperDescriptor descriptor,
         BoundAttributeDescriptor attributeDescriptor,
+        ImmutableArray<(BoundAttributeDescriptor, string)> indexerDescriptors,
         DirectiveAttributeCompletionContext context,
         Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>, RazorCompletionItemKind)> attributeCompletions)
     {
@@ -171,6 +207,17 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
         {
             // Don't add parameters when the selected attribute name can't satisfy the given attribute descriptor in parameter name contexts
             return;
+        }
+
+        // Add indexer parameter completions first
+        foreach (var (indexerDescriptor, parentTagHelperTypeName) in indexerDescriptors)
+        {
+            if (!attributeDescriptor.Name.StartsWith(indexerDescriptor.IndexerNamePrefix!))
+            {
+                continue;
+            }
+
+            AddCompletionsForParameters(indexerDescriptor.Parameters, descriptor, attributeDescriptor, parentTagHelperTypeName, context, attributeCompletions);
         }
 
         // Then add regular parameter completions
