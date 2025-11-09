@@ -16,13 +16,11 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeCompletionItemProviderBase
 {
-    private static ReadOnlyMemory<char> QuotedAttributeValueSnippet => "=\"$0\"".AsMemory();
-    private static ReadOnlyMemory<char> UnquotedAttributeValueSnippet => "=$0".AsMemory();
+    private static readonly string s_quotedAttributeValueSnippet = "=\"$0\"";
+    private static readonly string s_unquotedAttributeValueSnippet = "=$0";
 
-    private static readonly ImmutableArray<RazorCommitCharacter> EqualsCommitCharacters = [new("=")];
-    private static readonly ImmutableArray<RazorCommitCharacter> EqualsAndColonCommitCharacters = [new("="), new(":")];
-    private static readonly ImmutableArray<RazorCommitCharacter> SnippetEqualsCommitCharacters = [new("=", Insert: false)];
-    private static readonly ImmutableArray<RazorCommitCharacter> SnippetEqualsAndColonCommitCharacters = [new("=", Insert: false), new(":")];
+    private static readonly ImmutableArray<RazorCommitCharacter> s_equalsCommitCharacters = [new("=")];
+    private static readonly ImmutableArray<RazorCommitCharacter> s_snippetEqualsCommitCharacters = [new("=", Insert: false)];
 
     public override ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
@@ -128,35 +126,46 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
         foreach (var (displayText, (attributeDescriptions, commitCharacters)) in attributeCompletions)
         {
-            var insertTextSpan = displayText.AsSpan();
-            var originalInsertTextSpan = insertTextSpan;
+            var originalInsertTextMemory = displayText.AsMemory();
 
             // Strip off the @ from the insertion text. This change is here to align the insertion text with the
             // completion hooks into VS and VSCode. Basically, completion triggers when `@` is typed so we don't
             // want to insert `@bind` because `@` already exists.
-            if (insertTextSpan.StartsWith('@'))
-            {
-                insertTextSpan = insertTextSpan[1..];
-            }
+            var insertTextMemory = originalInsertTextMemory.Span.StartsWith('@')
+                ? originalInsertTextMemory[1..]
+                : originalInsertTextMemory;
 
             var isSnippet = false;
+            string insertText;
+
             // Indexer attribute, we don't want to insert with the triple dot.
-            if (MemoryExtensions.EndsWith(insertTextSpan, "...".AsSpan()))
+            if (MemoryExtensions.EndsWith(insertTextMemory.Span, "...".AsSpan()))
             {
-                insertTextSpan = insertTextSpan[..^3];
+                insertText = insertTextMemory[..^3].ToString();
+            }
+            else if (inSnippetContext)
+            {
+                var suffixText = razorCompletionOptions.AutoInsertAttributeQuotes ? s_quotedAttributeValueSnippet : s_unquotedAttributeValueSnippet;
+
+                // We are trying for snippet text only for non-indexer attributes, e.g. *not* something like "@bind-..."
+                insertText = string.Create(
+                    length: insertTextMemory.Length + suffixText.Length,
+                    state: (insertTextMemory, suffixText),
+                    static (desination, state) =>
+                    {
+                        var (baseTextMemory, suffixText) = state;
+
+                        baseTextMemory.Span.CopyTo(desination);
+                        suffixText.AsSpan().CopyTo(desination[baseTextMemory.Length..]);
+                    });
+
+                isSnippet = true;
             }
             else
             {
-                // We are trying for snippet text only for non-indexer attributes, e.g. *not* something like "@bind-..."
-                if (inSnippetContext)
-                {
-                    GetSnippetText(insertTextSpan, razorCompletionOptions, out insertTextSpan);
-                    isSnippet = true;
-                }
+                // Don't create another string unnecessarily, even though ReadOnlySpan.ToString() special-cases the string to avoid allocation
+                insertText = insertTextMemory.Span == originalInsertTextMemory.Span ? displayText : insertTextMemory.ToString();
             }
-
-            // Don't create another string unnecessarily, even though ReadOnlySpan.ToString() special-cases the string to avoid allocation
-            var insertText = insertTextSpan == originalInsertTextSpan ? displayText : insertTextSpan.ToString();
 
             var razorCompletionItem = RazorCompletionItem.CreateDirectiveAttribute(
                 displayText,
@@ -179,20 +188,6 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                 // Otherwise you could have something like @onabort=""=""
                 && owner is not (MarkupTagHelperDirectiveAttributeSyntax or MarkupAttributeBlockSyntax)
                 && owner.Parent is not (MarkupTagHelperDirectiveAttributeSyntax or MarkupAttributeBlockSyntax);
-        }
-
-        static void GetSnippetText(
-            ReadOnlySpan<char> baseTextSpan,
-            RazorCompletionOptions razorCompletionOptions,
-            out ReadOnlySpan<char> snippetTextSpan)
-        {
-            var suffixTextSpan = razorCompletionOptions.AutoInsertAttributeQuotes ? QuotedAttributeValueSnippet : UnquotedAttributeValueSnippet;
-
-            var buffer = new char[baseTextSpan.Length + suffixTextSpan.Length];
-            baseTextSpan.CopyTo(buffer);
-            suffixTextSpan.CopyTo(buffer.AsMemory()[baseTextSpan.Length..]);
-
-            snippetTextSpan = buffer.AsSpan();
         }
 
         static bool TryAddCompletion(
@@ -242,51 +237,42 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             }
 
             // Verify not an indexer attribute, as those don't commit with standard chars
-            if (!indexerCompletion)
+            if (!attributeName.EndsWith("...", StringComparison.Ordinal))
             {
-                var equalsAdded = commitCharacters.Any(static c => c.Character == "=");
-                var spaceAdded = commitCharacters.Any(static c => c.Character == " ");
-                var colonAdded = commitCharacters.Any(static c => c.Character == ":");
+                var isEqualCommitChar = commitCharacters.Any(static c => c.Character == "=");
+                var isSpaceCommitChar = commitCharacters.Any(static c => c.Character == " ");
 
                 // We don't add "=" as a commit character when using VSCode trigger characters.
-                equalsAdded |= !razorCompletionOptions.UseVsCodeCompletionCommitCharacters;
+                isEqualCommitChar |= !razorCompletionOptions.UseVsCodeCompletionCommitCharacters;
 
                 foreach (var boundAttribute in tagHelperDescriptor.BoundAttributes)
                 {
-                    spaceAdded |= boundAttribute.IsBooleanProperty;
-                    colonAdded |= boundAttribute.Parameters.Length > 0;
+                    isSpaceCommitChar |= boundAttribute.IsBooleanProperty;
 
-                    if (spaceAdded && colonAdded)
+                    if (isSpaceCommitChar)
                     {
                         break;
                     }
                 }
 
                 // Determine if we have a common commit character set
-                commitCharacters = (equalsAdded, spaceAdded, colonAdded, inSnippetContext) switch
+                commitCharacters = (isEqualCommitChar, isSpaceCommitChar, inSnippetContext) switch
                 {
-                    (true, false, false, false) => EqualsCommitCharacters,
-                    (true, false, true, false) => EqualsAndColonCommitCharacters,
-                    (true, false, false, true) => SnippetEqualsCommitCharacters,
-                    (true, false, true, true) => SnippetEqualsAndColonCommitCharacters,
+                    (true, false, false) => s_equalsCommitCharacters,
+                    (true, false, true) => s_snippetEqualsCommitCharacters,
                     _ => []
                 };
 
                 if (commitCharacters.IsEmpty)
                 {
-                    if (equalsAdded)
+                    if (isEqualCommitChar)
                     {
                         commitCharacters = commitCharacters.Add(new("=", Insert: !inSnippetContext));
                     }
 
-                    if (spaceAdded)
+                    if (isSpaceCommitChar)
                     {
                         commitCharacters = commitCharacters.Add(new(" "));
-                    }
-
-                    if (colonAdded)
-                    {
-                        commitCharacters = commitCharacters.Add(new(":"));
                     }
                 }
             }
