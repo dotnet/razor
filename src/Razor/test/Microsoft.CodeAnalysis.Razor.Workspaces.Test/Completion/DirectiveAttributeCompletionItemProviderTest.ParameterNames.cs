@@ -93,6 +93,43 @@ public partial class DirectiveAttributeCompletionItemProviderTest
     }
 
     [Fact]
+    public void GetAttributeParameterCompletions_ReturnsSnippetCompletion()
+    {
+        // Arrange
+        var context = GetDefaultDirectiveAttributeCompletionContext("@bind") with
+        {
+            UseSnippets = true,
+        };
+
+        // Act
+        var completions = DirectiveAttributeCompletionItemProvider.GetAttributeCompletions("input", context, _defaultTagHelperContext);
+
+        // Assert
+        AssertContains(completions, "format=\"$0\"", "format");
+    }
+
+    [Fact]
+    public void GetCompletionItems_OnDirectiveAttributeName_bind_ReturnsSameParameterCompletions()
+    {
+        // Arrange
+        var contextAttributeName = CreateRazorCompletionContext("<input @$$  />");
+        var contextParameterName = CreateRazorCompletionContext("<input @bind-value:$$  />");
+
+        // Act
+        var completionsAttributeName = _provider.GetCompletionItems(contextAttributeName);
+        var completionsParameterName = _provider.GetCompletionItems(contextParameterName);
+
+        // Assert
+        var parameterNamesFromAttributeCompletions = completionsAttributeName
+            .Where(c => c.DisplayText.StartsWith("@bind-value:"))
+            .SelectAsArray(c => c.DisplayText["@bind-Value:".Length..]);
+        var parameterNamesFromParameterCompletions = completionsParameterName
+            .SelectAsArray(c => c.DisplayText);
+
+        AssertEx.SequenceEqual(parameterNamesFromAttributeCompletions, parameterNamesFromParameterCompletions);
+    }
+
+    [Fact]
     public void GetAttributeParameterCompletions_BaseDirectiveAttributeAndParameterVariationsExist_ExcludesCompletion()
     {
         // Arrange

@@ -70,6 +70,32 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
     }
 
     [Fact]
+    public void GetCompletionItems_OnDirectiveAttributeName_bind_ReturnsParameterCompletions()
+    {
+        // Arrange
+        var context = CreateRazorCompletionContext("<input @$$  />");
+
+        // Act
+        var completions = _provider.GetCompletionItems(context);
+
+        // Assert
+        AssertContainsParameter(completions, "bind-value:format", "@bind-value:format", ["="]);
+    }
+
+    [Fact]
+    public void GetCompletionItems_OnDirectiveAttributeName_bind_ReturnsParameterSnippetCompletions()
+    {
+        // Arrange
+        var context = CreateRazorCompletionContext("<input @$$  />");
+
+        // Act
+        var completions = _provider.GetCompletionItems(context);
+
+        // Assert
+        AssertContainsParameter(completions, "bind-value:format", "@bind-value:format", ["="]);
+    }
+
+    [Fact]
     public void GetCompletionItems_OnDirectiveAttributeName_attributes_ReturnsCompletions()
     {
         // Arrange
@@ -193,6 +219,19 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
 
         // Assert
         AssertContains(completions, "bind=\"$0\"", "@bind", ["="]);
+    }
+
+    [Fact]
+    public void GetAttributeCompletions_Parameter_IsIncludedInCompletions()
+    {
+        // Arrange
+        var context = GetDefaultDirectivateAttributeCompletionContext("@bind");
+
+        // Act
+        var completions = DirectiveAttributeCompletionItemProvider.GetAttributeCompletions("input", context, _defaultTagHelperContext);
+
+        // Assert
+        AssertContains(completions, "bind-value=\"$0\"", "@bind-value", ["="]);
     }
 
     [Fact]
