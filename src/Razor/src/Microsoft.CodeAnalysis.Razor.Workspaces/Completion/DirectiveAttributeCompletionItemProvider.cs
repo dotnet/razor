@@ -38,15 +38,9 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             return [];
         }
 
-        if (!TryGetAttributeInfo(owner, out _, out var attributeName, out var attributeNameLocation, out _, out _))
+        if (!TryGetAttributeInfo(owner, out _, out var attributeName, out var attributeNameLocation, out var parameterName, out var parameterNameLocation))
         {
             // Either we're not in an attribute or the attribute is so malformed that we can't provide proper completions.
-            return [];
-        }
-
-        if (!attributeNameLocation.IntersectsWith(context.AbsoluteIndex))
-        {
-            // We're trying to retrieve completions on a portion of the name that is not supported (such as a parameter).
             return [];
         }
 
@@ -56,19 +50,25 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             return [];
         }
 
-        // At this point we've determined that completions have been requested for the name portion of the selected attribute.
-
-        var completionItems = GetAttributeCompletions(owner, attributeName, containingTagName, attributes, context.TagHelperDocumentContext, context.Options);
-
         // We don't provide Directive Attribute completions when we're in the middle of
         // another unrelated (doesn't start with @) partially completed attribute.
         // <svg xml:| ></svg> (attributeName = "xml:") should not get any directive attribute completions.
-        if (attributeName.IsNullOrWhiteSpace() || attributeName.StartsWith('@'))
+        if (!attributeName.IsNullOrWhiteSpace() && !attributeName.StartsWith('@'))
         {
-            return completionItems;
+            return [];
         }
 
-        return [];
+        var isAttributeRequest = attributeNameLocation.IntersectsWith(context.AbsoluteIndex);
+        var isParameterRequest = parameterNameLocation.IntersectsWith(context.AbsoluteIndex);
+
+        if (!isAttributeRequest && !isParameterRequest)
+        {
+            // This class only provides completions on attribute/parameter names.
+            return [];
+        }
+
+        // TODO: Merge GetAttributeCompletions and GetAttributeParameterCompletions into a single method
+        return GetAttributeCompletions(owner, attributeName, containingTagName, attributes, context.TagHelperDocumentContext, context.Options);
     }
 
     // Internal for testing
@@ -293,44 +293,6 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
             attributeCompletions[attributeName] = (attributeDescriptions, commitCharacters);
         }
-    }
-}
-
-internal class DirectiveAttributeParameterCompletionItemProvider : DirectiveAttributeCompletionItemProviderBase
-{
-    public override ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
-    {
-        if (!context.SyntaxTree.Options.FileKind.IsComponent())
-        {
-            // Directive attribute parameters are only supported in components
-            return [];
-        }
-
-        var owner = context.Owner;
-        if (owner is null)
-        {
-            return [];
-        }
-
-        if (!TryGetAttributeInfo(owner, out _, out var attributeName, out _, out var parameterName, out var parameterNameLocation))
-        {
-            // Either we're not in an attribute or the attribute is so malformed that we can't provide proper completions.
-            return [];
-        }
-
-        if (!parameterNameLocation.IntersectsWith(context.AbsoluteIndex))
-        {
-            // We're trying to retrieve completions on a portion of the name that is not supported (such as the name, i.e., |@bind|:format).
-            return [];
-        }
-
-        if (!TryGetElementInfo(owner.Parent.Parent, out var containingTagName, out var attributes))
-        {
-            // This should never be the case, it means that we're operating on an attribute that doesn't have a tag.
-            return [];
-        }
-
-        return GetAttributeParameterCompletions(attributeName, parameterName, containingTagName, attributes, context.TagHelperDocumentContext);
     }
 
     // Internal for testing
