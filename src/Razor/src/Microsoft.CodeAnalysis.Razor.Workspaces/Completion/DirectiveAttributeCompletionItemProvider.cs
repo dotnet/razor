@@ -175,8 +175,8 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
             foreach (var parameterDescriptor in attributeDescriptor.Parameters)
             {
-                if (!context.ExistingAttributes.IsDefault
-                    && !context.ExistingAttributes.Any(name => TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(parameterDescriptor, name, attributeDescriptor)))
+                if (context.ExistingAttributes.IsDefault
+                    || !context.ExistingAttributes.Any(name => TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(parameterDescriptor, name, attributeDescriptor)))
                 {
                     // This bound attribute parameter has not had a completion entry added for it, re-represent the base attribute name in the completion list
                     AddCompletion(attributeDescriptor.Name, descriptionInfo, descriptor, context, RazorCompletionItemKind.DirectiveAttribute, attributeCompletions);

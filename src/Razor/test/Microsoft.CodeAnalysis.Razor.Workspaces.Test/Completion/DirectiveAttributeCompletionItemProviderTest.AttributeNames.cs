@@ -86,13 +86,16 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
     public void GetCompletionItems_OnDirectiveAttributeName_bind_ReturnsParameterSnippetCompletions()
     {
         // Arrange
-        var context = CreateRazorCompletionContext("<input @$$  />");
+        var context = CreateRazorCompletionContext("<input @$$  />") with
+        {
+            Options = _defaultRazorCompletionOptions
+        };
 
         // Act
         var completions = _provider.GetCompletionItems(context);
 
         // Assert
-        AssertContainsParameter(completions, "bind-value:format", "@bind-value:format", ["="]);
+        AssertContainsParameter(completions, "bind-value:format=\"$0\"", "@bind-value:format", ["="]);
     }
 
     [Fact]
