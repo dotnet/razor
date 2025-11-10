@@ -41,7 +41,7 @@ internal static class TagHelperParseTreeRewriter
         builder.AddRange(treeDiagnostics);
         builder.AddRange(sinkDiagnostics);
 
-        foreach (var descriptor in binder.Descriptors)
+        foreach (var descriptor in binder.TagHelpers)
         {
             descriptor.AppendAllDiagnostics(ref builder.AsRef());
         }

@@ -40,7 +40,7 @@ public class TagHelperRewritingTestBase() : ParserTestBase(layer: TestProject.La
     {
         var syntaxTree = ParseDocument(languageVersion, documentContent, directives: default, fileKind: fileKind, configureParserOptions: configureParserOptions);
 
-        var binder = new TagHelperBinder(tagHelperPrefix, [.. tagHelpers]);
+        var binder = new TagHelperBinder(tagHelperPrefix, tagHelpers);
         var rewrittenTree = TagHelperParseTreeRewriter.Rewrite(syntaxTree, binder);
 
         Assert.Equal(syntaxTree.Root.Width, rewrittenTree.Root.Width);

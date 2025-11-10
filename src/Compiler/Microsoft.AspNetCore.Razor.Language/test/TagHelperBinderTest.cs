@@ -20,7 +20,7 @@ public class TagHelperBinderTest
         TagHelperCollection expectedTagHelpers = [divTagHelper];
         var expectedAttributes = ImmutableArray.Create(
             new KeyValuePair<string, string>("class", "something"));
-        var binder = new TagHelperBinder("th:", [.. expectedTagHelpers]);
+        var binder = new TagHelperBinder("th:", expectedTagHelpers);
 
         // Act
         var binding = binder.GetBinding(
@@ -49,7 +49,7 @@ public class TagHelperBinderTest
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("img"))
             .Build();
         TagHelperCollection expectedTagHelpers = [multiTagHelper];
-        var binder = new TagHelperBinder("", [.. expectedTagHelpers]);
+        var binder = new TagHelperBinder("", expectedTagHelpers);
 
         TestTagName("div", multiTagHelper.TagMatchingRules[0]);
         TestTagName("a", multiTagHelper.TagMatchingRules[1]);
@@ -201,7 +201,7 @@ public class TagHelperBinderTest
         TagHelperCollection expectedTagHelpers)
     {
         // Arrange
-        var binder = new TagHelperBinder(null, [.. availableTagHelpers]);
+        var binder = new TagHelperBinder(null, availableTagHelpers);
 
         // Act
         var binding = binder.GetBinding(
@@ -356,7 +356,7 @@ public class TagHelperBinderTest
         TagHelperCollection? expectedTagHelpers)
     {
         // Arrange
-        var binder = new TagHelperBinder(null, [.. availableTagHelpers]);
+        var binder = new TagHelperBinder(null, availableTagHelpers);
 
         // Act
         var binding = binder.GetBinding(tagName, providedAttributes, parentTagName: "p", parentIsTagHelper: false);
@@ -381,7 +381,7 @@ public class TagHelperBinderTest
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName(TagHelperMatchingConventions.ElementCatchAllName))
             .Build();
         TagHelperCollection tagHelpers = [catchAllTagHelper];
-        var tagHelperBinder = new TagHelperBinder("th", [.. tagHelpers]);
+        var tagHelperBinder = new TagHelperBinder("th", tagHelpers);
 
         // Act
         var binding = tagHelperBinder.GetBinding(
@@ -402,7 +402,7 @@ public class TagHelperBinderTest
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName(TagHelperMatchingConventions.ElementCatchAllName))
             .Build();
         TagHelperCollection tagHelpers = [catchAllTagHelper];
-        var tagHelperBinder = new TagHelperBinder("th:", [.. tagHelpers]);
+        var tagHelperBinder = new TagHelperBinder("th:", tagHelpers);
 
         // Act
         var bindingDiv = tagHelperBinder.GetBinding(
@@ -433,7 +433,7 @@ public class TagHelperBinderTest
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("div"))
             .Build();
         TagHelperCollection tagHelpers = [divTagHelper];
-        var tagHelperBinder = new TagHelperBinder("th:", [.. tagHelpers]);
+        var tagHelperBinder = new TagHelperBinder("th:", tagHelpers);
 
         // Act
         var binding = tagHelperBinder.GetBinding(
@@ -458,7 +458,7 @@ public class TagHelperBinderTest
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName(tagName))
             .Build();
         TagHelperCollection tagHelpers = [divTagHelper];
-        var binder = new TagHelperBinder("th:", [.. tagHelpers]);
+        var binder = new TagHelperBinder("th:", tagHelpers);
 
         // Act
         var binding = binder.GetBinding(
@@ -482,7 +482,7 @@ public class TagHelperBinderTest
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("span"))
             .Build();
         TagHelperCollection tagHelpers = [divTagHelper, spanTagHelper];
-        var binder = new TagHelperBinder(null, [.. tagHelpers]);
+        var binder = new TagHelperBinder(null, tagHelpers);
 
         // Act
         var binding = binder.GetBinding(
@@ -509,7 +509,7 @@ public class TagHelperBinderTest
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName(TagHelperMatchingConventions.ElementCatchAllName))
             .Build();
         TagHelperCollection tagHelpers = [divTagHelper, spanTagHelper, catchAllTagHelper];
-        var binder = new TagHelperBinder(null, [.. tagHelpers]);
+        var binder = new TagHelperBinder(null, tagHelpers);
 
         // Act
         var divBinding = binder.GetBinding(
@@ -545,7 +545,7 @@ public class TagHelperBinderTest
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("div"))
             .Build();
         TagHelperCollection tagHelpers = [divTagHelper, divTagHelper];
-        var binder = new TagHelperBinder(null, [.. tagHelpers]);
+        var binder = new TagHelperBinder(null, tagHelpers);
 
         // Act
         var binding = binder.GetBinding(
@@ -574,7 +574,7 @@ public class TagHelperBinderTest
                 .RequireTagName("span"))
             .Build();
         TagHelperCollection tagHelper = [multiRuleTagHelper];
-        var binder = new TagHelperBinder(null, [.. tagHelper]);
+        var binder = new TagHelperBinder(null, tagHelper);
 
         // Act
         var binding = binder.GetBinding(
@@ -603,7 +603,7 @@ public class TagHelperBinderTest
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
             .Build();
         TagHelperCollection tagHelpers = [divTagHelper, pTagHelper];
-        var binder = new TagHelperBinder("th:", [.. tagHelpers]);
+        var binder = new TagHelperBinder("th:", tagHelpers);
 
         // Act
         var binding = binder.GetBinding(
@@ -632,7 +632,7 @@ public class TagHelperBinderTest
             .Build();
 
         TagHelperCollection tagHelpers = [divTagHelper];
-        var binder = new TagHelperBinder("", [.. tagHelpers]);
+        var binder = new TagHelperBinder("", tagHelpers);
 
         // Act
         var binding = binder.GetBinding(
@@ -661,7 +661,7 @@ public class TagHelperBinderTest
             .Build();
 
         TagHelperCollection tagHelpers = [divTagHelper1, divTagHelper2];
-        var binder = new TagHelperBinder("", [.. tagHelpers]);
+        var binder = new TagHelperBinder("", tagHelpers);
 
         // Act
         var binding = binder.GetBinding(
@@ -689,7 +689,7 @@ public class TagHelperBinderTest
             .Build();
 
         TagHelperCollection tagHelpers = [divTagHelper1, divTagHelper2];
-        var tagHelperBinder = new TagHelperBinder("", [.. tagHelpers]);
+        var tagHelperBinder = new TagHelperBinder("", tagHelpers);
 
         // Act
         var binding = tagHelperBinder.GetBinding(
@@ -714,7 +714,7 @@ public class TagHelperBinderTest
         TagHelperCollection expectedTagHelpers = [divTagHelper];
         var expectedAttributes = ImmutableArray.Create(
             new KeyValuePair<string, string>("class", "something"));
-        var binder = new TagHelperBinder("th:", [.. expectedTagHelpers]);
+        var binder = new TagHelperBinder("th:", expectedTagHelpers);
 
         // Act
         var binding = binder.GetBinding(
@@ -740,7 +740,7 @@ public class TagHelperBinderTest
         TagHelperCollection expectedTagHelpers = [divTagHelper];
         var expectedAttributes = ImmutableArray.Create(
             new KeyValuePair<string, string>("CLASS", "something"));
-        var binder = new TagHelperBinder(null, [.. expectedTagHelpers]);
+        var binder = new TagHelperBinder(null, expectedTagHelpers);
 
         // Act
         var binding = binder.GetBinding(
