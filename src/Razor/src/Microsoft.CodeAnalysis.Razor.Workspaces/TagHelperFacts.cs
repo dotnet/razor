@@ -53,7 +53,7 @@ internal static class TagHelperFacts
 
         using var matchingBoundAttributes = new PooledArrayBuilder<BoundAttributeDescriptor>();
 
-        foreach (var tagHelper in binding.Descriptors)
+        foreach (var tagHelper in binding.TagHelpers)
         {
             foreach (var boundAttribute in tagHelper.BoundAttributes)
             {

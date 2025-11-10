@@ -31,7 +31,7 @@ public class TagHelperBinderTest
 
         // Assert
         Assert.NotNull(binding);
-        Assert.Equal(expectedTagHelpers, binding.Descriptors);
+        Assert.Equal(expectedTagHelpers, binding.TagHelpers);
         Assert.Equal("th:div", binding.TagName);
         Assert.Equal("body", binding.ParentTagName);
         Assert.Equal<KeyValuePair<string, string>>(expectedAttributes, binding.Attributes);
@@ -75,7 +75,7 @@ public class TagHelperBinderTest
             else
             {
                 Assert.NotNull(binding);
-                Assert.Equal(expectedTagHelpers, binding.Descriptors);
+                Assert.Equal(expectedTagHelpers, binding.TagHelpers);
 
                 Assert.Equal(tagName, binding.TagName);
                 var mapping = Assert.Single(binding.GetBoundRules(multiTagHelper));
@@ -126,7 +126,7 @@ public class TagHelperBinderTest
             else
             {
                 Assert.NotNull(binding);
-                Assert.Equal(expectedTagHelpers, binding.Descriptors);
+                Assert.Equal(expectedTagHelpers, binding.TagHelpers);
                 Assert.NotNull(expectedBindingResults);
 
                 Assert.Equal(tagName, binding.TagName);
@@ -212,7 +212,7 @@ public class TagHelperBinderTest
 
         // Assert
         Assert.NotNull(binding);
-        Assert.Equal(expectedTagHelpers, binding.Descriptors);
+        Assert.Equal(expectedTagHelpers, binding.TagHelpers);
     }
 
     public static TheoryData<string, ImmutableArray<KeyValuePair<string, string>>, TagHelperCollection, TagHelperCollection?> RequiredAttributeData
@@ -360,12 +360,12 @@ public class TagHelperBinderTest
 
         // Act
         var binding = binder.GetBinding(tagName, providedAttributes, parentTagName: "p", parentIsTagHelper: false);
-        var tagHelpers = binding?.Descriptors ?? default;
+        var tagHelpers = binding?.TagHelpers;
 
         // Assert
         if (expectedTagHelpers is null)
         {
-            Assert.True(tagHelpers.IsDefault);
+            Assert.Null(tagHelpers);
         }
         else
         {
@@ -418,10 +418,10 @@ public class TagHelperBinderTest
 
         // Assert
         Assert.NotNull(bindingDiv);
-        var tagHelper = Assert.Single(bindingDiv.Descriptors);
+        var tagHelper = Assert.Single(bindingDiv.TagHelpers);
         Assert.Same(catchAllTagHelper, tagHelper);
         Assert.NotNull(bindingSpan);
-        tagHelper = Assert.Single(bindingSpan.Descriptors);
+        tagHelper = Assert.Single(bindingSpan.TagHelpers);
         Assert.Same(catchAllTagHelper, tagHelper);
     }
 
@@ -444,7 +444,7 @@ public class TagHelperBinderTest
 
         // Assert
         Assert.NotNull(binding);
-        var tagHelper = Assert.Single(binding.Descriptors);
+        var tagHelper = Assert.Single(binding.TagHelpers);
         Assert.Same(divTagHelper, tagHelper);
     }
 
@@ -526,15 +526,15 @@ public class TagHelperBinderTest
         // Assert
         // For divs
         Assert.NotNull(divBinding);
-        Assert.Equal(2, divBinding.Descriptors.Length);
-        Assert.Contains(divTagHelper, divBinding.Descriptors);
-        Assert.Contains(catchAllTagHelper, divBinding.Descriptors);
+        Assert.Equal(2, divBinding.TagHelpers.Count);
+        Assert.Contains(divTagHelper, divBinding.TagHelpers);
+        Assert.Contains(catchAllTagHelper, divBinding.TagHelpers);
 
         // For spans
         Assert.NotNull(spanBinding);
-        Assert.Equal(2, spanBinding.Descriptors.Length);
-        Assert.Contains(spanTagHelper, spanBinding.Descriptors);
-        Assert.Contains(catchAllTagHelper, spanBinding.Descriptors);
+        Assert.Equal(2, spanBinding.TagHelpers.Count);
+        Assert.Contains(spanTagHelper, spanBinding.TagHelpers);
+        Assert.Contains(catchAllTagHelper, spanBinding.TagHelpers);
     }
 
     [Fact]
@@ -556,7 +556,7 @@ public class TagHelperBinderTest
 
         // Assert
         Assert.NotNull(binding);
-        var tagHelper = Assert.Single(binding.Descriptors);
+        var tagHelper = Assert.Single(binding.TagHelpers);
         Assert.Same(divTagHelper, tagHelper);
     }
 
@@ -585,7 +585,7 @@ public class TagHelperBinderTest
 
         // Assert
         Assert.NotNull(binding);
-        var boundTagHelper = Assert.Single(binding.Descriptors);
+        var boundTagHelper = Assert.Single(binding.TagHelpers);
         Assert.Same(multiRuleTagHelper, boundTagHelper);
         var boundRules = binding.GetBoundRules(boundTagHelper);
         var boundRule = Assert.Single(boundRules);
@@ -614,7 +614,7 @@ public class TagHelperBinderTest
 
         // Assert
         Assert.NotNull(binding);
-        var boundTagHelper = Assert.Single(binding.Descriptors);
+        var boundTagHelper = Assert.Single(binding.TagHelpers);
         Assert.Same(divTagHelper, boundTagHelper);
         var boundRules = binding.GetBoundRules(boundTagHelper);
         var boundRule = Assert.Single(boundRules);

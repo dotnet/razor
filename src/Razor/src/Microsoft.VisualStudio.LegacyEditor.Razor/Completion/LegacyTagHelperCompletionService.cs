@@ -64,9 +64,9 @@ internal sealed class LegacyTagHelperCompletionService : ITagHelperCompletionSer
 
         using var _ = HashSetPool<TagHelperDescriptor>.GetPooledObject(out var applicableDescriptors);
 
-        if (applicableTagHelperBinding is { Descriptors: var descriptors })
+        if (applicableTagHelperBinding is { TagHelpers: var tagHelpers })
         {
-            applicableDescriptors.UnionWith(descriptors);
+            applicableDescriptors.UnionWith(tagHelpers);
         }
 
         var unprefixedTagName = completionContext.CurrentTagName[prefix.Length..];
@@ -290,9 +290,9 @@ internal sealed class LegacyTagHelperCompletionService : ITagHelperCompletionSer
             return;
         }
 
-        foreach (var descriptor in binding.Descriptors)
+        foreach (var tagHelper in binding.TagHelpers)
         {
-            foreach (var childTag in descriptor.AllowedChildTags)
+            foreach (var childTag in tagHelper.AllowedChildTags)
             {
                 var prefixedName = string.Concat(prefix, childTag.Name);
                 var descriptors = TagHelperFacts.GetTagHelpersGivenTag(
