@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -19,10 +20,7 @@ internal static class TagHelperFacts
         string? parentTag,
         bool parentIsTagHelper)
     {
-        if (documentContext is null)
-        {
-            throw new ArgumentNullException(nameof(documentContext));
-        }
+        ArgHelper.ThrowIfNull(documentContext);
 
         if (attributes.IsDefault)
         {
@@ -34,7 +32,7 @@ internal static class TagHelperFacts
             return null;
         }
 
-        if (documentContext.TagHelpers.Length == 0)
+        if (documentContext.TagHelpers.Count == 0)
         {
             return null;
         }
@@ -49,20 +47,9 @@ internal static class TagHelperFacts
         string attributeName,
         TagHelperBinding binding)
     {
-        if (documentContext is null)
-        {
-            throw new ArgumentNullException(nameof(documentContext));
-        }
-
-        if (attributeName is null)
-        {
-            throw new ArgumentNullException(nameof(attributeName));
-        }
-
-        if (binding is null)
-        {
-            throw new ArgumentNullException(nameof(binding));
-        }
+        ArgHelper.ThrowIfNull(documentContext);
+        ArgHelper.ThrowIfNull(attributeName);
+        ArgHelper.ThrowIfNull(binding);
 
         using var matchingBoundAttributes = new PooledArrayBuilder<BoundAttributeDescriptor>();
 
@@ -88,26 +75,19 @@ internal static class TagHelperFacts
         string tagName,
         string? parentTag)
     {
-        if (documentContext is null)
+        ArgHelper.ThrowIfNull(documentContext);
+        ArgHelper.ThrowIfNull(tagName);
+
+        if (documentContext.TagHelpers is not { Count: > 0 } tagHelpers)
         {
-            throw new ArgumentNullException(nameof(documentContext));
+            return [];
         }
 
-        if (tagName is null)
-        {
-            throw new ArgumentNullException(nameof(tagName));
-        }
-
-        if (documentContext?.TagHelpers is not { Length: > 0 } tagHelpers)
-        {
-            return ImmutableArray<TagHelperDescriptor>.Empty;
-        }
-
-        var prefix = documentContext?.Prefix ?? string.Empty;
+        var prefix = documentContext.Prefix ?? string.Empty;
         if (!tagName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
         {
             // Can't possibly match TagHelpers, it doesn't start with the TagHelperPrefix.
-            return ImmutableArray<TagHelperDescriptor>.Empty;
+            return [];
         }
 
         using var matchingDescriptors = new PooledArrayBuilder<TagHelperDescriptor>();
@@ -132,14 +112,11 @@ internal static class TagHelperFacts
 
     public static ImmutableArray<TagHelperDescriptor> GetTagHelpersGivenParent(TagHelperDocumentContext documentContext, string? parentTag)
     {
-        if (documentContext is null)
-        {
-            throw new ArgumentNullException(nameof(documentContext));
-        }
+        ArgHelper.ThrowIfNull(documentContext);
 
-        if (documentContext?.TagHelpers is not { Length: > 0 } tagHelpers)
+        if (documentContext.TagHelpers is not { Count: > 0 } tagHelpers)
         {
-            return ImmutableArray<TagHelperDescriptor>.Empty;
+            return [];
         }
 
         using var matchingDescriptors = new PooledArrayBuilder<TagHelperDescriptor>();
