@@ -27,7 +27,7 @@ public class RazorTagHelperParsingBenchmark
         var root = current.AssumeNotNull();
 
         var tagHelpers = ReadTagHelpers(Path.Combine(root.FullName, "taghelpers.json"));
-        var tagHelperFeature = new StaticTagHelperFeature(tagHelpers);
+        var tagHelperFeature = new StaticTagHelperFeature([.. tagHelpers]);
 
         var blazorServerTagHelpersFilePath = Path.Combine(root.FullName, "BlazorServerTagHelpers.razor");
 
@@ -69,12 +69,10 @@ public class RazorTagHelperParsingBenchmark
         return JsonDataConvert.DeserializeTagHelperArray(reader);
     }
 
-    private sealed class StaticTagHelperFeature(IReadOnlyList<TagHelperDescriptor> descriptors)
+    private sealed class StaticTagHelperFeature(TagHelperCollection tagHelpers)
         : RazorEngineFeatureBase, ITagHelperFeature
     {
-        public IReadOnlyList<TagHelperDescriptor> Descriptors { get; } = descriptors;
-
-        public IReadOnlyList<TagHelperDescriptor> GetDescriptors(CancellationToken cancellationToken = default)
-            => Descriptors;
+        public TagHelperCollection GetTagHelpers(CancellationToken cancellationToken = default)
+            => tagHelpers;
     }
 }

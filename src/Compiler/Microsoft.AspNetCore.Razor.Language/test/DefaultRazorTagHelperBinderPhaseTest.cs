@@ -124,7 +124,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
 
         var projectEngine = RazorProjectEngine.Create(builder =>
         {
-            builder.AddTagHelpers(tagHelper1, tagHelper2);
+            builder.SetTagHelpers(tagHelper1, tagHelper2);
         });
 
         var source = CreateTestSourceDocument();
@@ -194,7 +194,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
 
         var projectEngine = RazorProjectEngine.Create(builder =>
         {
-            builder.AddTagHelpers(tagHelper1, tagHelper2);
+            builder.SetTagHelpers(tagHelper1, tagHelper2);
         });
 
         var source = CreateTestSourceDocument();
@@ -232,7 +232,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
 
         var projectEngine = RazorProjectEngine.Create(builder =>
         {
-            builder.AddTagHelpers(tagHelper1, tagHelper2);
+            builder.SetTagHelpers(tagHelper1, tagHelper2);
         });
 
         var source = CreateTestSourceDocument();
@@ -347,7 +347,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
 
         var projectEngine = RazorProjectEngine.Create(builder =>
         {
-            builder.AddTagHelpers(featureTagHelper);
+            builder.SetTagHelpers(featureTagHelper);
         });
 
         var source = CreateTestSourceDocument();
@@ -454,7 +454,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
 
         var projectEngine = RazorProjectEngine.Create(builder =>
         {
-            builder.AddTagHelpers(tagHelper1, tagHelper2);
+            builder.SetTagHelpers(tagHelper1, tagHelper2);
         });
 
         var content =
