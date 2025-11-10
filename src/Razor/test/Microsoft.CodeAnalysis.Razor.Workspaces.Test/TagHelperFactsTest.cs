@@ -74,9 +74,9 @@ public class TagHelperFactsTest(ITestOutputHelper testOutput) : ToolingTestBase(
         var binding = TagHelperFacts.GetTagHelperBinding(documentContext, "a", attributes, parentTag: "p", parentIsTagHelper: false);
 
         // Assert
-        var descriptor = Assert.Single(binding.Descriptors);
-        Assert.Equal(documentDescriptors[0], descriptor);
-        var boundRule = Assert.Single(binding.GetBoundRules(descriptor));
+        var tagHelper = Assert.Single(binding.TagHelpers);
+        Assert.Equal(documentDescriptors[0], tagHelper);
+        var boundRule = Assert.Single(binding.GetBoundRules(tagHelper));
         Assert.Equal(documentDescriptors[0].TagMatchingRules.First(), boundRule);
     }
 

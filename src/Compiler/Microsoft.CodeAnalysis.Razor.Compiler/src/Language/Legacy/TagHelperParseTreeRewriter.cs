@@ -282,9 +282,9 @@ internal static class TagHelperParseTreeRewriter
                 return false;
             }
 
-            foreach (var descriptor in tagHelperBinding.Descriptors)
+            foreach (var tagHelper in tagHelperBinding.TagHelpers)
             {
-                _usedDescriptors.Add(descriptor);
+                _usedDescriptors.Add(tagHelper);
             }
 
             ValidateParentAllowsTagHelper(tagName, startTag);
@@ -774,7 +774,7 @@ internal static class TagHelperParseTreeRewriter
 
                 using var result = new PooledArrayBuilder<string>();
 
-                foreach (var tagHelper in _binding.Descriptors)
+                foreach (var tagHelper in _binding.TagHelpers)
                 {
                     foreach (var allowedChildTag in tagHelper.AllowedChildTags)
                     {
