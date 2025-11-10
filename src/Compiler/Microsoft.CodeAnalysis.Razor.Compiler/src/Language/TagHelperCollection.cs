@@ -49,6 +49,8 @@ public abstract partial class TagHelperCollection : IEquatable<TagHelperCollecti
     /// </returns>
     public bool IsEmpty => Count == 0;
 
+    private SegmentAccessor Segments => new(this);
+
     /// <summary>
     ///  Gets the number of memory segments that make up this collection.
     /// </summary>
