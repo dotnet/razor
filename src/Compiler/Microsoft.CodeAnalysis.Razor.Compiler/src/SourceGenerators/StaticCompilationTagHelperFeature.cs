@@ -16,7 +16,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
         public void CollectDescriptors(
             IAssemblySymbol? targetAssembly,
-            List<TagHelperDescriptor> results,
+            TagHelperCollection.Builder results,
             CancellationToken cancellationToken)
         {
             if (_providers.IsDefaultOrEmpty)
@@ -32,12 +32,12 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             }
         }
 
-        IReadOnlyList<TagHelperDescriptor> ITagHelperFeature.GetDescriptors(CancellationToken cancellationToken)
+        TagHelperCollection ITagHelperFeature.GetTagHelpers(CancellationToken cancellationToken)
         {
-            var results = new List<TagHelperDescriptor>();
-            CollectDescriptors(targetAssembly: null, results, cancellationToken);
+            using var builder = new TagHelperCollection.Builder();
+            CollectDescriptors(targetAssembly: null, builder, cancellationToken);
 
-            return results;
+            return builder.ToCollection();
         }
 
         protected override void OnInitialized()

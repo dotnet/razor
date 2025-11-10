@@ -125,21 +125,21 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Select(static (pair, cancellationToken) =>
                 {
                     var ((compilation, razorSourceGeneratorOptions), isGeneratorSuppressed) = pair;
-                    var results = new List<TagHelperDescriptor>();
-
                     if (isGeneratorSuppressed)
                     {
-                        return results;
+                        return [];
                     }
 
                     RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromCompilationStart();
                     var tagHelperFeature = GetStaticTagHelperFeature(compilation);
 
-                    tagHelperFeature.CollectDescriptors(compilation.Assembly, results, cancellationToken);
+                    using var builder = new TagHelperCollection.Builder();
+
+                    tagHelperFeature.CollectDescriptors(compilation.Assembly, builder, cancellationToken);
 
                     RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromCompilationStop();
 
-                    return results;
+                    return builder.ToCollection();
                 })
                 .WithLambdaComparer(static (a, b) => a!.SequenceEqual(b!));
 
@@ -222,7 +222,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     if (!hasRazorFiles)
                     {
                         // If there's no razor code in this app, don't do anything.
-                        return null;
+                        return [];
                     }
 
                     RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromReferencesStart();
@@ -230,26 +230,26 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                     // Typically a project with Razor files will have many tag helpers in references.
                     // So, we start with a larger capacity to avoid extra array copies.
-                    var results = new List<TagHelperDescriptor>(capacity: 128);
+                    using var builder = new TagHelperCollection.Builder();
 
                     foreach (var reference in compilation.References)
                     {
                         if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                         {
-                            tagHelperFeature.CollectDescriptors(assembly, results, cancellationToken);
+                            tagHelperFeature.CollectDescriptors(assembly, builder, cancellationToken);
                         }
                     }
 
                     RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromReferencesStop();
 
-                    return results;
+                    return builder.ToCollection();
                 });
 
             var allTagHelpers = tagHelpersFromCompilation
                 .Combine(tagHelpersFromReferences)
                 .Select(static (pair, _) =>
                 {
-                    return AllTagHelpers.Create(tagHelpersFromCompilation: pair.Left, tagHelpersFromReferences: pair.Right);
+                    return TagHelperCollection.Merge(pair.Left, pair.Right);
                 });
 
             var withOptions = sourceItems
