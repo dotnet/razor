@@ -18,7 +18,7 @@ internal static class TagHelperParseTreeRewriter
     public static RazorSyntaxTree Rewrite(
         RazorSyntaxTree syntaxTree,
         TagHelperBinder binder,
-        ISet<TagHelperDescriptor>? usedDescriptors = null,
+        TagHelperCollection.Builder? usedDescriptors = null,
         CancellationToken cancellationToken = default)
     {
         using var errorSink = new ErrorSink();
@@ -57,7 +57,7 @@ internal static class TagHelperParseTreeRewriter
         TagHelperBinder binder,
         RazorParserOptions options,
         ErrorSink errorSink,
-        ISet<TagHelperDescriptor>? usedDescriptors,
+        TagHelperCollection.Builder? usedDescriptors,
         CancellationToken cancellationToken) : SyntaxRewriter
     {
         // Internal for testing.
@@ -69,7 +69,7 @@ internal static class TagHelperParseTreeRewriter
         private readonly Stack<TagTracker> _trackerStack = new();
         private readonly ErrorSink _errorSink = errorSink;
         private readonly RazorParserOptions _options = options;
-        private readonly ISet<TagHelperDescriptor> _usedDescriptors = usedDescriptors ?? new HashSet<TagHelperDescriptor>();
+        private readonly TagHelperCollection.Builder? _usedDescriptors = usedDescriptors;
         private readonly CancellationToken _cancellationToken = cancellationToken;
 
         private TagTracker? CurrentTracker => _trackerStack.Count > 0 ? _trackerStack.Peek() : null;
@@ -282,10 +282,7 @@ internal static class TagHelperParseTreeRewriter
                 return false;
             }
 
-            foreach (var tagHelper in tagHelperBinding.TagHelpers)
-            {
-                _usedDescriptors.Add(tagHelper);
-            }
+            _usedDescriptors?.AddRange(tagHelperBinding.TagHelpers);
 
             ValidateParentAllowsTagHelper(tagName, startTag);
             ValidateBinding(tagHelperBinding, tagName, startTag);
