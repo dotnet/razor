@@ -88,14 +88,14 @@ internal static class HoverFactory
                 return SpecializedTasks.Null<LspHover>();
             }
 
-            Debug.Assert(binding.Descriptors.Any());
+            Debug.Assert(binding.TagHelpers.Any());
 
             var span = containingTagNameToken.GetLinePositionSpan(codeDocument.Source);
 
             var filePath = codeDocument.Source.FilePath.AssumeNotNull();
 
             return ElementInfoToHoverAsync(
-                filePath, binding.Descriptors, span, options, componentAvailabilityService, cancellationToken);
+                filePath, [.. binding.TagHelpers], span, options, componentAvailabilityService, cancellationToken);
         }
 
         if (HtmlFacts.TryGetAttributeInfo(owner, out containingTagNameToken, out _, out var selectedAttributeName, out var selectedAttributeNameLocation, out attributes) &&
@@ -123,7 +123,7 @@ internal static class HoverFactory
                 return SpecializedTasks.Null<LspHover>();
             }
 
-            Debug.Assert(binding.Descriptors.Any());
+            Debug.Assert(binding.TagHelpers.Any());
             var tagHelperAttributes = TagHelperFacts.GetBoundTagHelperAttributes(
                 tagHelperContext,
                 selectedAttributeName.AssumeNotNull(),

@@ -61,7 +61,7 @@ internal static class TagHelperBlockRewriter
         string tagName,
         RazorParserOptions options,
         MarkupStartTagSyntax startTag,
-        TagHelperBinding bindingResult,
+        TagHelperBinding binding,
         ErrorSink errorSink,
         RazorSourceDocument source)
     {
@@ -83,7 +83,7 @@ internal static class TagHelperBlockRewriter
                 result = TryParseAttribute(
                     tagName,
                     attributeBlock,
-                    bindingResult.Descriptors,
+                    binding.TagHelpers,
                     errorSink,
                     processedBoundAttributeNames,
                     options);
@@ -96,7 +96,7 @@ internal static class TagHelperBlockRewriter
                 result = TryParseMinimizedAttribute(
                     tagName,
                     minimizedAttributeBlock,
-                    bindingResult.Descriptors,
+                    binding.TagHelpers,
                     errorSink,
                     processedBoundAttributeNames);
                 attributeBuilder.Add(result.RewrittenAttribute);
@@ -181,7 +181,7 @@ internal static class TagHelperBlockRewriter
                  string.IsNullOrWhiteSpace(GetAttributeValueContent(result.RewrittenAttribute))))
             {
                 var errorLocation = new SourceSpan(attributeNameLocation, result.AttributeName.Length);
-                var propertyTypeName = GetPropertyType(result.AttributeName, bindingResult.Descriptors);
+                var propertyTypeName = GetPropertyType(result.AttributeName, binding.TagHelpers);
                 var diagnostic = RazorDiagnosticFactory.CreateTagHelper_EmptyBoundAttribute(errorLocation, result.AttributeName, tagName, propertyTypeName);
                 errorSink.OnError(diagnostic);
             }

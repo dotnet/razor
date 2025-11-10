@@ -238,7 +238,7 @@ internal class RenameService(
     }
 
     private static bool BindingContainsTagHelper(TagHelperDescriptor tagHelper, TagHelperBinding potentialBinding)
-        => potentialBinding.Descriptors.Any(descriptor => descriptor.Equals(tagHelper));
+        => potentialBinding.TagHelpers.Any(descriptor => descriptor.Equals(tagHelper));
 
     private static async Task<ImmutableArray<TagHelperDescriptor>> GetOriginTagHelpersAsync(DocumentContext documentContext, int absoluteIndex, CancellationToken cancellationToken)
     {
@@ -255,7 +255,7 @@ internal class RenameService(
         }
 
         // Can only have 1 component TagHelper belonging to an element at a time
-        var primaryTagHelper = binding.Descriptors.FirstOrDefault(static d => d.Kind == TagHelperKind.Component);
+        var primaryTagHelper = binding.TagHelpers.FirstOrDefault(static d => d.Kind == TagHelperKind.Component);
         if (primaryTagHelper is null)
         {
             return default;
