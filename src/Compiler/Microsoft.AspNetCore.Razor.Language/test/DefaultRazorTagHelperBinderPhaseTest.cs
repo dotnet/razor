@@ -594,7 +594,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         var parser = new RazorParser();
         var syntaxTree = parser.Parse(sourceDocument);
         var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.TagHelperDirectiveVisitor();
-        visitor.Initialize(descriptors: [], sourceDocument.FilePath);
+        visitor.Initialize(tagHelpers: [], sourceDocument.FilePath);
 
         // Act
         visitor.Visit(syntaxTree.Root);
@@ -752,7 +752,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         var results = visitor.GetResults();
 
         // Assert
-        Assert.Equal(expectedTagHelpers.Count, results.Length);
+        Assert.Equal(expectedTagHelpers.Count, results.Count);
 
         foreach (var expectedTagHelper in expectedTagHelpers)
         {
@@ -864,11 +864,11 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         // Arrange
         var componentDescriptor = CreateComponentDescriptor("counter", "SomeProject.Counter", AssemblyA);
         var legacyDescriptor = Valid_PlainTagHelperDescriptor;
-        var tagHelpers = new[]
-        {
+        TagHelperCollection tagHelpers =
+        [
             legacyDescriptor,
-            componentDescriptor,
-        };
+            componentDescriptor
+        ];
 
         var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.TagHelperDirectiveVisitor();
         visitor.Initialize(tagHelpers, filePath: null);
@@ -917,15 +917,15 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         var currentNamespace = "SomeProject";
         var componentDescriptor = CreateComponentDescriptor("counter", "SomeProject.Counter", AssemblyA);
         var legacyDescriptor = Valid_PlainTagHelperDescriptor;
-        var descriptors = new[]
-        {
+        TagHelperCollection tagHelpers =
+        [
             legacyDescriptor,
-            componentDescriptor,
-        };
+            componentDescriptor
+        ];
         var sourceDocument = CreateComponentTestSourceDocument(@"<Counter />", "C:\\SomeFolder\\SomeProject\\Counter.cshtml");
         var tree = RazorSyntaxTree.Parse(sourceDocument);
         var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor();
-        visitor.Initialize(descriptors, sourceDocument.FilePath, currentNamespace);
+        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace);
 
         // Act
         visitor.Visit(tree);
@@ -943,11 +943,11 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         var currentNamespace = "SomeProject";
         var componentDescriptor = CreateComponentDescriptor("counter", "SomeProject.Counter", AssemblyA);
         var legacyDescriptor = Valid_PlainTagHelperDescriptor;
-        var descriptors = new[]
-        {
+        TagHelperCollection tagHelpers =
+        [
             legacyDescriptor,
-            componentDescriptor,
-        };
+            componentDescriptor
+        ];
         var filePath = "C:\\SomeFolder\\SomeProject\\Counter.cshtml";
         var content = @"
 @tagHelperPrefix th:
@@ -957,7 +957,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         var sourceDocument = CreateComponentTestSourceDocument(content, filePath);
         var tree = RazorSyntaxTree.Parse(sourceDocument);
         var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor();
-        visitor.Initialize(descriptors, sourceDocument.FilePath, currentNamespace);
+        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace);
 
         // Act
         visitor.Visit(tree);
@@ -982,17 +982,17 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
             "SomeProject.SomeOtherFolder.Counter",
             AssemblyA,
             fullyQualified: true);
-        var descriptors = new[]
-        {
-            componentDescriptor,
-        };
+        TagHelperCollection tagHelpers =
+        [
+            componentDescriptor
+        ];
         var filePath = "C:\\SomeFolder\\SomeProject\\Counter.cshtml";
         var content = @"
 ";
         var sourceDocument = CreateComponentTestSourceDocument(content, filePath);
         var tree = RazorSyntaxTree.Parse(sourceDocument);
         var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor();
-        visitor.Initialize(descriptors, sourceDocument.FilePath, currentNamespace);
+        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace);
 
         // Act
         visitor.Visit(tree);
@@ -1019,25 +1019,25 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
             "SomeProject",
             "Counter",
             childContent: true);
-        var descriptors = new[]
-        {
+        TagHelperCollection tagHelpers =
+        [
             componentDescriptor,
-            childContentDescriptor,
-        };
+            childContentDescriptor
+        ];
         var filePath = "C:\\SomeFolder\\SomeProject\\Counter.cshtml";
         var content = @"
 ";
         var sourceDocument = CreateComponentTestSourceDocument(content, filePath);
         var tree = RazorSyntaxTree.Parse(sourceDocument);
         var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor();
-        visitor.Initialize(descriptors, sourceDocument.FilePath, currentNamespace);
+        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace);
 
         // Act
         visitor.Visit(tree);
         var results = visitor.GetResults();
 
         // Assert
-        Assert.Equal(2, results.Length);
+        Assert.Equal(2, results.Count);
     }
 
     [Fact]
@@ -1054,18 +1054,18 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
            "SomeProject.SomeOtherFolder.Counter",
            AssemblyA,
            fullyQualified: true);
-        var descriptors = new[]
-        {
+        TagHelperCollection tagHelpers =
+        [
             componentDescriptor,
-            fullyQualifiedComponent,
-        };
+            fullyQualifiedComponent
+        ];
         var filePath = "C:\\SomeFolder\\SomeProject\\Counter.cshtml";
         var content = @"
 ";
         var sourceDocument = CreateComponentTestSourceDocument(content, filePath);
         var tree = RazorSyntaxTree.Parse(sourceDocument);
         var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor();
-        visitor.Initialize(descriptors, sourceDocument.FilePath, currentNamespace);
+        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace);
 
         // Act
         visitor.Visit(tree);
@@ -1089,11 +1089,11 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
            "Foo",
            "SomeProject.SomeOtherFolder.Foo",
            AssemblyA);
-        var descriptors = new[]
-        {
+        TagHelperCollection tagHelpers =
+        [
             componentDescriptor,
-            anotherComponentDescriptor,
-        };
+            anotherComponentDescriptor
+        ];
         var filePath = "C:\\SomeFolder\\SomeProject\\Counter.cshtml";
         var content = @"
 @using SomeProject.SomeOtherFolder
@@ -1101,14 +1101,14 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         var sourceDocument = CreateComponentTestSourceDocument(content, filePath);
         var tree = RazorSyntaxTree.Parse(sourceDocument);
         var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor();
-        visitor.Initialize(descriptors, sourceDocument.FilePath, currentNamespace);
+        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace);
 
         // Act
         visitor.Visit(tree);
         var results = visitor.GetResults();
 
         // Assert
-        Assert.Equal(2, results.Length);
+        Assert.Equal(2, results.Count);
     }
 
     [Fact]
@@ -1120,10 +1120,10 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
             "Counter",
             "SomeProject.SomeOtherFolder.Counter",
             AssemblyA);
-        var descriptors = new[]
-        {
-            componentDescriptor,
-        };
+        TagHelperCollection tagHelpers =
+        [
+            componentDescriptor
+        ];
         var filePath = "C:\\SomeFolder\\SomeProject\\Counter.cshtml";
         var content = """
             @using global::SomeProject.SomeOtherFolder
@@ -1131,7 +1131,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         var sourceDocument = CreateComponentTestSourceDocument(content, filePath);
         var tree = RazorSyntaxTree.Parse(sourceDocument);
         var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor();
-        visitor.Initialize(descriptors, sourceDocument.FilePath, currentNamespace);
+        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace);
 
         // Act
         visitor.Visit(tree);
@@ -1155,11 +1155,11 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
            "Foo",
            "SomeProject.SomeOtherFolder.Foo",
            AssemblyA);
-        var descriptors = new[]
-        {
-                componentDescriptor,
-                anotherComponentDescriptor,
-            };
+        TagHelperCollection tagHelpers =
+        [
+            componentDescriptor,
+            anotherComponentDescriptor
+        ];
         var filePath = "C:\\SomeFolder\\SomeProject\\Counter.cshtml";
         var content = @"
 @using Bar = SomeProject.SomeOtherFolder
@@ -1168,7 +1168,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         var sourceDocument = CreateComponentTestSourceDocument(content, filePath);
         var tree = RazorSyntaxTree.Parse(sourceDocument);
         var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor();
-        visitor.Initialize(descriptors, sourceDocument.FilePath, currentNamespace);
+        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace);
 
         // Act
         visitor.Visit(tree);
