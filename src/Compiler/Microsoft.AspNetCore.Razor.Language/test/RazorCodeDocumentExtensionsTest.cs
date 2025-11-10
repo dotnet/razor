@@ -32,10 +32,10 @@ public class RazorCodeDocumentExtensionsTest
         // Arrange
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
 
-        var expected = new[]
-        {
+        TagHelperCollection expected =
+        [
             TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly").Build()
-        };
+        ];
 
         codeDocument.SetTagHelpers(expected);
 
