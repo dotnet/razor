@@ -99,7 +99,10 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
         // Use ordinal dictionary because attributes are case sensitive when matching
         using var _ = SpecializedPools.GetPooledStringDictionary<(ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>, RazorCompletionItemKind kind)>(out var attributeCompletions);
 
-        // Collect indexer descriptors and their parent tag helper type names
+        // Collect indexer descriptors and their parent tag helper type names. Indexer descriptors indicate an attribute prefix
+        // for which they apply. That can be used in an attribute name context to determine potential parameters. Eg,
+        // there exists an indexer indicating it applies to attributes that start with "@bind-" and specifies six different
+        // parameters applicable for those attributes (":format", ":event", ":culture", ":get", ":set", ":after")
         var indexerDescriptors = CollectIndexerDescriptors(descriptorsForTag, context);
 
         foreach (var descriptor in descriptorsForTag)
@@ -209,7 +212,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
             return;
         }
 
-        // Add indexer parameter completions first
+        // Add indexer parameter completions first so they display first in completion descriptions.
         foreach (var (indexerDescriptor, parentTagHelperTypeName) in indexerDescriptors)
         {
             if (!attributeDescriptor.Name.StartsWith(indexerDescriptor.IndexerNamePrefix!))
