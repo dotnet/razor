@@ -1084,7 +1084,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             var attributeName = node.Name.GetContent();
 
             using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
-            TagHelperMatchingConventions.GetAttributeMatches([.. tagHelpers], attributeName, ref matches.AsRef());
+            TagHelperMatchingConventions.GetAttributeMatches(tagHelpers, attributeName, ref matches.AsRef());
 
             if (matches.Any() && _renderedBoundAttributeNames.Add(attributeName))
             {
@@ -1126,7 +1126,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             var attributeValueNode = node.Value;
 
             using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
-            TagHelperMatchingConventions.GetAttributeMatches([.. tagHelpers], attributeName, ref matches.AsRef());
+            TagHelperMatchingConventions.GetAttributeMatches(tagHelpers, attributeName, ref matches.AsRef());
 
             if (matches.Any() && _renderedBoundAttributeNames.Add(attributeName))
             {
@@ -1831,7 +1831,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             var attributeName = node.Name.GetContent();
 
             using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
-            TagHelperMatchingConventions.GetAttributeMatches([.. tagHelpers], attributeName, ref matches.AsRef());
+            TagHelperMatchingConventions.GetAttributeMatches(tagHelpers, attributeName, ref matches.AsRef());
 
             if (matches.Any() && _renderedBoundAttributeNames.Add(attributeName))
             {
@@ -1880,7 +1880,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             var attributeName = node.FullName;
 
             using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
-            TagHelperMatchingConventions.GetAttributeMatches([.. tagHelpers], attributeName, ref matches.AsRef());
+            TagHelperMatchingConventions.GetAttributeMatches(tagHelpers, attributeName, ref matches.AsRef());
 
             if (matches.Any() && _renderedBoundAttributeNames.Add(attributeName))
             {
@@ -1934,7 +1934,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             var attributeValueNode = node.Value;
 
             using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
-            TagHelperMatchingConventions.GetAttributeMatches([.. tagHelpers], attributeName, ref matches.AsRef());
+            TagHelperMatchingConventions.GetAttributeMatches(tagHelpers, attributeName, ref matches.AsRef());
 
             if (matches.Any() && _renderedBoundAttributeNames.Add(attributeName))
             {
@@ -1975,7 +1975,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             var attributeValueNode = node.Value;
 
             using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
-            TagHelperMatchingConventions.GetAttributeMatches([.. tagHelpers], attributeName, ref matches.AsRef());
+            TagHelperMatchingConventions.GetAttributeMatches(tagHelpers, attributeName, ref matches.AsRef());
 
             if (matches.Any() && _renderedBoundAttributeNames.Add(attributeName))
             {
