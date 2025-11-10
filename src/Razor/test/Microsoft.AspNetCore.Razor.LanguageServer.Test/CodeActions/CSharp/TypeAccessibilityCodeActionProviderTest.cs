@@ -431,12 +431,12 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
         var fullyQualifiedComponent = TagHelperDescriptorBuilder.CreateComponent("Fully.Qualified.Component", "TestAssembly");
         fullyQualifiedComponent.TagMatchingRule(rule => rule.TagName = "Fully.Qualified.Component");
 
-        var tagHelpers = ImmutableArray.Create(shortComponent.Build(), fullyQualifiedComponent.Build());
+        TagHelperCollection tagHelpers = [shortComponent.Build(), fullyQualifiedComponent.Build()];
 
         var sourceDocument = TestRazorSourceDocument.Create(text, filePath: filePath, relativePath: filePath);
         var projectEngine = RazorProjectEngine.Create(builder =>
         {
-            builder.AddTagHelpers(tagHelpers);
+            builder.SetTagHelpers(tagHelpers);
             builder.AddDirective(InjectDirective.Directive);
 
             builder.ConfigureParserOptions(builder =>
@@ -462,7 +462,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
             .ReturnsAsync(codeDocument.Source.Text);
         documentSnapshotMock
             .Setup(x => x.Project.GetTagHelpersAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(tagHelpers);
+            .ReturnsAsync([.. tagHelpers]);
 
         return new RazorCodeActionContext(
             request,

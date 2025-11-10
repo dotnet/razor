@@ -90,7 +90,7 @@ public class CompilationTagHelperFeatureTest
         var feature = engine.Engine.GetFeatures<CompilationTagHelperFeature>().First();
 
         // Act
-        var result = feature.GetDescriptors();
+        var result = feature.GetTagHelpers();
 
         // Assert
         Assert.Empty(result);
@@ -130,7 +130,7 @@ public class CompilationTagHelperFeatureTest
         var feature = engine.Engine.GetFeatures<CompilationTagHelperFeature>().First();
 
         // Act
-        var result = feature.GetDescriptors();
+        var result = feature.GetTagHelpers();
 
         // Assert
         Assert.Empty(result);

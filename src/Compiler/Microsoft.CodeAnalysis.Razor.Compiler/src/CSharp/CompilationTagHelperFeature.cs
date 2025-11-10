@@ -15,7 +15,7 @@ public sealed class CompilationTagHelperFeature : RazorEngineFeatureBase, ITagHe
     private ImmutableArray<ITagHelperDescriptorProvider> _providers;
     private IMetadataReferenceFeature? _referenceFeature;
 
-    public IReadOnlyList<TagHelperDescriptor> GetDescriptors(CancellationToken cancellationToken = default)
+    public TagHelperCollection GetTagHelpers(CancellationToken cancellationToken = default)
     {
         var compilation = CSharpCompilation.Create("__TagHelpers", references: _referenceFeature?.References);
         if (!IsValidCompilation(compilation))
@@ -23,15 +23,15 @@ public sealed class CompilationTagHelperFeature : RazorEngineFeatureBase, ITagHe
             return [];
         }
 
-        var results = new List<TagHelperDescriptor>();
-        var context = new TagHelperDescriptorProviderContext(compilation, results);
+        using var builder = new TagHelperCollection.Builder();
+        var context = new TagHelperDescriptorProviderContext(compilation, builder);
 
         foreach (var provider in _providers)
         {
             provider.Execute(context, cancellationToken);
         }
 
-        return results;
+        return builder.ToCollection();
     }
 
     protected override void OnInitialized()
