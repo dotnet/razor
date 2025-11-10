@@ -538,7 +538,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
 
         var existingCompletions = new[] { "class" };
         var completionContext = BuildAttributeCompletionContext(
-            descriptors: [],
+            tagHelpers: [],
             existingCompletions,
             currentTagName: "div");
         var service = CreateTagHelperCompletionFactsService();
@@ -1377,14 +1377,14 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
     }
 
     private static ElementCompletionContext BuildElementCompletionContext(
-        ImmutableArray<TagHelperDescriptor> descriptors,
+        ImmutableArray<TagHelperDescriptor> tagHelpers,
         IEnumerable<string> existingCompletions,
         string? containingTagName,
         string? containingParentTagName = "body",
         bool containingParentIsTagHelper = false,
         string? tagHelperPrefix = "")
     {
-        var documentContext = TagHelperDocumentContext.Create(tagHelperPrefix, descriptors);
+        var documentContext = TagHelperDocumentContext.Create(tagHelperPrefix, [.. tagHelpers]);
         var completionContext = new ElementCompletionContext(
             documentContext,
             existingCompletions,
@@ -1398,7 +1398,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
     }
 
     private static AttributeCompletionContext BuildAttributeCompletionContext(
-        ImmutableArray<TagHelperDescriptor> descriptors,
+        ImmutableArray<TagHelperDescriptor> tagHelpers,
         IEnumerable<string> existingCompletions,
         string currentTagName,
         string? currentAttributeName = null,
@@ -1407,7 +1407,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
     {
         attributes = attributes.NullToEmpty();
 
-        var documentContext = TagHelperDocumentContext.Create(tagHelperPrefix, descriptors);
+        var documentContext = TagHelperDocumentContext.Create(tagHelperPrefix, [.. tagHelpers]);
         var completionContext = new AttributeCompletionContext(
             documentContext,
             existingCompletions,
