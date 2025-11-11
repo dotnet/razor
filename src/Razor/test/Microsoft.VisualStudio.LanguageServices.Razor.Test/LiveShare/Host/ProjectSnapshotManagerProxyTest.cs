@@ -248,6 +248,6 @@ public class ProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput) : Vis
         => handle =>
         {
             Assert.Equal(expectedFilePath, handle.FilePath.ToString());
-            Assert.Equal<TagHelperDescriptor>(expectedTagHelpers, handle.ProjectWorkspaceState.TagHelpers);
+            Assert.Equal(expectedTagHelpers, handle.ProjectWorkspaceState.TagHelpers);
         };
 }

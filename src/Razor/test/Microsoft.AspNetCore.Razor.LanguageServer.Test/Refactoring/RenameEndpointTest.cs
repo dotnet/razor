@@ -617,16 +617,7 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         IEditMappingService? editMappingService = null,
         IClientConnection? clientConnection = null)
     {
-        using PooledArrayBuilder<TagHelperDescriptor> builder = [];
-        builder.AddRange(CreateRazorComponentTagHelperDescriptors("First", RootNamespace1, "Component1"));
-        builder.AddRange(CreateRazorComponentTagHelperDescriptors("First", "Test", "Component2"));
-        builder.AddRange(CreateRazorComponentTagHelperDescriptors("Second", RootNamespace2, "Component3"));
-        builder.AddRange(CreateRazorComponentTagHelperDescriptors("Second", RootNamespace2, "Component4"));
-        builder.AddRange(CreateRazorComponentTagHelperDescriptors("First", "Test", "Component1337"));
-        builder.AddRange(CreateRazorComponentTagHelperDescriptors("First", "Test.Components", "Directory1"));
-        builder.AddRange(CreateRazorComponentTagHelperDescriptors("First", "Test.Components", "Directory2"));
-        var tagHelpers = builder.ToImmutable();
-
+        var tagHelpers = CreateRazorComponentTagHelpers();
         var projectManager = CreateProjectSnapshotManager();
 
         var documentContextFactory = new DocumentContextFactory(projectManager, LoggerFactory);
@@ -723,21 +714,36 @@ public class RenameEndpointTest(ITestOutputHelper testOutput) : LanguageServerTe
         return (endpoint, documentContextFactory);
     }
 
-    private static IEnumerable<TagHelperDescriptor> CreateRazorComponentTagHelperDescriptors(string assemblyName, string namespaceName, string tagName)
+    private static TagHelperCollection CreateRazorComponentTagHelpers()
     {
-        var fullyQualifiedName = $"{namespaceName}.{tagName}";
-        var builder = TagHelperDescriptorBuilder.CreateComponent(fullyQualifiedName, assemblyName);
-        builder.SetTypeName(fullyQualifiedName, namespaceName, tagName);
-        builder.TagMatchingRule(rule => rule.TagName = tagName);
+        using var builder = new TagHelperCollection.RefBuilder();
+        builder.AddRange(CreateRazorComponentTagHelpersCore("First", RootNamespace1, "Component1"));
+        builder.AddRange(CreateRazorComponentTagHelpersCore("First", "Test", "Component2"));
+        builder.AddRange(CreateRazorComponentTagHelpersCore("Second", RootNamespace2, "Component3"));
+        builder.AddRange(CreateRazorComponentTagHelpersCore("Second", RootNamespace2, "Component4"));
+        builder.AddRange(CreateRazorComponentTagHelpersCore("First", "Test", "Component1337"));
+        builder.AddRange(CreateRazorComponentTagHelpersCore("First", "Test.Components", "Directory1"));
+        builder.AddRange(CreateRazorComponentTagHelpersCore("First", "Test.Components", "Directory2"));
 
-        yield return builder.Build();
+        return builder.ToCollection();
 
-        var fullyQualifiedBuilder = TagHelperDescriptorBuilder.CreateComponent(fullyQualifiedName, assemblyName);
-        fullyQualifiedBuilder.SetTypeName(fullyQualifiedName, namespaceName, tagName);
-        fullyQualifiedBuilder.TagMatchingRule(rule => rule.TagName = fullyQualifiedName);
-        fullyQualifiedBuilder.IsFullyQualifiedNameMatch = true;
+        static IEnumerable<TagHelperDescriptor> CreateRazorComponentTagHelpersCore(
+            string assemblyName, string namespaceName, string tagName)
+        {
+            var fullyQualifiedName = $"{namespaceName}.{tagName}";
+            var builder = TagHelperDescriptorBuilder.CreateComponent(fullyQualifiedName, assemblyName);
+            builder.SetTypeName(fullyQualifiedName, namespaceName, tagName);
+            builder.TagMatchingRule(rule => rule.TagName = tagName);
 
-        yield return fullyQualifiedBuilder.Build();
+            yield return builder.Build();
+
+            var fullyQualifiedBuilder = TagHelperDescriptorBuilder.CreateComponent(fullyQualifiedName, assemblyName);
+            fullyQualifiedBuilder.SetTypeName(fullyQualifiedName, namespaceName, tagName);
+            fullyQualifiedBuilder.TagMatchingRule(rule => rule.TagName = fullyQualifiedName);
+            fullyQualifiedBuilder.IsFullyQualifiedNameMatch = true;
+
+            yield return fullyQualifiedBuilder.Build();
+        }
     }
 
     private static Action<SumType<TextEdit, AnnotatedTextEdit>> AssertTextEdit(string fileName, int startLine, int startCharacter, int endLine, int endCharacter)
