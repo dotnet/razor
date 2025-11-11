@@ -308,7 +308,7 @@ internal class RenameService(
         return false;
     }
 
-    private static TagHelperDescriptor? FindAssociatedTagHelper(TagHelperDescriptor tagHelper, ImmutableArray<TagHelperDescriptor> tagHelpers)
+    private static TagHelperDescriptor? FindAssociatedTagHelper(TagHelperDescriptor tagHelper, TagHelperCollection tagHelpers)
     {
         var typeName = tagHelper.TypeName;
         var assemblyName = tagHelper.AssemblyName;
