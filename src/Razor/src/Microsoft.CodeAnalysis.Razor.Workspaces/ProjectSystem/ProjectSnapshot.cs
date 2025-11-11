@@ -143,7 +143,7 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot, IL
     string ILegacyProjectSnapshot.FilePath => FilePath;
     string? ILegacyProjectSnapshot.RootNamespace => RootNamespace;
     LanguageVersion ILegacyProjectSnapshot.CSharpLanguageVersion => CSharpLanguageVersion;
-    ImmutableArray<TagHelperDescriptor> ILegacyProjectSnapshot.TagHelpers => [.. ProjectWorkspaceState.TagHelpers];
+    TagHelperCollection ILegacyProjectSnapshot.TagHelpers => ProjectWorkspaceState.TagHelpers;
 
     RazorProjectEngine ILegacyProjectSnapshot.GetProjectEngine()
         => _state.ProjectEngine;
