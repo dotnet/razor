@@ -125,7 +125,7 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
             .Returns(path);
         documentSnapshot
             .Setup(d => d.Project.GetTagHelpersAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync([.. tagHelpers]);
+            .ReturnsAsync(tagHelpers);
         documentSnapshot
             .Setup(d => d.FileKind)
             .Returns(fileKindValue);

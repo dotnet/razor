@@ -462,7 +462,7 @@ public class TypeAccessibilityCodeActionProviderTest(ITestOutputHelper testOutpu
             .ReturnsAsync(codeDocument.Source.Text);
         documentSnapshotMock
             .Setup(x => x.Project.GetTagHelpersAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync([.. tagHelpers]);
+            .ReturnsAsync(tagHelpers);
 
         return new RazorCodeActionContext(
             request,
