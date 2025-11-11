@@ -394,6 +394,6 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         var tagHelpers = await project.GetTagHelpersAsync(engine, NoOpTelemetryReporter.Instance, cancellationToken).ConfigureAwait(false);
         Assert.NotEmpty(tagHelpers);
 
-        return [.. tagHelpers];
+        return tagHelpers;
     }
 }

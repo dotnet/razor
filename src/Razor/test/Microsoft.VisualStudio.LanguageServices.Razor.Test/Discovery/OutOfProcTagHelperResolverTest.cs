@@ -93,7 +93,7 @@ public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
 
                 Assert.Same(projectSnapshot, p);
 
-                return new([]);
+                return [];
             },
         };
 
@@ -125,14 +125,14 @@ public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
                 calledOutOfProcess = true;
 
                 Assert.Same(projectSnapshot, p);
-                return new([]);
+                return [];
             },
             OnResolveInProcess = (p) =>
             {
                 calledInProcess = true;
 
                 Assert.Same(projectSnapshot, p);
-                return new([]);
+                return [];
             },
         };
 
@@ -172,7 +172,7 @@ public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
                 calledInProcess = true;
 
                 Assert.Same(projectSnapshot, p);
-                return new([]);
+                return [];
             },
         };
 
@@ -205,7 +205,7 @@ public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
 
                 Assert.Same(projectSnapshot, p);
 
-                return new([]);
+                return [];
             },
         };
 
@@ -238,7 +238,7 @@ public partial class OutOfProcTagHelperResolverTest : VisualStudioTestBase
                 calledInProcess = true;
                 Assert.Same(projectSnapshot, p);
 
-                return new([]);
+                return [];
             },
             OnResolveOutOfProcess = (p) =>
             {
