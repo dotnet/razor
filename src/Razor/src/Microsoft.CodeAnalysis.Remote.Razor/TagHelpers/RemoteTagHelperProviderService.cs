@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -77,9 +76,9 @@ internal sealed partial class RemoteTagHelperProviderService(in ServiceArgs args
 
         return new FetchTagHelpersResult(tagHelpers);
 
-        static bool TryGetCachedTagHelpers(ImmutableArray<Checksum> checksums, out ImmutableArray<TagHelperDescriptor> tagHelpers)
+        static bool TryGetCachedTagHelpers(ImmutableArray<Checksum> checksums, out TagHelperCollection tagHelpers)
         {
-            using var builder = new PooledArrayBuilder<TagHelperDescriptor>(capacity: checksums.Length);
+            using var builder = new TagHelperCollection.RefBuilder(initialCapacity: checksums.Length);
             var cache = TagHelperCache.Default;
 
             foreach (var checksum in checksums)
@@ -93,7 +92,7 @@ internal sealed partial class RemoteTagHelperProviderService(in ServiceArgs args
                 builder.Add(tagHelper);
             }
 
-            tagHelpers = builder.ToImmutableAndClear();
+            tagHelpers = builder.ToCollection();
             return true;
         }
     }
