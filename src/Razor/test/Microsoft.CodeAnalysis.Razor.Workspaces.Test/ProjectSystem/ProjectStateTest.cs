@@ -619,7 +619,7 @@ public class ProjectStateTest(ITestOutputHelper testOutput) : ToolingTestBase(te
             .AddEmptyDocument(SomeProjectFile2);
 
         // Act
-        var newState = state.WithProjectWorkspaceState(ProjectWorkspaceState.Create(state.TagHelpers));
+        var newState = state.WithProjectWorkspaceState(ProjectWorkspaceState.Create([.. state.TagHelpers]));
 
         // Assert
         Assert.Same(state, newState);
