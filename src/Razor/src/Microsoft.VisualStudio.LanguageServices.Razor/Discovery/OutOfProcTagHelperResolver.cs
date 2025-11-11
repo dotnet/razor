@@ -149,7 +149,7 @@ internal class OutOfProcTagHelperResolver(
             }
 
             Debug.Assert(
-                checksumsToFetch.Length == fetchedTagHelpers.Length,
+                checksumsToFetch.Length == fetchedTagHelpers.Count,
                 $"{nameof(FetchTagHelpersResult)} should return the same number of tag helpers as checksums requested.");
 
             Debug.Assert(
@@ -159,7 +159,7 @@ internal class OutOfProcTagHelperResolver(
             // Be sure to add the tag helpers we just fetched to the cache.
             var cache = TagHelperCache.Default;
 
-            for (var i = 0; i < fetchedTagHelpers.Length; i++)
+            for (var i = 0; i < fetchedTagHelpers.Count; i++)
             {
                 var index = checksumIndicesBuilder[i];
                 Debug.Assert(result[index] is null);
@@ -169,10 +169,10 @@ internal class OutOfProcTagHelperResolver(
                 cache.TryAdd(fetchedTagHelper.Checksum, fetchedTagHelper);
             }
 
-            if (checksumsToFetch.Length != fetchedTagHelpers.Length)
+            if (checksumsToFetch.Length != fetchedTagHelpers.Count)
             {
                 _logger.LogWarning($"Expected to receive {checksumsToFetch.Length} tag helpers from Roslyn OOP, " +
-                    $"but received {fetchedTagHelpers.Length} instead. Returning a partial set of tag helpers.");
+                    $"but received {fetchedTagHelpers.Count} instead. Returning a partial set of tag helpers.");
 
                 // We didn't receive all the tag helpers we requested. This is bad. However, instead of failing,
                 // we'll just return the tag helpers we were able to retrieve.
