@@ -38,7 +38,7 @@ internal sealed class ProjectSnapshot(ProjectState state) : IProjectSnapshot, IL
     public RazorProjectEngine ProjectEngine => _state.ProjectEngine;
 
     public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(CancellationToken cancellationToken)
-        => new(_state.TagHelpers);
+        => new([.. _state.TagHelpers]);
 
     public bool ContainsDocument(string filePath)
     {
