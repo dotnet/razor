@@ -38,7 +38,7 @@ public class ProjectStateUpdaterTest(ITestOutputHelper testOutput) : VisualStudi
         TagHelperCollection tagHelpers = [
             TagHelperDescriptorBuilder.CreateTagHelper("ResolvableTagHelper", "TestAssembly").Build()];
         _projectWorkspaceState = ProjectWorkspaceState.Create(tagHelpers);
-        _tagHelperResolver = new TestTagHelperResolver([.. tagHelpers]);
+        _tagHelperResolver = new TestTagHelperResolver(tagHelpers);
 
         _projectManager = CreateProjectSnapshotManager();
 
