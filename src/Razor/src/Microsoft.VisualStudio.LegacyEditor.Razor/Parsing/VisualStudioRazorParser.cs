@@ -509,7 +509,7 @@ internal class VisualStudioRazorParser : IVisualStudioRazorParser, IDisposable
             builder.RemapLinePragmaPathsOnWindows = true;
         });
 
-        builder.Features.Add(new VisualStudioTagHelperFeature([.. _documentTracker.TagHelpers]));
+        builder.Features.Add(new VisualStudioTagHelperFeature(_documentTracker.TagHelpers));
 
         builder.ConfigureParserOptions(ConfigureParserOptions);
     }
