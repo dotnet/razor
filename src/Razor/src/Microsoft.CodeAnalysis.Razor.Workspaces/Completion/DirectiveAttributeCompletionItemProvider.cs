@@ -178,8 +178,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
             foreach (var parameterDescriptor in attributeDescriptor.Parameters)
             {
-                if (context.ExistingAttributes.IsDefault
-                    || !context.ExistingAttributes.Any(name => TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(parameterDescriptor, name, attributeDescriptor)))
+                if (!context.ExistingAttributes.Any(name => TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(parameterDescriptor, name, attributeDescriptor)))
                 {
                     // This bound attribute parameter has not had a completion entry added for it, re-represent the base attribute name in the completion list
                     AddCompletion(attributeDescriptor.Name, descriptionInfo, descriptor, context, RazorCompletionItemKind.DirectiveAttribute, attributeCompletions);
@@ -238,11 +237,10 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
         {
             foreach (var parameterDescriptor in parameterDescriptors)
             {
-                if (!context.ExistingAttributes.IsDefault
-                    && context.ExistingAttributes.Any(
-                        (parameterDescriptor, attributeDescriptor),
-                        static (name, arg) =>
-                            TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(arg.parameterDescriptor, name, arg.attributeDescriptor)))
+                if (context.ExistingAttributes.Any(
+                    (parameterDescriptor, attributeDescriptor),
+                    static (name, arg) =>
+                        TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(arg.parameterDescriptor, name, arg.attributeDescriptor)))
                 {
                     // There's already an existing attribute that satisfies this parameter, don't show it in the completion list.
                     continue;
@@ -325,7 +323,6 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
         Dictionary<string, (ImmutableArray<BoundAttributeDescriptionInfo>, ImmutableArray<RazorCommitCharacter>, RazorCompletionItemKind kind)> attributeCompletions)
     {
         if (context.SelectedAttributeName != attributeName &&
-            !context.ExistingAttributes.IsDefault &&
             context.ExistingAttributes.Any(attributeName, static (name, attributeName) => name == attributeName))
         {
             // Attribute is already present on this element and it is not the selected attribute.
