@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,7 +35,7 @@ internal class RemoteTagHelperResolver(ITelemetryReporter telemetryReporter)
         return map;
     }
 
-    public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(
+    public ValueTask<TagHelperCollection> GetTagHelpersAsync(
         Project workspaceProject,
         RazorConfiguration? configuration,
         CancellationToken cancellationToken)
@@ -44,7 +43,7 @@ internal class RemoteTagHelperResolver(ITelemetryReporter telemetryReporter)
             ? workspaceProject.GetTagHelpersAsync(CreateProjectEngine(configuration), _telemetryReporter, cancellationToken)
             : new([]);
 
-    private RazorProjectEngine CreateProjectEngine(RazorConfiguration configuration)
+    private static RazorProjectEngine CreateProjectEngine(RazorConfiguration configuration)
     {
         // If there's no factory to handle the configuration then fall back to a very basic configuration.
         //
