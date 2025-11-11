@@ -163,6 +163,6 @@ public class ProjectStateUpdaterTest(ITestOutputHelper testOutput) : VisualStudi
         // Assert
         var newProjectSnapshot = _projectManager.GetRequiredProject(s_hostProject.Key);
 
-        Assert.Equal<TagHelperDescriptor>(_tagHelperResolver.TagHelpers, await newProjectSnapshot.GetTagHelpersAsync(DisposalToken));
+        Assert.Equal(_tagHelperResolver.TagHelpers, await newProjectSnapshot.GetTagHelpersAsync(DisposalToken));
     }
 }

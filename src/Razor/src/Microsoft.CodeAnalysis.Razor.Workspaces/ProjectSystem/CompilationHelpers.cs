@@ -21,7 +21,7 @@ internal static class CompilationHelpers
         var tagHelpers = await document.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
         var source = await document.GetSourceAsync(cancellationToken).ConfigureAwait(false);
 
-        return projectEngine.Process(source, document.FileKind, importSources, [.. tagHelpers], cancellationToken);
+        return projectEngine.Process(source, document.FileKind, importSources, tagHelpers, cancellationToken);
     }
 
     internal static async Task<ImmutableArray<RazorSourceDocument>> GetImportSourcesAsync(IDocumentSnapshot document, RazorProjectEngine projectEngine, CancellationToken cancellationToken)

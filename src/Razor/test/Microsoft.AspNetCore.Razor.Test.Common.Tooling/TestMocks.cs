@@ -106,7 +106,7 @@ internal static class TestMocks
         if (projectWorkspaceState is not null)
         {
             mock.Setup(x => x.GetTagHelpersAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync([.. projectWorkspaceState.TagHelpers]);
+                .ReturnsAsync(projectWorkspaceState.TagHelpers);
         }
 
         return mock.Object;

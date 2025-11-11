@@ -279,11 +279,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
             .GetRequiredProject(s_hostProject.Key)
             .GetTagHelpersAsync(DisposalToken);
 
-        Assert.Equal(originalTagHelpers.Length, newTagHelpers.Length);
-        for (var i = 0; i < originalTagHelpers.Length; i++)
-        {
-            Assert.Same(originalTagHelpers[i], newTagHelpers[i]);
-        }
+        Assert.SameItems(originalTagHelpers, newTagHelpers);
     }
 
     [UIFact]
@@ -409,11 +405,7 @@ public class ProjectSnapshotManagerTest : VisualStudioWorkspaceTestBase
             .GetRequiredProject(s_hostProject.Key)
             .GetTagHelpersAsync(DisposalToken);
 
-        Assert.Equal(originalTagHelpers.Length, newTagHelpers.Length);
-        for (var i = 0; i < originalTagHelpers.Length; i++)
-        {
-            Assert.Same(originalTagHelpers[i], newTagHelpers[i]);
-        }
+        Assert.SameItems(originalTagHelpers, newTagHelpers);
     }
 
     [UIFact]
