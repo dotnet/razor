@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -231,6 +233,195 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
             expected: "",
             fileKind: RazorFileKind.Legacy);
 
+    [Fact]
+    public Task Component_WithContent()
+      => VerifyRenamesAsync(
+          input: $"""
+                This is a Razor document.
+
+                <Component>Hello</Compon$$ent>
+                <Component>
+                    Hello
+                </Component>
+
+                The end.
+                """,
+          additionalFiles: [
+              (FilePath("Component.razor"), "")
+          ],
+          newName: "DifferentName",
+          expected: """
+                This is a Razor document.
+
+                <DifferentName>Hello</DifferentName>
+                <DifferentName>
+                    Hello
+                </DifferentName>
+
+                The end.
+                """,
+          renames: [
+              ("Component.razor", "DifferentName.razor")
+          ]);
+
+    [Fact]
+    public Task Component_WithContent_FullyQualified()
+      => VerifyRenamesAsync(
+          input: $"""
+                This is a Razor document.
+
+                <My.Namespace.Component>Hello</My.Namespace.Compon$$ent>
+                <My.Namespace.Component>
+                    Hello
+                </My.Namespace.Component>
+
+                The end.
+                """,
+          additionalFiles: [
+              (FilePath("Component.razor"), """
+                    @namespace My.Namespace
+                    """)
+          ],
+          newName: "DifferentName",
+          expected: """
+                This is a Razor document.
+
+                <My.Namespace.DifferentName>Hello</My.Namespace.DifferentName>
+                <My.Namespace.DifferentName>
+                    Hello
+                </My.Namespace.DifferentName>
+
+                The end.
+                """,
+          renames: [
+              ("Component.razor", "DifferentName.razor")
+          ]);
+
+    [Fact]
+    public Task Component_MultipleUsage()
+        => VerifyRenamesAsync(
+            input: $"""
+                This is a Razor document.
+
+                <Comp$$onent />
+                <Component></Component>
+                <Component>
+                </Component>
+
+                The end.
+                """,
+            additionalFiles: [
+                (FilePath("Component.razor"), ""),
+                (FilePath("OtherComponent.razor"), """
+                    <Component />
+                    <Component></Component>
+                    <Component>
+                    </Component>
+                    """)
+            ],
+            newName: "DifferentName",
+            expected: """
+                This is a Razor document.
+
+                <DifferentName />
+                <DifferentName></DifferentName>
+                <DifferentName>
+                </DifferentName>
+
+                The end.
+                """,
+            renames: [
+                ("Component.razor", "DifferentName.razor")
+            ],
+            additionalExpectedFiles: [
+                (FileUri("OtherComponent.razor"), """
+                    <DifferentName />
+                    <DifferentName></DifferentName>
+                    <DifferentName>
+                    </DifferentName>
+                    """)
+            ]);
+
+    [Fact]
+    public Task Component_FullyQualified()
+        => VerifyRenamesAsync(
+            input: $"""
+                This is a Razor document.
+
+                <My.Namespace.Comp$$onent />
+                <My.Namespace.Component></My.Namespace.Component>
+                <My.Namespace.Component>
+                </My.Namespace.Component>
+
+                The end.
+                """,
+            additionalFiles: [
+                (FilePath("Component.razor"), """
+                    @namespace My.Namespace
+                    """)
+            ],
+            newName: "DifferentName",
+            expected: """
+                This is a Razor document.
+
+                <My.Namespace.DifferentName />
+                <My.Namespace.DifferentName></My.Namespace.DifferentName>
+                <My.Namespace.DifferentName>
+                </My.Namespace.DifferentName>
+
+                The end.
+                """,
+            renames: [
+                ("Component.razor", "DifferentName.razor")
+            ]);
+
+    [Fact]
+    public Task Component_MultipleUsage_FullyQualified()
+        => VerifyRenamesAsync(
+            input: $"""
+                This is a Razor document.
+
+                <My.Namespace.Comp$$onent />
+                <My.Namespace.Component></My.Namespace.Component>
+                <My.Namespace.Component>
+                </My.Namespace.Component>
+
+                The end.
+                """,
+            additionalFiles: [
+                (FilePath("Component.razor"), """
+                    @namespace My.Namespace
+                    """),
+                (FilePath("OtherComponent.razor"), """
+                    <My.Namespace.Component />
+                    <My.Namespace.Component></My.Namespace.Component>
+                    <My.Namespace.Component>
+                    </My.Namespace.Component>
+                    """)
+            ],
+            newName: "DifferentName",
+            expected: """
+                This is a Razor document.
+
+                <My.Namespace.DifferentName />
+                <My.Namespace.DifferentName></My.Namespace.DifferentName>
+                <My.Namespace.DifferentName>
+                </My.Namespace.DifferentName>
+
+                The end.
+                """,
+            renames: [
+                ("Component.razor", "DifferentName.razor")
+            ],
+            additionalExpectedFiles: [
+                (FileUri("OtherComponent.razor"), """
+                    <My.Namespace.DifferentName />
+                    <My.Namespace.DifferentName></My.Namespace.DifferentName>
+                    <My.Namespace.DifferentName>
+                    </My.Namespace.DifferentName>
+                    """)
+            ]);
+
     private async Task VerifyRenamesAsync(
         string input,
         string newName,
@@ -271,53 +462,45 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
         {
             Assert.NotNull(renames);
 
+            var expectedRenames = renames.ToList();
             foreach (var change in changes)
             {
                 if (change.TryGetThird(out var renameEdit))
                 {
-                    Assert.Contains(renames,
+                    var found = Assert.Single(renames,
                         r => renameEdit.OldDocumentUri.GetRequiredParsedUri().GetDocumentFilePath().EndsWith(r.oldName) &&
                              renameEdit.NewDocumentUri.GetRequiredParsedUri().GetDocumentFilePath().EndsWith(r.newName));
+                    expectedRenames.Remove(found);
                 }
             }
+
+            Assert.Empty(expectedRenames);
         }
 
-        await ProcessRazorDocumentEditsAsync(inputText, expected, document, additionalExpectedFiles, result, DisposalToken).ConfigureAwait(false);
-
+        var expectedChanges = (additionalExpectedFiles ?? []).Concat([(document.CreateUri(), expected)]);
+        await VerifyWorkspaceEditAsync(result, document.Project.Solution, expectedChanges, DisposalToken);
     }
 
-    private static async Task ProcessRazorDocumentEditsAsync(SourceText inputText, string expected, TextDocument razorDocument, (Uri fileUri, string contents)[]? additionalExpectedFiles, WorkspaceEdit result, CancellationToken cancellationToken)
+    private static async Task VerifyWorkspaceEditAsync(WorkspaceEdit workspaceEdit, Solution solution, IEnumerable<(Uri fileUri, string contents)> expectedChanges, CancellationToken cancellationToken)
     {
-        var razorDocumentUri = razorDocument.CreateUri();
-        var solution = razorDocument.Project.Solution;
-
-        Assert.True(result.TryGetTextDocumentEdits(out var textDocumentEdits));
+        Assert.True(workspaceEdit.TryGetTextDocumentEdits(out var textDocumentEdits));
         foreach (var textDocumentEdit in textDocumentEdits)
         {
-            if (textDocumentEdit.TextDocument.DocumentUri.GetRequiredParsedUri() == razorDocumentUri)
-            {
-                foreach (var edit in textDocumentEdit.Edits)
-                {
-                    inputText = inputText.WithChanges(inputText.GetTextChange((TextEdit)edit));
-                }
-            }
-            else if (additionalExpectedFiles is not null)
-            {
-                foreach (var (uri, contents) in additionalExpectedFiles)
-                {
-                    var additionalDocument = solution.GetTextDocuments(uri).First();
-                    var text = await additionalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var (uri, _) = expectedChanges.Single(e => e.fileUri == textDocumentEdit.TextDocument.DocumentUri.GetRequiredParsedUri());
 
-                    foreach (var edit in textDocumentEdit.Edits)
-                    {
-                        text = text.WithChanges(text.GetTextChange((TextEdit)edit));
-                    }
+            var document = solution.GetTextDocuments(uri).First();
+            var text = await document.GetTextAsync(cancellationToken);
 
-                    AssertEx.EqualOrDiff(contents, text.ToString());
-                }
-            }
+            text = text.WithChanges(textDocumentEdit.Edits.Select(e => text.GetTextChange((TextEdit)e)));
+
+            solution = solution.WithAdditionalDocumentText(document.Id, text);
         }
 
-        AssertEx.EqualOrDiff(expected, inputText.ToString());
+        foreach (var (uri, contents) in expectedChanges)
+        {
+            var document = solution.GetTextDocuments(uri).First();
+            var text = await document.GetTextAsync(cancellationToken);
+            AssertEx.EqualOrDiff(contents, text.ToString());
+        }
     }
 }
