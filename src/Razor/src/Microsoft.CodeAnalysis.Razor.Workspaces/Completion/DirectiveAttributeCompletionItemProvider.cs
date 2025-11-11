@@ -67,7 +67,16 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
         }
 
         var inSnippetContext = InSnippetContext(owner, context.Options);
-        var directiveAttributeCompletionContext = new DirectiveAttributeCompletionContext(attributeName, parameterName, attributes, inSnippetContext, isAttributeRequest, isParameterRequest, context.Options);
+        var directiveAttributeCompletionContext = new DirectiveAttributeCompletionContext()
+        {
+            SelectedAttributeName = attributeName,
+            SelectedParameterName = parameterName,
+            ExistingAttributes = attributes,
+            UseSnippets = inSnippetContext,
+            InAttributeName = isAttributeRequest,
+            InParameterName = isParameterRequest,
+            Options = context.Options
+        };
 
         return GetAttributeCompletions(containingTagName, directiveAttributeCompletionContext, context.TagHelperDocumentContext);
 
