@@ -1035,7 +1035,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 TagName = tagName,
                 TagMode = info.TagMode,
                 Source = BuildSourceSpanFromNode(node),
-                TagHelpers = [.. info.BindingResult.TagHelpers]
+                TagHelpers = info.BindingResult.TagHelpers
             };
 
             _builder.Push(tagHelperNode);
@@ -1753,7 +1753,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 TagName = tagName,
                 TagMode = info.TagMode,
                 Source = BuildSourceSpanFromNode(node),
-                TagHelpers = [.. info.BindingResult.TagHelpers]
+                TagHelpers = info.BindingResult.TagHelpers
             };
 
             if (node.StartTag != null &&
