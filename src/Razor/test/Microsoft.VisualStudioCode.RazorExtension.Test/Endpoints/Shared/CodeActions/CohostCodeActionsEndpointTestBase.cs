@@ -57,17 +57,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
             ? codeAction.Edit.AssumeNotNull()
             : await ResolveCodeActionAsync(document, codeAction);
 
-        var expectedChanges = new List<(Uri, string)>();
-        if (expected is not null)
-        {
-            expectedChanges.Add((document.CreateUri(), expected));
-        }
-
-        if (additionalExpectedFiles is not null)
-        {
-            expectedChanges.AddRange(additionalExpectedFiles);
-        }
-
+        var expectedChanges = (additionalExpectedFiles ?? []).Concat([(document.CreateUri(), expected)]);
         await workspaceEdit.AssertWorkspaceEditAsync(document.Project.Solution, expectedChanges, DisposalToken);
     }
 
