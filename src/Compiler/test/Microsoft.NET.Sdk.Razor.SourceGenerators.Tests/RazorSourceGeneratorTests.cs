@@ -2924,7 +2924,7 @@ namespace MyApp.Pages
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_/Index_razor.g.cs"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_razor.g.cs"),
                 e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
             );
 
