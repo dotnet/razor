@@ -186,22 +186,4 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         Assert.NotNull(result?.Edit);
         return result.Edit;
     }
-
-    private class TestFileSystem((string filePath, string contents)[]? files) : IFileSystem
-    {
-        public bool FileExists(string filePath)
-            => files?.Any(f => FilePathNormalizingComparer.Instance.Equals(f.filePath, filePath)) ?? false;
-
-        public string ReadFile(string filePath)
-            => files.AssumeNotNull().Single(f => FilePathNormalizingComparer.Instance.Equals(f.filePath, filePath)).contents;
-
-        public Stream OpenReadStream(string filePath)
-            => new MemoryStream(Encoding.UTF8.GetBytes(ReadFile(filePath)));
-
-        public IEnumerable<string> GetDirectories(string workspaceDirectory)
-            => throw new NotImplementedException();
-
-        public IEnumerable<string> GetFiles(string workspaceDirectory, string searchPattern, SearchOption searchOption)
-            => throw new NotImplementedException();
-    }
 }

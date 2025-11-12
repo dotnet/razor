@@ -24,9 +24,11 @@ namespace Microsoft.CodeAnalysis.Razor.Rename;
 
 internal class RenameService(
     IRazorComponentSearchEngine componentSearchEngine,
+    IFileSystem fileSystem,
     LanguageServerFeatureOptions languageServerFeatureOptions) : IRenameService
 {
     private readonly IRazorComponentSearchEngine _componentSearchEngine = componentSearchEngine;
+    private readonly IFileSystem _fileSystem = fileSystem;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
     public async Task<WorkspaceEdit?> TryGetRazorRenameEditsAsync(
@@ -60,7 +62,7 @@ internal class RenameService(
 
         var originComponentDocumentFilePath = originComponentDocumentSnapshot.FilePath;
         var newPath = MakeNewPath(originComponentDocumentFilePath, newName);
-        if (File.Exists(newPath))
+        if (_fileSystem.FileExists(newPath))
         {
             return null;
         }

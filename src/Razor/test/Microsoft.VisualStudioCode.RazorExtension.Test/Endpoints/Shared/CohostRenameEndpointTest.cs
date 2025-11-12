@@ -846,6 +846,9 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
         var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentRenameName, (object?)null)]);
 
+        var fileSystem = (RemoteFileSystem)OOPExportProvider.GetExportedValue<IFileSystem>();
+        fileSystem.GetTestAccessor().SetFileSystem(new TestFileSystem(additionalFiles));
+
         var endpoint = new CohostRenameEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker);
 
         var renameParams = new RenameParams
