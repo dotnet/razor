@@ -536,7 +536,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
         var sourceDocument = TestRazorSourceDocument.Create(text, filePath: documentFilePath);
         var syntaxTree = RazorSyntaxTree.Parse(sourceDocument);
         codeDocument.SetSyntaxTree(syntaxTree);
-        var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: null, tagHelpers ?? []);
+        var tagHelperDocumentContext = TagHelperDocumentContext.Create(tagHelpers ?? []);
         codeDocument.SetTagHelperContext(tagHelperDocumentContext);
         return codeDocument;
     }
