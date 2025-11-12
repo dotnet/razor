@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -23,7 +22,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
     [Fact]
-    public Task CSharp_Method()
+    public Task CSharp_SameFile()
         => VerifyRenamesAsync(
             input: """
                 This is a Razor document.
@@ -56,6 +55,270 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 
                 The end.
                 """);
+
+    [Fact]
+    public Task CSharp_WithOtherFile()
+        => VerifyRenamesAsync(
+            input: """
+                This is a Razor document.
+
+                <h1>@_other.MyMethod()</h1>
+
+                @code
+                {
+                    private OtherClass _other;
+
+                    public string MyMethod()
+                    {
+                        _other.MyMet$$hod();
+                        return $"Hi from {nameof(OtherClass.MyMethod)}";
+                    }
+                }
+
+                The end.
+                """,
+            additionalFiles: [
+                (FilePath("OtherFile.cs"), """
+                    public class OtherClass
+                    {
+                        public void MyMethod()
+                        {
+                        }
+                    }
+                    """)
+            ],
+            newName: "CallThisFunction",
+            expected: """
+                This is a Razor document.
+                
+                <h1>@_other.CallThisFunction()</h1>
+                
+                @code
+                {
+                    private OtherClass _other;
+                
+                    public string MyMethod()
+                    {
+                        _other.CallThisFunction();
+                        return $"Hi from {nameof(OtherClass.CallThisFunction)}";
+                    }
+                }
+                
+                The end.
+                """,
+            additionalExpectedFiles: [
+                (FileUri("OtherFile.cs"), """
+                    public class OtherClass
+                    {
+                        public void CallThisFunction()
+                        {
+                        }
+                    }
+                    """)
+            ]);
+
+    [Fact]
+    public Task CSharp_Inherits()
+       => VerifyRenamesAsync(
+           input: """
+                @inherits MyComponent$$Base
+
+                This is a Razor document.
+
+                The end.
+                """,
+           additionalFiles: [
+               (FilePath("OtherFile.cs"), """
+                    using Microsoft.AspNetCore.Components;
+
+                    public class MyComponentBase : ComponentBase
+                    {
+                    }
+                    """)
+           ],
+           newName: "OtherName",
+           expected: """
+                @inherits OtherName
+
+                This is a Razor document.
+                
+                The end.
+                """,
+           additionalExpectedFiles: [
+               (FileUri("OtherFile.cs"), """
+                    using Microsoft.AspNetCore.Components;
+
+                    public class OtherName : ComponentBase
+                    {
+                    }
+                    """)
+           ]);
+
+    [Fact]
+    public Task CSharp_Model()
+        => VerifyRenamesAsync(
+            input: """
+                @model MyMod$$el
+
+                This is a Razor document.
+
+                The end.
+                """,
+            additionalFiles: [
+                (FilePath("OtherFile.cs"), """
+                    public class MyModel
+                    {
+                    }
+                    """)
+            ],
+            newName: "OtherModel",
+            expected: """
+                @model OtherModel
+
+                This is a Razor document.
+                
+                The end.
+                """,
+            additionalExpectedFiles: [
+                (FileUri("OtherFile.cs"), """
+                    public class OtherModel
+                    {
+                    }
+                    """)
+            ],
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
+    public Task CSharp_Implements()
+        => VerifyRenamesAsync(
+            input: """
+                @implements MyInter$$face
+
+                This is a Razor document.
+
+                The end.
+                """,
+            additionalFiles: [
+                (FilePath("OtherFile.cs"), """
+                    public interface MyInterface
+                    {
+                    }
+                    """)
+            ],
+            newName: "IMyFace",
+            expected: """
+                @implements IMyFace
+
+                This is a Razor document.
+                
+                The end.
+                """,
+            additionalExpectedFiles: [
+                (FileUri("OtherFile.cs"), """
+                    public interface IMyFace
+                    {
+                    }
+                    """)
+            ]);
+
+    [Fact]
+    public Task CSharp_TypeParam()
+       => VerifyRenamesAsync(
+           input: """
+                @typeparam TItem where TItem : MyInter$$face
+
+                This is a Razor document.
+
+                The end.
+                """,
+           additionalFiles: [
+               (FilePath("OtherFile.cs"), """
+                    public interface MyInterface
+                    {
+                    }
+                    """)
+           ],
+           newName: "IMyFace",
+           expected: """
+                @typeparam TItem where TItem : IMyFace
+
+                This is a Razor document.
+                
+                The end.
+                """,
+           additionalExpectedFiles: [
+               (FileUri("OtherFile.cs"), """
+                    public interface IMyFace
+                    {
+                    }
+                    """)
+           ]);
+
+    [Fact]
+    public Task CSharp_Attribute()
+       => VerifyRenamesAsync(
+           input: """
+                @attribute [HasPa$$nts]
+
+                This is a Razor document.
+
+                The end.
+                """,
+           additionalFiles: [
+               (FilePath("OtherFile.cs"), """
+                    public class HasPantsAttribute : Attribute
+                    {
+                    }
+                    """)
+           ],
+           newName: "HasJacketAttribute",
+           expected: """
+                @attribute [HasJacket]
+
+                This is a Razor document.
+                
+                The end.
+                """,
+           additionalExpectedFiles: [
+               (FileUri("OtherFile.cs"), """
+                    public class HasJacketAttribute : Attribute
+                    {
+                    }
+                    """)
+           ]);
+
+    [Fact]
+    public Task CSharp_Attribute_FullName()
+       => VerifyRenamesAsync(
+           input: """
+                @attribute [HasPa$$ntsAttribute]
+
+                This is a Razor document.
+
+                The end.
+                """,
+           additionalFiles: [
+               (FilePath("OtherFile.cs"), """
+                    public class HasPantsAttribute : Attribute
+                    {
+                    }
+                    """)
+           ],
+           newName: "HasJacketAttribute",
+           expected: """
+                @attribute [HasJacketAttribute]
+
+                This is a Razor document.
+                
+                The end.
+                """,
+           additionalExpectedFiles: [
+               (FileUri("OtherFile.cs"), """
+                    public class HasJacketAttribute : Attribute
+                    {
+                    }
+                    """)
+           ]);
 
     [Theory]
     [InlineData("$$Component")]
@@ -103,7 +366,77 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
                 The end.
                 """,
-            renames: [("Component.razor", "DifferentName.razor")]);
+            additionalExpectedFiles:
+                [(FileUri("DifferentName.razor"), "")]);
+
+    [Theory]
+    [InlineData("$$My.Foo.Component")]
+    [InlineData("M$$y.Foo.Component")]
+    [InlineData("My$$.Foo.Component")]
+    [InlineData("My.$$Foo.Component")]
+    [InlineData("My.F$$oo.Component")]
+    [InlineData("My.Foo$$.Component")]
+    [InlineData("My.Foo.$$Component")]
+    [InlineData("My.Foo.Com$$ponent")]
+    [InlineData("My.Foo.Component$$")]
+    public Task Component_StartTag_FullyQualified(string startTag)
+        => VerifyRenamesAsync(
+            input: $"""
+                This is a Razor document.
+
+                <My.Foo.Component />
+                <My.Foo.Component></My.Foo.Component>
+                <My.Foo.Component>
+                </My.Foo.Component>
+
+                <div>
+                    <{startTag} />
+                    <My.Foo.Component></My.Foo.Component>
+                    <My.Foo.Component>
+                    </My.Foo.Component>
+                    <div>
+                        <My.Foo.Component />
+                        <My.Foo.Component></My.Foo.Component>
+                        <My.Foo.Component>
+                        </My.Foo.Component>
+                    </div>
+                </div>
+
+                The end.
+                """,
+            additionalFiles: [
+                (FilePath("Component.razor"), """
+                    @namespace My.Foo
+                    """)
+            ],
+            newName: "DifferentName",
+            expected: """
+                This is a Razor document.
+
+                <My.Foo.DifferentName />
+                <My.Foo.DifferentName></My.Foo.DifferentName>
+                <My.Foo.DifferentName>
+                </My.Foo.DifferentName>
+                
+                <div>
+                    <My.Foo.DifferentName />
+                    <My.Foo.DifferentName></My.Foo.DifferentName>
+                    <My.Foo.DifferentName>
+                    </My.Foo.DifferentName>
+                    <div>
+                        <My.Foo.DifferentName />
+                        <My.Foo.DifferentName></My.Foo.DifferentName>
+                        <My.Foo.DifferentName>
+                        </My.Foo.DifferentName>
+                    </div>
+                </div>
+
+                The end.
+                """,
+            additionalExpectedFiles:
+                [(FileUri("DifferentName.razor"), """
+                    @namespace My.Foo
+                    """)]);
 
     [Theory]
     [InlineData("$$Component")]
@@ -151,7 +484,8 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
                 The end.
                 """,
-            renames: [("Component.razor", "DifferentName.razor")]);
+            additionalExpectedFiles:
+                [(FileUri("DifferentName.razor"), "")]);
 
     [Fact]
     public Task Component_Attribute()
@@ -260,9 +594,8 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
                 The end.
                 """,
-          renames: [
-              ("Component.razor", "DifferentName.razor")
-          ]);
+          additionalExpectedFiles:
+                [(FileUri("DifferentName.razor"), "")]);
 
     [Fact]
     public Task Component_WithContent_FullyQualified()
@@ -293,12 +626,13 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
                 The end.
                 """,
-          renames: [
-              ("Component.razor", "DifferentName.razor")
-          ]);
+          additionalExpectedFiles:
+                [(FileUri("DifferentName.razor"), """
+                    @namespace My.Namespace
+                    """)]);
 
     [Fact]
-    public Task Component_MultipleUsage()
+    public Task Component_WithOtherFile()
         => VerifyRenamesAsync(
             input: $"""
                 This is a Razor document.
@@ -330,10 +664,8 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
                 The end.
                 """,
-            renames: [
-                ("Component.razor", "DifferentName.razor")
-            ],
             additionalExpectedFiles: [
+                (FileUri("DifferentName.razor"), ""),
                 (FileUri("OtherComponent.razor"), """
                     <DifferentName />
                     <DifferentName></DifferentName>
@@ -371,12 +703,13 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
                 The end.
                 """,
-            renames: [
-                ("Component.razor", "DifferentName.razor")
-            ]);
+            additionalExpectedFiles:
+                [(FileUri("DifferentName.razor"), """
+                    @namespace My.Namespace
+                    """)]);
 
     [Fact]
-    public Task Component_MultipleUsage_FullyQualified()
+    public Task Component_WithOtherFile_FullyQualified()
         => VerifyRenamesAsync(
             input: $"""
                 This is a Razor document.
@@ -410,10 +743,10 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
                 The end.
                 """,
-            renames: [
-                ("Component.razor", "DifferentName.razor")
-            ],
             additionalExpectedFiles: [
+                (FileUri("DifferentName.razor"), """
+                    @namespace My.Namespace
+                    """),
                 (FileUri("OtherComponent.razor"), """
                     <My.Namespace.DifferentName />
                     <My.Namespace.DifferentName></My.Namespace.DifferentName>
@@ -422,13 +755,92 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                     """)
             ]);
 
+    [Fact]
+    public Task Component_OwnFile()
+        => VerifyRenamesAsync(
+            input: $"""
+                This is a Razor document.
+
+                <Fi$$le1 />
+                <File1></File1>
+                <File1>
+                </File1>
+
+                The end.
+                """,
+            newName: "ABetterName",
+            expected: """
+                This is a Razor document.
+
+                <ABetterName />
+                <ABetterName></ABetterName>
+                <ABetterName>
+                </ABetterName>
+
+                The end.
+                """,
+            newFileUri: FileUri("ABetterName.razor"));
+
+    [Fact]
+    public Task Component_WithOtherFile_OwnFile()
+    => VerifyRenamesAsync(
+        input: $"""
+                This is a Razor document.
+
+                <Comp$$onent />
+                <Component></Component>
+                <Component>
+                </Component>
+
+                The end.
+                """,
+        additionalFiles: [
+            (FilePath("Component.razor"), """
+                <Component />
+                <Component></Component>
+                <Component>
+                </Component>
+                """),
+            (FilePath("OtherComponent.razor"), """
+                <Component />
+                <Component></Component>
+                <Component>
+                </Component>
+                """)
+        ],
+        newName: "DifferentName",
+        expected: """
+                This is a Razor document.
+
+                <DifferentName />
+                <DifferentName></DifferentName>
+                <DifferentName>
+                </DifferentName>
+
+                The end.
+                """,
+        additionalExpectedFiles: [
+            (FileUri("DifferentName.razor"), """
+                <DifferentName />
+                <DifferentName></DifferentName>
+                <DifferentName>
+                </DifferentName>
+                """),
+            (FileUri("OtherComponent.razor"), """
+                <DifferentName />
+                <DifferentName></DifferentName>
+                <DifferentName>
+                </DifferentName>
+                """)
+        ]);
+
     private async Task VerifyRenamesAsync(
         string input,
         string newName,
         string expected,
         RazorFileKind? fileKind = null,
+        Uri? newFileUri = null,
         (string fileName, string contents)[]? additionalFiles = null,
-        (string oldName, string newName)[]? renames = null,
         (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
     {
         TestFileMarkupParser.GetPosition(input, out var source, out var cursorPosition);
@@ -451,56 +863,87 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
         if (expected.Length == 0)
         {
-            Assert.True(renames is null or []);
             Assert.Null(result);
             return;
         }
 
         Assert.NotNull(result);
 
-        if (result.DocumentChanges.AssumeNotNull().TryGetSecond(out var changes))
-        {
-            Assert.NotNull(renames);
-
-            var expectedRenames = renames.ToList();
-            foreach (var change in changes)
-            {
-                if (change.TryGetThird(out var renameEdit))
-                {
-                    var found = Assert.Single(renames,
-                        r => renameEdit.OldDocumentUri.GetRequiredParsedUri().GetDocumentFilePath().EndsWith(r.oldName) &&
-                             renameEdit.NewDocumentUri.GetRequiredParsedUri().GetDocumentFilePath().EndsWith(r.newName));
-                    expectedRenames.Remove(found);
-                }
-            }
-
-            Assert.Empty(expectedRenames);
-        }
-
-        var expectedChanges = (additionalExpectedFiles ?? []).Concat([(document.CreateUri(), expected)]);
+        var documentUri = newFileUri ?? document.CreateUri();
+        var expectedChanges = (additionalExpectedFiles ?? []).Concat([(documentUri, expected)]);
         await VerifyWorkspaceEditAsync(result, document.Project.Solution, expectedChanges, DisposalToken);
     }
 
     private static async Task VerifyWorkspaceEditAsync(WorkspaceEdit workspaceEdit, Solution solution, IEnumerable<(Uri fileUri, string contents)> expectedChanges, CancellationToken cancellationToken)
     {
-        Assert.True(workspaceEdit.TryGetTextDocumentEdits(out var textDocumentEdits));
-        foreach (var textDocumentEdit in textDocumentEdits)
+        var unseenDocs = expectedChanges.Select(e => e.fileUri).ToHashSet();
+        var changes = Assert.NotNull(workspaceEdit.DocumentChanges);
+        foreach (var change in Flatten(changes))
         {
-            var (uri, _) = expectedChanges.Single(e => e.fileUri == textDocumentEdit.TextDocument.DocumentUri.GetRequiredParsedUri());
+            if (change.TryGetThird(out var renameFile))
+            {
+                var (oldUri, newUri) = (renameFile.OldDocumentUri.GetRequiredParsedUri(), renameFile.NewDocumentUri.GetRequiredParsedUri());
+                unseenDocs.Remove(newUri);
 
-            var document = solution.GetTextDocuments(uri).First();
-            var text = await document.GetTextAsync(cancellationToken);
+                var document = solution.GetTextDocuments(oldUri).First();
+                if (document is Document)
+                {
+                    solution = solution.WithDocumentFilePath(document.Id, newUri.GetDocumentFilePath());
+                }
+                else
+                {
+                    var filePath = newUri.GetDocumentFilePath();
+                    var text = await document.GetTextAsync(cancellationToken);
+                    solution = document.Project
+                        .RemoveAdditionalDocument(document.Id)
+                        .AddAdditionalDocument(Path.GetFileName(filePath), text, filePath: filePath).Project.Solution;
+                }
+            }
+            else if (change.TryGetFirst(out var textDocumentEdit))
+            {
+                var (uri, _) = expectedChanges.Single(e => e.fileUri == textDocumentEdit.TextDocument.DocumentUri.GetRequiredParsedUri());
+                unseenDocs.Remove(uri);
 
-            text = text.WithChanges(textDocumentEdit.Edits.Select(e => text.GetTextChange((TextEdit)e)));
+                var document = solution.GetTextDocuments(uri).First();
+                var text = await document.GetTextAsync(cancellationToken);
 
-            solution = solution.WithAdditionalDocumentText(document.Id, text);
+                text = text.WithChanges(textDocumentEdit.Edits.Select(e => text.GetTextChange((TextEdit)e)));
+
+                solution = document is Document
+                    ? solution.WithDocumentText(document.Id, text)
+                    : solution.WithAdditionalDocumentText(document.Id, text);
+            }
+            else
+            {
+                Assert.Fail($"Don't know how to process a {change.Value?.GetType().Name}.");
+            }
         }
+
+        Assert.Empty(unseenDocs);
 
         foreach (var (uri, contents) in expectedChanges)
         {
             var document = solution.GetTextDocuments(uri).First();
             var text = await document.GetTextAsync(cancellationToken);
             AssertEx.EqualOrDiff(contents, text.ToString());
+        }
+
+        static IEnumerable<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> Flatten(SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> documentChanges)
+        {
+            if (documentChanges.TryGetFirst(out var textDocumentEdits))
+            {
+                foreach (var edit in textDocumentEdits)
+                {
+                    yield return edit;
+                }
+            }
+            else if (documentChanges.TryGetSecond(out var changes))
+            {
+                foreach (var change in changes)
+                {
+                    yield return change;
+                }
+            }
         }
     }
 }
