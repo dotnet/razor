@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -221,4 +222,146 @@ public abstract partial class TagHelperCollection : IEquatable<TagHelperCollecti
     ///  The <paramref name="destination"/> span is too short to contain all the descriptors in the collection.
     /// </exception>
     public abstract void CopyTo(Span<TagHelperDescriptor> destination);
+
+    /// <summary>
+    ///  Filters the collection based on a predicate and returns a new <see cref="TagHelperCollection"/>
+    ///  containing only the tag helper descriptors that satisfy the condition.
+    /// </summary>
+    /// <typeparam name="TState">The type of the state object passed to the predicate.</typeparam>
+    /// <param name="state">The state object to pass to the predicate function.</param>
+    /// <param name="predicate">A function to test each tag helper descriptor for a condition.</param>
+    /// <returns>
+    ///  A new <see cref="TagHelperCollection"/> that contains the tag helper descriptors from the
+    ///  current collection that satisfy the condition specified by <paramref name="predicate"/>.
+    /// </returns>
+    /// <remarks>
+    ///  <para>
+    ///   This method preserves the order of elements and automatically handles deduplication.
+    ///   The resulting collection maintains the same performance characteristics as the original.
+    ///  </para>
+    ///  <para>
+    ///   If no elements match the predicate, <see cref="Empty"/> is returned.
+    ///   If all elements match the predicate, a collection with the same content is returned.
+    ///  </para>
+    ///  <para>
+    ///   This overload allows passing state to the predicate without creating closures, which can
+    ///   improve performance by avoiding allocations.
+    ///  </para>
+    /// </remarks>
+    public TagHelperCollection Where<TState>(TState state, Func<TagHelperDescriptor, TState, bool> predicate)
+    {
+        if (IsEmpty)
+        {
+            return [];
+        }
+
+        // Note: We don't have to worry about checking for duplicates since this
+        // collection is already de-duped.
+        using var segments = new PooledArrayBuilder<ReadOnlyMemory<TagHelperDescriptor>>();
+
+        foreach (var segment in Segments)
+        {
+            var span = segment.Span;
+            var segmentStart = 0;
+
+            for (var i = 0; i < span.Length; i++)
+            {
+                if (predicate(span[i], state))
+                {
+                    // Item matches predicate, continue building current segment
+                    continue;
+                }
+
+                // Item doesn't match predicate - close current segment if it has items
+                if (i > segmentStart)
+                {
+                    segments.Add(segment[segmentStart..i]);
+                }
+
+                // Start new segment after this filtered item
+                segmentStart = i + 1;
+            }
+
+            // Close final segment if it has items
+            if (segmentStart < span.Length)
+            {
+                segments.Add(segment[segmentStart..]);
+            }
+        }
+
+        return segments.Count switch
+        {
+            0 => Empty,
+            1 => new SingleSegmentCollection(segments[0]),
+            _ => new MultiSegmentCollection(segments.ToImmutableAndClear())
+        };
+    }
+
+    /// <summary>
+    ///  Filters the collection based on a predicate and returns a new <see cref="TagHelperCollection"/>
+    ///  containing only the tag helper descriptors that satisfy the condition.
+    /// </summary>
+    /// <param name="predicate">A function to test each tag helper descriptor for a condition.</param>
+    /// <returns>
+    ///  A new <see cref="TagHelperCollection"/> that contains the tag helper descriptors from the
+    ///  current collection that satisfy the condition specified by <paramref name="predicate"/>.
+    /// </returns>
+    /// <remarks>
+    ///  <para>
+    ///   This method preserves the order of elements and automatically handles deduplication.
+    ///   The resulting collection maintains the same performance characteristics as the original.
+    ///  </para>
+    ///  <para>
+    ///   If no elements match the predicate, <see cref="Empty"/> is returned.
+    ///   If all elements match the predicate, a collection with the same content is returned.
+    ///  </para>
+    /// </remarks>
+    public TagHelperCollection Where(Predicate<TagHelperDescriptor> predicate)
+    {
+        if (IsEmpty)
+        {
+            return [];
+        }
+
+        // Note: We don't have to worry about checking for duplicates since this
+        // collection is already de-duped.
+        using var segments = new PooledArrayBuilder<ReadOnlyMemory<TagHelperDescriptor>>();
+
+        foreach (var segment in Segments)
+        {
+            var span = segment.Span;
+            var segmentStart = 0;
+
+            for (var i = 0; i < span.Length; i++)
+            {
+                if (predicate(span[i]))
+                {
+                    // Item matches predicate, continue building current segment
+                    continue;
+                }
+
+                // Item doesn't match predicate - close current segment if it has items
+                if (i > segmentStart)
+                {
+                    segments.Add(segment[segmentStart..i]);
+                }
+
+                // Start new segment after this filtered item
+                segmentStart = i + 1;
+            }
+
+            // Close final segment if it has items
+            if (segmentStart < span.Length)
+            {
+                segments.Add(segment[segmentStart..]);
+            }
+        }
+
+        return segments.Count switch
+        {
+            0 => Empty,
+            1 => new SingleSegmentCollection(segments[0]),
+            _ => new MultiSegmentCollection(segments.ToImmutableAndClear())
+        };
+    }
 }
