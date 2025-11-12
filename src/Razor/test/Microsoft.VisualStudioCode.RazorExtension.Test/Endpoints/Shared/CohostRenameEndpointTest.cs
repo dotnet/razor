@@ -316,6 +316,23 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                     """)
            ]);
 
+    [Fact]
+    public Task Component_ExistingFile()
+     => VerifyRenamesAsync(
+         input: $"""
+                This is a Razor document.
+
+                <Comp$$onent />
+
+                The end.
+                """,
+         additionalFiles: [
+             (FilePath("Component.razor"), ""),
+             (FilePath("DifferentName.razor"), "")
+         ],
+         newName: "DifferentName",
+         expected: "");
+
     [Theory]
     [InlineData("$$Component")]
     [InlineData("Com$$ponent")]

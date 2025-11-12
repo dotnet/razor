@@ -31,7 +31,7 @@ internal class RenameService(
     private readonly IFileSystem _fileSystem = fileSystem;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
-    public async Task<WorkspaceEdit?> TryGetRazorRenameEditsAsync(
+    public async Task<RenameResult> TryGetRazorRenameEditsAsync(
         DocumentContext documentContext,
         DocumentPositionInfo positionInfo,
         string newName,
@@ -41,7 +41,7 @@ internal class RenameService(
         // We only support renaming of .razor components, not .cshtml tag helpers
         if (!documentContext.FileKind.IsComponent())
         {
-            return null;
+            return new(Edit: null);
         }
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
@@ -49,7 +49,7 @@ internal class RenameService(
         var originTagHelpers = await GetOriginTagHelpersAsync(documentContext, positionInfo.HostDocumentIndex, cancellationToken).ConfigureAwait(false);
         if (originTagHelpers.IsDefaultOrEmpty)
         {
-            return null;
+            return new(Edit: null);
         }
 
         var originComponentDocumentSnapshot = await _componentSearchEngine
@@ -57,14 +57,16 @@ internal class RenameService(
             .ConfigureAwait(false);
         if (originComponentDocumentSnapshot is null)
         {
-            return null;
+            return new(Edit: null);
         }
 
         var originComponentDocumentFilePath = originComponentDocumentSnapshot.FilePath;
         var newPath = MakeNewPath(originComponentDocumentFilePath, newName);
         if (_fileSystem.FileExists(newPath))
         {
-            return null;
+            // We found a tag, but the new name would cause a conflict, so we can't proceed with the rename,
+            // even if C# might have worked.
+            return new(Edit: null, FallbackToCSharp: false);
         }
 
         using var _ = ListPool<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>.GetPooledObject(out var documentChanges);
@@ -88,10 +90,10 @@ internal class RenameService(
             }
         }
 
-        return new WorkspaceEdit
+        return new(new WorkspaceEdit
         {
             DocumentChanges = documentChanges.ToArray(),
-        };
+        });
     }
 
     private static ImmutableArray<IDocumentSnapshot> GetAllDocumentSnapshots(string filePath, ISolutionQueryOperations solutionQueryOperations)
