@@ -2,18 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -871,79 +867,6 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
         var documentUri = newFileUri ?? document.CreateUri();
         var expectedChanges = (additionalExpectedFiles ?? []).Concat([(documentUri, expected)]);
-        await VerifyWorkspaceEditAsync(result, document.Project.Solution, expectedChanges, DisposalToken);
-    }
-
-    private static async Task VerifyWorkspaceEditAsync(WorkspaceEdit workspaceEdit, Solution solution, IEnumerable<(Uri fileUri, string contents)> expectedChanges, CancellationToken cancellationToken)
-    {
-        var unseenDocs = expectedChanges.Select(e => e.fileUri).ToHashSet();
-        var changes = Assert.NotNull(workspaceEdit.DocumentChanges);
-        foreach (var change in Flatten(changes))
-        {
-            if (change.TryGetThird(out var renameFile))
-            {
-                var (oldUri, newUri) = (renameFile.OldDocumentUri.GetRequiredParsedUri(), renameFile.NewDocumentUri.GetRequiredParsedUri());
-                unseenDocs.Remove(newUri);
-
-                var document = solution.GetTextDocuments(oldUri).First();
-                if (document is Document)
-                {
-                    solution = solution.WithDocumentFilePath(document.Id, newUri.GetDocumentFilePath());
-                }
-                else
-                {
-                    var filePath = newUri.GetDocumentFilePath();
-                    var text = await document.GetTextAsync(cancellationToken);
-                    solution = document.Project
-                        .RemoveAdditionalDocument(document.Id)
-                        .AddAdditionalDocument(Path.GetFileName(filePath), text, filePath: filePath).Project.Solution;
-                }
-            }
-            else if (change.TryGetFirst(out var textDocumentEdit))
-            {
-                var (uri, _) = expectedChanges.Single(e => e.fileUri == textDocumentEdit.TextDocument.DocumentUri.GetRequiredParsedUri());
-                unseenDocs.Remove(uri);
-
-                var document = solution.GetTextDocuments(uri).First();
-                var text = await document.GetTextAsync(cancellationToken);
-
-                text = text.WithChanges(textDocumentEdit.Edits.Select(e => text.GetTextChange((TextEdit)e)));
-
-                solution = document is Document
-                    ? solution.WithDocumentText(document.Id, text)
-                    : solution.WithAdditionalDocumentText(document.Id, text);
-            }
-            else
-            {
-                Assert.Fail($"Don't know how to process a {change.Value?.GetType().Name}.");
-            }
-        }
-
-        Assert.Empty(unseenDocs);
-
-        foreach (var (uri, contents) in expectedChanges)
-        {
-            var document = solution.GetTextDocuments(uri).First();
-            var text = await document.GetTextAsync(cancellationToken);
-            AssertEx.EqualOrDiff(contents, text.ToString());
-        }
-
-        static IEnumerable<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> Flatten(SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> documentChanges)
-        {
-            if (documentChanges.TryGetFirst(out var textDocumentEdits))
-            {
-                foreach (var edit in textDocumentEdits)
-                {
-                    yield return edit;
-                }
-            }
-            else if (documentChanges.TryGetSecond(out var changes))
-            {
-                foreach (var change in changes)
-                {
-                    yield return change;
-                }
-            }
-        }
+        await result.AssertWorkspaceEditAsync(document.Project.Solution, expectedChanges, DisposalToken);
     }
 }

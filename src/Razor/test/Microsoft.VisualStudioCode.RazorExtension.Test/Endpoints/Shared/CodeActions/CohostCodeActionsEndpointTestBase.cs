@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
@@ -52,11 +51,24 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
             return;
         }
 
+        Assert.NotNull(expected);
+
         var workspaceEdit = codeAction.Data is null
             ? codeAction.Edit.AssumeNotNull()
             : await ResolveCodeActionAsync(document, codeAction);
 
-        await VerifyCodeActionResultAsync(document, workspaceEdit, expected, additionalExpectedFiles);
+        var expectedChanges = new List<(Uri, string)>();
+        if (expected is not null)
+        {
+            expectedChanges.Add((document.CreateUri(), expected));
+        }
+
+        if (additionalExpectedFiles is not null)
+        {
+            expectedChanges.AddRange(additionalExpectedFiles);
+        }
+
+        await workspaceEdit.AssertWorkspaceEditAsync(document.Project.Solution, expectedChanges, DisposalToken);
     }
 
     private protected TextDocument CreateRazorDocument(TestCode input, RazorFileKind? fileKind = null, string? documentFilePath = null, (string filePath, string contents)[]? additionalFiles = null, bool addDefaultImports = true)
@@ -162,62 +174,6 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         }
 
         return await endpoint.GetTestAccessor().HandleRequestAsync(document, request, DisposalToken);
-    }
-
-    private async Task VerifyCodeActionResultAsync(TextDocument document, WorkspaceEdit workspaceEdit, string? expected, (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
-    {
-        var solution = document.Project.Solution;
-        var validated = false;
-
-        if (workspaceEdit.DocumentChanges?.Value is SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] sumTypeArray)
-        {
-            using var builder = new PooledArrayBuilder<TextDocumentEdit>();
-            foreach (var sumType in sumTypeArray)
-            {
-                if (sumType.Value is CreateFile createFile)
-                {
-                    validated = true;
-                    Assert.Single(additionalExpectedFiles.AssumeNotNull(), f => f.fileUri == createFile.DocumentUri.GetRequiredParsedUri());
-                    var documentId = DocumentId.CreateNewId(document.Project.Id);
-                    var filePath = createFile.DocumentUri.GetRequiredParsedUri().GetDocumentFilePath();
-                    var documentInfo = DocumentInfo.Create(documentId, filePath, filePath: filePath);
-                    solution = solution.AddDocument(documentInfo);
-                }
-            }
-        }
-
-        if (workspaceEdit.TryGetTextDocumentEdits(out var documentEdits))
-        {
-            foreach (var edit in documentEdits)
-            {
-                var textDocument = solution.GetTextDocuments(edit.TextDocument.DocumentUri.GetRequiredParsedUri()).First();
-                var text = await textDocument.GetTextAsync(DisposalToken).ConfigureAwait(false);
-                if (textDocument is Document)
-                {
-                    solution = solution.WithDocumentText(textDocument.Id, text.WithChanges(edit.Edits.Select(e => text.GetTextChange((TextEdit)e))));
-                }
-                else
-                {
-                    solution = solution.WithAdditionalDocumentText(textDocument.Id, text.WithChanges(edit.Edits.Select(e => text.GetTextChange((TextEdit)e))));
-                }
-            }
-
-            if (additionalExpectedFiles is not null)
-            {
-                foreach (var (uri, contents) in additionalExpectedFiles)
-                {
-                    var additionalDocument = solution.GetTextDocuments(uri).First();
-                    var text = await additionalDocument.GetTextAsync(DisposalToken).ConfigureAwait(false);
-                    AssertEx.EqualOrDiff(contents, text.ToString());
-                }
-            }
-
-            validated = true;
-            var actual = await solution.GetAdditionalDocument(document.Id).AssumeNotNull().GetTextAsync(DisposalToken).ConfigureAwait(false);
-            AssertEx.EqualOrDiff(expected, actual.ToString());
-        }
-
-        Assert.True(validated, "Test did not validate anything. Code action response type is presumably not supported.");
     }
 
     private async Task<WorkspaceEdit> ResolveCodeActionAsync(CodeAnalysis.TextDocument document, CodeAction codeAction)
