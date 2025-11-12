@@ -2881,8 +2881,8 @@ namespace MyApp.Pages
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.razor"),
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
-               e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_razor.g.cs"),
-               e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+               e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_razor.g.cs"),
+               e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
             );
 
             // Flip suppression on, change the parse options, no changes
