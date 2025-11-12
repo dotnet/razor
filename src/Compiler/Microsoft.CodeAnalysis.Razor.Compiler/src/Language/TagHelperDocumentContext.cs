@@ -20,6 +20,13 @@ internal sealed class TagHelperDocumentContext
         TagHelpers = tagHelpers;
     }
 
+    public static TagHelperDocumentContext Create(TagHelperCollection tagHelpers)
+    {
+        ArgHelper.ThrowIfNull(tagHelpers);
+
+        return new(prefix: null, tagHelpers);
+    }
+
     public static TagHelperDocumentContext Create(string? prefix, TagHelperCollection tagHelpers)
     {
         ArgHelper.ThrowIfNull(tagHelpers);
