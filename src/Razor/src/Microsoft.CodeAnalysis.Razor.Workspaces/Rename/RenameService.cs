@@ -70,9 +70,10 @@ internal class RenameService(
         }
 
         using var _ = ListPool<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>.GetPooledObject(out var documentChanges);
-        var fileRename = GetFileRenameForComponent(originComponentDocumentSnapshot, newPath);
+        var fileRename = GetRenameFileEdit(originComponentDocumentFilePath, newPath);
         documentChanges.Add(fileRename);
         AddEditsForCodeDocument(documentChanges, originTagHelpers, newName, new(documentContext.Uri), codeDocument);
+        AddAdditionalFileRenames(documentChanges, originComponentDocumentFilePath, newPath);
 
         var documentSnapshots = GetAllDocumentSnapshots(documentContext.FilePath, solutionQueryOperations);
 
@@ -130,11 +131,26 @@ internal class RenameService(
         return documentSnapshots.ToImmutableAndClear();
     }
 
-    private RenameFile GetFileRenameForComponent(IDocumentSnapshot documentSnapshot, string newPath)
+    private void AddAdditionalFileRenames(List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges, string oldFilePath, string newFilePath)
+    {
+        TryAdd(".cs");
+        TryAdd(".css");
+
+        void TryAdd(string extension)
+        {
+            var changedPath = oldFilePath + extension;
+            if (_fileSystem.FileExists(changedPath))
+            {
+                documentChanges.Add(GetRenameFileEdit(changedPath, newFilePath + extension));
+            }
+        }
+    }
+
+    private RenameFile GetRenameFileEdit(string oldFilePath, string newFilePath)
         => new RenameFile
         {
-            OldDocumentUri = new(LspFactory.CreateFilePathUri(documentSnapshot.FilePath, _languageServerFeatureOptions)),
-            NewDocumentUri = new(LspFactory.CreateFilePathUri(newPath, _languageServerFeatureOptions)),
+            OldDocumentUri = new(LspFactory.CreateFilePathUri(oldFilePath, _languageServerFeatureOptions)),
+            NewDocumentUri = new(LspFactory.CreateFilePathUri(newFilePath, _languageServerFeatureOptions)),
         };
 
     private static string MakeNewPath(string originalPath, string newName)

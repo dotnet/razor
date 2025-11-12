@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
@@ -846,6 +848,184 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 </DifferentName>
                 """)
         ]);
+
+    [Fact]
+    public Task Component_OwnFile_WithCss()
+        => VerifyRenamesAsync(
+            input: $"""
+                This is a Razor document.
+
+                <Fi$$le1 />
+                <File1></File1>
+                <File1>
+                </File1>
+
+                The end.
+                """,
+            additionalFiles: [
+                (FilePath("File1.razor.css"), "")
+            ],
+            newName: "ABetterName",
+            expected: """
+                This is a Razor document.
+
+                <ABetterName />
+                <ABetterName></ABetterName>
+                <ABetterName>
+                </ABetterName>
+
+                The end.
+                """,
+            newFileUri: FileUri("ABetterName.razor"),
+            additionalExpectedFiles: [
+                (FileUri("ABetterName.razor.css"), "")]);
+
+    [Fact]
+    public Task Component_OwnFile_WithCodeBehind()
+        => VerifyRenamesAsync(
+            input: $"""
+                This is a Razor document.
+
+                <Fi$$le1 />
+                <File1></File1>
+                <File1>
+                </File1>
+
+                The end.
+                """,
+            additionalFiles: [
+                (FilePath("File1.razor.cs"), """
+                    namespace SomeProject;
+
+                    // This class name should change, but we don't support that yet
+                    public partial class File1
+                    {
+                    }
+                    """)
+            ],
+            newName: "ABetterName",
+            expected: """
+                This is a Razor document.
+
+                <ABetterName />
+                <ABetterName></ABetterName>
+                <ABetterName>
+                </ABetterName>
+
+                The end.
+                """,
+            newFileUri: FileUri("ABetterName.razor"),
+            additionalExpectedFiles: [
+                (FileUri("ABetterName.razor.cs"), """
+                namespace SomeProject;
+
+                // This class name should change, but we don't support that yet
+                public partial class File1
+                {
+                }
+                """)]);
+
+    [Fact]
+    public Task Component_WithOtherFile_WithCss()
+        => VerifyRenamesAsync(
+            input: $"""
+                This is a Razor document.
+
+                <Comp$$onent />
+                <Component></Component>
+                <Component>
+                </Component>
+
+                The end.
+                """,
+            additionalFiles: [
+                (FilePath("Component.razor.css"), ""),
+                (FilePath("Component.razor"), """
+                    <Component />
+                    <Component></Component>
+                    <Component>
+                    </Component>
+                    """)
+            ],
+            newName: "DifferentName",
+            expected: """
+                This is a Razor document.
+
+                <DifferentName />
+                <DifferentName></DifferentName>
+                <DifferentName>
+                </DifferentName>
+
+                The end.
+                """,
+            additionalExpectedFiles: [
+                (FileUri("DifferentName.razor.css"), ""),
+                (FileUri("DifferentName.razor"), """
+                    <DifferentName />
+                    <DifferentName></DifferentName>
+                    <DifferentName>
+                    </DifferentName>
+                    """),
+            ]);
+
+    [Fact]
+    public Task Component_WithOtherFile_WithCodeBehindAndCss()
+        => VerifyRenamesAsync(
+            input: $"""
+                This is a Razor document.
+
+                <Comp$$onent />
+                <Component></Component>
+                <Component>
+                </Component>
+
+                The end.
+                """,
+            additionalFiles: [
+                (FilePath("Component.razor.css"), ""),
+                (FilePath("Component.razor.cs"), """
+                    namespace SomeProject;
+
+                    // This class name should change, but we don't support that yet
+                    public partial class Component
+                    {
+                    }
+                    """),
+                (FilePath("Component.razor"), """
+                    <Component />
+                    <Component></Component>
+                    <Component>
+                    </Component>
+                    """)
+            ],
+            newName: "DifferentName",
+            expected: """
+                This is a Razor document.
+
+                <DifferentName />
+                <DifferentName></DifferentName>
+                <DifferentName>
+                </DifferentName>
+
+                The end.
+                """,
+            additionalExpectedFiles: [
+                (FileUri("DifferentName.razor.css"), ""),
+                (FileUri("DifferentName.razor.cs"), """
+                    namespace SomeProject;
+
+                    // This class name should change, but we don't support that yet
+                    public partial class Component
+                    {
+                    }
+                    """),
+                (FileUri("DifferentName.razor"), """
+                    <DifferentName />
+                    <DifferentName></DifferentName>
+                    <DifferentName>
+                    </DifferentName>
+                    """),
+            ]);
 
     private async Task VerifyRenamesAsync(
         string input,
