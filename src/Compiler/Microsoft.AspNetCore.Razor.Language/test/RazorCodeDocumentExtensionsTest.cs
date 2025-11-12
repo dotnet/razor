@@ -52,7 +52,7 @@ public class RazorCodeDocumentExtensionsTest
         // Arrange
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
 
-        var expected = TagHelperDocumentContext.Create(prefix: null, tagHelpers: []);
+        var expected = TagHelperDocumentContext.Create(tagHelpers: []);
         codeDocument.SetTagHelperContext(expected);
 
         // Act
