@@ -356,6 +356,7 @@ public sealed class RazorProjectEngine
     private static void AddDefaultFeatures(ImmutableArray<IRazorFeature>.Builder features)
     {
         features.Add(new DefaultImportProjectFeature());
+        features.Add(new TagHelperDiscoveryService());
 
         // General extensibility
         features.Add(new ConfigureDirectivesFeature());
