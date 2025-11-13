@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -10,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
@@ -37,9 +35,7 @@ internal static class ProjectExtensions
         ITelemetryReporter telemetryReporter,
         CancellationToken cancellationToken)
     {
-        var providers = GetTagHelperDescriptorProviders(projectEngine);
-
-        if (providers is [])
+        if (!projectEngine.Engine.TryGetFeature(out TagHelperDiscoveryService? discoveryService))
         {
             return [];
         }
@@ -50,35 +46,32 @@ internal static class ProjectExtensions
             return [];
         }
 
-        using var builder = new TagHelperCollection.Builder();
-        using var pooledWatch = StopwatchPool.GetPooledObject(out var watch);
-        using var pooledSpan = ArrayPool<Property>.Shared.GetPooledArraySpan(minimumLength: providers.Length, out var properties);
+        const TagHelperDiscoveryOptions Options = TagHelperDiscoveryOptions.ExcludeHidden |
+                                                  TagHelperDiscoveryOptions.IncludeDocumentation;
 
-        var context = new TagHelperDescriptorProviderContext(compilation, builder)
+        var discoveryResult = discoveryService.GetTagHelpers(compilation, Options, cancellationToken);
+
+        if (discoveryResult.HasTimings)
         {
-            ExcludeHidden = true,
-            IncludeDocumentation = true
-        };
-
-        var writeProperties = properties;
-
-        foreach (var provider in providers)
-        {
-            watch.Restart();
-            provider.Execute(context, cancellationToken);
-            watch.Stop();
-
-            writeProperties[0] = new(provider.GetType().Name + PropertySuffix, watch.ElapsedMilliseconds);
-            writeProperties = writeProperties[1..];
+            ReportTimingsTelemetry(discoveryResult.Timings, telemetryReporter);
         }
 
-        telemetryReporter.ReportEvent(GetTagHelpersEventName, Severity.Normal, properties);
+        return discoveryResult.Collection;
 
-        return builder.ToCollection();
+        static void ReportTimingsTelemetry(
+            ImmutableArray<(string ProviderName, TimeSpan Elapsed)> timings,
+            ITelemetryReporter telemetryReporter)
+        {
+            using var properties = new MemoryBuilder<Property>(timings.Length);
+
+            foreach (var (providerName, elapsed) in timings)
+            {
+                properties.Append(new Property(providerName + PropertySuffix, elapsed.Milliseconds));
+            }
+
+            telemetryReporter.ReportEvent(GetTagHelpersEventName, Severity.Normal, properties.AsMemory().Span);
+        }
     }
-
-    private static ImmutableArray<ITagHelperDescriptorProvider> GetTagHelperDescriptorProviders(RazorProjectEngine projectEngine)
-        => projectEngine.Engine.GetFeatures<ITagHelperDescriptorProvider>().OrderByAsArray(static x => x.Order);
 
     public static Task<SourceGeneratedDocument?> TryGetCSharpDocumentFromGeneratedDocumentUriAsync(this Project project, Uri generatedDocumentUri, CancellationToken cancellationToken)
     {
