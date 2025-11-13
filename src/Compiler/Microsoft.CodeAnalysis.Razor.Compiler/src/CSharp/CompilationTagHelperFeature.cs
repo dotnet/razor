@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 public sealed class CompilationTagHelperFeature : RazorEngineFeatureBase, ITagHelperFeature
 {
-    private ImmutableArray<ITagHelperDescriptorProvider> _providers;
+    private TagHelperDiscoveryService? _discoveryService;
     private IMetadataReferenceFeature? _referenceFeature;
 
     public TagHelperCollection GetTagHelpers(CancellationToken cancellationToken = default)
@@ -23,21 +24,17 @@ public sealed class CompilationTagHelperFeature : RazorEngineFeatureBase, ITagHe
             return [];
         }
 
-        using var builder = new TagHelperCollection.Builder();
-        var context = new TagHelperDescriptorProviderContext(compilation, builder);
+        Assumed.NotNull(_discoveryService);
 
-        foreach (var provider in _providers)
-        {
-            provider.Execute(context, cancellationToken);
-        }
+        var discoveryResult = _discoveryService.GetTagHelpers(compilation, cancellationToken);
 
-        return builder.ToCollection();
+        return discoveryResult.Collection;
     }
 
     protected override void OnInitialized()
     {
         _referenceFeature = Engine.GetFeatures<IMetadataReferenceFeature>().FirstOrDefault();
-        _providers = Engine.GetFeatures<ITagHelperDescriptorProvider>().OrderByAsArray(static f => f.Order);
+        _discoveryService = GetRequiredFeature<TagHelperDiscoveryService>();
     }
 
     internal static bool IsValidCompilation(Compilation compilation)
