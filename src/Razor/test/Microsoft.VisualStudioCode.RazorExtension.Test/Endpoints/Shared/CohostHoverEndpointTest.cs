@@ -38,18 +38,16 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
                 Container(
                     Container(
                         Image,
-                        ClassifiedText( // class Microsoft.AspNetCore.Components.Web.PageTitle
-                            Keyword("class"),
-                            WhiteSpace(" "),
-                            Namespace("Microsoft"),
+                        ClassifiedText( // Microsoft.AspNetCore.Components.Web.PageTitle
+                            Text("Microsoft"),
                             Punctuation("."),
-                            Namespace("AspNetCore"),
+                            Text("AspNetCore"),
                             Punctuation("."),
-                            Namespace("Components"),
+                            Text("Components"),
                             Punctuation("."),
-                            Namespace("Web"),
+                            Text("Web"),
                             Punctuation("."),
-                            ClassName("PageTitle")))));
+                            Type("PageTitle")))));
         });
     }
 
@@ -190,22 +188,20 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
                 Container(
                     Container(
                         Image,
-                        ClassifiedText( // class Microsoft.ApsNetCore.Components.Forms.InputText
-                            Keyword("class"),
-                            WhiteSpace(" "),
-                            Namespace("Microsoft"),
+                        ClassifiedText( // Microsoft.ApsNetCore.Components.Forms.InputText
+                            Text("Microsoft"),
                             Punctuation("."),
-                            Namespace("AspNetCore"),
+                            Text("AspNetCore"),
                             Punctuation("."),
-                            Namespace("Components"),
+                            Text("Components"),
                             Punctuation("."),
-                            Namespace("Forms"),
+                            Text("Forms"),
                             Punctuation("."),
-                            ClassName("InputText")))));
+                            Type("InputText")))));
         });
     }
 
-    [Fact]
+    [Fact(Skip = "Skipped due to revert of https://github.com/dotnet/razor/pull/12287, but don't want to delete the tests because the feature will come back")]
     public async Task ComponentEndTag()
     {
         TestCode code = """
@@ -230,19 +226,19 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
                         ClassifiedText( // class Microsoft.AspNetCore.Components.Web.PageTitle
                             Keyword("class"),
                             WhiteSpace(" "),
-                            Namespace("Microsoft"),
+                            Text("Microsoft"),
                             Punctuation("."),
-                            Namespace("AspNetCore"),
+                            Text("AspNetCore"),
                             Punctuation("."),
-                            Namespace("Components"),
+                            Text("Components"),
                             Punctuation("."),
-                            Namespace("Web"),
+                            Text("Web"),
                             Punctuation("."),
                             ClassName("PageTitle")))));
         });
     }
 
-    [Fact]
+    [Fact(Skip = "Skipped due to revert of https://github.com/dotnet/razor/pull/12287, but don't want to delete the tests because the feature will come back")]
     public async Task ComponentEndTag_FullyQualified()
     {
         TestCode code = """
@@ -267,19 +263,19 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
                         ClassifiedText( // class Microsoft.AspNetCore.Components.Web.PageTitle
                             Keyword("class"),
                             WhiteSpace(" "),
-                            Namespace("Microsoft"),
+                            Text("Microsoft"),
                             Punctuation("."),
-                            Namespace("AspNetCore"),
+                            Text("AspNetCore"),
                             Punctuation("."),
-                            Namespace("Components"),
+                            Text("Components"),
                             Punctuation("."),
-                            Namespace("Web"),
+                            Text("Web"),
                             Punctuation("."),
                             ClassName("PageTitle")))));
         });
     }
 
-    [Fact]
+    [Fact(Skip = "Skipped due to revert of https://github.com/dotnet/razor/pull/12287, but don't want to delete the tests because the feature will come back")]
     public async Task ComponentEndTag_FullyQualified_Namespace()
     {
         TestCode code = """
@@ -304,9 +300,9 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
                         ClassifiedText( // namespace Microsoft.AspNetCore
                             Keyword("namespace"),
                             WhiteSpace(" "),
-                            Namespace("Microsoft"),
+                            Text("Microsoft"),
                             Punctuation("."),
-                            Namespace("AspNetCore")))));
+                            Text("AspNetCore")))));
         });
     }
 
