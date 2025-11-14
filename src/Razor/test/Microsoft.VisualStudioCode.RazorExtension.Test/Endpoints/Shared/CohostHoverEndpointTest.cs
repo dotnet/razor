@@ -201,7 +201,7 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
         });
     }
 
-    [Fact]
+    [Fact(Skip = "Skipped due to revert of https://github.com/dotnet/razor/pull/12287, but don't want to delete the tests because the feature will come back")]
     public async Task ComponentEndTag()
     {
         TestCode code = """
@@ -238,7 +238,7 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
         });
     }
 
-    [Fact]
+    [Fact(Skip = "Skipped due to revert of https://github.com/dotnet/razor/pull/12287, but don't want to delete the tests because the feature will come back")]
     public async Task ComponentEndTag_FullyQualified()
     {
         TestCode code = """
@@ -275,7 +275,7 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
         });
     }
 
-    [Fact]
+    [Fact(Skip = "Skipped due to revert of https://github.com/dotnet/razor/pull/12287, but don't want to delete the tests because the feature will come back")]
     public async Task ComponentEndTag_FullyQualified_Namespace()
     {
         TestCode code = """
