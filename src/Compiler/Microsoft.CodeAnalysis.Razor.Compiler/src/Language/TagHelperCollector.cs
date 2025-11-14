@@ -77,7 +77,7 @@ public abstract partial class TagHelperCollector<T>(
         }
     }
 
-    protected virtual void Collect(
+    protected void Collect(
         IAssemblySymbol assembly,
         ICollection<TagHelperDescriptor> results,
         CancellationToken cancellationToken)
