@@ -11,6 +11,7 @@ using System.Threading;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.Language.TagHelpers.Producers;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -25,13 +26,16 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
         var compilation = context.Compilation;
         var targetAssembly = context.TargetAssembly;
 
-        var collector = new Collector(compilation, targetAssembly);
+        BindTagHelperProducer.TryCreate(compilation, out var bindTagHelperProducer);
+
+        var collector = new Collector(compilation, targetAssembly, bindTagHelperProducer);
         collector.Collect(context, cancellationToken);
     }
 
     private sealed class Collector(
         Compilation compilation,
-        IAssemblySymbol? targetAssembly)
+        IAssemblySymbol? targetAssembly,
+        BindTagHelperProducer? bindTagHelperProducer)
         : TagHelperCollector<Collector>(compilation, targetAssembly)
     {
         protected override bool IsCandidateType(INamedTypeSymbol type)
@@ -59,6 +63,17 @@ internal sealed class ComponentTagHelperDescriptorProvider : TagHelperDescriptor
             {
                 fullyQualifiedNameMatchingDescriptor = CreateFullyQualifiedNameMatchingDescriptor(type, properties);
                 results.Add(fullyQualifiedNameMatchingDescriptor);
+            }
+
+            // Produce bind tag helpers for the component.
+            if (bindTagHelperProducer is { CanProduceTagHelpers: true })
+            {
+                bindTagHelperProducer.ProduceTagHelpersForComponent(shortNameMatchingDescriptor, results);
+
+                if (fullyQualifiedNameMatchingDescriptor is not null)
+                {
+                    bindTagHelperProducer.ProduceTagHelpersForComponent(fullyQualifiedNameMatchingDescriptor, results);
+                }
             }
 
             foreach (var childContent in shortNameMatchingDescriptor.GetChildContentProperties())
