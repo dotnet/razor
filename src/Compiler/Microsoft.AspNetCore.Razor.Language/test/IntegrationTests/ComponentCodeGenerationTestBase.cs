@@ -12968,5 +12968,21 @@ Time: @DateTime.Now
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11273")]
+    public void SectionDirective_NotAllowed()
+    {
+        // Verify that @section is not recognized in components and produces appropriate code-gen
+        // Act
+        var generated = CompileToCSharp("""
+            @{ var section = "Section"; }
+            @section One { <p>Content</p> }
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     #endregion
 }
