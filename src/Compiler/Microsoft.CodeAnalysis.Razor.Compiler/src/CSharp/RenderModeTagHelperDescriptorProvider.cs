@@ -1,77 +1,34 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Threading;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.Language.TagHelpers.Producers;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
-// Run after the component tag helper provider
-internal sealed class RenderModeTagHelperDescriptorProvider() : TagHelperDescriptorProviderBase(order: 1000)
+internal sealed class RenderModeTagHelperDescriptorProvider : TagHelperDescriptorProviderBase
 {
-    private static readonly Lazy<TagHelperDescriptor> s_renderModeTagHelper = new(CreateRenderModeTagHelper);
-
     public override void Execute(TagHelperDescriptorProviderContext context, CancellationToken cancellationToken = default)
     {
         ArgHelper.ThrowIfNull(context);
 
-        var compilation = context.Compilation;
+        var factory = GetRequiredFeature<RenderModeTagHelperProducer.Factory>();
 
-        var iComponentRenderMode = compilation.GetTypeByMetadataName(ComponentsApi.IComponentRenderMode.FullTypeName);
-        if (iComponentRenderMode == null)
-        {
-            // If we can't find IComponentRenderMode, then just bail. We won't be able to compile the
-            // generated code anyway.
-            return;
-        }
-
-        if (context.TargetAssembly is { } targetAssembly &&
-            !SymbolEqualityComparer.Default.Equals(targetAssembly, iComponentRenderMode.ContainingAssembly))
+        if (!factory.TryCreate(context.Compilation, context.IncludeDocumentation, context.ExcludeHidden, out var producer))
         {
             return;
         }
 
-        context.Results.Add(s_renderModeTagHelper.Value);
+        var targetAssembly = context.TargetAssembly;
+
+        if (targetAssembly is not null && !producer.HandlesAssembly(targetAssembly))
+        {
+            return;
+        }
+
+        producer.AddStaticTagHelpers(context.Results);
     }
 
-    private static TagHelperDescriptor CreateRenderModeTagHelper()
-    {
-        using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
-            TagHelperKind.RenderMode, "RenderMode", ComponentsApi.AssemblyName,
-            out var builder);
-
-        builder.SetTypeName(
-            fullName: "Microsoft.AspNetCore.Components.RenderMode",
-            typeNamespace: "Microsoft.AspNetCore.Components",
-            typeNameIdentifier: "RenderMode");
-
-        builder.CaseSensitive = true;
-        builder.ClassifyAttributesOnly = true;
-        builder.SetDocumentation(DocumentationDescriptor.RenderModeTagHelper);
-
-        builder.TagMatchingRule(rule =>
-        {
-            rule.TagName = "*";
-            rule.Attribute(attribute =>
-            {
-                attribute.Name = "@rendermode";
-                attribute.IsDirectiveAttribute = true;
-            });
-        });
-
-        builder.BindAttribute(attribute =>
-        {
-            attribute.SetDocumentation(DocumentationDescriptor.RenderModeTagHelper);
-            attribute.Name = "@rendermode";
-
-            attribute.TypeName = ComponentsApi.IComponentRenderMode.FullTypeName;
-            attribute.IsDirectiveAttribute = true;
-            attribute.PropertyName = "RenderMode";
-        });
-
-        return builder.Build();
-    }
 }

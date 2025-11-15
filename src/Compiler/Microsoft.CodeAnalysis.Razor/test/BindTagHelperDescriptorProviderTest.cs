@@ -7,12 +7,21 @@ using System;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.Language.TagHelpers.Producers;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
 public class BindTagHelperDescriptorProviderTest : TagHelperDescriptorProviderTestBase
 {
+    protected override void ConfigureEngine(RazorProjectEngineBuilder builder)
+    {
+        builder.Features.Add(new BindTagHelperProducer.Factory());
+        builder.Features.Add(new BindTagHelperDescriptorProvider());
+        builder.Features.Add(new ComponentTagHelperProducer.Factory());
+        builder.Features.Add(new ComponentTagHelperDescriptorProvider());
+    }
+
     [Fact]
     public void Execute_FindsBindTagHelperOnComponentType_Delegate_CreatesDescriptor()
     {
@@ -51,10 +60,10 @@ namespace Test
         var context = new TagHelperDescriptorProviderContext(compilation);
 
         // We run after component discovery and depend on the results.
-        var componentProvider = new ComponentTagHelperDescriptorProvider();
+        var componentProvider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
         componentProvider.Execute(context);
 
-        var provider = new BindTagHelperDescriptorProvider();
+        var provider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
 
         // Act
         provider.Execute(context);
@@ -184,7 +193,7 @@ namespace Test
 
         var context = new TagHelperDescriptorProviderContext(compilation);
 
-        var bindTagHelperProvider = new BindTagHelperDescriptorProvider();
+        var bindTagHelperProvider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
 
         // Act
         bindTagHelperProvider.Execute(context);
@@ -209,7 +218,7 @@ namespace Test
         var bindConverterSymbol = compilation.GetTypeByMetadataName(ComponentsApi.BindConverter.FullTypeName);
         var context = new TagHelperDescriptorProviderContext(compilation, bindConverterSymbol.ContainingAssembly);
 
-        var bindTagHelperProvider = new BindTagHelperDescriptorProvider();
+        var bindTagHelperProvider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
 
         // Act
         bindTagHelperProvider.Execute(context);
@@ -233,7 +242,7 @@ namespace Test
 
         var context = new TagHelperDescriptorProviderContext(compilation, compilation.Assembly);
 
-        var bindTagHelperProvider = new BindTagHelperDescriptorProvider();
+        var bindTagHelperProvider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
 
         // Act
         bindTagHelperProvider.Execute(context);
@@ -276,10 +285,10 @@ namespace Test
         var context = new TagHelperDescriptorProviderContext(compilation);
 
         // We run after component discovery and depend on the results.
-        var componentProvider = new ComponentTagHelperDescriptorProvider();
+        var componentProvider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
         componentProvider.Execute(context);
 
-        var provider = new BindTagHelperDescriptorProvider();
+        var provider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
 
         // Act
         provider.Execute(context);
@@ -426,10 +435,10 @@ namespace Test
         var context = new TagHelperDescriptorProviderContext(compilation);
 
         // We run after component discovery and depend on the results.
-        var componentProvider = new ComponentTagHelperDescriptorProvider();
+        var componentProvider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
         componentProvider.Execute(context);
 
-        var provider = new BindTagHelperDescriptorProvider();
+        var provider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
 
         // Act
         provider.Execute(context);
@@ -459,7 +468,7 @@ namespace Test
         Assert.Empty(compilation.GetDiagnostics());
 
         var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = new BindTagHelperDescriptorProvider();
+        var provider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
 
         // Act
         provider.Execute(context);
@@ -718,7 +727,7 @@ namespace Test
         Assert.Empty(compilation.GetDiagnostics());
 
         var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = new BindTagHelperDescriptorProvider();
+        var provider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
 
         // Act
         provider.Execute(context);
@@ -801,7 +810,7 @@ namespace Test
         Assert.Empty(compilation.GetDiagnostics());
 
         var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = new BindTagHelperDescriptorProvider();
+        var provider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
 
         // Act
         provider.Execute(context);
@@ -875,7 +884,7 @@ namespace Test
         Assert.Empty(compilation.GetDiagnostics());
 
         var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = new BindTagHelperDescriptorProvider();
+        var provider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
 
         // Act
         provider.Execute(context);
@@ -970,7 +979,7 @@ namespace Test
         Assert.Empty(compilation.GetDiagnostics());
 
         var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = new BindTagHelperDescriptorProvider();
+        var provider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
 
         // Act
         provider.Execute(context);
@@ -1067,7 +1076,7 @@ namespace Test
         Assert.Empty(compilation.GetDiagnostics());
 
         var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = new BindTagHelperDescriptorProvider();
+        var provider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
 
         // Act
         provider.Execute(context);
@@ -1094,7 +1103,7 @@ namespace Test
         Assert.Empty(compilation.GetDiagnostics());
 
         var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = new BindTagHelperDescriptorProvider();
+        var provider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
 
         // Act
         provider.Execute(context);
