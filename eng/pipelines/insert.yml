@@ -57,14 +57,7 @@ steps:
       $authorization = if ("" -ne $Env:PublishDataAccessToken) { "Bearer $Env:PublishDataAccessToken" } else { "" }
       $response = Invoke-RestMethod -Headers @{Authorization = $authorization} "${{ parameters.publishDataURI }}"
       $branchName = "${{ parameters.sourceBranch }}"
-      $branchData = $response.branches.$branchName
-      if (!$branchData)
-      {
-        Write-Host "No PublishData found for branch '$branchName'. Using PublishData for branch 'main' with draft PR status."
-        $branchData = $response.branches.main
-        $branchData.insertionCreateDraftPR = 'true'
-        $branchData.insertionTitlePrefix = '[PR Validation]'
-      }
+      $branchData = $response.branchInfo
 
       # Set our template variables to reasonable defaults
       Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$($true)"
