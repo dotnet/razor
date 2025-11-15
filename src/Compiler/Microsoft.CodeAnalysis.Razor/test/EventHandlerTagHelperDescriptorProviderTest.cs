@@ -1,16 +1,22 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.Language.TagHelpers.Producers;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
 public class EventHandlerTagHelperDescriptorProviderTest : TagHelperDescriptorProviderTestBase
 {
+    protected override void ConfigureEngine(RazorProjectEngineBuilder builder)
+    {
+        builder.Features.Add(new EventHandlerTagHelperProducer.Factory());
+        builder.Features.Add(new EventHandlerTagHelperDescriptorProvider());
+    }
+
     [Fact]
     public void Execute_EventHandler_TwoArgumentsCreatesDescriptor()
     {
@@ -32,7 +38,7 @@ public class EventHandlerTagHelperDescriptorProviderTest : TagHelperDescriptorPr
         Assert.Empty(compilation.GetDiagnostics());
 
         var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = new EventHandlerTagHelperDescriptorProvider();
+        var provider = GetRequiredProvider<EventHandlerTagHelperDescriptorProvider>();
 
         // Act
         provider.Execute(context);
@@ -138,7 +144,7 @@ public class EventHandlerTagHelperDescriptorProviderTest : TagHelperDescriptorPr
         Assert.Empty(compilation.GetDiagnostics());
 
         var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = new EventHandlerTagHelperDescriptorProvider();
+        var provider = GetRequiredProvider<EventHandlerTagHelperDescriptorProvider>();
 
         // Act
         provider.Execute(context);
@@ -275,7 +281,7 @@ public class EventHandlerTagHelperDescriptorProviderTest : TagHelperDescriptorPr
         Assert.NotEmpty(compilation.GetDiagnostics());
 
         var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = new EventHandlerTagHelperDescriptorProvider();
+        var provider = GetRequiredProvider<EventHandlerTagHelperDescriptorProvider>();
 
         // Act
         provider.Execute(context);
@@ -306,7 +312,7 @@ public class EventHandlerTagHelperDescriptorProviderTest : TagHelperDescriptorPr
         Assert.NotEmpty(compilation.GetDiagnostics());
 
         var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = new EventHandlerTagHelperDescriptorProvider();
+        var provider = GetRequiredProvider<EventHandlerTagHelperDescriptorProvider>();
 
         // Act
         provider.Execute(context);
@@ -337,7 +343,7 @@ public class EventHandlerTagHelperDescriptorProviderTest : TagHelperDescriptorPr
         Assert.NotEmpty(compilation.GetDiagnostics());
 
         var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = new EventHandlerTagHelperDescriptorProvider();
+        var provider = GetRequiredProvider<EventHandlerTagHelperDescriptorProvider>();
 
         // Act
         provider.Execute(context);

@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
+using Microsoft.AspNetCore.Razor.Language.TagHelpers.Producers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 
@@ -27,6 +28,9 @@ public static class RazorExtensions
         PageDirective.Register(builder);
 
         SectionDirective.Register(builder);
+
+        builder.Features.Add(new DefaultTagHelperProducer.Factory());
+        builder.Features.Add(new ViewComponentTagHelperProducer.Factory());
 
         builder.Features.Add(new DefaultTagHelperDescriptorProvider());
         builder.Features.Add(new ViewComponentTagHelperDescriptorProvider());

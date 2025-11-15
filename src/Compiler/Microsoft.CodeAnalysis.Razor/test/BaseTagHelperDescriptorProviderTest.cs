@@ -19,25 +19,43 @@ public abstract class TagHelperDescriptorProviderTestBase
     protected TagHelperDescriptorProviderTestBase(string additionalCodeOpt = null)
     {
         CSharpParseOptions = new CSharpParseOptions(LanguageVersion.CSharp7_3);
+
         var testTagHelpers = CSharpCompilation.Create(
             assemblyName: AssemblyName,
             syntaxTrees:
             [
                 Parse(TagHelperDescriptorFactoryTagHelpers.Code),
-                ..(additionalCodeOpt != null ? [Parse(additionalCodeOpt)] : Enumerable.Empty<SyntaxTree>()),
+                .. additionalCodeOpt != null ? [Parse(additionalCodeOpt)] : Array.Empty<SyntaxTree>(),
             ],
             references: ReferenceUtil.AspNetLatestAll,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
         BaseCompilation = TestCompilation.Create(
             syntaxTrees: [],
             references: [testTagHelpers.VerifyDiagnostics().EmitToImageReference()]);
+
+        Engine = RazorProjectEngine.CreateEmpty(ConfigureEngine).Engine;
     }
+
+    protected RazorEngine Engine { get; }
 
     protected Compilation BaseCompilation { get; }
 
     protected CSharpParseOptions CSharpParseOptions { get; }
 
     protected static string AssemblyName { get; } = "Microsoft.CodeAnalysis.Razor.Test";
+
+    protected virtual void ConfigureEngine(RazorProjectEngineBuilder builder)
+    {
+    }
+
+    protected T GetRequiredProvider<T>()
+        where T : class, ITagHelperDescriptorProvider
+    {
+        Assert.True(Engine.TryGetFeature<T>(out var result));
+
+        return result;
+    }
 
     protected CSharpSyntaxTree Parse(string text)
     {

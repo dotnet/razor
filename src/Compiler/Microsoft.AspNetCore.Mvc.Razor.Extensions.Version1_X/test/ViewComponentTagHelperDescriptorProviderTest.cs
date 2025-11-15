@@ -26,10 +26,13 @@ public class ViewComponentTagHelperDescriptorProviderTest
 
         var context = new TagHelperDescriptorProviderContext(compilation);
 
-        var provider = new ViewComponentTagHelperDescriptorProvider()
+        var projectEngine = RazorProjectEngine.CreateEmpty(static b =>
         {
-            Engine = RazorProjectEngine.CreateEmpty().Engine,
-        };
+            b.Features.Add(new ViewComponentTagHelperProducer.Factory());
+            b.Features.Add(new ViewComponentTagHelperDescriptorProvider());
+        });
+
+        Assert.True(projectEngine.Engine.TryGetFeature(out ViewComponentTagHelperDescriptorProvider? provider));
 
         var expectedDescriptor = TagHelperDescriptorBuilder.CreateViewComponent("__Generated__StringParameterViewComponentTagHelper", TestCompilation.AssemblyName)
             .TypeName("__Generated__StringParameterViewComponentTagHelper")

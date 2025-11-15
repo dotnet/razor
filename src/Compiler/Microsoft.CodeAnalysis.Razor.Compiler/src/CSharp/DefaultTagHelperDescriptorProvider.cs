@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.TagHelpers.Producers;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -15,44 +16,31 @@ public sealed class DefaultTagHelperDescriptorProvider : TagHelperDescriptorProv
         ArgHelper.ThrowIfNull(context);
 
         var compilation = context.Compilation;
+        var factory = GetRequiredFeature<DefaultTagHelperProducer.Factory>();
 
-        var iTagHelperType = compilation.GetTypeByMetadataName(TagHelperTypes.ITagHelper);
-        if (iTagHelperType == null || iTagHelperType.TypeKind == TypeKind.Error)
+        if (!factory.TryCreate(compilation, context.IncludeDocumentation, context.ExcludeHidden, out var producer))
         {
-            // Could not find attributes we care about in the compilation. Nothing to do.
             return;
         }
 
         var targetAssembly = context.TargetAssembly;
-        var factory = new DefaultTagHelperDescriptorFactory(context.IncludeDocumentation, context.ExcludeHidden);
-        var collector = new Collector(compilation, targetAssembly, factory, iTagHelperType);
+        var collector = new Collector(compilation, targetAssembly, producer);
         collector.Collect(context, cancellationToken);
     }
 
     private class Collector(
         Compilation compilation,
         IAssemblySymbol? targetAssembly,
-        DefaultTagHelperDescriptorFactory factory,
-        INamedTypeSymbol iTagHelperType)
+        TagHelperProducer producer)
         : TagHelperCollector<Collector>(compilation, targetAssembly)
     {
-        private readonly DefaultTagHelperDescriptorFactory _factory = factory;
-        private readonly INamedTypeSymbol _iTagHelperType = iTagHelperType;
-
         protected override bool IsCandidateType(INamedTypeSymbol type)
-            => type.IsTagHelper(_iTagHelperType);
+            => producer.IsCandidateType(type);
 
         protected override void Collect(
             INamedTypeSymbol type,
             ICollection<TagHelperDescriptor> results,
             CancellationToken cancellationToken)
-        {
-            var descriptor = _factory.CreateDescriptor(type);
-
-            if (descriptor != null)
-            {
-                results.Add(descriptor);
-            }
-        }
+            => producer.AddTagHelpersForType(type, results, cancellationToken);
     }
 }

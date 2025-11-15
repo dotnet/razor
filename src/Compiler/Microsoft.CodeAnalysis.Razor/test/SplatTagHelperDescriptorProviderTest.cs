@@ -3,18 +3,25 @@
 
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.TagHelpers.Producers;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
 public class SplatTagHelperDescriptorProviderTest : TagHelperDescriptorProviderTestBase
 {
+    protected override void ConfigureEngine(RazorProjectEngineBuilder builder)
+    {
+        builder.Features.Add(new SplatTagHelperProducer.Factory());
+        builder.Features.Add(new SplatTagHelperDescriptorProvider());
+    }
+
     [Fact]
     public void Execute_CreatesDescriptor()
     {
         // Arrange
         var context = new TagHelperDescriptorProviderContext(BaseCompilation);
-        var provider = new SplatTagHelperDescriptorProvider();
+        var provider = GetRequiredProvider<SplatTagHelperDescriptorProvider>();
 
         // Act
         provider.Execute(context);

@@ -5,19 +5,26 @@
 
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.TagHelpers.Producers;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
 public class DefaultTagHelperDescriptorProviderTest : TagHelperDescriptorProviderTestBase
 {
+    protected override void ConfigureEngine(RazorProjectEngineBuilder builder)
+    {
+        builder.Features.Add(new DefaultTagHelperProducer.Factory());
+        builder.Features.Add(new DefaultTagHelperDescriptorProvider());
+    }
+
     [Fact]
     public void Execute_DoesNotAddEditorBrowsableNeverDescriptorsAtDesignTime()
     {
         // Arrange
         var editorBrowsableTypeName = "TestNamespace.EditorBrowsableTagHelper";
         var compilation = BaseCompilation;
-        var descriptorProvider = new DefaultTagHelperDescriptorProvider();
+        var descriptorProvider = GetRequiredProvider<DefaultTagHelperDescriptorProvider>();
 
         var context = new TagHelperDescriptorProviderContext(compilation)
         {
@@ -51,7 +58,7 @@ namespace TestAssembly
     }
 }";
         var compilation = BaseCompilation.AddSyntaxTrees(Parse(csharp));
-        var descriptorProvider = new DefaultTagHelperDescriptorProvider();
+        var descriptorProvider = GetRequiredProvider<DefaultTagHelperDescriptorProvider>();
 
         var context = new TagHelperDescriptorProviderContext(compilation);
 
@@ -81,7 +88,7 @@ namespace TestAssembly
     }
 }";
         var compilation = BaseCompilation.AddSyntaxTrees(Parse(csharp));
-        var descriptorProvider = new DefaultTagHelperDescriptorProvider();
+        var descriptorProvider = GetRequiredProvider<DefaultTagHelperDescriptorProvider>();
 
         var targetAssembly = (IAssemblySymbol)compilation.GetAssemblyOrModuleSymbol(
             compilation.References.First(static r => r.Display.Contains("Microsoft.CodeAnalysis.Razor.Test")));

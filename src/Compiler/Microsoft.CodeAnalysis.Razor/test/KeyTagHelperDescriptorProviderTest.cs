@@ -4,18 +4,25 @@
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.Language.TagHelpers.Producers;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
 public class KeyTagHelperDescriptorProviderTest : TagHelperDescriptorProviderTestBase
 {
+    protected override void ConfigureEngine(RazorProjectEngineBuilder builder)
+    {
+        builder.Features.Add(new KeyTagHelperProducer.Factory());
+        builder.Features.Add(new KeyTagHelperDescriptorProvider());
+    }
+
     [Fact]
     public void Execute_CreatesDescriptor()
     {
         // Arrange
         var context = new TagHelperDescriptorProviderContext(BaseCompilation);
-        var provider = new KeyTagHelperDescriptorProvider();
+        var provider = GetRequiredProvider<KeyTagHelperDescriptorProvider>();
 
         // Act
         provider.Execute(context);

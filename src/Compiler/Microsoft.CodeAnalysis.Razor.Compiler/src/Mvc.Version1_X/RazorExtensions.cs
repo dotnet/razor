@@ -6,6 +6,7 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
+using Microsoft.AspNetCore.Razor.Language.TagHelpers.Producers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 
@@ -25,6 +26,7 @@ public static class RazorExtensions
 
         InheritsDirective.Register(builder);
 
+        builder.Features.Add(new DefaultTagHelperProducer.Factory());
         builder.Features.Add(new DefaultTagHelperDescriptorProvider());
 
         // Register section directive with the 1.x compatible target extension.
@@ -53,6 +55,7 @@ public static class RazorExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
+        builder.Features.Add(new ViewComponentTagHelperProducer.Factory());
         builder.Features.Add(new ViewComponentTagHelperDescriptorProvider());
 
         builder.Features.Add(new ViewComponentTagHelperPass());
