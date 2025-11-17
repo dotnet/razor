@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.VisualStudio.Razor.DynamicFiles;
+namespace Microsoft.CodeAnalysis.Razor.DocumentExcerpt;
 
 // We have IVT access to the Roslyn APIs for product code, but not for testing.
 internal readonly struct ExcerptResultInternal

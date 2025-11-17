@@ -3,7 +3,7 @@
 
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
-namespace Microsoft.VisualStudio.Razor.DynamicFiles;
+namespace Microsoft.CodeAnalysis.Razor.DocumentExcerpt;
 
 // We have IVT access to the Roslyn APIs for product code, but not for testing.
 internal enum ExcerptModeInternal

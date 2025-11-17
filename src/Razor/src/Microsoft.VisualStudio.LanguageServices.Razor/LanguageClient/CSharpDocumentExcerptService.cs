@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.DocumentExcerpt;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Razor.DynamicFiles;
@@ -82,7 +83,7 @@ internal sealed class CSharpDocumentExcerptService : DocumentExcerptService
         var generatedDocument = document;
 
         // First compute the range of text we want to we to display relative to the razor document.
-        var excerptSpan = ChooseExcerptSpan(razorDocumentText, razorDocumentSpan, mode);
+        var excerptSpan = DocumentExcerptHelper.ChooseExcerptSpan(razorDocumentText, razorDocumentSpan, mode);
 
         // Then we'll classify the spans based on the razor document, since that's the coordinate
         // space that our output mappings use.
@@ -94,7 +95,7 @@ internal sealed class CSharpDocumentExcerptService : DocumentExcerptService
             options,
             cancellationToken).ConfigureAwait(false);
 
-        var excerptText = GetTranslatedExcerptText(razorDocumentText, ref razorDocumentSpan, ref excerptSpan, classifiedSpans);
+        var excerptText = DocumentExcerptHelper.GetTranslatedExcerptText(razorDocumentText, ref razorDocumentSpan, ref excerptSpan, classifiedSpans);
 
         return new ExcerptResultInternal(excerptText, razorDocumentSpan, classifiedSpans.ToImmutable(), document, span);
     }
