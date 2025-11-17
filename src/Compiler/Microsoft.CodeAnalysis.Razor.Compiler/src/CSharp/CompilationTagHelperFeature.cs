@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 public sealed class CompilationTagHelperFeature : RazorEngineFeatureBase, ITagHelperFeature
 {
-    private TagHelperDiscoveryService? _discoveryService;
+    private ITagHelperDiscoveryService? _discoveryService;
     private IMetadataReferenceFeature? _referenceFeature;
 
     public TagHelperCollection GetTagHelpers(CancellationToken cancellationToken = default)
@@ -26,15 +26,13 @@ public sealed class CompilationTagHelperFeature : RazorEngineFeatureBase, ITagHe
 
         Assumed.NotNull(_discoveryService);
 
-        var discoveryResult = _discoveryService.GetTagHelpers(compilation, cancellationToken);
-
-        return discoveryResult.Collection;
+        return _discoveryService.GetTagHelpers(compilation, cancellationToken);
     }
 
     protected override void OnInitialized()
     {
         _referenceFeature = Engine.GetFeatures<IMetadataReferenceFeature>().FirstOrDefault();
-        _discoveryService = GetRequiredFeature<TagHelperDiscoveryService>();
+        _discoveryService = GetRequiredFeature<ITagHelperDiscoveryService>();
     }
 
     internal static bool IsValidCompilation(Compilation compilation)

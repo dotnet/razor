@@ -25,15 +25,16 @@ internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
         _bindTagHelperProducer = bindTagHelperProducer;
     }
 
-    public override bool HandlesAssembly(IAssemblySymbol assembly) => true;
-    public override bool SupportsTypeProcessing => true;
+    public override TagHelperProducerKind Kind => TagHelperProducerKind.Component;
+
+    public override bool SupportsTypes => true;
 
     public override bool IsCandidateType(INamedTypeSymbol type)
         => ComponentDetectionConventions.IsComponent(type, ComponentsApi.IComponent.MetadataName);
 
     public override void AddTagHelpersForType(
         INamedTypeSymbol type,
-        ICollection<TagHelperDescriptor> results,
+        ref TagHelperCollection.RefBuilder results,
         CancellationToken cancellationToken)
     {
         // Components have very simple matching rules.
@@ -56,13 +57,13 @@ internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
         }
 
         // Produce bind tag helpers for the component.
-        if (_bindTagHelperProducer is { SupportsTypeProcessing: true })
+        if (_bindTagHelperProducer is { SupportsTypes: true })
         {
-            _bindTagHelperProducer.AddTagHelpersForComponent(shortNameMatchingDescriptor, results);
+            _bindTagHelperProducer.AddTagHelpersForComponent(shortNameMatchingDescriptor, ref results);
 
             if (fullyQualifiedNameMatchingDescriptor is not null)
             {
-                _bindTagHelperProducer.AddTagHelpersForComponent(fullyQualifiedNameMatchingDescriptor, results);
+                _bindTagHelperProducer.AddTagHelpersForComponent(fullyQualifiedNameMatchingDescriptor, ref results);
             }
         }
 

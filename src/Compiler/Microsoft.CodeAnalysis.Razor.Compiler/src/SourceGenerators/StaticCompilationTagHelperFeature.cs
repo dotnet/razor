@@ -12,18 +12,23 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
     internal sealed class StaticCompilationTagHelperFeature(Compilation compilation) : RazorEngineFeatureBase, ITagHelperFeature
     {
-        private TagHelperDiscoveryService? _discoveryService;
+        private ITagHelperDiscoveryService? _discoveryService;
+        private TagHelperDiscoverer? _discoverer;
 
-        public TagHelperCollection GetTagHelpers(IAssemblySymbol targetAssembly, CancellationToken cancellationToken)
+        public TagHelperCollection GetTagHelpers(IAssemblySymbol assembly, CancellationToken cancellationToken)
         {
             if (_discoveryService is null)
             {
                 return [];
             }
 
-            var discoveryResult = _discoveryService.GetTagHelpers(compilation, targetAssembly, cancellationToken);
+            if (_discoverer is null &&
+                !_discoveryService.TryGetDiscoverer(compilation, out _discoverer))
+            {
+                return [];
+            }
 
-            return discoveryResult.Collection;
+            return _discoverer.GetTagHelpers(assembly, cancellationToken);
         }
 
         TagHelperCollection ITagHelperFeature.GetTagHelpers(CancellationToken cancellationToken)
@@ -33,14 +38,12 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 return [];
             }
 
-            var discoveryResult = _discoveryService.GetTagHelpers(compilation, cancellationToken);
-
-            return discoveryResult.Collection;
+            return _discoveryService.GetTagHelpers(compilation, cancellationToken);
         }
 
         protected override void OnInitialized()
         {
-            _discoveryService = Engine.GetFeatures<TagHelperDiscoveryService>().FirstOrDefault();
+            _discoveryService = Engine.GetFeatures<ITagHelperDiscoveryService>().FirstOrDefault();
         }
     }
 }

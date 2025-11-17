@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -11,14 +9,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
-public class ComponentTagHelperDescriptorProviderTest : TagHelperDescriptorProviderTestBase
+public class ComponentTagHelperProducerTest : TagHelperDescriptorProviderTestBase
 {
     protected override void ConfigureEngine(RazorProjectEngineBuilder builder)
     {
         builder.Features.Add(new BindTagHelperProducer.Factory());
-        builder.Features.Add(new BindTagHelperDescriptorProvider());
         builder.Features.Add(new ComponentTagHelperProducer.Factory());
-        builder.Features.Add(new ComponentTagHelperDescriptorProvider());
     }
 
     [Fact]
@@ -50,14 +46,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 1);
         var component = Assert.Single(components);
 
@@ -161,14 +154,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 1);
         var component = Assert.Single(components);
 
@@ -223,14 +213,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 1);
         var component = Assert.Single(components);
 
@@ -263,14 +250,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 1);
         var component = Assert.Single(components);
 
@@ -301,14 +285,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 1);
         var component = Assert.Single(components);
 
@@ -339,14 +320,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 1);
         var component = Assert.Single(components);
 
@@ -390,14 +368,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 1);
         var component = Assert.Single(components);
 
@@ -436,14 +411,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 1);
         var component = Assert.Single(components);
 
@@ -482,14 +454,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 1);
         var component = Assert.Single(components);
 
@@ -544,14 +513,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 1);
         var component = Assert.Single(components);
 
@@ -617,14 +583,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 1);
         var component = Assert.Single(components);
 
@@ -665,14 +628,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 1);
         var component = Assert.Single(components);
 
@@ -725,14 +685,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 1);
         var component = Assert.Single(components);
 
@@ -774,14 +731,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 1);
         var component = Assert.Single(components);
 
@@ -827,14 +781,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 1);
         var component = Assert.Single(components);
 
@@ -888,14 +839,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 2);
         var component = Assert.Single(components, c => c.Kind == TagHelperKind.Component);
 
@@ -943,14 +891,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 2);
         var component = Assert.Single(components, c => c.Kind == TagHelperKind.Component);
 
@@ -1016,14 +961,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 2);
         var component = Assert.Single(components, c => c.Kind == TagHelperKind.Component);
 
@@ -1086,14 +1028,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 2);
         var component = Assert.Single(components, c => c.Kind == TagHelperKind.Component);
 
@@ -1166,14 +1105,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 2);
         var component = Assert.Single(components, c => c.Kind == TagHelperKind.Component);
 
@@ -1246,14 +1182,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 2);
         var component = Assert.Single(components, c => c.Kind == TagHelperKind.Component);
 
@@ -1330,14 +1263,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 2);
         var component = Assert.Single(components, c => c.Kind == TagHelperKind.Component);
 
@@ -1414,14 +1344,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 4);
         var component = Assert.Single(components, c => c.Kind == TagHelperKind.Component);
 
@@ -1504,14 +1431,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 1);
         var component = Assert.Single(components);
 
@@ -1558,14 +1482,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var components = ExcludeBuiltInComponents(context);
+        var components = result.Where(c => !IsBuiltInComponent(c));
         components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 1);
         var component = Assert.Single(components, c => c.Kind == TagHelperKind.Component);
 
@@ -1616,20 +1537,19 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var targetAssembly = (IAssemblySymbol)compilation.GetAssemblyOrModuleSymbol(
-            compilation.References.First(static r => r.Display.Contains("Microsoft.CodeAnalysis.Razor.Test")));
-
-        var context = new TagHelperDescriptorProviderContext(compilation, targetAssembly);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
+        var targetAssembly = (IAssemblySymbol?)compilation.GetAssemblyOrModuleSymbol(
+            compilation.References.First(static r => r.Display?.Contains("Microsoft.CodeAnalysis.Razor.Test") == true));
+        Assert.NotNull(targetAssembly);
 
         // Act
-        provider.Execute(context);
+        Assert.True(TryGetDiscoverer(compilation, out var discoverer));
+        var result = discoverer.GetTagHelpers(targetAssembly);
 
         // Assert
         Assert.NotNull(compilation.GetTypeByMetadataName(testComponent));
-        Assert.Empty(context.Results); // Target assembly contains no components
-        Assert.Empty(context.Results.Where(f => f.TypeName == testComponent));
-        Assert.Empty(context.Results.Where(f => f.TypeName == routerComponent));
+        Assert.Empty(result); // Target assembly contains no components
+        Assert.Empty(result.Where(f => f.TypeName == testComponent));
+        Assert.Empty(result.Where(f => f.TypeName == routerComponent));
     }
 
     [Fact]
@@ -1663,16 +1583,13 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
         Assert.NotNull(compilation.GetTypeByMetadataName(testComponent));
-        Assert.NotEmpty(context.Results);
-        Assert.NotEmpty(context.Results.Where(f => f.TypeName == testComponent));
-        Assert.NotEmpty(context.Results.Where(f => f.TypeName == routerComponent));
+        Assert.NotEmpty(result);
+        Assert.NotEmpty(result.Where(f => f.TypeName == testComponent));
+        Assert.NotEmpty(result.Where(f => f.TypeName == routerComponent));
     }
 }

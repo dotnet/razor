@@ -4,13 +4,10 @@
 #nullable disable
 
 using System;
-using System.Diagnostics;
-using System.Threading;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.TagHelpers.Producers;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
 
@@ -31,9 +28,6 @@ public static class RazorExtensions
 
         builder.Features.Add(new DefaultTagHelperProducer.Factory());
         builder.Features.Add(new ViewComponentTagHelperProducer.Factory());
-
-        builder.Features.Add(new DefaultTagHelperDescriptorProvider());
-        builder.Features.Add(new ViewComponentTagHelperDescriptorProvider());
 
         builder.AddTargetExtension(new ViewComponentTagHelperTargetExtension());
         builder.AddTargetExtension(new TemplateTargetExtension()

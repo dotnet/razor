@@ -94,18 +94,22 @@ internal sealed partial class BindTagHelperProducer : TagHelperProducer
         _bindInputElementAttributeType = bindInputElementAttributeType;
     }
 
-    public override bool HandlesAssembly(IAssemblySymbol assembly)
-        => SymbolEqualityComparer.Default.Equals(assembly, _bindConverterType.ContainingAssembly);
+    public override TagHelperProducerKind Kind => TagHelperProducerKind.Bind;
 
     public override bool SupportsStaticTagHelpers => true;
 
-    public override void AddStaticTagHelpers(ICollection<TagHelperDescriptor> results)
+    public override void AddStaticTagHelpers(IAssemblySymbol assembly, ref TagHelperCollection.RefBuilder results)
     {
+        if (!SymbolEqualityComparer.Default.Equals(assembly, _bindConverterType.ContainingAssembly))
+        {
+            return;
+        }
+
         // Tag Helper definition for case #1. This is the most general case.
         results.Add(s_fallbackTagHelper.Value);
     }
 
-    public override bool SupportsTypeProcessing
+    public override bool SupportsTypes
         => _bindElementAttributeType is not null && _bindInputElementAttributeType is not null;
 
     public override bool IsCandidateType(INamedTypeSymbol type)
@@ -114,7 +118,7 @@ internal sealed partial class BindTagHelperProducer : TagHelperProducer
 
     public override void AddTagHelpersForType(
         INamedTypeSymbol type,
-        ICollection<TagHelperDescriptor> results,
+        ref TagHelperCollection.RefBuilder results,
         CancellationToken cancellationToken)
     {
         // Not handling duplicates here for now since we're the primary ones extending this.
@@ -384,9 +388,9 @@ internal sealed partial class BindTagHelperProducer : TagHelperProducer
         return builder.Build();
     }
 
-    public void AddTagHelpersForComponent(TagHelperDescriptor tagHelper, ICollection<TagHelperDescriptor> results)
+    public void AddTagHelpersForComponent(TagHelperDescriptor tagHelper, ref TagHelperCollection.RefBuilder results)
     {
-        if (tagHelper.Kind != TagHelperKind.Component || !SupportsTypeProcessing)
+        if (tagHelper.Kind != TagHelperKind.Component || !SupportsTypes)
         {
             return;
         }

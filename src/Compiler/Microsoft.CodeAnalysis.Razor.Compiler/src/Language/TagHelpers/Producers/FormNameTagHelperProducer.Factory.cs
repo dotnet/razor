@@ -19,7 +19,12 @@ internal sealed partial class FormNameTagHelperProducer
             bool excludeHidden,
             [NotNullWhen(true)] out TagHelperProducer? result)
         {
-            if (!compilation.TryGetTypeByMetadataName(ComponentsApi.RenderTreeBuilder.FullTypeName, IsValidRenderTreeBuilder, out var renderTreeBuilderType))
+            var renderTreeBuilderTypes = compilation.GetTypesByMetadataName(ComponentsApi.RenderTreeBuilder.FullTypeName)
+                .Where(IsValidRenderTreeBuilder)
+                .Take(2)
+                .ToArray();
+
+            if (renderTreeBuilderTypes is not [var renderTreeBuilderType])
             {
                 // If we can't find RenderTreeBuilder, then just bail. We won't be able to compile the generated code anyway.
                 result = null;

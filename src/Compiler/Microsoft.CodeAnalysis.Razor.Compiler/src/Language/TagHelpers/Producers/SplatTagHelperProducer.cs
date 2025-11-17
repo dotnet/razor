@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.CodeAnalysis;
 
@@ -19,13 +18,17 @@ internal sealed partial class SplatTagHelperProducer : TagHelperProducer
         _renderTreeBuilderType = renderTreeBuilderType;
     }
 
-    public override bool HandlesAssembly(IAssemblySymbol assembly)
-        => SymbolEqualityComparer.Default.Equals(assembly, _renderTreeBuilderType.ContainingAssembly);
+    public override TagHelperProducerKind Kind => TagHelperProducerKind.Splat;
 
     public override bool SupportsStaticTagHelpers => true;
 
-    public override void AddStaticTagHelpers(ICollection<TagHelperDescriptor> results)
+    public override void AddStaticTagHelpers(IAssemblySymbol assembly, ref TagHelperCollection.RefBuilder results)
     {
+        if (!SymbolEqualityComparer.Default.Equals(assembly, _renderTreeBuilderType.ContainingAssembly))
+        {
+            return;
+        }
+
         results.Add(s_splatTagHelper.Value);
     }
 

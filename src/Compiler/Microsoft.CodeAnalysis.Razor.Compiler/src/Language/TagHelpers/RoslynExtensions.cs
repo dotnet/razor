@@ -19,17 +19,4 @@ internal static class RoslynExtensions
         result = compilation.GetTypeByMetadataName(fullyQualifiedMetadataName);
         return result is not null;
     }
-
-    public static bool TryGetTypeByMetadataName(
-        this Compilation compilation,
-        string fullyQualifiedMetadataName,
-        Func<INamedTypeSymbol, bool> predicate,
-        [NotNullWhen(true)] out INamedTypeSymbol? result)
-    {
-        var types = compilation.GetTypesByMetadataName(fullyQualifiedMetadataName);
-
-        result = types.FirstOrDefault(predicate);
-        return result is not null;
-    }
-
 }

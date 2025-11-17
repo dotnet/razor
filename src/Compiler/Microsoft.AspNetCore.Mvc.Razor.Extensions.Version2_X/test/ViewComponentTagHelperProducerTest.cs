@@ -9,7 +9,7 @@ using Xunit;
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X;
 
 // This is just a basic integration test. There are detailed tests for the VCTH visitor and descriptor factory.
-public class ViewComponentTagHelperDescriptorProviderTest
+public class ViewComponentTagHelperProducerTest
 {
     [Fact]
     public void DescriptorProvider_FindsVCTH()
@@ -24,15 +24,13 @@ public class ViewComponentTagHelperDescriptorProviderTest
 
         var compilation = MvcShim.BaseCompilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(code));
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-
         var projectEngine = RazorProjectEngine.CreateEmpty(static b =>
         {
             b.Features.Add(new ViewComponentTagHelperProducer.Factory());
-            b.Features.Add(new ViewComponentTagHelperDescriptorProvider());
+            b.Features.Add(new TagHelperDiscoveryService());
         });
 
-        Assert.True(projectEngine.Engine.TryGetFeature(out ViewComponentTagHelperDescriptorProvider? provider));
+        Assert.True(projectEngine.Engine.TryGetFeature(out ITagHelperDiscoveryService? service));
 
         var expectedDescriptor = TagHelperDescriptorBuilder.CreateViewComponent("__Generated__StringParameterViewComponentTagHelper", TestCompilation.AssemblyName)
             .TypeName("__Generated__StringParameterViewComponentTagHelper")
@@ -58,9 +56,9 @@ public class ViewComponentTagHelperDescriptorProviderTest
             .Build();
 
         // Act
-        provider.Execute(context);
+        var result = service.GetTagHelpers(compilation);
 
         // Assert
-        Assert.Single(context.Results, d => d.Equals(expectedDescriptor));
+        Assert.Single(result, d => d.Equals(expectedDescriptor));
     }
 }
