@@ -121,12 +121,12 @@ internal static class DocumentExcerptHelper
         return builder;
     }
 
-    public static TextSpan ChooseExcerptSpan(SourceText text, TextSpan span, ExcerptModeInternal mode)
+    public static TextSpan ChooseExcerptSpan(SourceText text, TextSpan span, RazorExcerptMode mode)
     {
         var startLine = text.Lines.GetLineFromPosition(span.Start);
         var endLine = text.Lines.GetLineFromPosition(span.End);
 
-        if (mode == ExcerptModeInternal.Tooltip)
+        if (mode == RazorExcerptMode.Tooltip)
         {
             // Expand the range by 3 in each direction (if possible).
             var startIndex = Math.Max(startLine.LineNumber - 3, 0);

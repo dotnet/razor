@@ -18,10 +18,10 @@ internal class RazorDocumentExcerptService(
     private readonly IDocumentSnapshot _document = document;
     private readonly IRazorMappingService _mappingService = mappingService;
 
-    internal override async Task<ExcerptResultInternal?> TryGetExcerptInternalAsync(
+    internal override async Task<RazorExcerptResult?> TryGetExcerptInternalAsync(
         Document document,
         TextSpan span,
-        ExcerptModeInternal mode,
+        RazorExcerptMode mode,
         RazorClassificationOptionsWrapper options,
         CancellationToken cancellationToken)
     {
@@ -63,6 +63,6 @@ internal class RazorDocumentExcerptService(
 
         var excerptText = DocumentExcerptHelper.GetTranslatedExcerptText(razorDocumentText, ref razorDocumentSpan, ref excerptSpan, classifiedSpans);
 
-        return new ExcerptResultInternal(excerptText, razorDocumentSpan, classifiedSpans.ToImmutable(), document, span);
+        return new RazorExcerptResult(excerptText, razorDocumentSpan, classifiedSpans.ToImmutable(), document, span);
     }
 }

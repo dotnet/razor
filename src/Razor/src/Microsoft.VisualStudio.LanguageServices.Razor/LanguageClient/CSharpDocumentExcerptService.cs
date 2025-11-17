@@ -46,10 +46,10 @@ internal sealed class CSharpDocumentExcerptService : DocumentExcerptService
     {
     }
 
-    internal override async Task<ExcerptResultInternal?> TryGetExcerptInternalAsync(
+    internal override async Task<RazorExcerptResult?> TryGetExcerptInternalAsync(
         Document document,
         TextSpan span,
-        ExcerptModeInternal mode,
+        RazorExcerptMode mode,
         RazorClassificationOptionsWrapper options,
         CancellationToken cancellationToken)
     {
@@ -69,10 +69,10 @@ internal sealed class CSharpDocumentExcerptService : DocumentExcerptService
             cancellationToken).ConfigureAwait(false);
     }
 
-    internal async Task<ExcerptResultInternal?> TryGetExcerptInternalAsync(
+    internal async Task<RazorExcerptResult?> TryGetExcerptInternalAsync(
         Document document,
         TextSpan span,
-        ExcerptModeInternal mode,
+        RazorExcerptMode mode,
         SourceText razorDocumentText,
         LinePositionSpan mappedLinePosition,
         RazorClassificationOptionsWrapper options,
@@ -97,7 +97,7 @@ internal sealed class CSharpDocumentExcerptService : DocumentExcerptService
 
         var excerptText = DocumentExcerptHelper.GetTranslatedExcerptText(razorDocumentText, ref razorDocumentSpan, ref excerptSpan, classifiedSpans);
 
-        return new ExcerptResultInternal(excerptText, razorDocumentSpan, classifiedSpans.ToImmutable(), document, span);
+        return new RazorExcerptResult(excerptText, razorDocumentSpan, classifiedSpans.ToImmutable(), document, span);
     }
 
     private static async Task<ImmutableArray<ClassifiedSpan>.Builder> ClassifyPreviewAsync(

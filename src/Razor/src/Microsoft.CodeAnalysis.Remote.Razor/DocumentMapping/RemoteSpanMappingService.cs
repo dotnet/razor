@@ -65,7 +65,7 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
         var razorDocumentSpan = razorDocumentText.GetTextSpan(mappedSpan.LinePositionSpan);
 
         // First compute the range of text we want to we to display relative to the primary document.
-        var excerptSpan = DocumentExcerptHelper.ChooseExcerptSpan(razorDocumentText, razorDocumentSpan, (ExcerptModeInternal)mode);
+        var excerptSpan = DocumentExcerptHelper.ChooseExcerptSpan(razorDocumentText, razorDocumentSpan, mode);
 
         // Then we'll classify the spans based on the primary document, since that's the coordinate
         // space that our output mappings use.
