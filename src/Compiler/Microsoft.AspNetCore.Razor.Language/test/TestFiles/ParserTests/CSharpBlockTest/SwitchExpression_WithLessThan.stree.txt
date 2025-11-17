@@ -9,8 +9,8 @@
                 CSharpStatementBody - [1..75)::74
                     RazorMetaCode - [1..2)::1 - Gen<None>
                         LeftBrace;[{];
-                    CSharpCodeBlock - [2..75)::73
-                        CSharpStatementLiteral - [2..35)::33 - [LF    var val = 0 switchLF    {LF] - Gen<Stmt>
+                    CSharpCodeBlock - [2..74)::72
+                        CSharpStatementLiteral - [2..74)::72 - [LF    var val = 0 switchLF    {LF        < 9 => "less than 10"LF    };LF] - Gen<Stmt>
                             NewLine;[LF];
                             Whitespace;[    ];
                             Keyword;[var];
@@ -26,36 +26,21 @@
                             Whitespace;[    ];
                             LeftBrace;[{];
                             NewLine;[LF];
-                        MarkupBlock - [35..75)::40
-                            MarkupTextLiteral - [35..43)::8 - [        ] - Gen<Markup>
-                                Whitespace;[        ];
-                            MarkupElement - [43..75)::32
-                                MarkupStartTag - [43..49)::6 - [< 9 =>] - Gen<Markup>
-                                    OpenAngle;[<];
-                                    Text;[<Missing>];
-                                    MarkupAttributeBlock - [44..48)::4 - [ 9 =]
-                                        MarkupTextLiteral - [44..45)::1 - [ ] - Gen<Markup>
-                                            Whitespace;[ ];
-                                        MarkupTextLiteral - [45..46)::1 - [9] - Gen<Markup>
-                                            Text;[9];
-                                        MarkupTextLiteral - [46..47)::1 - [ ] - Gen<Markup>
-                                            Whitespace;[ ];
-                                        Equals;[=];
-                                    CloseAngle;[>];
-                                MarkupTextLiteral - [49..75)::26 - [ "less than 10"LF    };LF}] - Gen<Markup>
-                                    Whitespace;[ ];
-                                    DoubleQuote;["];
-                                    Text;[less];
-                                    Whitespace;[ ];
-                                    Text;[than];
-                                    Whitespace;[ ];
-                                    Text;[10];
-                                    DoubleQuote;["];
-                                    NewLine;[LF];
-                                    Whitespace;[    ];
-                                    Text;[};];
-                                    NewLine;[LF];
-                                    Text;[}];
-                    RazorMetaCode - [75..75)::0 - Gen<None>
-                        RightBrace;[<Missing>];
+                            Whitespace;[        ];
+                            LessThan;[<];
+                            Whitespace;[ ];
+                            NumericLiteral;[9];
+                            Whitespace;[ ];
+                            CSharpOperator;[=>];
+                            Whitespace;[ ];
+                            StringLiteral;["less than 10"];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            RightBrace;[}];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                    RazorMetaCode - [74..75)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [75..75)::0 - [] - Gen<Markup>
+            Marker;[];
     EndOfFile;[];
