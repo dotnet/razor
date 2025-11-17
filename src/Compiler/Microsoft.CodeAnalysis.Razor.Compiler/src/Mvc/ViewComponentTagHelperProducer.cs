@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.TagHelpers.Producers;
@@ -25,16 +24,17 @@ internal sealed partial class ViewComponentTagHelperProducer : TagHelperProducer
         _nonViewComponentAttributeType = nonViewComponentAttributeType;
     }
 
-    public override bool HandlesAssembly(IAssemblySymbol assembly) => true;
+    public override TagHelperProducerKind Kind => TagHelperProducerKind.MvcViewComponent;
 
-    public override bool SupportsTypeProcessing => true;
+    public override bool SupportsTypes => true;
+    public override bool SupportsNestedTypes => true;
 
     public override bool IsCandidateType(INamedTypeSymbol type)
         => type.IsViewComponent(_viewComponentAttributeType, _nonViewComponentAttributeType);
 
     public override void AddTagHelpersForType(
         INamedTypeSymbol type,
-        ICollection<TagHelperDescriptor> results,
+        ref TagHelperCollection.RefBuilder results,
         CancellationToken cancellationToken)
     {
         if (_factory.CreateDescriptor(type) is { } descriptor)

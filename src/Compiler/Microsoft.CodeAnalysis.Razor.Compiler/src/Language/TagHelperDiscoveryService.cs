@@ -1,154 +1,114 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using Microsoft.AspNetCore.Razor.Language.TagHelpers.Producers;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal sealed class TagHelperDiscoveryService : RazorEngineFeatureBase
+internal sealed class TagHelperDiscoveryService : RazorEngineFeatureBase, ITagHelperDiscoveryService
 {
-    private ImmutableArray<ITagHelperDescriptorProvider> _providers;
+    private ImmutableArray<ITagHelperProducerFactory> _producerFactories;
 
     protected override void OnInitialized()
     {
-        _providers = Engine.GetFeatures<ITagHelperDescriptorProvider>().OrderByAsArray(static x => x.Order);
+        _producerFactories = Engine.GetFeatures<ITagHelperProducerFactory>();
     }
 
-    public TagHelperDiscoveryResult GetTagHelpers(
+    public TagHelperCollection GetTagHelpers(
         Compilation compilation,
         TagHelperDiscoveryOptions options,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
         => GetTagHelpersForCompilation(compilation, options, cancellationToken);
 
-    public TagHelperDiscoveryResult GetTagHelpers(
+    public TagHelperCollection GetTagHelpers(
         Compilation compilation,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
         => GetTagHelpersForCompilation(compilation, options: default, cancellationToken);
 
-    public TagHelperDiscoveryResult GetTagHelpers(
-        Compilation compilation,
-        IAssemblySymbol targetAssembly,
-        CancellationToken cancellationToken)
-        => GetTagHelpersForAssembly(compilation, targetAssembly, options: default, cancellationToken);
-
-    public TagHelperDiscoveryResult GetTagHelpers(
-        Compilation compilation,
-        IAssemblySymbol targetAssembly,
-        TagHelperDiscoveryOptions options,
-        CancellationToken cancellationToken)
-        => GetTagHelpersForAssembly(compilation, targetAssembly, options: default, cancellationToken);
-
-    private TagHelperDiscoveryResult GetTagHelpersForCompilation(
+    private TagHelperCollection GetTagHelpersForCompilation(
         Compilation compilation,
         TagHelperDiscoveryOptions options,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         ArgHelper.ThrowIfNull(compilation);
 
-        if (_providers.IsDefaultOrEmpty)
+        if (!TryGetDiscoverer(compilation, options, out var discoverer))
         {
-            return TagHelperDiscoveryResult.Empty;
+            return TagHelperCollection.Empty;
         }
 
-        var excludeHidden = options.IsFlagSet(TagHelperDiscoveryOptions.ExcludeHidden);
-        var includeDocumentation = options.IsFlagSet(TagHelperDiscoveryOptions.IncludeDocumentation);
+        using var collections = new MemoryBuilder<TagHelperCollection>(initialCapacity: 512, clearArray: true);
 
-        // Note: We only collect timings when performing tag helper discovery for an entire compilation.
-        // The source generator always performs tag helper discovery per-assembly. However, in non-cohosted
-        // scenarios, tooling performs tag helper discovery across the whole compilation and reports telemetry
-        // for per-provider timings.
-
-        using var builder = new TagHelperCollection.Builder();
-        using var _ = StopwatchPool.GetPooledObject(out var watch);
-
-        var timings = new (string, TimeSpan)[_providers.Length];
-        var timingsSpan = timings.AsSpan();
-
-        var context = new TagHelperDescriptorProviderContext(compilation, builder)
+        if (compilation.Assembly is { } compilationAssembly)
         {
-            ExcludeHidden = excludeHidden,
-            IncludeDocumentation = includeDocumentation
-        };
-
-        foreach (var provider in _providers)
-        {
-            watch.Restart();
-            provider.Execute(context, cancellationToken);
-            watch.Stop();
-
-            timingsSpan[0] = (provider.GetType().Name, watch.Elapsed);
-            timingsSpan = timingsSpan[1..];
-        }
-
-        Debug.Assert(timingsSpan.IsEmpty);
-
-        return new(
-            builder.ToCollection(),
-            ImmutableCollectionsMarshal.AsImmutableArray(timings));
-    }
-
-    private TagHelperDiscoveryResult GetTagHelpersForAssembly(
-        Compilation compilation,
-        IAssemblySymbol targetAssembly,
-        TagHelperDiscoveryOptions options,
-        CancellationToken cancellationToken)
-    {
-        ArgHelper.ThrowIfNull(compilation);
-        ArgHelper.ThrowIfNull(targetAssembly);
-
-        if (_providers.IsDefaultOrEmpty)
-        {
-            return TagHelperDiscoveryResult.Empty;
-        }
-
-        var excludeHidden = options.IsFlagSet(TagHelperDiscoveryOptions.ExcludeHidden);
-        var includeDocumentation = options.IsFlagSet(TagHelperDiscoveryOptions.IncludeDocumentation);
-
-        // Check to see if we already have tag helpers cached for this assembly
-        // and use the cached versions if we do. Roslyn shares PE assembly symbols
-        // across compilations, so this ensures that we don't produce new tag helpers
-        // for the same assemblies over and over again.
-
-        var assemblySymbolData = SymbolCache.GetAssemblySymbolData(targetAssembly);
-        if (!assemblySymbolData.MightContainTagHelpers)
-        {
-            return TagHelperDiscoveryResult.Empty;
-        }
-
-        if (assemblySymbolData.TryGetTagHelpers(includeDocumentation, excludeHidden, out var tagHelpers))
-        {
-            return new(tagHelpers, timings: []);
-        }
-
-        // We don't have tag helpers cached for this assembly, so we have to discover them.
-        using var builder = new TagHelperCollection.Builder();
-
-        var context = new TagHelperDescriptorProviderContext(compilation, targetAssembly, builder)
-        {
-            ExcludeHidden = excludeHidden,
-            IncludeDocumentation = includeDocumentation
-        };
-
-        foreach (var provider in _providers)
-        {
-            provider.Execute(context, cancellationToken);
-
-            // After each provider run, check the cache to see if another discovery request
-            // for the same assembly finished and cached the result. If so, there's no reason to keep going.
-            if (assemblySymbolData.TryGetTagHelpers(includeDocumentation, excludeHidden, out tagHelpers))
+            var collection = discoverer.GetTagHelpers(compilationAssembly, cancellationToken);
+            if (!collection.IsEmpty)
             {
-                return new(tagHelpers, timings: []);
+                collections.Append(collection);
             }
         }
 
-        var result = assemblySymbolData.AddTagHelpers(builder.ToCollection(), includeDocumentation, excludeHidden);
+        foreach (var reference in compilation.References)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
 
-        return new(result, timings: []);
+            if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol referenceAssembly)
+            {
+                var collection = discoverer.GetTagHelpers(referenceAssembly, cancellationToken);
+                if (!collection.IsEmpty)
+                {
+                    collections.Append(collection);
+                }
+            }
+        }
+
+        return TagHelperCollection.Merge(collections.AsMemory().Span);
+    }
+
+    public bool TryGetDiscoverer(Compilation compilation, TagHelperDiscoveryOptions options, [NotNullWhen(true)] out TagHelperDiscoverer? discoverer)
+    {
+        ArgHelper.ThrowIfNull(compilation);
+
+        var excludeHidden = options.IsFlagSet(TagHelperDiscoveryOptions.ExcludeHidden);
+        var includeDocumentation = options.IsFlagSet(TagHelperDiscoveryOptions.IncludeDocumentation);
+
+        var producers = GetProducers(compilation, includeDocumentation, excludeHidden);
+
+        if (producers.IsEmpty)
+        {
+            discoverer = default;
+            return false;
+        }
+
+        discoverer = new TagHelperDiscoverer(producers, includeDocumentation, excludeHidden);
+        return true;
+    }
+
+    public bool TryGetDiscoverer(Compilation compilation, [NotNullWhen(true)] out TagHelperDiscoverer? discoverer)
+        => TryGetDiscoverer(compilation, options: default, out discoverer);
+
+    private ImmutableArray<TagHelperProducer> GetProducers(Compilation compilation, bool includeDocumentation, bool excludeHidden)
+    {
+        if (_producerFactories.IsDefaultOrEmpty)
+        {
+            return [];
+        }
+
+        using var builder = new PooledArrayBuilder<TagHelperProducer>(_producerFactories.Length);
+
+        foreach (var factory in _producerFactories)
+        {
+            if (factory.TryCreate(compilation, includeDocumentation, excludeHidden, out var producer))
+            {
+                builder.Add(producer);
+            }
+        }
+
+        return builder.ToImmutableAndClear();
     }
 }

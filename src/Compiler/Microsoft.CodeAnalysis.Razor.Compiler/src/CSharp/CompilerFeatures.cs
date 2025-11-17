@@ -33,22 +33,12 @@ public static class CompilerFeatures
             builder.Features.Add(new RefTagHelperProducer.Factory());
             builder.Features.Add(new KeyTagHelperProducer.Factory());
             builder.Features.Add(new SplatTagHelperProducer.Factory());
-
-            builder.Features.Add(new BindTagHelperDescriptorProvider());
-            builder.Features.Add(new ComponentTagHelperDescriptorProvider());
-            builder.Features.Add(new EventHandlerTagHelperDescriptorProvider());
-            builder.Features.Add(new RefTagHelperDescriptorProvider());
-            builder.Features.Add(new KeyTagHelperDescriptorProvider());
-            builder.Features.Add(new SplatTagHelperDescriptorProvider());
         }
 
         if (builder.Configuration.LanguageVersion >= RazorLanguageVersion.Version_8_0)
         {
             builder.Features.Add(new RenderModeTagHelperProducer.Factory());
             builder.Features.Add(new FormNameTagHelperProducer.Factory());
-
-            builder.Features.Add(new RenderModeTagHelperDescriptorProvider());
-            builder.Features.Add(new FormNameTagHelperDescriptorProvider());
         }
     }
 }

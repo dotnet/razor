@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -19,9 +18,9 @@ internal sealed partial class EventHandlerTagHelperProducer : TagHelperProducer
         _eventHandlerAttributeType = eventHandlerAttributeType;
     }
 
-    public override bool HandlesAssembly(IAssemblySymbol assembly) => true;
+    public override TagHelperProducerKind Kind => TagHelperProducerKind.EventHandler;
 
-    public override bool SupportsTypeProcessing => true;
+    public override bool SupportsTypes => true;
 
     public override bool IsCandidateType(INamedTypeSymbol type)
         => type.DeclaredAccessibility == Accessibility.Public &&
@@ -29,7 +28,7 @@ internal sealed partial class EventHandlerTagHelperProducer : TagHelperProducer
 
     public override void AddTagHelpersForType(
         INamedTypeSymbol type,
-        ICollection<TagHelperDescriptor> results,
+        ref TagHelperCollection.RefBuilder results,
         CancellationToken cancellationToken)
     {
         // Not handling duplicates here for now since we're the primary ones extending this.

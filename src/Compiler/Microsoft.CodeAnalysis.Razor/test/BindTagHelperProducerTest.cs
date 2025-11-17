@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
@@ -12,18 +10,16 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
-public class BindTagHelperDescriptorProviderTest : TagHelperDescriptorProviderTestBase
+public class BindTagHelperProducerTest : TagHelperDescriptorProviderTestBase
 {
     protected override void ConfigureEngine(RazorProjectEngineBuilder builder)
     {
         builder.Features.Add(new BindTagHelperProducer.Factory());
-        builder.Features.Add(new BindTagHelperDescriptorProvider());
         builder.Features.Add(new ComponentTagHelperProducer.Factory());
-        builder.Features.Add(new ComponentTagHelperDescriptorProvider());
     }
 
     [Fact]
-    public void Execute_FindsBindTagHelperOnComponentType_Delegate_CreatesDescriptor()
+    public void GetTagHelpers_FindsBindTagHelperOnComponentType_Delegate_CreatesTagHelper()
     {
         // Arrange
         var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
@@ -57,19 +53,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-
-        // We run after component discovery and depend on the results.
-        var componentProvider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-        componentProvider.Execute(context);
-
-        var provider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var matches = GetBindTagHelpers(context);
+        var matches = GetBindTagHelpers(result);
         matches = AssertAndExcludeFullyQualifiedNameMatchComponents(matches, expectedCount: 1);
         var bind = Assert.Single(matches);
 
@@ -180,56 +168,7 @@ namespace Test
     }
 
     [Fact]
-    public void Execute_BindTagHelperReturnsValuesWhenProvidedNoTargetSymbol()
-    {
-        // When BindTagHelperDescriptorProvider is given a compilation that references
-        // API assemblies with "BindConverter" and "BindAttributes", but no target symbol,
-        // it will find the expected tag helpers.
-
-        // Arrange
-        var compilation = BaseCompilation;
-
-        Assert.Empty(compilation.GetDiagnostics());
-
-        var context = new TagHelperDescriptorProviderContext(compilation);
-
-        var bindTagHelperProvider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
-
-        // Act
-        bindTagHelperProvider.Execute(context);
-
-        // Assert
-        var matches = context.Results.Where(static t => t.Kind == TagHelperKind.Bind);
-        Assert.NotEmpty(matches);
-    }
-
-    [Fact]
-    public void Execute_BindTagHelperReturnsValuesWhenProvidedCorrectAssemblyTargetSymbol()
-    {
-        // When BindTagHelperDescriptorProvider is given a compilation that references
-        // API assemblies with "BindConverter", and a target symbol matching the assembly
-        // containing "BindConverter", it will find the expected tag helpers.
-
-        // Arrange
-        var compilation = BaseCompilation;
-
-        Assert.Empty(compilation.GetDiagnostics());
-
-        var bindConverterSymbol = compilation.GetTypeByMetadataName(ComponentsApi.BindConverter.FullTypeName);
-        var context = new TagHelperDescriptorProviderContext(compilation, bindConverterSymbol.ContainingAssembly);
-
-        var bindTagHelperProvider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
-
-        // Act
-        bindTagHelperProvider.Execute(context);
-
-        // Assert
-        var matches = context.Results.Where(static t => t.Kind == TagHelperKind.Bind);
-        Assert.NotEmpty(matches);
-    }
-
-    [Fact]
-    public void Execute_BindTagHelperReturnsEmptyWhenCompilationAssemblyTargetSymbol()
+    public void GetTagHelpers_BindTagHelperReturnsEmptyWhenCompilationAssemblyTargetSymbol()
     {
         // When BindTagHelperDescriptorProvider is given a compilation that references
         // API assemblies with "BindConverter", and a target symbol that does not match the
@@ -240,20 +179,16 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation, compilation.Assembly);
-
-        var bindTagHelperProvider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
-
         // Act
-        bindTagHelperProvider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var matches = GetBindTagHelpers(context);
+        var matches = GetBindTagHelpers(result);
         Assert.Empty(matches);
     }
 
     [Fact]
-    public void Execute_FindsBindTagHelperOnComponentType_EventCallback_CreatesDescriptor()
+    public void GetTagHelpers_FindsBindTagHelperOnComponentType_EventCallback_CreatesTagHelper()
     {
         // Arrange
         var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
@@ -282,19 +217,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-
-        // We run after component discovery and depend on the results.
-        var componentProvider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-        componentProvider.Execute(context);
-
-        var provider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var matches = GetBindTagHelpers(context);
+        var matches = GetBindTagHelpers(result);
         matches = AssertAndExcludeFullyQualifiedNameMatchComponents(matches, expectedCount: 1);
         var bind = Assert.Single(matches);
 
@@ -404,7 +331,7 @@ namespace Test
     }
 
     [Fact]
-    public void Execute_NoMatchedPropertiesOnComponent_IgnoresComponent()
+    public void GetTagHelpers_NoMatchedPropertiesOnComponent_IgnoresComponent()
     {
         // Arrange
         var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
@@ -432,25 +359,17 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-
-        // We run after component discovery and depend on the results.
-        var componentProvider = GetRequiredProvider<ComponentTagHelperDescriptorProvider>();
-        componentProvider.Execute(context);
-
-        var provider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var matches = GetBindTagHelpers(context);
+        var matches = GetBindTagHelpers(result);
         matches = AssertAndExcludeFullyQualifiedNameMatchComponents(matches, expectedCount: 0);
         Assert.Empty(matches);
     }
 
     [Fact]
-    public void Execute_BindOnElement_CreatesDescriptor()
+    public void GetTagHelpers_BindOnElement_CreatesTagHelper()
     {
         // Arrange
         var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
@@ -467,14 +386,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var matches = GetBindTagHelpers(context);
+        var matches = GetBindTagHelpers(result);
         matches = AssertAndExcludeFullyQualifiedNameMatchComponents(matches, expectedCount: 0);
         var bind = Assert.Single(matches);
 
@@ -709,7 +625,7 @@ namespace Test
     }
 
     [Fact]
-    public void Execute_BindOnElementWithSuffix_CreatesDescriptor()
+    public void GetTagHelpers_BindOnElementWithSuffix_CreatesTagHelper()
     {
         // Arrange
         var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
@@ -726,14 +642,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var matches = GetBindTagHelpers(context);
+        var matches = GetBindTagHelpers(result);
         matches = AssertAndExcludeFullyQualifiedNameMatchComponents(matches, expectedCount: 0);
         var bind = Assert.Single(matches);
 
@@ -792,7 +705,7 @@ namespace Test
     }
 
     [Fact]
-    public void Execute_BindOnInputElementWithoutTypeAttribute_CreatesDescriptor()
+    public void GetTagHelpers_BindOnInputElementWithoutTypeAttribute_CreatesTagHelper()
     {
         // Arrange
         var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
@@ -809,14 +722,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var matches = GetBindTagHelpers(context);
+        var matches = GetBindTagHelpers(result);
         matches = AssertAndExcludeFullyQualifiedNameMatchComponents(matches, expectedCount: 0);
         var bind = Assert.Single(matches);
 
@@ -866,7 +776,7 @@ namespace Test
     }
 
     [Fact]
-    public void Execute_BindOnInputElementWithTypeAttribute_CreatesDescriptor()
+    public void GetTagHelpers_BindOnInputElementWithTypeAttribute_CreatesTagHelper()
     {
         // Arrange
         var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
@@ -883,14 +793,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var matches = GetBindTagHelpers(context);
+        var matches = GetBindTagHelpers(result);
         matches = AssertAndExcludeFullyQualifiedNameMatchComponents(matches, expectedCount: 0);
         var bind = Assert.Single(matches);
 
@@ -961,7 +868,7 @@ namespace Test
     }
 
     [Fact]
-    public void Execute_BindOnInputElementWithTypeAttributeAndSuffix_CreatesDescriptor()
+    public void GetTagHelpers_BindOnInputElementWithTypeAttributeAndSuffix_CreatesTagHelper()
     {
         // Arrange
         var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
@@ -978,14 +885,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var matches = GetBindTagHelpers(context);
+        var matches = GetBindTagHelpers(result);
         matches = AssertAndExcludeFullyQualifiedNameMatchComponents(matches, expectedCount: 0);
         var bind = Assert.Single(matches);
 
@@ -1058,7 +962,7 @@ namespace Test
     }
 
     [Fact]
-    public void Execute_BindOnInputElementWithTypeAttributeAndSuffixAndInvariantCultureAndFormat_CreatesDescriptor()
+    public void GetTagHelpers_BindOnInputElementWithTypeAttributeAndSuffixAndInvariantCultureAndFormat_CreatesTagHelper()
     {
         // Arrange
         var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
@@ -1075,14 +979,11 @@ namespace Test
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var matches = GetBindTagHelpers(context);
+        var matches = GetBindTagHelpers(result);
         matches = AssertAndExcludeFullyQualifiedNameMatchComponents(matches, expectedCount: 0);
         var bind = Assert.Single(matches);
 
@@ -1096,20 +997,17 @@ namespace Test
     }
 
     [Fact]
-    public void Execute_BindFallback_CreatesDescriptor()
+    public void GetTagHelpers_BindFallback_CreatesTagHelper()
     {
         // Arrange
         var compilation = BaseCompilation;
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<BindTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var bind = Assert.Single(context.Results, r => r.IsFallbackBindTagHelper());
+        var bind = Assert.Single(result, r => r.IsFallbackBindTagHelper());
 
         // These are features Bind Tags Helpers don't use. Verifying them once here and
         // then ignoring them.
@@ -1242,6 +1140,6 @@ namespace Test
         Assert.False(parameter.IsEnum);
     }
 
-    private static TagHelperDescriptor[] GetBindTagHelpers(TagHelperDescriptorProviderContext context)
-        => [.. ExcludeBuiltInComponents(context).Where(static t => t.Kind == TagHelperKind.Bind)];
+    private static TagHelperCollection GetBindTagHelpers(TagHelperCollection collection)
+        => collection.Where(static t => t.Kind == TagHelperKind.Bind && !IsBuiltInComponent(t));
 }

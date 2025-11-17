@@ -12,30 +12,22 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 namespace Microsoft.CodeAnalysis;
 
 internal static class ProjectExtensions
 {
-    private const string GetTagHelpersEventName = "taghelperresolver/gettaghelpers";
-    private const string PropertySuffix = ".elapsedtimems";
-
     /// <summary>
     ///  Gets the available <see cref="TagHelperDescriptor">tag helpers</see> from the specified
     ///  <see cref="Project"/> using the given <see cref="RazorProjectEngine"/>.
     /// </summary>
-    /// <remarks>
-    ///  A telemetry event will be reported to <paramref name="telemetryReporter"/>.
-    /// </remarks>
     public static async ValueTask<TagHelperCollection> GetTagHelpersAsync(
         this Project project,
         RazorProjectEngine projectEngine,
-        ITelemetryReporter telemetryReporter,
         CancellationToken cancellationToken)
     {
-        if (!projectEngine.Engine.TryGetFeature(out TagHelperDiscoveryService? discoveryService))
+        if (!projectEngine.Engine.TryGetFeature(out ITagHelperDiscoveryService? discoveryService))
         {
             return [];
         }
@@ -49,28 +41,7 @@ internal static class ProjectExtensions
         const TagHelperDiscoveryOptions Options = TagHelperDiscoveryOptions.ExcludeHidden |
                                                   TagHelperDiscoveryOptions.IncludeDocumentation;
 
-        var discoveryResult = discoveryService.GetTagHelpers(compilation, Options, cancellationToken);
-
-        if (discoveryResult.HasTimings)
-        {
-            ReportTimingsTelemetry(discoveryResult.Timings, telemetryReporter);
-        }
-
-        return discoveryResult.Collection;
-
-        static void ReportTimingsTelemetry(
-            ImmutableArray<(string ProviderName, TimeSpan Elapsed)> timings,
-            ITelemetryReporter telemetryReporter)
-        {
-            using var properties = new MemoryBuilder<Property>(timings.Length);
-
-            foreach (var (providerName, elapsed) in timings)
-            {
-                properties.Append(new Property(providerName + PropertySuffix, elapsed.Milliseconds));
-            }
-
-            telemetryReporter.ReportEvent(GetTagHelpersEventName, Severity.Normal, properties.AsMemory().Span);
-        }
+        return discoveryService.GetTagHelpers(compilation, Options, cancellationToken);
     }
 
     public static Task<SourceGeneratedDocument?> TryGetCSharpDocumentFromGeneratedDocumentUriAsync(this Project project, Uri generatedDocumentUri, CancellationToken cancellationToken)

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.CodeAnalysis;
 
@@ -19,13 +18,17 @@ internal sealed partial class RenderModeTagHelperProducer : TagHelperProducer
         _iComponentRenderModeType = iComponentRenderModeType;
     }
 
-    public override bool HandlesAssembly(IAssemblySymbol assembly)
-        => SymbolEqualityComparer.Default.Equals(assembly, _iComponentRenderModeType.ContainingAssembly);
+    public override TagHelperProducerKind Kind => TagHelperProducerKind.RenderMode;
 
     public override bool SupportsStaticTagHelpers => true;
 
-    public override void AddStaticTagHelpers(ICollection<TagHelperDescriptor> results)
+    public override void AddStaticTagHelpers(IAssemblySymbol assembly, ref TagHelperCollection.RefBuilder results)
     {
+        if (!SymbolEqualityComparer.Default.Equals(assembly, _iComponentRenderModeType.ContainingAssembly))
+        {
+            return;
+        }
+
         results.Add(s_renderModeTagHelper.Value);
     }
 

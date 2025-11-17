@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -19,16 +18,16 @@ internal sealed partial class DefaultTagHelperProducer : TagHelperProducer
         _iTagHelperType = iTagHelperType;
     }
 
-    public override bool HandlesAssembly(IAssemblySymbol assembly) => true;
+    public override TagHelperProducerKind Kind => TagHelperProducerKind.Default;
 
-    public override bool SupportsTypeProcessing => true;
+    public override bool SupportsTypes => true;
 
     public override bool IsCandidateType(INamedTypeSymbol type)
         => type.IsTagHelper(_iTagHelperType);
 
     public override void AddTagHelpersForType(
         INamedTypeSymbol type,
-        ICollection<TagHelperDescriptor> results,
+        ref TagHelperCollection.RefBuilder results,
         CancellationToken cancellationToken)
     {
         if (_factory.CreateDescriptor(type) is { } descriptor)

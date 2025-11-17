@@ -33,9 +33,6 @@ public static class RazorExtensions
         builder.Features.Add(new DefaultTagHelperProducer.Factory());
         builder.Features.Add(new ViewComponentTagHelperProducer.Factory());
 
-        builder.Features.Add(new DefaultTagHelperDescriptorProvider());
-        builder.Features.Add(new ViewComponentTagHelperDescriptorProvider());
-
         builder.AddTargetExtension(new ViewComponentTagHelperTargetExtension());
         builder.AddTargetExtension(new TemplateTargetExtension()
         {

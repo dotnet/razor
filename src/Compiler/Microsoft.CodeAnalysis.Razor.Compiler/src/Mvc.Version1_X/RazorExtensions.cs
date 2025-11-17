@@ -27,7 +27,6 @@ public static class RazorExtensions
         InheritsDirective.Register(builder);
 
         builder.Features.Add(new DefaultTagHelperProducer.Factory());
-        builder.Features.Add(new DefaultTagHelperDescriptorProvider());
 
         // Register section directive with the 1.x compatible target extension.
         builder.AddDirective(SectionDirective.Directive);
@@ -56,7 +55,6 @@ public static class RazorExtensions
         }
 
         builder.Features.Add(new ViewComponentTagHelperProducer.Factory());
-        builder.Features.Add(new ViewComponentTagHelperDescriptorProvider());
 
         builder.Features.Add(new ViewComponentTagHelperPass());
         builder.AddTargetExtension(new ViewComponentTagHelperTargetExtension());

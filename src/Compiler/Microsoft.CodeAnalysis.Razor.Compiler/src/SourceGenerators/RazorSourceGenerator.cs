@@ -226,14 +226,17 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromReferencesStart();
                     var tagHelperFeature = GetStaticTagHelperFeature(compilation);
 
-                    using var collections = new MemoryBuilder<TagHelperCollection>(initialCapacity: 16, clearArray: true);
+                    using var collections = new MemoryBuilder<TagHelperCollection>(initialCapacity: 512, clearArray: true);
 
                     foreach (var reference in compilation.References)
                     {
                         if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                         {
                             var collection = tagHelperFeature.GetTagHelpers(assembly, cancellationToken);
-                            collections.Append(collection);
+                            if (!collection.IsEmpty)
+                            {
+                                collections.Append(collection);
+                            }
                         }
                     }
 

@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.TagHelpers.Producers;
@@ -9,12 +8,11 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
-public class EventHandlerTagHelperDescriptorProviderTest : TagHelperDescriptorProviderTestBase
+public class EventHandlerTagHelperProducerTest : TagHelperDescriptorProviderTestBase
 {
     protected override void ConfigureEngine(RazorProjectEngineBuilder builder)
     {
         builder.Features.Add(new EventHandlerTagHelperProducer.Factory());
-        builder.Features.Add(new EventHandlerTagHelperDescriptorProvider());
     }
 
     [Fact]
@@ -37,14 +35,11 @@ public class EventHandlerTagHelperDescriptorProviderTest : TagHelperDescriptorPr
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<EventHandlerTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var matches = GetEventHandlerTagHelpers(context);
+        var matches = GetEventHandlerTagHelpers(result);
         var item = Assert.Single(matches);
 
         // These are features Event Handler Tag Helpers don't use. Verifying them once here and
@@ -143,14 +138,11 @@ public class EventHandlerTagHelperDescriptorProviderTest : TagHelperDescriptorPr
 
         Assert.Empty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<EventHandlerTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var matches = GetEventHandlerTagHelpers(context);
+        var matches = GetEventHandlerTagHelpers(result);
         var item = Assert.Single(matches);
 
         // These are features Event Handler Tag Helpers don't use. Verifying them once here and
@@ -280,14 +272,11 @@ public class EventHandlerTagHelperDescriptorProviderTest : TagHelperDescriptorPr
 
         Assert.NotEmpty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<EventHandlerTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var matches = GetEventHandlerTagHelpers(context);
+        var matches = GetEventHandlerTagHelpers(result);
         Assert.Empty(matches);
     }
 
@@ -311,14 +300,11 @@ public class EventHandlerTagHelperDescriptorProviderTest : TagHelperDescriptorPr
 
         Assert.NotEmpty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<EventHandlerTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var matches = GetEventHandlerTagHelpers(context);
+        var matches = GetEventHandlerTagHelpers(result);
         Assert.Empty(matches);
     }
 
@@ -342,17 +328,14 @@ public class EventHandlerTagHelperDescriptorProviderTest : TagHelperDescriptorPr
 
         Assert.NotEmpty(compilation.GetDiagnostics());
 
-        var context = new TagHelperDescriptorProviderContext(compilation);
-        var provider = GetRequiredProvider<EventHandlerTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(compilation);
 
         // Assert
-        var matches = GetEventHandlerTagHelpers(context);
+        var matches = GetEventHandlerTagHelpers(result);
         Assert.Empty(matches);
     }
 
-    private static TagHelperDescriptor[] GetEventHandlerTagHelpers(TagHelperDescriptorProviderContext context)
-        => [.. ExcludeBuiltInComponents(context).Where(static t => t.Kind == TagHelperKind.EventHandler)];
+    private static TagHelperCollection GetEventHandlerTagHelpers(TagHelperCollection collection)
+        => collection.Where(static t => t.Kind == TagHelperKind.EventHandler && !IsBuiltInComponent(t));
 }

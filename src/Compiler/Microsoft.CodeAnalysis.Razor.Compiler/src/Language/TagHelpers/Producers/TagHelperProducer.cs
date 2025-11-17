@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -22,21 +21,23 @@ internal abstract class TagHelperProducer
             [NotNullWhen(true)] out TagHelperProducer? result);
     }
 
-    public abstract bool HandlesAssembly(IAssemblySymbol assembly);
+    public abstract TagHelperProducerKind Kind { get; }
 
     public virtual bool SupportsStaticTagHelpers => false;
 
-    public virtual void AddStaticTagHelpers(ICollection<TagHelperDescriptor> results)
+    public virtual void AddStaticTagHelpers(IAssemblySymbol assembly, ref TagHelperCollection.RefBuilder results)
     {
     }
 
-    public virtual bool SupportsTypeProcessing => false;
+    public virtual bool SupportsTypes => false;
+
+    public virtual bool SupportsNestedTypes => false;
 
     public virtual bool IsCandidateType(INamedTypeSymbol type) => false;
 
     public virtual void AddTagHelpersForType(
         INamedTypeSymbol type,
-        ICollection<TagHelperDescriptor> results,
+        ref TagHelperCollection.RefBuilder results,
         CancellationToken cancellationToken)
     {
     }

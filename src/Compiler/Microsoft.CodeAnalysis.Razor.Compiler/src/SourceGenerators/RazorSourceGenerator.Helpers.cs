@@ -1,13 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.TagHelpers.Producers;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
+using System;
+using System.Collections.Immutable;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
@@ -82,7 +83,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var discoveryProjectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, new VirtualRazorProjectFileSystem(), b =>
             {
                 b.Features.Add(tagHelperFeature);
-                b.Features.Add(new DefaultTagHelperDescriptorProvider());
+                b.Features.Add(new DefaultTagHelperProducer.Factory());
 
                 CompilerFeatures.Register(b);
                 RazorExtensions.Register(b);

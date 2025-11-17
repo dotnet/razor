@@ -1,33 +1,27 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.TagHelpers.Producers;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
-public class SplatTagHelperDescriptorProviderTest : TagHelperDescriptorProviderTestBase
+public class SplatTagHelperProducerTest : TagHelperDescriptorProviderTestBase
 {
     protected override void ConfigureEngine(RazorProjectEngineBuilder builder)
     {
         builder.Features.Add(new SplatTagHelperProducer.Factory());
-        builder.Features.Add(new SplatTagHelperDescriptorProvider());
     }
 
     [Fact]
     public void Execute_CreatesDescriptor()
     {
-        // Arrange
-        var context = new TagHelperDescriptorProviderContext(BaseCompilation);
-        var provider = GetRequiredProvider<SplatTagHelperDescriptorProvider>();
-
         // Act
-        provider.Execute(context);
+        var result = GetTagHelpers(BaseCompilation);
 
         // Assert
-        var matches = context.Results.Where(static result => result.Kind == TagHelperKind.Splat);
+        var matches = result.Where(static result => result.Kind == TagHelperKind.Splat);
         var item = Assert.Single(matches);
 
         Assert.Empty(item.AllowedChildTags);

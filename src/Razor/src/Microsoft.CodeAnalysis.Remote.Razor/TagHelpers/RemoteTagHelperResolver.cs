@@ -40,7 +40,7 @@ internal class RemoteTagHelperResolver(ITelemetryReporter telemetryReporter)
         RazorConfiguration? configuration,
         CancellationToken cancellationToken)
         => configuration is not null
-            ? workspaceProject.GetTagHelpersAsync(CreateProjectEngine(configuration), _telemetryReporter, cancellationToken)
+            ? workspaceProject.GetTagHelpersAsync(CreateProjectEngine(configuration), cancellationToken)
             : new([]);
 
     private static RazorProjectEngine CreateProjectEngine(RazorConfiguration configuration)
