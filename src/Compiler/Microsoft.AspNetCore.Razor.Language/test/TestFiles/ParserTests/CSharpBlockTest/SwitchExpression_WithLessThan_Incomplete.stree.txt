@@ -1,0 +1,71 @@
+﻿RazorDocument - [0..95)::95 - [@{LF    var val = 0 switchLF    {LF        < 9 => "less than 10"LFLF    var val2 = "value2";LF}]
+    MarkupBlock - [0..95)::95
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..95)::95
+            CSharpStatement - [0..95)::95
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..95)::94
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..95)::93
+                        CSharpStatementLiteral - [2..35)::33 - [LF    var val = 0 switchLF    {LF] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[val];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            NumericLiteral;[0];
+                            Whitespace;[ ];
+                            Keyword;[switch];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            LeftBrace;[{];
+                            NewLine;[LF];
+                        MarkupBlock - [35..95)::60
+                            MarkupTextLiteral - [35..43)::8 - [        ] - Gen<Markup>
+                                Whitespace;[        ];
+                            MarkupElement - [43..95)::52
+                                MarkupStartTag - [43..49)::6 - [< 9 =>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[<Missing>];
+                                    MarkupAttributeBlock - [44..48)::4 - [ 9 =]
+                                        MarkupTextLiteral - [44..45)::1 - [ ] - Gen<Markup>
+                                            Whitespace;[ ];
+                                        MarkupTextLiteral - [45..46)::1 - [9] - Gen<Markup>
+                                            Text;[9];
+                                        MarkupTextLiteral - [46..47)::1 - [ ] - Gen<Markup>
+                                            Whitespace;[ ];
+                                        Equals;[=];
+                                    CloseAngle;[>];
+                                MarkupTextLiteral - [49..95)::46 - [ "less than 10"LFLF    var val2 = "value2";LF}] - Gen<Markup>
+                                    Whitespace;[ ];
+                                    DoubleQuote;["];
+                                    Text;[less];
+                                    Whitespace;[ ];
+                                    Text;[than];
+                                    Whitespace;[ ];
+                                    Text;[10];
+                                    DoubleQuote;["];
+                                    NewLine;[LF];
+                                    NewLine;[LF];
+                                    Whitespace;[    ];
+                                    Text;[var];
+                                    Whitespace;[ ];
+                                    Text;[val2];
+                                    Whitespace;[ ];
+                                    Equals;[=];
+                                    Whitespace;[ ];
+                                    DoubleQuote;["];
+                                    Text;[value2];
+                                    DoubleQuote;["];
+                                    Text;[;];
+                                    NewLine;[LF];
+                                    Text;[}];
+                    RazorMetaCode - [95..95)::0 - Gen<None>
+                        RightBrace;[<Missing>];
+    EndOfFile;[];
