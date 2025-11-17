@@ -1040,6 +1040,20 @@ catch(bar) { baz(); }");
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7230")]
+    public void SwitchExpression_WithMarkupInside()
+    {
+        ParseDocumentTest("""
+            @{
+                var val = 0 switch
+                {
+                    0 =>  <span>some <i>html</i></span>,
+                    _ => "value"
+                };
+            }
+            """);
+    }
+
 
 
     private void RunRazorCommentBetweenClausesTest(string preComment, string postComment, AcceptedCharactersInternal acceptedCharacters = AcceptedCharactersInternal.Any)
