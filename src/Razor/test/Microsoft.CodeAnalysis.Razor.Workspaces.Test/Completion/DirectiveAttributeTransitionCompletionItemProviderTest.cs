@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 public class DirectiveAttributeTransitionCompletionItemProviderTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    private readonly TagHelperDocumentContext _tagHelperDocumentContext = TagHelperDocumentContext.Create(tagHelpers: []);
+    private readonly TagHelperDocumentContext _tagHelperDocumentContext = TagHelperDocumentContext.GetOrCreate(tagHelpers: []);
     private readonly DirectiveAttributeTransitionCompletionItemProvider _provider = new(TestLanguageServerFeatureOptions.Instance);
 
     [Fact]

@@ -199,19 +199,31 @@ internal class RenameService(
             }
         }
 
-        if (!TryCollectEdits(originTagHelpers.Primary, newName, documentIdentifier, codeDocument.Source, in elements, documentChanges) ||
-            !TryCollectEdits(originTagHelpers.Associated, newName, documentIdentifier, codeDocument.Source, in elements, documentChanges))
+        // Collect all edits first, then deduplicate them
+        using var allEdits = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>();
+
+        if (TryCollectEdits(originTagHelpers.Primary, newName, codeDocument.Source, in elements, ref allEdits.AsRef()) &&
+            TryCollectEdits(originTagHelpers.Associated, newName, codeDocument.Source, in elements, ref allEdits.AsRef()))
         {
-            return;
+            // Deduplicate edits by range
+            var deduplicatedEdits = DeduplicateEdits(ref allEdits.AsRef());
+
+            if (deduplicatedEdits.Length > 0)
+            {
+                documentChanges.Add(new TextDocumentEdit
+                {
+                    TextDocument = documentIdentifier,
+                    Edits = deduplicatedEdits,
+                });
+            }
         }
 
         static bool TryCollectEdits(
             TagHelperDescriptor tagHelper,
             string newName,
-            OptionalVersionedTextDocumentIdentifier documentIdentifier,
             RazorSourceDocument sourceDocument,
             ref readonly PooledArrayBuilder<MarkupTagHelperElementSyntax> elements,
-            List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges)
+            ref PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>> edits)
         {
             var editedName = newName;
 
@@ -232,26 +244,56 @@ internal class RenameService(
             {
                 if (element.TagHelperInfo.BindingResult.TagHelpers.Contains(tagHelper))
                 {
-                    documentChanges.Add(new TextDocumentEdit
-                    {
-                        TextDocument = documentIdentifier,
-                        Edits = CreateEditsForMarkupTagHelperElement(element, sourceDocument, editedName),
-                    });
+                    var elementEdits = CreateEditsForMarkupTagHelperElement(element, sourceDocument, editedName);
+                    edits.AddRange(elementEdits);
                 }
             }
 
             return true;
+        }
+
+        static SumType<TextEdit, AnnotatedTextEdit>[] DeduplicateEdits(ref PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>> edits)
+        {
+            if (edits.Count == 0)
+            {
+                return [];
+            }
+
+            using var uniqueEdits = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>();
+            using var _ = HashSetPool<LspRange>.GetPooledObject(out var seenRanges);
+
+            foreach (var edit in edits)
+            {
+                if (edit.TryGetFirst(out var textEdit))
+                {
+                    if (seenRanges.Add(textEdit.Range))
+                    {
+                        uniqueEdits.Add(edit);
+                    }
+                }
+                else if (edit.TryGetSecond(out var annotatedEdit))
+                {
+                    if (seenRanges.Add(annotatedEdit.Range))
+                    {
+                        uniqueEdits.Add(edit);
+                    }
+                }
+            }
+
+            return uniqueEdits.ToArray();
         }
     }
 
     private static SumType<TextEdit, AnnotatedTextEdit>[] CreateEditsForMarkupTagHelperElement(
         MarkupTagHelperElementSyntax element, RazorSourceDocument sourceDocument, string newName)
     {
-        var startTagEdit = LspFactory.CreateTextEdit(element.StartTag.Name.GetRange(sourceDocument), newName);
+        var startRange = element.StartTag.Name.GetRange(sourceDocument);
+        var startTagEdit = LspFactory.CreateTextEdit(startRange, newName);
 
         if (element.EndTag is MarkupTagHelperEndTagSyntax endTag)
         {
-            var endTagEdit = LspFactory.CreateTextEdit(endTag.Name.GetRange(sourceDocument), newName);
+            var endRange = endTag.Name.GetRange(sourceDocument);
+            var endTagEdit = LspFactory.CreateTextEdit(endRange, newName);
 
             return [startTagEdit, endTagEdit];
         }
