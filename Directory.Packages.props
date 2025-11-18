@@ -26,7 +26,7 @@
     <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="$(_BenchmarkDotNetPackageVersion)" />
     <PackageVersion Include="DiffPlex" Version="1.7.2" />
     <PackageVersion Include="FluentAssertions" Version="6.7.0" />
-    <PackageVersion Include="MessagePack" Version="2.5.168" />
+    <PackageVersion Include="MessagePack" Version="2.5.187" />
     <PackageVersion Include="Microsoft.AspNetCore.App.Runtime.$(NetCoreSDKRuntimeIdentifier)" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Build.Framework" Version="$(_MicrosoftBuildPackageVersion)" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.4.1" />
@@ -115,7 +115,7 @@
     <PackageVersion Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataPackageVersion)" />
     <PackageVersion Include="System.Security.Cryptography.Xml" Version="7.0.1" />
     <PackageVersion Include="System.Text.Encodings.Web" Version="8.0.0" />
-    <PackageVersion Include="System.Text.Json" Version="8.0.4" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.5" />
     <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
     <PackageVersion Include="xunit" Version="$(_XunitPackageVersion)" />
     <PackageVersion Include="Xunit.Combinatorial" Version="1.5.25" />
