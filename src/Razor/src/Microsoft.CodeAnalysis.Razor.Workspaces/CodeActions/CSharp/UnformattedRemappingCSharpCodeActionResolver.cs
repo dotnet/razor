@@ -27,20 +27,20 @@ internal class UnformattedRemappingCSharpCodeActionResolver(IDocumentMappingServ
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (codeAction.Edit?.DocumentChanges is null)
+        if (codeAction.Edit?.DocumentChanges is not { } documentChanges)
         {
             // Unable to resolve code action with server, return original code action
             return codeAction;
         }
 
-        if (codeAction.Edit.DocumentChanges.Value.Count() != 1)
+        if (documentChanges.Count() != 1)
         {
             // We don't yet support multi-document code actions, return original code action
             Debug.Fail($"Encountered an unsupported multi-document code action edit with ${codeAction.Title}.");
             return codeAction;
         }
 
-        var documentChanged = codeAction.Edit.DocumentChanges.Value.First();
+        var documentChanged = documentChanges.First();
         if (!documentChanged.TryGetFirst(out var textDocumentEdit))
         {
             // Only Text Document Edit changes are supported currently, return original code action

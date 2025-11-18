@@ -17,7 +17,6 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using RazorSyntaxKind = Microsoft.AspNetCore.Razor.Language.SyntaxKind;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.Rename;
@@ -46,14 +45,13 @@ internal class RenameService(
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-        var originTagHelpers = await GetOriginTagHelpersAsync(documentContext, positionInfo.HostDocumentIndex, cancellationToken).ConfigureAwait(false);
-        if (originTagHelpers is not OriginTagHelpers tagHelpers)
+        if (!TryGetOriginTagHelpers(codeDocument, positionInfo.HostDocumentIndex, out var originTagHelpers))
         {
             return new(Edit: null);
         }
 
         var originComponentDocumentSnapshot = await _componentSearchEngine
-            .TryLocateComponentAsync(tagHelpers.Primary, solutionQueryOperations, cancellationToken)
+            .TryLocateComponentAsync(originTagHelpers.Primary, solutionQueryOperations, cancellationToken)
             .ConfigureAwait(false);
         if (originComponentDocumentSnapshot is null)
         {
@@ -72,14 +70,14 @@ internal class RenameService(
         using var _ = ListPool<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>.GetPooledObject(out var documentChanges);
         var fileRename = GetRenameFileEdit(originComponentDocumentFilePath, newPath);
         documentChanges.Add(fileRename);
-        AddEditsForCodeDocument(documentChanges, tagHelpers, newName, new(documentContext.Uri), codeDocument);
+        AddEditsForCodeDocument(documentChanges, originTagHelpers, newName, new(documentContext.Uri), codeDocument);
         AddAdditionalFileRenames(documentChanges, originComponentDocumentFilePath, newPath);
 
         var documentSnapshots = GetAllDocumentSnapshots(documentContext.FilePath, solutionQueryOperations);
 
         foreach (var documentSnapshot in documentSnapshots)
         {
-            await AddEditsForCodeDocumentAsync(documentChanges, tagHelpers, newName, documentSnapshot, cancellationToken).ConfigureAwait(false);
+            await AddEditsForCodeDocumentAsync(documentChanges, originTagHelpers, newName, documentSnapshot, cancellationToken).ConfigureAwait(false);
         }
 
         foreach (var documentChange in documentChanges)
@@ -303,36 +301,40 @@ internal class RenameService(
 
     private readonly record struct OriginTagHelpers(TagHelperDescriptor Primary, TagHelperDescriptor Associated);
 
-    private static async Task<OriginTagHelpers?> GetOriginTagHelpersAsync(
-        DocumentContext documentContext, int absoluteIndex, CancellationToken cancellationToken)
+    private static bool TryGetOriginTagHelpers(RazorCodeDocument codeDocument, int absoluteIndex, out OriginTagHelpers originTagHelpers)
     {
-        var owner = await documentContext.GetSyntaxNodeAsync(absoluteIndex, cancellationToken).ConfigureAwait(false);
+        var owner = codeDocument.GetRequiredSyntaxRoot().FindInnermostNode(absoluteIndex);
         if (owner is null)
         {
             Debug.Fail("Owner should never be null.");
-            return null;
+            originTagHelpers = default;
+            return false;
         }
 
         if (!TryGetTagHelperBinding(owner, absoluteIndex, out var binding))
         {
-            return null;
+            originTagHelpers = default;
+            return false;
         }
 
         // Can only have 1 component TagHelper belonging to an element at a time
         var primaryTagHelper = binding.TagHelpers.FirstOrDefault(static d => d.Kind == TagHelperKind.Component);
         if (primaryTagHelper is null)
         {
-            return null;
+            originTagHelpers = default;
+            return false;
         }
 
-        var tagHelpers = await documentContext.Snapshot.Project.GetTagHelpersAsync(cancellationToken).ConfigureAwait(false);
-        var associatedTagHelper = FindAssociatedTagHelper(primaryTagHelper, tagHelpers);
-        if (associatedTagHelper is null)
+        var tagHelpers = codeDocument.GetRequiredTagHelpers();
+
+        if (!TryFindAssociatedTagHelper(primaryTagHelper, tagHelpers, out var associatedTagHelper))
         {
-            return null;
+            originTagHelpers = default;
+            return false;
         }
 
-        return new(primaryTagHelper, associatedTagHelper);
+        originTagHelpers = new(primaryTagHelper, associatedTagHelper);
+        return true;
     }
 
     private static bool TryGetTagHelperBinding(RazorSyntaxNode owner, int absoluteIndex, [NotNullWhen(true)] out TagHelperBinding? binding)
@@ -346,8 +348,7 @@ internal class RenameService(
 
         // A rename of a start tag could have an "owner" of one of its attributes, so we do a bit more checking
         // to support this case
-        var node = owner.FirstAncestorOrSelf<RazorSyntaxNode>(n => n.Kind == RazorSyntaxKind.MarkupTagHelperStartTag);
-        if (node is not MarkupTagHelperStartTagSyntax tagHelperStartTag)
+        if (owner.FirstAncestorOrSelf<MarkupTagHelperStartTagSyntax>() is not { } tagHelperStartTag)
         {
             binding = null;
             return false;
@@ -372,33 +373,29 @@ internal class RenameService(
         return false;
     }
 
-    private static TagHelperDescriptor? FindAssociatedTagHelper(TagHelperDescriptor tagHelper, TagHelperCollection tagHelpers)
+    private static bool TryFindAssociatedTagHelper(
+        TagHelperDescriptor primary,
+        TagHelperCollection tagHelpers,
+        [NotNullWhen(true)] out TagHelperDescriptor? associated)
     {
-        var typeName = tagHelper.TypeName;
-        var assemblyName = tagHelper.AssemblyName;
-        foreach (var currentTagHelper in tagHelpers)
+        var typeName = primary.TypeName;
+        var assemblyName = primary.AssemblyName;
+
+        foreach (var tagHelper in tagHelpers)
         {
-            if (tagHelper == currentTagHelper)
+            if (!tagHelper.Equals(primary) &&
+                typeName == tagHelper.TypeName &&
+                assemblyName == tagHelper.AssemblyName)
             {
-                // Same as the primary, we're looking for our other pair.
-                continue;
+                // Found our associated TagHelper, there should only ever be
+                // one other associated TagHelper (fully qualified and non-fully qualified).
+                associated = tagHelper;
+                return true;
             }
-
-            if (typeName != currentTagHelper.TypeName)
-            {
-                continue;
-            }
-
-            if (assemblyName != currentTagHelper.AssemblyName)
-            {
-                continue;
-            }
-
-            // Found our associated TagHelper, there should only ever be 1 other associated TagHelper (fully qualified and non-fully qualified).
-            return currentTagHelper;
         }
 
         Debug.Fail("Components should always have an associated TagHelper.");
-        return null;
+        associated = null;
+        return false;
     }
 }
