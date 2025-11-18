@@ -23,7 +23,7 @@ public class TagHelperFactsTest(ITestOutputHelper testOutput) : ToolingTestBase(
                 .Build()
         ];
 
-        var documentContext = TagHelperDocumentContext.Create(tagHelpers);
+        var documentContext = TagHelperDocumentContext.GetOrCreate(tagHelpers);
 
         var binding = TagHelperFacts.GetTagHelperBinding(
             documentContext,
@@ -56,7 +56,7 @@ public class TagHelperFactsTest(ITestOutputHelper testOutput) : ToolingTestBase(
                 .Build(),
         ];
 
-        var documentContext = TagHelperDocumentContext.Create(tagHelpers);
+        var documentContext = TagHelperDocumentContext.GetOrCreate(tagHelpers);
 
         var binding = TagHelperFacts.GetTagHelperBinding(
             documentContext,
@@ -85,7 +85,7 @@ public class TagHelperFactsTest(ITestOutputHelper testOutput) : ToolingTestBase(
                 .Build()
         ];
 
-        var documentContext = TagHelperDocumentContext.Create(tagHelpers);
+        var documentContext = TagHelperDocumentContext.GetOrCreate(tagHelpers);
         var binding = TagHelperFacts.GetTagHelperBinding(
             documentContext,
             tagName: "a",
@@ -120,7 +120,7 @@ public class TagHelperFactsTest(ITestOutputHelper testOutput) : ToolingTestBase(
             tagHelpers[0].BoundAttributes.First()
         };
 
-        var documentContext = TagHelperDocumentContext.Create(tagHelpers);
+        var documentContext = TagHelperDocumentContext.GetOrCreate(tagHelpers);
 
         var binding = TagHelperFacts.GetTagHelperBinding(
             documentContext,
@@ -149,7 +149,7 @@ public class TagHelperFactsTest(ITestOutputHelper testOutput) : ToolingTestBase(
                 .Build()
         ];
 
-        var documentContext = TagHelperDocumentContext.Create(tagHelpers);
+        var documentContext = TagHelperDocumentContext.GetOrCreate(tagHelpers);
 
         var result = TagHelperFacts.GetTagHelpersGivenTag(
             documentContext,
@@ -169,7 +169,7 @@ public class TagHelperFactsTest(ITestOutputHelper testOutput) : ToolingTestBase(
                 .Build()
         ];
 
-        var documentContext = TagHelperDocumentContext.Create(tagHelpers);
+        var documentContext = TagHelperDocumentContext.GetOrCreate(tagHelpers);
 
         var result = TagHelperFacts.GetTagHelpersGivenTag(
             documentContext,
@@ -192,7 +192,7 @@ public class TagHelperFactsTest(ITestOutputHelper testOutput) : ToolingTestBase(
                 .Build()
         ];
 
-        var documentContext = TagHelperDocumentContext.Create(tagHelpers);
+        var documentContext = TagHelperDocumentContext.GetOrCreate(tagHelpers);
 
         var result = TagHelperFacts.GetTagHelpersGivenTag(
             documentContext,
@@ -215,7 +215,7 @@ public class TagHelperFactsTest(ITestOutputHelper testOutput) : ToolingTestBase(
                 .Build()
         ];
 
-        var documentContext = TagHelperDocumentContext.Create(prefix: "th", tagHelpers);
+        var documentContext = TagHelperDocumentContext.GetOrCreate(prefix: "th", tagHelpers);
 
         var result = TagHelperFacts.GetTagHelpersGivenTag(
             documentContext,
@@ -238,7 +238,7 @@ public class TagHelperFactsTest(ITestOutputHelper testOutput) : ToolingTestBase(
                 .Build()
         ];
 
-        var documentContext = TagHelperDocumentContext.Create(tagHelpers);
+        var documentContext = TagHelperDocumentContext.GetOrCreate(tagHelpers);
 
         var result = TagHelperFacts.GetTagHelpersGivenTag(
             documentContext,
@@ -258,7 +258,7 @@ public class TagHelperFactsTest(ITestOutputHelper testOutput) : ToolingTestBase(
                 .Build()
         ];
 
-        var documentContext = TagHelperDocumentContext.Create(tagHelpers);
+        var documentContext = TagHelperDocumentContext.GetOrCreate(tagHelpers);
 
         var result = TagHelperFacts.GetTagHelpersGivenParent(
             documentContext,
@@ -280,7 +280,7 @@ public class TagHelperFactsTest(ITestOutputHelper testOutput) : ToolingTestBase(
                 .Build()
         ];
 
-        var documentContext = TagHelperDocumentContext.Create(tagHelpers);
+        var documentContext = TagHelperDocumentContext.GetOrCreate(tagHelpers);
 
         var result = TagHelperFacts.GetTagHelpersGivenParent(
             documentContext,
@@ -299,7 +299,7 @@ public class TagHelperFactsTest(ITestOutputHelper testOutput) : ToolingTestBase(
                 .Build()
         ];
 
-        var documentContext = TagHelperDocumentContext.Create(tagHelpers);
+        var documentContext = TagHelperDocumentContext.GetOrCreate(tagHelpers);
 
         var result = TagHelperFacts.GetTagHelpersGivenParent(
             documentContext,
@@ -321,7 +321,7 @@ public class TagHelperFactsTest(ITestOutputHelper testOutput) : ToolingTestBase(
                 .Build()
         ];
 
-        var documentContext = TagHelperDocumentContext.Create(tagHelpers);
+        var documentContext = TagHelperDocumentContext.GetOrCreate(tagHelpers);
 
         var result = TagHelperFacts.GetTagHelpersGivenParent(
             documentContext,

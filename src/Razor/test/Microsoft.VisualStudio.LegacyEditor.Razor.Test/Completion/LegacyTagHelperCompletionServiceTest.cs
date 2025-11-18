@@ -1282,7 +1282,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
         bool containingParentIsTagHelper = false,
         string? tagHelperPrefix = null)
     {
-        var documentContext = TagHelperDocumentContext.Create(tagHelperPrefix, tagHelpers);
+        var documentContext = TagHelperDocumentContext.GetOrCreate(tagHelperPrefix, tagHelpers);
         var completionContext = new ElementCompletionContext(
             documentContext,
             existingCompletions,
@@ -1305,7 +1305,7 @@ public class LegacyTagHelperCompletionServiceTest(ITestOutputHelper testOutput) 
     {
         attributes = attributes.NullToEmpty();
 
-        var documentContext = TagHelperDocumentContext.Create(tagHelperPrefix, tagHelpers);
+        var documentContext = TagHelperDocumentContext.GetOrCreate(tagHelperPrefix, tagHelpers);
         var completionContext = new AttributeCompletionContext(
             documentContext,
             existingCompletions,
