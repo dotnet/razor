@@ -51,7 +51,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
         // This will always be null for a component document.
         var tagHelperPrefix = visitor.TagHelperPrefix;
 
-        var context = TagHelperDocumentContext.Create(tagHelperPrefix, visitor.GetResults());
+        var context = TagHelperDocumentContext.GetOrCreate(tagHelperPrefix, visitor.GetResults());
         codeDocument.SetTagHelperContext(context);
         codeDocument.SetPreTagHelperSyntaxTree(syntaxTree);
     }
