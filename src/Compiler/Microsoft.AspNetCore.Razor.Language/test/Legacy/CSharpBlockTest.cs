@@ -1047,8 +1047,36 @@ catch(bar) { baz(); }");
             @{
                 var val = 0 switch
                 {
-                    0 =>  <span>some <i>html</i></span>,
+                    0 => <span>some <i>html</i></span>,
                     _ => "value"
+                };
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7230")]
+    public void SwitchExpression_WithMarkupInside_ViaAtSymbol()
+    {
+        ParseDocumentTest("""
+            @{
+                var val = 0 switch
+                {
+                    0 => @<span>zero</span>,
+                    _ => @<span>one</span>
+                };
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7230")]
+    public void SwitchExpression_WithMarkupInside_WithLessThan()
+    {
+        ParseDocumentTest("""
+            @{
+                var val = 0 switch
+                {
+                    < 10 => @<span>less than 10</span>,
+                    _ => @<span>other</span>
                 };
             }
             """);
