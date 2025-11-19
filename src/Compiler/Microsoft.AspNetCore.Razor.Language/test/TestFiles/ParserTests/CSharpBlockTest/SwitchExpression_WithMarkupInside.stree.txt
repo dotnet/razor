@@ -1,16 +1,16 @@
-﻿RazorDocument - [0..112)::112 - [@{LF    var val = 0 switchLF    {LF        0 =>  <span>some <i>html</i></span>,LF        _ => "value"LF    };LF}]
-    MarkupBlock - [0..112)::112
+﻿RazorDocument - [0..111)::111 - [@{LF    var val = 0 switchLF    {LF        0 => <span>some <i>html</i></span>,LF        _ => "value"LF    };LF}]
+    MarkupBlock - [0..111)::111
         MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
             Marker;[];
-        CSharpCodeBlock - [0..112)::112
-            CSharpStatement - [0..112)::112
+        CSharpCodeBlock - [0..111)::111
+            CSharpStatement - [0..111)::111
                 CSharpTransition - [0..1)::1 - Gen<None>
                     Transition;[@];
-                CSharpStatementBody - [1..112)::111
+                CSharpStatementBody - [1..111)::110
                     RazorMetaCode - [1..2)::1 - Gen<None>
                         LeftBrace;[{];
-                    CSharpCodeBlock - [2..111)::109
-                        CSharpStatementLiteral - [2..111)::109 - [LF    var val = 0 switchLF    {LF        0 =>  <span>some <i>html</i></span>,LF        _ => "value"LF    };LF] - Gen<Stmt>
+                    CSharpCodeBlock - [2..110)::108
+                        CSharpStatementLiteral - [2..110)::108 - [LF    var val = 0 switchLF    {LF        0 => <span>some <i>html</i></span>,LF        _ => "value"LF    };LF] - Gen<Stmt>
                             NewLine;[LF];
                             Whitespace;[    ];
                             Keyword;[var];
@@ -30,7 +30,7 @@
                             NumericLiteral;[0];
                             Whitespace;[ ];
                             CSharpOperator;[=>];
-                            Whitespace;[  ];
+                            Whitespace;[ ];
                             LessThan;[<];
                             Identifier;[span];
                             GreaterThan;[>];
@@ -61,8 +61,8 @@
                             RightBrace;[}];
                             Semicolon;[;];
                             NewLine;[LF];
-                    RazorMetaCode - [111..112)::1 - Gen<None>
+                    RazorMetaCode - [110..111)::1 - Gen<None>
                         RightBrace;[}];
-        MarkupTextLiteral - [112..112)::0 - [] - Gen<Markup>
+        MarkupTextLiteral - [111..111)::0 - [] - Gen<Markup>
             Marker;[];
     EndOfFile;[];
