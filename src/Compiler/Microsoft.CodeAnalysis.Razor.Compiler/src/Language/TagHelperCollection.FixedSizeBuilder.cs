@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -34,10 +35,10 @@ public abstract partial class TagHelperCollection
 
         public void Dispose()
         {
-            if (_set is { } set)
+            var set = Interlocked.Exchange(ref _set, null!);
+            if (set is not null)
             {
                 ChecksumSetPool.Default.Return(set);
-                _set = null!;
             }
         }
 
