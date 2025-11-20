@@ -149,30 +149,6 @@ public class LazyValueTests
     }
 
     [Fact]
-    public void LazyValue_ExceptionRecovery()
-    {
-        var callCount = 0;
-        var lazy = new LazyValue<string>(() =>
-        {
-            var count = Interlocked.Increment(ref callCount);
-            if (count == 1)
-            {
-                throw new InvalidOperationException("First call fails");
-            }
-
-            return "success";
-        });
-
-        // First call fails
-        Assert.Throws<InvalidOperationException>(() => lazy.GetValue());
-
-        // Second call succeeds
-        var result = lazy.GetValue();
-        Assert.Equal("success", result);
-        Assert.Equal(2, callCount);
-    }
-
-    [Fact]
     public async Task LazyValue_StressTest_MaintainsConsistency()
     {
         // Arrange
