@@ -77,7 +77,7 @@ internal class CleanableWeakCache<TKey, TValue>
         lock (_lock)
         {
             // Try to get the existing value or add the new one.
-            return TryGetOrAdd_NoLock(key, value);
+            return GetOrAdd_NoLock(key, value);
         }
     }
 
@@ -105,7 +105,7 @@ internal class CleanableWeakCache<TKey, TValue>
         lock (_lock)
         {
             // Try to add the newly-created value or get the existing one.
-            return TryGetOrAdd_NoLock(key, newValue);
+            return GetOrAdd_NoLock(key, newValue);
         }
     }
 
@@ -135,7 +135,7 @@ internal class CleanableWeakCache<TKey, TValue>
         lock (_lock)
         {
             // Try to add the newly-created value or get the existing one.
-            return TryGetOrAdd_NoLock(key, newValue);
+            return GetOrAdd_NoLock(key, newValue);
         }
     }
 
@@ -221,7 +221,7 @@ internal class CleanableWeakCache<TKey, TValue>
     /// <remarks>
     ///  This method increments the add counter and triggers cleanup if the threshold is reached when adding a value.
     /// </remarks>
-    private TValue TryGetOrAdd_NoLock(TKey key, TValue value)
+    private TValue GetOrAdd_NoLock(TKey key, TValue value)
     {
         if (_cacheMap.TryGetValue(key, out var weakRef))
         {
