@@ -290,9 +290,7 @@ internal class RenameService(
                 }
             }
 
-            return edits.Count == uniqueEdits.Count
-                ? edits.ToArrayAndClear()
-                : uniqueEdits.ToArrayAndClear();
+            return uniqueEdits.ToArrayAndClear();
         }
     }
 
@@ -379,9 +377,9 @@ internal class RenameService(
 
         foreach (var tagHelper in tagHelpers)
         {
-            if (!tagHelper.Equals(primary) &&
-                typeName == tagHelper.TypeName &&
-                assemblyName == tagHelper.AssemblyName)
+            if (typeName == tagHelper.TypeName &&
+                assemblyName == tagHelper.AssemblyName &&
+                !tagHelper.Equals(primary))
             {
                 // Found our associated TagHelper, there should only ever be
                 // one other associated TagHelper (fully qualified and non-fully qualified).
