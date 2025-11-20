@@ -40,7 +40,7 @@ internal class OutOfProcTagHelperResolver(
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
     private readonly TagHelperResultCache _resultCache = new();
 
-    public async ValueTask<TagHelperCollection> GetTagHelpersAsync(
+    public async ValueTask<TagHelperCollection?> GetTagHelpersAsync(
         Project project,
         ProjectSnapshot projectSnapshot,
         CancellationToken cancellationToken)
@@ -70,7 +70,7 @@ internal class OutOfProcTagHelperResolver(
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _logger.LogError(ex, $"Error encountered from project '{projectSnapshot.FilePath}':{Environment.NewLine}{ex}");
-            return null!;
+            return null;
         }
     }
 

@@ -15,7 +15,7 @@ internal interface ITagHelperResolver
     ///  <see cref="Project"/> using the given <see cref="ProjectSnapshot"/> to provide a
     ///  <see cref="RazorProjectEngine"/>.
     /// </summary>
-    ValueTask<TagHelperCollection> GetTagHelpersAsync(
+    ValueTask<TagHelperCollection?> GetTagHelpersAsync(
         Project project,
         ProjectSnapshot projectSnapshot,
         CancellationToken cancellationToken);

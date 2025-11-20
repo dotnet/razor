@@ -14,7 +14,7 @@ internal class TestTagHelperResolver(TagHelperCollection tagHelpers) : ITagHelpe
 {
     public TagHelperCollection TagHelpers { get; } = tagHelpers;
 
-    public ValueTask<TagHelperCollection> GetTagHelpersAsync(
+    public ValueTask<TagHelperCollection?> GetTagHelpersAsync(
         Project workspaceProject,
         ProjectSnapshot projectSnapshot,
         CancellationToken cancellationToken)
