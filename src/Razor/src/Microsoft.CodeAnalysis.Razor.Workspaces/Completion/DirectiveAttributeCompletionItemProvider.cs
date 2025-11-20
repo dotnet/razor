@@ -387,7 +387,7 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
         {
             (descriptions, commitCharacters) = existingDetails;
 
-            if (descriptions.Contains(descriptionInfo))
+            if (!descriptions.Contains(descriptionInfo))
             {
                 descriptions = descriptions.Add(descriptionInfo);
             }
