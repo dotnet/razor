@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 
@@ -34,16 +35,16 @@ public abstract partial class TagHelperCollection
 
         public void Dispose()
         {
-            if (_items is { } items)
+            var items = Interlocked.Exchange(ref _items, null!);
+            if (items is not null)
             {
                 s_arrayBuilderPool.Return(items);
-                _items = null!;
             }
 
-            if (_set is { } set)
+            var set = Interlocked.Exchange(ref _set, null!);
+            if (set is not null)
             {
                 ChecksumSetPool.Default.Return(set);
-                _set = null!;
             }
         }
 
