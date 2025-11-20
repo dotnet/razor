@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -16,7 +17,7 @@ public abstract partial class TagHelperCollection
         private MemoryBuilder<TagHelperDescriptor> _builder;
 #pragma warning restore CA2213
 
-        private readonly HashSet<Checksum> _set;
+        private HashSet<Checksum> _set;
 
         public RefBuilder()
             : this(initialCapacity: 8)
@@ -41,7 +42,12 @@ public abstract partial class TagHelperCollection
         public void Dispose()
         {
             _builder.Dispose();
-            ChecksumSetPool.Default.Return(_set);
+            
+            var set = Interlocked.Exchange(ref _set, null!);
+            if (set is not null)
+            {
+                ChecksumSetPool.Default.Return(set);
+            }
         }
 
         public readonly bool IsEmpty => Count == 0;
