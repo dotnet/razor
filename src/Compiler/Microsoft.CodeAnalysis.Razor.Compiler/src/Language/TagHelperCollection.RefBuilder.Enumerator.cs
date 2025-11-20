@@ -10,7 +10,7 @@ public abstract partial class TagHelperCollection
     {
         public ref struct Enumerator(RefBuilder builder)
         {
-            // Do not dispose the RefBuilder beig enumerated.
+            // Do not dispose the RefBuilder being enumerated.
 #pragma warning disable CA2213 // Disposable fields should be disposed
             private readonly RefBuilder _builder = builder;
 #pragma warning restore CA2213
