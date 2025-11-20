@@ -29,15 +29,15 @@ public abstract partial class TagHelperCollector<T>(
         ICollection<TagHelperDescriptor> results,
         CancellationToken cancellationToken);
 
-    public void Collect(TagHelperDescriptorProviderContext context, CancellationToken cancellationToken)
+    public virtual void Collect(TagHelperDescriptorProviderContext context, CancellationToken cancellationToken)
     {
         if (_targetAssembly is not null)
         {
-            Collect(_targetAssembly, context.Results, cancellationToken);
+            CollectTagHelpersForAssembly(_targetAssembly, context, cancellationToken);
         }
         else
         {
-            Collect(_compilation.Assembly, context.Results, cancellationToken);
+            CollectTagHelpersForAssembly(_compilation.Assembly, context, cancellationToken);
 
             foreach (var reference in _compilation.References)
             {
@@ -45,34 +45,41 @@ public abstract partial class TagHelperCollector<T>(
 
                 if (_compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                 {
-                    // Check to see if we already have tag helpers cached for this assembly
-                    // and use the cached versions if we do. Roslyn shares PE assembly symbols
-                    // across compilations, so this ensures that we don't produce new tag helpers
-                    // for the same assemblies over and over again.
-
-                    var assemblySymbolData = SymbolCache.GetAssemblySymbolData(assembly);
-                    if (!assemblySymbolData.MightContainTagHelpers)
-                    {
-                        continue;
-                    }
-
-                    var includeDocumentation = context.IncludeDocumentation;
-                    var excludeHidden = context.ExcludeHidden;
-
-                    var cache = s_perAssemblyCaches.GetValue(assembly, static assembly => new Cache());
-                    if (!cache.TryGet(includeDocumentation, excludeHidden, out var tagHelpers))
-                    {
-                        using var _ = ListPool<TagHelperDescriptor>.GetPooledObject(out var referenceTagHelpers);
-                        Collect(assembly, referenceTagHelpers, cancellationToken);
-
-                        tagHelpers = cache.Add(referenceTagHelpers.ToArrayOrEmpty(), includeDocumentation, excludeHidden);
-                    }
-
-                    foreach (var tagHelper in tagHelpers)
-                    {
-                        context.Results.Add(tagHelper);
-                    }
+                    CollectTagHelpersForAssembly(assembly, context, cancellationToken);
                 }
+            }
+        }
+
+        return;
+
+        void CollectTagHelpersForAssembly(IAssemblySymbol assembly, TagHelperDescriptorProviderContext context, CancellationToken cancellationToken)
+        {
+            // Check to see if we already have tag helpers cached for this assembly
+            // and use the cached versions if we do. Roslyn shares PE assembly symbols
+            // across compilations, so this ensures that we don't produce new tag helpers
+            // for the same assemblies over and over again.
+
+            var assemblySymbolData = SymbolCache.GetAssemblySymbolData(assembly);
+            if (!assemblySymbolData.MightContainTagHelpers)
+            {
+                return;
+            }
+
+            var includeDocumentation = context.IncludeDocumentation;
+            var excludeHidden = context.ExcludeHidden;
+
+            var cache = s_perAssemblyCaches.GetValue(assembly, static assembly => new Cache());
+            if (!cache.TryGet(includeDocumentation, excludeHidden, out var tagHelpers))
+            {
+                using var _ = ListPool<TagHelperDescriptor>.GetPooledObject(out var referenceTagHelpers);
+                Collect(assembly, referenceTagHelpers, cancellationToken);
+
+                tagHelpers = cache.Add(referenceTagHelpers.ToArrayOrEmpty(), includeDocumentation, excludeHidden);
+            }
+
+            foreach (var tagHelper in tagHelpers)
+            {
+                context.Results.Add(tagHelper);
             }
         }
     }
