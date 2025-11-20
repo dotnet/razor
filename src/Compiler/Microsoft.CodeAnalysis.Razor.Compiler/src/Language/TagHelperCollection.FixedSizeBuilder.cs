@@ -59,7 +59,7 @@ public abstract partial class TagHelperCollection
         {
             foreach (var item in collection)
             {
-                if (!_set.Add(item.Checksum))
+                if (_set.Add(item.Checksum))
                 {
                     AppendItem(item);
                 }
@@ -71,7 +71,7 @@ public abstract partial class TagHelperCollection
         {
             foreach (var item in span)
             {
-                if (!_set.Add(item.Checksum))
+                if (_set.Add(item.Checksum))
                 {
                     AppendItem(item);
                 }
@@ -83,7 +83,7 @@ public abstract partial class TagHelperCollection
         {
             foreach (var item in source)
             {
-                if (!_set.Add(item.Checksum))
+                if (_set.Add(item.Checksum))
                 {
                     AppendItem(item);
                 }
