@@ -241,7 +241,7 @@ public abstract partial class TagHelperCollection : IEquatable<TagHelperCollecti
     ///  </para>
     ///  <para>
     ///   If no elements match the predicate, <see cref="Empty"/> is returned.
-    ///   If all elements match the predicate, a collection with the same content is returned.
+    ///   If all elements match the predicate, this collection is returned..
     ///  </para>
     ///  <para>
     ///   This overload allows passing state to the predicate without creating closures, which can
@@ -292,7 +292,14 @@ public abstract partial class TagHelperCollection : IEquatable<TagHelperCollecti
         return segments.Count switch
         {
             0 => Empty,
-            1 => new SingleSegmentCollection(segments[0]),
+
+            // If there's only one segment and its length is different from the original count,
+            // we need to create a new collection. Otherwise, the predicate matched all items and
+            // we can just return the current collection.
+            1 => segments[0].Length != Count
+                ? new SingleSegmentCollection(segments[0])
+                : this,
+
             _ => new MultiSegmentCollection(segments.ToImmutableAndClear())
         };
     }
@@ -313,7 +320,7 @@ public abstract partial class TagHelperCollection : IEquatable<TagHelperCollecti
     ///  </para>
     ///  <para>
     ///   If no elements match the predicate, <see cref="Empty"/> is returned.
-    ///   If all elements match the predicate, a collection with the same content is returned.
+    ///   If all elements match the predicate, this collection is returned..
     ///  </para>
     /// </remarks>
     public TagHelperCollection Where(Predicate<TagHelperDescriptor> predicate)
@@ -360,7 +367,14 @@ public abstract partial class TagHelperCollection : IEquatable<TagHelperCollecti
         return segments.Count switch
         {
             0 => Empty,
-            1 => new SingleSegmentCollection(segments[0]),
+
+            // If there's only one segment and its length is different from the original count,
+            // we need to create a new collection. Otherwise, the predicate matched all items and
+            // we can just return the current collection.
+            1 => segments[0].Length != Count
+                ? new SingleSegmentCollection(segments[0])
+                : this,
+
             _ => new MultiSegmentCollection(segments.ToImmutableAndClear())
         };
     }

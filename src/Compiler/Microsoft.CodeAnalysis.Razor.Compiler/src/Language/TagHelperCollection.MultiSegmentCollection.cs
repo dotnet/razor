@@ -11,8 +11,8 @@ namespace Microsoft.AspNetCore.Razor.Language;
 public abstract partial class TagHelperCollection
 {
     /// <summary>
-    /// Represents a read-only collection of <see cref="TagHelperDescriptor"/> objects composed
-    /// from multiple contiguous memory segments, providing efficient indexed access across all segments.
+    ///  Represents a read-only collection of <see cref="TagHelperDescriptor"/> objects composed
+    ///  from multiple contiguous memory segments, providing efficient indexed access across all segments.
     /// </summary>
     /// <remarks>
     ///  This collection is optimized for scenarios where <see cref="TagHelperDescriptor"/> items
