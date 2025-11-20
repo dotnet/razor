@@ -51,10 +51,10 @@ internal class CleanableWeakCache<TKey, TValue>
     /// </summary>
     /// <param name="cleanUpThreshold">
     ///  The number of add operations that must occur before triggering automatic cleanup of dead weak references.
-    ///  Must be non-negative.
+    ///  Must be positive.
     /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
-    ///  Thrown when <paramref name="cleanUpThreshold"/> is negative.
+    ///  Thrown when <paramref name="cleanUpThreshold"/> is zero or negative.
     /// </exception>
     public CleanableWeakCache(int cleanUpThreshold)
     {
@@ -76,8 +76,8 @@ internal class CleanableWeakCache<TKey, TValue>
     {
         lock (_lock)
         {
-            // Try to add the value or get the existing one. If null is returned, use the provided value.
-            return TryAddOrGet_NoLock(key, value) ?? value;
+            // Try to get the existing value or add the new one.
+            return TryGetOrAdd_NoLock(key, value);
         }
     }
 
@@ -93,30 +93,19 @@ internal class CleanableWeakCache<TKey, TValue>
     public TValue GetOrAdd(TKey key, Func<TValue> valueFactory)
     {
         // First check without creating the value.
-        lock (_lock)
+        if (TryGet(key, out var value))
         {
-            if (TryGet_NoLock(key, out var value))
-            {
-                return value;
-            }
+            return value;
         }
 
         // Create the value outside the lock to avoid holding the lock
         // while creating a potentially expensive object.
         var newValue = valueFactory();
 
-        // Second check and add atomically
         lock (_lock)
         {
-            // Double-check in case another thread added it
-            if (TryGet_NoLock(key, out var existingValue))
-            {
-                return existingValue;
-            }
-
-            // Add our newly created value
-            TryAddOrGet_NoLock(key, newValue);
-            return newValue;
+            // Try to add the newly-created value or get the existing one.
+            return TryGetOrAdd_NoLock(key, newValue);
         }
     }
 
@@ -134,31 +123,19 @@ internal class CleanableWeakCache<TKey, TValue>
     public TValue GetOrAdd<TArg>(TKey key, TArg arg, Func<TArg, TValue> valueFactory)
     {
         // First check without creating the value.
-        lock (_lock)
+        if (TryGet(key, out var value))
         {
-            // First, try to get an existing value
-            if (TryGet_NoLock(key, out var value))
-            {
-                return value;
-            }
+            return value;
         }
 
         // Create the value outside the lock to avoid holding the lock
         // while creating a potentially expensive object.
         var newValue = valueFactory(arg);
 
-        // Second check and add atomically
         lock (_lock)
         {
-            // Double-check in case another thread added it
-            if (TryGet_NoLock(key, out var existingValue))
-            {
-                return existingValue;
-            }
-
-            // Add our newly created value
-            TryAddOrGet_NoLock(key, newValue);
-            return newValue;
+            // Try to add the newly-created value or get the existing one.
+            return TryGetOrAdd_NoLock(key, newValue);
         }
     }
 
@@ -175,8 +152,32 @@ internal class CleanableWeakCache<TKey, TValue>
     {
         lock (_lock)
         {
-            // Returns true if TryAddOrGet returns null (meaning the value was added)
-            return TryAddOrGet_NoLock(key, value) is null;
+            // Check if the key exists and the weak reference still has a live target
+            if (!_cacheMap.TryGetValue(key, out var weakRef))
+            {
+                // The key is not in the map. Add a new weak reference.
+                _cacheMap.Add(key, new(value));
+            }
+            else
+            {
+                // We have a weak reference, check if it is still alive
+                if (weakRef.TryGetTarget(out var existingValue))
+                {
+                    // Yup, we have a live value for this key.
+                    // However, we aren't returning it to the caller, so we should keep it alive
+                    // until after we return to ensure the existence check remains valid.
+                    GC.KeepAlive(existingValue);
+                    return false;
+                }
+
+                // Set the weak ref's target to the new value.
+                weakRef.SetTarget(value);
+            }
+
+            // We added an item to the cache.
+            // Increment the add counter and trigger cleanup if needed.
+            CleanUpIfNeeded_NoLock();
+            return true;
         }
     }
 
@@ -195,84 +196,71 @@ internal class CleanableWeakCache<TKey, TValue>
     {
         lock (_lock)
         {
-            return TryGet_NoLock(key, out value);
+            // Check if the key exists and the weak reference still has a live target
+            if (_cacheMap.TryGetValue(key, out var weakRef) &&
+                weakRef.TryGetTarget(out value))
+            {
+                return true;
+            }
+
+            // Key not found or target was garbage collected
+            value = null;
+            return false;
         }
     }
 
     /// <summary>
-    ///  Internal method that attempts to add a value to the cache or retrieve an existing one.
+    ///  Internal method that attempts to retrieve an existing value from the cache or add a new value if none exists.
     ///  This method assumes the caller already holds the lock.
     /// </summary>
-    /// <param name="key">The key of the value to add or get.</param>
-    /// <param name="value">The value to add if no existing value is found.</param>
+    /// <param name="key">The key of the value to get or add.</param>
+    /// <param name="value">The value to add if no existing live value is found.</param>
     /// <returns>
-    ///  The existing live value if one was found; otherwise, <see langword="null"/> indicating the new value was added.
+    ///  The existing live value if one was found; otherwise, the provided <paramref name="value"/> after adding it to the cache.
     /// </returns>
     /// <remarks>
-    ///  This method increments the add counter and triggers cleanup if the threshold is reached.
+    ///  This method increments the add counter and triggers cleanup if the threshold is reached when adding a value.
     /// </remarks>
-    private TValue? TryAddOrGet_NoLock(TKey key, TValue value)
+    private TValue TryGetOrAdd_NoLock(TKey key, TValue value)
     {
-        // Increment add counter and trigger cleanup if threshold is reached
-        if (++_addsSinceLastCleanUp >= _cleanUpThreshold)
+        if (_cacheMap.TryGetValue(key, out var weakRef))
         {
-            CleanUpDeadObjects_NoLock();
-        }
+            if (weakRef.TryGetTarget(out var existingValue))
+            {
+                // There was already a value in the map. Return it!
+                return existingValue;
+            }
 
-        // Check if the key already exists in the cache
-        if (!_cacheMap.TryGetValue(key, out var weakRef))
-        {
-            // Key doesn't exist, add the new value
-            _cacheMap.Add(key, new(value));
-            return null; // Indicates the value was successfully added
-        }
-
-        // Key exists, check if the weak reference still has a live target
-        if (!weakRef.TryGetTarget(out var existingValue))
-        {
-            // The target was garbage collected, replace it with the new value
+            // The key was in the map, but the weak reference was collected.
+            // Set its target to the new value.
             weakRef.SetTarget(value);
-            return null; // Indicates the value was successfully added
         }
-
-        // Return the existing live value
-        return existingValue;
-    }
-
-    /// <summary>
-    ///  Internal method that attempts to retrieve a value from the cache.
-    ///  This method assumes the caller already holds the lock.
-    /// </summary>
-    /// <param name="key">The key of the value to retrieve.</param>
-    /// <param name="value">
-    ///  When this method returns, contains the value if found and still alive; otherwise, <see langword="null"/>.
-    /// </param>
-    /// <returns>
-    ///  <see langword="true"/> if a live value was found; otherwise, <see langword="false"/>.
-    /// </returns>
-    private bool TryGet_NoLock(TKey key, [NotNullWhen(true)] out TValue? value)
-    {
-        // Check if the key exists and the weak reference still has a live target
-        if (_cacheMap.TryGetValue(key, out var weakRef) &&
-            weakRef.TryGetTarget(out value))
+        else
         {
-            return true;
+            // The key is not in the map. Add a new weak reference.
+            _cacheMap.Add(key, new(value));
         }
 
-        // Key not found or target was garbage collected
-        value = null;
-        return false;
+        // We added an item to the cache.
+        // Increment the add counter and trigger cleanup if needed.
+        CleanUpIfNeeded_NoLock();
+        return value;
     }
 
     /// <summary>
-    ///  Removes all cache entries whose weak references no longer have live targets (i.e., have been garbage collected).
-    ///  This method assumes the caller already holds the lock.
+    ///  Increments the add counter and removes all cache entries whose weak references no longer have live targets 
+    ///  if the cleanup threshold has been reached. This method assumes the caller already holds the lock.
     /// </summary>
     /// <remarks>
-    ///  This method resets the add counter to zero after cleanup is complete.
+    ///  This method resets the add counter to zero after cleanup is performed.
     /// </remarks>
-    private void CleanUpDeadObjects_NoLock()
+    private void CleanUpIfNeeded_NoLock()
     {
+        if (++_addsSinceLastCleanUp < _cleanUpThreshold)
+        {
+            return;
+        }
+
         // Use a memory builder to collect keys of dead weak references
         using var deadKeys = new MemoryBuilder<TKey>(initialCapacity: _cacheMap.Count, clearArray: true);
 
