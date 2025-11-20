@@ -338,7 +338,6 @@ public abstract partial class TagHelperCollection
     public delegate void BuildAction(ref RefBuilder builder);
     public delegate void BuildAction<in TState>(ref RefBuilder builder, TState state);
 
-
     /// <summary>
     ///  Builds a new <see cref="TagHelperCollection"/> using a builder pattern with state.
     /// </summary>
