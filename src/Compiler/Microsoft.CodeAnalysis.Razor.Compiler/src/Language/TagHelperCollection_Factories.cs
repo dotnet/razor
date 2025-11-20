@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -76,6 +76,9 @@ public abstract partial class TagHelperCollection
     [OverloadResolutionPriority(1)]
     public static TagHelperCollection Create(params ImmutableArray<TagHelperDescriptor> array)
     {
+        // Note: We intentionally do *not* delegate to the Create(ReadOnlySpan<TagHelperDescriptor>)
+        // overload, which must copy all of the elements from the span that's passed in.
+        // We can use the underlying memory of the ImmutableArray directly.
         var segment = array.AsMemory();
 
         return segment.Span switch
@@ -119,7 +122,11 @@ public abstract partial class TagHelperCollection
     {
         if (source.TryGetCount(out var count))
         {
-            // Copy the IEnumerable to an immutable array and delegate to the other Create method.
+            // Copy the IEnumerable to an immutable array and delegate to the
+            // Create(ImmutableArray<TagHelperDescriptor>) method.
+
+            // Note: We intentionally do *not* delegate to the Create(ReadOnlySpan<TagHelperDescriptor>)
+            // overload, which must copy all of the elements from the span that's passed in.
             var array = new TagHelperDescriptor[count];
             source.CopyTo(array);
 
@@ -129,8 +136,8 @@ public abstract partial class TagHelperCollection
         // Fallback for an arbitrary IEnumerable with no count.
 
         // Copy the IEnumerable to a MemoryBuilder and delegate to the other Create method.
-        // Note that we can pass a span below because Create(ReadOnlySpan<TagHelperDescriptor>)
-        // copies the elements into a new array.
+        // Note that we can pass a span to the underlying pooled array below because
+        // Create(ReadOnlySpan<TagHelperDescriptor>) copies the elements into a new array.
         using var builder = new MemoryBuilder<TagHelperDescriptor>(clearArray: true);
 
         foreach (var item in source)
