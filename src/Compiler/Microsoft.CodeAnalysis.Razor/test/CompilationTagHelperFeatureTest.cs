@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language;
@@ -23,6 +21,7 @@ public class CompilationTagHelperFeatureTest
         {
             ReferenceUtil.NetLatestSystemRuntime,
         };
+
         var compilation = CSharpCompilation.Create("Test", references: references);
 
         // Act
@@ -40,6 +39,7 @@ public class CompilationTagHelperFeatureTest
         {
             ReferenceUtil.AspNetLatestRazor,
         };
+
         var compilation = CSharpCompilation.Create("Test", references: references);
 
         // Act
@@ -58,6 +58,7 @@ public class CompilationTagHelperFeatureTest
             ReferenceUtil.NetLatestSystemRuntime,
             ReferenceUtil.AspNetLatestRazor,
         };
+
         var compilation = CSharpCompilation.Create("Test", references: references);
 
         // Act
@@ -68,23 +69,27 @@ public class CompilationTagHelperFeatureTest
     }
 
     [Fact]
-    public void GetDescriptors_DoesNotSetCompilation_IfCompilationIsInvalid()
+    public void GetTagHelpers_DoesNotSetCompilation_IfCompilationIsInvalid()
     {
         // Arrange
-        var provider = new Mock<ITagHelperDescriptorProvider>();
-        provider.Setup(c => c.Execute(It.IsAny<TagHelperDescriptorProviderContext>(), It.IsAny<CancellationToken>()));
+        var serviceMock = new Mock<ITagHelperDiscoveryService>();
+        serviceMock
+            .Setup(service => service.GetTagHelpers(It.IsAny<Compilation>(), It.IsAny<CancellationToken>()))
+            .Returns(TagHelperCollection.Empty);
 
         var engine = RazorProjectEngine.Create(
-            configure =>
+            builder =>
             {
-                configure.ConfigureParserOptions(builder =>
+                builder.ConfigureParserOptions(static builder =>
                 {
                     builder.UseRoslynTokenizer = true;
                 });
 
-                configure.Features.Add(new DefaultMetadataReferenceFeature());
-                configure.Features.Add(provider.Object);
-                configure.Features.Add(new CompilationTagHelperFeature());
+                builder.Features.Add(new DefaultMetadataReferenceFeature());
+                builder.Features.Add(new CompilationTagHelperFeature());
+
+                var oldFeature = builder.Features.OfType<ITagHelperDiscoveryService>().Single();
+                builder.Features.Replace(oldFeature, serviceMock.Object);
             });
 
         var feature = engine.Engine.GetFeatures<CompilationTagHelperFeature>().First();
@@ -94,18 +99,19 @@ public class CompilationTagHelperFeatureTest
 
         // Assert
         Assert.Empty(result);
-        provider.Verify(c => c.Execute(It.IsAny<TagHelperDescriptorProviderContext>(), It.IsAny<CancellationToken>()), Times.Never);
+        serviceMock.Verify(c => c.GetTagHelpers(It.IsAny<Compilation>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public void GetDescriptors_SetsCompilation_IfCompilationIsValid()
+    public void GetTagHelpers_SetsCompilation_IfCompilationIsValid()
     {
         // Arrange
-        Compilation compilation = null;
-        var provider = new Mock<ITagHelperDescriptorProvider>();
-        provider
-            .Setup(c => c.Execute(It.IsAny<TagHelperDescriptorProviderContext>(), It.IsAny<CancellationToken>()))
-            .Callback((TagHelperDescriptorProviderContext c, CancellationToken ct) => compilation = c.Compilation)
+        Compilation? compilation = null;
+        var serviceMock = new Mock<ITagHelperDiscoveryService>();
+        serviceMock
+            .Setup(service => service.GetTagHelpers(It.IsAny<Compilation>(), It.IsAny<CancellationToken>()))
+            .Callback((Compilation c, CancellationToken ct) => compilation = c)
+            .Returns(TagHelperCollection.Empty)
             .Verifiable();
 
         var references = new[]
@@ -115,16 +121,18 @@ public class CompilationTagHelperFeatureTest
         };
 
         var engine = RazorProjectEngine.Create(
-            configure =>
+            builder =>
             {
-                configure.ConfigureParserOptions(builder =>
+                builder.ConfigureParserOptions(static builder =>
                 {
                     builder.UseRoslynTokenizer = true;
                 });
 
-                configure.Features.Add(new DefaultMetadataReferenceFeature { References = references });
-                configure.Features.Add(provider.Object);
-                configure.Features.Add(new CompilationTagHelperFeature());
+                builder.Features.Add(new DefaultMetadataReferenceFeature { References = references });
+                builder.Features.Add(new CompilationTagHelperFeature());
+
+                var oldFeature = builder.Features.OfType<ITagHelperDiscoveryService>().Single();
+                builder.Features.Replace(oldFeature, serviceMock.Object);
             });
 
         var feature = engine.Engine.GetFeatures<CompilationTagHelperFeature>().First();
@@ -134,7 +142,7 @@ public class CompilationTagHelperFeatureTest
 
         // Assert
         Assert.Empty(result);
-        provider.Verify();
+        serviceMock.Verify();
         Assert.NotNull(compilation);
     }
 }

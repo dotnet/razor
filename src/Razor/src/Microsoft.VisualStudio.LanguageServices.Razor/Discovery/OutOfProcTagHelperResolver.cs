@@ -234,5 +234,5 @@ internal class OutOfProcTagHelperResolver(
         Project project,
         ProjectSnapshot projectSnapshot,
         CancellationToken cancellationToken)
-        => project.GetTagHelpersAsync(projectSnapshot.ProjectEngine, _telemetryReporter, cancellationToken);
+        => project.GetTagHelpersAsync(projectSnapshot.ProjectEngine, cancellationToken);
 }
