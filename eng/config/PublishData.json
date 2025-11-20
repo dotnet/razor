@@ -21,15 +21,13 @@
       "Microsoft.VisualStudioCode.RazorExtension": "vs-impl"
     }
   },
-  "branches": {
-    "main": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "main",
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[InsidersVNext]"
-    }
+  "branchInfo": {
+    "nugetKind": [
+      "Shipping",
+      "NonShipping"
+    ],
+    "vsBranch": "main",
+    "insertionCreateDraftPR": false,
+    "insertionTitlePrefix": "[InsidersVNext]"
   }
 }
