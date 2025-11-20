@@ -31,7 +31,7 @@ internal static class ProjectExtensions
     /// <remarks>
     ///  A telemetry event will be reported to <paramref name="telemetryReporter"/>.
     /// </remarks>
-    public static async ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(
+    public static async ValueTask<TagHelperCollection> GetTagHelpersAsync(
         this Project project,
         RazorProjectEngine projectEngine,
         ITelemetryReporter telemetryReporter,
@@ -50,11 +50,11 @@ internal static class ProjectExtensions
             return [];
         }
 
-        using var pooledHashSet = HashSetPool<TagHelperDescriptor>.GetPooledObject(out var results);
+        using var builder = new TagHelperCollection.Builder();
         using var pooledWatch = StopwatchPool.GetPooledObject(out var watch);
         using var pooledSpan = ArrayPool<Property>.Shared.GetPooledArraySpan(minimumLength: providers.Length, out var properties);
 
-        var context = new TagHelperDescriptorProviderContext(compilation, results)
+        var context = new TagHelperDescriptorProviderContext(compilation, builder)
         {
             ExcludeHidden = true,
             IncludeDocumentation = true
@@ -74,7 +74,7 @@ internal static class ProjectExtensions
 
         telemetryReporter.ReportEvent(GetTagHelpersEventName, Severity.Normal, properties);
 
-        return [.. results];
+        return builder.ToCollection();
     }
 
     private static ImmutableArray<ITagHelperDescriptorProvider> GetTagHelperDescriptorProviders(RazorProjectEngine projectEngine)
