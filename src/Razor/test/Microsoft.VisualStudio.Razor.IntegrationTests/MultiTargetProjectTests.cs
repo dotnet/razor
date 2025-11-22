@@ -14,7 +14,7 @@ public class MultiTargetProjectTests(ITestOutputHelper testOutputHelper) : Abstr
 
     protected override string TargetFrameworkElement => $"""<TargetFrameworks>{OtherTargetFramework};{TargetFramework}</TargetFrameworks>""";
 
-    [IdeFact]
+    [IdeFact(Skip = "Cohosting makes this test validation impossible")]
     public async Task ValidateMultipleProjects()
     {
         // This just verifies that there are actually two projects present with the same file path:
