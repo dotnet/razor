@@ -19,7 +19,7 @@ internal partial class FindReferencesWindowInProcess
 {
     // Guid of the FindRefs window.  Defined here:
     // https://devdiv.visualstudio.com/DevDiv/_git/VS?path=/src/env/ErrorList/Pkg/Guids.cs&version=GBmain&line=24
-    private static readonly Guid FindReferencesWindowGuid = new("{a80febb4-e7e0-4147-b476-21aaf2453969}");
+    internal static readonly Guid FindReferencesWindowGuid = new("{a80febb4-e7e0-4147-b476-21aaf2453969}");
 
     public async Task<ImmutableArray<ITableEntryHandle2>> WaitForContentsAsync(CancellationToken cancellationToken, int expected = 1)
     {

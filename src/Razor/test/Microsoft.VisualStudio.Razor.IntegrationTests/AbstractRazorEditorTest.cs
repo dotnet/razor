@@ -48,8 +48,7 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutput) : Ab
 
         VisualStudioLogging.AddCustomLoggers();
 
-        // Our expected test results have spaces not tabs
-        await TestServices.Shell.SetInsertSpacesAsync(ControlledHangMitigatingCancellationToken);
+        await TestServices.Shell.ResetEnvironmentAsync(ControlledHangMitigatingCancellationToken);
 
         _projectFilePath = await CreateAndOpenBlazorProjectAsync(ControlledHangMitigatingCancellationToken);
 
@@ -139,10 +138,12 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutput) : Ab
 
     public override async Task DisposeAsync()
     {
-        // TODO: Would be good to have this as a last ditch check, but need to improve the detection and reporting here to be more robust
-        //await TestServices.Editor.ValidateNoDiscoColorsAsync(HangMitigatingCancellationToken);
-
         _testLogger!.LogInformation($"#### Razor integration test dispose.");
+
+        using (var disposeSource = new CancellationTokenSource(TimeSpan.FromMinutes(5)))
+        {
+            await TestServices.Shell.CloseEverythingAsync(disposeSource.Token);
+        }
 
         TestServices.Output.ClearIntegrationTestLogger();
 
