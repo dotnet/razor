@@ -242,7 +242,7 @@ $$Path;
 
         var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents, new SourceSpan(8, 4));
 
-        var options = new ConfigurableLanguageServerFeatureOptions(new[] { $"--{nameof(ConfigurableLanguageServerFeatureOptions.ShowAllCSharpCodeActions)}" });
+        var options = new TestLanguageServerFeatureOptions(showAllCSharpCodeActions: true);
         var provider = new CSharpCodeActionProvider(options);
 
         ImmutableArray<RazorVSInternalCodeAction> codeActions =
