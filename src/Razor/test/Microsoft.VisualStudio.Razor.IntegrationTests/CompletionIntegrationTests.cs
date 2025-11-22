@@ -612,10 +612,17 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
 
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
+        var filePath = await TestServices.SolutionExplorer.GetAbsolutePathForProjectRelativeFilePathAsync(RazorProjectConstants.BlazorProjectName, CompletionTestFileName, ControlledHangMitigatingCancellationToken);
+
         await TestServices.Editor.PlaceCaretAsync(search, charsOffset: 1, ControlledHangMitigatingCancellationToken);
         foreach (var stringToType in stringsToType)
         {
-            TestServices.Input.Send(stringToType);
+            await TestServices.RazorProjectSystem.WaitForHtmlVirtualDocumentUpdateAsync(RazorProjectConstants.BlazorProjectName, filePath, () =>
+            {
+                TestServices.Input.Send(stringToType);
+
+                return Task.CompletedTask;
+            }, ControlledHangMitigatingCancellationToken);
         }
 
         if (expectedSelectedItemLabel is not null)

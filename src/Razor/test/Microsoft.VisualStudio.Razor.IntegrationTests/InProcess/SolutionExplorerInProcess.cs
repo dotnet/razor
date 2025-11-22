@@ -121,7 +121,7 @@ internal partial class SolutionExplorerInProcess
         var fileExtension = Path.GetExtension(filePath);
         if (fileExtension.Equals(".razor", StringComparison.OrdinalIgnoreCase) || fileExtension.Equals(".cshtml", StringComparison.OrdinalIgnoreCase))
         {
-            await TestServices.RazorProjectSystem.WaitForCSharpVirtualDocumentAsync(filePath, cancellationToken);
+            await TestServices.RazorProjectSystem.WaitForHtmlVirtualDocumentAsync(filePath, cancellationToken);
         }
     }
 
