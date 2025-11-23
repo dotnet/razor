@@ -1020,7 +1020,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                 TriggerCharacter = "@",
                 TriggerKind = CompletionTriggerKind.TriggerCharacter
             },
-            expectedItemLabels: ["if", "for"]);
+            expectedItemLabels: [.. CSharpRazorKeywordCompletionItemProvider.CSharpRazorKeywords]);
     }
 
     private async Task<RazorVSInternalCompletionList> VerifyCompletionListAsync(

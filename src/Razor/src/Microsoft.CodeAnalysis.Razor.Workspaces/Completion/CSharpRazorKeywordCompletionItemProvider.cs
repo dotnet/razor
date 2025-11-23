@@ -11,7 +11,6 @@ internal class CSharpRazorKeywordCompletionItemProvider : IRazorCompletionItemPr
     internal static readonly ImmutableArray<RazorCommitCharacter> KeywordCommitCharacters = RazorCommitCharacter.CreateArray([" "]);
 
     // internal for testing
-    // Do not forget to update both insert and display text !important
     internal static readonly ImmutableArray<string> CSharpRazorKeywords =
     [
         "do", "for", "foreach", "if", "lock", "switch", "try", "while"
