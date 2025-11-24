@@ -65,7 +65,7 @@ internal sealed class SourceGeneratorProjectEngine
         return new SourceGeneratorRazorCodeDocument(codeDocument);
     }
 
-    public SourceGeneratorRazorCodeDocument ProcessTagHelpers(SourceGeneratorRazorCodeDocument sgDocument, IReadOnlyList<TagHelperDescriptor> tagHelpers, bool checkForIdempotency, CancellationToken cancellationToken)
+    public SourceGeneratorRazorCodeDocument ProcessTagHelpers(SourceGeneratorRazorCodeDocument sgDocument, TagHelperCollection tagHelpers, bool checkForIdempotency, CancellationToken cancellationToken)
     {
         Debug.Assert(sgDocument.CodeDocument.GetPreTagHelperSyntaxTree() is not null);
 
@@ -75,34 +75,32 @@ internal sealed class SourceGeneratorProjectEngine
         if (checkForIdempotency && codeDocument.TryGetTagHelpers(out var previousTagHelpers))
         {
             // compare the tag helpers with the ones the document last used
-            if (Enumerable.SequenceEqual(tagHelpers, previousTagHelpers))
+            if (tagHelpers.Equals(previousTagHelpers))
             {
                 // tag helpers are the same, nothing to do!
                 return sgDocument;
             }
-            else
+
+            // tag helpers have changed, figure out if we need to re-write
+            var previousTagHelpersInScope = codeDocument.GetRequiredTagHelperContext().TagHelpers;
+            var previousUsedTagHelpers = codeDocument.GetRequiredReferencedTagHelpers();
+
+            // re-run discovery to figure out which tag helpers are now in scope for this document
+            codeDocument.SetTagHelpers(tagHelpers);
+            _discoveryPhase.Execute(codeDocument, cancellationToken);
+            var tagHelpersInScope = codeDocument.GetRequiredTagHelperContext().TagHelpers;
+
+            // Check if any new tag helpers were added or ones we previously used were removed
+            var newVisibleTagHelpers = tagHelpersInScope.Except(previousTagHelpersInScope);
+            var newUnusedTagHelpers = previousUsedTagHelpers.Except(tagHelpersInScope);
+            if (!newVisibleTagHelpers.Any() && !newUnusedTagHelpers.Any())
             {
-                // tag helpers have changed, figure out if we need to re-write
-                var previousTagHelpersInScope = codeDocument.GetRequiredTagHelperContext().TagHelpers;
-                var previousUsedTagHelpers = codeDocument.GetRequiredReferencedTagHelpers();
-
-                // re-run discovery to figure out which tag helpers are now in scope for this document
-                codeDocument.SetTagHelpers(tagHelpers);
-                _discoveryPhase.Execute(codeDocument, cancellationToken);
-                var tagHelpersInScope = codeDocument.GetRequiredTagHelperContext().TagHelpers;
-
-                // Check if any new tag helpers were added or ones we previously used were removed
-                var newVisibleTagHelpers = tagHelpersInScope.Except(previousTagHelpersInScope);
-                var newUnusedTagHelpers = previousUsedTagHelpers.Except(tagHelpersInScope);
-                if (!newVisibleTagHelpers.Any() && !newUnusedTagHelpers.Any())
-                {
-                    // No newly visible tag helpers, and any that got removed weren't used by this document anyway
-                    return sgDocument;
-                }
-
-                // We need to re-write the document, but can skip the scoping as we just performed it
-                startIndex = _rewritePhaseIndex;
+                // No newly visible tag helpers, and any that got removed weren't used by this document anyway
+                return sgDocument;
             }
+
+            // We need to re-write the document, but can skip the scoping as we just performed it
+            startIndex = _rewritePhaseIndex;
         }
         else
         {
