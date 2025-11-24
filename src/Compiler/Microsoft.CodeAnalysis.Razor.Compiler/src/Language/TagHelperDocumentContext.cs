@@ -1,6 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using Microsoft.AspNetCore.Razor.Utilities;
+
 namespace Microsoft.AspNetCore.Razor.Language;
 
 /// <summary>
@@ -8,7 +10,9 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// Tag Helper information after processing by directives.
 /// </summary>
 internal sealed class TagHelperDocumentContext
-{
+{  
+    private static readonly CleanableWeakCache<(string? Prefix, Checksum), TagHelperDocumentContext> s_cache = new(cleanUpThreshold: 20);
+
     public string? Prefix { get; }
     public TagHelperCollection TagHelpers { get; }
 
@@ -20,22 +24,19 @@ internal sealed class TagHelperDocumentContext
         TagHelpers = tagHelpers;
     }
 
-    public static TagHelperDocumentContext Create(TagHelperCollection tagHelpers)
+    public static TagHelperDocumentContext GetOrCreate(TagHelperCollection tagHelpers)
+        => GetOrCreate(prefix: null, tagHelpers);
+
+    public static TagHelperDocumentContext GetOrCreate(string? prefix, TagHelperCollection tagHelpers)
     {
         ArgHelper.ThrowIfNull(tagHelpers);
 
-        return new(prefix: null, tagHelpers);
-    }
-
-    public static TagHelperDocumentContext Create(string? prefix, TagHelperCollection tagHelpers)
-    {
-        ArgHelper.ThrowIfNull(tagHelpers);
-
-        return new(prefix, tagHelpers);
+        return s_cache.GetOrAdd(
+            key: (prefix, tagHelpers.Checksum),
+            arg: (prefix, tagHelpers),
+            arg => new(arg.prefix, arg.tagHelpers));
     }
 
     public TagHelperBinder GetBinder()
-    {
-        return _binder ?? InterlockedOperations.Initialize(ref _binder, new TagHelperBinder(Prefix, TagHelpers));
-    }
+        => _binder ?? InterlockedOperations.Initialize(ref _binder, new TagHelperBinder(Prefix, TagHelpers));
 }

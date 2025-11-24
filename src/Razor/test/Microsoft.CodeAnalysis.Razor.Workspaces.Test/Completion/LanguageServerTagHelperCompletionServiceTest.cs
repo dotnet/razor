@@ -1314,7 +1314,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
     {
         attributes = attributes.NullToEmpty();
 
-        var documentContext = TagHelperDocumentContext.Create(tagHelperPrefix, tagHelpers);
+        var documentContext = TagHelperDocumentContext.GetOrCreate(tagHelperPrefix, tagHelpers);
         var completionContext = new ElementCompletionContext(
             documentContext,
             existingCompletions,
@@ -1337,7 +1337,7 @@ public class LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper test
     {
         attributes = attributes.NullToEmpty();
 
-        var documentContext = TagHelperDocumentContext.Create(tagHelperPrefix, tagHelpers);
+        var documentContext = TagHelperDocumentContext.GetOrCreate(tagHelperPrefix, tagHelpers);
         var completionContext = new AttributeCompletionContext(
             documentContext,
             existingCompletions,
