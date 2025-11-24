@@ -17,10 +17,10 @@ public class CSharpRazorKeywordCompletionItemProviderTests(ITestOutputHelper tes
     private static readonly Action<RazorCompletionItem>[] s_csharpRazorpKeywordCollectionVerifiers = GetKeywordVerifies(CSharpRazorKeywordCompletionItemProvider.CSharpRazorKeywords);
 
     [Fact]
-    public void GetCSharpRazorKeywordCompletionItems_ReturnsAllCSharpRazorKeywords()
+    public void CSharpRazorKeywordCompletionItems_ReturnsAllCSharpRazorKeywords()
     {
         // Act
-        var completionItems = CSharpRazorKeywordCompletionItemProvider.GetCSharpRazorKeywordCompletionItems();
+        var completionItems = CSharpRazorKeywordCompletionItemProvider.CSharpRazorKeywordCompletionItems;
 
         // Assert
         Assert.Collection(

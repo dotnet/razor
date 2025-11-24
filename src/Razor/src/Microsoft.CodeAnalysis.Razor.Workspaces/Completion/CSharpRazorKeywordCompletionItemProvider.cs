@@ -19,10 +19,13 @@ internal class CSharpRazorKeywordCompletionItemProvider : IRazorCompletionItemPr
         "do", "for", "foreach", "if", "lock", "switch", "try", "while"
     ];
 
+    // Internal for testing
+    internal static readonly ImmutableArray<RazorCompletionItem> CSharpRazorKeywordCompletionItems = GetCSharpRazorKeywordCompletionItems();
+
     public ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
         return ShouldProvideCompletions(context)
-            ? GetCSharpRazorKeywordCompletionItems()
+            ? CSharpRazorKeywordCompletionItems
             : [];
     }
 
@@ -65,8 +68,7 @@ internal class CSharpRazorKeywordCompletionItemProvider : IRazorCompletionItemPr
                      or { Kind: SyntaxKind.Transition, Parent.Kind: SyntaxKind.CSharpTransition };
     }
 
-    // Internal for testing
-    internal static ImmutableArray<RazorCompletionItem> GetCSharpRazorKeywordCompletionItems()
+    private static ImmutableArray<RazorCompletionItem> GetCSharpRazorKeywordCompletionItems()
     {
         var completionItems = new RazorCompletionItem[CSharpRazorKeywords.Length];
 
@@ -74,12 +76,12 @@ internal class CSharpRazorKeywordCompletionItemProvider : IRazorCompletionItemPr
         {
             var keyword = CSharpRazorKeywords[i];
 
-            var snippetCompletionItem = RazorCompletionItem.CreateKeyword(
+            var keywordCompletionItem = RazorCompletionItem.CreateKeyword(
                 displayText: keyword,
                 insertText: keyword,
                 KeywordCommitCharacters);
 
-            completionItems[i] = snippetCompletionItem;
+            completionItems[i] = keywordCompletionItem;
         }
 
         return ImmutableCollectionsMarshal.AsImmutableArray(completionItems);
