@@ -47,20 +47,15 @@ internal class HtmlCodeActionProvider(IEditMappingService editMappingService) : 
 
         codeAction.Edit = await editMappingService.RemapWorkspaceEditAsync(documentSnapshot, codeAction.Edit, cancellationToken).ConfigureAwait(false);
 
-        if (codeAction.Edit.TryGetTextDocumentEdits(out var documentEdits))
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var htmlSourceText = codeDocument.GetHtmlSourceText();
+
+        // NOTE: We iterate over just the TextDocumentEdit objects and modify them in place.
+        // We intentionally do NOT create a new WorkspaceEdit here to avoid losing any
+        // CreateFile, RenameFile, or DeleteFile operations that may be in DocumentChanges.
+        foreach (var edit in codeAction.Edit.GetTextDocumentEdits())
         {
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-            var htmlSourceText = codeDocument.GetHtmlSourceText();
-
-            foreach (var edit in documentEdits)
-            {
-                edit.Edits = FormattingUtilities.FixHtmlTextEdits(htmlSourceText, edit.Edits);
-            }
-
-            codeAction.Edit = new WorkspaceEdit
-            {
-                DocumentChanges = documentEdits
-            };
+            edit.Edits = FormattingUtilities.FixHtmlTextEdits(htmlSourceText, edit.Edits);
         }
     }
 }

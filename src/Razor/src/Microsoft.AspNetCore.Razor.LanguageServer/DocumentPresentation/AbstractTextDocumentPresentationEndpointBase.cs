@@ -143,7 +143,49 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
         return remappedChanges;
     }
 
-    private TextDocumentEdit[] MapDocumentChanges(TextDocumentEdit[] documentEdits, bool mapRanges, RazorCodeDocument codeDocument)
+    private SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] MapDocumentChanges(
+        SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> documentChanges,
+        bool mapRanges,
+        RazorCodeDocument codeDocument)
+    {
+        // Handle the case where DocumentChanges is just an array of TextDocumentEdit
+        if (documentChanges.Value is TextDocumentEdit[] textDocumentEdits)
+        {
+            var mapped = MapTextDocumentEdits(textDocumentEdits, mapRanges, codeDocument);
+            return mapped.Select(e => new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>(e)).ToArray();
+        }
+
+        // Handle the case where DocumentChanges is an array of SumType (which may include CreateFile, RenameFile, DeleteFile)
+        if (documentChanges.Value is SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] sumTypeArray)
+        {
+            using var result = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
+
+            foreach (var sumType in sumTypeArray)
+            {
+                if (sumType.Value is TextDocumentEdit textDocumentEdit)
+                {
+                    // Map this single TextDocumentEdit
+                    var mapped = MapTextDocumentEdits([textDocumentEdit], mapRanges, codeDocument);
+                    // Add the mapped edit if it wasn't dropped during mapping
+                    foreach (var edit in mapped)
+                    {
+                        result.Add(new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>(edit));
+                    }
+                }
+                else
+                {
+                    // Preserve CreateFile, RenameFile, DeleteFile operations as-is
+                    result.Add(sumType);
+                }
+            }
+
+            return result.ToArray();
+        }
+
+        return [];
+    }
+
+    private TextDocumentEdit[] MapTextDocumentEdits(TextDocumentEdit[] documentEdits, bool mapRanges, RazorCodeDocument codeDocument)
     {
         using var remappedDocumentEdits = new PooledArrayBuilder<TextDocumentEdit>(documentEdits.Length);
         foreach (var entry in documentEdits)
@@ -204,13 +246,13 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
 
     private WorkspaceEdit? MapWorkspaceEdit(WorkspaceEdit workspaceEdit, bool mapRanges, RazorCodeDocument codeDocument)
     {
-        if (workspaceEdit.TryGetTextDocumentEdits(out var documentEdits))
+        if (workspaceEdit.DocumentChanges is { } documentChanges)
         {
             // The LSP spec says, we should prefer `DocumentChanges` property over `Changes` if available.
-            var remappedEdits = MapDocumentChanges(documentEdits, mapRanges, codeDocument);
+            var remappedDocumentChanges = MapDocumentChanges(documentChanges, mapRanges, codeDocument);
             return new WorkspaceEdit()
             {
-                DocumentChanges = remappedEdits
+                DocumentChanges = remappedDocumentChanges
             };
         }
         else if (workspaceEdit.Changes != null)
