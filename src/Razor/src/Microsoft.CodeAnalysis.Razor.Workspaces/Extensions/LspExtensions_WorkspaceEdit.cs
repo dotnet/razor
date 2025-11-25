@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Roslyn.LanguageServer.Protocol;
 
@@ -57,23 +58,18 @@ internal static partial class LspExtensions
 
         if (workspaceEdit.DocumentChanges?.Value is SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] sumTypeArray)
         {
-            // Note: We need to enumerate the array to extract only TextDocumentEdit objects.
-            // WARNING: This loses any CreateFile, RenameFile, or DeleteFile operations.
-            // Callers should be careful not to create a new WorkspaceEdit with just these results.
-            var hasAny = false;
-            var list = new List<TextDocumentEdit>();
+            using var builder = new PooledArrayBuilder<TextDocumentEdit>();
             foreach (var sumType in sumTypeArray)
             {
                 if (sumType.Value is TextDocumentEdit textDocumentEdit)
                 {
-                    list.Add(textDocumentEdit);
-                    hasAny = true;
+                    builder.Add(textDocumentEdit);
                 }
             }
 
-            if (hasAny)
+            if (builder.Count > 0)
             {
-                textDocumentEdits = [.. list];
+                textDocumentEdits = builder.ToArray();
                 return true;
             }
         }

@@ -23,14 +23,14 @@ internal abstract class AbstractEditMappingService(
 
     public async Task<WorkspaceEdit> RemapWorkspaceEditAsync(IDocumentSnapshot contextDocumentSnapshot, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
     {
-        if (workspaceEdit.DocumentChanges is { } documentChanges)
+        if (workspaceEdit.TryGetTextDocumentEdits(out var documentEdits))
         {
             // The LSP spec says, we should prefer `DocumentChanges` property over `Changes` if available.
-            var remappedDocumentChanges = await RemapDocumentChangesAsync(contextDocumentSnapshot, documentChanges, cancellationToken).ConfigureAwait(false);
+            var remappedEdits = await RemapTextDocumentEditsAsync(contextDocumentSnapshot, documentEdits, cancellationToken).ConfigureAwait(false);
 
             return new WorkspaceEdit()
             {
-                DocumentChanges = remappedDocumentChanges
+                DocumentChanges = remappedEdits
             };
         }
 
@@ -112,49 +112,6 @@ internal abstract class AbstractEditMappingService(
         }
 
         return remappedEdits.ToArray();
-    }
-
-    private async Task<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> RemapDocumentChangesAsync(
-        IDocumentSnapshot contextDocumentSnapshot,
-        SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> documentChanges,
-        CancellationToken cancellationToken)
-    {
-        // Handle the case where DocumentChanges is just an array of TextDocumentEdit
-        if (documentChanges.Value is TextDocumentEdit[] textDocumentEdits)
-        {
-            var remappedEdits = await RemapTextDocumentEditsAsync(contextDocumentSnapshot, textDocumentEdits, cancellationToken).ConfigureAwait(false);
-            // Convert to SumType array
-            return remappedEdits.Select(e => new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>(e)).ToArray();
-        }
-
-        // Handle the case where DocumentChanges is an array of SumType (which may include CreateFile, RenameFile, DeleteFile)
-        if (documentChanges.Value is SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] sumTypeArray)
-        {
-            using var result = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
-
-            foreach (var sumType in sumTypeArray)
-            {
-                if (sumType.Value is TextDocumentEdit textDocumentEdit)
-                {
-                    // Remap this single TextDocumentEdit
-                    var remapped = await RemapTextDocumentEditsAsync(contextDocumentSnapshot, [textDocumentEdit], cancellationToken).ConfigureAwait(false);
-                    // Add the remapped edit if it wasn't dropped during remapping
-                    foreach (var edit in remapped)
-                    {
-                        result.Add(new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>(edit));
-                    }
-                }
-                else
-                {
-                    // Preserve CreateFile, RenameFile, DeleteFile operations as-is
-                    result.Add(sumType);
-                }
-            }
-
-            return result.ToArray();
-        }
-
-        return [];
     }
 
     private async Task<TextDocumentEdit[]> RemapTextDocumentEditsAsync(IDocumentSnapshot contextDocumentSnapshot, TextDocumentEdit[] documentEdits, CancellationToken cancellationToken)
