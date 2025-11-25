@@ -123,7 +123,8 @@ public class HtmlCodeActionProviderTest(ITestOutputHelper testOutput) : Language
         // Assert
         var action = Assert.Single(providedCodeActions);
         Assert.NotNull(action.Edit);
-        Assert.True(action.Edit.TryGetTextDocumentEdits(out var documentEdits));
+        var documentEdits = action.Edit.GetTextDocumentEdits().ToArray();
+        Assert.NotEmpty(documentEdits);
         Assert.Equal(documentPath, documentEdits[0].TextDocument.DocumentUri.GetRequiredParsedUri().AbsolutePath);
 
         var text = SourceText.From(contents);

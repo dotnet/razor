@@ -204,7 +204,8 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
 
     private WorkspaceEdit? MapWorkspaceEdit(WorkspaceEdit workspaceEdit, bool mapRanges, RazorCodeDocument codeDocument)
     {
-        if (workspaceEdit.TryGetTextDocumentEdits(out var documentEdits))
+        var documentEdits = workspaceEdit.GetTextDocumentEdits().ToArray();
+        if (documentEdits.Length > 0)
         {
             // The LSP spec says, we should prefer `DocumentChanges` property over `Changes` if available.
             var remappedEdits = MapDocumentChanges(documentEdits, mapRanges, codeDocument);

@@ -23,7 +23,8 @@ internal abstract class AbstractEditMappingService(
 
     public async Task<WorkspaceEdit> RemapWorkspaceEditAsync(IDocumentSnapshot contextDocumentSnapshot, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
     {
-        if (workspaceEdit.TryGetTextDocumentEdits(out var documentEdits))
+        var documentEdits = workspaceEdit.GetTextDocumentEdits().ToArray();
+        if (documentEdits.Length > 0)
         {
             // The LSP spec says, we should prefer `DocumentChanges` property over `Changes` if available.
             var remappedEdits = await RemapTextDocumentEditsAsync(contextDocumentSnapshot, documentEdits, cancellationToken).ConfigureAwait(false);
