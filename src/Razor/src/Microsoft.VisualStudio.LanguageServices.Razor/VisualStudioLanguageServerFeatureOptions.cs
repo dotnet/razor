@@ -58,8 +58,6 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
 
     public override bool SingleServerSupport => true;
 
-    public override bool DelegateToCSharpOnDiagnosticPublish => false;
-
     public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => false;
 
     private bool IsCodespacesOrLiveshare => _lspEditorFeatureDetector.IsRemoteClient() || _lspEditorFeatureDetector.IsLiveShareHost();

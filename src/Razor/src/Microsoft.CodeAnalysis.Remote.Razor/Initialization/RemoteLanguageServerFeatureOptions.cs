@@ -32,8 +32,6 @@ internal class RemoteLanguageServerFeatureOptions : LanguageServerFeatureOptions
 
     public override bool SingleServerSupport => throw new InvalidOperationException("This option has not been synced to OOP.");
 
-    public override bool DelegateToCSharpOnDiagnosticPublish => throw new InvalidOperationException("This option has not been synced to OOP.");
-
     public override bool ShowAllCSharpCodeActions => _options.ShowAllCSharpCodeActions;
 
     public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => _options.ReturnCodeActionAndRenamePathsWithPrefixedSlash;

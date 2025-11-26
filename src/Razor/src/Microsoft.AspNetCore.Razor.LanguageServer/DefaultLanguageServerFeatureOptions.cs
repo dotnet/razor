@@ -19,8 +19,6 @@ internal class DefaultLanguageServerFeatureOptions : LanguageServerFeatureOption
 
     public override bool SingleServerSupport => false;
 
-    public override bool DelegateToCSharpOnDiagnosticPublish => false;
-
     // Code action and rename paths in Windows VS Code need to be prefixed with '/':
     // https://github.com/dotnet/razor/issues/8131
     public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => PlatformInformation.IsWindows;

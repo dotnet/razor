@@ -24,7 +24,6 @@ internal class VSCodeLanguageServerFeatureOptions() : LanguageServerFeatureOptio
     // Options that differ from the default
     public override string CSharpVirtualDocumentSuffix => "__virtual.cs";
     public override string HtmlVirtualDocumentSuffix => "__virtual.html";
-    public override bool DelegateToCSharpOnDiagnosticPublish => true;
     public override bool SupportsSoftSelectionInCompletion => false;
     public override bool UseVsCodeCompletionCommitCharacters => true;
 }

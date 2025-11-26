@@ -13,8 +13,6 @@ internal abstract class LanguageServerFeatureOptions
 
     public abstract bool SingleServerSupport { get; }
 
-    public abstract bool DelegateToCSharpOnDiagnosticPublish { get; }
-
     public abstract bool ShowAllCSharpCodeActions { get; }
 
     // Code action and rename paths in Windows VS Code need to be prefixed with '/':
