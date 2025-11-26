@@ -387,12 +387,133 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 [(FileUri("DifferentName.razor"), "")]);
 
     [Theory]
-    [InlineData("$$My.Foo.Component")]
-    [InlineData("M$$y.Foo.Component")]
-    [InlineData("My$$.Foo.Component")]
     [InlineData("My.$$Foo.Component")]
     [InlineData("My.F$$oo.Component")]
     [InlineData("My.Foo$$.Component")]
+    public Task Component_StartTag_FullyQualified_Namespace(string startTag)
+        => VerifyRenamesAsync(
+            input: $"""
+                This is a Razor document.
+
+                <My.Foo.Component />
+                <My.Foo.Component></My.Foo.Component>
+                <My.Foo.Component>
+                </My.Foo.Component>
+
+                <div>
+                    <{startTag} />
+                    <My.Foo.Component></My.Foo.Component>
+                    <My.Foo.Component>
+                    </My.Foo.Component>
+                    <div>
+                        <My.Foo.Component />
+                        <My.Foo.Component></My.Foo.Component>
+                        <My.Foo.Component>
+                        </My.Foo.Component>
+                    </div>
+                </div>
+
+                The end.
+                """,
+            additionalFiles: [
+                (FilePath("Component.razor"), """
+                    @namespace My.Foo
+                    """)
+            ],
+            newName: "DifferentName",
+            expected: """
+                This is a Razor document.
+
+                <My.DifferentName.Component />
+                <My.DifferentName.Component></My.DifferentName.Component>
+                <My.DifferentName.Component>
+                </My.DifferentName.Component>
+                
+                <div>
+                    <My.DifferentName.Component />
+                    <My.DifferentName.Component></My.DifferentName.Component>
+                    <My.DifferentName.Component>
+                    </My.DifferentName.Component>
+                    <div>
+                        <My.DifferentName.Component />
+                        <My.DifferentName.Component></My.DifferentName.Component>
+                        <My.DifferentName.Component>
+                        </My.DifferentName.Component>
+                    </div>
+                </div>
+
+                The end.
+                """,
+            additionalExpectedFiles:
+                [(FileUri("Component.razor"), """
+                    @namespace My.DifferentName
+                    """)]);
+
+    [Fact]
+    public Task Component_CSharp_FullyQualified_Namespace()
+        => VerifyRenamesAsync(
+            input: $"""
+                This is a Razor document.
+
+                <My.Foo.Component />
+                <My.Foo.Component></My.Foo.Component>
+                <My.Foo.Component>
+                </My.Foo.Component>
+
+                <div>
+                    <My.Foo.Component />
+                    <My.Foo.Component></My.Foo.Component>
+                    <My.Foo.Component>
+                    </My.Foo.Component>
+                    <div>
+                        <My.Foo.Component />
+                        <My.Foo.Component></My.Foo.Component>
+                        <My.Foo.Component>
+                        </My.Foo.Component>
+                    </div>
+                </div>
+
+                The end.
+
+                @typeof(My.Fo$$o.Component).Name
+                """,
+            additionalFiles: [
+                (FilePath("Component.razor"), """
+                    @namespace My.Foo
+                    """)
+            ],
+            newName: "DifferentName",
+            expected: """
+                This is a Razor document.
+
+                <My.DifferentName.Component />
+                <My.DifferentName.Component></My.DifferentName.Component>
+                <My.DifferentName.Component>
+                </My.DifferentName.Component>
+                
+                <div>
+                    <My.DifferentName.Component />
+                    <My.DifferentName.Component></My.DifferentName.Component>
+                    <My.DifferentName.Component>
+                    </My.DifferentName.Component>
+                    <div>
+                        <My.DifferentName.Component />
+                        <My.DifferentName.Component></My.DifferentName.Component>
+                        <My.DifferentName.Component>
+                        </My.DifferentName.Component>
+                    </div>
+                </div>
+
+                The end.
+
+                @typeof(My.DifferentName.Component).Name
+                """,
+            additionalExpectedFiles:
+                [(FileUri("Component.razor"), """
+                    @namespace My.DifferentName
+                    """)]);
+
+    [Theory]
     [InlineData("My.Foo.$$Component")]
     [InlineData("My.Foo.Com$$ponent")]
     [InlineData("My.Foo.Component$$")]
@@ -852,6 +973,140 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
         ]);
 
     [Fact]
+    public Task Component_WithNonRazorCSharpFile()
+        => VerifyRenamesAsync(
+            input: $"""
+                @using My.Fancy.Namespace
+
+                This is a Razor document.
+
+                <Comp$$onent />
+                <Component></Component>
+                <Component>
+                </Component>
+
+                The end.
+                """,
+            additionalFiles: [
+                (FilePath("Component.cs"), """
+                    using Microsoft.AspNetCore.Components;
+
+                    namespace My.Fancy.Namespace;
+
+                    public class Component : ComponentBase
+                    {
+                    }
+                    """),
+                (FilePath("OtherComponent.razor"), """
+                    @using My.Fancy.Namespace
+
+                    <Component />
+                    <Component></Component>
+                    <Component>
+                    </Component>
+                    """)
+            ],
+            newName: "DifferentName",
+            expected: """
+                @using My.Fancy.Namespace
+
+                This is a Razor document.
+
+                <DifferentName />
+                <DifferentName></DifferentName>
+                <DifferentName>
+                </DifferentName>
+
+                The end.
+                """,
+            additionalExpectedFiles: [
+                (FileUri("Component.cs"), """
+                    using Microsoft.AspNetCore.Components;
+
+                    namespace My.Fancy.Namespace;
+
+                    public class DifferentName : ComponentBase
+                    {
+                    }
+                    """),
+                (FileUri("OtherComponent.razor"), """
+                    @using My.Fancy.Namespace
+
+                    <DifferentName />
+                    <DifferentName></DifferentName>
+                    <DifferentName>
+                    </DifferentName>
+                    """)
+            ]);
+
+    [Fact]
+    public Task Component_Namespace_WithNonRazorCSharpFile()
+        => VerifyRenamesAsync(
+            input: $"""
+                    @using My.Fancy.Namespace
+
+                    This is a Razor document.
+
+                    <My.Fa$$ncy.Namespace.Component />
+                    <My.Fancy.Namespace.Component></My.Fancy.Namespace.Component>
+                    <My.Fancy.Namespace.Component>
+                    </My.Fancy.Namespace.Component>
+
+                    The end.
+                    """,
+            additionalFiles: [
+                (FilePath("Component.cs"), """
+                        using Microsoft.AspNetCore.Components;
+
+                        namespace My.Fancy.Namespace;
+
+                        public class Component : ComponentBase
+                        {
+                        }
+                        """),
+                    (FilePath("OtherComponent.razor"), """
+                        @using My.Fancy.Namespace
+
+                        <My.Fancy.Namespace.Component />
+                        <My.Fancy.Namespace.Component></My.Fancy.Namespace.Component>
+                        <My.Fancy.Namespace.Component>
+                        </My.Fancy.Namespace.Component>
+                        """)
+            ],
+            newName: "DifferentName",
+            expected: """
+                    @using My.DifferentName.Namespace
+
+                    This is a Razor document.
+
+                    <My.DifferentName.Namespace.Component />
+                    <My.DifferentName.Namespace.Component></My.DifferentName.Namespace.Component>
+                    <My.DifferentName.Namespace.Component>
+                    </My.DifferentName.Namespace.Component>
+
+                    The end.
+                    """,
+            additionalExpectedFiles: [
+                (FileUri("Component.cs"), """
+                        using Microsoft.AspNetCore.Components;
+
+                        namespace My.DifferentName.Namespace;
+
+                        public class Component : ComponentBase
+                        {
+                        }
+                        """),
+                    (FileUri("OtherComponent.razor"), """
+                        @using My.DifferentName.Namespace
+
+                        <My.DifferentName.Namespace.Component />
+                        <My.DifferentName.Namespace.Component></My.DifferentName.Namespace.Component>
+                        <My.DifferentName.Namespace.Component>
+                        </My.DifferentName.Namespace.Component>
+                        """)
+            ]);
+
+    [Fact]
     public Task Component_OwnFile_WithCss()
         => VerifyRenamesAsync(
             input: $"""
@@ -899,7 +1154,6 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 (FilePath("File1.razor.cs"), """
                     namespace SomeProject;
 
-                    // This class name should change, but we don't support that yet
                     public partial class File1
                     {
                     }
@@ -921,8 +1175,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 (FileUri("ABetterName.razor.cs"), """
                 namespace SomeProject;
 
-                // This class name should change, but we don't support that yet
-                public partial class File1
+                public partial class ABetterName
                 {
                 }
                 """)]);
@@ -988,7 +1241,6 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 (FilePath("Component.razor.cs"), """
                     namespace SomeProject;
 
-                    // This class name should change, but we don't support that yet
                     public partial class Component
                     {
                     }
@@ -1016,8 +1268,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 (FileUri("DifferentName.razor.cs"), """
                     namespace SomeProject;
 
-                    // This class name should change, but we don't support that yet
-                    public partial class Component
+                    public partial class DifferentName
                     {
                     }
                     """),
