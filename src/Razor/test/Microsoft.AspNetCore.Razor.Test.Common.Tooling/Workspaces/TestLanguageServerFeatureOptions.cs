@@ -7,7 +7,6 @@ namespace Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 
 internal class TestLanguageServerFeatureOptions(
     bool includeProjectKeyInGeneratedFilePath = false,
-    bool updateBuffersForClosedDocuments = false,
     bool supportsSoftSelectionInCompletion = true,
     bool useVsCodeCompletionCommitCharacters = false,
     bool doNotInitializeMiscFilesProjectWithWorkspaceFiles = false,
@@ -28,8 +27,6 @@ internal class TestLanguageServerFeatureOptions(
     public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => false;
 
     public override bool ShowAllCSharpCodeActions => showAllCSharpCodeActions;
-
-    public override bool UpdateBuffersForClosedDocuments => updateBuffersForClosedDocuments;
 
     public override bool IncludeProjectKeyInGeneratedFilePath => includeProjectKeyInGeneratedFilePath;
 

@@ -190,14 +190,6 @@ internal sealed class GeneratedDocumentPublisher : IGeneratedDocumentPublisher, 
 
                 if (!_projectManager.IsDocumentOpen(documentFilePath))
                 {
-                    // Document closed, evict published source text, unless the server doesn't want us to.
-                    if (_options.UpdateBuffersForClosedDocuments)
-                    {
-                        // Some clients want us to keep generating code even if the document is closed, so if we evict our data,
-                        // even though we don't send a didChange for it, the next didChange will be wrong.
-                        return;
-                    }
-
                     var documentKey = _options.IncludeProjectKeyInGeneratedFilePath
                         ? new DocumentKey(args.ProjectKey, documentFilePath)
                         : new DocumentKey(ProjectKey.Unknown, documentFilePath);

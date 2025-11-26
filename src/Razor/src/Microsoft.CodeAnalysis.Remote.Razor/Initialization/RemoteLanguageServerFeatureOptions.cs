@@ -36,8 +36,6 @@ internal class RemoteLanguageServerFeatureOptions : LanguageServerFeatureOptions
 
     public override bool ShowAllCSharpCodeActions => _options.ShowAllCSharpCodeActions;
 
-    public override bool UpdateBuffersForClosedDocuments => throw new InvalidOperationException("This option has not been synced to OOP.");
-
     public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => _options.ReturnCodeActionAndRenamePathsWithPrefixedSlash;
 
     public override bool IncludeProjectKeyInGeneratedFilePath => throw new InvalidOperationException("This option does not apply in cohosting.");
