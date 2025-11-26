@@ -19,6 +19,7 @@ internal class VSCodeLanguageServerFeatureOptions() : LanguageServerFeatureOptio
     public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => PlatformInformation.IsWindows;
     public override bool IncludeProjectKeyInGeneratedFilePath => false;
     public override bool DoNotInitializeMiscFilesProjectFromWorkspace => false;
+    public override bool UseRazorCohostServer => true;
 
     // Options that differ from the default
     public override string CSharpVirtualDocumentSuffix => "__virtual.cs";
@@ -26,7 +27,4 @@ internal class VSCodeLanguageServerFeatureOptions() : LanguageServerFeatureOptio
     public override bool DelegateToCSharpOnDiagnosticPublish => true;
     public override bool SupportsSoftSelectionInCompletion => false;
     public override bool UseVsCodeCompletionCommitCharacters => true;
-
-    // User configurable options
-    public override bool UseRazorCohostServer => true;
 }
