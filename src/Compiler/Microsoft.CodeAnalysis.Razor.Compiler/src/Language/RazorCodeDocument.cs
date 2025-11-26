@@ -62,31 +62,31 @@ public sealed partial class RazorCodeDocument
         return new RazorCodeDocument(source, imports, parserOptions, codeGenerationOptions);
     }
 
-    internal bool TryGetTagHelpers([NotNullWhen(true)] out IReadOnlyList<TagHelperDescriptor>? result)
+    internal bool TryGetTagHelpers([NotNullWhen(true)] out TagHelperCollection? result)
         => _properties.TagHelpers.TryGetValue(out result);
 
-    internal IReadOnlyList<TagHelperDescriptor>? GetTagHelpers()
+    internal TagHelperCollection? GetTagHelpers()
         => _properties.TagHelpers.Value;
 
-    internal IReadOnlyList<TagHelperDescriptor> GetRequiredTagHelpers()
+    internal TagHelperCollection GetRequiredTagHelpers()
         => _properties.TagHelpers.RequiredValue;
 
-    internal RazorCodeDocument WithTagHelpers(IReadOnlyList<TagHelperDescriptor>? value)
+    internal RazorCodeDocument WithTagHelpers(TagHelperCollection? value)
     {
         var newProperties = _properties.With(_properties.TagHelpers, value);
         return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, newProperties);
     }
 
-    internal bool TryGetReferencedTagHelpers([NotNullWhen(true)] out ISet<TagHelperDescriptor>? result)
+    internal bool TryGetReferencedTagHelpers([NotNullWhen(true)] out TagHelperCollection? result)
         => _properties.ReferencedTagHelpers.TryGetValue(out result);
 
-    internal ISet<TagHelperDescriptor>? GetReferencedTagHelpers()
+    internal TagHelperCollection? GetReferencedTagHelpers()
         => _properties.ReferencedTagHelpers.Value;
 
-    internal ISet<TagHelperDescriptor> GetRequiredReferencedTagHelpers()
+    internal TagHelperCollection GetRequiredReferencedTagHelpers()
         => _properties.ReferencedTagHelpers.RequiredValue;
 
-    internal RazorCodeDocument WithReferencedTagHelpers(ISet<TagHelperDescriptor> value)
+    internal RazorCodeDocument WithReferencedTagHelpers(TagHelperCollection value)
     {
         ArgHelper.ThrowIfNull(value);
         var newProperties = _properties.With(_properties.ReferencedTagHelpers, value);

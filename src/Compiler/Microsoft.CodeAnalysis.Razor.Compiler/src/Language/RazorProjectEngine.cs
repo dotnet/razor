@@ -70,7 +70,7 @@ public sealed class RazorProjectEngine
         RazorSourceDocument source,
         RazorFileKind fileKind,
         ImmutableArray<RazorSourceDocument> importSources,
-        IReadOnlyList<TagHelperDescriptor>? tagHelpers,
+        TagHelperCollection? tagHelpers,
         CancellationToken cancellationToken = default)
     {
         ArgHelper.ThrowIfNull(source);
@@ -96,7 +96,7 @@ public sealed class RazorProjectEngine
         RazorSourceDocument source,
         RazorFileKind fileKind,
         ImmutableArray<RazorSourceDocument> importSources,
-        IReadOnlyList<TagHelperDescriptor>? tagHelpers,
+        TagHelperCollection? tagHelpers,
         CancellationToken cancellationToken = default)
     {
         ArgHelper.ThrowIfNull(source);
@@ -122,7 +122,7 @@ public sealed class RazorProjectEngine
         RazorSourceDocument source,
         RazorFileKind fileKind,
         ImmutableArray<RazorSourceDocument> importSources,
-        IReadOnlyList<TagHelperDescriptor>? tagHelpers,
+        TagHelperCollection? tagHelpers,
         CancellationToken cancellationToken = default)
     {
         ArgHelper.ThrowIfNull(source);
@@ -145,7 +145,7 @@ public sealed class RazorProjectEngine
         RazorSourceDocument source,
         RazorFileKind fileKind,
         ImmutableArray<RazorSourceDocument> importSources,
-        IReadOnlyList<TagHelperDescriptor>? tagHelpers,
+        TagHelperCollection? tagHelpers,
         string? cssScope)
     {
         ArgHelper.ThrowIfNull(source);
@@ -157,7 +157,7 @@ public sealed class RazorProjectEngine
         RazorSourceDocument source,
         RazorFileKind fileKind,
         ImmutableArray<RazorSourceDocument> importSources,
-        IReadOnlyList<TagHelperDescriptor>? tagHelpers)
+        TagHelperCollection? tagHelpers)
     {
         ArgHelper.ThrowIfNull(source);
 
@@ -180,7 +180,7 @@ public sealed class RazorProjectEngine
         RazorSourceDocument source,
         RazorFileKind fileKind,
         ImmutableArray<RazorSourceDocument> importSources,
-        IReadOnlyList<TagHelperDescriptor>? tagHelpers,
+        TagHelperCollection? tagHelpers,
         string? cssScope,
         Action<RazorParserOptions.Builder>? configureParser,
         Action<RazorCodeGenerationOptions.Builder>? configureCodeGeneration)
@@ -208,7 +208,7 @@ public sealed class RazorProjectEngine
         RazorSourceDocument sourceDocument,
         RazorFileKind fileKind,
         ImmutableArray<RazorSourceDocument> importSources,
-        IReadOnlyList<TagHelperDescriptor>? tagHelpers,
+        TagHelperCollection? tagHelpers,
         Action<RazorParserOptions.Builder>? configureParser,
         Action<RazorCodeGenerationOptions.Builder>? configureCodeGeneration)
     {
@@ -346,6 +346,7 @@ public sealed class RazorProjectEngine
     private static void AddDefaultFeatures(ImmutableArray<IRazorFeature>.Builder features)
     {
         features.Add(new DefaultImportProjectFeature());
+        features.Add(new TagHelperDiscoveryService());
 
         // General extensibility
         features.Add(new ConfigureDirectivesFeature());
