@@ -5,6 +5,8 @@ namespace Microsoft.CodeAnalysis.Razor.Protocol;
 
 internal static class LanguageServerConstants
 {
+    public const string HtmlVirtualDocumentSuffix = "__virtual.html";
+
     public const string RazorLanguageQueryEndpoint = "razor/languageQuery";
 
     public const string RazorBreakpointSpanEndpoint = "razor/breakpointSpan";

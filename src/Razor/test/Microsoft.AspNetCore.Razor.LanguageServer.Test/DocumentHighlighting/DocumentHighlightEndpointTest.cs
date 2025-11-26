@@ -114,8 +114,7 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
         var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options =>
             options.SupportsFileManipulation == true &&
             options.SingleServerSupport == true &&
-            options.CSharpVirtualDocumentSuffix == ".g.cs" &&
-            options.HtmlVirtualDocumentSuffix == ".g.html",
+            options.CSharpVirtualDocumentSuffix == ".g.cs",
             MockBehavior.Strict);
 
         var languageServer = new DocumentHighlightServer(csharpServer, csharpDocumentUri);

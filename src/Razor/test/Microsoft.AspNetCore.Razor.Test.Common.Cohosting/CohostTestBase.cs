@@ -85,7 +85,6 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
 
         _clientInitializationOptions = new()
         {
-            HtmlVirtualDocumentSuffix = ".g.html",
             UseRazorCohostServer = true,
             ReturnCodeActionAndRenamePathsWithPrefixedSlash = false,
             SupportsFileManipulation = true,

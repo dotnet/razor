@@ -9,8 +9,6 @@ internal abstract class LanguageServerFeatureOptions
 
     public abstract string CSharpVirtualDocumentSuffix { get; }
 
-    public abstract string HtmlVirtualDocumentSuffix { get; }
-
     public abstract bool SingleServerSupport { get; }
 
     public abstract bool ShowAllCSharpCodeActions { get; }

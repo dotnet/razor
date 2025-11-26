@@ -10,9 +10,6 @@ internal struct RemoteClientInitializationOptions
     [JsonPropertyName("useRazorCohostServer")]
     public required bool UseRazorCohostServer { get; set; }
 
-    [JsonPropertyName("htmlVirtualDocumentSuffix")]
-    public required string HtmlVirtualDocumentSuffix { get; set; }
-
     [JsonPropertyName("returnCodeActionAndRenamePathsWithPrefixedSlash")]
     public required bool ReturnCodeActionAndRenamePathsWithPrefixedSlash { get; set; }
 

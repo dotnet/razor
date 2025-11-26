@@ -17,7 +17,6 @@ internal class VSCodeLanguageServerFeatureOptions() : LanguageServerFeatureOptio
     public override bool ShowAllCSharpCodeActions => false;
     public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => PlatformInformation.IsWindows;
     public override bool UseRazorCohostServer => true;
-    public override string HtmlVirtualDocumentSuffix => "__virtual.html";
 
     // Options that don't apply to VS Code/Cohosting at all
     public override bool IncludeProjectKeyInGeneratedFilePath => throw new InvalidOperationException();

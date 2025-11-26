@@ -17,8 +17,6 @@ internal class TestLanguageServerFeatureOptions(
 
     public override string CSharpVirtualDocumentSuffix => ".ide.g.cs";
 
-    public override string HtmlVirtualDocumentSuffix => "__virtual.html";
-
     public override bool SingleServerSupport => false;
 
     public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => false;

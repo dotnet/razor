@@ -155,8 +155,7 @@ public class HoverEndpointTest(ITestOutputHelper testOutput) : TagHelperServiceT
         var languageServerFeatureOptions = StrictMock.Of<LanguageServerFeatureOptions>(options =>
             options.SupportsFileManipulation == true &&
             options.SingleServerSupport == true &&
-            options.CSharpVirtualDocumentSuffix == ".g.cs" &&
-            options.HtmlVirtualDocumentSuffix == ".g.html");
+            options.CSharpVirtualDocumentSuffix == ".g.cs");
         var languageServer = new HoverLanguageServer(csharpServer, csharpDocumentUri);
         var documentMappingService = new LspDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
 

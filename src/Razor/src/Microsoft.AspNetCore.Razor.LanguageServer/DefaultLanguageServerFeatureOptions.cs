@@ -9,13 +9,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 internal class DefaultLanguageServerFeatureOptions : LanguageServerFeatureOptions
 {
     public const string DefaultCSharpVirtualDocumentSuffix = ".ide.g.cs";
-    public const string DefaultHtmlVirtualDocumentSuffix = "__virtual.html";
 
     public override bool SupportsFileManipulation => true;
 
     public override string CSharpVirtualDocumentSuffix => DefaultCSharpVirtualDocumentSuffix;
-
-    public override string HtmlVirtualDocumentSuffix => DefaultHtmlVirtualDocumentSuffix;
 
     public override bool SingleServerSupport => false;
 

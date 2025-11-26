@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
@@ -27,7 +28,7 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
         => CheckIfFileUriAndExtensionMatch(uri, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
 
     public bool IsVirtualHtmlFile(Uri uri)
-        => CheckIfFileUriAndExtensionMatch(uri, _languageServerFeatureOptions.HtmlVirtualDocumentSuffix);
+        => CheckIfFileUriAndExtensionMatch(uri, LanguageServerConstants.HtmlVirtualDocumentSuffix);
 
     public bool IsVirtualDocumentUri(Uri uri)
         => IsVirtualCSharpFile(uri) || IsVirtualHtmlFile(uri);
@@ -37,7 +38,7 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
 
     private string GetRazorFilePath(string filePath)
     {
-        var trimIndex = filePath.LastIndexOf(_languageServerFeatureOptions.HtmlVirtualDocumentSuffix);
+        var trimIndex = filePath.LastIndexOf(LanguageServerConstants.HtmlVirtualDocumentSuffix);
 
         // We don't check for C# in cohosting, as it will throw, and people might call this method on any
         // random path.
