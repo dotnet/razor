@@ -9,7 +9,6 @@ internal class TestLanguageServerFeatureOptions(
     bool includeProjectKeyInGeneratedFilePath = false,
     bool supportsSoftSelectionInCompletion = true,
     bool useVsCodeCompletionCommitCharacters = false,
-    bool doNotInitializeMiscFilesProjectWithWorkspaceFiles = false,
     bool showAllCSharpCodeActions = false) : LanguageServerFeatureOptions
 {
     public static readonly LanguageServerFeatureOptions Instance = new TestLanguageServerFeatureOptions();
@@ -33,6 +32,4 @@ internal class TestLanguageServerFeatureOptions(
     public override bool SupportsSoftSelectionInCompletion => supportsSoftSelectionInCompletion;
 
     public override bool UseVsCodeCompletionCommitCharacters => useVsCodeCompletionCommitCharacters;
-
-    public override bool DoNotInitializeMiscFilesProjectFromWorkspace => doNotInitializeMiscFilesProjectWithWorkspaceFiles;
 }

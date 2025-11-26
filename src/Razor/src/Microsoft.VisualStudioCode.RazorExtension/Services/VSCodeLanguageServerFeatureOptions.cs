@@ -18,7 +18,6 @@ internal class VSCodeLanguageServerFeatureOptions() : LanguageServerFeatureOptio
     public override bool ShowAllCSharpCodeActions => false;
     public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => PlatformInformation.IsWindows;
     public override bool IncludeProjectKeyInGeneratedFilePath => false;
-    public override bool DoNotInitializeMiscFilesProjectFromWorkspace => false;
     public override bool UseRazorCohostServer => true;
 
     // Options that differ from the default
