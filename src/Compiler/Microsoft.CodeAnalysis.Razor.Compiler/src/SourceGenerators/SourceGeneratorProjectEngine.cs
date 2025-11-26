@@ -58,10 +58,10 @@ internal sealed class SourceGeneratorProjectEngine
     {
         var codeDocument = _projectEngine.CreateCodeDocument(projectItem, designTime);
 
-        ExecutePhases(Phases[.._discoveryPhaseIndex], codeDocument, cancellationToken);
+        codeDocument = ExecutePhases(Phases[.._discoveryPhaseIndex], codeDocument, cancellationToken);
 
         // record the syntax tree, before the tag helper re-writing occurs
-        codeDocument.SetPreTagHelperSyntaxTree(codeDocument.GetSyntaxTree());
+        codeDocument = codeDocument.WithPreTagHelperSyntaxTree(codeDocument.GetSyntaxTree());
         return new SourceGeneratorRazorCodeDocument(codeDocument);
     }
 
@@ -87,8 +87,8 @@ internal sealed class SourceGeneratorProjectEngine
                 var previousUsedTagHelpers = codeDocument.GetRequiredReferencedTagHelpers();
 
                 // re-run discovery to figure out which tag helpers are now in scope for this document
-                codeDocument.SetTagHelpers(tagHelpers);
-                _discoveryPhase.Execute(codeDocument, cancellationToken);
+                codeDocument = codeDocument.WithTagHelpers(tagHelpers);
+                codeDocument = _discoveryPhase.Execute(codeDocument, cancellationToken);
                 var tagHelpersInScope = codeDocument.GetRequiredTagHelperContext().TagHelpers;
 
                 // Check if any new tag helpers were added or ones we previously used were removed
@@ -106,10 +106,10 @@ internal sealed class SourceGeneratorProjectEngine
         }
         else
         {
-            codeDocument.SetTagHelpers(tagHelpers);
+            codeDocument = codeDocument.WithTagHelpers(tagHelpers);
         }
 
-        ExecutePhases(Phases[startIndex..(_rewritePhaseIndex + 1)], codeDocument, cancellationToken);
+        codeDocument = ExecutePhases(Phases[startIndex..(_rewritePhaseIndex + 1)], codeDocument, cancellationToken);
 
         return new SourceGeneratorRazorCodeDocument(codeDocument);
     }
@@ -119,16 +119,18 @@ internal sealed class SourceGeneratorProjectEngine
         var codeDocument = sgDocument.CodeDocument;
         Debug.Assert(codeDocument.GetReferencedTagHelpers() is not null);
 
-        ExecutePhases(Phases[_rewritePhaseIndex..], codeDocument, cancellationToken);
+        codeDocument = ExecutePhases(Phases[_rewritePhaseIndex..], codeDocument, cancellationToken);
 
         return new SourceGeneratorRazorCodeDocument(codeDocument);
     }
 
-    private static void ExecutePhases(ReadOnlySpan<IRazorEnginePhase> phases, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+    private static RazorCodeDocument ExecutePhases(ReadOnlySpan<IRazorEnginePhase> phases, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
     {
+        var currentDocument = codeDocument;
         foreach (var phase in phases)
         {
-            phase.Execute(codeDocument, cancellationToken);
+            currentDocument = phase.Execute(currentDocument, cancellationToken);
         }
+        return currentDocument;
     }
 }
