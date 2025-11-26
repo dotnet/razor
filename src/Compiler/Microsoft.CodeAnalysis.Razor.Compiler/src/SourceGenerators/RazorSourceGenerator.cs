@@ -380,7 +380,10 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                     foreach (var (hintName, codeDocument, _) in documents)
                     {
-                        filePathToDocument.Add(codeDocument.Source.FilePath!, (hintName, codeDocument));
+                        // So that tooling can't observe or influence intermediate state, we don't give them the direct RazorCodeDocument
+                        // that is our working state. Ideally it shouldn't be mutable at all of course
+                        var outputDocument = codeDocument.ToHostOutput();
+                        filePathToDocument.Add(codeDocument.Source.FilePath!, (hintName, outputDocument));
                         hintNameToFilePath.Add(hintName, codeDocument.Source.FilePath!);
                     }
 

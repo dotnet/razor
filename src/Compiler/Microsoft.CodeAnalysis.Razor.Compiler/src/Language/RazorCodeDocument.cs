@@ -244,4 +244,14 @@ public sealed partial class RazorCodeDocument
     [Obsolete("Do not use. Present to support the legacy editor", error: false)]
     internal RazorCodeDocument Clone()
         => new(Source, Imports, ParserOptions, CodeGenerationOptions, _properties.Clone());
+
+    internal RazorCodeDocument ToHostOutput()
+    {
+        return new RazorCodeDocument(
+            Source,
+            Imports,
+            ParserOptions,
+            CodeGenerationOptions,
+            _properties.ToHostOutput());
+    }
 }
