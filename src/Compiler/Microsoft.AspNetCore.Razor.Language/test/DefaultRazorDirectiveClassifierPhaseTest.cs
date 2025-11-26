@@ -112,7 +112,7 @@ public class DefaultRazorDirectiveClassifierPhaseTest
         });
 
         // Act
-        phase.Execute(codeDocument);
+        codeDocument = phase.Execute(codeDocument);
 
         // Assert
         Assert.Same(secondPassNode, codeDocument.GetRequiredDocumentNode().Children[0].Children[0]);
