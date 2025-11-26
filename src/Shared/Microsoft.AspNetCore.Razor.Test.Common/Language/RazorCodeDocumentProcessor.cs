@@ -45,23 +45,6 @@ public sealed class RazorCodeDocumentProcessor
         return From(ProjectEngine, codeDocument);
     }
 
-    public RazorCodeDocumentProcessor ExecutePhase<T>(RazorCodeDocument codeDocument)
-        where T : IRazorEnginePhase, new()
-    {
-        codeDocument = ProjectEngine.ExecutePhase<T>(codeDocument);
-
-        return From(ProjectEngine, codeDocument);
-
-    }
-
-    public RazorCodeDocumentProcessor ExecutePhase<T>(RazorCodeDocument codeDocument, Func<T> phaseFactory)
-        where T : IRazorEnginePhase
-    {
-        codeDocument = ProjectEngine.ExecutePhase<T>(codeDocument, phaseFactory);
-
-        return From(ProjectEngine, codeDocument);
-    }
-
     public DocumentIntermediateNode GetDocumentNode()
     {
         var documentNode = CodeDocument.GetDocumentNode();
