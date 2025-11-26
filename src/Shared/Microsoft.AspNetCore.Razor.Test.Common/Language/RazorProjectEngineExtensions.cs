@@ -227,31 +227,34 @@ public static class RazorProjectEngineExtensions
         return projectEngine.CreateDesignTimeCodeDocument(source, fileKind ?? DefaultFileKind, importSources, tagHelpers);
     }
 
-    public static void ExecutePhasesThrough<T>(
+    public static RazorCodeDocument ExecutePhasesThrough<T>(
         this RazorProjectEngine projectEngine,
         RazorCodeDocument codeDocument)
         where T : IRazorEnginePhase
     {
+        var currentDocument = codeDocument;
         foreach (var phase in projectEngine.Engine.Phases)
         {
-            phase.Execute(codeDocument);
+            currentDocument = phase.Execute(currentDocument);
 
             if (phase is T)
             {
                 break;
             }
         }
+
+        return currentDocument;
     }
 
-    public static void ExecutePhase<T>(
+    public static RazorCodeDocument ExecutePhase<T>(
         this RazorProjectEngine projectEngine,
         RazorCodeDocument codeDocument)
         where T : IRazorEnginePhase, new()
     {
-        projectEngine.ExecutePhase<T>(codeDocument, () => new());
+        return projectEngine.ExecutePhase<T>(codeDocument, () => new());
     }
 
-    public static void ExecutePhase<T>(
+    public static RazorCodeDocument ExecutePhase<T>(
         this RazorProjectEngine projectEngine,
         RazorCodeDocument codeDocument,
         Func<T> phaseFactory)
@@ -260,10 +263,10 @@ public static class RazorProjectEngineExtensions
         var pass = phaseFactory();
         pass.Initialize(projectEngine.Engine);
 
-        pass.Execute(codeDocument);
+        return pass.Execute(codeDocument);
     }
 
-    public static void ExecutePass<T>(
+    public static RazorCodeDocument ExecutePass<T>(
         this RazorProjectEngine projectEngine,
         RazorCodeDocument codeDocument)
         where T : IntermediateNodePassBase, new()
@@ -271,10 +274,10 @@ public static class RazorProjectEngineExtensions
         var documentNode = codeDocument.GetDocumentNode();
         Assert.NotNull(documentNode);
 
-        projectEngine.ExecutePass<T>(codeDocument, documentNode);
+        return projectEngine.ExecutePass<T>(codeDocument, documentNode);
     }
 
-    public static void ExecutePass<T>(
+    public static RazorCodeDocument ExecutePass<T>(
         this RazorProjectEngine projectEngine,
         RazorCodeDocument codeDocument,
         Func<T> passFactory)
@@ -283,17 +286,17 @@ public static class RazorProjectEngineExtensions
         var documentNode = codeDocument.GetDocumentNode();
         Assert.NotNull(documentNode);
 
-        projectEngine.ExecutePass<T>(codeDocument, documentNode, passFactory);
+        return projectEngine.ExecutePass<T>(codeDocument, documentNode, passFactory);
     }
 
-    public static void ExecutePass<T>(
+    public static RazorCodeDocument ExecutePass<T>(
         this RazorProjectEngine projectEngine,
         RazorCodeDocument codeDocument,
         DocumentIntermediateNode documentNode)
         where T : IntermediateNodePassBase, new()
         => projectEngine.ExecutePass<T>(codeDocument, documentNode, () => new());
 
-    public static void ExecutePass<T>(
+    public static RazorCodeDocument ExecutePass<T>(
         this RazorProjectEngine projectEngine,
         RazorCodeDocument codeDocument,
         DocumentIntermediateNode documentNode,
@@ -304,5 +307,8 @@ public static class RazorProjectEngineExtensions
         pass.Initialize(projectEngine.Engine);
 
         pass.Execute(codeDocument, documentNode);
+
+        // TODO: right now the pass manipulates the documentNode in place, so we have to return an updated doc with the new copy
+        return codeDocument.WithDocumentNode(documentNode);
     }
 }

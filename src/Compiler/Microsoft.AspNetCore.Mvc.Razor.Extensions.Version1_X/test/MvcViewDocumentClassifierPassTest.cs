@@ -11,9 +11,9 @@ public class MvcViewDocumentClassifierPassTest : RazorProjectEngineTestBase
 {
     protected override RazorLanguageVersion Version => RazorLanguageVersion.Version_1_1;
 
-    protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
+    protected override RazorCodeDocumentProcessor ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor.ExecutePhasesThrough<IRazorIntermediateNodeLoweringPhase>();
+        return processor.ExecutePhasesThrough<IRazorIntermediateNodeLoweringPhase>();
     }
 
     [Fact]

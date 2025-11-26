@@ -24,41 +24,42 @@ public sealed class RazorCodeDocumentProcessor
     public RazorCodeDocumentProcessor ExecutePhasesThrough<T>()
         where T : IRazorEnginePhase
     {
-        ProjectEngine.ExecutePhasesThrough<T>(CodeDocument);
+        var codeDocument = ProjectEngine.ExecutePhasesThrough<T>(CodeDocument);
 
-        return this;
+        return From(ProjectEngine, codeDocument);
     }
 
     public RazorCodeDocumentProcessor ExecutePass<T>()
         where T : IntermediateNodePassBase, new()
     {
-        ProjectEngine.ExecutePass<T>(CodeDocument);
+        var codeDocument = ProjectEngine.ExecutePass<T>(CodeDocument);
 
-        return this;
+        return From(ProjectEngine, codeDocument);
     }
 
     public RazorCodeDocumentProcessor ExecutePass<T>(Func<T> passFactory)
         where T : IntermediateNodePassBase
     {
-        ProjectEngine.ExecutePass<T>(CodeDocument, passFactory);
+        var codeDocument = ProjectEngine.ExecutePass<T>(CodeDocument, passFactory);
 
-        return this;
+        return From(ProjectEngine, codeDocument);
     }
 
     public RazorCodeDocumentProcessor ExecutePhase<T>(RazorCodeDocument codeDocument)
         where T : IRazorEnginePhase, new()
     {
-        ProjectEngine.ExecutePhase<T>(codeDocument);
+        codeDocument = ProjectEngine.ExecutePhase<T>(codeDocument);
 
-        return this;
+        return From(ProjectEngine, codeDocument);
+
     }
 
     public RazorCodeDocumentProcessor ExecutePhase<T>(RazorCodeDocument codeDocument, Func<T> phaseFactory)
         where T : IRazorEnginePhase
     {
-        ProjectEngine.ExecutePhase<T>(codeDocument, phaseFactory);
+        codeDocument = ProjectEngine.ExecutePhase<T>(codeDocument, phaseFactory);
 
-        return this;
+        return From(ProjectEngine, codeDocument);
     }
 
     public DocumentIntermediateNode GetDocumentNode()

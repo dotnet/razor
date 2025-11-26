@@ -18,9 +18,9 @@ public class ModelExpressionPassTest : RazorProjectEngineTestBase
         builder.Features.Add(new MvcViewDocumentClassifierPass());
     }
 
-    protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
+    protected override RazorCodeDocumentProcessor ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor.ExecutePhasesThrough<IRazorDirectiveClassifierPhase>();
+        return processor.ExecutePhasesThrough<IRazorDirectiveClassifierPhase>();
     }
 
     [Fact]

@@ -16,9 +16,9 @@ public class SectionDirectivePassTest : RazorProjectEngineTestBase
         SectionDirective.Register(builder);
     }
 
-    protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
+    protected override RazorCodeDocumentProcessor ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor.ExecutePhasesThrough<IRazorDocumentClassifierPhase>();
+        return processor.ExecutePhasesThrough<IRazorDocumentClassifierPhase>();
     }
 
     [Fact]
