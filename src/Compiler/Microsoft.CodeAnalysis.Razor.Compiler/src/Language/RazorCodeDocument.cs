@@ -24,7 +24,6 @@ public sealed partial class RazorCodeDocument
     public RazorFileKind FileKind => ParserOptions.FileKind;
 
     private readonly PropertyTable _properties = new();
-    private readonly object _htmlDocumentLock = new();
 
     private RazorCodeDocument(
         RazorSourceDocument source,
@@ -72,8 +71,11 @@ public sealed partial class RazorCodeDocument
     internal IReadOnlyList<TagHelperDescriptor> GetRequiredTagHelpers()
         => _properties.TagHelpers.RequiredValue;
 
-    internal void SetTagHelpers(IReadOnlyList<TagHelperDescriptor>? value)
-        => _properties.TagHelpers.SetValue(value);
+    internal RazorCodeDocument WithTagHelpers(IReadOnlyList<TagHelperDescriptor>? value)
+    {
+        var newProperties = _properties.With(_properties.TagHelpers, value);
+        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, newProperties);
+    }
 
     internal bool TryGetReferencedTagHelpers([NotNullWhen(true)] out ISet<TagHelperDescriptor>? result)
         => _properties.ReferencedTagHelpers.TryGetValue(out result);
@@ -84,10 +86,11 @@ public sealed partial class RazorCodeDocument
     internal ISet<TagHelperDescriptor> GetRequiredReferencedTagHelpers()
         => _properties.ReferencedTagHelpers.RequiredValue;
 
-    internal void SetReferencedTagHelpers(ISet<TagHelperDescriptor> value)
+    internal RazorCodeDocument WithReferencedTagHelpers(ISet<TagHelperDescriptor> value)
     {
         ArgHelper.ThrowIfNull(value);
-        _properties.ReferencedTagHelpers.SetValue(value);
+        var newProperties = _properties.With(_properties.ReferencedTagHelpers, value);
+        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, newProperties);
     }
 
     internal bool TryGetPreTagHelperSyntaxTree([NotNullWhen(true)] out RazorSyntaxTree? result)
@@ -99,8 +102,11 @@ public sealed partial class RazorCodeDocument
     internal RazorSyntaxTree GetRequiredPreTagHelperSyntaxTree()
         => _properties.PreTagHelperSyntaxTree.RequiredValue;
 
-    internal void SetPreTagHelperSyntaxTree(RazorSyntaxTree? value)
-        => _properties.PreTagHelperSyntaxTree.SetValue(value);
+    internal RazorCodeDocument WithPreTagHelperSyntaxTree(RazorSyntaxTree? value)
+    {
+        var newProperties = _properties.With(_properties.PreTagHelperSyntaxTree, value);
+        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, newProperties);
+    }
 
     internal bool TryGetSyntaxTree([NotNullWhen(true)] out RazorSyntaxTree? result)
         => _properties.SyntaxTree.TryGetValue(out result);
@@ -111,10 +117,11 @@ public sealed partial class RazorCodeDocument
     internal RazorSyntaxTree GetRequiredSyntaxTree()
         => _properties.SyntaxTree.RequiredValue;
 
-    internal void SetSyntaxTree(RazorSyntaxTree value)
+    internal RazorCodeDocument WithSyntaxTree(RazorSyntaxTree value)
     {
         Debug.Assert(value is not null);
-        _properties.SyntaxTree.SetValue(value);
+        var newProperties = _properties.With(_properties.SyntaxTree, value);
+        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, newProperties);
     }
 
     internal bool TryGetImportSyntaxTrees(out ImmutableArray<RazorSyntaxTree> result)
@@ -123,12 +130,13 @@ public sealed partial class RazorCodeDocument
     internal ImmutableArray<RazorSyntaxTree> GetImportSyntaxTrees()
         => _properties.ImportSyntaxTrees.Value ?? [];
 
-    internal void SetImportSyntaxTrees(ImmutableArray<RazorSyntaxTree> value)
+    internal RazorCodeDocument WithImportSyntaxTrees(ImmutableArray<RazorSyntaxTree> value)
     {
         Debug.Assert(!value.IsDefault);
         Debug.Assert(value.IsEmpty || value.All(static t => t is not null));
 
-        _properties.ImportSyntaxTrees.SetValue(value);
+        var newProperties = _properties.With(_properties.ImportSyntaxTrees, value);
+        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, newProperties);
     }
 
     internal bool TryGetTagHelperContext([NotNullWhen(true)] out TagHelperDocumentContext? result)
@@ -140,10 +148,11 @@ public sealed partial class RazorCodeDocument
     internal TagHelperDocumentContext GetRequiredTagHelperContext()
         => _properties.TagHelperContext.RequiredValue;
 
-    internal void SetTagHelperContext(TagHelperDocumentContext value)
+    internal RazorCodeDocument WithTagHelperContext(TagHelperDocumentContext value)
     {
         Debug.Assert(value is not null);
-        _properties.TagHelperContext.SetValue(value);
+        var newProperties = _properties.With(_properties.TagHelperContext, value);
+        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, newProperties);
     }
 
     internal bool TryGetDocumentNode([NotNullWhen(true)] out DocumentIntermediateNode? result)
@@ -155,10 +164,11 @@ public sealed partial class RazorCodeDocument
     internal DocumentIntermediateNode GetRequiredDocumentNode()
         => _properties.DocumentNode.RequiredValue;
 
-    internal void SetDocumentNode(DocumentIntermediateNode value)
+    internal RazorCodeDocument WithDocumentNode(DocumentIntermediateNode value)
     {
         Debug.Assert(value is not null);
-        _properties.DocumentNode.SetValue(value);
+        var newProperties = _properties.With(_properties.DocumentNode, value);
+        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, newProperties);
     }
 
     internal bool TryGetCSharpDocument([NotNullWhen(true)] out RazorCSharpDocument? result)
@@ -170,10 +180,11 @@ public sealed partial class RazorCodeDocument
     internal RazorCSharpDocument GetRequiredCSharpDocument()
         => _properties.CSharpDocument.RequiredValue;
 
-    internal void SetCSharpDocument(RazorCSharpDocument value)
+    internal RazorCodeDocument WithCSharpDocument(RazorCSharpDocument value)
     {
         Debug.Assert(value is not null);
-        _properties.CSharpDocument.SetValue(value);
+        var newProperties = _properties.With(_properties.CSharpDocument, value);
+        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, newProperties);
     }
 
     internal RazorHtmlDocument GetHtmlDocument()
@@ -183,17 +194,17 @@ public sealed partial class RazorCodeDocument
             return result;
         }
 
-        // Perf: Avoid concurrent requests generating the same html document
-        lock (_htmlDocumentLock)
-        {
-            if (!_properties.HtmlDocument.TryGetValue(out result))
-            {
-                result = RazorHtmlWriter.GetHtmlDocument(this);
-                _properties.HtmlDocument.SetValue(result);
-            }
-        }
+        // Note: Since we're immutable, we can't cache the generated HTML document
+        // back into this instance. The caller should use WithHtmlDocument if they
+        // want to cache the result.
+        return RazorHtmlWriter.GetHtmlDocument(this);
+    }
 
-        return result;
+    internal RazorCodeDocument WithHtmlDocument(RazorHtmlDocument value)
+    {
+        Debug.Assert(value is not null);
+        var newProperties = _properties.With(_properties.HtmlDocument, value);
+        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, newProperties);
     }
 
     // In general documents will have a relative path (relative to the project root).
@@ -207,7 +218,7 @@ public sealed partial class RazorCodeDocument
         out SourceSpan? namespaceSpan)
     {
         // We only want to cache the namespace if we're considering all possibilities.
-        // Anyone wanting something different (i.e., tooling) has to pay a slight penalty.
+        // Since we're immutable, we can only use cached values, not set them.
         if (fallbackToRootNamespace && considerImports &&
             _properties.NamespaceInfo.TryGetValue(out var info))
         {
@@ -221,7 +232,8 @@ public sealed partial class RazorCodeDocument
         {
             VerifyNamespace(this, fallbackToRootNamespace, considerImports, @namespace);
 
-            _properties.NamespaceInfo.SetValue((@namespace, namespaceSpan));
+            // Note: We can't cache here since we're immutable. Callers should use
+            // WithNamespace if they want to cache the computed namespace.
             return true;
         }
 
@@ -238,6 +250,12 @@ public sealed partial class RazorCodeDocument
             Debug.Assert(validateResult, "We couldn't compute the namespace, but have a cached value, so something has gone wrong");
             Debug.Assert(validateNamespace == @namespace, $"We cached a namespace of {@namespace} but calculated that it should be {validateNamespace}");
         }
+    }
+
+    internal RazorCodeDocument WithNamespace(string name, SourceSpan? span)
+    {
+        var newProperties = _properties.With(_properties.NamespaceInfo, (name, span));
+        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, newProperties);
     }
 
     [EditorBrowsable(EditorBrowsableState.Never)]
