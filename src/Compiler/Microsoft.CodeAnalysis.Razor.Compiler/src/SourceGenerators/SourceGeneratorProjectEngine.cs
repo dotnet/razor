@@ -88,7 +88,7 @@ internal sealed class SourceGeneratorProjectEngine
             var previousUsedTagHelpers = codeDocument.GetRequiredReferencedTagHelpers();
 
             // re-run discovery to figure out which tag helpers are now in scope for this document
-            codeDocument = codeDocument.SetTagHelpers(tagHelpers);
+            codeDocument = codeDocument.WithTagHelpers(tagHelpers);
             codeDocument = _discoveryPhase.Execute(codeDocument, cancellationToken);
 
             var newTagHelpersInScope = codeDocument.GetRequiredTagHelperContext().TagHelpers;
