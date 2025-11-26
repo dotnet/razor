@@ -7,18 +7,24 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 internal abstract class AbstractEditMappingService(
     IDocumentMappingService documentMappingService,
+    ITelemetryReporter telemetryReporter,
     IFilePathService filePathService) : IEditMappingService
 {
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
+    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
     private readonly IFilePathService _filePathService = filePathService;
 
     public async Task<WorkspaceEdit> RemapWorkspaceEditAsync(IDocumentSnapshot contextDocumentSnapshot, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
@@ -81,7 +87,7 @@ internal abstract class AbstractEditMappingService(
             }
 
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-            var remappedEdits = RemapTextEditsCore(codeDocument.GetRequiredCSharpDocument(), edits);
+            var remappedEdits = await RemapTextEditsCoreAsync(documentContext.Snapshot, codeDocument, edits, cancellationToken).ConfigureAwait(false);
             if (remappedEdits.Length == 0)
             {
                 // Nothing to do.
@@ -94,24 +100,18 @@ internal abstract class AbstractEditMappingService(
         return remappedChanges;
     }
 
-    private TextEdit[] RemapTextEditsCore(RazorCSharpDocument csharpDocument, TextEdit[] edits)
+    private async Task<TextEdit[]> RemapTextEditsCoreAsync(IDocumentSnapshot snapshot, RazorCodeDocument codeDocument, TextEdit[] edits, CancellationToken cancellationToken)
     {
-        using var remappedEdits = new PooledArrayBuilder<TextEdit>(edits.Length);
-
-        foreach (var edit in edits)
+        var razorSourceText = codeDocument.Source.Text;
+        var csharpSourceText = codeDocument.GetCSharpSourceText();
+        var textChanges = edits.SelectAsArray(e => new RazorTextChange
         {
-            var generatedRange = edit.Range;
-            if (!_documentMappingService.TryMapToRazorDocumentRange(csharpDocument, generatedRange, MappingBehavior.Strict, out var hostDocumentRange))
-            {
-                // Can't map range. Discard this edit.
-                continue;
-            }
+            Span = csharpSourceText.GetTextSpan(e.Range).ToRazorTextSpan(),
+            NewText = e.NewText,
+        });
+        var mappedEdits = await RazorEditHelper.MapCSharpEditsAsync(textChanges, snapshot, _documentMappingService, _telemetryReporter, cancellationToken).ConfigureAwait(false);
 
-            var remappedEdit = LspFactory.CreateTextEdit(hostDocumentRange, edit.NewText);
-            remappedEdits.Add(remappedEdit);
-        }
-
-        return remappedEdits.ToArray();
+        return [.. mappedEdits.Select(e => LspFactory.CreateTextEdit(razorSourceText.GetLinePositionSpan(e.Span.ToTextSpan()), e.NewText.AssumeNotNull()))];
     }
 
     private async Task<TextDocumentEdit[]> RemapTextDocumentEditsAsync(IDocumentSnapshot contextDocumentSnapshot, TextDocumentEdit[] documentEdits, CancellationToken cancellationToken)
@@ -156,7 +156,7 @@ internal abstract class AbstractEditMappingService(
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
             // entry.Edits is SumType<TextEdit, AnnotatedTextEdit> but AnnotatedTextEdit inherits from TextEdit, so we can just cast
-            var remappedEdits = RemapTextEditsCore(codeDocument.GetRequiredCSharpDocument(), [.. entry.Edits.Select(static e => (TextEdit)e)]);
+            var remappedEdits = await RemapTextEditsCoreAsync(documentContext.Snapshot, codeDocument, [.. entry.Edits.Select(static e => (TextEdit)e)], cancellationToken).ConfigureAwait(false);
             if (remappedEdits.Length == 0)
             {
                 // Nothing to do.
