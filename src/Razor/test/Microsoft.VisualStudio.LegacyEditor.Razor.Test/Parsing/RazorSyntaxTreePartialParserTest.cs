@@ -357,7 +357,7 @@ public class RazorSyntaxTreePartialParserTest(ITestOutputHelper testOutput) : To
     {
         var templateEngine = CreateProjectEngine();
         var codeDocument = templateEngine.CreateCodeDocument(edit.OldSnapshot.GetText());
-        templateEngine.Engine.Process(codeDocument);
+        codeDocument = templateEngine.Engine.Process(codeDocument);
         var syntaxTree = codeDocument.GetRequiredSyntaxTree();
         var parser = new RazorSyntaxTreePartialParser(syntaxTree);
 
@@ -369,7 +369,7 @@ public class RazorSyntaxTreePartialParserTest(ITestOutputHelper testOutput) : To
     {
         var templateEngine = CreateProjectEngine();
         var codeDocument = templateEngine.CreateCodeDocument(edit.OldSnapshot.GetText());
-        templateEngine.Engine.Process(codeDocument);
+        codeDocument = templateEngine.Engine.Process(codeDocument);
         var syntaxTree = codeDocument.GetRequiredSyntaxTree();
         var parser = new RazorSyntaxTreePartialParser(syntaxTree);
 
