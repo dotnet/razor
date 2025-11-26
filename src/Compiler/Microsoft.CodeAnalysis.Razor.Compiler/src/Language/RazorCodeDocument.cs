@@ -17,39 +17,107 @@ public sealed partial class RazorCodeDocument
 {
     public RazorSourceDocument Source { get; }
     public ImmutableArray<RazorSourceDocument> Imports { get; }
-
     public RazorParserOptions ParserOptions { get; }
     public RazorCodeGenerationOptions CodeGenerationOptions { get; }
 
     public RazorFileKind FileKind => ParserOptions.FileKind;
 
-    private readonly PropertyTable _properties = new();
+    private readonly TagHelperCollection? _tagHelpers;
+    private readonly TagHelperCollection? _referencedTagHelpers;
+    private readonly RazorSyntaxTree? _preTagHelperSyntaxTree;
+    private readonly RazorSyntaxTree? _syntaxTree;
+    private readonly ImmutableArray<RazorSyntaxTree> _importSyntaxTrees;
+    private readonly TagHelperDocumentContext? _tagHelperContext;
+    private readonly DocumentIntermediateNode? _documentNode;
+    private readonly RazorCSharpDocument? _cSharpDocument;
+
+    private readonly Lazy<RazorHtmlDocument> _htmlDocument;
 
     private RazorCodeDocument(
         RazorSourceDocument source,
         ImmutableArray<RazorSourceDocument> imports,
-        RazorParserOptions? parserOptions,
-        RazorCodeGenerationOptions? codeGenerationOptions,
-        PropertyTable? properties = null)
+        RazorParserOptions parserOptions,
+        RazorCodeGenerationOptions codeGenerationOptions,
+        TagHelperCollection? tagHelpers,
+        TagHelperCollection? referencedTagHelpers,
+        RazorSyntaxTree? preTagHelperSyntaxTree,
+        RazorSyntaxTree? syntaxTree,
+        ImmutableArray<RazorSyntaxTree> importSyntaxTrees,
+        TagHelperDocumentContext? tagHelperContext,
+        DocumentIntermediateNode? documentNode,
+        RazorCSharpDocument? cSharpDocument)
     {
         Source = source;
         Imports = imports.NullToEmpty();
 
-        ParserOptions = parserOptions ?? RazorParserOptions.Default;
-        CodeGenerationOptions = codeGenerationOptions ?? RazorCodeGenerationOptions.Default;
+        ParserOptions = parserOptions;
+        CodeGenerationOptions = codeGenerationOptions;
 
-        _properties = properties ?? new();
+        _tagHelpers = tagHelpers;
+        _referencedTagHelpers = referencedTagHelpers;
+        _preTagHelperSyntaxTree = preTagHelperSyntaxTree;
+        _syntaxTree = syntaxTree;
+        _importSyntaxTrees = importSyntaxTrees;
+        _tagHelperContext = tagHelperContext;
+        _documentNode = documentNode;
+        _cSharpDocument = cSharpDocument;
+
+        _htmlDocument = new Lazy<RazorHtmlDocument>(() => RazorHtmlWriter.GetHtmlDocument(this));
+    }
+
+    private RazorCodeDocument With(
+        RazorSourceDocument? source = null,
+        ImmutableArray<RazorSourceDocument>? imports = null,
+        RazorParserOptions? parserOptions = null,
+        RazorCodeGenerationOptions? codeGenerationOptions = null,
+        TagHelperCollection? tagHelpers = null,
+        TagHelperCollection? referencedTagHelpers = null,
+        RazorSyntaxTree? preTagHelperSyntaxTree = null,
+        RazorSyntaxTree? syntaxTree = null,
+        ImmutableArray<RazorSyntaxTree>? importSyntaxTrees = null,
+        TagHelperDocumentContext? tagHelperContext = null,
+        DocumentIntermediateNode? documentNode = null,
+        RazorCSharpDocument? cSharpDocument = null)
+    {
+        if (isChanged(source, Source)
+            || (imports is not null)
+            || isChanged(codeGenerationOptions, CodeGenerationOptions)
+            || isChanged(tagHelpers, _tagHelpers)
+            || isChanged(referencedTagHelpers, _referencedTagHelpers)
+            || isChanged(preTagHelperSyntaxTree, _preTagHelperSyntaxTree)
+            || isChanged(syntaxTree, _syntaxTree)
+            || (importSyntaxTrees is not null)
+            || isChanged(tagHelperContext, _tagHelperContext)
+            || isChanged(documentNode, _documentNode)
+            || isChanged(cSharpDocument, _cSharpDocument))
+        {
+            return new RazorCodeDocument(
+                source ?? Source,
+                imports ?? Imports,
+                parserOptions ?? ParserOptions,
+                codeGenerationOptions ?? CodeGenerationOptions,
+                tagHelpers ?? _tagHelpers,
+                referencedTagHelpers ?? _referencedTagHelpers,
+                preTagHelperSyntaxTree ?? _preTagHelperSyntaxTree,
+                syntaxTree ?? _syntaxTree,
+                importSyntaxTrees ?? _importSyntaxTrees,
+                tagHelperContext ?? _tagHelperContext,
+                documentNode ?? _documentNode,
+                cSharpDocument ?? _cSharpDocument);
+        }
+        else
+        {
+            return this;
+        }
+
+        static bool isChanged<T>(T? @new, T old) where T : class? => @new is not null && !ReferenceEquals(@new, old);
     }
 
     public static RazorCodeDocument Create(
         RazorSourceDocument source,
         RazorParserOptions? parserOptions = null,
         RazorCodeGenerationOptions? codeGenerationOptions = null)
-    {
-        ArgHelper.ThrowIfNull(source);
-
-        return new RazorCodeDocument(source, imports: [], parserOptions, codeGenerationOptions);
-    }
+        => Create(source, imports: [], parserOptions, codeGenerationOptions);
 
     public static RazorCodeDocument Create(
         RazorSourceDocument source,
@@ -59,153 +127,165 @@ public sealed partial class RazorCodeDocument
     {
         ArgHelper.ThrowIfNull(source);
 
-        return new RazorCodeDocument(source, imports, parserOptions, codeGenerationOptions);
+        return new RazorCodeDocument(
+            source,
+            imports,
+            parserOptions ?? RazorParserOptions.Default,
+            codeGenerationOptions ?? RazorCodeGenerationOptions.Default,
+            tagHelpers: null,
+            referencedTagHelpers: null,
+            preTagHelperSyntaxTree: null,
+            syntaxTree: null,
+            importSyntaxTrees: default,
+            tagHelperContext: null,
+            documentNode: null,
+            cSharpDocument: null);
     }
 
     internal bool TryGetTagHelpers([NotNullWhen(true)] out TagHelperCollection? result)
-        => _properties.TagHelpers.TryGetValue(out result);
-
-    internal TagHelperCollection? GetTagHelpers()
-        => _properties.TagHelpers.Value;
-
-    internal TagHelperCollection GetRequiredTagHelpers()
-        => _properties.TagHelpers.RequiredValue;
-
-    internal RazorCodeDocument WithTagHelpers(TagHelperCollection? value)
     {
-        var newProperties = _properties.With(_properties.TagHelpers, value);
-        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, newProperties);
+        result = _tagHelpers;
+        return result is not null;
     }
 
+    internal TagHelperCollection? GetTagHelpers()
+        => _tagHelpers;
+
+    internal TagHelperCollection GetRequiredTagHelpers()
+        => _tagHelpers.AssumeNotNull();
+
+    internal RazorCodeDocument WithTagHelpers(TagHelperCollection? value)
+        => With(tagHelpers: value);
+
     internal bool TryGetReferencedTagHelpers([NotNullWhen(true)] out TagHelperCollection? result)
-        => _properties.ReferencedTagHelpers.TryGetValue(out result);
+    {
+        result = _referencedTagHelpers;
+        return result is not null;
+    }
 
     internal TagHelperCollection? GetReferencedTagHelpers()
-        => _properties.ReferencedTagHelpers.Value;
+        => _referencedTagHelpers;
 
     internal TagHelperCollection GetRequiredReferencedTagHelpers()
-        => _properties.ReferencedTagHelpers.RequiredValue;
+        => _referencedTagHelpers.AssumeNotNull();
 
     internal RazorCodeDocument WithReferencedTagHelpers(TagHelperCollection value)
     {
         ArgHelper.ThrowIfNull(value);
-        var newProperties = _properties.With(_properties.ReferencedTagHelpers, value);
-        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, newProperties);
+        return With(referencedTagHelpers: value);
     }
 
     internal bool TryGetPreTagHelperSyntaxTree([NotNullWhen(true)] out RazorSyntaxTree? result)
-        => _properties.PreTagHelperSyntaxTree.TryGetValue(out result);
-
-    internal RazorSyntaxTree? GetPreTagHelperSyntaxTree()
-        => _properties.PreTagHelperSyntaxTree.Value;
-
-    internal RazorSyntaxTree GetRequiredPreTagHelperSyntaxTree()
-        => _properties.PreTagHelperSyntaxTree.RequiredValue;
-
-    internal RazorCodeDocument WithPreTagHelperSyntaxTree(RazorSyntaxTree? value)
     {
-        var newProperties = _properties.With(_properties.PreTagHelperSyntaxTree, value);
-        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, newProperties);
+        result = _preTagHelperSyntaxTree;
+        return result is not null;
     }
 
+    internal RazorSyntaxTree? GetPreTagHelperSyntaxTree()
+        => _preTagHelperSyntaxTree;
+
+    internal RazorSyntaxTree GetRequiredPreTagHelperSyntaxTree()
+        => _preTagHelperSyntaxTree.AssumeNotNull();
+
+    internal RazorCodeDocument WithPreTagHelperSyntaxTree(RazorSyntaxTree? value)
+        => With(preTagHelperSyntaxTree: value);
+
     internal bool TryGetSyntaxTree([NotNullWhen(true)] out RazorSyntaxTree? result)
-        => _properties.SyntaxTree.TryGetValue(out result);
+    {
+        result = _syntaxTree;
+        return result is not null;
+    }
 
     internal RazorSyntaxTree? GetSyntaxTree()
-        => _properties.SyntaxTree.Value;
+        => _syntaxTree;
 
     internal RazorSyntaxTree GetRequiredSyntaxTree()
-        => _properties.SyntaxTree.RequiredValue;
+        => _syntaxTree.AssumeNotNull();
 
     internal RazorCodeDocument WithSyntaxTree(RazorSyntaxTree value)
     {
         Debug.Assert(value is not null);
-        var newProperties = _properties.With(_properties.SyntaxTree, value);
-        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, newProperties);
+        return With(syntaxTree: value);
     }
 
     internal bool TryGetImportSyntaxTrees(out ImmutableArray<RazorSyntaxTree> result)
-        => _properties.ImportSyntaxTrees.TryGetValue(out result);
+    {
+        if (!_importSyntaxTrees.IsDefault)
+        {
+            result = _importSyntaxTrees;
+            return true;
+        }
+
+        result = default;
+        return false;
+    }
 
     internal ImmutableArray<RazorSyntaxTree> GetImportSyntaxTrees()
-        => _properties.ImportSyntaxTrees.Value ?? [];
+        => _importSyntaxTrees.IsDefault ? [] : _importSyntaxTrees;
 
     internal RazorCodeDocument WithImportSyntaxTrees(ImmutableArray<RazorSyntaxTree> value)
     {
         Debug.Assert(!value.IsDefault);
         Debug.Assert(value.IsEmpty || value.All(static t => t is not null));
 
-        var newProperties = _properties.With(_properties.ImportSyntaxTrees, value);
-        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, newProperties);
+        return With(importSyntaxTrees: value);
     }
 
     internal bool TryGetTagHelperContext([NotNullWhen(true)] out TagHelperDocumentContext? result)
-        => _properties.TagHelperContext.TryGetValue(out result);
+    {
+        result = _tagHelperContext;
+        return result is not null;
+    }
 
     internal TagHelperDocumentContext? GetTagHelperContext()
-        => _properties.TagHelperContext.Value;
+        => _tagHelperContext;
 
     internal TagHelperDocumentContext GetRequiredTagHelperContext()
-        => _properties.TagHelperContext.RequiredValue;
+        => _tagHelperContext.AssumeNotNull();
 
     internal RazorCodeDocument WithTagHelperContext(TagHelperDocumentContext value)
     {
         Debug.Assert(value is not null);
-        var newProperties = _properties.With(_properties.TagHelperContext, value);
-        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, newProperties);
+        return With(tagHelperContext: value);
     }
 
     internal bool TryGetDocumentNode([NotNullWhen(true)] out DocumentIntermediateNode? result)
-        => _properties.DocumentNode.TryGetValue(out result);
+    {
+        result = _documentNode;
+        return result is not null;
+    }
 
     internal DocumentIntermediateNode? GetDocumentNode()
-        => _properties.DocumentNode.Value;
+        => _documentNode;
 
     internal DocumentIntermediateNode GetRequiredDocumentNode()
-        => _properties.DocumentNode.RequiredValue;
+        => _documentNode.AssumeNotNull();
 
     internal RazorCodeDocument WithDocumentNode(DocumentIntermediateNode value)
     {
         Debug.Assert(value is not null);
-        var newProperties = _properties.With(_properties.DocumentNode, value);
-        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, newProperties);
+        return With(documentNode: value);
     }
 
     internal bool TryGetCSharpDocument([NotNullWhen(true)] out RazorCSharpDocument? result)
-        => _properties.CSharpDocument.TryGetValue(out result);
+    {
+        result = _cSharpDocument;
+        return result is not null;
+    }
 
     internal RazorCSharpDocument? GetCSharpDocument()
-        => _properties.CSharpDocument.Value;
+        => _cSharpDocument;
 
     internal RazorCSharpDocument GetRequiredCSharpDocument()
-        => _properties.CSharpDocument.RequiredValue;
+        => _cSharpDocument.AssumeNotNull();
 
     internal RazorCodeDocument WithCSharpDocument(RazorCSharpDocument value)
     {
         Debug.Assert(value is not null);
-        var newProperties = _properties.With(_properties.CSharpDocument, value);
-        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, newProperties);
+        return With(cSharpDocument: value);
     }
 
-    internal RazorHtmlDocument GetHtmlDocument()
-    {
-        if (_properties.HtmlDocument.TryGetValue(out var result))
-        {
-            return result;
-        }
-
-        // Note: Since we're immutable, we can't cache the generated HTML document
-        // back into this instance. The caller should use WithHtmlDocument if they
-        // want to cache the result.
-        return RazorHtmlWriter.GetHtmlDocument(this);
-    }
-
-    internal RazorCodeDocument WithHtmlDocument(RazorHtmlDocument value)
-    {
-        Debug.Assert(value is not null);
-        var newProperties = _properties.With(_properties.HtmlDocument, value);
-        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, newProperties);
-    }
+    internal RazorHtmlDocument GetHtmlDocument() => _htmlDocument.Value;
 
     // In general documents will have a relative path (relative to the project root).
     // We can only really compute a nice namespace when we know a relative path.
@@ -217,23 +297,9 @@ public sealed partial class RazorCodeDocument
         [NotNullWhen(true)] out string? @namespace,
         out SourceSpan? namespaceSpan)
     {
-        // We only want to cache the namespace if we're considering all possibilities.
-        // Since we're immutable, we can only use cached values, not set them.
-        if (fallbackToRootNamespace && considerImports &&
-            _properties.NamespaceInfo.TryGetValue(out var info))
-        {
-            VerifyNamespace(this, fallbackToRootNamespace, considerImports, info.name);
-
-            (@namespace, namespaceSpan) = info;
-            return true;
-        }
-
         if (NamespaceComputer.TryComputeNamespace(this, fallbackToRootNamespace, considerImports, out @namespace, out namespaceSpan))
         {
             VerifyNamespace(this, fallbackToRootNamespace, considerImports, @namespace);
-
-            // Note: We can't cache here since we're immutable. Callers should use
-            // WithNamespace if they want to cache the computed namespace.
             return true;
         }
 
@@ -252,14 +318,16 @@ public sealed partial class RazorCodeDocument
         }
     }
 
-    internal RazorCodeDocument WithNamespace(string name, SourceSpan? span)
-    {
-        var newProperties = _properties.With(_properties.NamespaceInfo, (name, span));
-        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, newProperties);
-    }
-
     [EditorBrowsable(EditorBrowsableState.Never)]
     [Obsolete("Do not use. Present to support the legacy editor", error: false)]
     internal RazorCodeDocument Clone()
-        => new(Source, Imports, ParserOptions, CodeGenerationOptions, _properties.Clone());
+        => new(Source, Imports, ParserOptions, CodeGenerationOptions,
+            tagHelpers: _tagHelpers,
+            referencedTagHelpers: _referencedTagHelpers,
+            preTagHelperSyntaxTree: _preTagHelperSyntaxTree,
+            syntaxTree: _syntaxTree,
+            importSyntaxTrees: _importSyntaxTrees,
+            tagHelperContext: _tagHelperContext,
+            documentNode: _documentNode,
+            cSharpDocument: _cSharpDocument);
 }
