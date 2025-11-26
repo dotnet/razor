@@ -32,7 +32,7 @@ using Microsoft.VisualStudio.Razor.Snippets;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
+public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
     [Fact]
     public async Task CSharpInEmptyExplicitStatement()
@@ -523,109 +523,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             commitElementsWithSpace: false);
     }
 
-#if !VSCODE
-    [Fact]
-    public async Task HtmlSnippetsCompletion()
-    {
-        await VerifyCompletionListAsync(
-            input: """
-                This is a Razor document.
-
-                $$
-
-                The end.
-                """,
-            completionContext: new VSInternalCompletionContext()
-            {
-                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
-                TriggerCharacter = null,
-                TriggerKind = CompletionTriggerKind.Invoked
-            },
-            expectedItemLabels: ["snippet1", "snippet2"],
-            htmlItemLabels: [],
-            snippetLabels: ["snippet1", "snippet2"]);
-    }
-
-    [Fact]
-    public async Task HtmlSnippetsCompletion_EmptyDocument()
-    {
-        await VerifyCompletionListAsync(
-            input: """
-                $$
-                """,
-            completionContext: new VSInternalCompletionContext()
-            {
-                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
-                TriggerCharacter = null,
-                TriggerKind = CompletionTriggerKind.Invoked
-            },
-            expectedItemLabels: ["snippet1", "snippet2"],
-            htmlItemLabels: [],
-            snippetLabels: ["snippet1", "snippet2"]);
-    }
-
-    [Fact]
-    public async Task HtmlSnippetsCompletion_WhitespaceOnlyDocument1()
-    {
-        await VerifyCompletionListAsync(
-            input: """
-
-                $$
-                """,
-            completionContext: new VSInternalCompletionContext()
-            {
-                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
-                TriggerCharacter = null,
-                TriggerKind = CompletionTriggerKind.Invoked
-            },
-            expectedItemLabels: ["snippet1", "snippet2"],
-            htmlItemLabels: [],
-            snippetLabels: ["snippet1", "snippet2"]);
-    }
-
-    [Fact]
-    public async Task HtmlSnippetsCompletion_WhitespaceOnlyDocument2()
-    {
-        await VerifyCompletionListAsync(
-            input: """
-                $$
-
-                """,
-            completionContext: new VSInternalCompletionContext()
-            {
-                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
-                TriggerCharacter = null,
-                TriggerKind = CompletionTriggerKind.Invoked
-            },
-            expectedItemLabels: ["snippet1", "snippet2"],
-            htmlItemLabels: [],
-            snippetLabels: ["snippet1", "snippet2"]);
-    }
-
-    [Fact]
-    public async Task HtmlSnippetsCompletion_NotInStartTag()
-    {
-        await VerifyCompletionListAsync(
-            input: """
-                This is a Razor document.
-
-                <div $$></div>
-
-                The end.
-                """,
-            completionContext: new VSInternalCompletionContext()
-            {
-                InvokeKind = VSInternalCompletionInvokeKind.Typing,
-                TriggerCharacter = " ",
-                TriggerKind = CompletionTriggerKind.TriggerCharacter
-            },
-            expectedItemLabels: ["style", "dir"],
-            unexpectedItemLabels: ["snippet1", "snippet2"],
-            htmlItemLabels: ["style", "dir"],
-            snippetLabels: ["snippet1", "snippet2"]);
-    }
-#endif
-
     // Tests HTML attributes and DirectiveAttributeTransitionCompletionItemProvider
     [Fact]
     public async Task HtmlAndDirectiveAttributeTransitionNamesCompletion()
@@ -640,9 +537,9 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                 """,
             completionContext: new VSInternalCompletionContext()
             {
-                InvokeKind = VSInternalCompletionInvokeKind.Typing,
-                TriggerCharacter = " ",
-                TriggerKind = CompletionTriggerKind.TriggerCharacter
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["style", "dir", "@..."],
             htmlItemLabels: ["style", "dir"]);
@@ -796,9 +693,9 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                 """,
             completionContext: new VSInternalCompletionContext()
             {
-                InvokeKind = VSInternalCompletionInvokeKind.Typing,
-                TriggerCharacter = " ",
-                TriggerKind = CompletionTriggerKind.TriggerCharacter
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["style", "dir", "FormName", "OnValidSubmit", "@..."],
             htmlItemLabels: ["style", "dir"],
@@ -842,9 +739,9 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                 """,
             completionContext: new VSInternalCompletionContext()
             {
-                InvokeKind = VSInternalCompletionInvokeKind.Typing,
-                TriggerCharacter = " ",
-                TriggerKind = CompletionTriggerKind.TriggerCharacter
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["FormName", "OnValidSubmit", "@...", "style"],
             htmlItemLabels: ["style"],
@@ -870,8 +767,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             },
             expectedItemLabels: ["FormName", "OnValidSubmit", "@...", "style"],
             htmlItemLabels: ["style"],
-            autoInsertAttributeQuotes: false,
-            useVsCodeCompletionCommitCharacters: true);
+            autoInsertAttributeQuotes: false);
 
         Assert.All(list.Items, item => Assert.DoesNotContain("=", item.CommitCharacters ?? []));
     }
@@ -921,9 +817,9 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                 """,
             completionContext: new VSInternalCompletionContext()
             {
-                InvokeKind = VSInternalCompletionInvokeKind.Typing,
-                TriggerCharacter = " ",
-                TriggerKind = CompletionTriggerKind.TriggerCharacter
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["data-enhance", "data-enhance-nav", "data-permanent", "dir", "@..."],
             htmlItemLabels: ["dir"]);
@@ -943,9 +839,9 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                 """,
             completionContext: new VSInternalCompletionContext()
             {
-                InvokeKind = VSInternalCompletionInvokeKind.Typing,
-                TriggerCharacter = " ",
-                TriggerKind = CompletionTriggerKind.TriggerCharacter
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["data-enhance-nav", "data-permanent", "dir", "@..."],
             unexpectedItemLabels: ["data-enhance"],
@@ -966,9 +862,9 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                 """,
             completionContext: new VSInternalCompletionContext()
             {
-                InvokeKind = VSInternalCompletionInvokeKind.Typing,
-                TriggerCharacter = " ",
-                TriggerKind = CompletionTriggerKind.TriggerCharacter
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["data-enhance-nav", "data-permanent", "dir", "@..."],
             unexpectedItemLabels: ["data-enhance"],
@@ -989,9 +885,9 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
                 """,
             completionContext: new VSInternalCompletionContext()
             {
-                InvokeKind = VSInternalCompletionInvokeKind.Typing,
-                TriggerCharacter = " ",
-                TriggerKind = CompletionTriggerKind.TriggerCharacter
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["data-enhance-nav", "data-permanent", "dir", "@..."],
             unexpectedItemLabels: ["data-enhance"],
@@ -1031,7 +927,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         string? expectedResolvedItemDescription = null,
         bool autoInsertAttributeQuotes = true,
         bool commitElementsWithSpace = true,
-        bool useVsCodeCompletionCommitCharacters = false,
         RazorFileKind? fileKind = null)
     {
         var document = CreateProjectAndRazorDocument(input.Text, fileKind);

@@ -122,13 +122,9 @@ internal sealed class CohostDocumentCompletionEndpoint(
         }
 
         var documentPositionInfo = completionPositionInfo.DocumentPositionInfo;
-        if (documentPositionInfo.LanguageKind != RazorLanguageKind.Razor)
+        if (documentPositionInfo.LanguageKind != RazorLanguageKind.Razor &&
+            DelegatedCompletionHelper.RewriteContext(completionContext, documentPositionInfo.LanguageKind, _triggerAndCommitCharacters) is { } rewrittenContext)
         {
-            if (DelegatedCompletionHelper.RewriteContext(completionContext, documentPositionInfo.LanguageKind, _triggerAndCommitCharacters) is not { } rewrittenContext)
-            {
-                return null;
-            }
-
             completionContext = rewrittenContext;
         }
 
@@ -143,18 +139,16 @@ internal sealed class CohostDocumentCompletionEndpoint(
             UseVsCodeCompletionCommitCharacters: !_clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions);
         using var _ = HashSetPool<string>.GetPooledObject(out var existingHtmlCompletions);
 
-        if (_triggerAndCommitCharacters.IsValidHtmlTrigger(completionContext))
+        // We can just blindly call HTML LSP because if we are in C#, generated HTML seen by HTML LSP may return
+        // results we don't want to show. So we want to call HTML LSP only if we know we are in HTML content.
+        if (documentPositionInfo.LanguageKind == RazorLanguageKind.Html &&
+            _triggerAndCommitCharacters.IsValidHtmlTrigger(completionContext))
         {
-            // We can just blindly call HTML LSP because if we are in C#, generated HTML seen by HTML LSP may return
-            // results we don't want to show. So we want to call HTML LSP only if we know we are in HTML content.
-            if (documentPositionInfo.LanguageKind == RazorLanguageKind.Html)
-            {
-                htmlCompletionList = await GetHtmlCompletionListAsync(request, razorDocument, razorCompletionOptions, correlationId, cancellationToken).ConfigureAwait(false);
+            htmlCompletionList = await GetHtmlCompletionListAsync(request, razorDocument, razorCompletionOptions, correlationId, cancellationToken).ConfigureAwait(false);
 
-                if (htmlCompletionList is not null)
-                {
-                    existingHtmlCompletions.UnionWith(htmlCompletionList.Items.Select(i => i.Label));
-                }
+            if (htmlCompletionList is not null)
+            {
+                existingHtmlCompletions.UnionWith(htmlCompletionList.Items.Select(i => i.Label));
             }
         }
 
