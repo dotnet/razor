@@ -211,7 +211,7 @@ public class RazorDirectiveCompletionSourceTest(ITestOutputHelper testOutput) : 
         var syntaxTree = RazorSyntaxTree.Parse(source, codeDocument.ParserOptions);
         codeDocument = codeDocument.WithSyntaxTree(syntaxTree);
 
-        codeDocument = codeDocument.SetTagHelperContext(TagHelperDocumentContext.GetOrCreate(tagHelpers: []));
+        codeDocument = codeDocument.WithTagHelperContext(TagHelperDocumentContext.GetOrCreate(tagHelpers: []));
 
         var parserMock = new StrictMock<IVisualStudioRazorParser>();
         parserMock
