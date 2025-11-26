@@ -1,8 +1,0 @@
-OutOfProc Endpoint Packet Pump (TID 4) 638997804484311616 +         0ms: Waiting for connection 900000 ms...
-OutOfProc Endpoint Packet Pump (TID 4) 638997804484311616 +         0ms: Parent started connecting. Reading handshake from parent
-OutOfProc Endpoint Packet Pump (TID 4) 638997804484321618 +    1.0002ms: Building handshake for node type X64, NodeReuse, (version 1): options 16777228.
-OutOfProc Endpoint Packet Pump (TID 4) 638997804484346767 +    2.5149ms: Handshake salt is 
-OutOfProc Endpoint Packet Pump (TID 4) 638997804484346767 +         0ms: Tools directory root is C:\Program Files\Microsoft Visual Studio\18\Preview\MSBuild\Current\Bin
-OutOfProc Endpoint Packet Pump (TID 4) 638997804484548378 +   20.1611ms: Successfully connected to parent.
-OutOfProc Endpoint Packet Pump (TID 4) 638997804484558376 +    0.9998ms: Changing link status from Inactive to Active
-OutOfProc Endpoint Packet Pump (TID 4) 638997804484638392 +    8.0016ms: Entering read loop.
