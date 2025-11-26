@@ -39,6 +39,4 @@ internal class RemoteLanguageServerFeatureOptions : LanguageServerFeatureOptions
     public override bool UseRazorCohostServer => _options.UseRazorCohostServer;
 
     public override bool SupportsSoftSelectionInCompletion => _options.SupportsSoftSelectionInCompletion;
-
-    public override bool UseVsCodeCompletionCommitCharacters => _options.UseVsCodeCompletionCommitCharacters;
 }

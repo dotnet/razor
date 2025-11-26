@@ -8,7 +8,6 @@ namespace Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 internal class TestLanguageServerFeatureOptions(
     bool includeProjectKeyInGeneratedFilePath = false,
     bool supportsSoftSelectionInCompletion = true,
-    bool useVsCodeCompletionCommitCharacters = false,
     bool showAllCSharpCodeActions = false) : LanguageServerFeatureOptions
 {
     public static readonly LanguageServerFeatureOptions Instance = new TestLanguageServerFeatureOptions();
@@ -28,6 +27,4 @@ internal class TestLanguageServerFeatureOptions(
     public override bool UseRazorCohostServer => false;
 
     public override bool SupportsSoftSelectionInCompletion => supportsSoftSelectionInCompletion;
-
-    public override bool UseVsCodeCompletionCommitCharacters => useVsCodeCompletionCommitCharacters;
 }

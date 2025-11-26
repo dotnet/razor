@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.RazorVSInternalCompletionList?>;
 
@@ -41,7 +40,6 @@ internal sealed class CohostDocumentCompletionEndpoint(
 #pragma warning disable RS0030 // Do not use banned APIs
     [Import(AllowDefault = true)] ISnippetCompletionItemProvider? snippetCompletionItemProvider,
 #pragma warning restore RS0030 // Do not use banned APIs
-    LanguageServerFeatureOptions languageServerFeatureOptions,
     IHtmlRequestInvoker requestInvoker,
     CompletionListCache completionListCache,
     ITelemetryReporter telemetryReporter,
@@ -52,8 +50,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
     private readonly ISnippetCompletionItemProvider? _snippetCompletionItemProvider = snippetCompletionItemProvider;
-    private readonly CompletionTriggerAndCommitCharacters _triggerAndCommitCharacters = new(languageServerFeatureOptions);
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
+    private readonly CompletionTriggerAndCommitCharacters _triggerAndCommitCharacters = new(clientCapabilitiesService);
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
     private readonly CompletionListCache _completionListCache = completionListCache;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
@@ -73,8 +70,8 @@ internal sealed class CohostDocumentCompletionEndpoint(
                 RegisterOptions = new CompletionRegistrationOptions()
                 {
                     ResolveProvider = true,
-                    TriggerCharacters = [.. _triggerAndCommitCharacters.AllTriggerCharacters],
-                    AllCommitCharacters = [.. _triggerAndCommitCharacters.AllCommitCharacters]
+                    TriggerCharacters = _triggerAndCommitCharacters.AllTriggerCharacters,
+                    AllCommitCharacters = _triggerAndCommitCharacters.AllCommitCharacters
                 }
             }];
         }
@@ -143,7 +140,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
             SnippetsSupported: true, // always true in non-legacy Razor, always false in legacy Razor
             AutoInsertAttributeQuotes: clientSettings.AdvancedSettings.AutoInsertAttributeQuotes,
             CommitElementsWithSpace: clientSettings.AdvancedSettings.CommitElementsWithSpace,
-            UseVsCodeCompletionCommitCharacters: _languageServerFeatureOptions.UseVsCodeCompletionCommitCharacters);
+            UseVsCodeCompletionCommitCharacters: !_clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions);
         using var _ = HashSetPool<string>.GetPooledObject(out var existingHtmlCompletions);
 
         if (_triggerAndCommitCharacters.IsValidHtmlTrigger(completionContext))

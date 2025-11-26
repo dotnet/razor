@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
@@ -852,15 +851,10 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             autoInsertAttributeQuotes: false);
     }
 
+#if VSCODE
     [Fact]
     public async Task TagHelperAttributes_NoCommitChars_VSCode()
     {
-        UpdateClientInitializationOptions(c =>
-        {
-            c.UseVsCodeCompletionCommitCharacters = true;
-            return c;
-        });
-
         var list = await VerifyCompletionListAsync(
             input: """
                 This is a Razor document.
@@ -881,6 +875,7 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
 
         Assert.All(list.Items, item => Assert.DoesNotContain("=", item.CommitCharacters ?? []));
     }
+#endif
 
     [Fact]
     public async Task ComponentWithEditorRequiredAttributes()
@@ -1073,8 +1068,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         snippetCompletionItemProvider.SnippetCache.Update(SnippetLanguage.Html, snippetInfos);
 #endif
 
-        var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(useVsCodeCompletionCommitCharacters: useVsCodeCompletionCommitCharacters);
-
         var completionListCache = new CompletionListCache();
         var endpoint = new CohostDocumentCompletionEndpoint(
             IncompatibleProjectService,
@@ -1082,7 +1075,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             ClientSettingsManager,
             ClientCapabilitiesService,
             snippetCompletionItemProvider,
-            languageServerFeatureOptions,
             requestInvoker,
             completionListCache,
             NoOpTelemetryReporter.Instance,
@@ -1162,8 +1154,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
         // Assert the request invoker is passed a RazorVSInternalCompletionParams
         var requestInvoker = new TestHtmlRequestInvoker((Methods.TextDocumentCompletionName, ValidateArgType));
 
-        var languageServerFeatureOptions = new TestLanguageServerFeatureOptions();
-
         var completionListCache = new CompletionListCache();
         var endpoint = new CohostDocumentCompletionEndpoint(
             IncompatibleProjectService,
@@ -1171,7 +1161,6 @@ public class CohostDocumentCompletionEndpointTest(ITestOutputHelper testOutputHe
             ClientSettingsManager,
             ClientCapabilitiesService,
             new ThrowingSnippetCompletionItemResolveProvider(),
-            languageServerFeatureOptions,
             requestInvoker,
             completionListCache,
             NoOpTelemetryReporter.Instance,

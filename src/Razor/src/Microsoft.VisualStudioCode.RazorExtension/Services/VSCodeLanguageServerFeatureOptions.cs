@@ -25,5 +25,4 @@ internal class VSCodeLanguageServerFeatureOptions() : LanguageServerFeatureOptio
 
     // Options that differ from the default
     public override bool SupportsSoftSelectionInCompletion => false;
-    public override bool UseVsCodeCompletionCommitCharacters => true;
 }
