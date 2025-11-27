@@ -26,7 +26,6 @@ internal sealed class RenameEndpoint(
     IClientConnection clientConnection,
     ILoggerFactory loggerFactory)
     : AbstractRazorDelegatingEndpoint<RenameParams, WorkspaceEdit?>(
-        languageServerFeatureOptions,
         documentMappingService,
         clientConnection,
         loggerFactory.GetOrCreateLogger<RenameEndpoint>()), ICapabilitiesProvider
