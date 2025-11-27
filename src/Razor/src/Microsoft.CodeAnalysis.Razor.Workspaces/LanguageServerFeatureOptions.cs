@@ -7,8 +7,6 @@ internal abstract class LanguageServerFeatureOptions
 {
     public abstract bool SupportsFileManipulation { get; }
 
-    public abstract string CSharpVirtualDocumentSuffix { get; }
-
     public abstract bool SingleServerSupport { get; }
 
     public abstract bool ShowAllCSharpCodeActions { get; }

@@ -6,6 +6,7 @@ namespace Microsoft.CodeAnalysis.Razor.Protocol;
 internal static class LanguageServerConstants
 {
     public const string HtmlVirtualDocumentSuffix = "__virtual.html";
+    public const string CSharpVirtualDocumentSuffix = ".ide.g.cs";
 
     public const string RazorLanguageQueryEndpoint = "razor/languageQuery";
 

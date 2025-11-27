@@ -113,8 +113,7 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
         var documentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument);
         var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options =>
             options.SupportsFileManipulation == true &&
-            options.SingleServerSupport == true &&
-            options.CSharpVirtualDocumentSuffix == ".g.cs",
+            options.SingleServerSupport == true,
             MockBehavior.Strict);
 
         var languageServer = new DocumentHighlightServer(csharpServer, csharpDocumentUri);

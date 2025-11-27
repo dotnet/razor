@@ -20,5 +20,4 @@ internal class VSCodeLanguageServerFeatureOptions() : LanguageServerFeatureOptio
 
     // Options that don't apply to VS Code/Cohosting at all
     public override bool SingleServerSupport => throw new InvalidOperationException();
-    public override string CSharpVirtualDocumentSuffix => throw new InvalidOperationException();
 }

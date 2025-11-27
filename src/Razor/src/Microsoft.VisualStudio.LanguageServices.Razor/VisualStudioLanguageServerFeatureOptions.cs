@@ -39,8 +39,6 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
     // We don't currently support file creation operations on VS Codespaces or VS Liveshare
     public override bool SupportsFileManipulation => !IsCodespacesOrLiveshare;
 
-    public override string CSharpVirtualDocumentSuffix => ".ide.g.cs";
-
     public override bool SingleServerSupport => true;
 
     public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => false;

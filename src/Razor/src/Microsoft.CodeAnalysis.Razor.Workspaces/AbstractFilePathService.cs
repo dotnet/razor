@@ -14,7 +14,7 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
     public string GetRazorCSharpFilePath(ProjectKey projectKey, string razorFilePath)
-        => GetGeneratedFilePath(projectKey, razorFilePath, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
+        => GetGeneratedFilePath(projectKey, razorFilePath, LanguageServerConstants.CSharpVirtualDocumentSuffix);
 
     public virtual Uri GetRazorDocumentUri(Uri virtualDocumentUri)
     {
@@ -25,7 +25,7 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
     }
 
     public virtual bool IsVirtualCSharpFile(Uri uri)
-        => CheckIfFileUriAndExtensionMatch(uri, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
+        => CheckIfFileUriAndExtensionMatch(uri, LanguageServerConstants.CSharpVirtualDocumentSuffix);
 
     public bool IsVirtualHtmlFile(Uri uri)
         => CheckIfFileUriAndExtensionMatch(uri, LanguageServerConstants.HtmlVirtualDocumentSuffix);
@@ -44,7 +44,7 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
         // random path.
         if (trimIndex == -1 && !_languageServerFeatureOptions.UseRazorCohostServer)
         {
-            trimIndex = filePath.LastIndexOf(_languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
+            trimIndex = filePath.LastIndexOf(LanguageServerConstants.CSharpVirtualDocumentSuffix);
 
             if (trimIndex == -1)
             {

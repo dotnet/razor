@@ -57,8 +57,7 @@ public abstract partial class SingleServerDelegatingEndpointTestBase(ITestOutput
 
         LanguageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options =>
             options.SupportsFileManipulation == true &&
-            options.SingleServerSupport == true &&
-            options.CSharpVirtualDocumentSuffix == DefaultLanguageServerFeatureOptions.DefaultCSharpVirtualDocumentSuffix,
+            options.SingleServerSupport == true,
             MockBehavior.Strict);
 
         DocumentMappingService = new LspDocumentMappingService(FilePathService, DocumentContextFactory, LoggerFactory);
