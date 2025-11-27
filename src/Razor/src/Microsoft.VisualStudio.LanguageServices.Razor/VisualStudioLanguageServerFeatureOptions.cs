@@ -14,17 +14,11 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
 {
     private readonly ILspEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly Lazy<bool> _showAllCSharpCodeActions;
-    private readonly Lazy<bool> _includeProjectKeyInGeneratedFilePath;
     private readonly Lazy<bool> _useRazorCohostServer;
 
     [ImportingConstructor]
     public VisualStudioLanguageServerFeatureOptions(ILspEditorFeatureDetector lspEditorFeatureDetector)
     {
-        if (lspEditorFeatureDetector is null)
-        {
-            throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
-        }
-
         _lspEditorFeatureDetector = lspEditorFeatureDetector;
 
         _showAllCSharpCodeActions = new Lazy<bool>(() =>
@@ -32,13 +26,6 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
             var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
             var showAllCSharpCodeActions = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.ShowAllCSharpCodeActions, defaultValue: false);
             return showAllCSharpCodeActions;
-        });
-
-        _includeProjectKeyInGeneratedFilePath = new Lazy<bool>(() =>
-        {
-            var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
-            var includeProjectKeyInGeneratedFilePath = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.IncludeProjectKeyInGeneratedFilePath, defaultValue: true);
-            return includeProjectKeyInGeneratedFilePath;
         });
 
         _useRazorCohostServer = new Lazy<bool>(() =>
@@ -61,8 +48,6 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
     private bool IsCodespacesOrLiveshare => _lspEditorFeatureDetector.IsRemoteClient() || _lspEditorFeatureDetector.IsLiveShareHost();
 
     public override bool ShowAllCSharpCodeActions => _showAllCSharpCodeActions.Value;
-
-    public override bool IncludeProjectKeyInGeneratedFilePath => _includeProjectKeyInGeneratedFilePath.Value;
 
     public override bool UseRazorCohostServer => _useRazorCohostServer.Value;
 }

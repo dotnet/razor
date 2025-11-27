@@ -17,11 +17,5 @@ internal abstract class LanguageServerFeatureOptions
     // https://github.com/dotnet/razor/issues/8131
     public abstract bool ReturnCodeActionAndRenamePathsWithPrefixedSlash { get; }
 
-    /// <summary>
-    /// Whether the file path for the generated C# documents should utilize the project key to
-    /// ensure a unique file path per project.
-    /// </summary>
-    public abstract bool IncludeProjectKeyInGeneratedFilePath { get; }
-
     public abstract bool UseRazorCohostServer { get; }
 }

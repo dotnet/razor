@@ -19,7 +19,6 @@ internal class VSCodeLanguageServerFeatureOptions() : LanguageServerFeatureOptio
     public override bool UseRazorCohostServer => true;
 
     // Options that don't apply to VS Code/Cohosting at all
-    public override bool IncludeProjectKeyInGeneratedFilePath => throw new InvalidOperationException();
     public override bool SingleServerSupport => throw new InvalidOperationException();
     public override string CSharpVirtualDocumentSuffix => throw new InvalidOperationException();
 }

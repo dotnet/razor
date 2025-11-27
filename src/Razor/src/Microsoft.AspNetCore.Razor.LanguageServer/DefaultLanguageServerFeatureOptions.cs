@@ -22,7 +22,5 @@ internal class DefaultLanguageServerFeatureOptions : LanguageServerFeatureOption
 
     public override bool ShowAllCSharpCodeActions => false;
 
-    public override bool IncludeProjectKeyInGeneratedFilePath => false;
-
     public override bool UseRazorCohostServer => false;
 }

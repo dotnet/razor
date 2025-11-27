@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 namespace Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 
 internal class TestLanguageServerFeatureOptions(
-    bool includeProjectKeyInGeneratedFilePath = false,
     bool showAllCSharpCodeActions = false) : LanguageServerFeatureOptions
 {
     public static readonly LanguageServerFeatureOptions Instance = new TestLanguageServerFeatureOptions();
@@ -20,8 +19,6 @@ internal class TestLanguageServerFeatureOptions(
     public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => false;
 
     public override bool ShowAllCSharpCodeActions => showAllCSharpCodeActions;
-
-    public override bool IncludeProjectKeyInGeneratedFilePath => includeProjectKeyInGeneratedFilePath;
 
     public override bool UseRazorCohostServer => false;
 }

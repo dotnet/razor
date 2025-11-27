@@ -193,7 +193,7 @@ public class CSharpVirtualDocumentFactoryTest : VisualStudioTestBase
             updater.AddDocument(hostProject2.Key, hostDocument2, EmptyTextLoader.Instance);
         });
 
-        var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true);
+        var languageServerFeatureOptions = new TestLanguageServerFeatureOptions();
         var filePathService = new VisualStudioFilePathService(languageServerFeatureOptions);
         var factory = new CSharpVirtualDocumentFactory(
             _contentTypeRegistryService,

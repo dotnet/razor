@@ -52,15 +52,11 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
                 return filePath;
             }
 
-            // If this is a C# generated file, and we're including the project suffix, then filename will be
-            // <Page>.razor.<project slug><c# suffix>
-            if (_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
-            {
-                // We can remove the project key easily, by just looking for the last '.'. The project
-                // slug itself cannot a '.', enforced by the assert below in GetProjectSuffix
-                trimIndex = filePath.LastIndexOf('.', trimIndex - 1);
-                Debug.Assert(trimIndex != -1, "There was no project element to the generated file name?");
-            }
+            // If this is a C# generated file, then filename will be <Page>.razor.<project slug><c# suffix>
+            // We can remove the project key easily, by just looking for the last '.'. The project
+            // slug itself cannot a '.', enforced by the assert below in GetProjectSuffix
+            trimIndex = filePath.LastIndexOf('.', trimIndex - 1);
+            Debug.Assert(trimIndex != -1, "There was no project element to the generated file name?");
         }
 
         if (trimIndex != -1)
@@ -80,11 +76,6 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
 
     private string GetProjectSuffix(ProjectKey projectKey)
     {
-        if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
-        {
-            return string.Empty;
-        }
-
         // If there is no project key, we still want to generate something as otherwise the GetRazorFilePath method
         // would end up unnecessarily overcomplicated
         if (projectKey.IsUnknown)
