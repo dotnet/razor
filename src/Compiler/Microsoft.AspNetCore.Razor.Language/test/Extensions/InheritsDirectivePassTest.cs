@@ -36,10 +36,10 @@ public class InheritsDirectivePassTest : RazorProjectEngineTestBase
         var codeDocument = ProjectEngine.CreateCodeDocument("@inherits Hello<World[]>");
         var processor = CreateCodeDocumentProcessor(codeDocument);
 
-        processor.ExecutePhasesThrough<IRazorDocumentClassifierPhase>();
+        processor = processor.ExecutePhasesThrough<IRazorDocumentClassifierPhase>();
 
         // Act
-        processor.ExecutePass<InheritsDirectivePass>();
+        processor = processor.ExecutePass<InheritsDirectivePass>();
 
 
         // Assert
