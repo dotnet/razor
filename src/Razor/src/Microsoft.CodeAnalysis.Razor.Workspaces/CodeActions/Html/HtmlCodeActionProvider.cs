@@ -53,7 +53,7 @@ internal class HtmlCodeActionProvider(IEditMappingService editMappingService) : 
         // NOTE: We iterate over just the TextDocumentEdit objects and modify them in place.
         // We intentionally do NOT create a new WorkspaceEdit here to avoid losing any
         // CreateFile, RenameFile, or DeleteFile operations that may be in DocumentChanges.
-        foreach (var edit in codeAction.Edit.GetTextDocumentEdits())
+        foreach (var edit in codeAction.Edit.EnumerateTextDocumentEdits())
         {
             edit.Edits = FormattingUtilities.FixHtmlTextEdits(htmlSourceText, edit.Edits);
         }

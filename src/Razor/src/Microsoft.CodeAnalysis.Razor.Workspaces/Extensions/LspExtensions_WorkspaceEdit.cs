@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 internal static partial class LspExtensions
 {
     /// <summary>
-    /// Gets the <see cref="TextDocumentEdit"/> objects from the <see cref="WorkspaceEdit.DocumentChanges"/> property.
+    /// Enumerates the <see cref="TextDocumentEdit"/> objects from the <see cref="WorkspaceEdit.DocumentChanges"/> property.
     /// </summary>
     /// <remarks>
     /// WARNING: This method only yields <see cref="TextDocumentEdit"/> objects. If the <see cref="WorkspaceEdit"/>
@@ -16,7 +16,7 @@ internal static partial class LspExtensions
     /// they will NOT be included. Be careful not to create a new <see cref="WorkspaceEdit"/> with just the
     /// results of this method, as doing so would lose those operations and could lead to data loss.
     /// </remarks>
-    public static IEnumerable<TextDocumentEdit> GetTextDocumentEdits(this WorkspaceEdit workspaceEdit)
+    public static IEnumerable<TextDocumentEdit> EnumerateTextDocumentEdits(this WorkspaceEdit workspaceEdit)
     {
         if (workspaceEdit.DocumentChanges?.Value is TextDocumentEdit[] documentEdits)
         {

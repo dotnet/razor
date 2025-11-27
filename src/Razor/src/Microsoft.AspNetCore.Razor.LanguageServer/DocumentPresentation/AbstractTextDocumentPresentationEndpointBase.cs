@@ -204,14 +204,13 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
 
     private WorkspaceEdit? MapWorkspaceEdit(WorkspaceEdit workspaceEdit, bool mapRanges, RazorCodeDocument codeDocument)
     {
-        var documentEdits = workspaceEdit.GetTextDocumentEdits().ToArray();
-        if (documentEdits.Length > 0)
+        // Handle DocumentChanges - we need to preserve CreateFile, RenameFile, DeleteFile operations
+        if (workspaceEdit.DocumentChanges is { } documentChanges)
         {
-            // The LSP spec says, we should prefer `DocumentChanges` property over `Changes` if available.
-            var remappedEdits = MapDocumentChanges(documentEdits, mapRanges, codeDocument);
+            var remappedDocumentChanges = MapAllDocumentChanges(documentChanges, mapRanges, codeDocument);
             return new WorkspaceEdit()
             {
-                DocumentChanges = remappedEdits
+                DocumentChanges = remappedDocumentChanges
             };
         }
         else if (workspaceEdit.Changes != null)
@@ -224,6 +223,47 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
         }
 
         return workspaceEdit;
+    }
+
+    private SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> MapAllDocumentChanges(
+        SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> documentChanges,
+        bool mapRanges,
+        RazorCodeDocument codeDocument)
+    {
+        // If it's just TextDocumentEdit[], remap and return
+        if (documentChanges.Value is TextDocumentEdit[] textDocumentEdits)
+        {
+            return MapDocumentChanges(textDocumentEdits, mapRanges, codeDocument);
+        }
+
+        // If it's SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[], we need to preserve non-TextDocumentEdit operations
+        if (documentChanges.Value is SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] sumTypeArray)
+        {
+            using var result = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>(sumTypeArray.Length);
+
+            foreach (var item in sumTypeArray)
+            {
+                if (item.Value is TextDocumentEdit textDocumentEdit)
+                {
+                    // Remap the TextDocumentEdit
+                    var remapped = MapDocumentChanges([textDocumentEdit], mapRanges, codeDocument);
+                    if (remapped.Length > 0)
+                    {
+                        result.Add(remapped[0]);
+                    }
+                }
+                else
+                {
+                    // Preserve CreateFile, RenameFile, DeleteFile operations as-is
+                    result.Add(item);
+                }
+            }
+
+            return result.ToArray();
+        }
+
+        // Fallback - should not happen
+        return Array.Empty<TextDocumentEdit>();
     }
 
     protected record DocumentSnapshotAndVersion(IDocumentSnapshot Snapshot, int Version);

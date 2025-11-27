@@ -23,15 +23,14 @@ internal abstract class AbstractEditMappingService(
 
     public async Task<WorkspaceEdit> RemapWorkspaceEditAsync(IDocumentSnapshot contextDocumentSnapshot, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
     {
-        var documentEdits = workspaceEdit.GetTextDocumentEdits().ToArray();
-        if (documentEdits.Length > 0)
+        // Handle DocumentChanges - we need to preserve CreateFile, RenameFile, DeleteFile operations
+        if (workspaceEdit.DocumentChanges is { } documentChanges)
         {
-            // The LSP spec says, we should prefer `DocumentChanges` property over `Changes` if available.
-            var remappedEdits = await RemapTextDocumentEditsAsync(contextDocumentSnapshot, documentEdits, cancellationToken).ConfigureAwait(false);
+            var remappedDocumentChanges = await RemapDocumentChangesAsync(contextDocumentSnapshot, documentChanges, cancellationToken).ConfigureAwait(false);
 
             return new WorkspaceEdit()
             {
-                DocumentChanges = remappedEdits
+                DocumentChanges = remappedDocumentChanges
             };
         }
 
@@ -93,6 +92,47 @@ internal abstract class AbstractEditMappingService(
         }
 
         return remappedChanges;
+    }
+
+    private async Task<SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]>> RemapDocumentChangesAsync(
+        IDocumentSnapshot contextDocumentSnapshot,
+        SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> documentChanges,
+        CancellationToken cancellationToken)
+    {
+        // If it's just TextDocumentEdit[], remap and return
+        if (documentChanges.Value is TextDocumentEdit[] textDocumentEdits)
+        {
+            return await RemapTextDocumentEditsAsync(contextDocumentSnapshot, textDocumentEdits, cancellationToken).ConfigureAwait(false);
+        }
+
+        // If it's SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[], we need to preserve non-TextDocumentEdit operations
+        if (documentChanges.Value is SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] sumTypeArray)
+        {
+            using var result = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>(sumTypeArray.Length);
+
+            foreach (var item in sumTypeArray)
+            {
+                if (item.Value is TextDocumentEdit textDocumentEdit)
+                {
+                    // Remap the TextDocumentEdit
+                    var remapped = await RemapTextDocumentEditsAsync(contextDocumentSnapshot, [textDocumentEdit], cancellationToken).ConfigureAwait(false);
+                    if (remapped.Length > 0)
+                    {
+                        result.Add(remapped[0]);
+                    }
+                }
+                else
+                {
+                    // Preserve CreateFile, RenameFile, DeleteFile operations as-is
+                    result.Add(item);
+                }
+            }
+
+            return result.ToArray();
+        }
+
+        // Fallback - should not happen
+        return Array.Empty<TextDocumentEdit>();
     }
 
     private TextEdit[] RemapTextEditsCore(RazorCSharpDocument csharpDocument, TextEdit[] edits)

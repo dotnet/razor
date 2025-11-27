@@ -85,7 +85,7 @@ public class HtmlCodeActionResolverTest(ITestOutputHelper testOutput) : Language
 
         // Assert
         Assert.NotNull(action.Edit);
-        var documentEdits = action.Edit.GetTextDocumentEdits().ToArray();
+        var documentEdits = action.Edit.EnumerateTextDocumentEdits().ToArray();
         Assert.NotEmpty(documentEdits);
         Assert.Equal(documentPath, documentEdits[0].TextDocument.DocumentUri.GetRequiredParsedUri().AbsolutePath);
 
