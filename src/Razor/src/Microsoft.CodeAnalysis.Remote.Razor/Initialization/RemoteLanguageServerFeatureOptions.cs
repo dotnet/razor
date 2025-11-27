@@ -37,6 +37,4 @@ internal class RemoteLanguageServerFeatureOptions : LanguageServerFeatureOptions
     public override bool IncludeProjectKeyInGeneratedFilePath => throw new InvalidOperationException("This option does not apply in cohosting.");
 
     public override bool UseRazorCohostServer => _options.UseRazorCohostServer;
-
-    public override bool SupportsSoftSelectionInCompletion => _options.SupportsSoftSelectionInCompletion;
 }

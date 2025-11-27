@@ -89,7 +89,6 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
             ReturnCodeActionAndRenamePathsWithPrefixedSlash = false,
             SupportsFileManipulation = true,
             ShowAllCSharpCodeActions = false,
-            SupportsSoftSelectionInCompletion = true,
         };
         UpdateClientInitializationOptions(c => c);
 

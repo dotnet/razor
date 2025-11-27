@@ -25,6 +25,4 @@ internal class DefaultLanguageServerFeatureOptions : LanguageServerFeatureOption
     public override bool IncludeProjectKeyInGeneratedFilePath => false;
 
     public override bool UseRazorCohostServer => false;
-
-    public override bool SupportsSoftSelectionInCompletion => true;
 }

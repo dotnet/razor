@@ -18,7 +18,4 @@ internal struct RemoteClientInitializationOptions
 
     [JsonPropertyName("showAllCSharpCodeActions")]
     public required bool ShowAllCSharpCodeActions { get; set; }
-
-    [JsonPropertyName("supportsSoftSelectionInCompletion")]
-    public required bool SupportsSoftSelectionInCompletion { get; set; }
 }

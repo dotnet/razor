@@ -22,7 +22,4 @@ internal class VSCodeLanguageServerFeatureOptions() : LanguageServerFeatureOptio
     public override bool IncludeProjectKeyInGeneratedFilePath => throw new InvalidOperationException();
     public override bool SingleServerSupport => throw new InvalidOperationException();
     public override string CSharpVirtualDocumentSuffix => throw new InvalidOperationException();
-
-    // Options that differ from the default
-    public override bool SupportsSoftSelectionInCompletion => false;
 }

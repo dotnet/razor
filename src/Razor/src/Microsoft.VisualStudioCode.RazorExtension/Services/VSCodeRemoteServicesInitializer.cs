@@ -57,7 +57,6 @@ internal class VSCodeRemoteServicesInitializer(
             ReturnCodeActionAndRenamePathsWithPrefixedSlash = _featureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash,
             SupportsFileManipulation = _featureOptions.SupportsFileManipulation,
             ShowAllCSharpCodeActions = _featureOptions.ShowAllCSharpCodeActions,
-            SupportsSoftSelectionInCompletion = _featureOptions.SupportsSoftSelectionInCompletion,
         }, cancellationToken).ConfigureAwait(false);
 
         await service.InitializeLspAsync(new RemoteClientLSPInitializationOptions
