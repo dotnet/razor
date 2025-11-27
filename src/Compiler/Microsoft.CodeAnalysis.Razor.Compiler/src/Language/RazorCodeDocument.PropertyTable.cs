@@ -45,6 +45,13 @@ public sealed partial class RazorCodeDocument
             return clone;
         }
 
+        internal PropertyTable ToHostOutput()
+        {
+            var clone = new PropertyTable();
+            Array.Copy(_values, clone._values, Size);
+            return clone;
+        }
+
         /// <summary>
         ///  Provides access to a specific slot within an array for a given reference type.
         /// </summary>
