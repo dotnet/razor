@@ -67,7 +67,7 @@ internal sealed class DefinitionEndpoint(
 
         // If single server support is on, then we ignore attributes, as they are better handled by delegating to Roslyn
         var results = await _definitionService
-            .GetDefinitionAsync(documentContext.Snapshot, positionInfo, _projectManager.GetQueryOperations(), ignoreComponentAttributes: true, includeMvcTagHelpers: false, cancellationToken)
+            .GetDefinitionAsync(documentContext.Snapshot, positionInfo, _projectManager.GetQueryOperations(), includeMvcTagHelpers: false, cancellationToken)
             .ConfigureAwait(false);
 
         // We know there will only be one result, because without tag helper support there can't be anything else
