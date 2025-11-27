@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -25,8 +24,6 @@ internal class RemoteLanguageServerFeatureOptions : LanguageServerFeatureOptions
     }
 
     public override bool SupportsFileManipulation => _options.SupportsFileManipulation;
-
-    public override bool SingleServerSupport => throw new InvalidOperationException("This option has not been synced to OOP.");
 
     public override bool ShowAllCSharpCodeActions => _options.ShowAllCSharpCodeActions;
 

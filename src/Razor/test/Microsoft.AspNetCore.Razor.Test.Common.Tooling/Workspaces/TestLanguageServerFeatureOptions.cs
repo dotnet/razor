@@ -12,8 +12,6 @@ internal class TestLanguageServerFeatureOptions(
 
     public override bool SupportsFileManipulation => false;
 
-    public override bool SingleServerSupport => false;
-
     public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => false;
 
     public override bool ShowAllCSharpCodeActions => showAllCSharpCodeActions;

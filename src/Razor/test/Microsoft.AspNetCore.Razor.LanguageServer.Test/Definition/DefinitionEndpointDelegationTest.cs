@@ -247,7 +247,7 @@ public class DefinitionEndpointDelegationTest(ITestOutputHelper testOutput) : Si
         Assert.True(DocumentContextFactory.TryCreate(razorUri, out var documentContext));
         var requestContext = CreateRazorRequestContext(documentContext);
 
-        var endpoint = new DefinitionEndpoint(definitionService, DocumentMappingService, projectManager, LanguageServerFeatureOptions, languageServer, LoggerFactory);
+        var endpoint = new DefinitionEndpoint(definitionService, DocumentMappingService, projectManager, languageServer, LoggerFactory);
 
         var request = new TextDocumentPositionParams
         {

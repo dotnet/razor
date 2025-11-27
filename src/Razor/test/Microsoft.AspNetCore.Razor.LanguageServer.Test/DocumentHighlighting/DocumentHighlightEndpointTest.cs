@@ -112,15 +112,13 @@ public class DocumentHighlightEndpointTest(ITestOutputHelper testOutput) : Langu
         var razorFilePath = "C:/path/to/file.razor";
         var documentContextFactory = new TestDocumentContextFactory(razorFilePath, codeDocument);
         var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options =>
-            options.SupportsFileManipulation == true &&
-            options.SingleServerSupport == true,
+            options.SupportsFileManipulation == true,
             MockBehavior.Strict);
 
         var languageServer = new DocumentHighlightServer(csharpServer, csharpDocumentUri);
         var documentMappingService = new LspDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
 
-        var endpoint = new DocumentHighlightEndpoint(
-            languageServerFeatureOptions, documentMappingService, languageServer, LoggerFactory);
+        var endpoint = new DocumentHighlightEndpoint(documentMappingService, languageServer, LoggerFactory);
 
         var request = new DocumentHighlightParams
         {
