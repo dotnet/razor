@@ -3,11 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
@@ -145,51 +143,6 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
         return remappedChanges;
     }
 
-    private TextDocumentEdit[] MapDocumentChanges(TextDocumentEdit[] documentEdits, bool mapRanges, RazorCodeDocument codeDocument)
-    {
-        using var remappedDocumentEdits = new PooledArrayBuilder<TextDocumentEdit>(documentEdits.Length);
-        foreach (var entry in documentEdits)
-        {
-            if (TryMapSingleTextDocumentEdit(entry, mapRanges, codeDocument, out var mappedEdit))
-            {
-                remappedDocumentEdits.Add(mappedEdit);
-            }
-        }
-
-        return remappedDocumentEdits.ToArray();
-    }
-
-    private bool TryMapSingleTextDocumentEdit(TextDocumentEdit entry, bool mapRanges, RazorCodeDocument codeDocument, [NotNullWhen(true)] out TextDocumentEdit? mappedEdit)
-    {
-        var uri = entry.TextDocument.DocumentUri.GetRequiredParsedUri();
-        if (!_filePathService.IsVirtualDocumentUri(uri))
-        {
-            // This location doesn't point to a background razor file. No need to remap.
-            mappedEdit = entry;
-            return true;
-        }
-
-        var edits = entry.Edits;
-        var remappedEdits = MapTextEdits(mapRanges, codeDocument, edits);
-        if (remappedEdits is null || remappedEdits.Length == 0)
-        {
-            // Nothing to do.
-            mappedEdit = null;
-            return false;
-        }
-
-        var razorDocumentUri = _filePathService.GetRazorDocumentUri(uri);
-        mappedEdit = new TextDocumentEdit()
-        {
-            TextDocument = new OptionalVersionedTextDocumentIdentifier()
-            {
-                DocumentUri = new(razorDocumentUri),
-            },
-            Edits = [.. remappedEdits]
-        };
-        return true;
-    }
-
     private TextEdit[] MapTextEdits(bool mapRanges, RazorCodeDocument codeDocument, IEnumerable<SumType<TextEdit, AnnotatedTextEdit>> edits)
     {
         using var mappedEdits = new PooledArrayBuilder<TextEdit>();
@@ -216,16 +169,19 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
 
     private WorkspaceEdit? MapWorkspaceEdit(WorkspaceEdit workspaceEdit, bool mapRanges, RazorCodeDocument codeDocument)
     {
-        // Handle DocumentChanges - we need to preserve CreateFile, RenameFile, DeleteFile operations
-        if (workspaceEdit.DocumentChanges is { } documentChanges)
+        // Handle DocumentChanges - iterate through TextDocumentEdits and modify them in-place.
+        // This preserves CreateFile, RenameFile, DeleteFile operations automatically since we don't create a new array.
+        foreach (var textDocumentEdit in workspaceEdit.EnumerateTextDocumentEdits())
         {
-            var remappedDocumentChanges = MapAllDocumentChanges(documentChanges, mapRanges, codeDocument);
-            return new WorkspaceEdit()
-            {
-                DocumentChanges = remappedDocumentChanges
-            };
+            MapTextDocumentEditInPlace(textDocumentEdit, mapRanges, codeDocument);
         }
-        else if (workspaceEdit.Changes != null)
+
+        if (workspaceEdit.DocumentChanges is not null)
+        {
+            return workspaceEdit;
+        }
+
+        if (workspaceEdit.Changes != null)
         {
             var remappedEdits = MapChanges(workspaceEdit.Changes, mapRanges, codeDocument);
             return new WorkspaceEdit()
@@ -237,43 +193,26 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
         return workspaceEdit;
     }
 
-    private SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> MapAllDocumentChanges(
-        SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> documentChanges,
-        bool mapRanges,
-        RazorCodeDocument codeDocument)
+    private void MapTextDocumentEditInPlace(TextDocumentEdit entry, bool mapRanges, RazorCodeDocument codeDocument)
     {
-        // If it's just TextDocumentEdit[], remap and return
-        if (documentChanges.Value is TextDocumentEdit[] textDocumentEdits)
+        var uri = entry.TextDocument.DocumentUri.GetRequiredParsedUri();
+        if (!_filePathService.IsVirtualDocumentUri(uri))
         {
-            return MapDocumentChanges(textDocumentEdits, mapRanges, codeDocument);
+            // This location doesn't point to a background razor file. No need to remap.
+            return;
         }
 
-        // If it's SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[], we need to preserve non-TextDocumentEdit operations
-        if (documentChanges.Value is SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] sumTypeArray)
+        var edits = entry.Edits;
+        var remappedEdits = MapTextEdits(mapRanges, codeDocument, edits);
+
+        var razorDocumentUri = _filePathService.GetRazorDocumentUri(uri);
+
+        // Update the entry in-place
+        entry.TextDocument = new OptionalVersionedTextDocumentIdentifier()
         {
-            using var result = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>(sumTypeArray.Length);
-
-            foreach (var item in sumTypeArray)
-            {
-                if (item.Value is TextDocumentEdit textDocumentEdit)
-                {
-                    // Remap the TextDocumentEdit using extracted method to avoid array allocation
-                    if (TryMapSingleTextDocumentEdit(textDocumentEdit, mapRanges, codeDocument, out var mappedEdit))
-                    {
-                        result.Add(mappedEdit);
-                    }
-                }
-                else
-                {
-                    // Preserve CreateFile, RenameFile, DeleteFile operations as-is
-                    result.Add(item);
-                }
-            }
-
-            return result.ToArray();
-        }
-
-        return Assumed.Unreachable<SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]>>();
+            DocumentUri = new(razorDocumentUri),
+        };
+        entry.Edits = [.. remappedEdits];
     }
 
     protected record DocumentSnapshotAndVersion(IDocumentSnapshot Snapshot, int Version);
