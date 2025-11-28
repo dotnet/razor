@@ -143,41 +143,6 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
         return remappedChanges;
     }
 
-    private TextDocumentEdit[] MapDocumentChanges(TextDocumentEdit[] documentEdits, bool mapRanges, RazorCodeDocument codeDocument)
-    {
-        using var remappedDocumentEdits = new PooledArrayBuilder<TextDocumentEdit>(documentEdits.Length);
-        foreach (var entry in documentEdits)
-        {
-            var uri = entry.TextDocument.DocumentUri.GetRequiredParsedUri();
-            if (!_filePathService.IsVirtualDocumentUri(uri))
-            {
-                // This location doesn't point to a background razor file. No need to remap.
-                remappedDocumentEdits.Add(entry);
-                continue;
-            }
-
-            var edits = entry.Edits;
-            var remappedEdits = MapTextEdits(mapRanges, codeDocument, edits);
-            if (remappedEdits is null || remappedEdits.Length == 0)
-            {
-                // Nothing to do.
-                continue;
-            }
-
-            var razorDocumentUri = _filePathService.GetRazorDocumentUri(uri);
-            remappedDocumentEdits.Add(new TextDocumentEdit()
-            {
-                TextDocument = new OptionalVersionedTextDocumentIdentifier()
-                {
-                    DocumentUri = new(razorDocumentUri),
-                },
-                Edits = [.. remappedEdits]
-            });
-        }
-
-        return remappedDocumentEdits.ToArray();
-    }
-
     private TextEdit[] MapTextEdits(bool mapRanges, RazorCodeDocument codeDocument, IEnumerable<SumType<TextEdit, AnnotatedTextEdit>> edits)
     {
         using var mappedEdits = new PooledArrayBuilder<TextEdit>();
@@ -204,25 +169,44 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
 
     private WorkspaceEdit? MapWorkspaceEdit(WorkspaceEdit workspaceEdit, bool mapRanges, RazorCodeDocument codeDocument)
     {
-        if (workspaceEdit.TryGetTextDocumentEdits(out var documentEdits))
+        // Handle DocumentChanges - iterate through TextDocumentEdits and modify them in-place.
+        // This preserves CreateFile, RenameFile, DeleteFile operations automatically since we don't create a new array.
+        if (workspaceEdit.DocumentChanges is not null)
         {
-            // The LSP spec says, we should prefer `DocumentChanges` property over `Changes` if available.
-            var remappedEdits = MapDocumentChanges(documentEdits, mapRanges, codeDocument);
-            return new WorkspaceEdit()
+            foreach (var textDocumentEdit in workspaceEdit.EnumerateTextDocumentEdits())
             {
-                DocumentChanges = remappedEdits
-            };
+                MapTextDocumentEditInPlace(textDocumentEdit, mapRanges, codeDocument);
+            }
         }
-        else if (workspaceEdit.Changes != null)
+
+        if (workspaceEdit.Changes is not null)
         {
-            var remappedEdits = MapChanges(workspaceEdit.Changes, mapRanges, codeDocument);
-            return new WorkspaceEdit()
-            {
-                Changes = remappedEdits
-            };
+            workspaceEdit.Changes = MapChanges(workspaceEdit.Changes, mapRanges, codeDocument);
         }
 
         return workspaceEdit;
+    }
+
+    private void MapTextDocumentEditInPlace(TextDocumentEdit entry, bool mapRanges, RazorCodeDocument codeDocument)
+    {
+        var uri = entry.TextDocument.DocumentUri.GetRequiredParsedUri();
+        if (!_filePathService.IsVirtualDocumentUri(uri))
+        {
+            // This location doesn't point to a background razor file. No need to remap.
+            return;
+        }
+
+        var edits = entry.Edits;
+        var remappedEdits = MapTextEdits(mapRanges, codeDocument, edits);
+
+        var razorDocumentUri = _filePathService.GetRazorDocumentUri(uri);
+
+        // Update the entry in-place
+        entry.TextDocument = new OptionalVersionedTextDocumentIdentifier()
+        {
+            DocumentUri = new(razorDocumentUri),
+        };
+        entry.Edits = [.. remappedEdits];
     }
 
     protected record DocumentSnapshotAndVersion(IDocumentSnapshot Snapshot, int Version);
