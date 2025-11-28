@@ -171,17 +171,17 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
     {
         // Handle DocumentChanges - iterate through TextDocumentEdits and modify them in-place.
         // This preserves CreateFile, RenameFile, DeleteFile operations automatically since we don't create a new array.
-        foreach (var textDocumentEdit in workspaceEdit.EnumerateTextDocumentEdits())
-        {
-            MapTextDocumentEditInPlace(textDocumentEdit, mapRanges, codeDocument);
-        }
-
         if (workspaceEdit.DocumentChanges is not null)
         {
+            foreach (var textDocumentEdit in workspaceEdit.EnumerateTextDocumentEdits())
+            {
+                MapTextDocumentEditInPlace(textDocumentEdit, mapRanges, codeDocument);
+            }
+
             return workspaceEdit;
         }
 
-        if (workspaceEdit.Changes != null)
+        if (workspaceEdit.Changes is not null)
         {
             var remappedEdits = MapChanges(workspaceEdit.Changes, mapRanges, codeDocument);
             return new WorkspaceEdit()
