@@ -3,9 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
@@ -148,34 +150,44 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
         using var remappedDocumentEdits = new PooledArrayBuilder<TextDocumentEdit>(documentEdits.Length);
         foreach (var entry in documentEdits)
         {
-            var uri = entry.TextDocument.DocumentUri.GetRequiredParsedUri();
-            if (!_filePathService.IsVirtualDocumentUri(uri))
+            if (TryMapSingleTextDocumentEdit(entry, mapRanges, codeDocument, out var mappedEdit))
             {
-                // This location doesn't point to a background razor file. No need to remap.
-                remappedDocumentEdits.Add(entry);
-                continue;
+                remappedDocumentEdits.Add(mappedEdit);
             }
-
-            var edits = entry.Edits;
-            var remappedEdits = MapTextEdits(mapRanges, codeDocument, edits);
-            if (remappedEdits is null || remappedEdits.Length == 0)
-            {
-                // Nothing to do.
-                continue;
-            }
-
-            var razorDocumentUri = _filePathService.GetRazorDocumentUri(uri);
-            remappedDocumentEdits.Add(new TextDocumentEdit()
-            {
-                TextDocument = new OptionalVersionedTextDocumentIdentifier()
-                {
-                    DocumentUri = new(razorDocumentUri),
-                },
-                Edits = [.. remappedEdits]
-            });
         }
 
         return remappedDocumentEdits.ToArray();
+    }
+
+    private bool TryMapSingleTextDocumentEdit(TextDocumentEdit entry, bool mapRanges, RazorCodeDocument codeDocument, [NotNullWhen(true)] out TextDocumentEdit? mappedEdit)
+    {
+        var uri = entry.TextDocument.DocumentUri.GetRequiredParsedUri();
+        if (!_filePathService.IsVirtualDocumentUri(uri))
+        {
+            // This location doesn't point to a background razor file. No need to remap.
+            mappedEdit = entry;
+            return true;
+        }
+
+        var edits = entry.Edits;
+        var remappedEdits = MapTextEdits(mapRanges, codeDocument, edits);
+        if (remappedEdits is null || remappedEdits.Length == 0)
+        {
+            // Nothing to do.
+            mappedEdit = null;
+            return false;
+        }
+
+        var razorDocumentUri = _filePathService.GetRazorDocumentUri(uri);
+        mappedEdit = new TextDocumentEdit()
+        {
+            TextDocument = new OptionalVersionedTextDocumentIdentifier()
+            {
+                DocumentUri = new(razorDocumentUri),
+            },
+            Edits = [.. remappedEdits]
+        };
+        return true;
     }
 
     private TextEdit[] MapTextEdits(bool mapRanges, RazorCodeDocument codeDocument, IEnumerable<SumType<TextEdit, AnnotatedTextEdit>> edits)
@@ -245,11 +257,10 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
             {
                 if (item.Value is TextDocumentEdit textDocumentEdit)
                 {
-                    // Remap the TextDocumentEdit
-                    var remapped = MapDocumentChanges([textDocumentEdit], mapRanges, codeDocument);
-                    if (remapped.Length > 0)
+                    // Remap the TextDocumentEdit using extracted method to avoid array allocation
+                    if (TryMapSingleTextDocumentEdit(textDocumentEdit, mapRanges, codeDocument, out var mappedEdit))
                     {
-                        result.Add(remapped[0]);
+                        result.Add(mappedEdit);
                     }
                 }
                 else
@@ -262,8 +273,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
             return result.ToArray();
         }
 
-        // Fallback - should not happen
-        return Array.Empty<TextDocumentEdit>();
+        return Assumed.Unreachable<SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]>>();
     }
 
     protected record DocumentSnapshotAndVersion(IDocumentSnapshot Snapshot, int Version);
