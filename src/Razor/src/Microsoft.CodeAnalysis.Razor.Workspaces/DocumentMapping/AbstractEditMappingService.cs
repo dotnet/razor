@@ -25,13 +25,13 @@ internal abstract class AbstractEditMappingService(
     {
         // Handle DocumentChanges - iterate through TextDocumentEdits and modify them in-place.
         // This preserves CreateFile, RenameFile, DeleteFile operations automatically since we don't create a new array.
-        foreach (var textDocumentEdit in workspaceEdit.EnumerateTextDocumentEdits())
-        {
-            await RemapTextDocumentEditInPlaceAsync(contextDocumentSnapshot, textDocumentEdit, cancellationToken).ConfigureAwait(false);
-        }
-
         if (workspaceEdit.DocumentChanges is not null)
         {
+            foreach (var textDocumentEdit in workspaceEdit.EnumerateTextDocumentEdits())
+            {
+                await RemapTextDocumentEditInPlaceAsync(contextDocumentSnapshot, textDocumentEdit, cancellationToken).ConfigureAwait(false);
+            }
+
             return workspaceEdit;
         }
 
