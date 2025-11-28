@@ -31,18 +31,11 @@ internal abstract class AbstractEditMappingService(
             {
                 await RemapTextDocumentEditInPlaceAsync(contextDocumentSnapshot, textDocumentEdit, cancellationToken).ConfigureAwait(false);
             }
-
-            return workspaceEdit;
         }
 
         if (workspaceEdit.Changes is { } changeMap)
         {
-            var remappedEdits = await RemapDocumentEditsAsync(contextDocumentSnapshot, changeMap, cancellationToken).ConfigureAwait(false);
-
-            return new WorkspaceEdit()
-            {
-                Changes = remappedEdits
-            };
+            workspaceEdit.Changes = await RemapDocumentEditsAsync(contextDocumentSnapshot, changeMap, cancellationToken).ConfigureAwait(false);
         }
 
         return workspaceEdit;

@@ -177,17 +177,11 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams>(
             {
                 MapTextDocumentEditInPlace(textDocumentEdit, mapRanges, codeDocument);
             }
-
-            return workspaceEdit;
         }
 
         if (workspaceEdit.Changes is not null)
         {
-            var remappedEdits = MapChanges(workspaceEdit.Changes, mapRanges, codeDocument);
-            return new WorkspaceEdit()
-            {
-                Changes = remappedEdits
-            };
+            workspaceEdit.Changes = MapChanges(workspaceEdit.Changes, mapRanges, codeDocument);
         }
 
         return workspaceEdit;
