@@ -19,10 +19,10 @@ internal class CompletionTriggerAndCommitCharacters(IClientCapabilitiesService c
 
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
 
-    private readonly FrozenSet<char> _csharpTriggerCharacters = [' ', '(', '=', '#', '.', '<', '[', '{', '"', '/', ':', '~'];
-    private readonly FrozenSet<char> _vsHtmlTriggerCharacters = [TransitionCharacter, ':', '#', '.', '!', '*', ',', '(', '[', '-', '<', '&', '\\', '/', '\'', '"', '=', ':', ' ', '`'];
-    private readonly FrozenSet<char> _vsCodeHtmlTriggerCharacters = [TransitionCharacter, '#', '.', '!', ',', '<'];
-    private readonly FrozenSet<char> _razorTriggerCharacters = [TransitionCharacter, '<', ':', ' '];
+    private static readonly FrozenSet<char> _csharpTriggerCharacters = [' ', '(', '=', '#', '.', '<', '[', '{', '"', '/', ':', '~'];
+    private static readonly FrozenSet<char> _vsHtmlTriggerCharacters = [TransitionCharacter, ':', '#', '.', '!', '*', ',', '(', '[', '-', '<', '&', '\\', '/', '\'', '"', '=', ':', ' ', '`'];
+    private static readonly FrozenSet<char> _vsCodeHtmlTriggerCharacters = [TransitionCharacter, '#', '.', '!', ',', '<'];
+    private static readonly FrozenSet<char> _razorTriggerCharacters = [TransitionCharacter, '<', ':', ' '];
 
     private FrozenSet<char> HtmlTriggerCharacters => _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions
         ? _vsHtmlTriggerCharacters

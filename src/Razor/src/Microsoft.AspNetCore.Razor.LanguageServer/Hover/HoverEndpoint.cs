@@ -75,7 +75,6 @@ internal sealed class HoverEndpoint(
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         // Sometimes what looks like a html attribute can actually map to C#, in which case its better to let Roslyn try to handle this.
-        // We can only do this if we're in single server mode though, otherwise we won't be delegating to Roslyn at all
         if (DocumentMappingService.TryMapToCSharpDocumentPosition(codeDocument.GetRequiredCSharpDocument(), positionInfo.HostDocumentIndex, out _, out _))
         {
             return null;
