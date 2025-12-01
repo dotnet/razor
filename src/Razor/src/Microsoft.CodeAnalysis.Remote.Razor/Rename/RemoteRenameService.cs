@@ -79,14 +79,14 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             return NoFurtherHandling;
         }
 
-        var mappedEdit = await _editMappingService.RemapWorkspaceEditAsync(context.Snapshot, csharpEdit, cancellationToken).ConfigureAwait(false);
+        await _editMappingService.MapWorkspaceEditAsync(context.Snapshot, csharpEdit, cancellationToken).ConfigureAwait(false);
 
         // Only Roslyn edits? just return them
         if (razorEdit.Edit is null)
         {
-            return Results(mappedEdit);
+            return Results(csharpEdit);
         }
 
-        return Results(mappedEdit.Concat(razorEdit.Edit));
+        return Results(csharpEdit.Concat(razorEdit.Edit));
     }
 }
