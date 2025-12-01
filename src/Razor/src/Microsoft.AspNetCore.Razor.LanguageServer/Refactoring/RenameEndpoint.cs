@@ -85,6 +85,8 @@ internal sealed class RenameEndpoint(
         }
 
         var documentContext = requestContext.DocumentContext.AssumeNotNull();
-        return await _editMappingService.RemapWorkspaceEditAsync(documentContext.Snapshot, response, cancellationToken).ConfigureAwait(false);
+        await _editMappingService.MapWorkspaceEditAsync(documentContext.Snapshot, response, cancellationToken).ConfigureAwait(false);
+
+        return response;
     }
 }
