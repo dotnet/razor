@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
@@ -28,14 +29,24 @@ internal abstract class AbstractEditMappingService(
 
     public async Task MapWorkspaceEditAsync(IDocumentSnapshot contextDocumentSnapshot, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
     {
-        // Handle DocumentChanges - iterate through TextDocumentEdits and modify them in-place.
-        // This preserves CreateFile, RenameFile, DeleteFile operations automatically since we don't create a new array.
         if (workspaceEdit.DocumentChanges is not null)
         {
-            foreach (var textDocumentEdit in workspaceEdit.EnumerateTextDocumentEdits())
+            using var builder = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
+            foreach (var edit in workspaceEdit.EnumerateEdits())
             {
-                await MapTextDocumentEditAsync(contextDocumentSnapshot, textDocumentEdit, cancellationToken).ConfigureAwait(false);
+                if (edit.TryGetFirst(out var textDocumentEdit))
+                {
+                    await MapTextDocumentEditAsync(contextDocumentSnapshot, textDocumentEdit, cancellationToken).ConfigureAwait(false);
+                    if (textDocumentEdit.Edits.Length == 0)
+                    {
+                        continue;
+                    }
+                }
+
+                builder.Add(edit);
             }
+
+            workspaceEdit.DocumentChanges = builder.ToArrayAndClear();
         }
 
         if (workspaceEdit.Changes is { } changeMap)

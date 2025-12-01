@@ -39,6 +39,24 @@ internal static partial class LspExtensions
         }
     }
 
+    public static IEnumerable<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> EnumerateEdits(this WorkspaceEdit workspaceEdit)
+    {
+        if (workspaceEdit.DocumentChanges?.Value is TextDocumentEdit[] documentEdits)
+        {
+            foreach (var edit in documentEdits)
+            {
+                yield return edit;
+            }
+        }
+        else if (workspaceEdit.DocumentChanges?.Value is SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] sumTypeArray)
+        {
+            foreach (var edit in sumTypeArray)
+            {
+                yield return edit;
+            }
+        }
+    }
+
     public static WorkspaceEdit Concat(this WorkspaceEdit first, WorkspaceEdit second)
     {
         using var builder = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
