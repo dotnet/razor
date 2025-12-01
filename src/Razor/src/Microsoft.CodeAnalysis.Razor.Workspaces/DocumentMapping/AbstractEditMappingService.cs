@@ -21,7 +21,7 @@ internal abstract class AbstractEditMappingService(
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IFilePathService _filePathService = filePathService;
 
-    public async Task<WorkspaceEdit> RemapWorkspaceEditAsync(IDocumentSnapshot contextDocumentSnapshot, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
+    public async Task MapWorkspaceEditAsync(IDocumentSnapshot contextDocumentSnapshot, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
     {
         // Handle DocumentChanges - iterate through TextDocumentEdits and modify them in-place.
         // This preserves CreateFile, RenameFile, DeleteFile operations automatically since we don't create a new array.
@@ -29,19 +29,17 @@ internal abstract class AbstractEditMappingService(
         {
             foreach (var textDocumentEdit in workspaceEdit.EnumerateTextDocumentEdits())
             {
-                await RemapTextDocumentEditInPlaceAsync(contextDocumentSnapshot, textDocumentEdit, cancellationToken).ConfigureAwait(false);
+                await MapTextDocumentEditAsync(contextDocumentSnapshot, textDocumentEdit, cancellationToken).ConfigureAwait(false);
             }
         }
 
         if (workspaceEdit.Changes is { } changeMap)
         {
-            workspaceEdit.Changes = await RemapDocumentEditsAsync(contextDocumentSnapshot, changeMap, cancellationToken).ConfigureAwait(false);
+            workspaceEdit.Changes = await MapDocumentEditsAsync(contextDocumentSnapshot, changeMap, cancellationToken).ConfigureAwait(false);
         }
-
-        return workspaceEdit;
     }
 
-    private async Task RemapTextDocumentEditInPlaceAsync(IDocumentSnapshot contextDocumentSnapshot, TextDocumentEdit entry, CancellationToken cancellationToken)
+    private async Task MapTextDocumentEditAsync(IDocumentSnapshot contextDocumentSnapshot, TextDocumentEdit entry, CancellationToken cancellationToken)
     {
         var generatedDocumentUri = entry.TextDocument.DocumentUri.GetRequiredParsedUri();
 
@@ -59,7 +57,7 @@ internal abstract class AbstractEditMappingService(
         // Check if the edit is actually for a generated document, because if not we don't need to do anything
         if (!_filePathService.IsVirtualCSharpFile(generatedDocumentUri))
         {
-            // This location doesn't point to a background razor file. No need to remap.
+            // This location doesn't point to a background razor file. No need to map.
             return;
         }
 
@@ -77,19 +75,19 @@ internal abstract class AbstractEditMappingService(
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         // entry.Edits is SumType<TextEdit, AnnotatedTextEdit> but AnnotatedTextEdit inherits from TextEdit, so we can just cast
-        var remappedEdits = RemapTextEditsCore(codeDocument.GetRequiredCSharpDocument(), [.. entry.Edits.Select(static e => (TextEdit)e)]);
+        var mappedEdits = GetMappedTextEdits(codeDocument.GetRequiredCSharpDocument(), [.. entry.Edits.Select(static e => (TextEdit)e)]);
 
         // Update the entry in-place
         entry.TextDocument = new OptionalVersionedTextDocumentIdentifier()
         {
             DocumentUri = new(razorDocumentUri),
         };
-        entry.Edits = [.. remappedEdits.Select(static e => new SumType<TextEdit, AnnotatedTextEdit>(e))];
+        entry.Edits = [.. mappedEdits.Select(static e => new SumType<TextEdit, AnnotatedTextEdit>(e))];
     }
 
-    private async Task<Dictionary<string, TextEdit[]>> RemapDocumentEditsAsync(IDocumentSnapshot contextDocumentSnapshot, Dictionary<string, TextEdit[]> changes, CancellationToken cancellationToken)
+    private async Task<Dictionary<string, TextEdit[]>> MapDocumentEditsAsync(IDocumentSnapshot contextDocumentSnapshot, Dictionary<string, TextEdit[]> changes, CancellationToken cancellationToken)
     {
-        var remappedChanges = new Dictionary<string, TextEdit[]>(capacity: changes.Count);
+        var mappedChanges = new Dictionary<string, TextEdit[]>(capacity: changes.Count);
 
         foreach (var (uriString, edits) in changes)
         {
@@ -99,13 +97,13 @@ internal abstract class AbstractEditMappingService(
             if (_filePathService.IsVirtualHtmlFile(generatedDocumentUri))
             {
                 var razorUri = _filePathService.GetRazorDocumentUri(generatedDocumentUri);
-                remappedChanges[razorUri.AbsoluteUri] = edits;
+                mappedChanges[razorUri.AbsoluteUri] = edits;
             }
 
             // Check if the edit is actually for a generated document, because if not we don't need to do anything
             if (!_filePathService.IsVirtualCSharpFile(generatedDocumentUri))
             {
-                remappedChanges[uriString] = edits;
+                mappedChanges[uriString] = edits;
                 continue;
             }
 
@@ -121,22 +119,22 @@ internal abstract class AbstractEditMappingService(
             }
 
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-            var remappedEdits = RemapTextEditsCore(codeDocument.GetRequiredCSharpDocument(), edits);
-            if (remappedEdits.Length == 0)
+            var mappedEdits = GetMappedTextEdits(codeDocument.GetRequiredCSharpDocument(), edits);
+            if (mappedEdits.Length == 0)
             {
                 // Nothing to do.
                 continue;
             }
 
-            remappedChanges[razorDocumentUri.AbsoluteUri] = remappedEdits;
+            mappedChanges[razorDocumentUri.AbsoluteUri] = mappedEdits;
         }
 
-        return remappedChanges;
+        return mappedChanges;
     }
 
-    private TextEdit[] RemapTextEditsCore(RazorCSharpDocument csharpDocument, TextEdit[] edits)
+    private TextEdit[] GetMappedTextEdits(RazorCSharpDocument csharpDocument, TextEdit[] edits)
     {
-        using var remappedEdits = new PooledArrayBuilder<TextEdit>(edits.Length);
+        using var mappedEdits = new PooledArrayBuilder<TextEdit>(edits.Length);
 
         foreach (var edit in edits)
         {
@@ -147,11 +145,10 @@ internal abstract class AbstractEditMappingService(
                 continue;
             }
 
-            var remappedEdit = LspFactory.CreateTextEdit(hostDocumentRange, edit.NewText);
-            remappedEdits.Add(remappedEdit);
+            mappedEdits.Add(LspFactory.CreateTextEdit(hostDocumentRange, edit.NewText));
         }
 
-        return remappedEdits.ToArray();
+        return mappedEdits.ToArray();
     }
 
     protected abstract bool TryGetDocumentContext(IDocumentSnapshot contextDocumentSnapshot, Uri razorDocumentUri, VSProjectContext? projectContext, [NotNullWhen(true)] out DocumentContext? documentContext);

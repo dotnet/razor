@@ -28,7 +28,7 @@ internal class HtmlCodeActionProvider(IEditMappingService editMappingService) : 
         {
             if (codeAction.Edit is not null)
             {
-                await RemapAndFixHtmlCodeActionEditAsync(_editMappingService, context.DocumentSnapshot, codeAction, cancellationToken).ConfigureAwait(false);
+                await MapAndFixHtmlCodeActionEditAsync(_editMappingService, context.DocumentSnapshot, codeAction, cancellationToken).ConfigureAwait(false);
 
                 results.Add(codeAction);
             }
@@ -41,11 +41,11 @@ internal class HtmlCodeActionProvider(IEditMappingService editMappingService) : 
         return results.ToImmutable();
     }
 
-    public static async Task RemapAndFixHtmlCodeActionEditAsync(IEditMappingService editMappingService, IDocumentSnapshot documentSnapshot, CodeAction codeAction, CancellationToken cancellationToken)
+    public static async Task MapAndFixHtmlCodeActionEditAsync(IEditMappingService editMappingService, IDocumentSnapshot documentSnapshot, CodeAction codeAction, CancellationToken cancellationToken)
     {
         Assumes.NotNull(codeAction.Edit);
 
-        codeAction.Edit = await editMappingService.RemapWorkspaceEditAsync(documentSnapshot, codeAction.Edit, cancellationToken).ConfigureAwait(false);
+        await editMappingService.MapWorkspaceEditAsync(documentSnapshot, codeAction.Edit, cancellationToken).ConfigureAwait(false);
 
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var htmlSourceText = codeDocument.GetHtmlSourceText();

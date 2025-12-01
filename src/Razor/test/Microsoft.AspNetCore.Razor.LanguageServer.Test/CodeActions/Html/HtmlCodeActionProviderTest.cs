@@ -75,24 +75,16 @@ public class HtmlCodeActionProviderTest(ITestOutputHelper testOutput) : Language
 
         var context = CreateRazorCodeActionContext(request, cursorPosition, documentPath, contents);
 
-        var remappedEdit = new WorkspaceEdit
-        {
-            DocumentChanges = new TextDocumentEdit[]
-            {
-                new() {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier
-                    {
-                        DocumentUri = new(new Uri(documentPath)),
-                    },
-                    Edits = [LspFactory.CreateTextEdit(context.SourceText.GetRange(span), "Goo /*~~~~~~~~~~~*/ Bar")]
-                }
-            }
-        };
-
         var editMappingServiceMock = new StrictMock<IEditMappingService>();
         editMappingServiceMock
-            .Setup(x => x.RemapWorkspaceEditAsync(It.IsAny<IDocumentSnapshot>(), It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(remappedEdit);
+            .Setup(x => x.MapWorkspaceEditAsync(It.IsAny<IDocumentSnapshot>(), It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
+            .Callback<IDocumentSnapshot, WorkspaceEdit, CancellationToken>((_, edit, _) =>
+            {
+                var textDocumentEdit = edit.EnumerateTextDocumentEdits().First();
+                textDocumentEdit.TextDocument.DocumentUri = new(documentPath);
+                textDocumentEdit.Edits = [LspFactory.CreateTextEdit(context.SourceText.GetRange(span), "Goo /*~~~~~~~~~~~*/ Bar")];
+            })
+            .Returns(Task.CompletedTask);
 
         var provider = new HtmlCodeActionProvider(editMappingServiceMock.Object);
 
