@@ -77,10 +77,8 @@ internal abstract class AbstractEditMappingService(
             return;
         }
 
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-
         // entry.Edits is SumType<TextEdit, AnnotatedTextEdit> but AnnotatedTextEdit inherits from TextEdit, so we can just cast
-        var mappedEdits = await MapTextEditsCoreAsync(documentContext.Snapshot, codeDocument, [.. entry.Edits.Select(static e => (TextEdit)e)], cancellationToken).ConfigureAwait(false);
+        var mappedEdits = await GetMappedTextEditsAsync(documentContext, [.. entry.Edits.Select(static e => (TextEdit)e)], cancellationToken).ConfigureAwait(false);
 
         // Update the entry in-place
         entry.TextDocument = new OptionalVersionedTextDocumentIdentifier()
@@ -123,8 +121,7 @@ internal abstract class AbstractEditMappingService(
                 continue;
             }
 
-            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-            var mappedEdits = await MapTextEditsCoreAsync(documentContext.Snapshot, codeDocument, edits, cancellationToken).ConfigureAwait(false);
+            var mappedEdits = await GetMappedTextEditsAsync(documentContext, edits, cancellationToken).ConfigureAwait(false);
             if (mappedEdits.Length == 0)
             {
                 // Nothing to do.
@@ -137,8 +134,10 @@ internal abstract class AbstractEditMappingService(
         return mappedChanges;
     }
 
-    private async Task<TextEdit[]> MapTextEditsCoreAsync(IDocumentSnapshot snapshot, RazorCodeDocument codeDocument, TextEdit[] edits, CancellationToken cancellationToken)
+    private async Task<TextEdit[]> GetMappedTextEditsAsync(DocumentContext documentContext, TextEdit[] edits, CancellationToken cancellationToken)
     {
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+
         var razorSourceText = codeDocument.Source.Text;
         var csharpSourceText = codeDocument.GetCSharpSourceText();
         var textChanges = edits.SelectAsArray(e => new RazorTextChange
@@ -146,7 +145,7 @@ internal abstract class AbstractEditMappingService(
             Span = csharpSourceText.GetTextSpan(e.Range).ToRazorTextSpan(),
             NewText = e.NewText,
         });
-        var mappedEdits = await RazorEditHelper.MapCSharpEditsAsync(textChanges, snapshot, _documentMappingService, _telemetryReporter, cancellationToken).ConfigureAwait(false);
+        var mappedEdits = await RazorEditHelper.MapCSharpEditsAsync(textChanges, documentContext.Snapshot, _documentMappingService, _telemetryReporter, cancellationToken).ConfigureAwait(false);
 
         return [.. mappedEdits.Select(e => LspFactory.CreateTextEdit(razorSourceText.GetLinePositionSpan(e.Span.ToTextSpan()), e.NewText.AssumeNotNull()))];
     }
