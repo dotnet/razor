@@ -689,6 +689,69 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
             ]);
 
     [Fact]
+    public Task Component_BindAttribute()
+        => VerifyRenamesAsync(
+            input: $"""
+                This is a Razor document.
+
+                <Component @bind-Tit$$le="Hello1" />
+
+                <div>
+                    <Component @bind-Title="Hello2" />
+                    <Component @bind-Title="Hello3">
+                    </Component>
+                    <div>
+                        <Component @bind-Title="Hello4"/>
+                        <Component @bind-Title="Hello5">
+                        </Component>
+                    </div>
+                </div>
+
+                The end.
+                """,
+            additionalFiles: [
+                (FilePath("Component.razor"), """
+                    <div></div>
+
+                    @code {
+                        [Parameter]
+                        public string Title { get; set; }
+                    }
+
+                    """)
+            ],
+            newName: "Name",
+            expected: """
+                This is a Razor document.
+                
+                <Component @bind-Name="Hello1" />
+                
+                <div>
+                    <Component @bind-Name="Hello2" />
+                    <Component @bind-Name="Hello3">
+                    </Component>
+                    <div>
+                        <Component @bind-Name="Hello4"/>
+                        <Component @bind-Name="Hello5">
+                        </Component>
+                    </div>
+                </div>
+                
+                The end.
+                """,
+             additionalExpectedFiles: [
+                (FileUri("Component.razor"), """
+                    <div></div>
+
+                    @code {
+                        [Parameter]
+                        public string Name { get; set; }
+                    }
+
+                    """)
+            ]);
+
+    [Fact]
     public Task Mvc()
         => VerifyRenamesAsync(
             input: """
