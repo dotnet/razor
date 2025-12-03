@@ -16,22 +16,22 @@ internal static class EnumExtensions
     {
         if (sizeof(T) == sizeof(byte))
         {
-            Unsafe.As<T, byte>(ref value) |= Unsafe.BitCast<T, byte>(flag);
+            Unsafe.As<T, byte>(ref value) |= Unsafe.As<T, byte>(ref flag);
             return;
         }
         else if (sizeof(T) == sizeof(ushort))
         {
-            Unsafe.As<T, ushort>(ref value) |= Unsafe.BitCast<T, ushort>(flag);
+            Unsafe.As<T, ushort>(ref value) |= Unsafe.As<T, ushort>(ref flag);
             return;
         }
         else if (sizeof(T) == sizeof(uint))
         {
-            Unsafe.As<T, uint>(ref value) |= Unsafe.BitCast<T, uint>(flag);
+            Unsafe.As<T, uint>(ref value) |= Unsafe.As<T, uint>(ref flag);
             return;
         }
         else if (sizeof(T) == sizeof(ulong))
         {
-            Unsafe.As<T, ulong>(ref value) |= Unsafe.BitCast<T, ulong>(flag);
+            Unsafe.As<T, ulong>(ref value) |= Unsafe.As<T, ulong>(ref flag);
             return;
         }
 
@@ -45,22 +45,22 @@ internal static class EnumExtensions
     {
         if (sizeof(T) == sizeof(byte))
         {
-            Unsafe.As<T, byte>(ref value) &= (byte)~Unsafe.BitCast<T, byte>(flag);
+            Unsafe.As<T, byte>(ref value) &= (byte)~Unsafe.As<T, byte>(ref flag);
             return;
         }
         else if (sizeof(T) == sizeof(ushort))
         {
-            Unsafe.As<T, ushort>(ref value) &= (ushort)~Unsafe.BitCast<T, ushort>(flag);
+            Unsafe.As<T, ushort>(ref value) &= (ushort)~Unsafe.As<T, ushort>(ref flag);
             return;
         }
         else if (sizeof(T) == sizeof(uint))
         {
-            Unsafe.As<T, uint>(ref value) &= ~Unsafe.BitCast<T, uint>(flag);
+            Unsafe.As<T, uint>(ref value) &= ~Unsafe.As<T, uint>(ref flag);
             return;
         }
         else if (sizeof(T) == sizeof(ulong))
         {
-            Unsafe.As<T, ulong>(ref value) &= ~Unsafe.BitCast<T, ulong>(flag);
+            Unsafe.As<T, ulong>(ref value) &= ~Unsafe.As<T, ulong>(ref flag);
             return;
         }
 
