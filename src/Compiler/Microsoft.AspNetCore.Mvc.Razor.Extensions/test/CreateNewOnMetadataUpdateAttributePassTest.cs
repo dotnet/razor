@@ -17,9 +17,9 @@ public class CreateNewOnMetadataUpdateAttributePassTest : RazorProjectEngineTest
         PageDirective.Register(builder);
     }
 
-    protected override RazorCodeDocumentProcessor ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
+    protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        return processor.ExecutePhasesThrough<IRazorIntermediateNodeLoweringPhase>();
+        processor.ExecutePhasesThrough<IRazorIntermediateNodeLoweringPhase>();
     }
 
     [Fact]
@@ -61,8 +61,8 @@ public class CreateNewOnMetadataUpdateAttributePassTest : RazorProjectEngineTest
         var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
-        processor = processor.ExecutePass<DefaultDocumentClassifierPass>();
-        processor = processor.ExecutePass<CreateNewOnMetadataUpdateAttributePass>();
+        processor.ExecutePass<DefaultDocumentClassifierPass>();
+        processor.ExecutePass<CreateNewOnMetadataUpdateAttributePass>();
 
         // Assert
         var documentNode = processor.GetDocumentNode();

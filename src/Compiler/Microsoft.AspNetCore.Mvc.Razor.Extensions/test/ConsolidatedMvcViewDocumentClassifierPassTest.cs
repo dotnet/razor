@@ -12,9 +12,9 @@ public class ConsolidatedMvcViewDocumentClassifierPassTest : RazorProjectEngineT
 {
     protected override RazorLanguageVersion Version => RazorLanguageVersion.Latest;
 
-    protected override RazorCodeDocumentProcessor ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
+    protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        return processor.ExecutePhasesThrough<IRazorIntermediateNodeLoweringPhase>();
+        processor.ExecutePhasesThrough<IRazorIntermediateNodeLoweringPhase>();
     }
 
     [Fact]
@@ -25,7 +25,7 @@ public class ConsolidatedMvcViewDocumentClassifierPassTest : RazorProjectEngineT
         var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
-        processor = processor.ExecutePass<MvcViewDocumentClassifierPass>(() => new(useConsolidatedMvcViews: true));
+        processor.ExecutePass<MvcViewDocumentClassifierPass>(() => new(useConsolidatedMvcViews: true));
 
         // Assert
         var documentNode = processor.GetDocumentNode();
@@ -43,7 +43,7 @@ public class ConsolidatedMvcViewDocumentClassifierPassTest : RazorProjectEngineT
         var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
-        processor = processor.ExecutePass<MvcViewDocumentClassifierPass>(() => new(useConsolidatedMvcViews: true));
+        processor.ExecutePass<MvcViewDocumentClassifierPass>(() => new(useConsolidatedMvcViews: true));
 
         // Assert
         var documentNode = processor.GetDocumentNode();
@@ -66,7 +66,7 @@ public class ConsolidatedMvcViewDocumentClassifierPassTest : RazorProjectEngineT
         var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
-        processor = processor.ExecutePass<MvcViewDocumentClassifierPass>(() => new(useConsolidatedMvcViews: true));
+        processor.ExecutePass<MvcViewDocumentClassifierPass>(() => new(useConsolidatedMvcViews: true));
 
         // Assert
         var documentNode = processor.GetDocumentNode();
@@ -91,7 +91,7 @@ public class ConsolidatedMvcViewDocumentClassifierPassTest : RazorProjectEngineT
         var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
-        processor = processor.ExecutePass<MvcViewDocumentClassifierPass>(() => new(useConsolidatedMvcViews: true));
+        processor.ExecutePass<MvcViewDocumentClassifierPass>(() => new(useConsolidatedMvcViews: true));
 
         // Assert
         var documentNode = processor.GetDocumentNode();
@@ -109,7 +109,7 @@ public class ConsolidatedMvcViewDocumentClassifierPassTest : RazorProjectEngineT
         var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
-        processor = processor.ExecutePass<MvcViewDocumentClassifierPass>(() => new(useConsolidatedMvcViews: true));
+        processor.ExecutePass<MvcViewDocumentClassifierPass>(() => new(useConsolidatedMvcViews: true));
 
         // Assert
         var documentNode = processor.GetDocumentNode();

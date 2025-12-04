@@ -24,12 +24,12 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         builder.Features.Add(new MvcViewDocumentClassifierPass());
     }
 
-    protected override RazorCodeDocumentProcessor ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
+    protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor = processor.ExecutePhasesThrough<IRazorDocumentClassifierPhase>();
+        processor.ExecutePhasesThrough<IRazorDocumentClassifierPhase>();
 
         // InheritsDirectivePass needs to run before ModelDirective.
-        return processor.ExecutePass<InheritsDirectivePass>();
+        processor.ExecutePass<InheritsDirectivePass>();
     }
 
     [Fact]

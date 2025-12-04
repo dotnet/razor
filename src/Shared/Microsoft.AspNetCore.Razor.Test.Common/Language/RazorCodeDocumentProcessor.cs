@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 public sealed class RazorCodeDocumentProcessor
 {
     public RazorProjectEngine ProjectEngine { get; }
-    public RazorCodeDocument CodeDocument { get; }
+    public RazorCodeDocument CodeDocument { get; private set; }
 
     private RazorCodeDocumentProcessor(RazorProjectEngine projectEngine, RazorCodeDocument codeDocument)
     {
@@ -24,25 +24,25 @@ public sealed class RazorCodeDocumentProcessor
     public RazorCodeDocumentProcessor ExecutePhasesThrough<T>()
         where T : IRazorEnginePhase
     {
-        var codeDocument = ProjectEngine.ExecutePhasesThrough<T>(CodeDocument);
+        CodeDocument = ProjectEngine.ExecutePhasesThrough<T>(CodeDocument);
 
-        return From(ProjectEngine, codeDocument);
+        return this;
     }
 
     public RazorCodeDocumentProcessor ExecutePass<T>()
         where T : IntermediateNodePassBase, new()
     {
-        var codeDocument = ProjectEngine.ExecutePass<T>(CodeDocument);
+        ProjectEngine.ExecutePass<T>(CodeDocument);
 
-        return From(ProjectEngine, codeDocument);
+        return this;
     }
 
     public RazorCodeDocumentProcessor ExecutePass<T>(Func<T> passFactory)
         where T : IntermediateNodePassBase
     {
-        var codeDocument = ProjectEngine.ExecutePass<T>(CodeDocument, passFactory);
+        ProjectEngine.ExecutePass<T>(CodeDocument, passFactory);
 
-        return From(ProjectEngine, codeDocument);
+        return this;
     }
 
     public DocumentIntermediateNode GetDocumentNode()

@@ -200,7 +200,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
         codeDocument = codeDocument.WithDocumentNode(documentNode);
 
         // Act
-        codeDocument = projectEngine.ExecutePhase<DefaultRazorCSharpLoweringPhase>(codeDocument);
+        codeDocument = ProjectEngine.ExecutePhase<DefaultRazorCSharpLoweringPhase>(codeDocument);
         var result = codeDocument.GetRequiredCSharpDocument();
 
         // Assert

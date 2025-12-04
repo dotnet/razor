@@ -55,9 +55,8 @@ public abstract class RazorProjectEngineTestBase
     ///  This can be used to ensure that the <see cref="RazorCodeDocument"/> is initially processed in particular way
     ///  by executing compiler phases or passes.
     /// </remarks>
-    protected virtual RazorCodeDocumentProcessor ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
+    protected virtual void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        return processor;
     }
 
     /// <summary>
@@ -88,7 +87,7 @@ public abstract class RazorProjectEngineTestBase
     protected RazorCodeDocumentProcessor CreateCodeDocumentProcessor(RazorProjectEngine projectEngine, RazorCodeDocument codeDocument)
     {
         var processor = RazorCodeDocumentProcessor.From(projectEngine, codeDocument);
-        processor = ConfigureCodeDocumentProcessor(processor);
+        ConfigureCodeDocumentProcessor(processor);
 
         return processor;
     }

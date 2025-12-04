@@ -18,12 +18,12 @@ public class ViewComponentTagHelperPassTest : RazorProjectEngineTestBase
         builder.Features.Add(new MvcViewDocumentClassifierPass());
     }
 
-    protected override RazorCodeDocumentProcessor ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
+    protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor = processor.ExecutePhasesThrough<IRazorDirectiveClassifierPhase>();
+        processor.ExecutePhasesThrough<IRazorDirectiveClassifierPhase>();
 
         // We also expect the default tag helper pass to run first.
-        return processor.ExecutePass<DefaultTagHelperOptimizationPass>();
+        processor.ExecutePass<DefaultTagHelperOptimizationPass>();
     }
 
     [Fact]

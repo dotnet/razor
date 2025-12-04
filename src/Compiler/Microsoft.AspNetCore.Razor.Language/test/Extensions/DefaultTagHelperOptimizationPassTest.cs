@@ -10,9 +10,9 @@ public class DefaultTagHelperOptimizationPassTest : RazorProjectEngineTestBase
 {
     protected override RazorLanguageVersion Version => RazorLanguageVersion.Latest;
 
-    protected override RazorCodeDocumentProcessor ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
+    protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        return processor.ExecutePhasesThrough<IRazorDirectiveClassifierPhase>();
+        processor.ExecutePhasesThrough<IRazorDirectiveClassifierPhase>();
     }
 
     [Fact]
