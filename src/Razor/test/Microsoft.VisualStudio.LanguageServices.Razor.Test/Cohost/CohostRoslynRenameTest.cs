@@ -92,7 +92,7 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
 
     [Theory]
     [CombinatorialData]
-    public Task Component(bool fromRazor)
+    public Task Component(bool useLsp, bool fromRazor)
         => VerifyRenamesAsync(
             csharpFile: """
                 using Microsoft.AspNetCore.Components;
@@ -133,7 +133,7 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
                 
                 The end.
                 """,
-            useLsp: false, // TODO: Make this a theory input when https://github.com/dotnet/roslyn/pull/81450 is merged and available
+            useLsp,
             fromRazor);
 
     [Theory]
