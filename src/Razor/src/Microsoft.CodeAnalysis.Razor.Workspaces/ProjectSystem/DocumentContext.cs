@@ -135,10 +135,10 @@ internal class DocumentContext(Uri uri, IDocumentSnapshot snapshot, VSProjectCon
     public ValueTask<SourceText> GetHtmlSourceTextAsync(CancellationToken cancellationToken)
     {
         return TryGetCodeDocument(out var codeDocument)
-            ? new(GetHtmlSourceTextCore(codeDocument))
+            ? new(GetHtmlSourceTextCore(codeDocument, cancellationToken))
             : GetHtmlSourceTextCoreAsync(cancellationToken);
 
-        SourceText GetHtmlSourceTextCore(RazorCodeDocument codeDocument)
+        static SourceText GetHtmlSourceTextCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
         {
             return codeDocument.GetHtmlSourceText(cancellationToken);
         }
@@ -146,7 +146,7 @@ internal class DocumentContext(Uri uri, IDocumentSnapshot snapshot, VSProjectCon
         async ValueTask<SourceText> GetHtmlSourceTextCoreAsync(CancellationToken cancellationToken)
         {
             var codeDocument = await GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-            return GetHtmlSourceTextCore(codeDocument);
+            return GetHtmlSourceTextCore(codeDocument, cancellationToken);
         }
     }
 

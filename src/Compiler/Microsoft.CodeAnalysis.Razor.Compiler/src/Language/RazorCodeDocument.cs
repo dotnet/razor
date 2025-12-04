@@ -103,7 +103,7 @@ public sealed partial class RazorCodeDocument
 
     internal RazorCodeDocument WithTagHelpers(TagHelperCollection? value)
     {
-        if (ReferenceEquals(value, _tagHelpers))
+        if (Equals(value, _tagHelpers))
         {
             return this;
         }
@@ -124,7 +124,7 @@ public sealed partial class RazorCodeDocument
 
     internal RazorCodeDocument WithReferencedTagHelpers(TagHelperCollection value)
     {
-        if (ReferenceEquals(value, _referencedTagHelpers))
+        if (Equals(value, _referencedTagHelpers))
         {
             return this;
         }
