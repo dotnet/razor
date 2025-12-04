@@ -48,7 +48,7 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
             async context =>
             {
                 var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-                return codeDocument.GetHtmlSourceText().ToString();
+                return codeDocument.GetHtmlSourceText(cancellationToken).ToString();
             },
             cancellationToken);
 

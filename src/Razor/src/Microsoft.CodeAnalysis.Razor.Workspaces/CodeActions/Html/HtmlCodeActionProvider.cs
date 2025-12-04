@@ -50,7 +50,7 @@ internal class HtmlCodeActionProvider(IEditMappingService editMappingService) : 
         if (codeAction.Edit.TryGetTextDocumentEdits(out var documentEdits))
         {
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-            var htmlSourceText = codeDocument.GetHtmlSourceText();
+            var htmlSourceText = codeDocument.GetHtmlSourceText(cancellationToken);
 
             foreach (var edit in documentEdits)
             {

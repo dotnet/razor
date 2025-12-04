@@ -1,10 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -31,8 +29,6 @@ public sealed partial class RazorCodeDocument
     private readonly TagHelperDocumentContext? _tagHelperContext;
     private readonly DocumentIntermediateNode? _documentNode;
     private readonly RazorCSharpDocument? _csharpDocument;
-
-    private readonly Lazy<RazorHtmlDocument> _htmlDocument;
 
     private RazorCodeDocument(
         RazorSourceDocument source,
@@ -62,8 +58,6 @@ public sealed partial class RazorCodeDocument
         _tagHelperContext = tagHelperContext;
         _documentNode = documentNode;
         _csharpDocument = csharpDocument;
-
-        _htmlDocument = new Lazy<RazorHtmlDocument>(() => RazorHtmlWriter.GetHtmlDocument(this));
     }
 
     public static RazorCodeDocument Create(
@@ -273,8 +267,6 @@ public sealed partial class RazorCodeDocument
         }
         return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, _preTagHelperSyntaxTree, _syntaxTree, _importSyntaxTrees, _tagHelperContext, _documentNode, value);
     }
-
-    internal RazorHtmlDocument GetHtmlDocument() => _htmlDocument.Value;
 
     // In general documents will have a relative path (relative to the project root).
     // We can only really compute a nice namespace when we know a relative path.

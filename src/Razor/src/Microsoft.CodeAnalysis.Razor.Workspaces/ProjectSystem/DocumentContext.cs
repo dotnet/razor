@@ -138,9 +138,9 @@ internal class DocumentContext(Uri uri, IDocumentSnapshot snapshot, VSProjectCon
             ? new(GetHtmlSourceTextCore(codeDocument))
             : GetHtmlSourceTextCoreAsync(cancellationToken);
 
-        static SourceText GetHtmlSourceTextCore(RazorCodeDocument codeDocument)
+        SourceText GetHtmlSourceTextCore(RazorCodeDocument codeDocument)
         {
-            return codeDocument.GetHtmlSourceText();
+            return codeDocument.GetHtmlSourceText(cancellationToken);
         }
 
         async ValueTask<SourceText> GetHtmlSourceTextCoreAsync(CancellationToken cancellationToken)
