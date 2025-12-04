@@ -306,17 +306,4 @@ public sealed partial class RazorCodeDocument
             Debug.Assert(validateNamespace == @namespace, $"We cached a namespace of {@namespace} but calculated that it should be {validateNamespace}");
         }
     }
-
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    [Obsolete("Do not use. Present to support the legacy editor", error: false)]
-    internal RazorCodeDocument Clone()
-        => new(Source, Imports, ParserOptions, CodeGenerationOptions,
-            tagHelpers: _tagHelpers,
-            referencedTagHelpers: _referencedTagHelpers,
-            preTagHelperSyntaxTree: _preTagHelperSyntaxTree,
-            syntaxTree: _syntaxTree,
-            importSyntaxTrees: _importSyntaxTrees,
-            tagHelperContext: _tagHelperContext,
-            documentNode: _documentNode,
-            csharpDocument: _csharpDocument);
 }
