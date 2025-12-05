@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.Razor.LanguageClient;
@@ -25,10 +26,12 @@ namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 internal sealed class RenamerProjectTreeActionHandler(
     [Import(ExportContractNames.Scopes.UnconfiguredProject)] IProjectAsynchronousTasksService projectAsynchronousTasksService,
     LSPRequestInvoker requestInvoker,
+    LanguageServerFeatureOptions featureOptions,
     ILoggerFactory loggerFactory) : ProjectTreeActionHandlerBase
 {
     private readonly IProjectAsynchronousTasksService _projectAsynchronousTasksService = projectAsynchronousTasksService;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
+    private readonly LanguageServerFeatureOptions _featureOptions = featureOptions;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RenamerProjectTreeActionHandler>();
 
     public override async Task RenameAsync(IProjectTreeActionHandlerContext context, IProjectTree node, string value)
@@ -36,6 +39,12 @@ internal sealed class RenamerProjectTreeActionHandler(
         ApplyRenameEditParams? request = null;
         try
         {
+            // Only supported in cohosting
+            if (!_featureOptions.UseRazorCohostServer)
+            {
+                return;
+            }
+
             if (node.FilePath is null || node.IsFolder)
             {
                 return;
