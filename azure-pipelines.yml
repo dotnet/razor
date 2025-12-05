@@ -216,7 +216,6 @@ stages:
             --restore
             --build
             --pack
-            --publish
             --configuration $(_BuildConfig)
             --prepareMachine
             --test
@@ -262,7 +261,6 @@ stages:
             --restore
             --build
             --pack
-            --publish
             --configuration $(_BuildConfig)
             --prepareMachine
             --test
