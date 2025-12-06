@@ -1,8 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Linq;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.TextDifferencing;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
@@ -181,7 +182,7 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
 
             if (_documentMappingService.TryMapToCSharpDocumentPosition(csharpDocument, change.Span.Start, out _, out var csharpIndex) &&
                 csharpSyntaxRoot.FindNode(new TextSpan(csharpIndex, 0), getInnermostNodeForTie: true) is { } csharpNode &&
-                csharpNode is CSharp.Syntax.LiteralExpressionSyntax or CSharp.Syntax.InterpolatedStringTextSyntax)
+                csharpNode.IsStringLiteral())
             {
                 context.Logger?.LogMessage($"Dropping change {change} because it breaks a C# string literal");
                 return true;

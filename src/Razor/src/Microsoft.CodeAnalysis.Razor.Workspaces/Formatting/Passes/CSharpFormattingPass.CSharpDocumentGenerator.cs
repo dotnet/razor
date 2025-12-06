@@ -509,7 +509,7 @@ internal partial class CSharpFormattingPass
                 // to ignore any existing indentation too.
                 if (_documentMappingService.TryMapToCSharpDocumentPosition(_csharpDocument, _currentToken.SpanStart, out _, out var csharpIndex) &&
                     _csharpSyntaxRoot.FindNode(new TextSpan(csharpIndex, 0), getInnermostNodeForTie: true) is { } csharpNode &&
-                    csharpNode is CSharp.Syntax.LiteralExpressionSyntax or CSharp.Syntax.InterpolatedStringTextSyntax)
+                    csharpNode.IsStringLiteral(multilineOnly: true))
                 {
                     _builder.AppendLine(_currentLine.ToString());
                     return CreateLineInfo(processIndentation: false, processFormatting: true, checkForNewLines: true);
