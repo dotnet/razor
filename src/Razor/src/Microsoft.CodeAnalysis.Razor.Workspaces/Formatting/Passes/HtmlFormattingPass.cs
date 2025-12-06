@@ -53,7 +53,6 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
             if (changes.Any(static e => e.NewText?.Contains('~') ?? false))
             {
                 var htmlSourceText = context.CodeDocument.GetHtmlSourceText(cancellationToken);
-                context.Logger?.LogSourceText("HtmlSourceText", htmlSourceText);
                 var htmlWithChanges = htmlSourceText.WithChanges(changes);
 
                 changes = SourceTextDiffer.GetMinimalTextChanges(htmlSourceText, htmlWithChanges, DiffKind.Word);
