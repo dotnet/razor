@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
-  <Source Uri="https://github.com/dotnet/dotnet" Mapping="razor" Sha="cc7f6e84d8dae36ad9ea51a5112627b8235982cc" BarId="291900" />
+  <Source Uri="https://github.com/dotnet/dotnet" Mapping="razor" Sha="29eefe27a350eb8b0bcbababa7863a0d1086295d" BarId="293166" />
   <ProductDependencies>
     <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="5.3.0-2.25601.4">
       <Uri>https://github.com/dotnet/roslyn</Uri>
@@ -88,9 +88,9 @@
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="9.0.0-beta.25515.2">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="10.0.0-beta.25603.3">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>6666973b629b24e259162dba03486c23af464bab</Sha>
+      <Sha>93a17c71536d794e248c077bb66ad6cee000eada</Sha>
     </Dependency>
     <!-- Necessary for source-build. This allows Microsoft.Extensions.ObjectPool and System.Collections.Immutable packages
          to be retrieved from live source-build and their content consumed by packages produced by razor.
