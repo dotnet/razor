@@ -25,7 +25,7 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
 
         if (changes.Length > 0)
         {
-            context.Logger?.LogSourceText("HtmlSourceText", context.CodeDocument.GetHtmlSourceText());
+            context.Logger?.LogSourceText("HtmlSourceText", context.CodeDocument.GetHtmlSourceText(cancellationToken));
 
             // There is a lot of uncertainty when we're dealing with edits that come from the Html formatter
             // because we are not responsible for it. It could make all sorts of strange edits, and it could
