@@ -128,7 +128,7 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
             {
                 results.Add(new(filePath, new(LinePosition.Zero, LinePosition.Zero), new TextSpan()));
             }
-            else if (RazorEditHelper.TryGetMappedSpans(span, source, csharpDocument, out var linePositionSpan, out var mappedSpan))
+            else if (RazorEditHelper.TryGetMappedSpan(span, source, csharpDocument, out var linePositionSpan, out var mappedSpan))
             {
                 results.Add(new(filePath, linePositionSpan, mappedSpan));
             }
