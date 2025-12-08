@@ -23,7 +23,7 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
     public Task DocumentSymbols_CSharpClassWithMethods(bool hierarchical)
         => VerifyDocumentSymbolsAsync(
             """
-            {|<Component>:|}@code {
+            {|BuildRenderTree():|}@code {
                 class {|SomeProject.File1.C:C|}
                 {
                     private void {|HandleString(string s):HandleString|}(string s)
@@ -56,7 +56,7 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
             : "home.example.SomeProject";
         return VerifyDocumentSymbolsAsync(
             $$"""
-            {|<Component>:|}@code {
+            {|BuildRenderTree():|}@code {
                 class {|ASP.{{generatedNamespace}}.File1.C:C|}
                 {
                     private void {|HandleString(string s):HandleString|}(string s)
@@ -86,7 +86,7 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
     public Task DocumentSymbols_CSharpMethods(bool hierarchical)
         => VerifyDocumentSymbolsAsync(
             """
-            {|<Component>:|}@code {
+            {|BuildRenderTree():|}@code {
                 private void {|HandleString(string s):HandleString|}(string s)
                 {
                     s += "Hello";
@@ -111,7 +111,7 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
     public Task DocumentSymbols_CSharpMethods_Legacy(bool hierarchical)
         => VerifyDocumentSymbolsAsync(
             """
-                {|<View>:|}@functions {
+                {|ExecuteAsync():|}@functions {
                     private void {|HandleString(string s):HandleString|}(string s)
                     {
                         s += "Hello";

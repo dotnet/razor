@@ -27,9 +27,9 @@ internal class DocumentSymbolService(IDocumentMappingService documentMappingServ
             {
                 // SymbolInformation is obsolete, but things still return it so we have to handle it
 #pragma warning disable CS0618 // Type or member is obsolete
-                if (symbolInformation.Name == RenderMethodEntry(fileKind))
+                if (symbolInformation.Name == RenderMethodSignature(fileKind))
                 {
-                    symbolInformation.Name = DocumentEntryName(fileKind);
+                    symbolInformation.Name = RenderMethodDisplay(fileKind);
                     symbolInformation.Location.Range = LspFactory.DefaultRange;
                     symbolInformation.Location.Uri = razorDocumentUri;
                     mappedSymbols.Add(symbolInformation);
@@ -82,11 +82,10 @@ internal class DocumentSymbolService(IDocumentMappingService documentMappingServ
 
         bool TryRemapRanges(RazorCSharpDocument csharpDocument, DocumentSymbol documentSymbol)
         {
-            if (documentSymbol.Detail == RenderMethodEntry(fileKind))
+            if (documentSymbol.Detail == RenderMethodSignature(fileKind))
             {
                 // Special case BuildRenderTree to always map to the top of the document
-                documentSymbol.Name = DocumentEntryName(fileKind);
-                documentSymbol.Detail = null;
+                documentSymbol.Detail = RenderMethodDisplay(fileKind);
                 documentSymbol.Range = LspFactory.DefaultRange;
                 documentSymbol.SelectionRange = LspFactory.DefaultRange;
 
@@ -105,14 +104,14 @@ internal class DocumentSymbolService(IDocumentMappingService documentMappingServ
         }
     }
 
-    private static string RenderMethodEntry(RazorFileKind fileKind)
+    private static string RenderMethodSignature(RazorFileKind fileKind)
         => fileKind == RazorFileKind.Legacy
             ? "ExecuteAsync()"
             : "BuildRenderTree(RenderTreeBuilder __builder)";
 
-    private static string DocumentEntryName(RazorFileKind fileKind)
+    private static string RenderMethodDisplay(RazorFileKind fileKind)
         => fileKind == RazorFileKind.Legacy
-            ? "<View>"
-            : "<Component>";
+            ? "ExecuteAsync()"
+            : "BuildRenderTree()"; // We hide __builder because it can be misleading to users: https://github.com/dotnet/razor/issues/11960
 
 }
