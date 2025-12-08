@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -55,6 +56,10 @@ internal sealed class RemoteDocumentMappingService(
             var razorDocumentUri = project.Solution.GetRazorDocumentUri(razorCodeDocument);
             return (razorDocumentUri, mappedRange);
         }
+
+        // If the position is unmappable, but was in a generated Razor, we have one last check to see if Roslyn wants to navigate
+        // to the class declaration, in which case we'll map to (0,0) in the Razor document itself.
+        var generatedDocumentId = _snapshotManager.GetSnapshot(project).Project.Solution.GetDocumentIdsWithUri(generatedDocumentUri).FirstOrDefault();
 
         return (generatedDocumentUri, generatedDocumentRange);
     }
