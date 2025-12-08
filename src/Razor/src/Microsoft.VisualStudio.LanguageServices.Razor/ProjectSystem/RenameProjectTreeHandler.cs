@@ -4,7 +4,6 @@
 using System;
 using System.ComponentModel.Composition;
 using System.IO;
-
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Utilities;
@@ -15,6 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.Razor.LanguageClient;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Razor.ProjectSystem;
@@ -23,13 +23,15 @@ namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 [Export(typeof(IProjectTreeActionHandler))]
 [AppliesTo(WellKnownProjectCapabilities.DotNetCoreCSharp)]
 [method: ImportingConstructor]
-internal sealed class RenamerProjectTreeActionHandler(
+internal sealed partial class RenamerProjectTreeActionHandler(
     [Import(ExportContractNames.Scopes.UnconfiguredProject)] IProjectAsynchronousTasksService projectAsynchronousTasksService,
+    SVsServiceProvider serviceProvider,
     LSPRequestInvoker requestInvoker,
     LanguageServerFeatureOptions featureOptions,
     ILoggerFactory loggerFactory) : ProjectTreeActionHandlerBase
 {
     private readonly IProjectAsynchronousTasksService _projectAsynchronousTasksService = projectAsynchronousTasksService;
+    private readonly SVsServiceProvider _serviceProvider = serviceProvider;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
     private readonly LanguageServerFeatureOptions _featureOptions = featureOptions;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RenamerProjectTreeActionHandler>();
@@ -114,6 +116,12 @@ internal sealed class RenamerProjectTreeActionHandler(
         await _projectAsynchronousTasksService.LoadedProjectAsync(async () =>
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var fromComponentName = Path.GetFileNameWithoutExtension(request.OldFilePath);
+            var toComponentName = Path.GetFileNameWithoutExtension(request.NewFilePath);
+
+            var dialogFactory = (IVsThreadedWaitDialogFactory)_serviceProvider.GetService(typeof(SVsThreadedWaitDialogFactory));
+            using var _ = new WaitIndicator(dialogFactory, SR.Renaming_Razor_Component, SR.FormatRenaming_0_to_1(fromComponentName, toComponentName));
 
             await _requestInvoker.ReinvokeRequestOnServerAsync<ApplyRenameEditParams, VoidResult>(
                  RazorLSPConstants.ApplyRenameEditName,
