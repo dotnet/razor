@@ -205,7 +205,7 @@ extends:
               inputs:
                 versionSpec: 10.x
 
-            - powershell: npm install -g yarn
+            - powershell: npm install -g yarn --registry=https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-npm/npm/registry/
               displayName: Install yarn
               condition: succeeded()
 
