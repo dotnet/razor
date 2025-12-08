@@ -112,7 +112,7 @@ internal class DocumentSymbolService(IDocumentMappingService documentMappingServ
 
     private static string DocumentEntryName(RazorFileKind fileKind)
         => fileKind == RazorFileKind.Legacy
-            ? "<Page>"
+            ? "<View>"
             : "<Component>";
 
 }

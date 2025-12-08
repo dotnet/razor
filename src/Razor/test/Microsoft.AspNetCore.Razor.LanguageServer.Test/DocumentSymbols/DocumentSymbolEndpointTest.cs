@@ -22,7 +22,7 @@ public class DocumentSymbolEndpointTest(ITestOutputHelper testOutput) : SingleSe
     public Task DocumentSymbols_CSharpClassWithMethods(bool hierarchical)
         => VerifyDocumentSymbolsAsync(
             """
-            {|<Page>:|}@functions {
+            {|<View>:|}@functions {
                 class {|AspNetCoreGeneratedDocument.test.C:C|}
                 {
                     private void {|HandleString(string s):HandleString|}(string s)
@@ -49,7 +49,7 @@ public class DocumentSymbolEndpointTest(ITestOutputHelper testOutput) : SingleSe
     public Task DocumentSymbols_CSharpMethods(bool hierarchical)
         => VerifyDocumentSymbolsAsync(
             """
-            {|<Page>:|}@functions {
+            {|<View>:|}@functions {
                 private void {|HandleString(string s):HandleString|}(string s)
                 {
                     s += "Hello";

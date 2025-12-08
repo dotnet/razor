@@ -111,7 +111,7 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
     public Task DocumentSymbols_CSharpMethods_Legacy(bool hierarchical)
         => VerifyDocumentSymbolsAsync(
             """
-                {|<Page>:|}@functions {
+                {|<View>:|}@functions {
                     private void {|HandleString(string s):HandleString|}(string s)
                     {
                         s += "Hello";
