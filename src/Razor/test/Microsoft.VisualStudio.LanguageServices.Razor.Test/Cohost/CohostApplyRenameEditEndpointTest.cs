@@ -90,6 +90,68 @@ public class CohostApplyRenameEditEndpointTest(ITestOutputHelper testOutputHelpe
     }
 
     [Fact]
+    public async Task Component_Self()
+    {
+        var oldName = "Component.razor";
+        var newName = "DifferentName.razor";
+        var contents = """
+            <Component />
+            """;
+
+        var files = new[]
+        {
+            (FilePath(oldName), contents)
+        };
+
+        var document = CreateProjectAndRazorDocument(contents: "", additionalFiles: files);
+        var solution = document.Project.Solution;
+
+        var fileSystem = (RemoteFileSystem)OOPExportProvider.GetExportedValue<IFileSystem>();
+        fileSystem.GetTestAccessor().SetFileSystem(new TestFileSystem(files));
+
+        var endpoint = new WorkspaceWillRenameEndpoint(RemoteServiceInvoker, LoggerFactory);
+
+        var renameParams = new RenameFilesParams
+        {
+            Files = [
+                new FileRename
+                {
+                    OldUri = new(FileUri(oldName)),
+                    NewUri = new(FileUri(newName)),
+                }
+            ]
+        };
+
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(renameParams, document.Project.Solution, DisposalToken);
+
+        Assert.NotNull(result);
+
+        // Simulate CPS renaming the files that Roslyn is editing
+        files = [
+            (FilePath(newName), contents)
+        ];
+
+        var oldFileId = Assert.Single(solution.GetDocumentIdsWithFilePath(FilePath(oldName)));
+        solution = document.Project
+            .RemoveAdditionalDocument(oldFileId)
+            .AddAdditionalDocument(newName, SourceText.From(contents), filePath: FilePath(newName)).Project.Solution;
+
+        var request = new ApplyRenameEditParams
+        {
+            Edit = result,
+            OldFilePath = FilePath(oldName),
+            NewFilePath = FilePath(newName)
+        };
+
+        CohostApplyRenameEditEndpoint.TestAccessor.FixUpWorkspaceEdit(request, new TestFileSystem(files));
+
+        await result.AssertWorkspaceEditAsync(solution, [
+            (FileUri(newName), """
+                <DifferentName />
+                """)], DisposalToken);
+    }
+
+    [Fact]
     public async Task UnrelatedExtraFile()
     {
         var oldName = "Component.razor";

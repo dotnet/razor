@@ -37,6 +37,34 @@ public class CohostWillRenameEndpointTest(ITestOutputHelper testOutputHelper) : 
             ]);
 
     [Fact]
+    public Task Component_Self()
+      => VerifyRenamesAsync(
+          oldName: FileUri("Component.razor"),
+          newName: FileUri("DifferentName.razor"),
+          files: [
+              (FilePath("Component.razor"), """
+                <Component />
+                """),
+                (FilePath("OtherComponent.razor"), """
+                    <Component />
+                    <Component></Component>
+                    <Component>
+                    </Component>
+                    """)
+          ],
+          expectedFiles: [
+              (FileUri("Component.razor"), """
+                    <DifferentName />
+                    """),
+              (FileUri("OtherComponent.razor"), """
+                    <DifferentName />
+                    <DifferentName></DifferentName>
+                    <DifferentName>
+                    </DifferentName>
+                    """)
+          ]);
+
+    [Fact]
     public Task Component_FullyQualified()
         => VerifyRenamesAsync(
             oldName: FileUri("Component.razor"),

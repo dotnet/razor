@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -73,19 +74,36 @@ internal sealed class CohostApplyRenameEditEndpoint(ILoggerFactory loggerFactory
         {
             if (edit.TryGetFirst(out var textDocumentEdit) &&
                 textDocumentEdit.TextDocument.DocumentUri is { UriString: { } uriString } documentUri &&
-                !fileSystem.FileExists(documentUri.GetRequiredParsedUri().GetDocumentFilePath()))
+                documentUri.GetRequiredParsedUri().GetDocumentFilePath() is { } documentFilePath &&
+                !fileSystem.FileExists(documentFilePath))
             {
                 var extension = PathUtilities.GetExtension(uriString);
                 var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(uriString);
                 var fileNamePartLength = fileNameWithoutExtension.Length + extension.Length;
 
-                if (fileNameWithoutExtension == oldFileNamePart &&
-                    uriString.Length > fileNamePartLength)
+                Debug.Assert(uriString.Length >= fileNamePartLength);
+
+                string newFileName;
+                if (documentFilePath == request.OldFilePath)
                 {
-                    var newFileName = uriString[..^fileNamePartLength] + newFileNamePart + extension;
-                    textDocumentEdit.TextDocument.DocumentUri = new DocumentUri(newFileName);
-                    documentChanges.Add(edit);
+                    // An edit to the actual Razor file that was renamed
+                    newFileName = uriString[..^fileNamePartLength] + newFileNamePart;
                 }
+                else if (fileNameWithoutExtension == oldFileNamePart)
+                {
+                    // An edit to a code behind file, or similar, that got renamed as part of the operation
+                    newFileName = uriString[..^fileNamePartLength] + newFileNamePart + extension;
+                }
+                else
+                {
+                    // This is an edit for a file that doesn't exist, but isn't related to Razor in any way. All we
+                    // can do is drop it and hope that the user can sort it out manually (or it was irrelevant).
+                    Debug.Fail("Got an edit that we don't understand during a rename operation.");
+                    continue;
+                }
+
+                textDocumentEdit.TextDocument.DocumentUri = new DocumentUri(newFileName);
+                documentChanges.Add(edit);
             }
             else if (edit.TryGetThird(out var renameEdit))
             {
