@@ -664,6 +664,34 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
             """);
     }
 
+    [Fact]
+    public void EscapedAttributeWithUnquotedExpressionDoesNotSwallowFollowingAttributes()
+    {
+        // Regression test for https://github.com/dotnet/razor/issues/...
+        // When an element has an attribute starting with @@ (escaped @) with an unquoted C# expression,
+        // any attributes defined after it should not be swallowed.
+        var tagHelpers = TagHelperCollection.Build((ref TagHelperCollection.RefBuilder builder) =>
+        {
+            // Create a tag helper that matches on control-id attribute
+            builder.Add(TagHelperDescriptorBuilder.CreateTagHelper("ControlIdTagHelper", "TestAssembly")
+                .TagMatchingRuleDescriptor(rule => rule
+                    .RequireTagName("*")
+                    .RequireAttributeDescriptor(attr => attr.Name("control-id")))
+                .BoundAttributeDescriptor(attribute => attribute
+                    .Name("control-id")
+                    .PropertyName("ControlId")
+                    .TypeName(typeof(string).FullName))
+                .Build());
+        });
+
+        EvaluateData(tagHelpers, """
+            @{
+                var functionCode = 10;
+            }
+            <div @@click="switchFunction(@functionCode)" is-confirm-redirect="true" control-id="test">Content</div>
+            """);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/10426")]
     public void CreatesMarkupCodeSpans_EscapedExpression_01()
     {
