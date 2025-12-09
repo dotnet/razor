@@ -6,6 +6,7 @@ This file should be imported by eng/Versions.props
 <Project>
   <PropertyGroup>
     <!-- dotnet/roslyn dependencies -->
+    <RoslynDiagnosticAnalyzersPackageVersion>5.3.0-2.25601.4</RoslynDiagnosticAnalyzersPackageVersion>
     <MicrosoftCodeAnalysisAnalyzersPackageVersion>5.3.0-2.25601.4</MicrosoftCodeAnalysisAnalyzersPackageVersion>
     <MicrosoftCodeAnalysisCommonPackageVersion>5.3.0-2.25601.4</MicrosoftCodeAnalysisCommonPackageVersion>
     <MicrosoftCodeAnalysisCSharpPackageVersion>5.3.0-2.25601.4</MicrosoftCodeAnalysisCSharpPackageVersion>
