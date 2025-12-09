@@ -401,4 +401,42 @@ public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractR
         await TestServices.Editor.WaitForActiveWindowAsync("MyComponent.razor", ControlledHangMitigatingCancellationToken);
         await TestServices.Editor.WaitForCurrentLineTextAsync("public string? MyProperty { get; set; }", ControlledHangMitigatingCancellationToken);
     }
+
+    [IdeFact]
+    public async Task GoToDefinition_ComponentFromCSharp()
+    {
+        // Open the file
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, "Program.cs", ControlledHangMitigatingCancellationToken);
+
+        // Change text to refer back to Program class
+        await TestServices.Editor.SetTextAsync("typeof(SurveyPrompt).ToString()", ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync(position: 10, ControlledHangMitigatingCancellationToken);
+
+        // Act
+        await TestServices.Editor.InvokeGoToDefinitionAsync(ControlledHangMitigatingCancellationToken);
+
+        // Assert
+        await TestServices.Editor.WaitForActiveWindowAsync("SurveyPrompt.razor", ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, "Program.cs", saveFile: false, ControlledHangMitigatingCancellationToken);
+    }
+
+    [IdeFact]
+    public async Task GoToDefinition_ComponentFromCSharpInRazor()
+    {
+        // Open the file
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, ControlledHangMitigatingCancellationToken);
+
+        // Change text to refer back to Program class
+        await TestServices.Editor.SetTextAsync("@nameof(SurveyPrompt)", ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync(position: 10, ControlledHangMitigatingCancellationToken);
+
+        // Act
+        await TestServices.Editor.InvokeGoToDefinitionAsync(ControlledHangMitigatingCancellationToken);
+
+        // Assert
+        await TestServices.Editor.WaitForActiveWindowAsync("SurveyPrompt.razor", ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, "Program.cs", saveFile: false, ControlledHangMitigatingCancellationToken);
+    }
 }
