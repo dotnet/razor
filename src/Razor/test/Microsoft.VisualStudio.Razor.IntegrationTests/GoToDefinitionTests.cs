@@ -212,17 +212,17 @@ public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractR
             """,
             cancellationToken: ControlledHangMitigatingCancellationToken);
 
-        await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
+        var position = await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
             "MyPage.razor",
             """
-            <MyComponent TItem=string Item="@("hi")"/>
+            <MyComponent TItem=string It$$em="@("hi")"/>
             """,
             open: true,
             cancellationToken: ControlledHangMitigatingCancellationToken);
 
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
-        await TestServices.Editor.PlaceCaretAsync(" Item=", charsOffset: -1, ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync(position, ControlledHangMitigatingCancellationToken);
 
         // Act
         await TestServices.Editor.InvokeGoToDefinitionAsync(ControlledHangMitigatingCancellationToken);
@@ -270,12 +270,12 @@ public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractR
             """,
             cancellationToken: ControlledHangMitigatingCancellationToken);
 
-        await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
+        var position = await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
             "MyPage.razor",
             """
             <Grid TItem="WeatherForecast" Items="@(Array.Empty<WeatherForecast>())">
                 <ColumnsTemplate>
-                    <Column Title="Date" FieldName="Date" Format="d" Width="10rem" />
+                    <Column Title="Date" Fie$$ldName="Date" Format="d" Width="10rem" />
                 </ColumnsTemplate>
             </Grid>
             """,
@@ -284,7 +284,7 @@ public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractR
 
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
-        await TestServices.Editor.PlaceCaretAsync(" FieldName=", charsOffset: -1, ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync(position, ControlledHangMitigatingCancellationToken);
 
         // Act
         await TestServices.Editor.InvokeGoToDefinitionAsync(ControlledHangMitigatingCancellationToken);
