@@ -134,7 +134,7 @@ public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractR
         await TestServices.Editor.WaitForCurrentLineTextAsync("public bool MyProperty { get; set; }", ControlledHangMitigatingCancellationToken);
     }
 
-    [ConditionalSkipIdeFact(Issue = "https://github.com/dotnet/razor/issues/8036")]
+    [IdeFact]
     public async Task GoToDefinition_ComponentAttribute_InCSharpFile()
     {
         // Create the files
@@ -178,7 +178,7 @@ public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractR
         await TestServices.Editor.WaitForCurrentLineTextAsync("[Parameter] public string? MyProperty { get; set; }", ControlledHangMitigatingCancellationToken);
     }
 
-    [ConditionalSkipIdeFact(Issue = "https://github.com/dotnet/razor/issues/8408")]
+    [IdeFact]
     public async Task GoToDefinition_ComponentAttribute_InReferencedAssembly()
     {
         // Open the file
@@ -193,7 +193,7 @@ public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractR
         await TestServices.Editor.WaitForActiveWindowByFileAsync("NavLink.cs", ControlledHangMitigatingCancellationToken);
     }
 
-    [ConditionalSkipIdeFact(Issue = "Blocked by https://github.com/dotnet/razor/issues/7966")]
+    [IdeFact]
     public async Task GoToDefinition_ComponentAttribute_GenericComponent()
     {
         // Create the files
@@ -232,7 +232,7 @@ public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractR
         await TestServices.Editor.WaitForCurrentLineTextAsync("[Parameter] public TItem Item { get; set; }", ControlledHangMitigatingCancellationToken);
     }
 
-    [ConditionalSkipIdeFact(Issue = "Blocked by https://github.com/dotnet/razor/issues/7966")]
+    [IdeFact]
     public async Task GoToDefinition_ComponentAttribute_CascadingGenericComponentWithConstraints()
     {
         // Create the files
