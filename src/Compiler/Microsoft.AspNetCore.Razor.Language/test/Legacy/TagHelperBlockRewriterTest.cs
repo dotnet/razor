@@ -744,7 +744,7 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
             """);
     }
 
-    // Regression tests for https://github.com/dotnet/razor/issues/[ISSUE_NUMBER]
+    // Regression tests for SDK 9+ escaped @@ attribute bug
     // Tests for attributes following escaped @@ attributes with unquoted expressions
     
     public static TagHelperCollection AttributeTargetingTagHelper_TagHelpers =
