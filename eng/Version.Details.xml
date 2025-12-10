@@ -2,6 +2,10 @@
 <Dependencies>
   <Source Uri="https://github.com/dotnet/dotnet" Mapping="razor" Sha="5a69737e6f6447fe397d552503a3909ea49f6f34" BarId="293565" />
   <ProductDependencies>
+    <Dependency Name="Roslyn.Diagnostics.Analyzers" Version="5.3.0-2.25608.5">
+      <Uri>https://github.com/dotnet/roslyn</Uri>
+      <Sha>d6ea39705b759381482acf7b4a8e241ef768463e</Sha>
+    </Dependency>
     <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="5.3.0-2.25608.5">
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>d6ea39705b759381482acf7b4a8e241ef768463e</Sha>
