@@ -409,12 +409,11 @@ public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractR
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, "Program.cs", ControlledHangMitigatingCancellationToken);
 
         // Change text to refer back to Program class
-        var position = await TestServices.Editor.SetTextAsync("""
+        await TestServices.Editor.SetTextAsync("""
             using BlazorProject.Shared;
 
             typeof(Surv$$eyPrompt).ToString();
             """, ControlledHangMitigatingCancellationToken);
-        await TestServices.Editor.PlaceCaretAsync(position, ControlledHangMitigatingCancellationToken);
 
         // Act
         await TestServices.Editor.InvokeGoToDefinitionAsync(ControlledHangMitigatingCancellationToken);
@@ -432,8 +431,7 @@ public class GoToDefinitionTests(ITestOutputHelper testOutputHelper) : AbstractR
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, ControlledHangMitigatingCancellationToken);
 
         // Change text to refer back to Program class
-        var position = await TestServices.Editor.SetTextAsync("@nameof(Surv$$eyPrompt)", ControlledHangMitigatingCancellationToken);
-        await TestServices.Editor.PlaceCaretAsync(position, ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("@nameof(Surv$$eyPrompt)", ControlledHangMitigatingCancellationToken);
 
         // Act
         await TestServices.Editor.InvokeGoToDefinitionAsync(ControlledHangMitigatingCancellationToken);

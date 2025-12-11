@@ -47,12 +47,11 @@ public class GoToImplementationTests(ITestOutputHelper testOutputHelper) : Abstr
         // Open the file
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, "Program.cs", ControlledHangMitigatingCancellationToken);
 
-        var position = await TestServices.Editor.SetTextAsync("""
+        await TestServices.Editor.SetTextAsync("""
             using BlazorProject.Shared;
 
             typeof(Surv$$eyPrompt).ToString();
             """, ControlledHangMitigatingCancellationToken);
-        await TestServices.Editor.PlaceCaretAsync(position, ControlledHangMitigatingCancellationToken);
 
         // Act
         await TestServices.Editor.InvokeGoToImplementationAsync(ControlledHangMitigatingCancellationToken);

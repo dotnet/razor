@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -34,6 +35,8 @@ internal static class CSharpSyntaxNodeExtensions
 
         internal bool TryGetClassDeclaration([NotNullWhen(true)] out ClassDeclarationSyntax? classDeclaration)
         {
+            Debug.Assert(node.SyntaxTree.FilePath.Contains("Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator"), "This method only supports finding class declarations for the specific shape of syntax tree that the source generator produces.");
+
             // Since we know how the compiler generates the C# source we can be a little specific here, and avoid
             // long tree walks. If the compiler ever changes how they generate their code, the tests for this will break
             // so we'll know about it.

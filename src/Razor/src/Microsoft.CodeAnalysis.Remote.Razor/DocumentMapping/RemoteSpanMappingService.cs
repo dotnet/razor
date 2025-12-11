@@ -54,11 +54,9 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
         }
 
         var documentSnapshot = _snapshotManager.GetSnapshot(razorDocument);
-        var csharpSyntaxTree = await documentSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var csharpSyntaxNode = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
-        var mappedSpans = MapSpans(codeDocument, [span], csharpSyntaxNode);
+        var mappedSpans = await MapSpansAsync(documentSnapshot, codeDocument, [span], cancellationToken).ConfigureAwait(false);
         if (mappedSpans is not [{ IsDefault: false } mappedSpan])
         {
             return null;
@@ -98,15 +96,16 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
         }
 
         var documentSnapshot = _snapshotManager.GetSnapshot(razorDocument);
-        var csharpSyntaxTree = await documentSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var csharpSyntaxNode = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
-        return MapSpans(codeDocument, spans, csharpSyntaxNode);
+        return await MapSpansAsync(documentSnapshot, codeDocument, spans, cancellationToken).ConfigureAwait(false);
     }
 
-    private static ImmutableArray<RazorMappedSpanResult> MapSpans(RazorCodeDocument codeDocument, ImmutableArray<TextSpan> spans, SyntaxNode csharpSyntaxNode)
+    private static async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(RemoteDocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
     {
+        var csharpSyntaxTree = await documentSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var csharpSyntaxNode = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+
         var source = codeDocument.Source.Text;
 
         var csharpDocument = codeDocument.GetRequiredCSharpDocument();
@@ -123,8 +122,8 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
             // If Roslyn is trying to navigate to, or show a reference to the class declaration, then we remap it to
             // (0,0) in the Razor document.
             if (span.Start == classDeclSpan.Start &&
-                span.Length == 0 ||
-                span.Length == classDeclSpan.Length)
+                (span.Length == 0 ||
+                span.Length == classDeclSpan.Length))
             {
                 results.Add(new(filePath, new(LinePosition.Zero, LinePosition.Zero), new TextSpan()));
             }

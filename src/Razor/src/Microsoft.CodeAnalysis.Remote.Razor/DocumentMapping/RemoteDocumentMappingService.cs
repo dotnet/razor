@@ -83,14 +83,14 @@ internal sealed class RemoteDocumentMappingService(
         }
 
         var csharpSyntaxRoot = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-        if (csharpSyntaxRoot.TryGetClassDeclaration(out var classDecl))
+        if (!csharpSyntaxRoot.TryGetClassDeclaration(out var classDecl))
         {
-            var sourceText = await generatedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var classDeclSpan = sourceText.GetLinePositionSpan(classDecl.Identifier.Span);
-
-            return classDeclSpan;
+            return null;
         }
 
-        return null;
+        var sourceText = await generatedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var classDeclSpan = sourceText.GetLinePositionSpan(classDecl.Identifier.Span);
+
+        return classDeclSpan;
     }
 }

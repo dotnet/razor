@@ -34,7 +34,7 @@ internal partial class EditorInProcess
         _ = view.TextBuffer.Insert(position, text);
     }
 
-    public async Task<int> SetTextAsync(TestCode text, CancellationToken cancellationToken)
+    public async Task<int> SetTextAsync(TestCode text, CancellationToken cancellationToken, bool placeCaretAtPosition = true)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -43,7 +43,17 @@ internal partial class EditorInProcess
         var replacementSpan = new SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
         _ = view.TextBuffer.Replace(replacementSpan, text.Text);
 
-        return text.Position;
+        if (text is { Positions: [var position] })
+        {
+            if (placeCaretAtPosition)
+            {
+                await TestServices.Editor.PlaceCaretAsync(text.Position, cancellationToken);
+            }
+
+            return position;
+        }
+
+        return 0;
     }
 
     public async Task WaitForTextChangeAsync(Action action, CancellationToken cancellationToken)
