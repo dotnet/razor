@@ -92,9 +92,9 @@
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="10.0.0-beta.25609.2">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="10.0.0-beta.25611.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>8d3de8e3bac9556115664bb8aa7e162dde3cedef</Sha>
+      <Sha>9f286ddee40065ea225611cb43ab0415e48994c2</Sha>
     </Dependency>
     <!-- Necessary for source-build. This allows Microsoft.Extensions.ObjectPool and System.Collections.Immutable packages
          to be retrieved from live source-build and their content consumed by packages produced by razor.
