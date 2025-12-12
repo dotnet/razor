@@ -155,6 +155,27 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
 
     [Theory]
     [CombinatorialData]
+    public async Task RenderFragment_Razor9(bool colorBackground, bool miscellaneousFile)
+    {
+        var input = """
+            @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
+
+            <!-- above and below should NOT be classified the same in Razor 9.0 -->
+
+            @{
+                var r = Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveAuto;
+            }
+            """;
+
+        await VerifySemanticTokensAsync(
+            input,
+            colorBackground,
+            miscellaneousFile,
+            projectConfigure: p => p.RazorLanguageVersion = RazorLanguageVersion.Version_9_0);
+    }
+
+    [Theory]
+    [CombinatorialData]
     public async Task RenderFragment_Expression(bool colorBackground, bool miscellaneousFile)
     {
         var input = """
@@ -175,9 +196,10 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
         bool colorBackground,
         bool miscellaneousFile,
         RazorFileKind? fileKind = null,
-        [CallerMemberName] string? testName = null)
+        [CallerMemberName] string? testName = null,
+        Action<RazorProjectBuilder>? projectConfigure = null)
     {
-        var document = CreateProjectAndRazorDocument(input, fileKind, miscellaneousFile: miscellaneousFile);
+        var document = CreateProjectAndRazorDocument(input, fileKind, miscellaneousFile: miscellaneousFile, projectConfigure: projectConfigure);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         // We need to manually initialize the OOP service so we can get semantic token info later
