@@ -136,6 +136,40 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
         await VerifySemanticTokensAsync(input, colorBackground, miscellaneousFile, fileKind: RazorFileKind.Legacy);
     }
 
+    [Theory]
+    [CombinatorialData]
+    public async Task RenderFragment(bool colorBackground, bool miscellaneousFile)
+    {
+        var input = """
+            @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
+
+            <!-- above and below should be classified the same -->
+
+            @{
+                var r = Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveAuto;
+            }
+            """;
+
+        await VerifySemanticTokensAsync(input, colorBackground, miscellaneousFile);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public async Task RenderFragment_Expression(bool colorBackground, bool miscellaneousFile)
+    {
+        var input = """
+            @rendermode @(Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer)
+
+            <!-- above and below should be classified the same -->
+
+            @{
+                var r = Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveAuto;
+            }
+            """;
+
+        await VerifySemanticTokensAsync(input, colorBackground, miscellaneousFile);
+    }
+
     private async Task VerifySemanticTokensAsync(
         string input,
         bool colorBackground,
