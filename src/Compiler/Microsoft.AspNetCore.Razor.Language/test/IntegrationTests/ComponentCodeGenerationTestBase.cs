@@ -12164,6 +12164,21 @@ Time: @DateTime.Now
     }
 
     [IntegrationTestFact]
+    public void RenderMode_Directive_WithTypeParam_Razor9()
+    {
+        var generated = CompileToCSharp("""
+                @typeparam T
+                @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
+                """,
+                configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_9_0 });
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
     public void RenderMode_Directive_WithTypeParam_First()
     {
         var generated = CompileToCSharp("""
