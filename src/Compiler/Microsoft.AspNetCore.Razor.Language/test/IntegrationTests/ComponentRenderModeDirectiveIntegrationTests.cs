@@ -27,7 +27,13 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
         VerifyRenderModeAttribute(component, $$"""
            file sealed class __PrivateComponentRenderModeAttribute : global::Microsoft.AspNetCore.Components.RenderModeAttribute
                    {
-                       private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
+                       private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl =>
+           #nullable restore
+           #line (3,13)-(3,77) "x:\dir\subdir\Test\TestComponent.cshtml"
+           Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
+           #line default
+           #line hidden
+           #nullable disable
                        ;
                        public override global::Microsoft.AspNetCore.Components.IComponentRenderMode Mode => ModeImpl;
                    }
@@ -83,7 +89,13 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
         VerifyRenderModeAttribute(component, """
             private sealed class __PrivateComponentRenderModeAttribute : global::Microsoft.AspNetCore.Components.RenderModeAttribute
                     {
-                        private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
+                        private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl =>
+            #nullable restore
+            #line (1,13)-(1,77) "x:\dir\subdir\Test\TestComponent.cshtml"
+            Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
+            #line default
+            #line hidden
+            #nullable disable
                         ;
                         public override global::Microsoft.AspNetCore.Components.IComponentRenderMode Mode => ModeImpl;
                     }
@@ -103,7 +115,13 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
         VerifyRenderModeAttribute(component, """
             private sealed class __PrivateComponentRenderModeAttribute : global::Microsoft.AspNetCore.Components.RenderModeAttribute
                     {
-                        private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => InteractiveServer
+                        private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl =>
+            #nullable restore
+            #line (2,13)-(2,30) "x:\dir\subdir\Test\TestComponent.cshtml"
+            InteractiveServer
+            #line default
+            #line hidden
+            #nullable disable
                         ;
                         public override global::Microsoft.AspNetCore.Components.IComponentRenderMode Mode => ModeImpl;
                     }
@@ -124,7 +142,13 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
         VerifyRenderModeAttribute(component, """
             file sealed class __PrivateComponentRenderModeAttribute : global::Microsoft.AspNetCore.Components.RenderModeAttribute
                     {
-                        private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => InteractiveServer
+                        private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl =>
+            #nullable restore
+            #line (3,13)-(3,30) "x:\dir\subdir\Test\TestComponent.cshtml"
+            InteractiveServer
+            #line default
+            #line hidden
+            #nullable disable
                         ;
                         public override global::Microsoft.AspNetCore.Components.IComponentRenderMode Mode => ModeImpl;
                     }
@@ -171,10 +195,9 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
         Assert.Empty(compilationResult.RazorDiagnostics);
 
         CompileToAssembly(compilationResult,
-            // x:\dir\subdir\Test\TestComponent.cshtml(25,101): error CS0103: The name 'NoExist' does not exist in the current context
-            //             NoExist
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "NoExist").WithArguments("NoExist").WithLocation(25, 101)
-            );
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,13): error CS0103: The name 'NoExist' does not exist in the current context
+            // NoExist
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "NoExist").WithArguments("NoExist").WithLocation(1, 13));
     }
 
     [Fact]
@@ -234,7 +257,6 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
             );
     }
 
-
     [Fact]
     public void RenderMode_Referencing_Instance_Code()
     {
@@ -249,10 +271,9 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
         Assert.Empty(compilationResult.RazorDiagnostics);
 
         CompileToAssembly(compilationResult,
-            // x:\dir\subdir\Test\TestComponent.cshtml(34, 101): error CS0120: An object reference is required for the non-static field, method, or property 'TestComponent.myRenderMode'
-            //             myRenderMode
-            Diagnostic(ErrorCode.ERR_ObjectRequired, "myRenderMode").WithArguments("Test.TestComponent.myRenderMode").WithLocation(34, 101)
-            );
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,13): error CS0120: An object reference is required for the non-static field, method, or property 'TestComponent.myRenderMode'
+            // myRenderMode
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "myRenderMode").WithArguments("Test.TestComponent.myRenderMode").WithLocation(1, 13));
     }
 
     [Fact]
