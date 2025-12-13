@@ -29,7 +29,7 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
                    {
                        private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl =>
            #nullable restore
-           #line (3,13)-(3,77) "x:\dir\subdir\Test\TestComponent.cshtml"
+           #line (3,13)-(3,77) "{{DefaultDocumentPath}}"
            Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
            #line default
            #line hidden
@@ -86,12 +86,12 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
             """);
 
         // Assert
-        VerifyRenderModeAttribute(component, """
+        VerifyRenderModeAttribute(component, $$"""
             private sealed class __PrivateComponentRenderModeAttribute : global::Microsoft.AspNetCore.Components.RenderModeAttribute
                     {
                         private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl =>
             #nullable restore
-            #line (1,13)-(1,77) "x:\dir\subdir\Test\TestComponent.cshtml"
+            #line (1,13)-(1,77) "{{DefaultDocumentPath}}"
             Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
             #line default
             #line hidden
@@ -112,12 +112,12 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
             """);
 
         // Assert
-        VerifyRenderModeAttribute(component, """
+        VerifyRenderModeAttribute(component, $$"""
             private sealed class __PrivateComponentRenderModeAttribute : global::Microsoft.AspNetCore.Components.RenderModeAttribute
                     {
                         private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl =>
             #nullable restore
-            #line (2,13)-(2,30) "x:\dir\subdir\Test\TestComponent.cshtml"
+            #line (2,13)-(2,30) "{{DefaultDocumentPath}}"
             InteractiveServer
             #line default
             #line hidden
@@ -139,12 +139,12 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
             """, genericArity: 1);
 
         // Assert
-        VerifyRenderModeAttribute(component, """
+        VerifyRenderModeAttribute(component, $$"""
             file sealed class __PrivateComponentRenderModeAttribute : global::Microsoft.AspNetCore.Components.RenderModeAttribute
                     {
                         private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl =>
             #nullable restore
-            #line (3,13)-(3,30) "x:\dir\subdir\Test\TestComponent.cshtml"
+            #line (3,13)-(3,30) "{{DefaultDocumentPath}}"
             InteractiveServer
             #line default
             #line hidden
