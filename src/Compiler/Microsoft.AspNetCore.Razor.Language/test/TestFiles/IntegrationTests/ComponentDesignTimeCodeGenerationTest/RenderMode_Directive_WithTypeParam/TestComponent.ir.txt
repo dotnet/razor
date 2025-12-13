@@ -29,7 +29,7 @@
             CSharpCode - 
                 IntermediateToken -  - CSharp - private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => 
                 CSharpCode - (26:1,12 [64] x:\dir\subdir\Test\TestComponent.cshtml)
-                    IntermediateToken -  - CSharp - Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
+                    IntermediateToken - (26:1,12 [64] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
                 IntermediateToken -  - CSharp - ;
             CSharpCode - 
                 IntermediateToken -  - CSharp - public override global::Microsoft.AspNetCore.Components.IComponentRenderMode Mode => ModeImpl;
