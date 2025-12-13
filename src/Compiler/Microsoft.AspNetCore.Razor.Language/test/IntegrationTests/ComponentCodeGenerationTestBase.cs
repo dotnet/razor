@@ -12150,6 +12150,34 @@ Time: @DateTime.Now
     #region RenderMode
 
     [IntegrationTestFact]
+    public void RenderMode_Directive_WithTypeParam()
+    {
+        var generated = CompileToCSharp("""
+                @typeparam T
+                @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
+                """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
+    public void RenderMode_Directive_WithTypeParam_First()
+    {
+        var generated = CompileToCSharp("""
+                @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
+                @typeparam T
+                """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
     public void RenderMode_Directive_FullyQualified()
     {
         var generated = CompileToCSharp("""

@@ -3,6 +3,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -11,6 +12,64 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTestBase
 {
     internal override RazorFileKind? FileKind => RazorFileKind.Component;
+
+    [Fact]
+    public void RenderMode_GenericComponent_CSharp11()
+    {
+        // Arrange & Act
+        var component = CompileToComponent("""
+           @typeparam T
+
+           @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
+           """, genericArity: 1);
+
+        // Assert
+        VerifyRenderModeAttribute(component, $$"""
+           file sealed class __PrivateComponentRenderModeAttribute : global::Microsoft.AspNetCore.Components.RenderModeAttribute
+                   {
+                       private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
+                       ;
+                       public override global::Microsoft.AspNetCore.Components.IComponentRenderMode Mode => ModeImpl;
+                   }
+           """);
+    }
+
+    [Fact]
+    public void RenderMode_GenericComponent_CSharp10_RazorLang9()
+    {
+        // Arrange & Act
+        var compilationResult = CompileToCSharp(DefaultFileName, cshtmlContent: """
+           @typeparam T
+
+           @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
+           """, configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_9_0 });
+
+        CompileToAssembly(compilationResult,
+            // (13,19): error CS0305: Using the generic type 'TestComponent<T>' requires 1 type arguments
+            //     [global::Test.TestComponent.__PrivateComponentRenderModeAttribute]
+            Diagnostic(ErrorCode.ERR_BadArity, "TestComponent").WithArguments("Test.TestComponent<T>", "type", "1").WithLocation(13, 19));
+    }
+
+    [Fact]
+    public void RenderMode_GenericComponent_CSharp10()
+    {
+        var csharpParseOptions = CSharpParseOptions.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp10);
+
+        // Arrange & Act
+        var compilationResult = CompileToCSharp(DefaultFileName, csharpParseOptions: csharpParseOptions, cshtmlContent: """
+           @typeparam T
+
+           @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
+           """);
+
+        CompileToAssembly(compilationResult,
+            // (13,19): error CS0305: Using the generic type 'TestComponent<T>' requires 1 type arguments
+            //     [global::Test.TestComponent.__PrivateComponentRenderModeAttribute]
+            Diagnostic(ErrorCode.ERR_BadArity, "TestComponent").WithArguments("Test.TestComponent<T>", "type", "1").WithLocation(13, 19),
+            // (31,70): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
+            //         private sealed class __PrivateComponentRenderModeAttribute : global::Microsoft.AspNetCore.Components.RenderModeAttribute
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "global::Microsoft.AspNetCore.Components.RenderModeAttribute").WithArguments("generic attributes", "11.0").WithLocation(31, 70));
+    }
 
     [Fact]
     public void RenderMode_With_Fully_Qualified_Type()
@@ -43,6 +102,27 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
         // Assert
         VerifyRenderModeAttribute(component, """
             private sealed class __PrivateComponentRenderModeAttribute : global::Microsoft.AspNetCore.Components.RenderModeAttribute
+                    {
+                        private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => InteractiveServer
+                        ;
+                        public override global::Microsoft.AspNetCore.Components.IComponentRenderMode Mode => ModeImpl;
+                    }
+            """);
+    }
+
+    [Fact]
+    public void RenderMode_With_Static_Usings_GenericComponent()
+    {
+        // Arrange & Act
+        var component = CompileToComponent("""
+            @using static Microsoft.AspNetCore.Components.Web.RenderMode
+            @typeparam T
+            @rendermode InteractiveServer
+            """, genericArity: 1);
+
+        // Assert
+        VerifyRenderModeAttribute(component, """
+            file sealed class __PrivateComponentRenderModeAttribute : global::Microsoft.AspNetCore.Components.RenderModeAttribute
                     {
                         private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => InteractiveServer
                         ;
@@ -369,12 +449,70 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
             """);
     }
 
+    [Fact]
+    public void RenderMode_With_FunctionCall_Generic()
+    {
+        // Arrange & Act
+        var component = CompileToComponent("""
+            @typeparam T
+            @rendermode @(TestComponent<object>.GetRenderMode())
+
+            @code
+            {
+                public static Microsoft.AspNetCore.Components.IComponentRenderMode GetRenderMode() => Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer;
+            }
+            """, genericArity: 1);
+
+        // Assert
+        VerifyRenderModeAttribute(component, $$"""
+            file sealed class __PrivateComponentRenderModeAttribute : global::Microsoft.AspNetCore.Components.RenderModeAttribute
+                    {
+                        private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl =>
+            #nullable restore
+            #line (2,15)-(2,52) "{{DefaultDocumentPath}}"
+            TestComponent<object>.GetRenderMode()
+
+            #line default
+            #line hidden
+            #nullable disable
+
+                        ;
+                        public override global::Microsoft.AspNetCore.Components.IComponentRenderMode Mode => ModeImpl;
+                    }
+            """);
+    }
+
+    [Fact]
+    public void RenderMode_With_FunctionCall_Generic_BadRef()
+    {
+        // Arrange & Act
+        var compilationResult = CompileToCSharp("""
+            @typeparam T
+            @rendermode @(TestComponent.GetRenderMode())
+
+            @code
+            {
+                public static Microsoft.AspNetCore.Components.IComponentRenderMode GetRenderMode() => Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer;
+            }
+            """);
+
+        // Assert
+        CompileToAssembly(compilationResult,
+            // x:\dir\subdir\Test\TestComponent.cshtml(2,15): error CS0305: Using the generic type 'TestComponent<T>' requires 1 type arguments
+            // TestComponent.GetRenderMode()
+            Diagnostic(ErrorCode.ERR_BadArity, "TestComponent").WithArguments("Test.TestComponent<T>", "type", "1").WithLocation(2, 15));
+    }
+
     private static void VerifyRenderModeAttribute(INamedTypeSymbol component, string expected)
     {
         var attribute = Assert.Single(component.GetAttributes());
-        AssertEx.Equal("__PrivateComponentRenderModeAttribute", attribute.AttributeClass?.Name);
+        Assert.NotNull(attribute.AttributeClass);
+        var attributeClass = attribute.AttributeClass; ;
+        AssertEx.Equal("__PrivateComponentRenderModeAttribute", attributeClass.Name);
 
-        var attributeType = component.ContainingAssembly.GetTypeByMetadataName("Test.TestComponent+__PrivateComponentRenderModeAttribute");
+        var attributeType = attributeClass.IsFileLocal
+            ? component.ContainingAssembly.GetTypeByMetadataName($"Test.{attributeClass.MetadataName}")
+            : component.ContainingAssembly.GetTypeByMetadataName("Test.TestComponent+__PrivateComponentRenderModeAttribute");
         Assert.NotNull(attributeType);
 
         expected = expected.NormalizeLineEndings();
