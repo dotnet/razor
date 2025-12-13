@@ -180,6 +180,20 @@ public class RazorLanguageVersionTest
     }
 
     [Fact]
+    public void TryParse110()
+    {
+        // Arrange
+        var value = "11.0";
+
+        // Act
+        var result = RazorLanguageVersion.TryParse(value, out var version);
+
+        // Assert
+        Assert.True(result);
+        Assert.Same(RazorLanguageVersion.Version_11_0, version);
+    }
+
+    [Fact]
     public void TryParseLatest()
     {
         // Arrange
@@ -191,7 +205,7 @@ public class RazorLanguageVersionTest
         // Assert
         Assert.True(result);
         Assert.Same(RazorLanguageVersion.Latest, version);
-        Assert.Same(RazorLanguageVersion.Version_10_0, version);
+        Assert.Same(RazorLanguageVersion.Version_11_0, version);
     }
 
     [Fact]

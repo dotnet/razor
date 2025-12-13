@@ -42,7 +42,7 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
         // If the user is Razor 10 or higher, C# 11 or higher, and has a generic compoment, then we can use a file-scoped class for the generated attribute
         // so everything compiles correctly.
         var useFileScopedClass = codeDocument.ParserOptions.CSharpParseOptions.LanguageVersion >= CodeAnalysis.CSharp.LanguageVersion.CSharp11 &&
-            codeDocument.ParserOptions.LanguageVersion >= RazorLanguageVersion.Version_10_0 &&
+            codeDocument.ParserOptions.LanguageVersion >= RazorLanguageVersion.Version_11_0 &&
             @class.TypeParameters.Length > 0;
 
         // generate the inner attribute class
