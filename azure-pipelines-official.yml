@@ -337,7 +337,6 @@ extends:
                 --pack
                 --configuration $(_BuildConfig)
                 --prepareMachine
-                --test
                 $(_BuildArgs)
               name: Build
               displayName: Restore, Build and Test
@@ -380,7 +379,6 @@ extends:
                 --pack
                 --configuration $(_BuildConfig)
                 --prepareMachine
-                --test
                 $(_BuildArgs)
               name: Build
               displayName: Restore, Build and Test
