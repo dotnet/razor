@@ -196,8 +196,8 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
         bool colorBackground,
         bool miscellaneousFile,
         RazorFileKind? fileKind = null,
-        [CallerMemberName] string? testName = null,
-        Action<RazorProjectBuilder>? projectConfigure = null)
+        Action<RazorProjectBuilder>? projectConfigure = null,
+        [CallerMemberName] string? testName = null)
     {
         var document = CreateProjectAndRazorDocument(input, fileKind, miscellaneousFile: miscellaneousFile, projectConfigure: projectConfigure);
         var sourceText = await document.GetTextAsync(DisposalToken);
