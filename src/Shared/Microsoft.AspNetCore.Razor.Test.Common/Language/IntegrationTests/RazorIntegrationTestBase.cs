@@ -49,7 +49,7 @@ public class RazorIntegrationTestBase
         ImportItems = ImmutableArray.CreateBuilder<RazorProjectItem>();
 
         BaseCompilation = DefaultBaseCompilation;
-        Configuration = RazorConfiguration.Default;
+        Configuration = RazorConfiguration.Default with { LanguageVersion = RazorLanguageVersion.Preview };
         FileSystem = new VirtualRazorProjectFileSystem();
         PathSeparator = Path.DirectorySeparatorChar.ToString();
         WorkingDirectory = PlatformInformation.IsWindows ? ArbitraryWindowsPath : ArbitraryMacLinuxPath;
