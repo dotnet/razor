@@ -138,7 +138,7 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
 
     [Theory]
     [CombinatorialData]
-    public async Task RenderFragment(bool colorBackground, bool miscellaneousFile)
+    public async Task RenderMode(bool colorBackground, bool miscellaneousFile)
     {
         var input = """
             @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
@@ -155,7 +155,7 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
 
     [Theory]
     [CombinatorialData]
-    public async Task RenderFragment_Razor9(bool colorBackground, bool miscellaneousFile)
+    public async Task RenderMode_Razor9(bool colorBackground, bool miscellaneousFile)
     {
         var input = """
             @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
@@ -176,7 +176,7 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
 
     [Theory]
     [CombinatorialData]
-    public async Task RenderFragment_Expression(bool colorBackground, bool miscellaneousFile)
+    public async Task RenderMode_Expression(bool colorBackground, bool miscellaneousFile)
     {
         var input = """
             @rendermode @(Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer)
