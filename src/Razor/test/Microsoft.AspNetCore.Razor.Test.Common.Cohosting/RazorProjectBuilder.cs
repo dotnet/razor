@@ -41,7 +41,7 @@ internal class RazorProjectBuilder(ProjectId? id = null)
     public bool GenerateMSBuildProjectDirectory { get; set; } = true;
     public bool GenerateAdditionalDocumentMetadata { get; set; } = true;
 
-    public RazorLanguageVersion RazorLanguageVersion { get; set; } = FallbackRazorConfiguration.Latest.LanguageVersion;
+    public RazorLanguageVersion RazorLanguageVersion { get; set; } = RazorLanguageVersion.Preview;
 
     private readonly List<PortableExecutableReference> _references = [];
     private readonly List<(DocumentId id, string name, SourceText text, string filePath)> _documents = [];
