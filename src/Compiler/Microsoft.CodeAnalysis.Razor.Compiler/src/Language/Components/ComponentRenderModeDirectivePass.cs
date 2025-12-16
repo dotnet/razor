@@ -70,7 +70,7 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
                              : IntermediateNodeFactory.CSharpToken(
                                  content: directiveToken.Content,
                                  // To avoid breaking hot reload, we don't map the content back to the source unless we're on Razor 10 or higher
-                                 source: codeDocument.ParserOptions.LanguageVersion >= RazorLanguageVersion.Version_10_0
+                                 source: codeDocument.ParserOptions.LanguageVersion >= RazorLanguageVersion.Version_11_0
                                     ? directiveToken.Source
                                     : null)
                     }
