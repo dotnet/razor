@@ -67,7 +67,12 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
                     {
                          child is not DirectiveTokenIntermediateNode directiveToken
                              ? child
-                             : IntermediateNodeFactory.CSharpToken(directiveToken.Content)
+                             : IntermediateNodeFactory.CSharpToken(
+                                 content: directiveToken.Content,
+                                 // To avoid breaking hot reload, we don't map the content back to the source unless we're on Razor 11 or higher
+                                 source: codeDocument.ParserOptions.LanguageVersion >= RazorLanguageVersion.Version_11_0
+                                    ? directiveToken.Source
+                                    : null)
                     }
                 },
                 IntermediateNodeFactory.CSharpToken(";")

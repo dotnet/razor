@@ -12,7 +12,15 @@ namespace Test
     #line hidden
     [global::Test.TestComponent.__PrivateComponentRenderModeAttribute]
     #nullable restore
-    public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
+    public partial class TestComponent<
+#nullable restore
+#line (1,12)-(1,13) "x:\dir\subdir\Test\TestComponent.cshtml"
+T
+
+#line default
+#line hidden
+#nullable disable
+    > : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
         #pragma warning disable 1998
@@ -22,15 +30,7 @@ namespace Test
         #pragma warning restore 1998
         private sealed class __PrivateComponentRenderModeAttribute : global::Microsoft.AspNetCore.Components.RenderModeAttribute
         {
-            private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => 
-#nullable restore
-#line (1,13)-(1,77) "x:\dir\subdir\Test\TestComponent.cshtml"
-Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
-
-#line default
-#line hidden
-#nullable disable
-
+            private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
             ;
             public override global::Microsoft.AspNetCore.Components.IComponentRenderMode Mode => ModeImpl;
         }
