@@ -205,7 +205,7 @@ public class RazorLanguageVersionTest
         // Assert
         Assert.True(result);
         Assert.Same(RazorLanguageVersion.Latest, version);
-        Assert.Same(RazorLanguageVersion.Version_10_0, version);
+        Assert.Same(RazorLanguageVersion.Version_9_0, version);
     }
 
     [Fact]
