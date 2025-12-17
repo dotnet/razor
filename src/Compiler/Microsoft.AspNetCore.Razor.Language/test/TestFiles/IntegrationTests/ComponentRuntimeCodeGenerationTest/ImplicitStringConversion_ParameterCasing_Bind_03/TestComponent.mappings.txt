@@ -13,7 +13,7 @@ Source Location: (84:2,7 [73] x:\dir\subdir\Test\TestComponent.cshtml)
     private string s = "abc";
     private void Changed(string s) { }
 |
-Generated Location: (1319:35,0 [73] )
+Generated Location: (1321:35,0 [73] )
 |
     private string s = "abc";
     private void Changed(string s) { }

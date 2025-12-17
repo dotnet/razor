@@ -28,7 +28,7 @@ Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
 #nullable disable
 
             ;
-            __builder.AddComponentParameter(1, "@rendermode", "Value2");
+            __builder.AddAttribute(1, "@rendermode", (object)("Value2"));
             __builder.AddComponentRenderMode(__renderMode);
             __builder.CloseComponent();
         }

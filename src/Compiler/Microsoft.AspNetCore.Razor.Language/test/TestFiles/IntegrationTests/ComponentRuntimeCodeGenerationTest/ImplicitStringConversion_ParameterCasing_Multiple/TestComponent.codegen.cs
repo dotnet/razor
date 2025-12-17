@@ -21,7 +21,7 @@ namespace Test
             __builder.AddComponentParameter(1, nameof(global::Test.MyComponent.
 #nullable restore
 #line (1,14)-(1,25) "x:\dir\subdir\Test\TestComponent.cshtml"
-Placeholder
+PlaceHolder
 
 #line default
 #line hidden

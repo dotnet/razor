@@ -10,21 +10,21 @@ Generated Location: (855:25,49 [13] )
 
 Source Location: (84:1,40 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
-Generated Location: (1186:30,0 [9] )
+Generated Location: (1187:30,0 [9] )
 |() => { }|
 
 Source Location: (131:2,1 [13] x:\dir\subdir\Test\TestComponent.cshtml)
 |TestComponent|
-Generated Location: (1490:39,49 [13] )
+Generated Location: (1492:39,49 [13] )
 |TestComponent|
 
 Source Location: (170:2,40 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
-Generated Location: (1821:44,0 [9] )
+Generated Location: (1824:44,0 [9] )
 |() => { }|
 
 Source Location: (194:2,64 [20] x:\dir\subdir\Test\TestComponent.cshtml)
 |"named-form-handler"|
-Generated Location: (2043:53,0 [20] )
+Generated Location: (2046:53,0 [20] )
 |"named-form-handler"|
 

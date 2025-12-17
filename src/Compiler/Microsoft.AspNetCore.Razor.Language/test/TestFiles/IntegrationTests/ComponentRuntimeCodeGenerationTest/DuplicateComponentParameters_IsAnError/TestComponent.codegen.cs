@@ -27,7 +27,7 @@ Message
 #line hidden
 #nullable disable
             ), "test");
-            __builder.AddComponentParameter(2, "mESSAGE", "test");
+            __builder.AddAttribute(2, "mESSAGE", (object)("test"));
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

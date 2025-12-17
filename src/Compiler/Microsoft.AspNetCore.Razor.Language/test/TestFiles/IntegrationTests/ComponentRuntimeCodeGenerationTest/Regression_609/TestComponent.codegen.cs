@@ -18,7 +18,7 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenComponent<global::Test.User>(0);
-            __builder.AddComponentParameter(1, "Name", 
+            __builder.AddAttribute(1, "Name", (object)(
 #nullable restore
 #line (1,20)-(1,28) "x:\dir\subdir\Test\TestComponent.cshtml"
 UserName
@@ -26,9 +26,9 @@ UserName
 #line default
 #line hidden
 #nullable disable
-            );
-            __builder.AddComponentParameter(2, "NameChanged", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => UserName = __value, UserName));
-            __builder.AddComponentParameter(3, "IsActive", 
+            ));
+            __builder.AddAttribute(2, "NameChanged", (object)(global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => UserName = __value, UserName)));
+            __builder.AddAttribute(3, "IsActive", (object)(
 #nullable restore
 #line (1,47)-(1,59) "x:\dir\subdir\Test\TestComponent.cshtml"
 UserIsActive
@@ -36,8 +36,8 @@ UserIsActive
 #line default
 #line hidden
 #nullable disable
-            );
-            __builder.AddComponentParameter(4, "IsActiveChanged", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => UserIsActive = __value, UserIsActive));
+            ));
+            __builder.AddAttribute(4, "IsActiveChanged", (object)(global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => UserIsActive = __value, UserIsActive)));
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

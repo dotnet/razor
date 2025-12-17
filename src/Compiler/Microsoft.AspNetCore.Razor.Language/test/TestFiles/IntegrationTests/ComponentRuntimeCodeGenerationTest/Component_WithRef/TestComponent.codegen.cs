@@ -18,8 +18,8 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenComponent<global::Test.MyComponent>(0);
-            __builder.AddComponentParameter(1, "ParamBefore", "before");
-            __builder.AddComponentParameter(2, "ParamAfter", "after");
+            __builder.AddAttribute(1, "ParamBefore", (object)("before"));
+            __builder.AddAttribute(2, "ParamAfter", (object)("after"));
             __builder.AddComponentReferenceCapture(3, (__value) => {
 #nullable restore
 #line (1,41)-(1,51) "x:\dir\subdir\Test\TestComponent.cshtml"

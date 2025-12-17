@@ -35,7 +35,7 @@ myField
 #line hidden
 #nullable disable
             ));
-            __builder.AddComponentParameter(2, "Property1Changed", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => myField = __value, myField));
+            __builder.AddAttribute(2, "Property1Changed", (object)(global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => myField = __value, myField)));
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

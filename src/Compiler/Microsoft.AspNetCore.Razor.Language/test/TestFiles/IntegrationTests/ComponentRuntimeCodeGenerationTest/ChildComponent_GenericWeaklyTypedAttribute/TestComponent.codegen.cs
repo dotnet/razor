@@ -43,7 +43,7 @@ Item
 #line hidden
 #nullable disable
             ));
-            __builder.AddComponentParameter(2, "Other", 
+            __builder.AddAttribute(2, "Other", (object)(
 #nullable restore
 #line (1,51)-(1,53) "x:\dir\subdir\Test\TestComponent.cshtml"
 17
@@ -51,7 +51,7 @@ Item
 #line default
 #line hidden
 #nullable disable
-            );
+            ));
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

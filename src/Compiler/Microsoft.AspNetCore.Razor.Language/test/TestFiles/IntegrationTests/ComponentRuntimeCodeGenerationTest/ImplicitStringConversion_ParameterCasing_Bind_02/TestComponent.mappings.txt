@@ -12,7 +12,7 @@ Source Location: (49:2,7 [33] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     private string s = "abc";
 |
-Generated Location: (1112:34,0 [33] )
+Generated Location: (1113:34,0 [33] )
 |
     private string s = "abc";
 |

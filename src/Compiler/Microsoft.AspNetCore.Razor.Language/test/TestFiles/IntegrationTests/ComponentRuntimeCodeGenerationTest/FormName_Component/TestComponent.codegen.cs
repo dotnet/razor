@@ -24,7 +24,7 @@ using Microsoft.AspNetCore.Components.Web
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenComponent<global::Test.TestComponent>(0);
-            __builder.AddComponentParameter(1, "method", "post");
+            __builder.AddAttribute(1, "method", (object)("post"));
             __builder.AddComponentParameter(2, "onsubmit", global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.EventArgs>(this, 
 #nullable restore
 #line (2,41)-(2,50) "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -34,11 +34,11 @@ using Microsoft.AspNetCore.Components.Web
 #line hidden
 #nullable disable
             ));
-            __builder.AddComponentParameter(3, "@formname", "named-form-handler");
+            __builder.AddAttribute(3, "@formname", (object)("named-form-handler"));
             __builder.CloseComponent();
             __builder.AddMarkupContent(4, "\r\n");
             __builder.OpenComponent<global::Test.TestComponent>(5);
-            __builder.AddComponentParameter(6, "method", "post");
+            __builder.AddAttribute(6, "method", (object)("post"));
             __builder.AddComponentParameter(7, "onsubmit", global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.EventArgs>(this, 
 #nullable restore
 #line (3,41)-(3,50) "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -48,7 +48,7 @@ using Microsoft.AspNetCore.Components.Web
 #line hidden
 #nullable disable
             ));
-            __builder.AddComponentParameter(8, "@formname", 
+            __builder.AddAttribute(8, "@formname", (object)(
 #nullable restore
 #line (3,65)-(3,85) "x:\dir\subdir\Test\TestComponent.cshtml"
 "named-form-handler"
@@ -56,7 +56,7 @@ using Microsoft.AspNetCore.Components.Web
 #line default
 #line hidden
 #nullable disable
-            );
+            ));
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

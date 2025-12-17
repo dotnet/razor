@@ -18,7 +18,7 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenComponent<global::Test.MyComponent>(0);
-            __builder.AddComponentParameter(1, "@onclick", "() => Increment()");
+            __builder.AddAttribute(1, "@onclick", (object)("() => Increment()"));
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

@@ -27,7 +27,7 @@ Item
 #line hidden
 #nullable disable
             ), "Hello");
-            __builder.AddComponentParameter(2, "MyEvent", "MyEventHandler");
+            __builder.AddAttribute(2, "MyEvent", (object)("MyEventHandler"));
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

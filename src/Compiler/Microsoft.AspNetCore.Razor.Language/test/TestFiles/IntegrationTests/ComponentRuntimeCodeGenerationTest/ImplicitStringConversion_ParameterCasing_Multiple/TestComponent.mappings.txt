@@ -6,7 +6,7 @@ Generated Location: (703:19,49 [11] )
 Source Location: (13:0,13 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |PlaceHolder|
 Generated Location: (884:23,0 [11] )
-|Placeholder|
+|PlaceHolder|
 
 Source Location: (28:0,28 [13] x:\dir\subdir\Test\TestComponent.cshtml)
 |new MyClass()|
