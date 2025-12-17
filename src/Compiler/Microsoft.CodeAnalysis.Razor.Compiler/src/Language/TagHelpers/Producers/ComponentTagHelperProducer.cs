@@ -200,7 +200,7 @@ internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
             pb.IsEditorRequired = property.GetAttributes().Any(
                 static a => a.HasFullName("Microsoft.AspNetCore.Components.EditorRequiredAttribute"));
 
-            pb.CaseSensitive = false;
+            pb.CaseSensitive = true;
 
             builder.GloballyQualifiedTypeName = property.Type.GetGloballyQualifiedFullName();
 

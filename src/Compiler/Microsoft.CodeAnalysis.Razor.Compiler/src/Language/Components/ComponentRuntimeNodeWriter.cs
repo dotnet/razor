@@ -618,7 +618,8 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             return;
         }
 
-        var addAttributeMethod = node.AddAttributeMethodName ?? GetAddComponentParameterMethodName(context);
+        var addAttributeMethod = node.AddAttributeMethodName ?? 
+            (node.BoundAttribute == null ? ComponentsApi.RenderTreeBuilder.AddAttribute : GetAddComponentParameterMethodName(context));
 
         // _builder.AddComponentParameter(1, nameof(Component.Property), 42);
         context.CodeWriter.Write(BuilderVariableName);
