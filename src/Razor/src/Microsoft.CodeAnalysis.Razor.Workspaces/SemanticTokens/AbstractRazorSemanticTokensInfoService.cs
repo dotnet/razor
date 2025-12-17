@@ -295,15 +295,21 @@ internal abstract partial class AbstractRazorSemanticTokensInfoService(
         var isFirstRange = true;
         var index = 0;
         SemanticRange previousRange = default;
+        var i = 0;
         foreach (var range in semanticRanges)
         {
-            if (TryWriteToken(range, previousRange, isFirstRange, sourceText, tokens.AsSpan(index, TokenSize)))
+            var nextRange = semanticRanges.Count > i + 1
+                ? semanticRanges[i + 1]
+                : default;
+
+            if (TryWriteToken(range, previousRange, nextRange, isFirstRange, sourceText, tokens.AsSpan(index, TokenSize)))
             {
                 index += TokenSize;
                 previousRange = range;
             }
 
             isFirstRange = false;
+            i++;
         }
 
         // The common case is that the ConvertIntoDataArray calls didn't find any overlap, and we can just directly use the
@@ -319,10 +325,15 @@ internal abstract partial class AbstractRazorSemanticTokensInfoService(
         static bool TryWriteToken(
             SemanticRange currentRange,
             SemanticRange previousRange,
+            SemanticRange nextRange,
             bool isFirstRange,
             SourceText sourceText,
             Span<int> destination)
         {
+#if DEBUG
+            var currentText = sourceText.GetSubTextString(sourceText.GetTextSpan(currentRange.AsLinePositionSpan()));
+#endif
+
             Debug.Assert(destination.Length == TokenSize);
 
             /*
@@ -366,14 +377,24 @@ internal abstract partial class AbstractRazorSemanticTokensInfoService(
                 deltaStart = currentRange.StartCharacter;
             }
 
-            // If this is a C# whitespace range, and the previous range is on the same line, and from Razor
-            // then we don't want to emit this. This happens when we have leftover whitespace from between
-            // two C# ranges, that were superseded by Razor ranges.
-            if (currentRange.IsCSharpWhitespace &&
-                previousRange.FromRazor &&
-                currentRange.StartLine == previousRange.EndLine)
+            // Due to the fact that Razor ranges can supersede C# ranges, we can end up with C# whitespace ranges we've
+            // added, that we not don't want after further processing, so check for that, and skip emitting those ranges.
+            if (currentRange.IsCSharpWhitespace)
             {
-                return false;
+                // If the previous range is on the same line, and from Razor, then we don't want to emit this.
+                // This happens when we have leftover whitespace from between two C# ranges, that were superseded by Razor ranges.
+                if (previousRange.FromRazor &&
+                    currentRange.StartLine == previousRange.EndLine)
+                {
+                    return false;
+                }
+
+                // If the next range is Razor, then it's leftover whitespace before C#, that was superseded by Razor, so don't emit.
+                if (nextRange.FromRazor &&
+                    currentRange.StartCharacter == 0)
+                {
+                    return false;
+                }
             }
 
             destination[0] = deltaLine;
