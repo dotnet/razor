@@ -10,7 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -3101,9 +3101,17 @@ namespace MyApp
             var result = RunGenerator(compilation!, ref driver);
 
             result.Diagnostics.Verify(
-                // error RZ3600: Invalid value '{0}'' for RazorLangVersion. Valid values include 'Latest' or a valid version in range 1.0 to 8.0.
+                // error RZ3600: Invalid value '{0}' for RazorLangVersion. Valid values include 'Latest' or a valid version in range 1.0 to 11.0.
                 Diagnostic("RZ3600").WithArguments(langVersion).WithLocation(1, 1));
             Assert.Single(result.GeneratedSources);
+        }
+
+        [Fact]
+        public void RazorLangVersion_InvalidErrorMessage()
+        {
+            var message = RazorDiagnostics.InvalidRazorLangVersionDescriptor.MessageFormat.ToString();
+            Assert.Contains(RazorLanguageVersion.Version_1_0.ToString(), message);
+            Assert.Contains(RazorLanguageVersion.Preview.ToString(), message);
         }
 
         [Fact]
@@ -3272,7 +3280,7 @@ namespace MyApp
             Assert.Equal(2, result.GeneratedSources.Length);
             Assert.Empty(eventListener.Events);
 
-            var reference = (PortableExecutableReference) project.MetadataReferences[^1];
+            var reference = (PortableExecutableReference)project.MetadataReferences[^1];
 
             project = project.RemoveMetadataReference(reference)
                              .AddMetadataReference(MetadataReference.CreateFromFile(reference.FilePath!));
