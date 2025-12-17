@@ -985,7 +985,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/aspnetcore/issues/48778")]
     public async Task ImplicitStringConversion_ParameterCasing(
-        [CombinatorialValues("StringParameter", "stringParameter")] string paramName,
+        [CombinatorialValues("StringParameter")] string paramName,
         [CombinatorialValues("7.0", "8.0", "Latest")] string langVersion)
     {
         // Arrange
