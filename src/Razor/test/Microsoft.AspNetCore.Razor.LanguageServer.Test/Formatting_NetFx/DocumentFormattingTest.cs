@@ -7467,4 +7467,115 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     </div>
                     """);
 
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12223")]
+    public Task ExplicitExpression_InIf()
+        => RunFormattingTestAsync(
+            input: """
+                    @if (true)
+                    {
+                        @(Html.Grid()
+                            .Render())
+                    }
+                    """,
+            expected: """
+                    @if (true)
+                    {
+                        @(Html.Grid()
+                            .Render())
+                    }
+                    """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12554")]
+    public Task ObjectInitializers1()
+        => RunFormattingTestAsync(
+            input: """
+                    @{
+                        Func<Test, IHtmlContent> RenderTest = @<div>Test X: @item.X, Y: @item.Y</div>;
+                    }
+
+                    @RenderTest(new Test()
+                    {
+                        X = 10,
+                        Y = 20,
+                    })
+
+                    <div>
+                        @RenderTest(new Test()
+                        {
+                            X = 1,
+                            Y = 2,
+                        })
+                    </div>
+                    """,
+            expected: """
+                    @{
+                        Func<Test, IHtmlContent> RenderTest = @<div>Test X: @item.X, Y: @item.Y</div>;
+                    }
+
+                    @RenderTest(new Test()
+                    {
+                        X = 10,
+                        Y = 20,
+                    })
+
+                    <div>
+                        @RenderTest(new Test()
+                        {
+                            X = 1,
+                            Y = 2,
+                        })
+                    </div>
+                    """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12554")]
+    public Task ObjectInitializers2()
+        => RunFormattingTestAsync(
+            input: """
+                    <div>
+                        @if (true)
+                        {
+                            @Html.TextBox(new Test()
+                            {
+                                test = 5
+                            })
+                        }
+                    </div>
+                    """,
+            expected: """
+                    <div>
+                        @if (true)
+                        {
+                            @Html.TextBox(new Test()
+                            {
+                                test = 5
+                            })
+                        }
+                    </div>
+                    """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12554")]
+    public Task ObjectInitializers3()
+        => RunFormattingTestAsync(
+            input: """
+                    <div>
+                        @{
+                            var a = new int[] { 1, 2, 3 }
+                                .Where(i => i % 2 == 0)
+                                .ToArray();
+                        }
+                    </div>
+                    """,
+            expected: """
+                    <div>
+                        @{
+                            var a = new int[] { 1, 2, 3 }
+                                .Where(i => i % 2 == 0)
+                                .ToArray();
+                        }
+                    </div>
+                    """);
 }
