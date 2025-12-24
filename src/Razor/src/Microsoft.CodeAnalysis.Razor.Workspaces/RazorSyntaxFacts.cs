@@ -84,10 +84,12 @@ internal static class RazorSyntaxFacts
         return attributeNameSpan != default;
     }
 
-    private static TextSpan GetFullAttributeNameSpan(RazorSyntaxNode? node)
+    public static TextSpan GetFullAttributeNameSpan(RazorSyntaxNode? node)
     {
         return node switch
         {
+            MarkupAttributeBlockSyntax att => att.Name.Span,
+            MarkupMinimizedAttributeBlockSyntax att => att.Name.Span,
             MarkupTagHelperAttributeSyntax att => att.Name.Span,
             MarkupMinimizedTagHelperAttributeSyntax att => att.Name.Span,
             MarkupTagHelperDirectiveAttributeSyntax att => CalculateFullSpan(att.Name, att.ParameterName, att.Transition),
@@ -221,6 +223,16 @@ internal static class RazorSyntaxFacts
             string.Equals(tagName, "style", StringComparison.OrdinalIgnoreCase);
     }
 
+    internal static bool IsAttributeName(RazorSyntaxNode node, [NotNullWhen(true)] out BaseMarkupStartTagSyntax? startTag)
     {
+        startTag = null;
+
+        if (node.Parent.IsAnyAttributeSyntax() &&
+            GetFullAttributeNameSpan(node.Parent).Start == node.SpanStart)
+        {
+            startTag = node.Parent.Parent as BaseMarkupStartTagSyntax;
+        }
+
+        return startTag is not null;
     }
 }

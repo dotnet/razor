@@ -637,6 +637,12 @@ internal partial class CSharpFormattingPass
 
             public override LineInfo VisitRazorMetaCode(RazorMetaCodeSyntax node)
             {
+                // This could be a directive attribute, like @bind-Value="asdf"
+                if (TryVisitAttribute(node) is { } result)
+                {
+                    return result;
+                }
+
                 // Meta code is a few things, and mostly they're valid C#, but one case we have to specifically handle is
                 // bound attributes that start on their own line, eg the second line of:
                 //
@@ -677,21 +683,35 @@ internal partial class CSharpFormattingPass
 
             public override LineInfo VisitMarkupTextLiteral(MarkupTextLiteralSyntax node)
             {
-                return VisitMarkupLiteral();
+                if (TryVisitAttribute(node) is { } result)
+                {
+                    return result;
+                }
+
+                return EmitCurrentLineAsComment();
             }
 
-            private LineInfo VisitMarkupLiteral()
+            private LineInfo? TryVisitAttribute(RazorSyntaxNode node)
             {
-                // For markup text literal, we always want to honour the Html formatter, so we supply the Html indent.
-                // Normally that would only happen if we were inside a markup element
-#if DEBUG
-                _builder.AppendLine($"// {_currentLine}");
-#else
-                _builder.AppendLine($"//");
-#endif
-                return CreateLineInfo(
-                    htmlIndentLevel: FormattingUtilities.GetIndentationLevel(_currentLine, _currentFirstNonWhitespacePosition, _insertSpaces, _tabSize, out var additionalIndentation),
-                    additionalIndentation: additionalIndentation);
+                if (RazorSyntaxFacts.IsAttributeName(node, out var startTag))
+                {
+                    // Attributes are indented to align with the first attribute in their tag. In future, now that we're handling
+                    // this ourselves, we can make this an option: https://github.com/dotnet/razor/issues/6551
+                    var firstAttribute = startTag.Attributes[0];
+                    var nameSpan = RazorSyntaxFacts.GetFullAttributeNameSpan(firstAttribute);
+
+                    // If the element has caused indentation, then we'll want to take one level off our attribute indentation to
+                    // compensate. Need to be careful here because things like `<a` are likely less than a single indent level.
+                    var htmlIndentLevel = FormattingUtilities.GetIndentationLevel(nameSpan.Start - startTag.SpanStart, _tabSize, out var additionalIndentation);
+                    if (ElementCausesIndentation(startTag) && htmlIndentLevel > 0)
+                    {
+                        htmlIndentLevel--;
+                    }
+
+                    return EmitCurrentLineAsComment(htmlIndentLevel: htmlIndentLevel, additionalIndentation: additionalIndentation);
+                }
+
+                return null;
             }
 
             public override LineInfo VisitMarkupTagHelperEndTag(MarkupTagHelperEndTagSyntax node)
@@ -958,14 +978,14 @@ internal partial class CSharpFormattingPass
                 return CreateLineInfo(processFormatting: true, checkForNewLines: true);
             }
 
-            private LineInfo EmitCurrentLineAsComment()
+            private LineInfo EmitCurrentLineAsComment(int htmlIndentLevel = 0, string? additionalIndentation = null)
             {
 #if DEBUG
                 _builder.AppendLine($"// {_currentLine}");
 #else
                 _builder.AppendLine($"//");
 #endif
-                return CreateLineInfo();
+                return CreateLineInfo(htmlIndentLevel: htmlIndentLevel, additionalIndentation: additionalIndentation);
             }
 
             private LineInfo EmitCurrentLineWithNoFormatting()
