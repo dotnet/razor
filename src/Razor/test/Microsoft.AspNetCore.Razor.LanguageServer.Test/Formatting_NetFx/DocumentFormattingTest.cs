@@ -472,14 +472,14 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 """,
             expected: """
                 <div>
-                    @code
+                @code
+                {
+                    private bool IconMenuActive { get; set; } = false;
+                    protected void ToggleIconMenu(bool iconMenuActive)
                     {
-                        private bool IconMenuActive { get; set; } = false;
-                        protected void ToggleIconMenu(bool iconMenuActive)
-                        {
-                            IconMenuActive = iconMenuActive;
-                        }
+                        IconMenuActive = iconMenuActive;
                     }
+                }
                 </div>
                 """,
             csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
@@ -653,15 +653,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     """,
             expected: """
                     <boo>
-                        @code
-                        {
-                            private int currentCount = 0;
+                    @code
+                    {
+                        private int currentCount = 0;
 
-                            private void IncrementCount()
-                            {
-                                currentCount++;
-                            }
+                        private void IncrementCount()
+                        {
+                            currentCount++;
                         }
+                    }
                     </boo>
                     """,
             inGlobalNamespace: inGlobalNamespace);
@@ -686,15 +686,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     """,
             expected: """
                     <boo>
-                        @code
-                        {
-                            private int currentCount = 0;
+                    @code
+                    {
+                        private int currentCount = 0;
 
-                            private void IncrementCount()
-                            {
-                                currentCount++;
-                            }
+                        private void IncrementCount()
+                        {
+                            currentCount++;
                         }
+                    }
                     </boo>
                     """);
     }
@@ -718,15 +718,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     """,
             expected: """
                     <boo>
-                        @code
-                        {
-                            private int currentCount = 0;
+                    @code
+                    {
+                        private int currentCount = 0;
 
-                            private void IncrementCount()
-                            {
-                                currentCount++;
-                            }
+                        private void IncrementCount()
+                        {
+                            currentCount++;
                         }
+                    }
                     </boo>
                     """);
     }
