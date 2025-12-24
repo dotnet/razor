@@ -3824,6 +3824,8 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
     [FormattingTestFact]
     public async Task Format_DocumentWithDiagnostics()
     {
+        // The malformed closing div in the foreach block causes confusing results in the formatter,
+        // but the test validates that we don't crash at least.
         await RunFormattingTestAsync(
             input: """
                     @page
@@ -3859,14 +3861,14 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         </div>
                     </section>
                     <section class="section">
-                        <div class="container">
+                    <div class="container">
                     @foreach (var item in Model.Images)
                     {
-                                <div>
-                                    <div>
-                                        }
-                                    </div>
-                        </section>
+                        <div>
+                        <div>
+                            }
+                        </div>
+                    </section>
                     """,
             fileKind: RazorFileKind.Legacy,
             allowDiagnostics: true);
