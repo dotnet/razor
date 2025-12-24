@@ -464,11 +464,11 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                     <div Model="SomeModel">
                         <div />
                         @{
-                        #if DEBUG
-                            }
-                            <div />
-                            @{
-                        #endif
+                    #if DEBUG
+                        }
+                        <div />
+                        @{
+                    #endif
 
                         }
                     </div>
