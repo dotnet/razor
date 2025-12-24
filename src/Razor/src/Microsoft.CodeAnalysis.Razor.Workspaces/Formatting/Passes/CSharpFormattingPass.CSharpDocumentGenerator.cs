@@ -427,7 +427,7 @@ internal partial class CSharpFormattingPass
                     previousSibling is CSharpTemplateBlockSyntax &&
                     GetLineNumber(previousSibling.GetFirstToken()) != GetLineNumber(previousSibling.GetLastToken()))
                 {
-                    _builder.AppendLine("};");
+                    _builder.AppendLine(";");
                     return CreateLineInfo();
                 }
 
@@ -678,7 +678,7 @@ internal partial class CSharpFormattingPass
             public override LineInfo VisitMarkupEphemeralTextLiteral(MarkupEphemeralTextLiteralSyntax node)
             {
                 // A MarkupEphemeralTextLiteral is an escaped @ sign, eg in CSS "@@font-face". We just treat it like markup text
-                return VisitMarkupLiteral();
+                return EmitCurrentLineAsComment();
             }
 
             public override LineInfo VisitMarkupTextLiteral(MarkupTextLiteralSyntax node)
@@ -813,8 +813,33 @@ internal partial class CSharpFormattingPass
                 if (body.CSharpCode.Children is [_, { } secondChild, ..] &&
                     GetLineNumber(secondChild) == GetLineNumber(node))
                 {
+                    // Emit the whitespace, so user spacing is honoured if possible
+                    _builder.Append(_sourceText.ToString(TextSpan.FromBounds(_currentLine.Start, _currentFirstNonWhitespacePosition)));
                     var span = TextSpan.FromBounds(_currentFirstNonWhitespacePosition + 1, secondChild.Position);
                     _builder.Append(_sourceText.ToString(span));
+
+                    if (secondChild is CSharpTemplateBlockSyntax template &&
+                        _sourceText.GetLinePositionSpan(template.Span).SpansMultipleLines())
+                    {
+                        _builder.AppendLine("() => {");
+                        // We only want to format up to the text we added, but if Roslyn inserted a newline before the brace
+                        // then that position will be different. If we're not given the options then we assume the default behaviour of
+                        // Roslyn which is to insert the newline.
+                        var formattedOffsetFromEndOfLine = _csharpSyntaxFormattingOptions?.NewLines.IsFlagSet(RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody) ?? true
+                            ? 5
+                            : 7;
+
+                        return CreateLineInfo(
+                            skipNextLineIfBrace: true,
+                            originOffset: 1,
+                            formattedLength: span.Length,
+                            formattedOffsetFromEndOfLine: formattedOffsetFromEndOfLine,
+                            processFormatting: true,
+                            // We turn off check for new lines because that only works if the content doesn't change from the original,
+                            // but we're deliberately leaving out a bunch of the original file because it would confuse the Roslyn formatter.
+                            checkForNewLines: false);
+                    }
+
                     // Append a comment at the end so whitespace isn't removed, as Roslyn thinks its the end of the line, but we know it isn't.
                     _builder.AppendLine(" //");
 
@@ -828,6 +853,9 @@ internal partial class CSharpFormattingPass
                         checkForNewLines: false);
                 }
 
+                // Multi-line expressions are often not formatted by Roslyn much at all, but it will often move subsequent lines
+                // relative to the first, so make sure we include the users indentation so everything moves together, and is stable.
+                _builder.Append(_sourceText.GetSubTextString(TextSpan.FromBounds(_currentLine.Start, _currentFirstNonWhitespacePosition)));
                 _builder.AppendLine(_sourceText.GetSubTextString(TextSpan.FromBounds(_currentToken.Position + 1, _currentLine.End)));
                 return CreateLineInfo(
                     processFormatting: true,
