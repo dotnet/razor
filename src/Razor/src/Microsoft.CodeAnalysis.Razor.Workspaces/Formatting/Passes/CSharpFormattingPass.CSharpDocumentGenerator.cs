@@ -683,10 +683,24 @@ internal partial class CSharpFormattingPass
 
             public override LineInfo VisitMarkupTextLiteral(MarkupTextLiteralSyntax node)
             {
+                if (node.Parent is MarkupCommentBlockSyntax comment)
+                {
+                    return VisitMarkupCommentBlock(comment);
+                }
+
                 if (TryVisitAttribute(node) is { } result)
                 {
                     return result;
                 }
+
+                return EmitCurrentLineAsComment();
+            }
+
+            public override LineInfo VisitMarkupCommentBlock(MarkupCommentBlockSyntax node)
+            {
+                // The contents of html comments might be significant (eg tables or ASCII flow charts),
+                // so we never want any formatting to happen inside them.
+                _ignoreUntilLine = _sourceText.Lines.GetLineFromPosition(node.EndPosition).LineNumber;
 
                 return EmitCurrentLineAsComment();
             }
