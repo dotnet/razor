@@ -167,13 +167,13 @@ internal partial class CSharpFormattingPass
             private RazorSyntaxToken _previousCurrentToken;
 
             /// <summary>
-            /// The line number of the last line of the current element, if we're inside one.
+            /// The line number of the last line an element, if we're inside one, where we care about the Html formatters indentation
             /// </summary>
             /// <remarks>
             /// This is used to track if the syntax node at the start of each line is parented by an element node, without
-            /// having to do lots of tree traversal.
+            /// having to do lots of tree traversal, for formatting the contents of script and style tags.
             /// </remarks>
-            private int? _elementEndLine;
+            private int? _honourHtmlFormattingUntilLine;
             /// <summary>
             /// The line number of the last line of a block where formatting should be completely ignored
             /// </summary>
@@ -239,10 +239,10 @@ internal partial class CSharpFormattingPass
                     }
 
                     // If we're inside an element that ends on this line, clear the field that tracks it.
-                    if (_elementEndLine is { } endLine &&
+                    if (_honourHtmlFormattingUntilLine is { } endLine &&
                         endLine == line.LineNumber)
                     {
-                        _elementEndLine = null;
+                        _honourHtmlFormattingUntilLine = null;
                     }
 
                     if (_ignoreUntilLine is { } endLine2 &&
@@ -526,15 +526,22 @@ internal partial class CSharpFormattingPass
                 {
                     // The contents of textareas is significant, so we never want any formatting to happen inside them
                     _ignoreUntilLine = GetLineNumber(element.EndTag?.CloseAngle ?? element.StartTag.CloseAngle);
-                }
-                else if (_elementEndLine is null)
-                {
-                    // If this is an element at the root level, we want to record where it ends. We can't rely on the Visit method
-                    // for it, because it might not be at the start of a line.
-                    _elementEndLine = GetLineNumber(element.EndTag?.CloseAngle ?? element.StartTag.CloseAngle);
+
+                    return EmitCurrentLineAsComment();
                 }
 
-                return EmitCurrentLineAsComment();
+                var result = VisitStartTag(node);
+
+                if (RazorSyntaxFacts.IsScriptOrStyleBlock(element) &&
+                    _honourHtmlFormattingUntilLine is null)
+                {
+                    // If this is an element at the root level, we want to record where it ends. We can't rely on the Visit method
+                    // for it, because it might not be at the start of a line. We only care about contents though, so thats why
+                    // we are doing this after emitting this line, and minusing one from the end element line number.
+                    _honourHtmlFormattingUntilLine = GetLineNumber(element.EndTag?.CloseAngle ?? element.StartTag.CloseAngle) - 1;
+                }
+
+                return result;
             }
 
             public override LineInfo VisitMarkupEndTag(MarkupEndTagSyntax node)
@@ -544,6 +551,10 @@ internal partial class CSharpFormattingPass
 
             private LineInfo VisitEndTag(BaseMarkupEndTagSyntax node)
             {
+                // End tags are emited as close braces, to remove the indent their start tag caused. We don't need to worry
+                // about single-line elements here, because these Visit methods only ever see the first node on a line.
+                _builder.Append('}');
+
                 // If this is the last line of a multi-line CSharp template (ie, RenderFragment), and the semicolon that ends
                 // if is on the same line, then we need to close out the lambda expression that we started when we opened it.
                 // If the semicolon is on the next line, then we'll take care of that when we get to it.
@@ -554,24 +565,74 @@ internal partial class CSharpFormattingPass
                     semiColonToken.Content == ";" &&
                     GetLineNumber(semiColonToken) == GetLineNumber(_currentToken))
                 {
-                    _builder.AppendLine("};");
-                    return CreateLineInfo();
+                    _builder.Append(';');
                 }
 
-                return EmitCurrentLineAsComment();
+#if DEBUG
+                _builder.Append($" /* {_currentLine} */");
+#endif
+
+                _builder.AppendLine();
+                return CreateLineInfo();
             }
 
             public override LineInfo VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
             {
-                // If this is an element at the root level, we want to record where it ends. We can't rely on the Visit method
-                // for it, because it might not be at the start of a line.
-                if (_elementEndLine is null)
+                return VisitStartTag(node);
+            }
+
+            private LineInfo VisitStartTag(BaseMarkupStartTagSyntax node)
+            {
+                if (ElementCausesIndentation(node))
                 {
-                    var element = (MarkupTagHelperElementSyntax)node.Parent;
-                    _elementEndLine = GetLineNumber(element.EndTag?.CloseAngle ?? element.StartTag.CloseAngle);
+                    // When an element causes indentation, we emit an open brace to tell the C# formatter to indent
+#if DEBUG
+                    _builder.AppendLine($$"""{ /* {{_currentLine}} */""");
+#else
+                    _builder.AppendLine("{");
+#endif
+                    return CreateLineInfo();
                 }
 
+                // This is a single line element, so it doesn't cause indentation
                 return EmitCurrentLineAsComment();
+            }
+
+            private bool ElementCausesIndentation(BaseMarkupStartTagSyntax node)
+            {
+                if (node.GetEndTag() is not { } endTag)
+                {
+                    // No end tag, so it's self-closing and doesn't cause indentation
+                    return false;
+                }
+
+                var endTagLineNumber = GetLineNumber(endTag);
+                if (endTagLineNumber == GetLineNumber(node))
+                {
+                    // End tag and start tag are on the same line
+                    return false;
+                }
+
+                if (endTagLineNumber == GetLineNumber(node.CloseAngle))
+                {
+                    // End tag is on the same line as the start tag's close angle bracket
+                    return false;
+                }
+
+                if (node.Name.Content == "html")
+                {
+                    // <html> doesn't cause indentation in Visual Studio or VS Code, so we honour that.
+                    return false;
+                }
+
+                if (node is MarkupStartTagSyntax startTag &&
+                    (startTag.IsVoidElement() || startTag.IsSelfClosing()))
+                {
+                    // Void elements and self-closing elements don't cause indentation
+                    return false;
+                }
+
+                return true;
             }
 
             public override LineInfo VisitRazorMetaCode(RazorMetaCodeSyntax node)
@@ -927,17 +988,14 @@ internal partial class CSharpFormattingPass
                 int formattedOffsetFromEndOfLine = 0,
                 string? additionalIndentation = null)
             {
-                // We want to honour the indentation that the Html formatter supplied, but annoyingly it only actually indents
-                // the contents of elements, not anything which is not contained in an element. This makes sense from the point
-                // of view of Html, as it would expect the <html> element to always be present, but that is not true in Razor.
-                // So we have to check if we're inside an element before we record the indentation, otherwise we could be
-                // recording incorrect information.
+                // We sometimes want to honour the indentation that the Html formatter supplied, when inside the right type of tag
+                // but we will also have added our own C# indentation on top of that, so we need to subtract one level to compensate.
                 if (additionalIndentation is null &&
                     htmlIndentLevel == 0 &&
-                    _elementEndLine is { } endLine &&
+                    _honourHtmlFormattingUntilLine is { } endLine &&
                     endLine >= _currentLine.LineNumber)
                 {
-                    htmlIndentLevel = FormattingUtilities.GetIndentationLevel(_currentLine, _currentFirstNonWhitespacePosition, _insertSpaces, _tabSize, out additionalIndentation);
+                    htmlIndentLevel = FormattingUtilities.GetIndentationLevel(_currentLine, _currentFirstNonWhitespacePosition, _insertSpaces, _tabSize, out additionalIndentation) - 1;
                 }
 
                 return new(
