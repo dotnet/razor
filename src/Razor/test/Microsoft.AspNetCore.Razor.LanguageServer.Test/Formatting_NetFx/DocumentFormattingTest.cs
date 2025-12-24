@@ -7368,4 +7368,49 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     </InputSelect>
                 </div>
                 """);
+
+    [FormattingTestFact]
+    public Task HtmlAttributes()
+        => RunFormattingTestAsync(
+            input: """
+                    <div class="foo"
+                                disabled
+                            style="hello"
+                      @onclick="foo()">
+                    <InputSelect @onclick="foo()"
+                    TValue="Guid?"
+                     disabled
+                     style="hello">
+                     <a href="#"
+                     disabled
+                     style="hello"
+                    @onclick="foo()"/>
+                     <br class="a"
+                     style="b"
+                     disabled>
+                     <br />
+                    </InputSelect>
+                    </div>
+                    """,
+            expected: """
+                    <div class="foo"
+                         disabled
+                         style="hello"
+                         @onclick="foo()">
+                        <InputSelect @onclick="foo()"
+                                     TValue="Guid?"
+                                     disabled
+                                     style="hello">
+                            <a href="#"
+                               disabled
+                               style="hello"
+                               @onclick="foo()" />
+                            <br class="a"
+                                style="b"
+                                disabled>
+                            <br />
+                        </InputSelect>
+                    </div>
+                    """);
+
 }
