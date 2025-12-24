@@ -7435,7 +7435,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     TValue="Guid?"
                      disabled
                      style="hello">
-                     <a href="#"
+                     <p></p><a href="#"
                      disabled
                      style="hello"
                     @onclick="foo()"/>
@@ -7455,10 +7455,10 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                                      TValue="Guid?"
                                      disabled
                                      style="hello">
-                            <a href="#"
-                               disabled
-                               style="hello"
-                               @onclick="foo()" />
+                            <p></p><a href="#"
+                                      disabled
+                                      style="hello"
+                                      @onclick="foo()" />
                             <br class="a"
                                 style="b"
                                 disabled>
