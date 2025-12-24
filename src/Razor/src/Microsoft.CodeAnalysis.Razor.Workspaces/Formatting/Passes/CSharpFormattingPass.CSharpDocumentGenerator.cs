@@ -49,12 +49,12 @@ internal partial class CSharpFormattingPass
     /// <para>
     /// The generator will go through that syntax tree and produce the following C# document:
     /// <code>
-    /// // &lt;div&gt;
+    /// { // &lt;div&gt;
     ///     @if (true)
     ///     {
     ///         // Some code
     ///     }
-    /// // &lt;/div&gt;
+    /// } // &lt;/div&gt;
     ///
     /// class F
     /// {
@@ -64,9 +64,11 @@ internal partial class CSharpFormattingPass
     /// </para>
     /// <para>
     /// The class definition is clearly not present in the source Razor document, but it represents the intended
-    /// indentation that the user would expect to see for the property declaration. Additionally the indentation
-    /// of the @if block is recorded, so that after formatting the C#, which Roslyn will set back to column 0, we
-    /// reapply it so we end up with the C# indentation and Html indentation combined.
+    /// indentation that the user would expect to see for the property declaration. The Html element start and
+    /// end tags are emited as braces so they cause the right amount of indentation, and the indentation of the
+    /// @if block is recorded, so that any quirks of Roslyn formatting are the same as what the user would expect
+    /// when looking at equivalent code in C#. ie, there might only be one level of indentation in C# for "Some code"
+    /// but conceptually the user is expecting two, due to the Html element.
     /// </para>
     /// <para>
     /// For more complete examples, the full test log for every formatting test includes the generated C# document.
