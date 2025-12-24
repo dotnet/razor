@@ -208,18 +208,19 @@ internal static class RazorSyntaxFacts
         return false;
     }
 
-    internal static bool IsElementWithName(MarkupElementSyntax? element, string name)
+    internal static bool IsScriptOrStyleBlock(MarkupElementSyntax? element)
     {
-        return string.Equals(element?.StartTag.Name.Content, name, StringComparison.OrdinalIgnoreCase);
+        // StartTag is annotated as not nullable, but on invalid documents it can be. The 'Format_DocumentWithDiagnostics' test
+        // illustrates this.
+        if (element?.StartTag?.Name.Content is not { } tagName)
+        {
+            return false;
+        }
+
+        return string.Equals(tagName, "script", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(tagName, "style", StringComparison.OrdinalIgnoreCase);
     }
 
-    internal static bool IsStyleBlock(MarkupElementSyntax? node)
     {
-        return IsElementWithName(node, "style");
-    }
-
-    internal static bool IsScriptBlock(MarkupElementSyntax? node)
-    {
-        return IsElementWithName(node, "script");
     }
 }
