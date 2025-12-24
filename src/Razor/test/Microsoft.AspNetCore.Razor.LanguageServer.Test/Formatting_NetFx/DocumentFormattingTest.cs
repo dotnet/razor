@@ -1896,7 +1896,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
 
                     <h1>Hello, world!</h1>
 
-                            Welcome to your new app.
+                    Welcome to your new app.
 
                     <PageTitle Title="How is Blazor working for you?" />
 
