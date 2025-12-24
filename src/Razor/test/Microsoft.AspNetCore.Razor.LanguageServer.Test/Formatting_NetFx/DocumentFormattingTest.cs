@@ -3392,7 +3392,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
 
                     <div>
                         @(new C()
-                            .M("Hello")
+                                .M("Hello")
                             .M("World")
                             .M(source =>
                             {
@@ -3405,15 +3405,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         @(DateTime.Now)
 
                         @(DateTime
-                            .Now
-                            .ToString())
+                        .Now
+                        .ToString())
 
                         @(Html.DisplayNameFor(@<text>
                             <p>
                                 <h2></h2>
                             </p>
                         </text>)
-                            .ToString())
+                    .ToString())
 
                         @{
                             var x = @<p>Hi there!</p>;
@@ -3477,29 +3477,81 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                                 <h2></h2>
                             </p>
                         </text>)
+                           .ToString())
+
+                        @(Html.DisplayNameFor(@<div></div>,
+                           1, 3, 4))
+                    
+                        @(Html.DisplayNameFor(@<div></div>,
+                           1, 3, @<div></div>,
+                           2, 4))
+
+                        @(Html.DisplayNameFor(
+                           1, 3, @<div></div>,
+                           2, 4))
+
+                        @(Html.DisplayNameFor(
+                           1, 3,
+                           2, 4))
+                    
+                        @(Html.DisplayNameFor(
+                           2, 4,
+                           1, 3, @<div></div>,
+                           2, 4,
+                           1, 3, @<div></div>,
+                           4))
+                    </div>
+                    """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/6110")]
+    public async Task FormatExplicitCSharpInsideHtml3()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    @using System.Text;
+
+                    <div>
+                        @(new C()
+                            .M("Hello")
+                            .M("World")
+                            .M(source =>
+                            {
+                                if (source.Length > 0)
+                                {
+                                    source.ToString();
+                                }
+                            }))
+
+                        @(DateTime.Now)
+
+                        @(DateTime
+                            .Now
                             .ToString())
+                    </div>
+                    """,
+            expected: """
+                    @using System.Text;
 
-                        @(Html.DisplayNameFor(@<div></div>,
-                            1, 3, 4))
-                    
-                        @(Html.DisplayNameFor(@<div></div>,
-                            1, 3, @<div></div>,
-                            2, 4))
+                    <div>
+                        @(new C()
+                            .M("Hello")
+                            .M("World")
+                            .M(source =>
+                            {
+                                if (source.Length > 0)
+                                {
+                                    source.ToString();
+                                }
+                            }))
 
-                        @(Html.DisplayNameFor(
-                            1, 3, @<div></div>,
-                            2, 4))
+                        @(DateTime.Now)
 
-                        @(Html.DisplayNameFor(
-                            1, 3,
-                            2, 4))
-                    
-                        @(Html.DisplayNameFor(
-                            2, 4,
-                            1, 3, @<div></div>,
-                            2, 4,
-                            1, 3, @<div></div>,
-                            4))
+                        @(DateTime
+                            .Now
+                            .ToString())
                     </div>
                     """,
             fileKind: RazorFileKind.Legacy);
@@ -6955,11 +7007,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 <div>
                     <partial name="~/Views/Shared/_TestimonialRow.cshtml"
                              model="new DefaultTitleContentAreaViewModel
-                             {
-                                 Title = Model.CurrentPage.TestimonialsTitle,
-                                 ContentArea = Model.CurrentPage.TestimonialsContentArea,
-                                 ChildCssClass = string.Empty
-                             }" />
+                                 {
+                                     Title = Model.CurrentPage.TestimonialsTitle,
+                                     ContentArea = Model.CurrentPage.TestimonialsContentArea,
+                                     ChildCssClass = string.Empty
+                                 }" />
                 </div>
                 """,
             fileKind: RazorFileKind.Legacy);
@@ -7018,11 +7070,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 <div>
                     <partial name="~/Views/Shared/_TestimonialRow.cshtml"
                              model="@(new DefaultTitleContentAreaViewModel
-                             {
-                                 Title = Model.CurrentPage.TestimonialsTitle,
-                                 ContentArea = Model.CurrentPage.TestimonialsContentArea,
-                                 ChildCssClass = string.Empty
-                             })" />
+                                 {
+                                     Title = Model.CurrentPage.TestimonialsTitle,
+                                     ContentArea = Model.CurrentPage.TestimonialsContentArea,
+                                     ChildCssClass = string.Empty
+                                 })" />
                 </div>
                 """);
     }
@@ -7052,11 +7104,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 <div>
                     <partial name="~/Views/Shared/_TestimonialRow.cshtml"
                              model="@(new DefaultTitleContentAreaViewModel
-                             {
-                                 Title = Model.CurrentPage.TestimonialsTitle,
-                                 ContentArea = Model.CurrentPage.TestimonialsContentArea,
-                                 ChildCssClass = string.Empty
-                             })" />
+                                 {
+                                     Title = Model.CurrentPage.TestimonialsTitle,
+                                     ContentArea = Model.CurrentPage.TestimonialsContentArea,
+                                     ChildCssClass = string.Empty
+                                 })" />
                 </div>
                 """;
         await RunFormattingTestAsync(
@@ -7179,15 +7231,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             {
                                 <span>
                                     @((((true) ? 123d : 0d) +
-                                                (true ? 123d : 0d)
-                                                ).ToString("F2", CultureInfo.InvariantCulture)) €
+                                        (true ? 123d : 0d)
+                                        ).ToString("F2", CultureInfo.InvariantCulture)) €
                                 </span>
                                 <hr class="my-1" />
                                 <span>
                                     @((123d +
-                                                ((true) ? 123d : 0d) +
-                                                (true ? 123d : 0d)
-                                                ).ToString("F2", CultureInfo.InvariantCulture)) €
+                                        ((true) ? 123d : 0d) +
+                                        (true ? 123d : 0d)
+                                        ).ToString("F2", CultureInfo.InvariantCulture)) €
                                 </span>
                             }
                         </div>
@@ -7296,7 +7348,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         @((((true) ? 123d : 0d) +
                             (true ? 123d : 0d)
                             ).ToString("F2", CultureInfo.InvariantCulture)
-                            ) €
+                        ) €
                     </span>
                     <hr class="my-1" />
                     <span>
@@ -7304,7 +7356,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             ((true) ? 123d : 0d) +
                             (true ? 123d : 0d)
                             ).ToString("F2", CultureInfo.InvariantCulture)
-                            ) €
+                        ) €
                     </span>
                 }
                 """);
@@ -7339,7 +7391,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         @((((true) ? 123d : 0d) +
                             (true ? 123d : 0d)
                             ).ToString("F2", CultureInfo.InvariantCulture)
-                            ) €
+                    ) €
                     </span>
                     <hr class="my-1" />
                     <span>
@@ -7347,7 +7399,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             ((true) ? 123d : 0d) +
                             (true ? 123d : 0d)
                             ).ToString("F2", CultureInfo.InvariantCulture)
-                            ) €
+                    ) €
                     </span>
                 }
                 """);
