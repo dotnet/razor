@@ -6404,18 +6404,18 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         @<text>
                             @if (true)
                             {
-                                    <div class="test"
-                                         accesskey="k">
-                                        Hello
-                                        @if (true)
-                                        {
-                                            <span>World</span>
-                                        }
-                                        else
-                                        {
-                                            <span>Not World</span>
-                                        }
-                                    </div>
+                                <div class="test"
+                                     accesskey="k">
+                                    Hello
+                                    @if (true)
+                                    {
+                                        <span>World</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Not World</span>
+                                    }
+                                </div>
                             }
                         </text>;
                 }
@@ -6466,18 +6466,18 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         @<PageTitle>
                             @if (true)
                             {
-                                    <div class="test"
-                                         accesskey="k">
-                                        Hello
-                                        @if (true)
-                                        {
-                                            <span>World</span>
-                                        }
-                                        else
-                                        {
-                                            <span>Not World</span>
-                                        }
-                                    </div>
+                                <div class="test"
+                                     accesskey="k">
+                                    Hello
+                                    @if (true)
+                                    {
+                                        <span>World</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Not World</span>
+                                    }
+                                </div>
                             }
                         </PageTitle>;
                 }
@@ -6526,18 +6526,18 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     protected RenderFragment RootFragment() => @<text>
                         @if (true)
                         {
-                                <div class="test"
-                                     accesskey="k">
-                                    Hello
-                                    @if (true)
-                                    {
-                                        <span>World</span>
-                                    }
-                                    else
-                                    {
-                                        <span>Not World</span>
-                                    }
-                                </div>
+                            <div class="test"
+                                 accesskey="k">
+                                Hello
+                                @if (true)
+                                {
+                                    <span>World</span>
+                                }
+                                else
+                                {
+                                    <span>Not World</span>
+                                }
+                            </div>
                         }
                     </text>;
                 }
@@ -6586,18 +6586,18 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     protected RenderFragment RootFragment() => @<text>
                         @if (true)
                         {
-                                <div class="test"
-                                     accesskey="k">
-                                    Hello
-                                    @if (true)
-                                    {
-                                        <span>World</span>
-                                    }
-                                    else
-                                    {
-                                        <span>Not World</span>
-                                    }
-                                </div>
+                            <div class="test"
+                                 accesskey="k">
+                                Hello
+                                @if (true)
+                                {
+                                    <span>World</span>
+                                }
+                                else
+                                {
+                                    <span>Not World</span>
+                                }
+                            </div>
                         }
                     </text>;
                 }
@@ -6646,18 +6646,18 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     protected RenderFragment RootFragment() => @<text>
                         @if (true)
                         {
-                                <div class="test"
-                                     accesskey="k">
-                                    Hello
-                                    @if (true)
-                                    {
-                                        <span>World</span>
-                                    }
-                                    else
-                                    {
-                                        <span>Not World</span>
-                                    }
-                                </div>
+                            <div class="test"
+                                 accesskey="k">
+                                Hello
+                                @if (true)
+                                {
+                                    <span>World</span>
+                                }
+                                else
+                                {
+                                    <span>Not World</span>
+                                }
+                            </div>
                         }
                     </text>;
                 }
@@ -6709,21 +6709,21 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         @<text>
                             @if (true)
                             {
-                                    <div class="test"
-                                         accesskey="k">
-                                        Hello
-                                        @if (true)
-                                        {
-                                            <span>World</span>
-                                        }
-                                        else
-                                        {
-                                            <span>Not World</span>
-                                        }
-                                    </div>
+                                <div class="test"
+                                     accesskey="k">
+                                    Hello
+                                    @if (true)
+                                    {
+                                        <span>World</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Not World</span>
+                                    }
+                                </div>
                             }
-                            </text>
-                        ;
+                        </text>
+                ;
                 }
                 """,
             csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
@@ -6763,15 +6763,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 @code {
                     protected RenderFragment RootFragment() =>
                         @<div>
-                                <div class="test"
-                                     accesskey="k">
-                                    Hello
-                                    <div>
-                                        <span>World</span>
-                                    </div>
+                            <div class="test"
+                                 accesskey="k">
+                                Hello
+                                <div>
+                                    <span>World</span>
                                 </div>
                             </div>
-                        ;
+                        </div>
+                ;
                 }
                 """,
             csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
