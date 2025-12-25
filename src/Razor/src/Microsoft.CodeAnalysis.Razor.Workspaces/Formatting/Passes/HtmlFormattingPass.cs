@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -87,13 +88,26 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
         var syntaxRoot = codeDocument.GetRequiredSyntaxRoot();
         var sourceText = codeDocument.Source.Text;
         SyntaxNode? csharpSyntaxRoot = null;
+        ImmutableArray<int> scriptAndStyleElementBounds = default;
 
         using var changesToKeep = new PooledArrayBuilder<TextChange>(capacity: changes.Length);
 
         foreach (var change in changes)
         {
-            // We don't keep changes that start inside of a razor comment block.
             var node = syntaxRoot.FindInnermostNode(change.Span.Start);
+
+            // We don't keep indentation changes that aren't in a script or style block
+            // As a quick check, we only care about dropping edits that affect indentation - ie, are before the first
+            // whitespace char on a line
+            var line = sourceText.Lines.GetLineFromPosition(change.Span.Start);
+            if (change.Span.Start < line.GetFirstNonWhitespacePosition() &&
+                !ChangeIsInsideScriptOrStyleElement(change))
+            {
+                context.Logger?.LogMessage($"Dropping change {change} because it's not in a script or style block");
+                continue;
+            }
+
+            // We don't keep changes that start inside of a razor comment block.
             var comment = node?.FirstAncestorOrSelf<RazorCommentBlockSyntax>();
             if (comment is not null && change.Span.Start > comment.SpanStart)
             {
@@ -189,6 +203,60 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
             }
 
             return false;
+        }
+
+        bool ChangeIsInsideScriptOrStyleElement(TextChange change)
+        {
+            // Rather than ascend up the tree for every change, and look for script/style elements, we build up an index
+            // first and just reuse it for every subsequent edit.
+            InitializeElementBoundsArray();
+
+            // If there aren't any elements we're interested in, we don't need to do anything
+            if (scriptAndStyleElementBounds.Length == 0)
+            {
+                return false;
+            }
+
+            var index = scriptAndStyleElementBounds.BinarySearch(change.Span.Start);
+
+            // If we got a hit, then we're on the tag itself, which is not inside the tag
+            if (index >= 0)
+            {
+                return false;
+            }
+
+            // If we don't get a hit, the complement of the result is the index to the next largest item in the array. Since we add
+            // things to the array in pairs, we know that if that index is even, we're outside an element, so we want to ignore identation.
+            // This only works if the array is ordered, but we can assume it is because we built it in order, and it makes no sense to nest
+            // script tags within style tags, or vice versa.
+            index = ~index;
+            if (index % 2 == 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        void InitializeElementBoundsArray()
+        {
+            if (!scriptAndStyleElementBounds.IsDefault)
+            {
+                return;
+            }
+
+            using var boundsBuilder = new PooledArrayBuilder<int>();
+
+            foreach (var element in syntaxRoot.DescendantNodes(static node => node is RazorDocumentSyntax or MarkupBlockSyntax or MarkupElementSyntax or CSharpCodeBlockSyntax).OfType<MarkupElementSyntax>())
+            {
+                if (RazorSyntaxFacts.IsScriptOrStyleBlock(element))
+                {
+                    boundsBuilder.Add(element.SpanStart);
+                    boundsBuilder.Add(element.Span.End);
+                }
+            }
+
+            scriptAndStyleElementBounds = boundsBuilder.ToImmutableAndClear();
         }
     }
 
