@@ -587,11 +587,13 @@ internal partial class CSharpFormattingPass
             {
                 if (ElementCausesIndentation(node))
                 {
-                    // When an element causes indentation, we emit an open brace to tell the C# formatter to indent
+                    // When an element causes indentation, we emit an open brace to tell the C# formatter to indent.
+                    // Any open brace we emit that represents something "real" must have something after it to avoid
+                    // us skipping it due to SkipNextLineIfOpenBrace on the previous line.
 #if DEBUG
                     _builder.AppendLine($$"""{ /* {{_currentLine}} */""");
 #else
-                    _builder.AppendLine("{");
+                    _builder.AppendLine("{ /* */");
 #endif
                     return CreateLineInfo();
                 }
@@ -912,7 +914,9 @@ internal partial class CSharpFormattingPass
                 // We don't need to worry about formatting, or offsetting, because the RazorFormattingPass will
                 // have ensured this node is followed by a newline, and if there was a space between the "@" and "{"
                 // then it wouldn't be a CSharpStatementSyntax so we wouldn't be here!
-                _builder.AppendLine("{");
+                // Any open brace we emit that represents something "real" must have something after it to avoid
+                // us skipping it due to SkipNextLineIfOpenBrace on the previous line.
+                _builder.AppendLine("{ /* */");
                 return CreateLineInfo();
             }
 
@@ -950,7 +954,9 @@ internal partial class CSharpFormattingPass
                     // If the open brace is on the same line as the directive, then we need to ensure the contents are indented.
                     GetLineNumber(brace) == GetLineNumber(_currentToken))
                 {
-                    _builder.AppendLine("{");
+                    // Any open brace we emit that represents something "real" must have something after it to avoid
+                    // us skipping it due to SkipNextLineIfOpenBrace on the previous line.
+                    _builder.AppendLine("{ /* */");
                     return CreateLineInfo();
                 }
 
