@@ -7468,6 +7468,51 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     """);
 
     [FormattingTestFact]
+    public Task HtmlAttributes_IndentByOne()
+        => RunFormattingTestAsync(
+            input: """
+                    <div class="foo"
+                                disabled
+                            style="hello"
+                      @onclick="foo()">
+                    <InputSelect @onclick="foo()"
+                    TValue="Guid?"
+                     disabled
+                     style="hello">
+                     <p></p><a href="#"
+                     disabled
+                     style="hello"
+                    @onclick="foo()"/>
+                     <br class="a"
+                     style="b"
+                     disabled>
+                     <br />
+                    </InputSelect>
+                    </div>
+                    """,
+            expected: """
+                    <div class="foo"
+                        disabled
+                        style="hello"
+                        @onclick="foo()">
+                        <InputSelect @onclick="foo()"
+                            TValue="Guid?"
+                            disabled
+                            style="hello">
+                            <p></p><a href="#"
+                                disabled
+                                style="hello"
+                                @onclick="foo()" />
+                            <br class="a"
+                                style="b"
+                                disabled>
+                            <br />
+                        </InputSelect>
+                    </div>
+                    """,
+            attributeIndentStyle: CodeAnalysis.Razor.Settings.AttributeIndentStyle.IndentByOne);
+
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/12223")]
     public Task ExplicitExpression_InIf()
         => RunFormattingTestAsync(
