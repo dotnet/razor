@@ -7578,4 +7578,240 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     </div>
                     """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12622")]
+    public Task ObjectInitializers4()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                    @if (true)
+                    {
+                        @Html.TextBox(new Test()
+                        {
+                            test = 5
+                        })
+                        <div></div>
+                    }
+                </div>
+                """,
+            expected: """
+                <div>
+                    @if (true)
+                    {
+                        @Html.TextBox(new Test()
+                        {
+                            test = 5
+                        })
+                        <div></div>
+                    }
+                </div>
+                """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12622")]
+    public Task ObjectInitializers5()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                    @if (true)
+                    {
+                        @Html.TextBox(new Test() { test = 5 })
+                        <div></div>
+                    }
+                </div>
+                """,
+            expected: """
+                <div>
+                    @if (true)
+                    {
+                        @Html.TextBox(new Test() { test = 5 })
+                        <div></div>
+                    }
+                </div>
+                """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12622")]
+    public Task ObjectInitializers6()
+        => RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    @Html.TextBox(new Test()
+                    {
+                        test = 5
+                    })
+                    <div></div>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    @Html.TextBox(new Test()
+                    {
+                        test = 5
+                    })
+                    <div></div>
+                }
+                """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12622")]
+    public Task ObjectInitializers7()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                    <div>
+                        @Html.TextBox(new 
+                        {
+                            test = 5,
+                        })
+                    </div>
+                    <div>
+                        @Html.TextBox(new 
+                        {
+                            test = 5,
+                        })
+                    </div>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <div>
+                        @Html.TextBox(new
+                        {
+                            test = 5,
+                        })
+                    </div>
+                    <div>
+                        @Html.TextBox(new
+                        {
+                            test = 5,
+                        })
+                    </div>
+                </div>
+                """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12622")]
+    public Task ObjectInitializers8()
+        => RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    @Html.TextBox(new Test() {
+                        test = 5
+                    })
+                    <div></div>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    @Html.TextBox(new Test()
+                    {
+                        test = 5
+                    })
+                    <div></div>
+                }
+                """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12622")]
+    public Task ObjectInitializers9()
+        => RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    @Html.TextBox(new Test() {
+                        test = 5
+                    })
+                    <div></div>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    @Html.TextBox(new Test() {
+                        test = 5
+                    })
+                    <div></div>
+                }
+                """,
+            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            {
+                NewLines = RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers
+            });
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12622")]
+    public Task ObjectInitializers10()
+        => RunFormattingTestAsync(
+            input: """
+                    @if (true)
+                {
+                    @Html.TextBox(new Test()
+                    {
+                        test = 5
+                    })
+                    <div></div>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    @Html.TextBox(new Test() {
+                        test = 5
+                    })
+                    <div></div>
+                }
+                """,
+            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            {
+                NewLines = RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers
+            });
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12622")]
+    public Task ObjectInitializers11()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                    <div>
+                        <div>
+                            @if (true)
+                            {
+                                <div>
+                                    @Html.TextBox(new
+                                    {
+                                        test = 6
+                                    })
+                                </div>
+
+                                <div></div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <div>
+                        <div>
+                            @if (true)
+                            {
+                                <div>
+                                    @Html.TextBox(new
+                                    {
+                                        test = 6
+                                    })
+                                </div>
+
+                                <div></div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                """);
 }
