@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -156,6 +157,7 @@ internal partial class CSharpFormattingPass
             private readonly SyntaxNode _csharpSyntaxRoot = csharpSyntaxRoot;
             private readonly bool _insertSpaces = options.InsertSpaces;
             private readonly int _tabSize = options.TabSize;
+            private readonly AttributeIndentStyle _attributeIndentStyle = options.AttributeIndentStyle;
             private readonly RazorCSharpSyntaxFormattingOptions? _csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions;
             private readonly StringBuilder _builder = builder;
             private readonly ImmutableArray<LineInfo>.Builder _lineInfoBuilder = lineInfoBuilder;
@@ -713,15 +715,22 @@ internal partial class CSharpFormattingPass
             {
                 if (RazorSyntaxFacts.IsAttributeName(node, out var startTag))
                 {
-                    // Attributes are indented to align with the first attribute in their tag. In future, now that we're handling
-                    // this ourselves, we can make this an option: https://github.com/dotnet/razor/issues/6551
-                    var firstAttribute = startTag.Attributes[0];
-                    var nameSpan = RazorSyntaxFacts.GetFullAttributeNameSpan(firstAttribute);
+                    // If we're just indenting attributes by one level, then we don't need to do anything special here.
+                    var htmlIndentLevel = 1;
+                    var additionalIndentation = "";
 
-                    // We need to line up with the first attribute, but the start tag might not be the first thing on the line,
-                    // so it's really relative to the first non-whitespace character on the line
-                    var lineStart = _sourceText.Lines[GetLineNumber(startTag)].GetFirstNonWhitespacePosition().GetValueOrDefault();
-                    var htmlIndentLevel = FormattingUtilities.GetIndentationLevel(nameSpan.Start - lineStart, _tabSize, out var additionalIndentation);
+                    // Otherwise, attributes can be configured to align with the first attribute in their tag.
+                    if (_attributeIndentStyle == AttributeIndentStyle.AlignWithFirst)
+                    {
+                        var firstAttribute = startTag.Attributes[0];
+                        var nameSpan = RazorSyntaxFacts.GetFullAttributeNameSpan(firstAttribute);
+
+                        // We need to line up with the first attribute, but the start tag might not be the first thing on the line,
+                        // so it's really relative to the first non-whitespace character on the line
+                        var lineStart = _sourceText.Lines[GetLineNumber(startTag)].GetFirstNonWhitespacePosition().GetValueOrDefault();
+                        htmlIndentLevel = FormattingUtilities.GetIndentationLevel(nameSpan.Start - lineStart, _tabSize, out additionalIndentation);
+                    }
+
                     // If the element has caused indentation, then we'll want to take one level off our attribute indentation to
                     // compensate. Need to be careful here because things like `<a` are likely less than a single indent level.
                     if (ElementCausesIndentation(startTag) && htmlIndentLevel > 0)
