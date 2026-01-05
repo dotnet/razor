@@ -7814,4 +7814,36 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     </div>
                 </div>
                 """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12631")]
+    public Task ObjectInitializers12()
+        => RunFormattingTestAsync(
+            input: """
+                @await Component.InvokeAsync("ReviewAndPublishModal", 
+                    new { 
+                        id = "ReviewPublishModal", 
+                        title = "Review and publish",
+                        text = Model.ReviewNotes, 
+                        state = Model.State, 
+                        allowSave = allowSaveReview, 
+                        allowPublish = allowPublish, 
+                        isPublished =isCurrentPublished     
+                    }
+                )
+                """,
+            expected: """
+                @await Component.InvokeAsync("ReviewAndPublishModal",
+                    new
+                    {
+                        id = "ReviewPublishModal",
+                        title = "Review and publish",
+                        text = Model.ReviewNotes,
+                        state = Model.State,
+                        allowSave = allowSaveReview,
+                        allowPublish = allowPublish,
+                        isPublished = isCurrentPublished
+                    }
+                )
+                """);
 }

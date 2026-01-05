@@ -413,6 +413,17 @@ internal partial class CSharpFormattingPass
                     additionalIndentation = new string(' ', startChar % _tabSize);
                 }
 
+                if (offsetFromEnd == 0)
+                {
+                    // If we're not doing any extra emitting of our own, then we can safely check for newlines
+                    return CreateLineInfo(
+                        skipPreviousLine: skipPreviousLine,
+                        processFormatting: true,
+                        htmlIndentLevel: htmlIndentLevel,
+                        additionalIndentation: additionalIndentation,
+                        checkForNewLines: true);
+                }
+
                 return CreateLineInfo(
                     skipPreviousLine: skipPreviousLine,
                     processFormatting: true,
