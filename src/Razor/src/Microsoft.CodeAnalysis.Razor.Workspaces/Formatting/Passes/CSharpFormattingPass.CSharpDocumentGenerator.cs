@@ -424,7 +424,11 @@ internal partial class CSharpFormattingPass
 
                 // If this is the end of a multi-line CSharp template (ie, RenderFragment) then we need to close
                 // out the lambda expression that we started when we opened it.
-                if (node.LiteralTokens.Where(static t => !t.IsWhitespace()).FirstOrDefault() is { Content: ";" } &&
+                // When there are two templates directly following each other, the parser will put the semicolon of one
+                // and the declaration of the next in the same literal, so we have to be careful to only do this when the
+                // semicolon we find is on the line we're trying to process.
+                if (node.LiteralTokens.FirstOrDefault(static t => !t.IsWhitespace()) is { Content: ";" } semicolon &&
+                    GetLineNumber(semicolon) == GetLineNumber(_currentToken) &&
                     node.TryGetPreviousSibling(out var previousSibling) &&
                     previousSibling is CSharpTemplateBlockSyntax &&
                     GetLineNumber(previousSibling.GetFirstToken()) != GetLineNumber(previousSibling.GetLastToken()))
