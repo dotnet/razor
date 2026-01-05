@@ -107,10 +107,10 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
         // filtered or converted it.
         var projectInfo = new[] { ExternalHandlers.Diagnostics.GetProjectInformation(razorDocument.Project) };
 
-        using var results = new PooledArrayBuilder<VSDiagnostic>();
-        foreach (var report in diagnostics)
+        var results = new VSDiagnostic[diagnostics.Length];
+        for (var i = 0; i < diagnostics.Length; i++)
         {
-            var vsDiagnostic = JsonHelpers.Convert<LspDiagnostic, VSDiagnostic>(report).AssumeNotNull();
+            var vsDiagnostic = JsonHelpers.Convert<LspDiagnostic, VSDiagnostic>(diagnostics[i]).AssumeNotNull();
             vsDiagnostic.Projects = projectInfo;
 
             // Setting a unique identifier ensures that VS will show project info in the error list, and things like the "Current Project"
@@ -118,10 +118,10 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
             // de-duped.
             vsDiagnostic.Identifier = (vsDiagnostic.Code, razorDocument.FilePath, vsDiagnostic.Range, vsDiagnostic.Message).GetHashCode().ToString();
 
-            results.Add(vsDiagnostic);
+            results[i] = vsDiagnostic;
         }
 
-        return results.ToArrayAndClear();
+        return results;
     }
 
     protected override VSInternalDocumentDiagnosticsParams CreateHtmlParams(Uri uri)

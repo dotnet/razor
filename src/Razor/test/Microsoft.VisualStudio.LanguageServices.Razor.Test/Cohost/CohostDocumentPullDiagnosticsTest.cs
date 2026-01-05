@@ -532,7 +532,7 @@ public partial class CohostDocumentPullDiagnosticsTest
                     var project = Assert.Single(vsDiagnostic.Projects);
                     Assert.NotNull(project.ProjectIdentifier);
                     // We always report the same project info for all diagnostics
-                    Assert.Same(project, ((VSDiagnostic)report.Diagnostics.First()).Projects.First());
+                    Assert.Same(project, ((VSDiagnostic)report.Diagnostics.First()).Projects.Single());
                 });
         }
     }
