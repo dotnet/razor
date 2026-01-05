@@ -105,7 +105,7 @@ internal partial class EditorInProcess
     {
         var result = await Helper.RetryAsync(async ct =>
             {
-                var view = await GetActiveTextViewAsync(cancellationToken);
+                var view = await GetActiveTextViewAsync(ct);
                 var content = view.TextBuffer.CurrentSnapshot.GetText();
 
                 return content.Contains(text);
