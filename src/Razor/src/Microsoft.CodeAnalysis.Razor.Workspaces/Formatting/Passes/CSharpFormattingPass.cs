@@ -179,8 +179,7 @@ internal sealed partial class CSharpFormattingPass(
                     // We're skipping a line in the original document, because Roslyn brought it up to the previous
                     // line, but the fact is the opening brace was in the original document, and might need its indentation
                     // adjusted. Since we can't reason about this line in any way, because Roslyn has changed it, we just
-                    // apply the indentation from the previous line. Previously the indentation on this line would have been
-                    // adjusted by the Html formatter and we wouldn't have needed to worry.
+                    // apply the indentation from the previous line.
                     //
                     // If we didn't adjust the indentation of the previous line, then we really have no information to go
                     // on at all, so hopefully the user is happy with where their open brace is.

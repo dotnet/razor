@@ -94,8 +94,6 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
 
         foreach (var change in changes)
         {
-            var node = syntaxRoot.FindInnermostNode(change.Span.Start);
-
             // We don't keep indentation changes that aren't in a script or style block
             // As a quick check, we only care about dropping edits that affect indentation - ie, are before the first
             // whitespace char on a line
@@ -103,10 +101,11 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
             if (change.Span.Start <= line.GetFirstNonWhitespacePosition() &&
                 !ChangeIsInsideScriptOrStyleElement(change))
             {
-                context.Logger?.LogMessage($"Dropping change {change} because it's not in a script or style block");
+                context.Logger?.LogMessage($"Dropping change {change} because it's a change to line indentation, but not in a script or style block");
                 continue;
             }
 
+            var node = syntaxRoot.FindInnermostNode(change.Span.Start);
             // We don't keep changes that start inside of a razor comment block.
             var comment = node?.FirstAncestorOrSelf<RazorCommentBlockSyntax>();
             if (comment is not null && change.Span.Start > comment.SpanStart)
@@ -121,7 +120,7 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
             //      void Foo()
             //      {
             //          Render(@<SurveyPrompt />);
-            //      {
+            //      }
             // }
             //
             // This is popular in some libraries, like bUnit. The issue here is that
@@ -247,7 +246,9 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
 
             using var boundsBuilder = new PooledArrayBuilder<int>();
 
-            foreach (var element in syntaxRoot.DescendantNodes(static node => node is RazorDocumentSyntax or MarkupBlockSyntax or MarkupElementSyntax or CSharpCodeBlockSyntax).OfType<MarkupElementSyntax>())
+            // We only care about "top level" block type structures (ie, a script tag isn't going to appear in the middle of a C# expression) so
+            // we only need to descend into the document itself, or nodes that might contain directives.
+            foreach (var element in syntaxRoot.DescendantNodes(static node => node is RazorDocumentSyntax || node.MayContainDirectives()).OfType<MarkupElementSyntax>())
             {
                 if (RazorSyntaxFacts.IsScriptOrStyleBlock(element))
                 {

@@ -169,11 +169,12 @@ internal partial class CSharpFormattingPass
             private RazorSyntaxToken _previousCurrentToken;
 
             /// <summary>
-            /// The line number of the last line an element, if we're inside one, where we care about the Html formatters indentation
+            /// The line number of the last line of an element, if we're inside one, where we care about the Html formatters indentation
             /// </summary>
             /// <remarks>
             /// This is used to track if the syntax node at the start of each line is parented by an element node, without
-            /// having to do lots of tree traversal, for formatting the contents of script and style tags.
+            /// having to do lots of tree traversal. We use this to make sure we format the contents of script and style tags as
+            /// the Html formatter intends.
             /// </remarks>
             private int? _honourHtmlFormattingUntilLine;
             /// <summary>
@@ -539,7 +540,7 @@ internal partial class CSharpFormattingPass
                 {
                     // If this is an element at the root level, we want to record where it ends. We can't rely on the Visit method
                     // for it, because it might not be at the start of a line. We only care about contents though, so thats why
-                    // we are doing this after emitting this line, and minusing one from the end element line number.
+                    // we are doing this after emitting this line, and subtracting one from the end element line number.
                     _honourHtmlFormattingUntilLine = GetLineNumber(element.EndTag?.CloseAngle ?? element.StartTag.CloseAngle) - 1;
                 }
 
@@ -588,14 +589,7 @@ internal partial class CSharpFormattingPass
                 if (ElementCausesIndentation(node))
                 {
                     // When an element causes indentation, we emit an open brace to tell the C# formatter to indent.
-                    // Any open brace we emit that represents something "real" must have something after it to avoid
-                    // us skipping it due to SkipNextLineIfOpenBrace on the previous line.
-#if DEBUG
-                    _builder.AppendLine($$"""{ /* {{_currentLine}} */""");
-#else
-                    _builder.AppendLine("{ /* */");
-#endif
-                    return CreateLineInfo();
+                    return EmitOpenBraceLine();
                 }
 
                 // This is a single line element, so it doesn't cause indentation
@@ -610,20 +604,13 @@ internal partial class CSharpFormattingPass
                     return false;
                 }
 
-                var endTagLineNumber = GetLineNumber(endTag);
-                if (endTagLineNumber == GetLineNumber(node))
-                {
-                    // End tag and start tag are on the same line
-                    return false;
-                }
-
-                if (endTagLineNumber == GetLineNumber(node.CloseAngle))
+                if (GetLineNumber(endTag) == GetLineNumber(node.CloseAngle))
                 {
                     // End tag is on the same line as the start tag's close angle bracket
                     return false;
                 }
 
-                if (node.Name.Content == "html")
+                if (node.Name.Content.Equals("html", StringComparison.OrdinalIgnoreCase))
                 {
                     // <html> doesn't cause indentation in Visual Studio or VS Code, so we honour that.
                     return false;
@@ -914,10 +901,7 @@ internal partial class CSharpFormattingPass
                 // We don't need to worry about formatting, or offsetting, because the RazorFormattingPass will
                 // have ensured this node is followed by a newline, and if there was a space between the "@" and "{"
                 // then it wouldn't be a CSharpStatementSyntax so we wouldn't be here!
-                // Any open brace we emit that represents something "real" must have something after it to avoid
-                // us skipping it due to SkipNextLineIfOpenBrace on the previous line.
-                _builder.AppendLine("{ /* */");
-                return CreateLineInfo();
+                return EmitOpenBraceLine();
             }
 
             public override LineInfo VisitRazorDirective(RazorDirectiveSyntax node)
@@ -954,10 +938,7 @@ internal partial class CSharpFormattingPass
                     // If the open brace is on the same line as the directive, then we need to ensure the contents are indented.
                     GetLineNumber(brace) == GetLineNumber(_currentToken))
                 {
-                    // Any open brace we emit that represents something "real" must have something after it to avoid
-                    // us skipping it due to SkipNextLineIfOpenBrace on the previous line.
-                    _builder.AppendLine("{ /* */");
-                    return CreateLineInfo();
+                    return EmitOpenBraceLine();
                 }
 
                 // If the brace is on a different line, then we don't need to do anything, as the brace will be output when
@@ -1039,6 +1020,14 @@ internal partial class CSharpFormattingPass
                 _builder.AppendLine($"//");
 #endif
                 return CreateLineInfo(htmlIndentLevel: htmlIndentLevel, additionalIndentation: additionalIndentation);
+            }
+
+            private LineInfo EmitOpenBraceLine()
+            {
+                // Any open brace we emit that represents something "real" must have something after it to avoid
+                // us skipping it due to SkipNextLineIfOpenBrace on the previous line.
+                _builder.AppendLine("{ /* */");
+                return CreateLineInfo();
             }
 
             private LineInfo EmitCurrentLineWithNoFormatting()
