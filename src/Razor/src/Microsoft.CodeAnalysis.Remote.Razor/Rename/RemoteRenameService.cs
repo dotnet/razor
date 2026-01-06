@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -20,6 +21,7 @@ using Microsoft.CodeAnalysis.Razor.Rename;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using static Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.WorkspaceEdit?>;
 using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
@@ -169,7 +171,13 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
 
         var position = text.GetLinePosition(declaration.Identifier.SpanStart);
 
-        var newComponentName = newFileName.Replace('.', '_');
+        string newComponentName;
+        using (var _ = StringBuilderPool.GetPooledObject(out var builder))
+        {
+            RazorSourceGenerator.BuildIdentifierFromPath(builder, newFileName);
+            newComponentName = builder.ToString();
+        }
+
         var csharpEdit = await ExternalHandlers.Rename
             .GetRenameEditAsync(generatedDocument, position, newComponentName, cancellationToken)
             .ConfigureAwait(false);
