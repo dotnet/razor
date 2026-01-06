@@ -3,10 +3,9 @@
 #
 
 variables:
-# Hard-coding DncEngInternalBuildPool to avoid broken NetCore1ESPool-Svc-Internal temporarily
-# - template: /eng/common/templates-official/variables/pool-providers.yml@self
-- name: DncEngInternalBuildPool
-  value: NetCore1ESPool-Internal
+# Defines $(DncEngInternalBuildPool)
+- template: /eng/common/templates-official/variables/pool-providers.yml@self
+
 - name: Build.Repository.Clean
   value: true
 - name: _TeamName
@@ -108,7 +107,7 @@ extends:
           enablePublishBuildArtifacts: false
           enablePublishTestResults: false
           enablePublishUsingPipelines: false
-          enableSourcebuild: false
+          enableSourcebuild: true
           jobs:
           # Code check
           - ${{ if in(variables['Build.Reason'], 'PullRequest') }}:
@@ -212,10 +211,12 @@ extends:
             - powershell: eng\SetupVSHive.ps1
               displayName: Setup VS Hive
 
+            # We additionally restore during the build because the Microsoft.DotNet.Build.Tasks.Feed package only restores when we pass `-publish`. See https://github.com/dotnet/arcade/blob/37ccfd66358af6a37a0ec385ec31d1d71bdd8723/src/Microsoft.DotNet.Arcade.Sdk/tools/Tools.proj#L61-L66
             - script: eng\cibuild.cmd
                 -configuration $(_BuildConfig)
                 -msbuildEngine vs
                 -prepareMachine
+                -restore
                 -build
                 -pack
                 -publish
@@ -319,6 +320,8 @@ extends:
             - ${{ if notin(variables['Build.Reason'], 'PullRequest') }}:
               - _BuildArgs: /p:DotNetPublishUsingPipelines=true
                   /p:OfficialBuildId=$(Build.BuildNumber)
+            - ${{ if in(variables['Build.Reason'], 'PullRequest') }}:
+              - _BuildArgs: -test
 
             steps:
             - task: Bash@3
@@ -334,10 +337,8 @@ extends:
                 --restore
                 --build
                 --pack
-                --publish
                 --configuration $(_BuildConfig)
                 --prepareMachine
-                --test
                 $(_BuildArgs)
               name: Build
               displayName: Restore, Build and Test
@@ -348,7 +349,7 @@ extends:
                 targetPath: artifacts/TestResults/$(_BuildConfig)
                 artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) TestResults
               displayName: Publish Test Results
-              condition: always()
+              condition: in(variables['Build.Reason'], 'PullRequest')
 
           - job: Linux
             pool:
@@ -366,6 +367,8 @@ extends:
             - LANG: 'en_US.UTF-8'
             - LANGUAGE: 'en_US.UTF-8'
             - _BuildArgs: ''
+            - ${{ if in(variables['Build.Reason'], 'PullRequest') }}:
+              - _BuildArgs: -test
 
             # Variables for internal Official builds
             - ${{ if notin(variables['Build.Reason'], 'PullRequest') }}:
@@ -378,10 +381,8 @@ extends:
                 --restore
                 --build
                 --pack
-                --publish
                 --configuration $(_BuildConfig)
                 --prepareMachine
-                --test
                 $(_BuildArgs)
               name: Build
               displayName: Restore, Build and Test
@@ -392,7 +393,7 @@ extends:
                 targetPath: artifacts/TestResults/$(_BuildConfig)/
                 artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) TestResults
               displayName: Publish Test Results
-              condition: always()
+              condition: in(variables['Build.Reason'], 'PullRequest')
 
     - ${{ if notin(variables['Build.Reason'], 'PullRequest') }}:
       - template: /eng/common/templates-official/post-build/post-build.yml@self

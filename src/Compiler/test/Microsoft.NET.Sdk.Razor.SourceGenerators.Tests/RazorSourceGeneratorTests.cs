@@ -10,7 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -238,8 +238,8 @@ namespace MyApp.Pages
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_razor.g.cs"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_razor.g.cs"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
             );
         }
 
@@ -456,7 +456,7 @@ namespace MyApp.Pages
                 e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
                 e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
             );
         }
 
@@ -843,7 +843,7 @@ __builder.AddContent(3, count
                 e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
                 e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
             );
         }
 
@@ -1017,7 +1017,7 @@ __builder.AddContent(3, count
                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-               e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+               e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
             );
         }
 
@@ -1172,7 +1172,7 @@ using SurveyPromptRootNamspace;
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_razor.g.cs")
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_razor.g.cs")
             );
 
             // Verify caching
@@ -1381,8 +1381,8 @@ namespace AspNetCoreGeneratedDocument
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.cshtml", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStart", "Views/Shared/_Layout.cshtml", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStop", "Views/Shared/_Layout.cshtml", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_cshtml.g.cs"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Views_Shared__Layout_cshtml.g.cs")
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_cshtml.g.cs"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Views/Shared/_Layout_cshtml.g.cs")
             );
         }
 
@@ -1423,14 +1423,7 @@ namespace AspNetCoreGeneratedDocument
             var driver = await GetDriverAsync(project);
 
             // Act
-            var result = RunGenerator(compilation!, ref driver,
-                // Microsoft.NET.Sdk.Razor.SourceGenerators/Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator/Pages_Index_cshtml.g.cs(68,167): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         __tagHelperExecutionContext = __tagHelperScopeManager.Begin("email", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(68, 167),
-                // Microsoft.NET.Sdk.Razor.SourceGenerators/Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator/Pages_Index_cshtml.g.cs(84,171): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("email", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(84, 171)
-            );
+            var result = RunGenerator(compilation!, ref driver);
 
             // Assert
             Assert.Empty(result.Diagnostics);
@@ -1729,7 +1722,7 @@ namespace AspNetCoreGeneratedDocument
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Views/Shared/_Layout.cshtml"),
                e => e.AssertPair("RazorCodeGenerateStart", "Views/Shared/_Layout.cshtml", "Runtime"),
                e => e.AssertPair("RazorCodeGenerateStop", "Views/Shared/_Layout.cshtml", "Runtime"),
-               e => e.AssertSingleItem("AddSyntaxTrees", "Views_Shared__Layout_cshtml.g.cs")
+               e => e.AssertSingleItem("AddSyntaxTrees", "Views/Shared/_Layout_cshtml.g.cs")
             );
         }
 
@@ -2063,7 +2056,7 @@ public class HeaderTagHelper : TagHelper
                 e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Views/Shared/_Layout.cshtml"),
                 e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.cshtml", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.cshtml", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_cshtml.g.cs")
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_cshtml.g.cs")
            );
         }
 
@@ -2611,7 +2604,7 @@ namespace AspNetCoreGeneratedDocument
             });
 
             var compilation = await project.GetCompilationAsync();
-            var (driver, additionalTexts, optionsProvider) = await GetDriverWithAdditionalTextAndProviderAsync(project);
+            var (driver, additionalTexts, optionsProvider) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
 
             // start with the generator suppressed (this is the default state in VS)
             driver = SetSuppressionState(true);
@@ -2730,8 +2723,8 @@ namespace MyApp.Pages
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_razor.g.cs"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_razor.g.cs"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
                 );
 
             // flip the suppression state back to off
@@ -2852,8 +2845,8 @@ namespace MyApp.Pages
                 e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.razor"),
                 e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_razor.g.cs"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_razor.g.cs"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
             );
 
             // Flip suppression on, change the compilation, no changes
@@ -2881,8 +2874,8 @@ namespace MyApp.Pages
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.razor"),
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
-               e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_razor.g.cs"),
-               e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+               e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_razor.g.cs"),
+               e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
             );
 
             // Flip suppression on, change the parse options, no changes
@@ -2924,8 +2917,8 @@ namespace MyApp.Pages
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_razor.g.cs"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_razor.g.cs"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
             );
 
             GeneratorDriver SetSuppressionState(bool state)
@@ -3108,8 +3101,8 @@ namespace MyApp
             var result = RunGenerator(compilation!, ref driver);
 
             result.Diagnostics.Verify(
-                // error RZ3600: Invalid value '{0}'' for RazorLangVersion. Valid values include 'Latest' or a valid version in range 1.0 to 8.0.
-                Diagnostic("RZ3600").WithArguments(langVersion).WithLocation(1, 1));
+                // error RZ3600: Invalid value '{0}' for RazorLangVersion. Valid values include 'Latest', 'Preview', or a valid version in range 1.0 to {1}.
+                Diagnostic("RZ3600").WithArguments(langVersion, RazorLanguageVersion.Preview.ToString()).WithLocation(1, 1));
             Assert.Single(result.GeneratedSources);
         }
 
@@ -3279,7 +3272,7 @@ namespace MyApp
             Assert.Equal(2, result.GeneratedSources.Length);
             Assert.Empty(eventListener.Events);
 
-            var reference = (PortableExecutableReference) project.MetadataReferences[^1];
+            var reference = (PortableExecutableReference)project.MetadataReferences[^1];
 
             project = project.RemoveMetadataReference(reference)
                              .AddMetadataReference(MetadataReference.CreateFromFile(reference.FilePath!));
@@ -3577,7 +3570,7 @@ namespace MyApp
                     e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
                     e => e.AssertPair("RazorCodeGenerateStart", "Pages/NewCounter.razor", "Runtime"),
                     e => e.AssertPair("RazorCodeGenerateStop", "Pages/NewCounter.razor", "Runtime"),
-                    e => e.AssertSingleItem("AddSyntaxTrees", "Pages_NewCounter_razor.g.cs")
+                    e => e.AssertSingleItem("AddSyntaxTrees", "Pages/NewCounter_razor.g.cs")
             );
 
             // Verify the generated source has the correct namespace and class name
@@ -3602,6 +3595,86 @@ namespace MyApp
 
             var newCouNterSource = result.GeneratedSources.FirstOrDefault(s => s.HintName.Contains("NewCouNter"));
             Assert.Contains("public partial class NewCouNter", newCouNterSource.SourceText.ToString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/12316")]
+        public async Task RazorClassLibrary_Change_Updates_DependentProject_WhenReferencedAsCompilation()
+        {
+            var rclProject = CreateTestProject(new()
+            {
+                ["LibComponent.razor"] = "<p>Library component</p>",
+            });
+            rclProject = rclProject.WithAssemblyName("RazorClassLibrary");
+
+            var rclCompilation = await rclProject.GetCompilationAsync();
+            var rclDriver = await GetDriverAsync(rclProject);
+            var rclRun = RunGenerator(rclCompilation!, ref rclDriver, out var rclOutputCompilation);
+            Assert.Empty(rclRun.Diagnostics);
+            Assert.Single(rclRun.GeneratedSources); // LibComponent
+
+            // Explicitly use a CompilationReference
+            var rclReference = rclOutputCompilation.ToMetadataReference();
+
+            // Create the main project that references the RCL and uses its component.
+            var mainProject = CreateTestProject(new()
+            {
+                ["Pages/Index.razor"] = "<LibComponent />",
+            });
+            mainProject = mainProject.AddMetadataReference(rclReference);
+
+            var mainCompilation = await mainProject.GetCompilationAsync();
+            var (mainDriver, mainAdditionalTexts) = await GetDriverWithAdditionalTextAsync(mainProject);
+            var mainRun = RunGenerator(mainCompilation!, ref mainDriver);
+            Assert.Empty(mainRun.Diagnostics);
+            Assert.Single(mainRun.GeneratedSources);
+
+            // Rename the component in the RCL: LibComponent -> RenamedComponent
+            rclProject = CreateTestProject(new()
+            {
+                ["RenamedComponent.razor"] = "<p>Library component</p>",
+            }).WithAssemblyName("RazorClassLibrary");
+
+            rclCompilation = await rclProject.GetCompilationAsync()!;
+            rclDriver = await GetDriverAsync(rclProject);
+            rclRun = RunGenerator(rclCompilation!, ref rclDriver, out rclOutputCompilation);
+            Assert.Empty(rclRun.Diagnostics);
+            Assert.Single(rclRun.GeneratedSources); // RenamedComponent
+
+            var rclReference2 = rclOutputCompilation.ToMetadataReference();
+
+            // Update main project to point to the new reference (with renamed component).
+            mainProject = mainProject.RemoveMetadataReference(rclReference)
+                                     .AddMetadataReference(rclReference2);
+            mainCompilation = await mainProject.GetCompilationAsync();
+
+            // Re-run generator: expect missing component diagnostic (RZ10012).
+            mainRun = RunGenerator(mainCompilation!, ref mainDriver);
+            var missing = Assert.Single(mainRun.Diagnostics);
+            Assert.Equal("RZ10012", missing.Id);
+
+            // Update main project's Index.razor to use the renamed component.
+            var updatedIndex = new TestAdditionalText("Pages/Index.razor", SourceText.From("<RenamedComponent />", Encoding.UTF8));
+            mainDriver = mainDriver.ReplaceAdditionalText(
+                mainAdditionalTexts.First(t => t.Path.EndsWith("Index.razor", StringComparison.OrdinalIgnoreCase)),
+                updatedIndex);
+
+            // Re-run generator: should compile cleanly again.
+            mainRun = RunGenerator(mainCompilation!, ref mainDriver);
+            Assert.Empty(mainRun.Diagnostics);
+            Assert.Single(mainRun.GeneratedSources);
+
+            // Update the compilation, which will cause us to re-run. 
+            RazorEventListener eventListener = new RazorEventListener();
+
+            mainCompilation = mainCompilation!.WithOptions(mainCompilation.Options.WithModuleName("newMain"));
+            mainRun = RunGenerator(mainCompilation!, ref mainDriver);
+            Assert.Empty(mainRun.Diagnostics);
+            Assert.Single(mainRun.GeneratedSources);
+
+            // Confirm that the tag helpers from metadata refs _didn't_ re-run
+            Assert.Collection(eventListener.Events,
+                     e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
+                     e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName));
         }
     }
 }

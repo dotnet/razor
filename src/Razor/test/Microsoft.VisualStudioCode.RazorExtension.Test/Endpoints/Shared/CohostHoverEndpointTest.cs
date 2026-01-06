@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -38,16 +39,18 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
                 Container(
                     Container(
                         Image,
-                        ClassifiedText( // Microsoft.AspNetCore.Components.Web.PageTitle
-                            Text("Microsoft"),
+                        ClassifiedText( // class Microsoft.AspNetCore.Components.Web.PageTitle
+                            Keyword("class"),
+                            WhiteSpace(" "),
+                            Namespace("Microsoft"),
                             Punctuation("."),
-                            Text("AspNetCore"),
+                            Namespace("AspNetCore"),
                             Punctuation("."),
-                            Text("Components"),
+                            Namespace("Components"),
                             Punctuation("."),
-                            Text("Web"),
+                            Namespace("Web"),
                             Punctuation("."),
-                            Type("PageTitle")))));
+                            ClassName("PageTitle")))));
         });
     }
 
@@ -69,6 +72,56 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
         var htmlResponse = new VSInternalHover();
 
         await VerifyHoverAsync(code, htmlResponse, h => Assert.Same(htmlResponse, h));
+    }
+
+    [Fact]
+    public async Task Html_TagHelper()
+    {
+        TestCode code = """
+            <[|bo$$dy|]></body>
+            """;
+
+        // This verifies Hover calls into both razor and HTML, aggregating their results
+        const string BodyDescription = "body description";
+        var htmlResponse = new VSInternalHover
+        {
+            Range = new LspRange()
+            {
+                Start = new Position(0, 1),
+                End = new Position(0, "<body".Length),
+            },
+            Contents = new MarkupContent()
+            {
+                Kind = MarkupKind.Markdown,
+                Value = BodyDescription,
+            }
+        };
+
+        await VerifyHoverAsync(code, RazorFileKind.Legacy, htmlResponse, async (hover, document) =>
+        {
+            await VerifyRangeAsync(hover, code.Span, document);
+
+            hover.VerifyContents(
+                Container(
+                    Container(
+                        ClassifiedText(
+                            Text(BodyDescription)),
+                        HorizontalRule),
+                    Container(
+                        Image,
+                        ClassifiedText(
+                            Text("Microsoft"),
+                            Punctuation("."),
+                            Text("AspNetCore"),
+                            Punctuation("."),
+                            Text("Mvc"),
+                            Punctuation("."),
+                            Text("Razor"),
+                            Punctuation("."),
+                            Text("TagHelpers"),
+                            Punctuation("."),
+                            Type("BodyTagHelper")))));
+        });
     }
 
     [Fact]
@@ -188,20 +241,22 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
                 Container(
                     Container(
                         Image,
-                        ClassifiedText( // Microsoft.ApsNetCore.Components.Forms.InputText
-                            Text("Microsoft"),
+                        ClassifiedText( // class Microsoft.ApsNetCore.Components.Forms.InputText
+                            Keyword("class"),
+                            WhiteSpace(" "),
+                            Namespace("Microsoft"),
                             Punctuation("."),
-                            Text("AspNetCore"),
+                            Namespace("AspNetCore"),
                             Punctuation("."),
-                            Text("Components"),
+                            Namespace("Components"),
                             Punctuation("."),
-                            Text("Forms"),
+                            Namespace("Forms"),
                             Punctuation("."),
-                            Type("InputText")))));
+                            ClassName("InputText")))));
         });
     }
 
-    [Fact(Skip = "Skipped due to revert of https://github.com/dotnet/razor/pull/12287, but don't want to delete the tests because the feature will come back")]
+    [Fact]
     public async Task ComponentEndTag()
     {
         TestCode code = """
@@ -226,19 +281,19 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
                         ClassifiedText( // class Microsoft.AspNetCore.Components.Web.PageTitle
                             Keyword("class"),
                             WhiteSpace(" "),
-                            Text("Microsoft"),
+                            Namespace("Microsoft"),
                             Punctuation("."),
-                            Text("AspNetCore"),
+                            Namespace("AspNetCore"),
                             Punctuation("."),
-                            Text("Components"),
+                            Namespace("Components"),
                             Punctuation("."),
-                            Text("Web"),
+                            Namespace("Web"),
                             Punctuation("."),
                             ClassName("PageTitle")))));
         });
     }
 
-    [Fact(Skip = "Skipped due to revert of https://github.com/dotnet/razor/pull/12287, but don't want to delete the tests because the feature will come back")]
+    [Fact]
     public async Task ComponentEndTag_FullyQualified()
     {
         TestCode code = """
@@ -263,19 +318,19 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
                         ClassifiedText( // class Microsoft.AspNetCore.Components.Web.PageTitle
                             Keyword("class"),
                             WhiteSpace(" "),
-                            Text("Microsoft"),
+                            Namespace("Microsoft"),
                             Punctuation("."),
-                            Text("AspNetCore"),
+                            Namespace("AspNetCore"),
                             Punctuation("."),
-                            Text("Components"),
+                            Namespace("Components"),
                             Punctuation("."),
-                            Text("Web"),
+                            Namespace("Web"),
                             Punctuation("."),
                             ClassName("PageTitle")))));
         });
     }
 
-    [Fact(Skip = "Skipped due to revert of https://github.com/dotnet/razor/pull/12287, but don't want to delete the tests because the feature will come back")]
+    [Fact]
     public async Task ComponentEndTag_FullyQualified_Namespace()
     {
         TestCode code = """
@@ -300,16 +355,19 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
                         ClassifiedText( // namespace Microsoft.AspNetCore
                             Keyword("namespace"),
                             WhiteSpace(" "),
-                            Text("Microsoft"),
+                            Namespace("Microsoft"),
                             Punctuation("."),
-                            Text("AspNetCore")))));
+                            Namespace("AspNetCore")))));
         });
     }
 
-    private async Task VerifyHoverAsync(TestCode input, Func<Hover, TextDocument, Task> verifyHover)
+    private Task VerifyHoverAsync(TestCode input, Func<Hover, TextDocument, Task> verifyHover)
+        => VerifyHoverAsync(input, fileKind: null, htmlResponse: null, verifyHover);
+
+    private async Task VerifyHoverAsync(TestCode input, RazorFileKind? fileKind, Hover? htmlResponse, Func<Hover, TextDocument, Task> verifyHover)
     {
-        var document = CreateProjectAndRazorDocument(input.Text);
-        var result = await GetHoverResultAsync(document, input);
+        var document = CreateProjectAndRazorDocument(input.Text, fileKind);
+        var result = await GetHoverResultAsync(document, input, htmlResponse);
 
         Assert.NotNull(result);
         await verifyHover(result, document);

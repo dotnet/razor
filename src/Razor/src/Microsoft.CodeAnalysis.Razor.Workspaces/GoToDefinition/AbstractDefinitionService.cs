@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
@@ -31,17 +30,9 @@ internal abstract class AbstractDefinitionService(
         IDocumentSnapshot documentSnapshot,
         DocumentPositionInfo positionInfo,
         ISolutionQueryOperations solutionQueryOperations,
-        bool ignoreComponentAttributes,
         bool includeMvcTagHelpers,
         CancellationToken cancellationToken)
     {
-
-        // If we're in C# then there is no point checking for a component tag, because there won't be one
-        if (positionInfo.LanguageKind == RazorLanguageKind.CSharp)
-        {
-            return null;
-        }
-
         if (!includeMvcTagHelpers && !documentSnapshot.FileKind.IsComponent())
         {
             _logger.LogInformation($"'{documentSnapshot.FileKind}' is not a component type.");
@@ -50,7 +41,7 @@ internal abstract class AbstractDefinitionService(
 
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
-        if (!RazorComponentDefinitionHelpers.TryGetBoundTagHelpers(codeDocument, positionInfo.HostDocumentIndex, ignoreComponentAttributes, _logger, out var boundTagHelperResults))
+        if (!RazorComponentDefinitionHelpers.TryGetBoundTagHelpers(codeDocument, positionInfo.HostDocumentIndex, _logger, out var boundTagHelperResults))
         {
             _logger.LogInformation($"Could not retrieve bound tag helper information.");
             return null;

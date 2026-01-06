@@ -212,7 +212,7 @@ internal sealed class CSharpOnTypeFormattingPass(
             // Because we need to parse the C# code twice for this operation, lets do a quick check to see if its even necessary
             if (changes.Any(static e => e.NewText is not null && e.NewText.IndexOf("using") != -1))
             {
-                var usingStatementEdits = await AddUsingsHelper.GetUsingStatementEditsAsync(context.CodeDocument, originalTextWithChanges, cancellationToken).ConfigureAwait(false);
+                var usingStatementEdits = await AddUsingsHelper.GetUsingStatementEditsAsync(context.CurrentSnapshot, originalTextWithChanges, cancellationToken).ConfigureAwait(false);
                 var usingStatementChanges = usingStatementEdits.Select(context.CodeDocument.Source.Text.GetTextChange);
                 finalChanges = [.. usingStatementChanges, .. finalChanges];
             }
@@ -339,7 +339,14 @@ internal sealed class CSharpOnTypeFormattingPass(
 
         var text = context.SourceText;
         var sourceMappingSpan = text.GetTextSpan(sourceMappingRange);
-        if (!ShouldFormat(context, sourceMappingSpan, allowImplicitStatements: false, out var owner))
+        if (!ShouldFormat(context,
+            sourceMappingSpan,
+            new ShouldFormatOptions(
+                AllowImplicitStatements: false,
+                AllowImplicitExpressions: false,
+                AllowSingleLineExplicitExpressions: true,
+                IsLineRequest: false),
+            out var owner))
         {
             // We don't want to run cleanup on this range.
             return;
@@ -900,6 +907,11 @@ internal sealed class CSharpOnTypeFormattingPass(
             return false;
         }
 
+        if (IsComponentStartTagName())
+        {
+            return false;
+        }
+
         if (IsInHtmlAttributeValue())
         {
             return false;
@@ -1002,6 +1014,19 @@ internal sealed class CSharpOnTypeFormattingPass(
                         MarkupMinimizedTagHelperAttributeSyntax { TagHelperAttributeInfo.Bound: true } or
                         MarkupMinimizedTagHelperDirectiveAttributeSyntax { TagHelperAttributeInfo.Bound: true }
             } && !options.IsLineRequest;
+        }
+
+        bool IsComponentStartTagName()
+        {
+            // E.g, (| is position)
+            //
+            // `<|Component>` - true
+            //
+            // As above, we map component elements, so GTD and FAR works, there could be C# mapping for them.
+            // We don't want the mapping to make the formatting engine think it needs to apply C# indentation rules.
+
+            return owner is MarkupTagHelperStartTagSyntax startTag &&
+                startTag.Name.Span.Contains(mappingSpan.Start);
         }
 
         bool IsInHtmlAttributeValue()
