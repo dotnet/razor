@@ -293,7 +293,7 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                         @{
                             RenderFragment fragment =
                             @<Component1 Id="Comp1"
-                                             Caption="Title">
+                                         Caption="Title">
                             </Component1>;
                         }
                     </Component1>
@@ -408,11 +408,11 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                     <div Model="SomeModel">
                         <div />
                         @{
-                        #if DEBUG
-                            }
-                        <div />
-                        @{
-                        #endif
+                    #if DEBUG
+                    }
+                    <div />
+                    @{
+                    #endif
                         }
                     </div>
 
