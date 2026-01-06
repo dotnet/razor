@@ -8,7 +8,7 @@
     }
   },
   "branches": {
-    "main": {
+    "release/dev18.3": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
