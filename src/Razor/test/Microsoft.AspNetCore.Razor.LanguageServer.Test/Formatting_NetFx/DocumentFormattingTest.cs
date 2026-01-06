@@ -7468,6 +7468,25 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     """);
 
     [FormattingTestFact]
+    public Task HtmlAttributes_FirstAttributeOnNextLine()
+        => RunFormattingTestAsync(
+            input: """
+                    <div
+                      class="foo"
+                      disabled
+                      style="hello"
+                      @onclick="foo()">
+                    </div>
+                    """,
+            expected: """
+                    <div class="foo"
+                         disabled
+                         style="hello"
+                         @onclick="foo()">
+                    </div>
+                    """);
+
+    [FormattingTestFact]
     public Task HtmlAttributes_IndentByOne()
         => RunFormattingTestAsync(
             input: """

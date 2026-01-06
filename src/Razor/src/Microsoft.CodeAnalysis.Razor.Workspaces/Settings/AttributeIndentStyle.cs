@@ -5,6 +5,13 @@ namespace Microsoft.CodeAnalysis.Razor.Settings;
 
 internal enum AttributeIndentStyle
 {
+    /// <summary>
+    /// Matches the behaviour of the Html formatter in VS and VS Code, and makes attributes on subsequent lines
+    /// align with the first attribute on the first line of a tag
+    /// </summary>
     AlignWithFirst,
+    /// <summary>
+    /// Indents attributes on subsequent lines by one more level than the indentation level of the line the tag starts on
+    /// </summary>
     IndentByOne
 }
