@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 
-internal sealed partial class RenamerProjectTreeActionHandler
+internal sealed partial class RenameProjectTreeHandler
 {
     // Copied, and simplified to our needs, from https://github.com/dotnet/project-system/blob/main/src/Microsoft.VisualStudio.ProjectSystem.Managed.VS/ProjectSystem/VS/Waiting/VisualStudioWaitContext.cs
 

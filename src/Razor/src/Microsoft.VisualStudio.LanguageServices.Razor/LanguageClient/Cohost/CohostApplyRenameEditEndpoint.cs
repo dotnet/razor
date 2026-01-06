@@ -21,8 +21,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 #pragma warning disable RS0030 // Do not use banned APIs
 [Shared]
 // NOTE: This has to use RazorMethod, not CohostEndpoint, because it has to use the "default" language,
-// since it has no document associated with it to get any other language. If Roslyn implements their
-// own didRename handler, we'll have to negotiate with them to deal with this.
+// since it has no document associated with it to get any other language.
 [RazorMethod(RazorLSPConstants.ApplyRenameEditName)]
 [ExportRazorStatelessLspService(typeof(CohostApplyRenameEditEndpoint))]
 [method: ImportingConstructor]
@@ -45,7 +44,7 @@ internal sealed class CohostApplyRenameEditEndpoint(ILoggerFactory loggerFactory
         // to the old name. We go through the workspace edit and fix up any names, and drop any unnecessary renames, to
         // make everything work.
         // We don't need to worry about this in VS Code, becuase the workspace edit returned from willRenameFiles is applied
-        // before the rename happens. If VS ever gets properr support for willRename then this endpoint can be removed entirely.
+        // before the rename happens. If VS ever gets proper support for willRename then this endpoint can be removed entirely.
 
         FixUpWorkspaceEdit(request, _fileSystem);
 

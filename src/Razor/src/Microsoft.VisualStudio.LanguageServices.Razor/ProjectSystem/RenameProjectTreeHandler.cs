@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 [Export(typeof(IProjectTreeActionHandler))]
 [AppliesTo(WellKnownProjectCapabilities.DotNetCoreCSharp)]
 [method: ImportingConstructor]
-internal sealed partial class RenamerProjectTreeActionHandler(
+internal sealed partial class RenameProjectTreeHandler(
     [Import(ExportContractNames.Scopes.UnconfiguredProject)] IProjectAsynchronousTasksService projectAsynchronousTasksService,
     SVsServiceProvider serviceProvider,
     LSPRequestInvoker requestInvoker,
@@ -34,7 +34,7 @@ internal sealed partial class RenamerProjectTreeActionHandler(
     private readonly SVsServiceProvider _serviceProvider = serviceProvider;
     private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
     private readonly LanguageServerFeatureOptions _featureOptions = featureOptions;
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RenamerProjectTreeActionHandler>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RenameProjectTreeHandler>();
 
     public override async Task RenameAsync(IProjectTreeActionHandlerContext context, IProjectTree node, string value)
     {
