@@ -358,11 +358,12 @@ internal partial class CSharpFormattingPass
                 {
                     // A special case here is if we're inside an explicit expression body, one of the bits of content after the node will
                     // be the final close parens, so we need to emit that or the C# expression won't be valid, and we can't trust the formatter.
-                    if (node.Parent.Parent is CSharpExplicitExpressionBodySyntax or CSharpImplicitExpressionBodySyntax &&
-                        _sourceText.GetLinePosition(node.Parent.Parent.EndPosition).Line == _currentLine.LineNumber)
+                    var potentialExplicitExpression = node.Parent.Parent;
+                    if (potentialExplicitExpression is CSharpExplicitExpressionBodySyntax or CSharpImplicitExpressionBodySyntax &&
+                        _sourceText.GetLinePosition(potentialExplicitExpression.EndPosition).Line == _currentLine.LineNumber)
                     {
                         isEndOfExplicitExpression = true;
-                        end = node.Parent.Parent.EndPosition;
+                        end = potentialExplicitExpression.EndPosition;
                     }
                     else
                     {
