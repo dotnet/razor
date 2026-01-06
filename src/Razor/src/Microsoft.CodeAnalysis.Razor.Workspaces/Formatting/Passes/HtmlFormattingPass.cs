@@ -100,7 +100,7 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
             // As a quick check, we only care about dropping edits that affect indentation - ie, are before the first
             // whitespace char on a line
             var line = sourceText.Lines.GetLineFromPosition(change.Span.Start);
-            if (change.Span.Start < line.GetFirstNonWhitespacePosition() &&
+            if (change.Span.Start <= line.GetFirstNonWhitespacePosition() &&
                 !ChangeIsInsideScriptOrStyleElement(change))
             {
                 context.Logger?.LogMessage($"Dropping change {change} because it's not in a script or style block");
