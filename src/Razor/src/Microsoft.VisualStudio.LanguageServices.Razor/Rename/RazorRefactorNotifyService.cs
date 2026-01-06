@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -89,13 +91,20 @@ internal sealed class RazorRefactorNotifyService(
             return true;
         }
 
-        var razorFileName = quotedRazorFileName.Trim('"');
-        var newFileName = Path.Combine(Path.GetDirectoryName(razorFileName), newName + ".razor");
+        // Let's make sure the pragma actually contained a Razor file name, just in case the compiler changes
+        if (quotedRazorFileName.Trim('"') is not { } razorFileName ||
+            !FileUtilities.IsRazorComponentFilePath(razorFileName, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
 
         if (!fileSystem.FileExists(razorFileName))
         {
             return true;
         }
+
+        Debug.Assert(Path.GetExtension(razorFileName) == ".razor");
+        var newFileName = Path.Combine(Path.GetDirectoryName(razorFileName), newName + ".razor");
 
         // If the new file name already exists, then the rename can continue, it will just be moving from ComponentA to
         // ComponentB, but ComponentA remains. Hopefully this is what the user intended :)
