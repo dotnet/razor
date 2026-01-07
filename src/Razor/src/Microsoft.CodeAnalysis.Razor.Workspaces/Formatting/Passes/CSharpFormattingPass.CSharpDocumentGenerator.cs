@@ -359,11 +359,12 @@ internal partial class CSharpFormattingPass
                 {
                     // A special case here is if we're inside an explicit expression body, one of the bits of content after the node will
                     // be the final close parens, so we need to emit that or the C# expression won't be valid, and we can't trust the formatter.
-                    if (node.Parent.Parent is CSharpExplicitExpressionBodySyntax explicitExpression &&
-                        _sourceText.GetLinePosition(explicitExpression.EndPosition).Line == _currentLine.LineNumber)
+                    var potentialExplicitExpression = node.Parent.Parent;
+                    if (potentialExplicitExpression is CSharpExplicitExpressionBodySyntax or CSharpImplicitExpressionBodySyntax &&
+                        _sourceText.GetLinePosition(potentialExplicitExpression.EndPosition).Line == _currentLine.LineNumber)
                     {
                         isEndOfExplicitExpression = true;
-                        end = explicitExpression.EndPosition;
+                        end = potentialExplicitExpression.EndPosition;
                     }
                     else
                     {
@@ -385,14 +386,19 @@ internal partial class CSharpFormattingPass
                     _builder.Append(';');
                 }
 
-                // Append a comment at the end so whitespace isn't removed, as Roslyn thinks its the end of the line, but we know it isn't.
+                // Append a comment at the end so whitespace isn't removed, as Roslyn thinks its the end of the line, but it might not be.
                 // eg, given "4, 5, @<div></div>", we want Roslyn to keep the space after the last comma, because there is something after it,
                 // but we can't let Roslyn see the "@<div>" that it is.
                 // We use a multi-line comment because Roslyn has a desire to line up "//" comments with the previous line, which we could interpret
                 // as Roslyn suggesting we indent some trailing Html.
-                const string EndOfLineComment = " /* */";
-                offsetFromEnd += EndOfLineComment.Length;
-                _builder.AppendLine(EndOfLineComment);
+                if (end != _currentLine.End)
+                {
+                    const string EndOfLineComment = " /* */";
+                    offsetFromEnd += EndOfLineComment.Length;
+                    _builder.Append(EndOfLineComment);
+                }
+
+                _builder.AppendLine();
 
                 // Final quirk: If we're inside an Html attribute, it means the Html formatter won't have formatted this line, as multi-line
                 // Html attributes are not valid.
@@ -407,6 +413,17 @@ internal partial class CSharpFormattingPass
                     startChar = _sourceText.GetLinePosition(attributeNode.SpanStart + startChar).Character;
                     htmlIndentLevel = startChar / _tabSize;
                     additionalIndentation = new string(' ', startChar % _tabSize);
+                }
+
+                if (offsetFromEnd == 0)
+                {
+                    // If we're not doing any extra emitting of our own, then we can safely check for newlines
+                    return CreateLineInfo(
+                        skipPreviousLine: skipPreviousLine,
+                        processFormatting: true,
+                        htmlIndentLevel: htmlIndentLevel,
+                        additionalIndentation: additionalIndentation,
+                        checkForNewLines: true);
                 }
 
                 return CreateLineInfo(
@@ -796,6 +813,17 @@ internal partial class CSharpFormattingPass
                 // so we can actually just emit these lines as a comment so the indentation is correct, and then let the code above
                 // handle them. Essentially, whether these are at the start or int he middle of a line is irrelevant.
 
+                // The exception to this is if the implicit expressions are multi-line. In that case, it's possible that the contents
+                // of this line (ie, the first line) will affect the indentation of subsequent lines. Emitting this as a comment, won't
+                // help when we emit the following lines in their original form. So lets do that for this line too. Since it's multi-line
+                // we know, by definition, there can't be more than one on this line anyway.
+
+                if (_sourceText.GetLinePositionSpan(node.Span).SpansMultipleLines())
+                {
+                    var csharpCode = ((CSharpImplicitExpressionBodySyntax)node.Body).CSharpCode;
+                    return VisitCSharpCodeBlock(node, csharpCode);
+                }
+
                 return EmitCurrentLineAsComment();
             }
 
@@ -805,17 +833,23 @@ internal partial class CSharpFormattingPass
                 // of whether its at the start or in the middle of the line.
                 var body = (CSharpExplicitExpressionBodySyntax)node.Body;
                 var closeParen = body.CloseParen;
+                var csharpCode = body.CSharpCode;
                 if (GetLineNumber(closeParen) == GetLineNumber(node))
                 {
                     return EmitCurrentLineAsComment();
                 }
 
+                return VisitCSharpCodeBlock(node, csharpCode);
+            }
+
+            private LineInfo VisitCSharpCodeBlock(RazorSyntaxNode node, CSharpCodeBlockSyntax csharpCode)
+            {
                 // If this spans multiple lines however, the indentation of this line will affect the next, so we handle it in the
                 // same way we handle a C# literal syntax. That includes checking if the C# doesn't go to the end of the line.
                 // If the whole explicit expression is C#, then the children will be a single CSharpExpressionLiteral. If not, there
                 // will be multiple children, and the second one is not C#, so thats the one we need to exclude from the generated
                 // document.
-                if (body.CSharpCode.Children is [_, { } secondChild, ..] &&
+                if (csharpCode.Children is [_, { } secondChild, ..] &&
                     GetLineNumber(secondChild) == GetLineNumber(node))
                 {
                     // Emit the whitespace, so user spacing is honoured if possible
@@ -864,7 +898,7 @@ internal partial class CSharpFormattingPass
                 _builder.AppendLine(_sourceText.GetSubTextString(TextSpan.FromBounds(_currentToken.Position + 1, _currentLine.End)));
                 return CreateLineInfo(
                     processFormatting: true,
-                    checkForNewLines: false,
+                    checkForNewLines: true,
                     originOffset: 1,
                     formattedOffset: 0);
             }
