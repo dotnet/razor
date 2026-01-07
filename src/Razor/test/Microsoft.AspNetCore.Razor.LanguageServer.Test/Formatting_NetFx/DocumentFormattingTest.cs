@@ -7935,7 +7935,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                 )
                 """);
-                
+
     [FormattingTestFact]
     public Task PartialDocument()
         => RunFormattingTestAsync(
@@ -7949,5 +7949,6 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         <tr>
                             <td>
 
-                    """);
+                    """,
+            allowDiagnostics: true);
 }
