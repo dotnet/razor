@@ -482,8 +482,8 @@ internal partial class CSharpFormattingPass
                         // then that position will be different. If we're not given the options then we assume the default behaviour of
                         // Roslyn which is to insert the newline.
                         formattedOffsetFromEndOfLine = _csharpSyntaxFormattingOptions?.NewLines.IsFlagSet(RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody) ?? true
-                            ? 5
-                            : 7;
+                            ? 5   // "() =>".Length
+                            : 7;  // "() => {".Length
                     }
                     else
                     {
@@ -598,28 +598,28 @@ internal partial class CSharpFormattingPass
 
             private bool ElementCausesIndentation(BaseMarkupStartTagSyntax node)
             {
-                if (node.GetEndTag() is not { } endTag)
-                {
-                    // No end tag, so it's self-closing and doesn't cause indentation
-                    return false;
-                }
-
-                if (GetLineNumber(endTag) == GetLineNumber(node.CloseAngle))
-                {
-                    // End tag is on the same line as the start tag's close angle bracket
-                    return false;
-                }
-
                 if (node.Name.Content.Equals("html", StringComparison.OrdinalIgnoreCase))
                 {
                     // <html> doesn't cause indentation in Visual Studio or VS Code, so we honour that.
                     return false;
                 }
 
-                if (node is MarkupStartTagSyntax startTag &&
-                    (startTag.IsVoidElement() || startTag.IsSelfClosing()))
+                if (node.IsSelfClosing())
                 {
-                    // Void elements and self-closing elements don't cause indentation
+                    // Self-closing elements don't cause indentation
+                    return false;
+                }
+
+                if (node is MarkupStartTagSyntax startTag && startTag.IsVoidElement())
+                {
+                    // Void elements don't cause indentation
+                    return false;
+                }
+
+                if (node.GetEndTag() is { } endTag &&
+                    GetLineNumber(endTag) == GetLineNumber(node.CloseAngle))
+                {
+                    // End tag is on the same line as the start tag's close angle bracket
                     return false;
                 }
 

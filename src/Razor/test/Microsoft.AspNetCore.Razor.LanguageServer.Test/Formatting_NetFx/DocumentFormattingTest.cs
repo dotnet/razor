@@ -3598,8 +3598,8 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     """,
             expected: """
                     <button @functions {
-                            void M() { }
-                            }
+                        void M() { }
+                        }
                     """,
             allowDiagnostics: true);
     }
@@ -3861,14 +3861,14 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         </div>
                     </section>
                     <section class="section">
-                    <div class="container">
-                    @foreach (var item in Model.Images)
-                    {
-                        <div>
-                        <div>
-                            }
-                        </div>
-                    </section>
+                        <div class="container">
+                            @foreach (var item in Model.Images)
+                            {
+                                <div>
+                                    <div>
+                                        }
+                                    </div>
+                                </section>
                     """,
             fileKind: RazorFileKind.Legacy,
             allowDiagnostics: true);
@@ -7577,5 +7577,20 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                                 .ToArray();
                         }
                     </div>
+                    """);
+
+    [FormattingTestFact]
+    public Task PartialDocument()
+        => RunFormattingTestAsync(
+            input: """
+                    <table>
+                    <tr>
+                    <td>
+                    """,
+            expected: """
+                    <table>
+                        <tr>
+                            <td>
+
                     """);
 }
