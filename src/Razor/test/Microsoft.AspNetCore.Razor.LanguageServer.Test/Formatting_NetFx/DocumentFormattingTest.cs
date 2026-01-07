@@ -2496,6 +2496,31 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
     }
 
     [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12635")]
+    public Task TwoRenderFragmentsAfterEachOther()
+     => RunFormattingTestAsync(
+         input: """
+                @{
+                Func<(bool b1, bool b2), object> o1 = @<text>
+                <div></div>
+                </text>;
+                Func<(bool b1, bool b2), object> o2 = @<text>
+                <div></div>
+                </text>;
+                }
+                """,
+         expected: """
+                @{
+                    Func<(bool b1, bool b2), object> o1 = @<text>
+                        <div></div>
+                    </text>;
+                    Func<(bool b1, bool b2), object> o2 = @<text>
+                        <div></div>
+                    </text>;
+                }
+                """);
+
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/6090")]
     public async Task FormatHtmlCommentsInsideCSharp1()
     {
