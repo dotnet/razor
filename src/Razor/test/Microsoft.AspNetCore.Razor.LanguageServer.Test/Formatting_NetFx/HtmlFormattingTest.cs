@@ -465,9 +465,9 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                         <div />
                         @{
                     #if DEBUG
-                        }
-                        <div />
-                        @{
+                    }
+                     <div />
+                    @{
                     #endif
 
                         }

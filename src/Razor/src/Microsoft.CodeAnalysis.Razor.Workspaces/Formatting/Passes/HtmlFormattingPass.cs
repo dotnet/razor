@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -88,25 +87,24 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
         var syntaxRoot = codeDocument.GetRequiredSyntaxRoot();
         var sourceText = codeDocument.Source.Text;
         SyntaxNode? csharpSyntaxRoot = null;
-        ImmutableArray<int> scriptAndStyleElementBounds = default;
+        ImmutableArray<TextSpan> scriptAndStyleElementContentSpans = default;
 
         using var changesToKeep = new PooledArrayBuilder<TextChange>(capacity: changes.Length);
 
         foreach (var change in changes)
         {
-            var node = syntaxRoot.FindInnermostNode(change.Span.Start);
-
             // We don't keep indentation changes that aren't in a script or style block
             // As a quick check, we only care about dropping edits that affect indentation - ie, are before the first
             // whitespace char on a line
             var line = sourceText.Lines.GetLineFromPosition(change.Span.Start);
-            if (change.Span.Start < line.GetFirstNonWhitespacePosition() &&
+            if (change.Span.Start <= line.GetFirstNonWhitespacePosition() &&
                 !ChangeIsInsideScriptOrStyleElement(change))
             {
-                context.Logger?.LogMessage($"Dropping change {change} because it's not in a script or style block");
+                context.Logger?.LogMessage($"Dropping change {change} because it's a change to line indentation, but not in a script or style block");
                 continue;
             }
 
+            var node = syntaxRoot.FindInnermostNode(change.Span.Start);
             // We don't keep changes that start inside of a razor comment block.
             var comment = node?.FirstAncestorOrSelf<RazorCommentBlockSyntax>();
             if (comment is not null && change.Span.Start > comment.SpanStart)
@@ -121,7 +119,7 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
             //      void Foo()
             //      {
             //          Render(@<SurveyPrompt />);
-            //      {
+            //      }
             // }
             //
             // This is popular in some libraries, like bUnit. The issue here is that
@@ -209,54 +207,57 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
         {
             // Rather than ascend up the tree for every change, and look for script/style elements, we build up an index
             // first and just reuse it for every subsequent edit.
-            InitializeElementBoundsArray();
+            InitializeElementContentSpanArray();
 
             // If there aren't any elements we're interested in, we don't need to do anything
-            if (scriptAndStyleElementBounds.Length == 0)
+            if (scriptAndStyleElementContentSpans.Length == 0)
             {
                 return false;
             }
 
-            var index = scriptAndStyleElementBounds.BinarySearch(change.Span.Start);
-
-            // If we got a hit, then we're on the tag itself, which is not inside the tag
-            if (index >= 0)
+            var index = scriptAndStyleElementContentSpans.BinarySearchBy(change.Span.Start, static (span, pos) =>
             {
-                return false;
-            }
+                if (span.Contains(pos))
+                {
+                    return 0;
+                }
 
-            // If we don't get a hit, the complement of the result is the index to the next largest item in the array. Since we add
-            // things to the array in pairs, we know that if that index is even, we're outside an element, so we want to ignore identation.
-            // This only works if the array is ordered, but we can assume it is because we built it in order, and it makes no sense to nest
-            // script tags within style tags, or vice versa.
-            index = ~index;
-            if (index % 2 == 0)
-            {
-                return false;
-            }
+                return span.Start.CompareTo(pos);
+            });
 
-            return true;
+            // If we got a hit, then we're inside a tag we care about
+            return index >= 0;
         }
 
-        void InitializeElementBoundsArray()
+        void InitializeElementContentSpanArray()
         {
-            if (!scriptAndStyleElementBounds.IsDefault)
+            if (!scriptAndStyleElementContentSpans.IsDefault)
             {
                 return;
             }
 
-            using var boundsBuilder = new PooledArrayBuilder<int>();
+            using var boundsBuilder = new PooledArrayBuilder<TextSpan>();
 
-            foreach (var element in syntaxRoot.DescendantNodes(static node => node is RazorDocumentSyntax or MarkupBlockSyntax or MarkupElementSyntax or CSharpCodeBlockSyntax).OfType<MarkupElementSyntax>())
+            // We only care about "top level" block type structures (ie, a script tag isn't going to appear in the middle of a C# expression) so
+            // we only need to descend into the document itself, or nodes that might contain directives, or other elements in case of nesting.
+            foreach (var element in syntaxRoot.DescendantNodes(static node => node is MarkupElementSyntax || node.MayContainDirectives()).OfType<MarkupElementSyntax>())
             {
-                if (RazorSyntaxFacts.IsScriptOrStyleBlock(element))
+                if (RazorSyntaxFacts.IsScriptOrStyleBlock(element) &&
+                    element.GetLinePositionSpan(codeDocument.Source).SpansMultipleLines())
                 {
-                    boundsBuilder.Add(element.SpanStart);
-                    boundsBuilder.Add(element.Span.End);
+
+                    // We only want the contents of the script tag to be included, but not whitespace before the end tag if
+                    // there is only whitespace before the tag, so the calculation of the end is a little annoying.
+                    var endTagline = sourceText.Lines.GetLineFromPosition(element.EndTag.SpanStart);
+                    var firstNonWhitespace = endTagline.GetFirstNonWhitespacePosition();
+                    var end = firstNonWhitespace == element.EndTag.SpanStart
+                        ? endTagline.Start
+                        : firstNonWhitespace.GetValueOrDefault() + 1; // Add one to the end, because we want end to be inclusive, and the parameter is exclusive
+                    boundsBuilder.Add(TextSpan.FromBounds(element.StartTag.EndPosition, end));
                 }
             }
 
-            scriptAndStyleElementBounds = boundsBuilder.ToImmutableAndClear();
+            scriptAndStyleElementContentSpans = boundsBuilder.ToImmutableAndClear();
         }
     }
 

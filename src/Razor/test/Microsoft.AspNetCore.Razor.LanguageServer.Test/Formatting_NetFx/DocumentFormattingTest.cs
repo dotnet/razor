@@ -3405,8 +3405,8 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         @(DateTime.Now)
 
                         @(DateTime
-                        .Now
-                        .ToString())
+                    .Now
+                    .ToString())
 
                         @(Html.DisplayNameFor(@<text>
                             <p>
@@ -3598,8 +3598,8 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     """,
             expected: """
                     <button @functions {
-                            void M() { }
-                            }
+                        void M() { }
+                        }
                     """,
             allowDiagnostics: true);
     }
@@ -3861,14 +3861,14 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         </div>
                     </section>
                     <section class="section">
-                    <div class="container">
-                    @foreach (var item in Model.Images)
-                    {
-                        <div>
-                        <div>
-                            }
-                        </div>
-                    </section>
+                        <div class="container">
+                            @foreach (var item in Model.Images)
+                            {
+                                <div>
+                                    <div>
+                                        }
+                                    </div>
+                                </section>
                     """,
             fileKind: RazorFileKind.Legacy,
             allowDiagnostics: true);
@@ -7009,11 +7009,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 <div>
                     <partial name="~/Views/Shared/_TestimonialRow.cshtml"
                              model="new DefaultTitleContentAreaViewModel
-                                 {
-                                     Title = Model.CurrentPage.TestimonialsTitle,
-                                     ContentArea = Model.CurrentPage.TestimonialsContentArea,
-                                     ChildCssClass = string.Empty
-                                 }" />
+                        {
+                            Title = Model.CurrentPage.TestimonialsTitle,
+                            ContentArea = Model.CurrentPage.TestimonialsContentArea,
+                            ChildCssClass = string.Empty
+                        }" />
                 </div>
                 """,
             fileKind: RazorFileKind.Legacy);
@@ -7056,11 +7056,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
 
                 <partial name="~/Views/Shared/_TestimonialRow.cshtml"
                          model="@(new DefaultTitleContentAreaViewModel
-                         {
-                             Title = Model.CurrentPage.TestimonialsTitle,
-                             ContentArea = Model.CurrentPage.TestimonialsContentArea,
-                             ChildCssClass = string.Empty
-                         })" />
+                    {
+                        Title = Model.CurrentPage.TestimonialsTitle,
+                        ContentArea = Model.CurrentPage.TestimonialsContentArea,
+                        ChildCssClass = string.Empty
+                    })" />
 
                 <partial model="@(new DefaultTitleContentAreaViewModel
                          {
@@ -7072,11 +7072,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 <div>
                     <partial name="~/Views/Shared/_TestimonialRow.cshtml"
                              model="@(new DefaultTitleContentAreaViewModel
-                                 {
-                                     Title = Model.CurrentPage.TestimonialsTitle,
-                                     ContentArea = Model.CurrentPage.TestimonialsContentArea,
-                                     ChildCssClass = string.Empty
-                                 })" />
+                        {
+                            Title = Model.CurrentPage.TestimonialsTitle,
+                            ContentArea = Model.CurrentPage.TestimonialsContentArea,
+                            ChildCssClass = string.Empty
+                        })" />
                 </div>
                 """);
     }
@@ -7393,7 +7393,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         @((((true) ? 123d : 0d) +
                             (true ? 123d : 0d)
                             ).ToString("F2", CultureInfo.InvariantCulture)
-                    ) €
+                ) €
                     </span>
                     <hr class="my-1" />
                     <span>
@@ -7401,7 +7401,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             ((true) ? 123d : 0d) +
                             (true ? 123d : 0d)
                             ).ToString("F2", CultureInfo.InvariantCulture)
-                    ) €
+                ) €
                     </span>
                 }
                 """);
@@ -7846,4 +7846,20 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                 )
                 """);
+                
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12631")]
+    public Task PartialDocument()
+        => RunFormattingTestAsync(
+            input: """
+                    <table>
+                    <tr>
+                    <td>
+                    """,
+            expected: """
+                    <table>
+                        <tr>
+                            <td>
+
+                    """);
 }
