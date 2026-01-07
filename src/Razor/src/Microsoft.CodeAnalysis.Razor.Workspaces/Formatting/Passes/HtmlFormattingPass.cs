@@ -88,7 +88,7 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
         var syntaxRoot = codeDocument.GetRequiredSyntaxRoot();
         var sourceText = codeDocument.Source.Text;
         SyntaxNode? csharpSyntaxRoot = null;
-        ImmutableArray<int> scriptAndStyleElementBounds = default;
+        ImmutableArray<TextSpan> scriptAndStyleElementContentSpans = default;
 
         using var changesToKeep = new PooledArrayBuilder<TextChange>(capacity: changes.Length);
 
@@ -208,56 +208,57 @@ internal sealed class HtmlFormattingPass(IDocumentMappingService documentMapping
         {
             // Rather than ascend up the tree for every change, and look for script/style elements, we build up an index
             // first and just reuse it for every subsequent edit.
-            InitializeElementBoundsArray();
+            InitializeElementContentSpanArray();
 
             // If there aren't any elements we're interested in, we don't need to do anything
-            if (scriptAndStyleElementBounds.Length == 0)
+            if (scriptAndStyleElementContentSpans.Length == 0)
             {
                 return false;
             }
 
-            var index = scriptAndStyleElementBounds.BinarySearch(change.Span.Start);
-
-            // If we got a hit, then we're on the tag itself, which is not inside the tag
-            if (index >= 0)
+            var index = scriptAndStyleElementContentSpans.BinarySearchBy(change.Span.Start, static (span, pos) =>
             {
-                return false;
-            }
+                if (span.Contains(pos))
+                {
+                    return 0;
+                }
 
-            // If we don't get a hit, the complement of the result is the index to the next largest item in the array. Since we add
-            // things to the array in pairs, we know that if that index is even, we're outside an element, so we want to ignore identation.
-            // This only works if the array is ordered, but we can assume it is because we built it in order, and it makes no sense to nest
-            // script tags within style tags, or vice versa.
-            index = ~index;
-            if (index % 2 == 0)
-            {
-                return false;
-            }
+                return span.Start.CompareTo(pos);
+            });
 
-            return true;
+            // If we got a hit, then we're inside a tag we care about
+            return index >= 0;
         }
 
-        void InitializeElementBoundsArray()
+        void InitializeElementContentSpanArray()
         {
-            if (!scriptAndStyleElementBounds.IsDefault)
+            if (!scriptAndStyleElementContentSpans.IsDefault)
             {
                 return;
             }
 
-            using var boundsBuilder = new PooledArrayBuilder<int>();
+            using var boundsBuilder = new PooledArrayBuilder<TextSpan>();
 
             // We only care about "top level" block type structures (ie, a script tag isn't going to appear in the middle of a C# expression) so
-            // we only need to descend into the document itself, or nodes that might contain directives.
-            foreach (var element in syntaxRoot.DescendantNodes(static node => node is RazorDocumentSyntax || node.MayContainDirectives()).OfType<MarkupElementSyntax>())
+            // we only need to descend into the document itself, or nodes that might contain directives, or other elements in case of nesting.
+            foreach (var element in syntaxRoot.DescendantNodes(static node => node is MarkupElementSyntax || node.MayContainDirectives()).OfType<MarkupElementSyntax>())
             {
-                if (RazorSyntaxFacts.IsScriptOrStyleBlock(element))
+                if (RazorSyntaxFacts.IsScriptOrStyleBlock(element) &&
+                    element.GetLinePositionSpan(codeDocument.Source).SpansMultipleLines())
                 {
-                    boundsBuilder.Add(element.SpanStart);
-                    boundsBuilder.Add(element.Span.End);
+
+                    // We only want the contents of the script tag to be included, but not whitespace before the end tag if
+                    // there is only whitespace before the tag, so the calculation of the end is a little annoying.
+                    var endTagline = sourceText.Lines.GetLineFromPosition(element.EndTag.SpanStart);
+                    var firstNonWhitespace = endTagline.GetFirstNonWhitespacePosition();
+                    var end = firstNonWhitespace == element.EndTag.SpanStart
+                        ? endTagline.Start
+                        : firstNonWhitespace.GetValueOrDefault() + 1; // Add one to the end, because we want end to be inclusive, and the parameter is exclusive
+                    boundsBuilder.Add(TextSpan.FromBounds(element.StartTag.EndPosition, end));
                 }
             }
 
-            scriptAndStyleElementBounds = boundsBuilder.ToImmutableAndClear();
+            scriptAndStyleElementContentSpans = boundsBuilder.ToImmutableAndClear();
         }
     }
 
