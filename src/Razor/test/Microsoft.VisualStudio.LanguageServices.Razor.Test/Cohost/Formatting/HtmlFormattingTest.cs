@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 using Xunit;
@@ -426,8 +427,9 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
             allowDiagnostics: true);
     }
 
-    [FormattingTestFact]
-    public async Task HtmlAttributes_FirstNotOnSameLine()
+    [FormattingTestTheory]
+    [CombinatorialData]
+    internal async Task HtmlAttributes_FirstNotOnSameLine(AttributeIndentStyle attributeIndentStyle)
     {
         // This test looks different because it explicitly doesn't call the html formatter, because we don't
         // want it to "fix" the first attribute placement, and put it on the same line as the start tag.
@@ -464,7 +466,7 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
         formattingService.GetTestAccessor().SetFormattingLoggerFactory(new TestFormattingLoggerFactory(TestOutputHelper));
 
         var htmlEdits = new TextEdit[0];
-        var edits = await GetFormattingEditsAsync(document, htmlEdits, span: default, options.CodeBlockBraceOnNextLine, options.InsertSpaces, options.TabSize, RazorCSharpSyntaxFormattingOptions.Default);
+        var edits = await GetFormattingEditsAsync(document, htmlEdits, span: default, options.CodeBlockBraceOnNextLine, attributeIndentStyle, options.InsertSpaces, options.TabSize, RazorCSharpSyntaxFormattingOptions.Default);
 
         Assert.NotNull(edits);
 
