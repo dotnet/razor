@@ -2496,6 +2496,31 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
     }
 
     [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12635")]
+    public Task TwoRenderFragmentsAfterEachOther()
+     => RunFormattingTestAsync(
+         input: """
+                @{
+                Func<(bool b1, bool b2), object> o1 = @<text>
+                <div></div>
+                </text>;
+                Func<(bool b1, bool b2), object> o2 = @<text>
+                <div></div>
+                </text>;
+                }
+                """,
+         expected: """
+                @{
+                    Func<(bool b1, bool b2), object> o1 = @<text>
+                        <div></div>
+                    </text>;
+                    Func<(bool b1, bool b2), object> o2 = @<text>
+                        <div></div>
+                    </text>;
+                }
+                """);
+
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/6090")]
     public async Task FormatHtmlCommentsInsideCSharp1()
     {
@@ -3405,8 +3430,8 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         @(DateTime.Now)
 
                         @(DateTime
-                        .Now
-                        .ToString())
+                    .Now
+                    .ToString())
 
                         @(Html.DisplayNameFor(@<text>
                             <p>
@@ -3598,8 +3623,8 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     """,
             expected: """
                     <button @functions {
-                            void M() { }
-                            }
+                        void M() { }
+                        }
                     """,
             allowDiagnostics: true);
     }
@@ -3861,14 +3886,14 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         </div>
                     </section>
                     <section class="section">
-                    <div class="container">
-                    @foreach (var item in Model.Images)
-                    {
-                        <div>
-                        <div>
-                            }
-                        </div>
-                    </section>
+                        <div class="container">
+                            @foreach (var item in Model.Images)
+                            {
+                                <div>
+                                    <div>
+                                        }
+                                    </div>
+                                </section>
                     """,
             fileKind: RazorFileKind.Legacy,
             allowDiagnostics: true);
@@ -7009,11 +7034,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 <div>
                     <partial name="~/Views/Shared/_TestimonialRow.cshtml"
                              model="new DefaultTitleContentAreaViewModel
-                                 {
-                                     Title = Model.CurrentPage.TestimonialsTitle,
-                                     ContentArea = Model.CurrentPage.TestimonialsContentArea,
-                                     ChildCssClass = string.Empty
-                                 }" />
+                        {
+                            Title = Model.CurrentPage.TestimonialsTitle,
+                            ContentArea = Model.CurrentPage.TestimonialsContentArea,
+                            ChildCssClass = string.Empty
+                        }" />
                 </div>
                 """,
             fileKind: RazorFileKind.Legacy);
@@ -7056,11 +7081,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
 
                 <partial name="~/Views/Shared/_TestimonialRow.cshtml"
                          model="@(new DefaultTitleContentAreaViewModel
-                         {
-                             Title = Model.CurrentPage.TestimonialsTitle,
-                             ContentArea = Model.CurrentPage.TestimonialsContentArea,
-                             ChildCssClass = string.Empty
-                         })" />
+                    {
+                        Title = Model.CurrentPage.TestimonialsTitle,
+                        ContentArea = Model.CurrentPage.TestimonialsContentArea,
+                        ChildCssClass = string.Empty
+                    })" />
 
                 <partial model="@(new DefaultTitleContentAreaViewModel
                          {
@@ -7072,11 +7097,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 <div>
                     <partial name="~/Views/Shared/_TestimonialRow.cshtml"
                              model="@(new DefaultTitleContentAreaViewModel
-                                 {
-                                     Title = Model.CurrentPage.TestimonialsTitle,
-                                     ContentArea = Model.CurrentPage.TestimonialsContentArea,
-                                     ChildCssClass = string.Empty
-                                 })" />
+                        {
+                            Title = Model.CurrentPage.TestimonialsTitle,
+                            ContentArea = Model.CurrentPage.TestimonialsContentArea,
+                            ChildCssClass = string.Empty
+                        })" />
                 </div>
                 """);
     }
@@ -7393,7 +7418,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         @((((true) ? 123d : 0d) +
                             (true ? 123d : 0d)
                             ).ToString("F2", CultureInfo.InvariantCulture)
-                    ) €
+                ) €
                     </span>
                     <hr class="my-1" />
                     <span>
@@ -7401,7 +7426,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             ((true) ? 123d : 0d) +
                             (true ? 123d : 0d)
                             ).ToString("F2", CultureInfo.InvariantCulture)
-                    ) €
+                ) €
                     </span>
                 }
                 """);
@@ -7641,5 +7666,288 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                                 .ToArray();
                         }
                     </div>
+                    """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12622")]
+    public Task ObjectInitializers4()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                    @if (true)
+                    {
+                        @Html.TextBox(new Test()
+                        {
+                            test = 5
+                        })
+                        <div></div>
+                    }
+                </div>
+                """,
+            expected: """
+                <div>
+                    @if (true)
+                    {
+                        @Html.TextBox(new Test()
+                        {
+                            test = 5
+                        })
+                        <div></div>
+                    }
+                </div>
+                """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12622")]
+    public Task ObjectInitializers5()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                    @if (true)
+                    {
+                        @Html.TextBox(new Test() { test = 5 })
+                        <div></div>
+                    }
+                </div>
+                """,
+            expected: """
+                <div>
+                    @if (true)
+                    {
+                        @Html.TextBox(new Test() { test = 5 })
+                        <div></div>
+                    }
+                </div>
+                """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12622")]
+    public Task ObjectInitializers6()
+        => RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    @Html.TextBox(new Test()
+                    {
+                        test = 5
+                    })
+                    <div></div>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    @Html.TextBox(new Test()
+                    {
+                        test = 5
+                    })
+                    <div></div>
+                }
+                """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12622")]
+    public Task ObjectInitializers7()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                    <div>
+                        @Html.TextBox(new 
+                        {
+                            test = 5,
+                        })
+                    </div>
+                    <div>
+                        @Html.TextBox(new 
+                        {
+                            test = 5,
+                        })
+                    </div>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <div>
+                        @Html.TextBox(new
+                        {
+                            test = 5,
+                        })
+                    </div>
+                    <div>
+                        @Html.TextBox(new
+                        {
+                            test = 5,
+                        })
+                    </div>
+                </div>
+                """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12622")]
+    public Task ObjectInitializers8()
+        => RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    @Html.TextBox(new Test() {
+                        test = 5
+                    })
+                    <div></div>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    @Html.TextBox(new Test()
+                    {
+                        test = 5
+                    })
+                    <div></div>
+                }
+                """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12622")]
+    public Task ObjectInitializers9()
+        => RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    @Html.TextBox(new Test() {
+                        test = 5
+                    })
+                    <div></div>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    @Html.TextBox(new Test() {
+                        test = 5
+                    })
+                    <div></div>
+                }
+                """,
+            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            {
+                NewLines = RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers
+            });
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12622")]
+    public Task ObjectInitializers10()
+        => RunFormattingTestAsync(
+            input: """
+                    @if (true)
+                {
+                    @Html.TextBox(new Test()
+                    {
+                        test = 5
+                    })
+                    <div></div>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    @Html.TextBox(new Test() {
+                        test = 5
+                    })
+                    <div></div>
+                }
+                """,
+            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            {
+                NewLines = RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers
+            });
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12622")]
+    public Task ObjectInitializers11()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                    <div>
+                        <div>
+                            @if (true)
+                            {
+                                <div>
+                                    @Html.TextBox(new
+                                    {
+                                        test = 6
+                                    })
+                                </div>
+
+                                <div></div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <div>
+                        <div>
+                            @if (true)
+                            {
+                                <div>
+                                    @Html.TextBox(new
+                                    {
+                                        test = 6
+                                    })
+                                </div>
+
+                                <div></div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                """);
+
+    [FormattingTestFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12631")]
+    public Task ObjectInitializers12()
+        => RunFormattingTestAsync(
+            input: """
+                @await Component.InvokeAsync("ReviewAndPublishModal", 
+                    new { 
+                        id = "ReviewPublishModal", 
+                        title = "Review and publish",
+                        text = Model.ReviewNotes, 
+                        state = Model.State, 
+                        allowSave = allowSaveReview, 
+                        allowPublish = allowPublish, 
+                        isPublished =isCurrentPublished     
+                    }
+                )
+                """,
+            expected: """
+                @await Component.InvokeAsync("ReviewAndPublishModal",
+                    new
+                    {
+                        id = "ReviewPublishModal",
+                        title = "Review and publish",
+                        text = Model.ReviewNotes,
+                        state = Model.State,
+                        allowSave = allowSaveReview,
+                        allowPublish = allowPublish,
+                        isPublished = isCurrentPublished
+                    }
+                )
+                """);
+                
+    [FormattingTestFact]
+    public Task PartialDocument()
+        => RunFormattingTestAsync(
+            input: """
+                    <table>
+                    <tr>
+                    <td>
+                    """,
+            expected: """
+                    <table>
+                        <tr>
+                            <td>
+
                     """);
 }

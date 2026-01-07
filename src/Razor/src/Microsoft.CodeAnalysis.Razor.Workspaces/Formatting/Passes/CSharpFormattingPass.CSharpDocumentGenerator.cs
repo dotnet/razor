@@ -171,11 +171,12 @@ internal partial class CSharpFormattingPass
             private RazorSyntaxToken _previousCurrentToken;
 
             /// <summary>
-            /// The line number of the last line an element, if we're inside one, where we care about the Html formatters indentation
+            /// The line number of the last line of an element, if we're inside one, where we care about the Html formatters indentation
             /// </summary>
             /// <remarks>
             /// This is used to track if the syntax node at the start of each line is parented by an element node, without
-            /// having to do lots of tree traversal, for formatting the contents of script and style tags.
+            /// having to do lots of tree traversal. We use this to make sure we format the contents of script and style tags as
+            /// the Html formatter intends.
             /// </remarks>
             private int? _honourHtmlFormattingUntilLine;
             /// <summary>
@@ -360,11 +361,12 @@ internal partial class CSharpFormattingPass
                 {
                     // A special case here is if we're inside an explicit expression body, one of the bits of content after the node will
                     // be the final close parens, so we need to emit that or the C# expression won't be valid, and we can't trust the formatter.
-                    if (node.Parent.Parent is CSharpExplicitExpressionBodySyntax explicitExpression &&
-                        _sourceText.GetLinePosition(explicitExpression.EndPosition).Line == _currentLine.LineNumber)
+                    var potentialExplicitExpression = node.Parent.Parent;
+                    if (potentialExplicitExpression is CSharpExplicitExpressionBodySyntax or CSharpImplicitExpressionBodySyntax &&
+                        _sourceText.GetLinePosition(potentialExplicitExpression.EndPosition).Line == _currentLine.LineNumber)
                     {
                         isEndOfExplicitExpression = true;
-                        end = explicitExpression.EndPosition;
+                        end = potentialExplicitExpression.EndPosition;
                     }
                     else
                     {
@@ -386,14 +388,19 @@ internal partial class CSharpFormattingPass
                     _builder.Append(';');
                 }
 
-                // Append a comment at the end so whitespace isn't removed, as Roslyn thinks its the end of the line, but we know it isn't.
+                // Append a comment at the end so whitespace isn't removed, as Roslyn thinks its the end of the line, but it might not be.
                 // eg, given "4, 5, @<div></div>", we want Roslyn to keep the space after the last comma, because there is something after it,
                 // but we can't let Roslyn see the "@<div>" that it is.
                 // We use a multi-line comment because Roslyn has a desire to line up "//" comments with the previous line, which we could interpret
                 // as Roslyn suggesting we indent some trailing Html.
-                const string EndOfLineComment = " /* */";
-                offsetFromEnd += EndOfLineComment.Length;
-                _builder.AppendLine(EndOfLineComment);
+                if (end != _currentLine.End)
+                {
+                    const string EndOfLineComment = " /* */";
+                    offsetFromEnd += EndOfLineComment.Length;
+                    _builder.Append(EndOfLineComment);
+                }
+
+                _builder.AppendLine();
 
                 // Final quirk: If we're inside an Html attribute, it means the Html formatter won't have formatted this line, as multi-line
                 // Html attributes are not valid.
@@ -408,6 +415,17 @@ internal partial class CSharpFormattingPass
                     startChar = _sourceText.GetLinePosition(attributeNode.SpanStart + startChar).Character;
                     htmlIndentLevel = startChar / _tabSize;
                     additionalIndentation = new string(' ', startChar % _tabSize);
+                }
+
+                if (offsetFromEnd == 0)
+                {
+                    // If we're not doing any extra emitting of our own, then we can safely check for newlines
+                    return CreateLineInfo(
+                        skipPreviousLine: skipPreviousLine,
+                        processFormatting: true,
+                        htmlIndentLevel: htmlIndentLevel,
+                        additionalIndentation: additionalIndentation,
+                        checkForNewLines: true);
                 }
 
                 return CreateLineInfo(
@@ -426,7 +444,11 @@ internal partial class CSharpFormattingPass
 
                 // If this is the end of a multi-line CSharp template (ie, RenderFragment) then we need to close
                 // out the lambda expression that we started when we opened it.
-                if (node.LiteralTokens.Where(static t => !t.IsWhitespace()).FirstOrDefault() is { Content: ";" } &&
+                // When there are two templates directly following each other, the parser will put the semicolon of one
+                // and the declaration of the next in the same literal, so we have to be careful to only do this when the
+                // semicolon we find is on the line we're trying to process.
+                if (node.LiteralTokens.FirstOrDefault(static t => !t.IsWhitespace()) is { Content: ";" } semicolon &&
+                    GetLineNumber(semicolon) == GetLineNumber(_currentToken) &&
                     node.TryGetPreviousSibling(out var previousSibling) &&
                     previousSibling is CSharpTemplateBlockSyntax &&
                     GetLineNumber(previousSibling.GetFirstToken()) != GetLineNumber(previousSibling.GetLastToken()))
@@ -483,8 +505,8 @@ internal partial class CSharpFormattingPass
                         // then that position will be different. If we're not given the options then we assume the default behaviour of
                         // Roslyn which is to insert the newline.
                         formattedOffsetFromEndOfLine = _csharpSyntaxFormattingOptions?.NewLines.IsFlagSet(RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody) ?? true
-                            ? 5
-                            : 7;
+                            ? 5   // "() =>".Length
+                            : 7;  // "() => {".Length
                     }
                     else
                     {
@@ -541,7 +563,7 @@ internal partial class CSharpFormattingPass
                 {
                     // If this is an element at the root level, we want to record where it ends. We can't rely on the Visit method
                     // for it, because it might not be at the start of a line. We only care about contents though, so thats why
-                    // we are doing this after emitting this line, and minusing one from the end element line number.
+                    // we are doing this after emitting this line, and subtracting one from the end element line number.
                     _honourHtmlFormattingUntilLine = GetLineNumber(element.EndTag?.CloseAngle ?? element.StartTag.CloseAngle) - 1;
                 }
 
@@ -572,10 +594,6 @@ internal partial class CSharpFormattingPass
                     _builder.Append(';');
                 }
 
-#if DEBUG
-                _builder.Append($" /* {_currentLine} */");
-#endif
-
                 _builder.AppendLine();
                 return CreateLineInfo();
             }
@@ -590,14 +608,7 @@ internal partial class CSharpFormattingPass
                 if (ElementCausesIndentation(node))
                 {
                     // When an element causes indentation, we emit an open brace to tell the C# formatter to indent.
-                    // Any open brace we emit that represents something "real" must have something after it to avoid
-                    // us skipping it due to SkipNextLineIfOpenBrace on the previous line.
-#if DEBUG
-                    _builder.AppendLine($$"""{ /* {{_currentLine}} */""");
-#else
-                    _builder.AppendLine("{ /* */");
-#endif
-                    return CreateLineInfo();
+                    return EmitOpenBraceLine();
                 }
 
                 // This is a single line element, so it doesn't cause indentation
@@ -606,35 +617,28 @@ internal partial class CSharpFormattingPass
 
             private bool ElementCausesIndentation(BaseMarkupStartTagSyntax node)
             {
-                if (node.GetEndTag() is not { } endTag)
-                {
-                    // No end tag, so it's self-closing and doesn't cause indentation
-                    return false;
-                }
-
-                var endTagLineNumber = GetLineNumber(endTag);
-                if (endTagLineNumber == GetLineNumber(node))
-                {
-                    // End tag and start tag are on the same line
-                    return false;
-                }
-
-                if (endTagLineNumber == GetLineNumber(node.CloseAngle))
-                {
-                    // End tag is on the same line as the start tag's close angle bracket
-                    return false;
-                }
-
-                if (node.Name.Content == "html")
+                if (node.Name.Content.Equals("html", StringComparison.OrdinalIgnoreCase))
                 {
                     // <html> doesn't cause indentation in Visual Studio or VS Code, so we honour that.
                     return false;
                 }
 
-                if (node is MarkupStartTagSyntax startTag &&
-                    (startTag.IsVoidElement() || startTag.IsSelfClosing()))
+                if (node.IsSelfClosing())
                 {
-                    // Void elements and self-closing elements don't cause indentation
+                    // Self-closing elements don't cause indentation
+                    return false;
+                }
+
+                if (node is MarkupStartTagSyntax startTag && startTag.IsVoidElement())
+                {
+                    // Void elements don't cause indentation
+                    return false;
+                }
+
+                if (node.GetEndTag() is { } endTag &&
+                    GetLineNumber(endTag) == GetLineNumber(node.CloseAngle))
+                {
+                    // End tag is on the same line as the start tag's close angle bracket
                     return false;
                 }
 
@@ -726,8 +730,9 @@ internal partial class CSharpFormattingPass
                         var nameSpan = RazorSyntaxFacts.GetFullAttributeNameSpan(firstAttribute);
 
                         // We need to line up with the first attribute, but the start tag might not be the first thing on the line,
-                        // so it's really relative to the first non-whitespace character on the line
-                        var lineStart = _sourceText.Lines[GetLineNumber(startTag)].GetFirstNonWhitespacePosition().GetValueOrDefault();
+                        // so it's really relative to the first non-whitespace character on the line. We use the line that the attribute
+                        // is on, just in case its not on the same line as the start tag.
+                        var lineStart = _sourceText.Lines[GetLineNumber(nameSpan)].GetFirstNonWhitespacePosition().GetValueOrDefault();
                         htmlIndentLevel = FormattingUtilities.GetIndentationLevel(nameSpan.Start - lineStart, _tabSize, out additionalIndentation);
                     }
 
@@ -821,6 +826,17 @@ internal partial class CSharpFormattingPass
                 // so we can actually just emit these lines as a comment so the indentation is correct, and then let the code above
                 // handle them. Essentially, whether these are at the start or int he middle of a line is irrelevant.
 
+                // The exception to this is if the implicit expressions are multi-line. In that case, it's possible that the contents
+                // of this line (ie, the first line) will affect the indentation of subsequent lines. Emitting this as a comment, won't
+                // help when we emit the following lines in their original form. So lets do that for this line too. Since it's multi-line
+                // we know, by definition, there can't be more than one on this line anyway.
+
+                if (_sourceText.GetLinePositionSpan(node.Span).SpansMultipleLines())
+                {
+                    var csharpCode = ((CSharpImplicitExpressionBodySyntax)node.Body).CSharpCode;
+                    return VisitCSharpCodeBlock(node, csharpCode);
+                }
+
                 return EmitCurrentLineAsComment();
             }
 
@@ -830,17 +846,23 @@ internal partial class CSharpFormattingPass
                 // of whether its at the start or in the middle of the line.
                 var body = (CSharpExplicitExpressionBodySyntax)node.Body;
                 var closeParen = body.CloseParen;
+                var csharpCode = body.CSharpCode;
                 if (GetLineNumber(closeParen) == GetLineNumber(node))
                 {
                     return EmitCurrentLineAsComment();
                 }
 
+                return VisitCSharpCodeBlock(node, csharpCode);
+            }
+
+            private LineInfo VisitCSharpCodeBlock(RazorSyntaxNode node, CSharpCodeBlockSyntax csharpCode)
+            {
                 // If this spans multiple lines however, the indentation of this line will affect the next, so we handle it in the
                 // same way we handle a C# literal syntax. That includes checking if the C# doesn't go to the end of the line.
                 // If the whole explicit expression is C#, then the children will be a single CSharpExpressionLiteral. If not, there
                 // will be multiple children, and the second one is not C#, so thats the one we need to exclude from the generated
                 // document.
-                if (body.CSharpCode.Children is [_, { } secondChild, ..] &&
+                if (csharpCode.Children is [_, { } secondChild, ..] &&
                     GetLineNumber(secondChild) == GetLineNumber(node))
                 {
                     // Emit the whitespace, so user spacing is honoured if possible
@@ -889,7 +911,7 @@ internal partial class CSharpFormattingPass
                 _builder.AppendLine(_sourceText.GetSubTextString(TextSpan.FromBounds(_currentToken.Position + 1, _currentLine.End)));
                 return CreateLineInfo(
                     processFormatting: true,
-                    checkForNewLines: false,
+                    checkForNewLines: true,
                     originOffset: 1,
                     formattedOffset: 0);
             }
@@ -923,10 +945,7 @@ internal partial class CSharpFormattingPass
                 // We don't need to worry about formatting, or offsetting, because the RazorFormattingPass will
                 // have ensured this node is followed by a newline, and if there was a space between the "@" and "{"
                 // then it wouldn't be a CSharpStatementSyntax so we wouldn't be here!
-                // Any open brace we emit that represents something "real" must have something after it to avoid
-                // us skipping it due to SkipNextLineIfOpenBrace on the previous line.
-                _builder.AppendLine("{ /* */");
-                return CreateLineInfo();
+                return EmitOpenBraceLine();
             }
 
             public override LineInfo VisitRazorDirective(RazorDirectiveSyntax node)
@@ -963,10 +982,7 @@ internal partial class CSharpFormattingPass
                     // If the open brace is on the same line as the directive, then we need to ensure the contents are indented.
                     GetLineNumber(brace) == GetLineNumber(_currentToken))
                 {
-                    // Any open brace we emit that represents something "real" must have something after it to avoid
-                    // us skipping it due to SkipNextLineIfOpenBrace on the previous line.
-                    _builder.AppendLine("{ /* */");
-                    return CreateLineInfo();
+                    return EmitOpenBraceLine();
                 }
 
                 // If the brace is on a different line, then we don't need to do anything, as the brace will be output when
@@ -1028,6 +1044,9 @@ internal partial class CSharpFormattingPass
                     formattedOffset: 0);
             }
 
+            private int GetLineNumber(TextSpan span)
+                => _sourceText.GetLinePositionSpan(span).Start.Line;
+
             private int GetLineNumber(RazorSyntaxNode node)
                 => _sourceText.Lines.GetLineFromPosition(node.Position).LineNumber;
 
@@ -1042,12 +1061,16 @@ internal partial class CSharpFormattingPass
 
             private LineInfo EmitCurrentLineAsComment(int htmlIndentLevel = 0, string? additionalIndentation = null)
             {
-#if DEBUG
-                _builder.AppendLine($"// {_currentLine}");
-#else
                 _builder.AppendLine($"//");
-#endif
                 return CreateLineInfo(htmlIndentLevel: htmlIndentLevel, additionalIndentation: additionalIndentation);
+            }
+
+            private LineInfo EmitOpenBraceLine()
+            {
+                // Any open brace we emit that represents something "real" must have something after it to avoid
+                // us skipping it due to SkipNextLineIfOpenBrace on the previous line.
+                _builder.AppendLine("{ /* */");
+                return CreateLineInfo();
             }
 
             private LineInfo EmitCurrentLineWithNoFormatting()
