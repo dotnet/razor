@@ -706,8 +706,9 @@ internal partial class CSharpFormattingPass
                     var nameSpan = RazorSyntaxFacts.GetFullAttributeNameSpan(firstAttribute);
 
                     // We need to line up with the first attribute, but the start tag might not be the first thing on the line,
-                    // so it's really relative to the first non-whitespace character on the line
-                    var lineStart = _sourceText.Lines[GetLineNumber(startTag)].GetFirstNonWhitespacePosition().GetValueOrDefault();
+                    // so it's really relative to the first non-whitespace character on the line. We use the line that the attribute
+                    // is on, just in case its not on the same line as the start tag.
+                    var lineStart = _sourceText.Lines[GetLineNumber(nameSpan)].GetFirstNonWhitespacePosition().GetValueOrDefault();
                     var htmlIndentLevel = FormattingUtilities.GetIndentationLevel(nameSpan.Start - lineStart, _tabSize, out var additionalIndentation);
                     // If the element has caused indentation, then we'll want to take one level off our attribute indentation to
                     // compensate. Need to be careful here because things like `<a` are likely less than a single indent level.
@@ -999,6 +1000,9 @@ internal partial class CSharpFormattingPass
                     originOffset: attribute.SpanStart - _currentToken.Position,
                     formattedOffset: 0);
             }
+
+            private int GetLineNumber(TextSpan span)
+                => _sourceText.GetLinePositionSpan(span).Start.Line;
 
             private int GetLineNumber(RazorSyntaxNode node)
                 => _sourceText.Lines.GetLineFromPosition(node.Position).LineNumber;
