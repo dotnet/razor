@@ -7848,7 +7848,6 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 """);
                 
     [FormattingTestFact]
-    [WorkItem("https://github.com/dotnet/razor/issues/12631")]
     public Task PartialDocument()
         => RunFormattingTestAsync(
             input: """
