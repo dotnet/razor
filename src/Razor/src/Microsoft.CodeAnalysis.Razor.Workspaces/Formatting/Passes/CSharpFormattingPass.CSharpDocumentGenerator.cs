@@ -571,10 +571,6 @@ internal partial class CSharpFormattingPass
                     _builder.Append(';');
                 }
 
-#if DEBUG
-                _builder.Append($" /* {_currentLine} */");
-#endif
-
                 _builder.AppendLine();
                 return CreateLineInfo();
             }
@@ -1018,11 +1014,7 @@ internal partial class CSharpFormattingPass
 
             private LineInfo EmitCurrentLineAsComment(int htmlIndentLevel = 0, string? additionalIndentation = null)
             {
-#if DEBUG
-                _builder.AppendLine($"// {_currentLine}");
-#else
                 _builder.AppendLine($"//");
-#endif
                 return CreateLineInfo(htmlIndentLevel: htmlIndentLevel, additionalIndentation: additionalIndentation);
             }
 
