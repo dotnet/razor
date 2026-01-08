@@ -548,10 +548,13 @@ internal partial class CSharpFormattingPass
             {
                 var element = (MarkupElementSyntax)node.Parent;
 
-                if (node.Name.Content == "textarea")
+                if (ElementContentsShouldNotBeIndented(node))
                 {
-                    // The contents of textareas is significant, so we never want any formatting to happen inside them
-                    _ignoreUntilLine = GetLineNumber(element.EndTag?.CloseAngle ?? element.StartTag.CloseAngle);
+                    // The contents of textareas is significant, so we never want any formatting to happen in their contents
+                    if (GetLineNumber(node) == GetLineNumber(node.CloseAngle))
+                    {
+                        _ignoreUntilLine = GetLineNumber(element.EndTag?.CloseAngle ?? element.StartTag.CloseAngle);
+                    }
 
                     return EmitCurrentLineAsComment();
                 }
@@ -645,6 +648,11 @@ internal partial class CSharpFormattingPass
                 return true;
             }
 
+            private static bool ElementContentsShouldNotBeIndented(BaseMarkupStartTagSyntax node)
+            {
+                return node.Name.Content.Equals("textarea", StringComparison.OrdinalIgnoreCase);
+            }
+
             public override LineInfo VisitRazorMetaCode(RazorMetaCodeSyntax node)
             {
                 // This could be a directive attribute, like @bind-Value="asdf"
@@ -736,10 +744,16 @@ internal partial class CSharpFormattingPass
                         htmlIndentLevel = FormattingUtilities.GetIndentationLevel(nameSpan.Start - lineStart, _tabSize, out additionalIndentation);
                     }
 
-                    // If the element has caused indentation, then we'll want to take one level off our attribute indentation to
-                    // compensate. Need to be careful here because things like `<a` are likely less than a single indent level.
-                    if (ElementCausesIndentation(startTag) && htmlIndentLevel > 0)
+                    if (ElementContentsShouldNotBeIndented(startTag) &&
+                        GetLineNumber(node) == GetLineNumber(startTag.CloseAngle))
                     {
+                        // If this is the last line of a tag that shouldn't be indented, honour that
+                        _ignoreUntilLine = GetLineNumber(startTag.GetEndTag()?.CloseAngle ?? startTag.CloseAngle);
+                    }
+                    else if (ElementCausesIndentation(startTag) && htmlIndentLevel > 0)
+                    {
+                        // If the element has caused indentation, then we'll want to take one level off our attribute indentation to
+                        // compensate. Need to be careful here because things like `<a` are likely less than a single indent level.
                         htmlIndentLevel--;
                     }
 
