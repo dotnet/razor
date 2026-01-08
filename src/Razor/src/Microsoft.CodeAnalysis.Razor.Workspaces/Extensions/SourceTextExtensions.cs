@@ -52,14 +52,6 @@ internal static class SourceTextExtensions
     public static int GetPosition(this SourceText text, int line, int character)
         => text.GetPosition(new LinePosition(line, character));
 
-    public static string GetSubTextString(this SourceText text, TextSpan span)
-    {
-        using var _ = ArrayPool<char>.Shared.GetPooledArray(span.Length, out var charBuffer);
-
-        text.CopyTo(span.Start, charBuffer, 0, span.Length);
-        return new string(charBuffer, 0, span.Length);
-    }
-
     public static bool NonWhitespaceContentEquals(this SourceText text, ImmutableArray<TextChange> changes)
     {
         if (changes.IsEmpty)

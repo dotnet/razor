@@ -279,13 +279,13 @@ internal partial class CSharpFormattingPass
                 {
                     additionalLinesBuilder.AppendLine("F<");
                     additionalLinesBuilder.AppendLine(GetAdditionalLineComment(originalSpan));
-                    additionalLinesBuilder.AppendLine(_sourceText.GetSubTextString(originalSpan.ToTextSpan()));
+                    additionalLinesBuilder.AppendLine(_sourceText.ToString(originalSpan.ToTextSpan()));
                     additionalLinesBuilder.AppendLine("> x;");
                     return;
                 }
 
                 additionalLinesBuilder.AppendLine(GetAdditionalLineComment(originalSpan));
-                additionalLinesBuilder.AppendLine(_sourceText.GetSubTextString(originalSpan.ToTextSpan()));
+                additionalLinesBuilder.AppendLine(_sourceText.ToString(originalSpan.ToTextSpan()));
                 additionalLinesBuilder.AppendLine(";");
             }
 
@@ -337,7 +337,7 @@ internal partial class CSharpFormattingPass
                     // This is a multi-line literal, and we're emiting the 2nd line, and the literal didn't start at the start of
                     // the previous line, so it wouldn't have been handled by that lines formatting. We need to include it here,
                     // but skip it to not confuse things.
-                    _builder.AppendLine(_sourceText.GetSubTextString(TextSpan.FromBounds(node.SpanStart, previousLine.End)));
+                    _builder.AppendLine(_sourceText.ToString(TextSpan.FromBounds(node.SpanStart, previousLine.End)));
                     skipPreviousLine = true;
                 }
 
@@ -907,8 +907,8 @@ internal partial class CSharpFormattingPass
 
                 // Multi-line expressions are often not formatted by Roslyn much at all, but it will often move subsequent lines
                 // relative to the first, so make sure we include the users indentation so everything moves together, and is stable.
-                _builder.Append(_sourceText.GetSubTextString(TextSpan.FromBounds(_currentLine.Start, _currentFirstNonWhitespacePosition)));
-                _builder.AppendLine(_sourceText.GetSubTextString(TextSpan.FromBounds(_currentToken.Position + 1, _currentLine.End)));
+                _builder.Append(_sourceText.ToString(TextSpan.FromBounds(_currentLine.Start, _currentFirstNonWhitespacePosition)));
+                _builder.AppendLine(_sourceText.ToString(TextSpan.FromBounds(_currentToken.Position + 1, _currentLine.End)));
                 return CreateLineInfo(
                     processFormatting: true,
                     checkForNewLines: true,
@@ -919,7 +919,7 @@ internal partial class CSharpFormattingPass
             public override LineInfo VisitCSharpCodeBlock(CSharpCodeBlockSyntax node)
             {
                 // Matches things like @if, so skip the first character, but output as C# otherwise
-                _builder.AppendLine(_sourceText.GetSubTextString(TextSpan.FromBounds(_currentToken.Position + 1, _currentLine.End)));
+                _builder.AppendLine(_sourceText.ToString(TextSpan.FromBounds(_currentToken.Position + 1, _currentLine.End)));
 
                 return CreateLineInfo(
                     processFormatting: true,
@@ -1008,7 +1008,7 @@ internal partial class CSharpFormattingPass
                 // For @using we just skip over the @ and format as a C# using directive
                 // "@using System" to "using System"
                 // Roslyn's parser is smart enough to not care about missing semicolons.
-                _builder.AppendLine(_sourceText.GetSubTextString(TextSpan.FromBounds(_currentToken.Position + 1, _currentLine.End)));
+                _builder.AppendLine(_sourceText.ToString(TextSpan.FromBounds(_currentToken.Position + 1, _currentLine.End)));
                 return CreateLineInfo(
                     processFormatting: true,
                     originOffset: 1,
