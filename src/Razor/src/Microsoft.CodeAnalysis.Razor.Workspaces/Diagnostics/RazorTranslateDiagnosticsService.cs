@@ -455,7 +455,7 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
         {
             if (!processedAttributes.TryGetValue(markupAttributeValue.Span, out var shouldFilterDiagnostic))
             {
-                // If a compoennt attribute is spread across multiple lines, it's not valid Html so the Html server can't be expected to reason
+                // If a component attribute is spread across multiple lines, it's not valid Html so the Html server can't be expected to reason
                 // about the contents correctly
                 shouldFilterDiagnostic = markupAttributeValue is MarkupTagHelperAttributeValueSyntax &&
                     markupAttributeValue.GetLinePositionSpan(syntaxTree.Source).SpansMultipleLines();
