@@ -6,5 +6,4 @@ namespace Microsoft.VisualStudio.Razor;
 internal static class WellKnownProjectCapabilities
 {
     public const string DotNetCoreCSharp = "CSharp&CPS";
-    public const string LegacyRazorEditor = "LegacyRazorEditor";
 }
