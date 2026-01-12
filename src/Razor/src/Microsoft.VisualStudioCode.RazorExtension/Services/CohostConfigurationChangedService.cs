@@ -65,13 +65,13 @@ internal sealed class CohostConfigurationChangedService(
         _clientSettingsManager.Update(settings);
     }
 
-    private static ClientAdvancedSettings UpdateSettingsFromJson(ClientAdvancedSettings settigns, JsonArray jsonArray)
+    private static ClientAdvancedSettings UpdateSettingsFromJson(ClientAdvancedSettings settings, JsonArray jsonArray)
     {
-        return settigns with
+        return settings with
         {
-            CodeBlockBraceOnNextLine = GetBooleanOptionValue(jsonArray[0], settigns.CodeBlockBraceOnNextLine),
-            AttributeIndentStyle = GetEnumOptionValue(jsonArray[1], settigns.AttributeIndentStyle),
-            CommitElementsWithSpace = GetBooleanOptionValue(jsonArray[2], settigns.CommitElementsWithSpace),
+            CodeBlockBraceOnNextLine = GetBooleanOptionValue(jsonArray[0], settings.CodeBlockBraceOnNextLine),
+            AttributeIndentStyle = GetEnumOptionValue(jsonArray[1], settings.AttributeIndentStyle),
+            CommitElementsWithSpace = GetBooleanOptionValue(jsonArray[2], settings.CommitElementsWithSpace),
         };
     }
 
