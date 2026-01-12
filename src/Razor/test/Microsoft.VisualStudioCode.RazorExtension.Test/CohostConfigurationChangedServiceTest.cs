@@ -23,7 +23,7 @@ public class CohostConfigurationChangedServiceTest(ITestOutputHelper testOutput)
         Assert.Equal(AttributeIndentStyle.AlignWithFirst, settings.AttributeIndentStyle);
         Assert.True(settings.CommitElementsWithSpace);
 
-        var json = (JsonArray)JsonNode.Parse("""    
+        var json = (JsonArray)JsonNode.Parse("""
             ["true", "indentByOne", "false"]
             """).AssumeNotNull();
 
