@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.Razor.ProjectSystem;
 
 [Order(RazorConstants.AboveManagedProjectSystemOrder)]
 [Export(typeof(IProjectTreeActionHandler))]
-[AppliesTo(WellKnownProjectCapabilities.DotNetCoreCSharp)]
+[AppliesTo(WellKnownProjectCapabilities.DotNetCoreRazor)]
 [method: ImportingConstructor]
 internal sealed partial class RenameProjectTreeHandler(
     [Import(ExportContractNames.Scopes.UnconfiguredProject)] IProjectAsynchronousTasksService projectAsynchronousTasksService,
