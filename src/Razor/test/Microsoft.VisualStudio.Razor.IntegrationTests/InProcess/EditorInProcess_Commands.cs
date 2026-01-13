@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
 using Microsoft.VisualStudio.Shell;
@@ -56,13 +57,7 @@ internal partial class EditorInProcess
     {
         var commandGuid = typeof(VSStd2KCmdID).GUID;
         var commandId = VSStd2KCmdID.RENAME;
-
-        // Rename seems to be extra-succeptable to COM exceptions
-        await Helper.RetryAsync<bool?>(async (cancellationToken) =>
-        {
-            await ExecuteCommandAsync(commandGuid, (uint)commandId, cancellationToken);
-            return true;
-        }, TimeSpan.FromSeconds(1), cancellationToken);
+        await ExecuteCommandAsync(commandGuid, (uint)commandId, cancellationToken);
     }
 
     public async Task CloseCodeFileAsync(string projectName, string relativeFilePath, bool saveFile, CancellationToken cancellationToken)
@@ -88,7 +83,26 @@ internal partial class EditorInProcess
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        var dispatcher = await GetRequiredGlobalServiceAsync<SUIHostCommandDispatcher, IOleCommandTarget>(cancellationToken);
+        var dispatcher = await TestServices.Shell.GetRequiredGlobalServiceAsync<SUIHostCommandDispatcher, IOleCommandTarget>(cancellationToken);
+
+        var cmds = new OLECMD[1];
+        cmds[0].cmdID = commandId;
+        cmds[0].cmdf = 0;
+
+        await Helper.RetryAsync(ct =>
+        {
+            ErrorHandler.ThrowOnFailure(dispatcher.QueryStatus(ref commandGuid, 1, cmds, IntPtr.Zero));
+
+            var status = (OLECMDF)cmds[0].cmdf;
+            if (status.HasFlag(OLECMDF.OLECMDF_ENABLED) &&
+                status.HasFlag(OLECMDF.OLECMDF_SUPPORTED))
+            {
+                return SpecializedTasks.True;
+            }
+
+            return SpecializedTasks.False;
+        }, TimeSpan.FromMilliseconds(100), cancellationToken);
+
         ErrorHandler.ThrowOnFailure(dispatcher.Exec(commandGuid, commandId, (uint)OLECMDEXECOPT.OLECMDEXECOPT_DODEFAULT, IntPtr.Zero, IntPtr.Zero));
     }
 
