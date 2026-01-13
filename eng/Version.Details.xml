@@ -62,6 +62,14 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>635d2b812121ef9fafe0de223b09be64e5a4a291</Sha>
     </Dependency>
+    <Dependency Name="Microsoft.VisualStudio.Extensibility.Testing.Xunit" Version="5.3.0-2.25630.5">
+        <Uri>https://github.com/dotnet/roslyn</Uri>
+        <Sha>635d2b812121ef9fafe0de223b09be64e5a4a291</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator" Version="5.3.0-2.25630.5">
+        <Uri>https://github.com/dotnet/roslyn</Uri>
+        <Sha>635d2b812121ef9fafe0de223b09be64e5a4a291</Sha>
+    </Dependency>
     <Dependency Name="Microsoft.VisualStudio.LanguageServices" Version="5.3.0-2.25630.5">
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>635d2b812121ef9fafe0de223b09be64e5a4a291</Sha>
