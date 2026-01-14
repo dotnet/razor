@@ -85,12 +85,17 @@ internal partial class EditorInProcess
 
         var dispatcher = await TestServices.Shell.GetRequiredGlobalServiceAsync<SUIHostCommandDispatcher, IOleCommandTarget>(cancellationToken);
 
+        // Set up the command structure to query the command's status
         var cmds = new OLECMD[1];
         cmds[0].cmdID = commandId;
         cmds[0].cmdf = 0;
 
+        // Wait for the command to become enabled and supported before executing it.
+        // This prevents COM exceptions that can occur when trying to execute commands
+        // before they're fully initialized (e.g., during language server startup).
         await Helper.RetryAsync(ct =>
         {
+            // Query whether the command is currently available
             ErrorHandler.ThrowOnFailure(dispatcher.QueryStatus(ref commandGuid, 1, cmds, IntPtr.Zero));
 
             var status = (OLECMDF)cmds[0].cmdf;
@@ -103,6 +108,7 @@ internal partial class EditorInProcess
             return SpecializedTasks.False;
         }, TimeSpan.FromMilliseconds(100), cancellationToken);
 
+        // Execute the command now that we've confirmed it's ready
         ErrorHandler.ThrowOnFailure(dispatcher.Exec(commandGuid, commandId, (uint)OLECMDEXECOPT.OLECMDEXECOPT_DODEFAULT, IntPtr.Zero, IntPtr.Zero));
     }
 
