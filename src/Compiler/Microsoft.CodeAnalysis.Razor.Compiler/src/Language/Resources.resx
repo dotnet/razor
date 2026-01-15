@@ -462,7 +462,7 @@
     <value>Tag helper directive assembly name cannot be null or empty.</value>
   </data>
   <data name="TagHelperBlockRewriter_IndexerAttributeNameMustIncludeKey" xml:space="preserve">
-    <value>The tag helper attribute '{0}' in element '{1}' is missing a key. The syntax is '&lt;{1} {0}{{ key }}="value"&gt;'.</value>
+    <value>The tag helper attribute '{0}' in element '{1}' is missing a key. The syntax is '&lt;{1} {0}{{key}}="value"&gt;'.</value>
   </data>
   <data name="TagHelperBlockRewriter_TagHelperAttributeListMustBeWellFormed" xml:space="preserve">
     <value>TagHelper attributes must be well-formed.</value>
