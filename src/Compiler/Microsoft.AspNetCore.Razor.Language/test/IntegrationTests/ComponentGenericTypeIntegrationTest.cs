@@ -117,4 +117,192 @@ namespace Test
             """,
             diagnostic.GetMessage(CultureInfo.CurrentCulture));
     }
+
+    [Fact]
+    public void GenericAndNonGenericComponents_WithSameName_CanCoexist()
+    {
+        // Arrange
+        // Create a non-generic component named SomeComponent
+        var nonGenericComponent = Parse(@"
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+namespace Test
+{
+    public class SomeComponent : ComponentBase
+    {
+        [Parameter]
+        public RenderFragment ChildContent { get; set; }
+
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            builder.OpenElement(0, ""div"");
+            builder.AddContent(1, ChildContent);
+            builder.CloseElement();
+        }
+    }
+}
+");
+
+        // Create a generic component named SomeComponent<TItem>
+        var genericComponent = Parse(@"
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+namespace Test
+{
+    public class SomeComponent<TItem> : ComponentBase
+    {
+        [Parameter]
+        public RenderFragment<TItem> ChildContent { get; set; }
+        
+        [Parameter]
+        public IReadOnlyCollection<TItem> Items { get; set; }
+
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            builder.OpenElement(0, ""div"");
+            foreach (var item in Items)
+            {
+                builder.AddContent(1, ChildContent(item));
+            }
+            builder.CloseElement();
+        }
+    }
+}
+");
+
+        AdditionalSyntaxTrees.Add(nonGenericComponent);
+        AdditionalSyntaxTrees.Add(genericComponent);
+
+        // Act - Use the non-generic component (no type parameters provided)
+        var nonGenericGenerated = CompileToCSharp(@"
+<SomeComponent>
+    <p>Non-generic content</p>
+</SomeComponent>");
+
+        // Assert - No diagnostics should be generated for non-generic usage
+        Assert.Empty(nonGenericGenerated.RazorDiagnostics);
+
+        // Act - Use the generic component (type parameter provided)
+        var genericGenerated = CompileToCSharp(@"
+<SomeComponent TItem=""string"" Items=""@(new[] { ""a"", ""b"", ""c"" })"">
+    <p>Item: @context</p>
+</SomeComponent>");
+
+        // Assert - No diagnostics should be generated for generic usage
+        Assert.Empty(genericGenerated.RazorDiagnostics);
+    }
+
+    [Fact]
+    public void GenericAndNonGenericComponents_WithSameName_NonGenericUsage()
+    {
+        // Arrange
+        var nonGenericComponent = Parse(@"
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        public string Message { get; set; }
+
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            builder.OpenElement(0, ""div"");
+            builder.AddContent(1, Message);
+            builder.CloseElement();
+        }
+    }
+}
+");
+
+        var genericComponent = Parse(@"
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+namespace Test
+{
+    public class MyComponent<TItem> : ComponentBase
+    {
+        [Parameter]
+        public TItem Item { get; set; }
+
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            builder.OpenElement(0, ""div"");
+            builder.AddContent(1, Item);
+            builder.CloseElement();
+        }
+    }
+}
+");
+
+        AdditionalSyntaxTrees.Add(nonGenericComponent);
+        AdditionalSyntaxTrees.Add(genericComponent);
+
+        // Act
+        var generated = CompileToCSharp(@"
+<MyComponent Message=""Hello"" />");
+
+        // Assert - Should use non-generic component without errors
+        Assert.Empty(generated.RazorDiagnostics);
+        Assert.Contains("global::Test.MyComponent", generated.Code);
+        Assert.DoesNotContain("global::Test.MyComponent<", generated.Code);
+    }
+
+    [Fact]
+    public void GenericAndNonGenericComponents_WithSameName_GenericUsage()
+    {
+        // Arrange
+        var nonGenericComponent = Parse(@"
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        public string Message { get; set; }
+
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            builder.OpenElement(0, ""div"");
+            builder.AddContent(1, Message);
+            builder.CloseElement();
+        }
+    }
+}
+");
+
+        var genericComponent = Parse(@"
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+namespace Test
+{
+    public class MyComponent<TItem> : ComponentBase
+    {
+        [Parameter]
+        public TItem Item { get; set; }
+
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            builder.OpenElement(0, ""div"");
+            builder.AddContent(1, Item);
+            builder.CloseElement();
+        }
+    }
+}
+");
+
+        AdditionalSyntaxTrees.Add(nonGenericComponent);
+        AdditionalSyntaxTrees.Add(genericComponent);
+
+        // Act
+        var generated = CompileToCSharp(@"
+<MyComponent TItem=""int"" Item=""42"" />");
+
+        // Assert - Should use generic component without errors
+        Assert.Empty(generated.RazorDiagnostics);
+        Assert.Contains("global::Test.MyComponent<", generated.Code);
+    }
 }

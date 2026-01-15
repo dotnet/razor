@@ -123,6 +123,15 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
             {
                 matched.Add(candidate);
 
+                // Before reporting an ambiguity error, try to disambiguate based on whether
+                // type parameters are provided. This handles the case where both a generic
+                // and non-generic version of a component exist with the same name.
+                var resolvedCandidate = TryDisambiguateByTypeParameters(node, matched);
+                if (resolvedCandidate != null)
+                {
+                    return resolvedCandidate;
+                }
+
                 // Iterate over existing diagnostics to avoid adding multiple diagnostics when we find an ambiguous tag.
                 foreach (var diagnostic in node.Diagnostics)
                 {
@@ -138,6 +147,51 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
             }
 
             return candidate;
+        }
+
+        // Try to disambiguate between multiple components with the same name by checking if
+        // type parameters are provided. If type parameters are provided, prefer the generic
+        // component. If no type parameters are provided, prefer the non-generic component.
+        static TagHelperDescriptor TryDisambiguateByTypeParameters(TagHelperIntermediateNode node, List<TagHelperDescriptor> candidates)
+        {
+            // Check if we have both generic and non-generic candidates
+            var genericCandidates = candidates.Where(c => c.IsGenericTypedComponent()).ToList();
+            var nonGenericCandidates = candidates.Where(c => !c.IsGenericTypedComponent()).ToList();
+
+            // Only disambiguate if we have exactly one generic and one non-generic component
+            if (genericCandidates.Count != 1 || nonGenericCandidates.Count != 1)
+            {
+                return null;
+            }
+
+            // Check if any type parameter attributes are provided in the tag
+            var hasTypeParameterAttributes = HasTypeParameterAttributes(node);
+
+            if (hasTypeParameterAttributes)
+            {
+                // Type parameters are provided, use the generic component
+                return genericCandidates[0];
+            }
+            else
+            {
+                // No type parameters provided, use the non-generic component
+                return nonGenericCandidates[0];
+            }
+        }
+
+        // Check if the node has any type parameter attributes
+        static bool HasTypeParameterAttributes(TagHelperIntermediateNode node)
+        {
+            foreach (var child in node.Children)
+            {
+                if (child is TagHelperPropertyIntermediateNode property &&
+                    property.BoundAttribute.IsTypeParameterProperty())
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 
