@@ -25,7 +25,7 @@ internal class FoldingRangeService(
     private readonly IEnumerable<IRazorFoldingRangeProvider> _foldingRangeProviders = foldingRangeProviders;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<FoldingRangeService>();
 
-    public ImmutableArray<FoldingRange> GetFoldingRanges(RazorCodeDocument codeDocument, ImmutableArray<FoldingRange> csharpRanges, ImmutableArray<FoldingRange> htmlRanges, CancellationToken cancellationToken)
+    public ImmutableArray<FoldingRange> GetFoldingRanges(RazorCodeDocument codeDocument, FoldingRange[] csharpRanges, ImmutableArray<FoldingRange> htmlRanges, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilderPool<FoldingRange>.GetPooledObject(out var mappedRanges);
 
