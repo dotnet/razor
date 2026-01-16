@@ -302,6 +302,62 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
             """,
             lineFoldingOnly: true);
 
+    [Fact]
+    public Task CSharpExpressionBodiedMethods()
+   => VerifyFoldingRangesAsync("""
+            <p>hello!</p>
+
+            @code {[|
+                private void M(){|implementation:
+                {
+                }|}
+
+                private Func<object, int> M1() => __builder => {[|
+                    var x = 1;
+                    var y = 2;
+                    var z = x + y;
+                    x = y + z;
+                    y = x + z;
+                    return 42;
+                };|]
+
+                private Func<object, int> M2() => __builder =>[|
+                {
+                    var x = 1;
+                    var y = 2;
+                    var z = x + y;
+                    x = y + z;
+                    y = x + z;
+                    return 42;
+                };|]
+
+                private Func<object, int> M2() =>{|implementation:
+                __builder =>[|
+                {
+                    var x = 1;
+                    var y = 2;
+                    var z = x + y;
+                    x = y + z;
+                    y = x + z;
+                    return 42;
+                };|}|]
+
+
+                private RenderFragment N3() => __builder =>[|
+                {
+                    var test = "Hello";
+                };|]
+
+                private RenderFragment N4() => __builder =>[|
+                {
+                    var test = "Hello";
+                    <div>@test</div>
+                };|]
+            }|]
+
+            <p>hello!</p>
+            """);
+
     private async Task VerifyFoldingRangesAsync(string input, RazorFileKind? fileKind = null, bool miscellaneousFile = false, string? razorFilePath = null, bool lineFoldingOnly = false)
     {
         UpdateClientLSPInitializationOptions(c =>
