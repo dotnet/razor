@@ -172,20 +172,24 @@ internal sealed class ComponentMarkupEncodingPass(RazorLanguageVersion version) 
 
             foreach (var child in node.Children)
             {
-                if (child is HtmlIntermediateToken token && !token.Content.IsNullOrEmpty())
+                if (child is not HtmlIntermediateToken token || token.Content.IsNullOrEmpty())
                 {
-                    // Check if there are any ampersands (potential entities)
-                    if (token.Content.IndexOf('&') >= 0)
+                    // We only care about Html tokens.
+                    continue;
+                }
+
+                // Check if there are any ampersands (potential entities)
+                if (token.Content.IndexOf('&') >= 0)
+                {
+                    // Try to decode HTML entities
+                    if (TryDecodeHtmlEntities(token.Content.AsMemory(), out var decoded))
                     {
-                        // Try to decode HTML entities
-                        if (TryDecodeHtmlEntities(token.Content.AsMemory(), out var decoded))
-                        {
-                            token.UpdateContent(decoded);
-                        }
-                        // If decoding fails (invalid/unknown entity), keep the original content.
-                        // This differs from VisitHtml which sets HasEncodedContent=true on failure,
-                        // because attributes don't have that flag and are always output as literals.
+                        token.UpdateContent(decoded);
                     }
+                    // If decoding fails (invalid/unknown entity), keep the original content.
+                    // This differs from VisitHtml which sets node.HasEncodedContent=true on failure.
+                    // HtmlAttributeValueIntermediateNode doesn't have a HasEncodedContent property
+                    // because attributes are always output as string literals in the generated code.
                 }
             }
 
