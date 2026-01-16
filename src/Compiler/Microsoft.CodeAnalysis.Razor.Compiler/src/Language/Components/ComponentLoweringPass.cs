@@ -56,13 +56,8 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
             {
                 if (tagHelper.Kind == TagHelperKind.Component)
                 {
-                    // Only allow a single component tag helper per element. If there are multiple, we'll just consider
-                    // the first one and ignore the others.
-                    if (++count > 1)
-                    {
-                        node.AddDiagnostic(ComponentDiagnosticFactory.Create_MultipleComponents(node.Source, node.TagName, node.TagHelpers));
-                        break;
-                    }
+                    // Count component tag helpers
+                    count++;
                 }
             }
 
