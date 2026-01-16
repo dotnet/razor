@@ -148,13 +148,19 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
         // Try to disambiguate between multiple components with the same name by checking if
         // type parameters are provided. If type parameters are provided, prefer the generic
         // component. If no type parameters are provided, prefer the non-generic component.
+        //
+        // Note: We only handle the specific case of exactly one generic and one non-generic
+        // component. Other scenarios (like multiple generic components with different type
+        // parameter counts, or multiple non-generic components) are not disambiguated here
+        // and will result in the standard "multiple components" error.
         static TagHelperDescriptor TryDisambiguateByTypeParameters(TagHelperIntermediateNode node, List<TagHelperDescriptor> candidates)
         {
             // Check if we have both generic and non-generic candidates
             var genericCandidates = candidates.Where(c => c.IsGenericTypedComponent()).ToList();
             var nonGenericCandidates = candidates.Where(c => !c.IsGenericTypedComponent()).ToList();
 
-            // Only disambiguate if we have exactly one generic and one non-generic component
+            // Only disambiguate if we have exactly one generic and one non-generic component.
+            // This is the common scenario where a library author provides both versions.
             if (genericCandidates.Count != 1 || nonGenericCandidates.Count != 1)
             {
                 return null;
@@ -180,7 +186,9 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
         // Check if the node has any type parameter attributes for the given component
         static bool HasTypeParameterAttributes(TagHelperIntermediateNode node, TagHelperDescriptor component)
         {
-            // Get the type parameter names for the generic component
+            // Get the type parameter names for the generic component.
+            // Note: We create a new hash set each time for simplicity. This method is only called
+            // once per ambiguous tag during compilation, so the performance impact is negligible.
             using var typeParameterNames = new PooledHashSet<string>(StringComparer.Ordinal);
             foreach (var typeParam in component.GetTypeParameters())
             {
