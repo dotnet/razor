@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Globalization;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
@@ -216,5 +217,45 @@ namespace Test
         Assert.Equal(
             "The start tag name 'MyComponent' does not match the end tag name 'mycomponent'. Components must have matching start and end tag names (case-sensitive).",
             diagnostic.GetMessage(CultureInfo.CurrentCulture));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/aspnetcore/issues/23228")]
+    public void AttributeBinding_ExtraClosingParenthesis_ReportsError()
+    {
+        // Arrange/Act
+        // This reproduces https://github.com/dotnet/aspnetcore/issues/23228
+        // An extra closing parenthesis in an attribute binding should produce a diagnostic error
+        var generated = CompileToCSharp(@"
+@page ""/""
+
+@foreach (var item in new[] { Architecture.Windows, Architecture.MacOSX, Architecture.Linux })
+{
+    <label class=""col-auto"">
+        <input name=""arch"" type=""radio""
+               value=""@item""
+               checked=""@IsActive(item))""
+               @onchange=""@( _ => ChangeArchitecture(item))"" />
+        @item.ToString()
+    </label>
+}
+<h1>@current</h1>
+@code {
+    enum Architecture
+    {
+        None,
+        Windows,
+        MacOSX,
+        Linux
+    }
+    Architecture current = Architecture.None;
+    bool IsActive(Architecture arch) => current == arch;
+    void ChangeArchitecture(Architecture arch) => current = arch;
+}");
+
+        // Assert
+        // The extra closing parenthesis should be reported as an error
+        Assert.NotEmpty(generated.RazorDiagnostics);
+        var diagnostic = Assert.Single(generated.RazorDiagnostics);
+        Assert.NotNull(diagnostic.GetMessage(CultureInfo.CurrentCulture));
     }
 }
