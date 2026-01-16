@@ -117,7 +117,8 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
 
             if (matched != null)
             {
-                matched.Add(candidate);
+                // Insert candidate at the beginning to maintain the original order
+                matched.Insert(0, candidate);
 
                 // Before reporting an ambiguity error, try to disambiguate based on whether
                 // type parameters are provided. This handles the case where both a generic
@@ -137,7 +138,7 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
                     }
                 }
 
-                node.AddDiagnostic(ComponentDiagnosticFactory.Create_MultipleComponents(node.Source, candidate.Name, matched));
+                node.AddDiagnostic(ComponentDiagnosticFactory.Create_MultipleComponents(node.Source, node.TagName, matched));
 
                 return null;
             }
