@@ -45,6 +45,18 @@ public class ComponentDirectiveIntegrationTest : RazorIntegrationTestBase
     }
 
     [Fact]
+    public void SupportsLayoutNullDeclaration()
+    {
+        // Arrange/Act
+        var component = CompileToComponent(
+            "@layout null\n" +
+            "Hello");
+
+        // Assert - when layout is set to null, no layout attribute should be generated
+        Assert.Null(component.GetAttributes().FirstOrDefault(a => a.AttributeClass.Name == "LayoutAttribute"));
+    }
+
+    [Fact]
     public void SupportsImplementsDeclarations()
     {
         // Arrange/Act

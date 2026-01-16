@@ -33,6 +33,12 @@ internal sealed class ComponentLayoutDirectivePass : IntermediateNodePassBase, I
             return;
         }
 
+        // If the layout is explicitly set to null, don't generate a layout attribute
+        if (string.Equals(token.Content, "null", System.StringComparison.Ordinal))
+        {
+            return;
+        }
+
         var attributeNode = new CSharpCodeIntermediateNode();
         attributeNode.Children.AddRange([
             IntermediateNodeFactory.CSharpToken($"[global::{ComponentsApi.LayoutAttribute.FullTypeName}(typeof("),
