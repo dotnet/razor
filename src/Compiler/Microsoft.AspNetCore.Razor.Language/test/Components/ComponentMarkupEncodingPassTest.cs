@@ -220,12 +220,20 @@ The time is ");
                 break;
             }
 
-            codeDocument = phase.Execute(codeDocument);
+            phase.Execute(codeDocument);
         }
 
         var document = codeDocument.GetRequiredDocumentNode();
         Engine.GetFeatures<ComponentDocumentClassifierPass>().Single().Execute(codeDocument, document);
         return document;
+    }
+
+    private DocumentIntermediateNode LowerWithLowering(RazorCodeDocument codeDocument)
+    {
+        // Process the document through the full engine to get the intermediate tree with lowering
+        ProjectEngine.Engine.Process(codeDocument);
+        
+        return codeDocument.GetRequiredDocumentNode();
     }
 
     private static string GetHtmlContent(HtmlContentIntermediateNode node)
@@ -239,5 +247,103 @@ The time is ");
         }
 
         return builder.ToString();
+    }
+
+    [Fact]
+    public void Execute_StaticAttributeValue_DecodesHtmlEntities()
+    {
+        // Arrange
+        var document = CreateDocument(@"<h1 title=""This is nice&trade;"">A</h1>");
+
+        var documentNode = LowerWithLowering(document);
+
+        // Act
+        Pass.Execute(document, documentNode);
+
+        // Assert
+        var attributeValueNode = documentNode.FindDescendantNodes<HtmlAttributeValueIntermediateNode>().Single();
+        var token = attributeValueNode.Children.OfType<HtmlIntermediateToken>().Single();
+        
+        // The entity &trade; should be decoded to the trademark symbol ™
+        Assert.Equal("This is nice™", token.Content);
+    }
+
+    [Fact]
+    public void Execute_MixedAttributeValue_DecodesHtmlEntitiesInStaticPart()
+    {
+        // Arrange
+        var document = CreateDocument(@"<h1 title=""This is nice&trade; @DateTime.Now"">B</h1>");
+
+        var documentNode = LowerWithLowering(document);
+
+        // Act
+        Pass.Execute(document, documentNode);
+
+        // Assert
+        var attributeValueNodes = documentNode.FindDescendantNodes<HtmlAttributeValueIntermediateNode>().ToArray();
+        
+        // Find the HTML token (static part before the C# expression)
+        var htmlToken = attributeValueNodes
+            .SelectMany(n => n.Children.OfType<HtmlIntermediateToken>())
+            .First();
+        
+        // The entity &trade; should be decoded to the trademark symbol ™ in the static part
+        Assert.Contains("™", htmlToken.Content);
+    }
+
+    [Fact]
+    public void Execute_AttributeValue_MultipleEntities_DecodesAll()
+    {
+        // Arrange
+        var document = CreateDocument(@"<div title=""&lt;foo&gt;&amp;&trade;"">Test</div>");
+
+        var documentNode = LowerWithLowering(document);
+
+        // Act
+        Pass.Execute(document, documentNode);
+
+        // Assert
+        var attributeValueNode = documentNode.FindDescendantNodes<HtmlAttributeValueIntermediateNode>().Single();
+        var token = attributeValueNode.Children.OfType<HtmlIntermediateToken>().Single();
+        
+        // The entities should be decoded: &lt; -> <, &gt; -> >, &amp; -> &, &trade; -> ™
+        Assert.Equal("<foo>&™", token.Content);
+    }
+
+    [Fact]
+    public void Execute_AttributeValue_NoEntities_RemainsUnchanged()
+    {
+        // Arrange
+        var document = CreateDocument(@"<div title=""Simple text without entities"">Test</div>");
+
+        var documentNode = LowerWithLowering(document);
+
+        // Act
+        Pass.Execute(document, documentNode);
+
+        // Assert
+        var attributeValueNode = documentNode.FindDescendantNodes<HtmlAttributeValueIntermediateNode>().Single();
+        var token = attributeValueNode.Children.OfType<HtmlIntermediateToken>().Single();
+        
+        Assert.Equal("Simple text without entities", token.Content);
+    }
+
+    [Fact]
+    public void Execute_AttributeValue_InvalidEntity_RemainsUnchanged()
+    {
+        // Arrange
+        var document = CreateDocument(@"<div title=""This & that &invalid; text"">Test</div>");
+
+        var documentNode = LowerWithLowering(document);
+
+        // Act
+        Pass.Execute(document, documentNode);
+
+        // Assert
+        var attributeValueNode = documentNode.FindDescendantNodes<HtmlAttributeValueIntermediateNode>().Single();
+        var token = attributeValueNode.Children.OfType<HtmlIntermediateToken>().Single();
+        
+        // Invalid entities should remain as-is
+        Assert.Equal("This & that &invalid; text", token.Content);
     }
 }

@@ -156,6 +156,36 @@ internal sealed class ComponentMarkupEncodingPass(RazorLanguageVersion version) 
             }
         }
 
+        public override void VisitHtmlAttributeValue(HtmlAttributeValueIntermediateNode node)
+        {
+            // Decode HTML entities in attribute values to ensure consistency between
+            // static attributes (e.g., <h1 title="Nice&trade;">) and
+            // mixed attributes (e.g., <h1 title="Nice&trade; @DateTime.Now">).
+            //
+            // For static string literals, we decode entities at compile time.
+            // This matches the behavior when the HTML parser processes pure static markup.
+
+            foreach (var child in node.Children)
+            {
+                if (child is HtmlIntermediateToken token && !token.Content.IsNullOrEmpty())
+                {
+                    // Check if there are any ampersands (potential entities)
+                    if (token.Content.IndexOf('&') >= 0)
+                    {
+                        // Try to decode HTML entities
+                        if (TryDecodeHtmlEntities(token.Content.AsMemory(), out var decoded))
+                        {
+                            token.UpdateContent(decoded);
+                        }
+                        // If decoding fails (invalid entity), keep the original content
+                    }
+                }
+            }
+
+            // Continue walking the tree
+            base.VisitHtmlAttributeValue(node);
+        }
+
         private static bool TryDecodeHtmlEntities(ReadOnlyMemory<char> content, [NotNullWhen(true)] out string? decoded)
         {
             decoded = null;
