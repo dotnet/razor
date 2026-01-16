@@ -164,6 +164,11 @@ internal sealed class ComponentMarkupEncodingPass(RazorLanguageVersion version) 
             //
             // For static string literals, we decode entities at compile time.
             // This matches the behavior when the HTML parser processes pure static markup.
+            //
+            // Note: We don't skip encoding based on _avoidEncodingContent like VisitHtml does,
+            // because attribute values don't use the HasEncodedContent flag and are always 
+            // written as string literals in the generated code. The entities should always be
+            // decoded at compile time for consistency.
 
             foreach (var child in node.Children)
             {
@@ -177,7 +182,9 @@ internal sealed class ComponentMarkupEncodingPass(RazorLanguageVersion version) 
                         {
                             token.UpdateContent(decoded);
                         }
-                        // If decoding fails (invalid entity), keep the original content
+                        // If decoding fails (invalid/unknown entity), keep the original content.
+                        // This differs from VisitHtml which sets HasEncodedContent=true on failure,
+                        // because attributes don't have that flag and are always output as literals.
                     }
                 }
             }
