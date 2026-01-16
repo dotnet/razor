@@ -254,6 +254,9 @@ namespace Test
 
         // Assert
         // The extra closing parenthesis should be reported as an error
+        // Currently, the compiler treats the extra ')' as literal text and generates:
+        //   __builder.AddAttribute(6, "checked", (IsActive(item)) + ")");
+        // This is valid C# but incorrect Blazor behavior
         Assert.NotEmpty(generated.RazorDiagnostics);
         var diagnostic = Assert.Single(generated.RazorDiagnostics);
         Assert.NotNull(diagnostic.GetMessage(CultureInfo.CurrentCulture));
