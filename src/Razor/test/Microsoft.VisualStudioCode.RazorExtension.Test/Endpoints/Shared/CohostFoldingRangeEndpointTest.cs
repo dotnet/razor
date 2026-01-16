@@ -312,16 +312,16 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
                 {
                 }|}
 
-                private Func<object, int> M1() => __builder => {[|
+                private Func<object, int> M1() => __builder => {{|implementation:
                     var x = 1;
                     var y = 2;
                     var z = x + y;
                     x = y + z;
                     y = x + z;
                     return 42;
-                };|]
+                };|}
 
-                private Func<object, int> M2() => __builder =>[|
+                private Func<object, int> M2() => __builder =>{|implementation:
                 {
                     var x = 1;
                     var y = 2;
@@ -329,7 +329,7 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
                     x = y + z;
                     y = x + z;
                     return 42;
-                };|]
+                };|}
 
                 private Func<object, int> M2() =>{|implementation:
                 __builder =>[|
@@ -343,16 +343,16 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
                 };|}|]
 
 
-                private RenderFragment N3() => __builder =>[|
+                private RenderFragment N3() => __builder =>{|implementation:
                 {
                     var test = "Hello";
-                };|]
+                };|}
 
-                private RenderFragment N4() => __builder =>[|
+                private RenderFragment N4() => __builder =>{|implementation:
                 {
                     var test = "Hello";
                     <div>@test</div>
-                };|]
+                };|}
             }|]
 
             <p>hello!</p>

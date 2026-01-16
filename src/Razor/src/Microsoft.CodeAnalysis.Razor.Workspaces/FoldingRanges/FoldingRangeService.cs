@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.FoldingRanges;
 
-internal class FoldingRangeService(
+internal partial class FoldingRangeService(
     IDocumentMappingService documentMappingService,
     IEnumerable<IRazorFoldingRangeProvider> foldingRangeProviders,
     ILoggerFactory loggerFactory)
@@ -70,7 +70,7 @@ internal class FoldingRangeService(
         // range available, since only one button can be shown to collapse per line
         var reducedRanges = validRanges
             .GroupBy(r => r.StartLine)
-            .Select(ranges => ranges.OrderByDescending(r => r.EndLine).First());
+            .Select(ranges => ranges.OrderBy(r => r, WidestRangeComparer.Instance).First());
 
         // Fix the starting range so the "..." is shown at the end
         return reducedRanges.SelectAsArray(r => FixFoldingRangeStart(r, codeDocument));
