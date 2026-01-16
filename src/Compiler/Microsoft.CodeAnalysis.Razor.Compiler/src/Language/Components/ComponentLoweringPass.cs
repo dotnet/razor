@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
@@ -164,13 +165,15 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
                 return null;
             }
 
+            var genericComponent = genericCandidates[0];
+
             // Check if any type parameter attributes are provided in the tag
-            var hasTypeParameterAttributes = HasTypeParameterAttributes(node);
+            var hasTypeParameterAttributes = HasTypeParameterAttributes(node, genericComponent);
 
             if (hasTypeParameterAttributes)
             {
                 // Type parameters are provided, use the generic component
-                return genericCandidates[0];
+                return genericComponent;
             }
             else
             {
@@ -179,15 +182,26 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
             }
         }
 
-        // Check if the node has any type parameter attributes
-        static bool HasTypeParameterAttributes(TagHelperIntermediateNode node)
+        // Check if the node has any type parameter attributes for the given component
+        static bool HasTypeParameterAttributes(TagHelperIntermediateNode node, TagHelperDescriptor component)
         {
+            // Get the type parameter names for the generic component
+            using var typeParameterNames = new PooledHashSet<string>(StringComparer.Ordinal);
+            foreach (var typeParam in component.GetTypeParameters())
+            {
+                typeParameterNames.Add(typeParam.Name);
+            }
+
+            // Check if any of the node's children are TagHelperPropertyIntermediateNode instances
+            // that match the type parameter names
             foreach (var child in node.Children)
             {
-                if (child is TagHelperPropertyIntermediateNode property &&
-                    property.BoundAttribute.IsTypeParameterProperty())
+                if (child is TagHelperPropertyIntermediateNode property)
                 {
-                    return true;
+                    if (typeParameterNames.Contains(property.AttributeName))
+                    {
+                        return true;
+                    }
                 }
             }
 

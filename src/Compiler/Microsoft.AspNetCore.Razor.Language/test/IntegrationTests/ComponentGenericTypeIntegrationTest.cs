@@ -176,6 +176,7 @@ namespace Test
 
         // Act - Use the non-generic component (no type parameters provided)
         var nonGenericGenerated = CompileToCSharp(@"
+@using Test
 <SomeComponent>
     <p>Non-generic content</p>
 </SomeComponent>");
@@ -185,6 +186,7 @@ namespace Test
 
         // Act - Use the generic component (type parameter provided)
         var genericGenerated = CompileToCSharp(@"
+@using Test
 <SomeComponent TItem=""string"" Items=""@(new[] { ""a"", ""b"", ""c"" })"">
     <p>Item: @context</p>
 </SomeComponent>");
@@ -242,6 +244,7 @@ namespace Test
 
         // Act
         var generated = CompileToCSharp(@"
+@using Test
 <MyComponent Message=""Hello"" />");
 
         // Assert - Should use non-generic component without errors
@@ -299,6 +302,7 @@ namespace Test
 
         // Act
         var generated = CompileToCSharp(@"
+@using Test
 <MyComponent TItem=""int"" Item=""42"" />");
 
         // Assert - Should use generic component without errors
