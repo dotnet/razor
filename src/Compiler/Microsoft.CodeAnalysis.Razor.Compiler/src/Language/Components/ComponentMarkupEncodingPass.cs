@@ -156,6 +156,47 @@ internal sealed class ComponentMarkupEncodingPass(RazorLanguageVersion version) 
             }
         }
 
+        public override void VisitHtmlAttributeValue(HtmlAttributeValueIntermediateNode node)
+        {
+            // Decode HTML entities in attribute values to ensure consistency between
+            // static attributes (e.g., <h1 title="Nice&trade;">) and
+            // mixed attributes (e.g., <h1 title="Nice&trade; @DateTime.Now">).
+            //
+            // For static string literals, we decode entities at compile time.
+            // This matches the behavior when the HTML parser processes pure static markup.
+            //
+            // Note: We don't skip encoding based on _avoidEncodingContent like VisitHtml does,
+            // because attribute values don't use the HasEncodedContent flag and are always 
+            // written as string literals in the generated code. The entities should always be
+            // decoded at compile time for consistency.
+
+            foreach (var child in node.Children)
+            {
+                if (child is not HtmlIntermediateToken token || token.Content.IsNullOrEmpty())
+                {
+                    // We only care about Html tokens.
+                    continue;
+                }
+
+                // Check if there are any ampersands (potential entities)
+                if (token.Content.IndexOf('&') >= 0)
+                {
+                    // Try to decode HTML entities
+                    if (TryDecodeHtmlEntities(token.Content.AsMemory(), out var decoded))
+                    {
+                        token.UpdateContent(decoded);
+                    }
+                    // If decoding fails (invalid/unknown entity), keep the original content.
+                    // This differs from VisitHtml which sets node.HasEncodedContent=true on failure.
+                    // HtmlAttributeValueIntermediateNode doesn't have a HasEncodedContent property
+                    // because attributes are always output as string literals in the generated code.
+                }
+            }
+
+            // Continue walking the tree
+            base.VisitHtmlAttributeValue(node);
+        }
+
         private static bool TryDecodeHtmlEntities(ReadOnlyMemory<char> content, [NotNullWhen(true)] out string? decoded)
         {
             decoded = null;
