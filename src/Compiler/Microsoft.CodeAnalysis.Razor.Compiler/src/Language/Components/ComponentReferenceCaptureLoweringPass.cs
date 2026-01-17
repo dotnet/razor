@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
@@ -31,17 +34,23 @@ internal sealed class ComponentReferenceCaptureLoweringPass : ComponentIntermedi
         }
 
         var references = documentNode.FindDescendantReferences<TagHelperDirectiveAttributeIntermediateNode>();
+        
+        // Track field names to avoid generating duplicates
+        var generatedFields = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var reference in references)
         {
             if (reference.Node.TagHelper.Kind == TagHelperKind.Ref)
             {
-                RewriteUsage(reference);
+                RewriteUsage(classNode, reference, generatedFields);
             }
         }
     }
 
-    private static void RewriteUsage(IntermediateNodeReference<TagHelperDirectiveAttributeIntermediateNode> reference)
+    private static void RewriteUsage(
+        ClassDeclarationIntermediateNode classNode,
+        IntermediateNodeReference<TagHelperDirectiveAttributeIntermediateNode> reference,
+        HashSet<string> generatedFields)
     {
         var (node, parent) = reference;
 
@@ -59,7 +68,63 @@ internal sealed class ComponentReferenceCaptureLoweringPass : ComponentIntermedi
             ? new ReferenceCaptureIntermediateNode(identifierToken, componentTagHelper.TypeName)
             : new ReferenceCaptureIntermediateNode(identifierToken);
 
+        // Generate field declaration if it doesn't already exist
+        var fieldName = identifierToken.Content;
+        if (!string.IsNullOrWhiteSpace(fieldName) && generatedFields.Add(fieldName))
+        {
+            // Check if a field/property with this name already exists in the class
+            if (!FieldOrPropertyExists(classNode, fieldName))
+            {
+                AddFieldDeclaration(classNode, fieldName, referenceCapture.FieldTypeName);
+            }
+        }
+
         reference.Replace(referenceCapture);
+    }
+
+    private static bool FieldOrPropertyExists(ClassDeclarationIntermediateNode classNode, string name)
+    {
+        foreach (var child in classNode.Children)
+        {
+            if (child is FieldDeclarationIntermediateNode field && field.Name == name)
+            {
+                return true;
+            }
+            if (child is PropertyDeclarationIntermediateNode property && property.Name == name)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void AddFieldDeclaration(ClassDeclarationIntermediateNode classNode, string fieldName, string fieldType)
+    {
+        // Find the insertion point: after any existing fields and design-time setup code
+        var children = classNode.Children;
+        var index = 0;
+
+        // Skip past design-time directives and initial CSharpCode blocks (like #pragma warning)
+        while (index < children.Count && 
+               (children[index] is DesignTimeDirectiveIntermediateNode ||
+                (children[index] is CSharpCodeIntermediateNode code && 
+                 code.Children.OfType<IntermediateToken>().Any(t => t.Content.Contains("#pragma") || t.Content.Contains("__o")))))
+        {
+            index++;
+        }
+
+        // Skip past any existing field declarations to maintain ordering
+        while (index < children.Count && children[index] is FieldDeclarationIntermediateNode)
+        {
+            index++;
+        }
+
+        children.Insert(index, new FieldDeclarationIntermediateNode()
+        {
+            Modifiers = CommonModifiers.Private,
+            Name = fieldName,
+            Type = fieldType,
+        });
     }
 
     private static IntermediateToken? DetermineIdentifierToken(TagHelperDirectiveAttributeIntermediateNode attributeNode)
