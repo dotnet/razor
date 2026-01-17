@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
@@ -55,13 +56,8 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
             {
                 if (tagHelper.Kind == TagHelperKind.Component)
                 {
-                    // Only allow a single component tag helper per element. If there are multiple, we'll just consider
-                    // the first one and ignore the others.
-                    if (++count > 1)
-                    {
-                        node.AddDiagnostic(ComponentDiagnosticFactory.Create_MultipleComponents(node.Source, node.TagName, node.TagHelpers));
-                        break;
-                    }
+                    // Count component tag helpers
+                    count++;
                 }
             }
 
@@ -121,7 +117,17 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
 
             if (matched != null)
             {
-                matched.Add(candidate);
+                // Insert candidate at the beginning to maintain the original order
+                matched.Insert(0, candidate);
+
+                // Before reporting an ambiguity error, try to disambiguate based on whether
+                // type parameters are provided. This handles the case where both a generic
+                // and non-generic version of a component exist with the same name.
+                var resolvedCandidate = TryDisambiguateByTypeParameters(node, matched);
+                if (resolvedCandidate != null)
+                {
+                    return resolvedCandidate;
+                }
 
                 // Iterate over existing diagnostics to avoid adding multiple diagnostics when we find an ambiguous tag.
                 foreach (var diagnostic in node.Diagnostics)
@@ -132,12 +138,78 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
                     }
                 }
 
-                node.AddDiagnostic(ComponentDiagnosticFactory.Create_MultipleComponents(node.Source, candidate.Name, matched));
+                node.AddDiagnostic(ComponentDiagnosticFactory.Create_MultipleComponents(node.Source, node.TagName, matched));
 
                 return null;
             }
 
             return candidate;
+        }
+
+        // Try to disambiguate between multiple components with the same name by checking if
+        // type parameters are provided. If type parameters are provided, prefer the generic
+        // component. If no type parameters are provided, prefer the non-generic component.
+        //
+        // Note: We only handle the specific case of exactly one generic and one non-generic
+        // component. Other scenarios (like multiple generic components with different type
+        // parameter counts, or multiple non-generic components) are not disambiguated here
+        // and will result in the standard "multiple components" error.
+        static TagHelperDescriptor TryDisambiguateByTypeParameters(TagHelperIntermediateNode node, List<TagHelperDescriptor> candidates)
+        {
+            // Check if we have both generic and non-generic candidates
+            var genericCandidates = candidates.Where(c => c.IsGenericTypedComponent()).ToList();
+            var nonGenericCandidates = candidates.Where(c => !c.IsGenericTypedComponent()).ToList();
+
+            // Only disambiguate if we have exactly one generic and one non-generic component.
+            // This is the common scenario where a library author provides both versions.
+            if (genericCandidates.Count != 1 || nonGenericCandidates.Count != 1)
+            {
+                return null;
+            }
+
+            var genericComponent = genericCandidates[0];
+
+            // Check if any type parameter attributes are provided in the tag
+            var hasTypeParameterAttributes = HasTypeParameterAttributes(node, genericComponent);
+
+            if (hasTypeParameterAttributes)
+            {
+                // Type parameters are provided, use the generic component
+                return genericComponent;
+            }
+            else
+            {
+                // No type parameters provided, use the non-generic component
+                return nonGenericCandidates[0];
+            }
+        }
+
+        // Check if the node has any type parameter attributes for the given component
+        static bool HasTypeParameterAttributes(TagHelperIntermediateNode node, TagHelperDescriptor component)
+        {
+            // Get the type parameter names for the generic component.
+            // Note: We create a new hash set each time for simplicity. This method is only called
+            // once per ambiguous tag during compilation, so the performance impact is negligible.
+            using var typeParameterNames = new PooledHashSet<string>(StringComparer.Ordinal);
+            foreach (var typeParam in component.GetTypeParameters())
+            {
+                typeParameterNames.Add(typeParam.Name);
+            }
+
+            // Check if any of the node's children are TagHelperPropertyIntermediateNode instances
+            // that match the type parameter names
+            foreach (var child in node.Children)
+            {
+                if (child is TagHelperPropertyIntermediateNode property)
+                {
+                    if (typeParameterNames.Contains(property.AttributeName))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 
