@@ -727,8 +727,8 @@ internal partial class CSharpFormattingPass
             {
                 if (RazorSyntaxFacts.IsAttributeName(node, out var startTag))
                 {
-                    // If we're just indenting attributes by one level, then we don't need to do anything special here.
-                    var htmlIndentLevel = 1;
+                    // If we're just indenting attributes by one or two levels, then we don't need to do anything special here.
+                    var htmlIndentLevel = _attributeIndentStyle == AttributeIndentStyle.IndentByTwo ? 2 : 1;
                     var additionalIndentation = "";
 
                     // Otherwise, attributes can be configured to align with the first attribute in their tag.
