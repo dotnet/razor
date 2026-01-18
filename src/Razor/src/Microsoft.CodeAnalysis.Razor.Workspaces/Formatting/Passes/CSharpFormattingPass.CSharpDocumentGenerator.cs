@@ -727,12 +727,22 @@ internal partial class CSharpFormattingPass
             {
                 if (RazorSyntaxFacts.IsAttributeName(node, out var startTag))
                 {
-                    var htmlIndentLevel = 1;
+                    int htmlIndentLevel;
                     var additionalIndentation = "";
 
-                    // Attributes can be configured to align with the first attribute in their tag.
-                    if (_attributeIndentStyle == AttributeIndentStyle.AlignWithFirst)
+                    if (_attributeIndentStyle == AttributeIndentStyle.IndentByOne)
                     {
+                        // Indent attributes by one level to differentiate them from child elements.
+                        htmlIndentLevel = 1;
+                    }
+                    else if (_attributeIndentStyle == AttributeIndentStyle.IndentByTwo)
+                    {
+                        // Indent attributes by two levels to differentiate them from child elements.
+                        htmlIndentLevel = 2;
+                    }
+                    else if (_attributeIndentStyle == AttributeIndentStyle.AlignWithFirst)
+                    {
+                        // Align attributes with the first attribute in their tag.
                         var firstAttribute = startTag.Attributes[0];
                         var nameSpan = RazorSyntaxFacts.GetFullAttributeNameSpan(firstAttribute);
 
@@ -742,12 +752,10 @@ internal partial class CSharpFormattingPass
                         var lineStart = _sourceText.Lines[GetLineNumber(nameSpan)].GetFirstNonWhitespacePosition().GetValueOrDefault();
                         htmlIndentLevel = FormattingUtilities.GetIndentationLevel(nameSpan.Start - lineStart, _tabSize, out additionalIndentation);
                     }
-                    else if (_attributeIndentStyle == AttributeIndentStyle.IndentByTwo)
+                    else
                     {
-                        // Indent attributes by two levels to differentiate them from child elements.
-                        htmlIndentLevel = 2;
+                        throw new InvalidOperationException($"Unknown attribute indentation style '{_attributeIndentStyle}'.");
                     }
-                    // else: IndentByOne uses the default htmlIndentLevel = 1
 
                     if (ElementContentsShouldNotBeIndented(startTag) &&
                         GetLineNumber(node) == GetLineNumber(startTag.CloseAngle))
