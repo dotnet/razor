@@ -727,11 +727,10 @@ internal partial class CSharpFormattingPass
             {
                 if (RazorSyntaxFacts.IsAttributeName(node, out var startTag))
                 {
-                    // If we're just indenting attributes by one or two levels, then we don't need to do anything special here.
-                    var htmlIndentLevel = _attributeIndentStyle == AttributeIndentStyle.IndentByTwo ? 2 : 1;
+                    var htmlIndentLevel = 1;
                     var additionalIndentation = "";
 
-                    // Otherwise, attributes can be configured to align with the first attribute in their tag.
+                    // Attributes can be configured to align with the first attribute in their tag.
                     if (_attributeIndentStyle == AttributeIndentStyle.AlignWithFirst)
                     {
                         var firstAttribute = startTag.Attributes[0];
@@ -743,6 +742,12 @@ internal partial class CSharpFormattingPass
                         var lineStart = _sourceText.Lines[GetLineNumber(nameSpan)].GetFirstNonWhitespacePosition().GetValueOrDefault();
                         htmlIndentLevel = FormattingUtilities.GetIndentationLevel(nameSpan.Start - lineStart, _tabSize, out additionalIndentation);
                     }
+                    else if (_attributeIndentStyle == AttributeIndentStyle.IndentByTwo)
+                    {
+                        // Indent attributes by two levels to differentiate them from child elements.
+                        htmlIndentLevel = 2;
+                    }
+                    // else: IndentByOne uses the default htmlIndentLevel = 1
 
                     if (ElementContentsShouldNotBeIndented(startTag) &&
                         GetLineNumber(node) == GetLineNumber(startTag.CloseAngle))
