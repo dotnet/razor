@@ -63,17 +63,50 @@ internal partial class FoldingRangeService(
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        // Don't allow ranges to be reported if they aren't spanning at least one line
-        var validRanges = mappedRanges.Where(r => r.StartLine < r.EndLine);
+        // Reduce ranges to only multi-line ranges, and preferring the largest range if there is more than
+        // one on a single line.
+        using var _1 = DictionaryPool<int, FoldingRange>.GetPooledObject(out var reducedRanges);
+        foreach (var mappedRange in mappedRanges)
+        {
+            // Don't allow ranges to be reported if they aren't spanning at least one line
+            if (mappedRange.StartLine == mappedRange.EndLine)
+            {
+                continue;
+            }
 
-        // Reduce ranges that have the same start line to be a single instance with the largest
-        // range available, since only one button can be shown to collapse per line
-        var reducedRanges = validRanges
-            .GroupBy(r => r.StartLine)
-            .Select(ranges => ranges.OrderBy(r => r, WidestRangeComparer.Instance).First());
+            // Reduce ranges with the same StartLine, preferring larger ranges.
+            if (!reducedRanges.TryGetValue(mappedRange.StartLine, out var existingRange) ||
+                RangeContains(mappedRange, existingRange))
+            {
+                reducedRanges[mappedRange.StartLine] = mappedRange;
+            }
+        }
 
         // Fix the starting range so the "..." is shown at the end
-        return reducedRanges.SelectAsArray(r => FixFoldingRangeStart(r, codeDocument));
+        return reducedRanges.Values.SelectAsArray(r => FixFoldingRangeStart(r, codeDocument));
+    }
+
+    private static bool RangeContains(FoldingRange x, FoldingRange y)
+    {
+        if (x.StartLine > y.StartLine ||
+            x.EndLine < y.EndLine)
+        {
+            return false;
+        }
+
+        if (x.StartLine == y.StartLine &&
+            x.StartCharacter.GetValueOrDefault() > y.StartCharacter.GetValueOrDefault())
+        {
+            return false;
+        }
+
+        if (x.EndLine == y.EndLine &&
+            x.EndCharacter.GetValueOrDefault() < y.EndCharacter.GetValueOrDefault())
+        {
+            return false;
+        }
+
+        return true;
     }
 
     /// <summary>
