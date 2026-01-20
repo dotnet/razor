@@ -1,7 +1,8 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Globalization;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
@@ -307,6 +308,140 @@ namespace Test
 
         // Assert - Should use generic component without errors
         Assert.Empty(generated.RazorDiagnostics);
+        Assert.Contains("global::Test.MyComponent<", generated.Code);
+    }
+
+    [Fact]
+    public void GenericAndNonGenericComponents_WithSameMessageParameter_StringValue()
+    {
+        // Arrange - Both components have a Message parameter
+        // Non-generic: Message is string
+        // Generic: Message uses TItem
+        var nonGenericComponent = Parse(@"
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        public string Message { get; set; }
+
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            builder.OpenElement(0, ""div"");
+            builder.AddContent(1, Message);
+            builder.CloseElement();
+        }
+    }
+}
+");
+
+        var genericComponent = Parse(@"
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+namespace Test
+{
+    public class MyComponent<TItem> : ComponentBase
+    {
+        [Parameter]
+        public TItem Message { get; set; }
+
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            builder.OpenElement(0, ""div"");
+            builder.AddContent(1, Message);
+            builder.CloseElement();
+        }
+    }
+}
+");
+
+        AdditionalSyntaxTrees.Add(nonGenericComponent);
+        AdditionalSyntaxTrees.Add(genericComponent);
+
+        // Act - Pass a string to Message without providing generic parameter
+        var generated = CompileToCSharp(@"
+@using Test
+<MyComponent Message=""Hello World"" />");
+
+        // Assert - When both components have a parameter with the same name,
+        // the system detects this and reports a duplicate parameter error
+        Assert.Single(generated.RazorDiagnostics);
+        var diagnostic = generated.RazorDiagnostics.Single();
+        Assert.Equal("RZ10009", diagnostic.Id);
+        Assert.Contains("The component parameter 'Message' is used two or more times", 
+            diagnostic.GetMessage(CultureInfo.InvariantCulture));
+        
+        // Despite the error, the code generation still proceeds and in this case
+        // selects the generic component (with TItem inferred/defaulted)
+        Assert.Contains("global::Test.MyComponent<", generated.Code);
+    }
+
+    [Fact]
+    public void GenericAndNonGenericComponents_WithSameMessageParameter_NonStringValue()
+    {
+        // Arrange - Both components have a Message parameter
+        // Non-generic: Message is string
+        // Generic: Message uses TItem
+        var nonGenericComponent = Parse(@"
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        public string Message { get; set; }
+
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            builder.OpenElement(0, ""div"");
+            builder.AddContent(1, Message);
+            builder.CloseElement();
+        }
+    }
+}
+");
+
+        var genericComponent = Parse(@"
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+namespace Test
+{
+    public class MyComponent<TItem> : ComponentBase
+    {
+        [Parameter]
+        public TItem Message { get; set; }
+
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            builder.OpenElement(0, ""div"");
+            builder.AddContent(1, Message);
+            builder.CloseElement();
+        }
+    }
+}
+");
+
+        AdditionalSyntaxTrees.Add(nonGenericComponent);
+        AdditionalSyntaxTrees.Add(genericComponent);
+
+        // Act - Pass an expression that evaluates to non-string (int) to Message
+        var generated = CompileToCSharp(@"
+@using Test
+<MyComponent Message=""@42"" />");
+
+        // Assert - When both components have a parameter with the same name,
+        // the system detects this and reports a duplicate parameter error.
+        // The @42 syntax also causes additional parsing errors.
+        Assert.Contains(generated.RazorDiagnostics, d => d.Id == "RZ10009");
+        var duplicateParamDiagnostic = generated.RazorDiagnostics.Single(d => d.Id == "RZ10009");
+        Assert.Contains("The component parameter 'Message' is used two or more times",
+            duplicateParamDiagnostic.GetMessage(CultureInfo.InvariantCulture));
+        
+        // Despite the errors, the code generation still proceeds and in this case
+        // selects the generic component (with TItem inferred/defaulted)
         Assert.Contains("global::Test.MyComponent<", generated.Code);
     }
 }
