@@ -732,7 +732,7 @@ internal partial class CSharpFormattingPass
 
                     if (_attributeIndentStyle == AttributeIndentStyle.IndentByOne)
                     {
-                        // Indent attributes by one level to differentiate them from child elements.
+                        // Indent attributes by one level to match child elements.
                         htmlIndentLevel = 1;
                     }
                     else if (_attributeIndentStyle == AttributeIndentStyle.IndentByTwo)
