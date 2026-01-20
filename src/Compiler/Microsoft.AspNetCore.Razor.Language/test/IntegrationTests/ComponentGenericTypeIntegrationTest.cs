@@ -366,16 +366,12 @@ namespace Test
 <MyComponent Message=""Hello World"" />");
 
         // Assert - When both components have a parameter with the same name,
-        // the system detects this and reports a duplicate parameter error
+        // the system cannot disambiguate and reports an ambiguous component selection error
         Assert.Single(generated.RazorDiagnostics);
         var diagnostic = generated.RazorDiagnostics.Single();
-        Assert.Equal("RZ10009", diagnostic.Id);
-        Assert.Contains("The component parameter 'Message' is used two or more times", 
+        Assert.Equal("RZ10012", diagnostic.Id);
+        Assert.Contains("cannot be disambiguated between generic and non-generic versions", 
             diagnostic.GetMessage(CultureInfo.InvariantCulture));
-        
-        // Despite the error, the code generation still proceeds and in this case
-        // selects the generic component (with TItem inferred/defaulted)
-        Assert.Contains("global::Test.MyComponent<", generated.Code);
     }
 
     [Fact]
@@ -433,15 +429,11 @@ namespace Test
 <MyComponent Message=""@42"" />");
 
         // Assert - When both components have a parameter with the same name,
-        // the system detects this and reports a duplicate parameter error.
+        // the system cannot disambiguate and reports an ambiguous component selection error.
         // The @42 syntax also causes additional parsing errors.
-        Assert.Contains(generated.RazorDiagnostics, d => d.Id == "RZ10009");
-        var duplicateParamDiagnostic = generated.RazorDiagnostics.Single(d => d.Id == "RZ10009");
-        Assert.Contains("The component parameter 'Message' is used two or more times",
-            duplicateParamDiagnostic.GetMessage(CultureInfo.InvariantCulture));
-        
-        // Despite the errors, the code generation still proceeds and in this case
-        // selects the generic component (with TItem inferred/defaulted)
-        Assert.Contains("global::Test.MyComponent<", generated.Code);
+        Assert.Contains(generated.RazorDiagnostics, d => d.Id == "RZ10012");
+        var ambiguityDiagnostic = generated.RazorDiagnostics.Single(d => d.Id == "RZ10012");
+        Assert.Contains("cannot be disambiguated between generic and non-generic versions",
+            ambiguityDiagnostic.GetMessage(CultureInfo.InvariantCulture));
     }
 }
