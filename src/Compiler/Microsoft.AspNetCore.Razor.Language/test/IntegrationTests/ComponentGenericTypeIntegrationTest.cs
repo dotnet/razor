@@ -436,4 +436,204 @@ namespace Test
         Assert.Contains("cannot be disambiguated between generic and non-generic versions",
             ambiguityDiagnostic.GetMessage(CultureInfo.InvariantCulture));
     }
+
+    [Fact]
+    public void MultipleGenericComponents_DifferentTypeParameterCounts_NonGenericUsage()
+    {
+        // Arrange - Multiple generic components with different type parameter counts
+        var nonGenericComponent = Parse(@"
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        public string Value { get; set; }
+
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            builder.OpenElement(0, ""div"");
+            builder.AddContent(1, Value);
+            builder.CloseElement();
+        }
+    }
+}
+");
+
+        var singleParamComponent = Parse(@"
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+namespace Test
+{
+    public class MyComponent<T> : ComponentBase
+    {
+        [Parameter]
+        public T Item { get; set; }
+
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            builder.OpenElement(0, ""div"");
+            builder.AddContent(1, Item);
+            builder.CloseElement();
+        }
+    }
+}
+");
+
+        var twoParamComponent = Parse(@"
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+namespace Test
+{
+    public class MyComponent<T1, T2> : ComponentBase
+    {
+        [Parameter]
+        public T1 First { get; set; }
+        
+        [Parameter]
+        public T2 Second { get; set; }
+
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            builder.OpenElement(0, ""div"");
+            builder.AddContent(1, First);
+            builder.AddContent(2, Second);
+            builder.CloseElement();
+        }
+    }
+}
+");
+
+        AdditionalSyntaxTrees.Add(nonGenericComponent);
+        AdditionalSyntaxTrees.Add(singleParamComponent);
+        AdditionalSyntaxTrees.Add(twoParamComponent);
+
+        // Act - Use without type parameters
+        var generated = CompileToCSharp(@"
+@using Test
+<MyComponent Value=""test"" />");
+
+        // Assert - Should select non-generic component
+        Assert.Empty(generated.RazorDiagnostics);
+        Assert.Contains("global::Test.MyComponent", generated.Code);
+        Assert.DoesNotContain("global::Test.MyComponent<", generated.Code);
+    }
+
+    [Fact]
+    public void MultipleGenericComponents_DifferentTypeParameterCounts_SingleTypeParameter()
+    {
+        // Arrange
+        var nonGenericComponent = Parse(@"
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        public string Value { get; set; }
+    }
+}
+");
+
+        var singleParamComponent = Parse(@"
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+namespace Test
+{
+    public class MyComponent<T> : ComponentBase
+    {
+        [Parameter]
+        public T Item { get; set; }
+    }
+}
+");
+
+        var twoParamComponent = Parse(@"
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+namespace Test
+{
+    public class MyComponent<T1, T2> : ComponentBase
+    {
+        [Parameter]
+        public T1 First { get; set; }
+        
+        [Parameter]
+        public T2 Second { get; set; }
+    }
+}
+");
+
+        AdditionalSyntaxTrees.Add(nonGenericComponent);
+        AdditionalSyntaxTrees.Add(singleParamComponent);
+        AdditionalSyntaxTrees.Add(twoParamComponent);
+
+        // Act - Provide one type parameter
+        var generated = CompileToCSharp(@"
+@using Test
+<MyComponent T=""string"" Item=""test"" />");
+
+        // Assert - Should select MyComponent<T>
+        Assert.Empty(generated.RazorDiagnostics);
+        Assert.Contains("global::Test.MyComponent<", generated.Code);
+    }
+
+    [Fact]
+    public void MultipleGenericComponents_DifferentTypeParameterCounts_TwoTypeParameters()
+    {
+        // Arrange
+        var nonGenericComponent = Parse(@"
+using Microsoft.AspNetCore.Components;
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        public string Value { get; set; }
+    }
+}
+");
+
+        var singleParamComponent = Parse(@"
+using Microsoft.AspNetCore.Components;
+namespace Test
+{
+    public class MyComponent<T> : ComponentBase
+    {
+        [Parameter]
+        public T Item { get; set; }
+    }
+}
+");
+
+        var twoParamComponent = Parse(@"
+using Microsoft.AspNetCore.Components;
+namespace Test
+{
+    public class MyComponent<T1, T2> : ComponentBase
+    {
+        [Parameter]
+        public T1 First { get; set; }
+        
+        [Parameter]
+        public T2 Second { get; set; }
+    }
+}
+");
+
+        AdditionalSyntaxTrees.Add(nonGenericComponent);
+        AdditionalSyntaxTrees.Add(singleParamComponent);
+        AdditionalSyntaxTrees.Add(twoParamComponent);
+
+        // Act - Provide two type parameters
+        var generated = CompileToCSharp(@"
+@using Test
+<MyComponent T1=""string"" T2=""int"" First=""hello"" Second=""42"" />");
+
+        // Assert - Should select MyComponent<T1, T2>
+        Assert.Empty(generated.RazorDiagnostics);
+        Assert.Contains("global::Test.MyComponent<", generated.Code);
+    }
 }
