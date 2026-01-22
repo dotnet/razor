@@ -58,7 +58,7 @@ internal sealed partial class CSharpFormattingPass(
         // one side entirely.
 
         using var formattingChanges = new PooledArrayBuilder<TextChange>();
-        GetOriginalDocumentChangesFromFormattedDocument(context, changedText, generatedDocument.LineInfo, formattedCSharpText, ref formattingChanges.AsRef(), out var lastFormattedTextLine);
+        GetOriginalDocumentChangesFromFormattedDocument(context, changedText, generatedDocument.LineInfo, formattedCSharpText, _logger, shouldKeepInsertedNewlineAtPosition: null, ref formattingChanges.AsRef(), out var lastFormattedTextLine);
 
         // We're finished processing the original file, which means we've done all of the indentation for the file, and we've done
         // the formatting changes for lines that are entirely C#, or start with C#, and lines that are Html or Razor. Now we process
@@ -112,7 +112,7 @@ internal sealed partial class CSharpFormattingPass(
         return SourceTextDiffer.GetMinimalTextChanges(context.SourceText, changedText, DiffKind.Char);
     }
 
-    private void GetOriginalDocumentChangesFromFormattedDocument(FormattingContext context, SourceText originalText, ImmutableArray<LineInfo> formattedLineInfo, SourceText formattedText, ref PooledArrayBuilder<TextChange> formattingChanges, out int lastFormattedTextLine)
+    internal static void GetOriginalDocumentChangesFromFormattedDocument(FormattingContext context, SourceText originalText, ImmutableArray<LineInfo> formattedLineInfo, SourceText formattedText, ILogger logger, Func<int, bool>? shouldKeepInsertedNewlineAtPosition, ref PooledArrayBuilder<TextChange> formattingChanges, out int lastFormattedTextLine)
     {
         var iFormatted = 0;
         for (var iOriginal = 0; iOriginal < originalText.Lines.Count; iOriginal++, iFormatted++)
@@ -174,6 +174,9 @@ internal sealed partial class CSharpFormattingPass(
                         // of C# until we match the original line contents.
                         // Of course, Roslyn could just as easily remove whitespace, eg making a "class Goo {" into "class Goo\n{",
                         // so whilst the same theory applies, instead of inserting formatted lines, we eat the original lines.
+
+                        // Before we start skipping formatted lines, we need the info to work out where exactly the newline is being added
+                        var originalPosition = originalStart + (formattedLine.End - formattedStart);
                         while (!originalText.NonWhitespaceContentEquals(formattedText, originalStart, originalLine.End, formattedStart, formattedLine.End))
                         {
                             // If there are more non-whitespace chars in the original line, then its something like "if (true) {" to "if (true)", so keep inserting formatted lines until we're past the brace.
@@ -183,12 +186,23 @@ internal sealed partial class CSharpFormattingPass(
                                 if (iFormatted >= formattedText.Lines.Count)
                                 {
                                     context.Logger?.LogMessage($"Ran out of formatted lines. iFormatted={iFormatted}, formattedLineCount={formattedText.Lines.Count}, iOriginal={iOriginal}, originalLineCount={originalText.Lines.Count}");
-                                    _logger.LogError($"Ran out of formatted lines while trying to process formatted changes after {iOriginal} lines. Abandoning further formatting to not corrupt the source file, please report this issue.");
+                                    logger.LogError($"Ran out of formatted lines while trying to process formatted changes after {iOriginal} lines. Abandoning further formatting to not corrupt the source file, please report this issue.");
                                     break;
                                 }
 
                                 formattedLine = formattedText.Lines[iFormatted];
-                                formattingChanges.Add(new TextChange(new(originalLine.EndIncludingLineBreak, 0), fixedIndentString + formattedText.ToString(formattedLine.SpanIncludingLineBreak)));
+
+                                // The current line has been split into multiple lines, but its up to whoever called us to decide if we're keeping that.
+                                if (shouldKeepInsertedNewlineAtPosition?.Invoke(originalPosition) ?? true)
+                                {
+                                    // If we're keeping it, we insert this newline after the original line, with the correct indentation.
+                                    formattingChanges.Add(new TextChange(new(originalLine.EndIncludingLineBreak, 0), fixedIndentString + formattedText.ToString(formattedLine.SpanIncludingLineBreak)));
+                                }
+                                else
+                                {
+                                    // If we're not keeping the newline, we need to restore this line back to the original line it came from
+                                    formattingChanges.Add(new TextChange(new(originalLine.End, 0), formattedText.ToString(formattedLine.Span)));
+                                }
                             }
                             else
                             {
@@ -198,7 +212,7 @@ internal sealed partial class CSharpFormattingPass(
                                 if (iOriginal >= originalText.Lines.Count)
                                 {
                                     context.Logger?.LogMessage($"Ran out of original lines. iFormatted={iFormatted}, formattedLineCount={formattedText.Lines.Count}, iOriginal={iOriginal}, originalLineCount={originalText.Lines.Count}");
-                                    _logger.LogError("Ran out of lines while trying to process formatted changes. Abandoning further formatting to not corrupt the source file, please report this issue.");
+                                    logger.LogError("Ran out of lines while trying to process formatted changes. Abandoning further formatting to not corrupt the source file, please report this issue.");
                                     break;
                                 }
 
