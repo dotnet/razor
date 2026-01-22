@@ -58,10 +58,66 @@ internal sealed partial class CSharpFormattingPass(
         // one side entirely.
 
         using var formattingChanges = new PooledArrayBuilder<TextChange>();
+        GetOriginalDocumentChangesFromFormattedDocument(context, changedText, generatedDocument.LineInfo, formattedCSharpText, ref formattingChanges.AsRef(), out var lastFormattedTextLine);
+
+        // We're finished processing the original file, which means we've done all of the indentation for the file, and we've done
+        // the formatting changes for lines that are entirely C#, or start with C#, and lines that are Html or Razor. Now we process
+        // the "additional changes", which is formatting for C# that is inside Html, via implicit or explicit expressions.
+
+        // Previous to this step, all of our changes will have been in order by definition of how we go through the document, so
+        // we haven't had to worry about overlaps, but now we do. In order to not loop constantly, we keep track of an extra index
+        // variable for where we are in the changes, to check for overlaps.
+        var iChanges = 0;
+        for (var iFormatted = lastFormattedTextLine; iFormatted < formattedCSharpText.Lines.Count; iFormatted++)
+        {
+            // Any C# that is in the middle of a line of Html/Razor will be emitted at the end of the generated document, with a
+            // comment above it that encodes where it came from in the original file. We just look for the comment, and then apply
+            // the next line as formatted content.
+            if (CSharpDocumentGenerator.TryParseAdditionalLineComment(formattedCSharpText.Lines[iFormatted], out var start, out var length))
+            {
+                iFormatted++;
+
+                // Skip ahead to where changes are likely to become relevant, to save looping the whole set every time
+                while (iChanges < formattingChanges.Count)
+                {
+                    if (formattingChanges[iChanges].Span.End > start)
+                    {
+                        break;
+                    }
+
+                    iChanges++;
+                }
+
+                if (iChanges < formattingChanges.Count &&
+                    formattingChanges[iChanges].Span.Contains(start))
+                {
+                    // To avoid overlapping changes, which Roslyn will throw on, we just have to drop this change. It gives the user
+                    // something at least, and hopefully they'll report a bug for this case so we can find it.
+                    context.Logger?.LogMessage($"Skipping a change that would have overlapped an existing change, starting at {start} for {length} chars, overlapping a change at {formattingChanges[iChanges].Span}. iFormatted={iFormatted}, iChanges={iChanges}");
+                    continue;
+                }
+
+                formattingChanges.Add(new TextChange(new TextSpan(start, length), formattedCSharpText.Lines[iFormatted].ToString()));
+            }
+        }
+
+        var finalFormattingChanges = formattingChanges.ToArray();
+        context.Logger?.LogObject("FinalFormattingChanges", finalFormattingChanges);
+        changedText = changedText.WithChanges(finalFormattingChanges);
+        context.Logger?.LogSourceText("FinalFormattedDocument", changedText);
+
+        // And we're done, we have a final set of changes to apply. BUT these are changes to the document after Html and Razor
+        // formatting, and the return from this method must be changes relative to the original passed in document. The algorithm
+        // above is fairly naive anyway, and a lot of them will be no-ops, so it's nice to have this final step as a filter.
+        return SourceTextDiffer.GetMinimalTextChanges(context.SourceText, changedText, DiffKind.Char);
+    }
+
+    private void GetOriginalDocumentChangesFromFormattedDocument(FormattingContext context, SourceText changedText, ImmutableArray<LineInfo> formattedLineInfo, SourceText formattedCSharpText, ref PooledArrayBuilder<TextChange> formattingChanges, out int lastFormattedTextLine)
+    {
         var iFormatted = 0;
         for (var iOriginal = 0; iOriginal < changedText.Lines.Count; iOriginal++, iFormatted++)
         {
-            var lineInfo = generatedDocument.LineInfo[iOriginal];
+            var lineInfo = formattedLineInfo[iOriginal];
 
             if (lineInfo.SkipPreviousLine)
             {
@@ -193,56 +249,7 @@ internal sealed partial class CSharpFormattingPass(
             }
         }
 
-        // We're finished processing the original file, which means we've done all of the indentation for the file, and we've done
-        // the formatting changes for lines that are entirely C#, or start with C#, and lines that are Html or Razor. Now we process
-        // the "additional changes", which is formatting for C# that is inside Html, via implicit or explicit expressions.
-
-        // Previous to this step, all of our changes will have been in order by definition of how we go through the document, so
-        // we haven't had to worry about overlaps, but now we do. In order to not loop constantly, we keep track of an extra index
-        // variable for where we are in the changes, to check for overlaps.
-        var iChanges = 0;
-        for (; iFormatted < formattedCSharpText.Lines.Count; iFormatted++)
-        {
-            // Any C# that is in the middle of a line of Html/Razor will be emitted at the end of the generated document, with a
-            // comment above it that encodes where it came from in the original file. We just look for the comment, and then apply
-            // the next line as formatted content.
-            if (CSharpDocumentGenerator.TryParseAdditionalLineComment(formattedCSharpText.Lines[iFormatted], out var start, out var length))
-            {
-                iFormatted++;
-
-                // Skip ahead to where changes are likely to become relevant, to save looping the whole set every time
-                while (iChanges < formattingChanges.Count)
-                {
-                    if (formattingChanges[iChanges].Span.End > start)
-                    {
-                        break;
-                    }
-
-                    iChanges++;
-                }
-
-                if (iChanges < formattingChanges.Count &&
-                    formattingChanges[iChanges].Span.Contains(start))
-                {
-                    // To avoid overlapping changes, which Roslyn will throw on, we just have to drop this change. It gives the user
-                    // something at least, and hopefully they'll report a bug for this case so we can find it.
-                    context.Logger?.LogMessage($"Skipping a change that would have overlapped an existing change, starting at {start} for {length} chars, overlapping a change at {formattingChanges[iChanges].Span}. iFormatted={iFormatted}, iChanges={iChanges}");
-                    continue;
-                }
-
-                formattingChanges.Add(new TextChange(new TextSpan(start, length), formattedCSharpText.Lines[iFormatted].ToString()));
-            }
-        }
-
-        var finalFormattingChanges = formattingChanges.ToArray();
-        context.Logger?.LogObject("FinalFormattingChanges", finalFormattingChanges);
-        changedText = changedText.WithChanges(finalFormattingChanges);
-        context.Logger?.LogSourceText("FinalFormattedDocument", changedText);
-
-        // And we're done, we have a final set of changes to apply. BUT these are changes to the document after Html and Razor
-        // formatting, and the return from this method must be changes relative to the original passed in document. The algorithm
-        // above is fairly naive anyway, and a lot of them will be no-ops, so it's nice to have this final step as a filter.
-        return SourceTextDiffer.GetMinimalTextChanges(context.SourceText, changedText, DiffKind.Char);
+        lastFormattedTextLine = iFormatted;
     }
 
     private static bool NextLineIsOnlyAnOpenBrace(SourceText text, int lineNumber)
