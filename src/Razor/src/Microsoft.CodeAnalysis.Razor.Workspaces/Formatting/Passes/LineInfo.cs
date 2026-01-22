@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 /// <param name="SkipPreviousLine">Whether to skip the previous line in the formatted document, since it doesn't represent anything in the origin document</param>
 /// <param name="SkipNextLine">Whether to skip the next line in the formatted document, since it doesn't represent anything in the origin document</param>
 /// <param name="SkipNextLineIfBrace">Whether to skip the next line in the formatted document, like <see cref="SkipNextLine" />, but only skips if the next line is a brace</param>
-/// <param name="HtmlIndentLevel">The indent level that the Html formatter applied to this line</param>
+/// <param name="FixedIndentLevel">The indent level that the Html formatter applied to this line</param>
 /// <param name="OriginOffset">How many characters after the first non-whitespace character of the origin line should be skipped before applying formatting</param>
 /// <param name="FormattedLength">How many characters of the origin line the formatted line represents</param>
 /// <param name="FormattedOffset">How many characters after the first non-whitespace character of the formatted line should be skipped before applying formatting</param>
@@ -25,7 +25,7 @@ internal readonly record struct LineInfo(
     bool SkipPreviousLine,
     bool SkipNextLine,
     bool SkipNextLineIfBrace,
-    int HtmlIndentLevel,
+    int FixedIndentLevel,
     int OriginOffset,
     int FormattedLength,
     int FormattedOffset,

@@ -112,10 +112,10 @@ internal sealed partial class CSharpFormattingPass(
         return SourceTextDiffer.GetMinimalTextChanges(context.SourceText, changedText, DiffKind.Char);
     }
 
-    private void GetOriginalDocumentChangesFromFormattedDocument(FormattingContext context, SourceText changedText, ImmutableArray<LineInfo> formattedLineInfo, SourceText formattedCSharpText, ref PooledArrayBuilder<TextChange> formattingChanges, out int lastFormattedTextLine)
+    private void GetOriginalDocumentChangesFromFormattedDocument(FormattingContext context, SourceText originalText, ImmutableArray<LineInfo> formattedLineInfo, SourceText formattedText, ref PooledArrayBuilder<TextChange> formattingChanges, out int lastFormattedTextLine)
     {
         var iFormatted = 0;
-        for (var iOriginal = 0; iOriginal < changedText.Lines.Count; iOriginal++, iFormatted++)
+        for (var iOriginal = 0; iOriginal < originalText.Lines.Count; iOriginal++, iFormatted++)
         {
             var lineInfo = formattedLineInfo[iOriginal];
 
@@ -124,27 +124,27 @@ internal sealed partial class CSharpFormattingPass(
                 iFormatted++;
             }
 
-            if (iFormatted >= formattedCSharpText.Lines.Count)
+            if (iFormatted >= formattedText.Lines.Count)
             {
                 break;
             }
 
             string? indentationString = null;
 
-            var formattedLine = formattedCSharpText.Lines[iFormatted];
+            var formattedLine = formattedText.Lines[iFormatted];
             if (lineInfo.ProcessIndentation &&
                 formattedLine.GetFirstNonWhitespaceOffset() is { } formattedIndentation)
             {
-                var originalLine = changedText.Lines[iOriginal];
+                var originalLine = originalText.Lines[iOriginal];
                 Debug.Assert(originalLine.GetFirstNonWhitespaceOffset().HasValue);
 
                 var originalLineOffset = originalLine.GetFirstNonWhitespaceOffset().GetValueOrDefault();
 
-                // First up, we take the indentation from the formatted file, and add on the Html indentation level from the line info, and
+                // First up, we take the indentation from the formatted file, and add on the fixed indentation level from the line info, and
                 // replace whatever was in the original file with it.
-                var htmlIndentString = context.GetIndentationLevelString(lineInfo.HtmlIndentLevel);
-                indentationString = formattedCSharpText.ToString(new TextSpan(formattedLine.Start, formattedIndentation))
-                    + htmlIndentString
+                var fixedIndentString = context.GetIndentationLevelString(lineInfo.FixedIndentLevel);
+                indentationString = formattedText.ToString(new TextSpan(formattedLine.Start, formattedIndentation))
+                    + fixedIndentString
                     + lineInfo.AdditionalIndentation;
                 formattingChanges.Add(new TextChange(new TextSpan(originalLine.Start, originalLineOffset), indentationString));
 
@@ -158,7 +158,7 @@ internal sealed partial class CSharpFormattingPass(
                         ? originalLine.End - originalStart
                         : lineInfo.FormattedLength;
                     var formattedStart = formattedLine.Start + formattedIndentation + lineInfo.FormattedOffset;
-                    formattingChanges.Add(new TextChange(new TextSpan(originalStart, length), formattedCSharpText.ToString(TextSpan.FromBounds(formattedStart, formattedLine.End - lineInfo.FormattedOffsetFromEndOfLine))));
+                    formattingChanges.Add(new TextChange(new TextSpan(originalStart, length), formattedText.ToString(TextSpan.FromBounds(formattedStart, formattedLine.End - lineInfo.FormattedOffsetFromEndOfLine))));
 
                     if (lineInfo.CheckForNewLines)
                     {
@@ -172,35 +172,35 @@ internal sealed partial class CSharpFormattingPass(
                         // of C# until we match the original line contents.
                         // Of course, Roslyn could just as easily remove whitespace, eg making a "class Goo {" into "class Goo\n{",
                         // so whilst the same theory applies, instead of inserting formatted lines, we eat the original lines.
-                        while (!changedText.NonWhitespaceContentEquals(formattedCSharpText, originalStart, originalLine.End, formattedStart, formattedLine.End))
+                        while (!originalText.NonWhitespaceContentEquals(formattedText, originalStart, originalLine.End, formattedStart, formattedLine.End))
                         {
                             // If there are more non-whitespace chars in the original line, then its something like "if (true) {" to "if (true)", so keep inserting formatted lines until we're past the brace.
-                            if (FormattingUtilities.CountNonWhitespaceChars(changedText, originalStart, originalLine.End) >= FormattingUtilities.CountNonWhitespaceChars(formattedCSharpText, formattedStart, formattedLine.End))
+                            if (FormattingUtilities.CountNonWhitespaceChars(originalText, originalStart, originalLine.End) >= FormattingUtilities.CountNonWhitespaceChars(formattedText, formattedStart, formattedLine.End))
                             {
                                 iFormatted++;
-                                if (iFormatted >= formattedCSharpText.Lines.Count)
+                                if (iFormatted >= formattedText.Lines.Count)
                                 {
-                                    context.Logger?.LogMessage($"Ran out of formatted lines. iFormatted={iFormatted}, formattedLineCount={formattedCSharpText.Lines.Count}, iOriginal={iOriginal}, originalLineCount={changedText.Lines.Count}");
+                                    context.Logger?.LogMessage($"Ran out of formatted lines. iFormatted={iFormatted}, formattedLineCount={formattedText.Lines.Count}, iOriginal={iOriginal}, originalLineCount={originalText.Lines.Count}");
                                     _logger.LogError($"Ran out of formatted lines while trying to process formatted changes after {iOriginal} lines. Abandoning further formatting to not corrupt the source file, please report this issue.");
                                     break;
                                 }
 
-                                formattedLine = formattedCSharpText.Lines[iFormatted];
-                                formattingChanges.Add(new TextChange(new(originalLine.EndIncludingLineBreak, 0), htmlIndentString + formattedCSharpText.ToString(formattedLine.SpanIncludingLineBreak)));
+                                formattedLine = formattedText.Lines[iFormatted];
+                                formattingChanges.Add(new TextChange(new(originalLine.EndIncludingLineBreak, 0), fixedIndentString + formattedText.ToString(formattedLine.SpanIncludingLineBreak)));
                             }
                             else
                             {
                                 // Otherwise, there are more whitespace chars in the formatted line, so "if (true)" to "if (true) {", so we need to remove the original lines until we're past the brace.
                                 var oldEnd = originalLine.End;
                                 iOriginal++;
-                                if (iOriginal >= changedText.Lines.Count)
+                                if (iOriginal >= originalText.Lines.Count)
                                 {
-                                    context.Logger?.LogMessage($"Ran out of original lines. iFormatted={iFormatted}, formattedLineCount={formattedCSharpText.Lines.Count}, iOriginal={iOriginal}, originalLineCount={changedText.Lines.Count}");
+                                    context.Logger?.LogMessage($"Ran out of original lines. iFormatted={iFormatted}, formattedLineCount={formattedText.Lines.Count}, iOriginal={iOriginal}, originalLineCount={originalText.Lines.Count}");
                                     _logger.LogError("Ran out of lines while trying to process formatted changes. Abandoning further formatting to not corrupt the source file, please report this issue.");
                                     break;
                                 }
 
-                                originalLine = changedText.Lines[iOriginal];
+                                originalLine = originalText.Lines[iOriginal];
                                 formattingChanges.Add(new TextChange(TextSpan.FromBounds(oldEnd, originalLine.End), ""));
                             }
                         }
@@ -219,7 +219,7 @@ internal sealed partial class CSharpFormattingPass(
                 // or skip the opening brace of a lambda definition we insert, but Roslyn might place it on the
                 // next line. In that case, we can't place it on the next line ourselves because Roslyn doesn't
                 // adjust the indentation of opening braces of lambdas in that scenario.
-                if (NextLineIsOnlyAnOpenBrace(formattedCSharpText, iFormatted))
+                if (NextLineIsOnlyAnOpenBrace(formattedText, iFormatted))
                 {
                     iFormatted++;
                 }
@@ -228,7 +228,7 @@ internal sealed partial class CSharpFormattingPass(
                 // it up to the previous line, so we would want to skip the next line in the original document
                 // in that case. Fortunately its illegal to have `@code {\r\n {` in a Razor file, so there can't
                 // be false positives here.
-                if (NextLineIsOnlyAnOpenBrace(changedText, iOriginal))
+                if (NextLineIsOnlyAnOpenBrace(originalText, iOriginal))
                 {
                     iOriginal++;
 
@@ -241,7 +241,7 @@ internal sealed partial class CSharpFormattingPass(
                     // on at all, so hopefully the user is happy with where their open brace is.
                     if (indentationString is not null)
                     {
-                        var originalLine = changedText.Lines[iOriginal];
+                        var originalLine = originalText.Lines[iOriginal];
                         var originalLineOffset = originalLine.GetFirstNonWhitespaceOffset().GetValueOrDefault();
                         formattingChanges.Add(new TextChange(new TextSpan(originalLine.Start, originalLineOffset), indentationString));
                     }

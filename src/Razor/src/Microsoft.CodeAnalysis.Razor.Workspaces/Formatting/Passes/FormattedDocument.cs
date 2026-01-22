@@ -6,4 +6,4 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal readonly record struct CSharpFormattingDocument(SourceText SourceText, ImmutableArray<LineInfo> LineInfo);
+internal readonly record struct FormattedDocument(SourceText SourceText, ImmutableArray<LineInfo> LineInfo);
