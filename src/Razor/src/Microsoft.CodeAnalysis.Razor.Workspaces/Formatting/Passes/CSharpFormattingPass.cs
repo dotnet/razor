@@ -132,21 +132,23 @@ internal sealed partial class CSharpFormattingPass(
             string? indentationString = null;
 
             var formattedLine = formattedText.Lines[iFormatted];
-            if (lineInfo.ProcessIndentation &&
-                formattedLine.GetFirstNonWhitespaceOffset() is { } formattedIndentation)
+            if (formattedLine.GetFirstNonWhitespaceOffset() is { } formattedIndentation)
             {
                 var originalLine = originalText.Lines[iOriginal];
-                Debug.Assert(originalLine.GetFirstNonWhitespaceOffset().HasValue);
-
                 var originalLineOffset = originalLine.GetFirstNonWhitespaceOffset().GetValueOrDefault();
-
-                // First up, we take the indentation from the formatted file, and add on the fixed indentation level from the line info, and
-                // replace whatever was in the original file with it.
                 var fixedIndentString = context.GetIndentationLevelString(lineInfo.FixedIndentLevel);
-                indentationString = formattedText.ToString(new TextSpan(formattedLine.Start, formattedIndentation))
-                    + fixedIndentString
-                    + lineInfo.AdditionalIndentation;
-                formattingChanges.Add(new TextChange(new TextSpan(originalLine.Start, originalLineOffset), indentationString));
+
+                if (lineInfo.ProcessIndentation)
+                {
+                    Debug.Assert(originalLine.GetFirstNonWhitespaceOffset().HasValue);
+
+                    // First up, we take the indentation from the formatted file, and add on the fixed indentation level from the line info, and
+                    // replace whatever was in the original file with it.
+                    indentationString = formattedText.ToString(new TextSpan(formattedLine.Start, formattedIndentation))
+                        + fixedIndentString
+                        + lineInfo.AdditionalIndentation;
+                    formattingChanges.Add(new TextChange(new TextSpan(originalLine.Start, originalLineOffset), indentationString));
+                }
 
                 // Now we handle the formatting, which is changes to the right of the first non-whitespace character.
                 if (lineInfo.ProcessFormatting)
