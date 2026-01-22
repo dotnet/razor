@@ -196,6 +196,7 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
 
             // Type parameters are provided - find the generic component that matches
             TagHelperDescriptor bestMatch = null;
+            var providedTypeParametersArray = providedTypeParameters.ToArray();
             
             foreach (var candidate in genericCandidates)
             {
@@ -203,7 +204,7 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
                 
                 // Check if all provided type parameters exist in this candidate's type parameters
                 var allProvidedMatch = true;
-                foreach (var provided in providedTypeParameters.ToArray())
+                foreach (var provided in providedTypeParametersArray)
                 {
                     if (!candidateTypeParams.Contains(provided))
                     {
@@ -289,11 +290,7 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
         static bool HasAmbiguousParameters(TagHelperIntermediateNode node, TagHelperDescriptor genericComponent, TagHelperDescriptor nonGenericComponent)
         {
             // Get all the attribute names used in the markup (excluding type parameters)
-            using var typeParameterNames = new PooledHashSet<string>(StringComparer.Ordinal);
-            foreach (var typeParam in genericComponent.GetTypeParameters())
-            {
-                typeParameterNames.Add(typeParam.Name);
-            }
+            using var typeParameterNames = GetTypeParameterNames(genericComponent);
 
             using var markupAttributeNames = new PooledHashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var child in node.Children)
