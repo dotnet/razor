@@ -120,7 +120,7 @@ internal sealed partial class HtmlFormattingPass(
 
         // Step 3: Go line-by-line and build the final text by selecting what to keep from each line
         using var formattingChanges = new PooledArrayBuilder<TextChange>();
-        CSharpFormattingPass.GetOriginalDocumentChangesFromFormattedDocument(context, originalText, formattingDocument.LineInfo, formattedText, _logger, ShouldKeepInsertedNewLine, ref formattingChanges.AsRef(), out _);
+        FormattingUtilities.GetOriginalDocumentChangesFromFormattedDocument(context, originalText, formattingDocument.LineInfo, formattedText, _logger, ShouldKeepInsertedNewLine, ref formattingChanges.AsRef(), out _);
 
         var finalFormattingChanges = formattingChanges.ToArray();
         context.Logger?.LogObject("FinalHtmlFormattingChanges", finalFormattingChanges);
