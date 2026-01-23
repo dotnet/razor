@@ -529,6 +529,9 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             """,
             expected: """
 
+                
+                
+            
             """);
     }
 
@@ -545,7 +548,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             """,
             expected: """
             
-            
+                
             
             <div></div>
             
@@ -8038,7 +8041,6 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     <table>
                         <tr>
                             <td>
-
                     """,
             allowDiagnostics: true);
 }
