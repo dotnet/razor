@@ -21,28 +21,52 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Test.Cohost.Formatting;
 public class HtmlFormattingPassTest(FormattingTestContext context, HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
     : FormattingTestBase(context, fixture.Service, testOutput), IClassFixture<FormattingTestContext>
 {
+    public static TheoryData<string, string> StringLiteralSplitTestData => new()
+    {
+        { "", "" },
+        { "$", "" },
+        { "", "u8" },
+        { "$", "u8" },
+        { "@", "" },
+        { "@$", "" },
+        { @"""""""", @"""""""""" },
+        { @"$""""""", @"""""""""" },
+        { @"""""""\r\n", @"\r\n""""""" },
+        { @"$""""""\r\n", @"\r\n""""""" },
+        { @"""""""", @"""""""u8" },
+        { @"$""""""", @"""""""u8" },
+        { @"""""""\r\n", @"\r\n""""""u8" },
+        { @"$""""""\r\n", @"\r\n""""""u8" },
+    };
+
     [Theory]
     [WorkItem("https://github.com/dotnet/razor/issues/11846")]
-    [InlineData("", "")]
-    [InlineData("$", "")]
-    [InlineData("", "u8")]
-    [InlineData("$", "u8")]
-    [InlineData("@", "")]
-    [InlineData("@$", "")]
-    [InlineData(@"""""""", @"""""""")]
-    [InlineData(@"$""""""", @"""""""")]
-    [InlineData(@"""""""\r\n", @"\r\n""""""")]
-    [InlineData(@"$""""""\r\n", @"\r\n""""""")]
-    [InlineData(@"""""""", @"""""""u8")]
-    [InlineData(@"$""""""", @"""""""u8")]
-    [InlineData(@"""""""\r\n", @"\r\n""""""u8")]
-    [InlineData(@"$""""""\r\n", @"\r\n""""""u8")]
+    [MemberData(nameof(StringLiteralSplitTestData))]
     public async Task RemoveEditThatSplitsStringLiteral(string prefix, string suffix)
     {
-        var document = CreateProjectAndRazorDocument($"""
-            @({prefix}"this is a line that is 46 characters long"{suffix})
-            """);
-        var change = new TextChange(new TextSpan(24, 0), "\r\n");
+        TestCode input = $"""
+            @({prefix}"this is a line that i$$s 46 characters long"{suffix})
+            """;
+        var document = CreateProjectAndRazorDocument(input.Text);
+        var change = new TextChange(new TextSpan(input.Position, 0), "\r\n");
+        var edits = await GetHtmlFormattingEditsAsync(document, change);
+        Assert.Empty(edits);
+    }
+
+    [Theory]
+    [WorkItem("https://github.com/dotnet/razor/issues/11846")]
+    [MemberData(nameof(StringLiteralSplitTestData))]
+    public async Task RemoveEditThatSplitsStringLiteral_MultiLineDocument(string prefix, string suffix)
+    {
+        TestCode input = $"""
+            <div>
+
+                @({prefix}"this is a line that i$$s 46 characters long"{suffix})
+
+            </div>
+            """;
+        var document = CreateProjectAndRazorDocument(input.Text);
+        var change = new TextChange(new TextSpan(input.Position, 0), "\r\n");
         var edits = await GetHtmlFormattingEditsAsync(document, change);
         Assert.Empty(edits);
     }
