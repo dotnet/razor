@@ -103,7 +103,7 @@ public class HtmlFormattingPassTest(FormattingTestContext context, HtmlFormattin
     private async Task<ImmutableArray<TextChange>> GetHtmlFormattingEditsAsync(CodeAnalysis.TextDocument document, params ImmutableArray<TextChange> changes)
     {
         var documentMappingService = OOPExportProvider.GetExportedValue<IDocumentMappingService>();
-        var pass = new HtmlFormattingPass(documentMappingService);
+        var pass = new HtmlFormattingPass(documentMappingService, LoggerFactory);
 
         var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();
         var snapshot = snapshotManager.GetSnapshot(document);
