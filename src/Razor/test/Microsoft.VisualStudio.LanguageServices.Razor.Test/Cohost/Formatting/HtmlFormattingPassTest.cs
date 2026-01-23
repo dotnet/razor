@@ -88,16 +88,18 @@ public class HtmlFormattingPassTest(FormattingTestContext context, HtmlFormattin
         var sourceText = SourceText.From(input.Text);
         var changes = ImmutableArray.CreateBuilder<TextChange>();
 
-        // Create an edit to "indent" every line. Using $$ makes test assertions easier.
+        // Create an edit to indent every line. The actual size doesn't matter for this test.
+        var indent = "      ";
         foreach (var line in sourceText.Lines)
         {
-            changes.Add(new TextChange(new TextSpan(line.Start, 0), "$$"));
+            changes.Add(new TextChange(new TextSpan(line.Start, 0), indent));
         }
 
         var edits = await GetHtmlFormattingEditsAsync(document, changes.ToImmutable());
 
         var newDoc = sourceText.WithChanges(edits);
-        AssertEx.EqualOrDiff(input.OriginalInput, newDoc.ToString());
+        // The only places the indent should have been kept is places that we marked with dollar signs
+        AssertEx.EqualOrDiff(input.OriginalInput.Replace("$$", indent), newDoc.ToString());
     }
 
     private async Task<ImmutableArray<TextChange>> GetHtmlFormattingEditsAsync(CodeAnalysis.TextDocument document, params ImmutableArray<TextChange> changes)
