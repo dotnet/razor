@@ -69,6 +69,31 @@ public class CodeDirectiveFormattingTest(FormattingTestContext context, HtmlForm
                         private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
                     }
                     """,
+            htmlFormatted: """
+                    @page "/counter"
+
+                    @if(true)
+                        {
+                                    // indented
+                            }
+
+                    <TestGeneric Items="_items">
+                        @foreach (var v in System.Linq.Enumerable.Range(1, 10))
+                        {
+                        <div></div>
+                        }
+                    </TestGeneric>
+
+                    @if(true)
+                        {
+                                    // indented
+                                }
+
+                    @code
+                        {
+                        private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
+                    }
+                    """,
             tagHelpers: [.. GetComponentWithCascadingTypeParameter()]);
     }
 
@@ -119,6 +144,27 @@ public class CodeDirectiveFormattingTest(FormattingTestContext context, HtmlForm
                         private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
                     }
                     """,
+            htmlFormatted: """
+                    @page "/counter"
+
+                    <TestGeneric Items="_items">
+                        @foreach (var v in System.Linq.Enumerable.Range(1, 10))
+                        {
+                        <div></div>
+                        }
+                        <TestGeneric Items="_items">
+                            @foreach (var v in System.Linq.Enumerable.Range(1, 10))
+                            {
+                            <div></div>
+                            }
+                        </TestGeneric>
+                    </TestGeneric>
+
+                    @code
+                        {
+                        private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
+                    }
+                    """,
             tagHelpers: [.. GetComponentWithCascadingTypeParameter()]);
     }
 
@@ -155,6 +201,22 @@ public class CodeDirectiveFormattingTest(FormattingTestContext context, HtmlForm
 
                     @code
                     {
+                        private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
+                        private IEnumerable<long> _items2 = new long[] { 1, 2, 3, 4, 5 };
+                    }
+                    """,
+            htmlFormatted: """
+                    @page "/counter"
+
+                    <TestGenericTwo Items="_items" ItemsTwo="_items2">
+                        @foreach (var v in System.Linq.Enumerable.Range(1, 10))
+                        {
+                        <div></div>
+                        }
+                    </TestGenericTwo>
+
+                    @code
+                        {
                         private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
                         private IEnumerable<long> _items2 = new long[] { 1, 2, 3, 4, 5 };
                     }

@@ -38,6 +38,22 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                         }
                     </GridTable>
                     """,
+            htmlFormatted: """
+                    <PageTitle>
+                        @if(true){
+                        <p>@DateTime.Now</p>
+                        }
+                    </PageTitle>
+
+                    <GridTable>
+                        @foreach (var row in rows){
+                        <GridRow @onclick="SelectRow(row)">
+                            @foreach (var cell in row){
+                            <GridCell>@cell</GridCell>}
+                        </GridRow>
+                        }
+                    </GridTable>
+                    """,
             expected: """
                     <PageTitle>
                         @if (true)
@@ -72,6 +88,14 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                         </GridRow>
                     </GridTable>
                     """,
+            htmlFormatted: """
+                    <GridTable>
+                        <GridRow>
+                            <GridCell>@cell</GridCell>
+                            <GridCell>cell</GridCell>
+                        </GridRow>
+                    </GridTable>
+                    """,
             expected: """
                     <GridTable>
                         <GridRow>
@@ -90,6 +114,13 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                         <GridTable>
                             <GridRow >
                         <GridCell>@(cell)</GridCell>
+                        </GridRow>
+                    </GridTable>
+                    """,
+            htmlFormatted: """
+                    <GridTable>
+                        <GridRow>
+                            <GridCell>@(cell)</GridCell>
                         </GridRow>
                     </GridTable>
                     """,
@@ -113,6 +144,13 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                         </GridRow>
                     </GridTable>
                     """,
+            htmlFormatted: """
+                    <GridTable>
+                        <GridRow>
+                            <GridCell>@(""  +    "")</GridCell>
+                        </GridRow>
+                    </GridTable>
+                    """,
             expected: """
                     <GridTable>
                         <GridRow>
@@ -132,6 +170,15 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                         <GridCell>
                         @(""  +    "")
                         </GridCell>
+                        </GridRow>
+                    </GridTable>
+                    """,
+            htmlFormatted: """
+                    <GridTable>
+                        <GridRow>
+                            <GridCell>
+                                @(""  +    "")
+                            </GridCell>
                         </GridRow>
                     </GridTable>
                     """,
@@ -169,6 +216,26 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                     </ChildContent>
                     </GridRow>
                     </ChildContent>
+                    </GridTable>
+                    """,
+            htmlFormatted: """
+                    <GridTable>
+                        <ChildContent>
+                            <GridRow>
+                                <ChildContent>
+                                    <GridCell>
+                                        <ChildContent>
+                                            <strong></strong>
+                                            @if (true)
+                                            {
+                                            <strong></strong>
+                                            }
+                                            <strong></strong>
+                                        </ChildContent>
+                                    </GridCell>
+                                </ChildContent>
+                            </GridRow>
+                        </ChildContent>
                     </GridTable>
                     """,
             expected: """
@@ -225,6 +292,33 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                                 </a_really_long_tag_name>
                     }
                     """,
+            htmlFormatted: """
+                    @if (true)
+                    {
+                    <Component1 Id="comp1"
+                                Caption="Title" />
+                    <Component1 Id="comp2"
+                                Caption="Title">
+                        <Frag>
+                            <Component1 Id="comp3"
+                                        Caption="Title" />
+                        </Frag>
+                    </Component1>
+                    }
+
+                    @if (true)
+                    {
+                    <a_really_long_tag_name Id="comp1"
+                                            Caption="Title" />
+                    <a_really_long_tag_name Id="comp2"
+                                            Caption="Title">
+                        <a_really_long_tag_name>
+                            <a_really_long_tag_name Id="comp3"
+                                                    Caption="Title" />
+                        </a_really_long_tag_name>
+                    </a_really_long_tag_name>
+                    }
+                    """,
             expected: """
                     @if (true)
                     {
@@ -267,6 +361,14 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                         </Component1>;
                     }
                     """,
+            htmlFormatted: """
+                    @{
+                        RenderFragment fragment =
+                          @<Component1 Id="Comp1"
+                                       Caption="Title">
+                    </Component1>;
+                    }
+                    """,
             expected: """
                     @{
                         RenderFragment fragment =
@@ -289,6 +391,16 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                             @<Component1 Id="Comp1"
                                      Caption="Title">
                             </Component1>;
+                        }
+                    </Component1>
+                    """,
+            htmlFormatted: """
+                    <Component1>
+                        @{
+                        RenderFragment fragment =
+                        @<Component1 Id="Comp1"
+                                     Caption="Title">
+                        </Component1>;
                         }
                     </Component1>
                     """,
@@ -327,6 +439,26 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                     </ChildContent>
                     </GridRow>
                     </ChildContent>
+                    </GridTable>
+                    """,
+            htmlFormatted: """
+                    <GridTable>
+                        <ChildContent>
+                            <GridRow>
+                                <ChildContent>
+                                    <GridCell>
+                                        <ChildContent>
+                                            <strong></strong>
+                                            @if (true)
+                                            {
+                                            <strong></strong>
+                                            }
+                                            <strong></strong>
+                                        </ChildContent>
+                                    </GridCell>
+                                </ChildContent>
+                            </GridRow>
+                        </ChildContent>
                     </GridTable>
                     """,
             expected: """
@@ -371,6 +503,21 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                         }
                     </Select>
                     """,
+            htmlFormatted: """
+
+                    <div>
+                        @foreach ( var i in new int[] { 1, 23 } )
+                        {
+                        <div></div>
+                        }
+                    </div>
+                    <Select TValue="string">
+                        @foreach ( var i in new int[] { 1, 23 } )
+                        {
+                        <SelectItem Value="@i">@i</SelectItem>
+                        }
+                    </Select>
+                    """,
             expected: """
 
                     <div>
@@ -402,6 +549,22 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                 @{
                 #endif
                 }
+                </div>
+
+                @code {
+                    private object SomeModel {get;set;}
+                }
+                """,
+            htmlFormatted: """
+                <div Model="SomeModel">
+                    <div />
+                    @{
+                    #if DEBUG
+                    }
+                    <div />
+                    @{
+                    #endif
+                    }
                 </div>
 
                 @code {
@@ -512,10 +675,12 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
 
     private Task RunFormattingTestAsync(
        TestCode input,
+       string htmlFormatted,
        string expected)
     {
         return base.RunFormattingTestAsync(
             input,
+            htmlFormatted,
             expected,
             additionalFiles: [
                 (FilePath("Components.cs"),  """

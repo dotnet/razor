@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
@@ -52,6 +53,7 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
 
     private protected async Task RunFormattingTestAsync(
         string input,
+        string htmlFormatted,
         string expected,
         int tabSize = 4,
         bool insertSpaces = true,
@@ -62,9 +64,10 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         AttributeIndentStyle attributeIndentStyle = AttributeIndentStyle.AlignWithFirst,
         bool inGlobalNamespace = false,
         bool debugAssertsEnabled = true,
-        RazorCSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null)
+        RazorCSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null,
+        [CallerMemberName] string? testMethodName = null)
     {
-        (input, expected) = ProcessFormattingContext(input, expected);
+        (input, htmlFormatted, expected) = ProcessFormattingContext(input, htmlFormatted, expected);
 
         var razorLSPOptions = RazorLSPOptions.Default with
         {
@@ -74,11 +77,12 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
 
         csharpSyntaxFormattingOptions ??= RazorCSharpSyntaxFormattingOptions.Default;
 
-        await RunFormattingTestInternalAsync(input, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace, debugAssertsEnabled, csharpSyntaxFormattingOptions);
+        await RunFormattingTestInternalAsync(input, htmlFormatted, expected, tabSize, insertSpaces, fileKind, tagHelpers, allowDiagnostics, razorLSPOptions, inGlobalNamespace, debugAssertsEnabled, csharpSyntaxFormattingOptions, testMethodName);
     }
 
     private async Task RunFormattingTestInternalAsync(
         string input,
+        string htmlFormatted,
         string expected,
         int tabSize,
         bool insertSpaces,
@@ -88,7 +92,8 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         RazorLSPOptions? razorLSPOptions,
         bool inGlobalNamespace,
         bool debugAssertsEnabled,
-        RazorCSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
+        RazorCSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions,
+        string? testMethodName = null)
     {
         // Arrange
         var fileKindValue = fileKind ?? RazorFileKind.Component;
@@ -121,11 +126,22 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         var client = new FormattingLanguageServerClient(_htmlFormattingService, LoggerFactory);
         client.AddCodeDocument(codeDocument);
 
+        var htmlChanges = SourceText.From(htmlFormatted).GetTextChangesArray(source);
+
+#if NETFRAMEWORK
         var htmlFormatter = new HtmlFormatter(client);
-        var htmlChanges = await htmlFormatter.GetDocumentFormattingEditsAsync(documentSnapshot, uri, options, DisposalToken);
+        var htmlEdited = source.WithChanges(htmlChanges);
+        var htmlEditedLegacy = source.WithChanges(await htmlFormatter.GetDocumentFormattingEditsAsync(documentSnapshot, uri, options, DisposalToken) ?? []);
+        var htmlFormattedLegacy = _context.ShouldFlipLineEndings
+            ? htmlEditedLegacy.ToString().Replace("\r\n", "\n")
+            : htmlEditedLegacy.ToString();
+        Assert.Equal(htmlEdited.ToString(), htmlFormattedLegacy);
+        Assert.Equal(htmlFormatted, htmlFormattedLegacy);
+        AssertEx.EqualOrDiff(htmlFormatted, htmlEdited.ToString());
+#endif
 
         // Act
-        var changes = await formattingService.GetDocumentFormattingChangesAsync(documentContext, htmlChanges.AssumeNotNull(), range, razorOptions, DisposalToken);
+        var changes = await formattingService.GetDocumentFormattingChangesAsync(documentContext, htmlChanges, range, razorOptions, DisposalToken);
 
         // Assert
         var edited = source.WithChanges(changes);
@@ -150,7 +166,7 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         RazorLSPOptions? razorLSPOptions = null,
         bool inGlobalNamespace = false)
     {
-        (input, expected) = ProcessFormattingContext(input, expected);
+        (input, _, expected) = ProcessFormattingContext(input, "", expected);
 
         // Arrange
         var fileKindValue = fileKind ?? RazorFileKind.Component;
@@ -217,7 +233,7 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
         }
     }
 
-    private (string input, string expected) ProcessFormattingContext(string input, string expected)
+    private (string input, string htmlFormatted, string expected) ProcessFormattingContext(string input, string htmlFormatted, string expected)
     {
         Assert.True(_context.CreatedByFormattingDiscoverer, "Test class is using FormattingTestContext, but not using [FormattingTestFact] or [FormattingTestTheory]");
 
@@ -226,9 +242,10 @@ public abstract class FormattingTestBase : RazorToolingIntegrationTestBase
             // flip the line endings of the stings (LF to CRLF and vice versa) and run again
             input = FormattingTestContext.FlipLineEndings(input);
             expected = FormattingTestContext.FlipLineEndings(expected);
+            htmlFormatted = FormattingTestContext.FlipLineEndings(htmlFormatted);
         }
 
-        return (input, expected);
+        return (input, htmlFormatted, expected);
     }
 
     private (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(

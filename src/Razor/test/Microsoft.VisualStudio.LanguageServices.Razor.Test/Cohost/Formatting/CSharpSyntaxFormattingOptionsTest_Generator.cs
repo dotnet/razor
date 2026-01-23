@@ -66,6 +66,16 @@ public class CSharpSyntaxFormattingOptionsTest_Generator
                         }
                         }
                         """,
+                    htmlFormatted: """
+                        @code
+                        {
+                        private bool IconMenuActive { get; set; } = false;
+                        protected void ToggleIconMenu(bool iconMenuActive)
+                        {
+                        IconMenuActive = iconMenuActive;
+                        }
+                        }
+                        """,
                     expected: """
                         @code
                         {

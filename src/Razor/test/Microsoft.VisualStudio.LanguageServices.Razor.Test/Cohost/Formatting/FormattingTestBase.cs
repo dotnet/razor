@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -38,6 +39,7 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
 
     private protected async Task RunFormattingTestAsync(
         TestCode input,
+        string htmlFormatted,
         string expected,
         RazorFileKind? fileKind = null,
         bool inGlobalNamespace = false,
@@ -50,7 +52,7 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
         RazorCSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null,
         (string fileName, string contents)[]? additionalFiles = null)
     {
-        (input, expected) = ProcessFormattingContext(input, expected);
+        (input, htmlFormatted, expected) = ProcessFormattingContext(input, htmlFormatted, expected);
 
         var document = CreateProjectAndRazorDocument(input.Text, fileKind, inGlobalNamespace: inGlobalNamespace, additionalFiles: additionalFiles);
         if (!allowDiagnostics)
@@ -78,7 +80,26 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
         Assert.NotNull(generatedHtml);
 
         var uri = new Uri(document.CreateUri(), $"{document.FilePath}{LanguageServerConstants.HtmlVirtualDocumentSuffix}");
-        var htmlEdits = await _htmlFormattingService.GetDocumentFormattingEditsAsync(LoggerFactory, uri, generatedHtml, insertSpaces, tabSize);
+        TextEdit[] htmlEdits = [];
+
+        var source = SourceText.From(input.Text);
+        var htmlChanges = SourceText.From(htmlFormatted).GetTextChanges(source);
+        htmlEdits = [.. htmlChanges.Select(source.GetTextEdit)];
+
+#if NETFRAMEWORK
+        // Lets make sure everything is working as we expect in our tests
+        var htmlEditsResult = await _htmlFormattingService.GetDocumentFormattingEditsAsync(LoggerFactory, uri, generatedHtml, insertSpaces, tabSize);
+        var htmlChangesResult = htmlEditsResult.Select(source.GetTextChange);
+
+        var htmlEdited = source.WithChanges(htmlChanges);
+        var htmlEditedLegacy = source.WithChanges(htmlChangesResult ?? []);
+        var htmlFormattedLegacy = _context.ShouldFlipLineEndings
+            ? htmlEditedLegacy.ToString().Replace("\r\n", "\n")
+            : htmlEditedLegacy.ToString();
+        Assert.Equal(htmlEdited.ToString(), htmlFormattedLegacy);
+        Assert.Equal(htmlFormatted, htmlFormattedLegacy);
+        Assert.Equal(htmlFormatted, htmlEdited.ToString());
+#endif
 
         var span = input.TryGetNamedSpans(string.Empty, out var spans)
             ? spans.First()
@@ -124,7 +145,7 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
         RazorFileKind? fileKind = null,
         int? expectedChangedLines = null)
     {
-        (input, expected) = ProcessFormattingContext(input, expected);
+        (input, _, expected) = ProcessFormattingContext(input, "", expected);
 
         var document = CreateProjectAndRazorDocument(input.Text, fileKind: fileKind, inGlobalNamespace: inGlobalNamespace);
         var inputText = await document.GetTextAsync(DisposalToken);
@@ -183,7 +204,7 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
         }
     }
 
-    private (TestCode, string) ProcessFormattingContext(TestCode input, string expected)
+    private (TestCode, string, string) ProcessFormattingContext(TestCode input, string htmlFormatted, string expected)
     {
         Assert.True(_context.CreatedByFormattingDiscoverer, "Test class is using FormattingTestContext, but not using [FormattingTestFact] or [FormattingTestTheory]");
 
@@ -192,9 +213,10 @@ public abstract class FormattingTestBase : CohostEndpointTestBase
             // flip the line endings of the stings (LF to CRLF and vice versa) and run again
             input = new TestCode(FormattingTestContext.FlipLineEndings(input.OriginalInput));
             expected = FormattingTestContext.FlipLineEndings(expected);
+            htmlFormatted = FormattingTestContext.FlipLineEndings(htmlFormatted);
         }
 
-        return (input, expected);
+        return (input, htmlFormatted, expected);
     }
 
     private async Task<TextEdit[]?> GetFormattingEditsAsync(

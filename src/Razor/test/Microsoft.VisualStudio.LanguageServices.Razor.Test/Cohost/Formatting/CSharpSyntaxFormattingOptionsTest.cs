@@ -29,6 +29,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -52,6 +62,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -93,6 +113,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -116,6 +146,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -157,6 +197,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -180,6 +230,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -221,6 +281,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -244,6 +314,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -285,6 +365,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -308,6 +398,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -349,6 +449,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -372,6 +482,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -413,6 +533,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -436,6 +566,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -477,6 +617,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -500,6 +650,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -541,6 +701,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -564,6 +734,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -605,6 +785,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -628,6 +818,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -669,6 +869,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -692,6 +902,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -733,6 +953,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -756,6 +986,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -797,6 +1037,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -820,6 +1070,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -861,6 +1121,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -884,6 +1154,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -925,6 +1205,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -948,6 +1238,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -989,6 +1289,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -1012,6 +1322,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -1053,6 +1373,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -1076,6 +1406,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -1117,6 +1457,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -1140,6 +1490,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -1181,6 +1541,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -1203,6 +1573,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -1243,6 +1623,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -1274,6 +1664,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -1296,6 +1696,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -1337,6 +1747,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -1360,6 +1780,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -1401,6 +1831,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -1424,6 +1864,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -1465,6 +1915,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -1488,6 +1948,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -1529,6 +1999,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -1552,6 +2032,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -1593,6 +2083,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -1616,6 +2116,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -1657,6 +2167,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -1680,6 +2200,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -1721,6 +2251,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -1744,6 +2284,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -1785,6 +2335,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -1808,6 +2368,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -1849,6 +2419,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -1881,6 +2461,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -1904,6 +2494,16 @@ public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, Ht
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;

@@ -56,6 +56,22 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                         }
                     </GridTable>
                     """,
+            htmlFormatted: """
+                    <PageTitle>
+                        @if(true){
+                        <p>@DateTime.Now</p>
+                        }
+                    </PageTitle>
+
+                    <GridTable>
+                        @foreach (var row in rows){
+                        <GridRow @onclick="SelectRow(row)">
+                            @foreach (var cell in row){
+                            <GridCell>@cell</GridCell>}
+                        </GridRow>
+                        }
+                    </GridTable>
+                    """,
             tagHelpers: [.. tagHelpers]);
     }
 
@@ -73,6 +89,14 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                     </GridTable>
                     """,
             expected: """
+                    <GridTable>
+                        <GridRow>
+                            <GridCell>@cell</GridCell>
+                            <GridCell>cell</GridCell>
+                        </GridRow>
+                    </GridTable>
+                    """,
+            htmlFormatted: """
                     <GridTable>
                         <GridRow>
                             <GridCell>@cell</GridCell>
@@ -102,6 +126,13 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                         </GridRow>
                     </GridTable>
                     """,
+            htmlFormatted: """
+                    <GridTable>
+                        <GridRow>
+                            <GridCell>@(cell)</GridCell>
+                        </GridRow>
+                    </GridTable>
+                    """,
             tagHelpers: [.. tagHelpers]);
     }
 
@@ -121,6 +152,13 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                     <GridTable>
                         <GridRow>
                             <GridCell>@("" + "")</GridCell>
+                        </GridRow>
+                    </GridTable>
+                    """,
+            htmlFormatted: """
+                    <GridTable>
+                        <GridRow>
+                            <GridCell>@(""  +    "")</GridCell>
                         </GridRow>
                     </GridTable>
                     """,
@@ -146,6 +184,15 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                         <GridRow>
                             <GridCell>
                                 @("" + "")
+                            </GridCell>
+                        </GridRow>
+                    </GridTable>
+                    """,
+            htmlFormatted: """
+                    <GridTable>
+                        <GridRow>
+                            <GridCell>
+                                @(""  +    "")
                             </GridCell>
                         </GridRow>
                     </GridTable>
@@ -189,6 +236,26 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                                             @if (true)
                                             {
                                                 <strong></strong>
+                                            }
+                                            <strong></strong>
+                                        </ChildContent>
+                                    </GridCell>
+                                </ChildContent>
+                            </GridRow>
+                        </ChildContent>
+                    </GridTable>
+                    """,
+            htmlFormatted: """
+                    <GridTable>
+                        <ChildContent>
+                            <GridRow>
+                                <ChildContent>
+                                    <GridCell>
+                                        <ChildContent>
+                                            <strong></strong>
+                                            @if (true)
+                                            {
+                                            <strong></strong>
                                             }
                                             <strong></strong>
                                         </ChildContent>
@@ -260,6 +327,33 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                         </a_really_long_tag_name>
                     }
                     """,
+            htmlFormatted: """
+                    @if (true)
+                    {
+                    <Component1 Id="comp1"
+                                Caption="Title" />
+                    <Component1 Id="comp2"
+                                Caption="Title">
+                        <Frag>
+                            <Component1 Id="comp3"
+                                        Caption="Title" />
+                        </Frag>
+                    </Component1>
+                    }
+
+                    @if (true)
+                    {
+                    <a_really_long_tag_name Id="comp1"
+                                            Caption="Title" />
+                    <a_really_long_tag_name Id="comp2"
+                                            Caption="Title">
+                        <a_really_long_tag_name>
+                            <a_really_long_tag_name Id="comp3"
+                                                    Caption="Title" />
+                        </a_really_long_tag_name>
+                    </a_really_long_tag_name>
+                    }
+                    """,
             tagHelpers: [.. GetComponents()]);
     }
 
@@ -282,6 +376,14 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                           @<Component1 Id="Comp1"
                                        Caption="Title">
                           </Component1>;
+                    }
+                    """,
+            htmlFormatted: """
+                    @{
+                        RenderFragment fragment =
+                          @<Component1 Id="Comp1"
+                                       Caption="Title">
+                    </Component1>;
                     }
                     """,
             tagHelpers: [.. GetComponents()]);
@@ -309,6 +411,16 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                             @<Component1 Id="Comp1"
                                          Caption="Title">
                             </Component1>;
+                        }
+                    </Component1>
+                    """,
+            htmlFormatted: """
+                    <Component1>
+                        @{
+                        RenderFragment fragment =
+                        @<Component1 Id="Comp1"
+                                     Caption="Title">
+                        </Component1>;
                         }
                     </Component1>
                     """,
@@ -360,6 +472,26 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                     </ChildContent>
                     </GridTable>
                     """,
+            htmlFormatted: """
+                    <GridTable>
+                        <ChildContent>
+                            <GridRow>
+                                <ChildContent>
+                                    <GridCell>
+                                        <ChildContent>
+                                            <strong></strong>
+                                            @if (true)
+                                            {
+                                            <strong></strong>
+                                            }
+                                            <strong></strong>
+                                        </ChildContent>
+                                    </GridCell>
+                                </ChildContent>
+                            </GridRow>
+                        </ChildContent>
+                    </GridTable>
+                    """,
             tagHelpers: [.. GetComponents()]);
     }
 
@@ -395,6 +527,21 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                         @foreach (var i in new int[] { 1, 23 })
                         {
                             <SelectItem Value="@i">@i</SelectItem>
+                        }
+                    </Select>
+                    """,
+            htmlFormatted: """
+
+                    <div>
+                        @foreach ( var i in new int[] { 1, 23 } )
+                        {
+                        <div></div>
+                        }
+                    </div>
+                    <Select TValue="string">
+                        @foreach ( var i in new int[] { 1, 23 } )
+                        {
+                        <SelectItem Value="@i">@i</SelectItem>
                         }
                     </Select>
                     """,
@@ -477,6 +624,22 @@ public class HtmlFormattingTest(FormattingTestContext context, HtmlFormattingFix
                         private object SomeModel { get; set; }
                     }
                     """,
+            htmlFormatted: """
+                <div Model="SomeModel">
+                    <div />
+                    @{
+                    #if DEBUG
+                    }
+                    <div />
+                    @{
+                    #endif
+                    }
+                </div>
+
+                @code {
+                    private object SomeModel {get;set;}
+                }
+                """,
             allowDiagnostics: true);
     }
 

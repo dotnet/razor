@@ -25,6 +25,9 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
     {
         await RunFormattingTestAsync(
             input: "",
+            htmlFormatted: """
+                
+                """,
             expected: "");
     }
 
@@ -53,6 +56,25 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                               that shouldn't move
                           ";
                 }
+                </div>
+                """",
+            htmlFormatted: """"
+                <div>
+                    @{
+                    var s1 = "    test    test    ";
+                
+                    var s2 = """
+                    this is
+                    async string
+                    that shouldn't move
+                    """;
+                
+                    var s3 = @"
+                    this is
+                    async string
+                    that shouldn't move
+                    ";
+                    }
                 </div>
                 """",
             expected: """"
@@ -97,6 +119,18 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 }
                 </div>
                 """,
+            htmlFormatted: """
+                <div>
+                    @switch (true)
+                    {
+                    case true:
+                    @if (true)
+                    {
+                    }
+                    break;
+                    }
+                </div>
+                """,
             expected: """
                 <div>
                     @switch (true)
@@ -123,6 +157,14 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                 }
                 """,
+            htmlFormatted: """
+                <div></div>
+                
+                @code {
+                    private void M(string request) {
+                    }
+                }
+                """,
             expected: """
                 <div></div>
                 
@@ -143,6 +185,22 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
 
                 @code {
                     private void M(string [|request|]) {
+                        // This is quite a lot of content
+                        // This is quite a lot of content
+                        // This is quite a lot of content
+                        // This is quite a lot of content
+                        // This is quite a lot of content
+                        // This is quite a lot of content
+                        // This is quite a lot of content
+                        // This is quite a lot of content
+                    }
+                }
+                """,
+            htmlFormatted: """
+                <div></div>
+                
+                @code {
+                    private void M(string request) {
                         // This is quite a lot of content
                         // This is quite a lot of content
                         // This is quite a lot of content
@@ -184,6 +242,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
 
                 </div>
                 """,
+            htmlFormatted: """
+                <div>
+                
+                    @DateTime.Now.ToString()
+                
+                </div>
+                """,
             expected: """
                 <div>
                 
@@ -209,6 +274,23 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 @code {
                 private int counter;
 
+                class Goo
+                {
+                    public int GetCount()
+                    {
+                        return counter++;
+                    }
+                }
+                }
+                """,
+            htmlFormatted: """
+                <h1>count is @counter</h1>
+                
+                @GetCount()
+                
+                @code {
+                private int counter;
+                
                 class Goo
                 {
                     public int GetCount()
@@ -253,6 +335,23 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 @code {
                 private int counter;
 
+                class Goo
+                {
+                    public int GetCount()
+                    {
+                        return counter++;
+                    }
+                }
+                }
+                """,
+            htmlFormatted: """
+                <h1>count is @counter</h1>
+                
+                @GetCount()
+                
+                @code {
+                private int counter;
+                
                 class Goo
                 {
                     public int GetCount()
@@ -308,6 +407,21 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 }
                 }
                 """,
+            htmlFormatted: """
+                <h1>count is @counter</h1>
+                
+                @code {
+                private int counter;
+                
+                class Goo
+                {
+                    public void Bar()
+                    {
+                        counter++;
+                    }
+                }
+                }
+                """,
             expected: """
                 <h1>count is @counter</h1>
 
@@ -338,6 +452,22 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 {
                 private int counter;
 
+                class Goo
+                {
+                    public void Bar()
+                    {
+                        counter++;
+                    }
+                }
+                }
+                """,
+            htmlFormatted: """
+                <h1>count is @counter</h1>
+                
+                @code
+                {
+                private int counter;
+                
                 class Goo
                 {
                     public void Bar()
@@ -380,6 +510,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 }
                 }
                 """,
+            htmlFormatted: """
+                @code {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
             expected: """
                 @code {
                     private bool IconMenuActive { get; set; } = false;
@@ -400,6 +539,16 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                 {
                 private bool IconMenuActive { get; set; } = false;
@@ -430,6 +579,16 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
     {
         await RunFormattingTestAsync(
             input: """
+                @code
+                    {
+                private bool IconMenuActive { get; set; } = false;
+                protected void ToggleIconMenu(bool iconMenuActive)
+                {
+                IconMenuActive = iconMenuActive;
+                }
+                }
+                """,
+            htmlFormatted: """
                 @code
                     {
                 private bool IconMenuActive { get; set; } = false;
@@ -471,6 +630,18 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 }
                 </div>
                 """,
+            htmlFormatted: """
+                <div>
+                    @code
+                    {
+                    private bool IconMenuActive { get; set; } = false;
+                    protected void ToggleIconMenu(bool iconMenuActive)
+                    {
+                    IconMenuActive = iconMenuActive;
+                    }
+                    }
+                </div>
+                """,
             expected: """
                 <div>
                 @code
@@ -494,6 +665,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
     {
         await RunFormattingTestAsync(
             input: """
+                @code {
+                    public string Name
+                    {
+                        get;
+                        set;
+                    }
+                }
+                """,
+            htmlFormatted: """
                 @code {
                     public string Name
                     {
@@ -527,6 +707,9 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 
 
             """,
+            htmlFormatted: """
+                
+                """,
             expected: """
 
                 
@@ -546,6 +729,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             <div></div>
 
             """,
+            htmlFormatted: """
+                
+                
+                
+                <div></div>
+                
+                """,
             expected: """
             
                 
@@ -565,6 +755,12 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 
 
                 """,
+            htmlFormatted: """
+                <div></div>
+                
+                
+                
+                """,
             expected: """
                 <div></div>
                 
@@ -583,6 +779,12 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     <meta property="a" content="b">
                     }
                     """,
+            htmlFormatted: """
+                @section    Scripts
+                    {
+                <meta property="a" content="b">
+                }
+                """,
             expected: """
                     @section Scripts
                     {
@@ -601,6 +803,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     <meta property="a" content="b">
                     }
                     """,
+            htmlFormatted: """
+                @section        Scripts                         {
+                <meta property="a" content="b">
+                }
+                """,
             expected: """
                     @section Scripts {
                         <meta property="a" content="b">
@@ -624,6 +831,17 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code
+                        {
+                    private int currentCount = 0;
+                
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
             expected: """
                     @code
                     {
@@ -655,6 +873,19 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     </boo>
                     """,
+            htmlFormatted: """
+                <boo>
+                    @code
+                    {
+                    private int currentCount = 0;
+                
+                    private void IncrementCount()
+                    {
+                    currentCount++;
+                    }
+                    }
+                </boo>
+                """,
             expected: """
                     <boo>
                     @code
@@ -688,6 +919,19 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                                             }
                     </boo>
                     """,
+            htmlFormatted: """
+                <boo>
+                    @code
+                    {
+                    private int currentCount = 0;
+                
+                    private void IncrementCount()
+                    {
+                    currentCount++;
+                    }
+                    }
+                </boo>
+                """,
             expected: """
                     <boo>
                     @code
@@ -720,6 +964,19 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     </boo>
                     """,
+            htmlFormatted: """
+                <boo>
+                    @code
+                    {
+                    private int currentCount = 0;
+                
+                    private void IncrementCount()
+                    {
+                    currentCount++;
+                    }
+                    }
+                </boo>
+                """,
             expected: """
                     <boo>
                     @code
@@ -749,6 +1006,16 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                         }
                     """,
+            htmlFormatted: """
+                @code        {
+                    private int currentCount = 0;
+                
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                    }
+                """,
             expected: """
                     @code {
                         private int currentCount = 0;
@@ -774,6 +1041,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             currentCount++;
                         }                        }
                     """,
+            htmlFormatted: """
+                @code        {
+                    private int currentCount = 0;
+                
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }                        }
+                """,
             expected: """
                     @code {
                         private int currentCount = 0;
@@ -800,6 +1076,16 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                         }
                     """,
+            htmlFormatted: """
+                @code        {
+                    private int currentCount = 0;
+                
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                    }
+                """,
             expected: """
                     @code
                     {
@@ -827,6 +1113,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             currentCount++;
                         }                        }
                     """,
+            htmlFormatted: """
+                @code        {
+                    private int currentCount = 0;
+                
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }                        }
+                """,
             expected: """
                     @code
                     {
@@ -855,6 +1150,16 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code        {
+                    private int currentCount = 0;
+                
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
             expected: """
                     @code {
                         private int currentCount = 0;
@@ -881,6 +1186,16 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code	{
+                    private int currentCount = 0;
+                
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
             expected: """
                     @code {
                         private int currentCount = 0;
@@ -907,6 +1222,16 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code	{
+                    private int currentCount = 0;
+                
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
             expected: """
                     @code
                     {
@@ -935,6 +1260,16 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code{
+                    private int currentCount = 0;
+                
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
             expected: """
                     @code {
                         private int currentCount = 0;
@@ -961,6 +1296,16 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code{
+                    private int currentCount = 0;
+                
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
             expected: """
                     @code
                     {
@@ -990,6 +1335,17 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @functions
+                        {
+                    private int currentCount = 0;
+                
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
             expected: """
                     @functions
                     {
@@ -1018,6 +1374,16 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @functions        {
+                    private int currentCount = 0;
+                
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
             expected: """
                     @functions {
                         private int currentCount = 0;
@@ -1045,6 +1411,16 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @functions        {
+                    private int currentCount = 0;
+                
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
             expected: """
                     @functions
                     {
@@ -1074,6 +1450,16 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                              }
                     """,
+            htmlFormatted: """
+                @functions        {
+                    private int currentCount = 0;
+                
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                         }
+                """,
             expected: """
                     @functions {
                         private int currentCount = 0;
@@ -1100,6 +1486,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             currentCount++;
                         }                             }
                     """,
+            htmlFormatted: """
+                @functions        {
+                    private int currentCount = 0;
+                
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }                             }
+                """,
             expected: """
                     @functions {
                         private int currentCount = 0;
@@ -1139,7 +1534,17 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     """,
             insertSpaces: false,
             tabSize: 8,
-            fileKind: RazorFileKind.Legacy);
+            fileKind: RazorFileKind.Legacy,
+            htmlFormatted: """
+                @functions        {
+                	private int currentCount = 0;
+                
+                	private void IncrementCount()
+                	{
+                		currentCount++;
+                	}
+                				}
+                """);
     }
 
     [FormattingTestFact]
@@ -1149,6 +1554,9 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             input: """
                     @layout    MyLayout
                     """,
+            htmlFormatted: """
+                @layout    MyLayout
+                """,
             expected: """
                     @layout MyLayout
                     """);
@@ -1161,6 +1569,9 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             input: """
                     @inherits    MyBaseClass
                     """,
+            htmlFormatted: """
+                @inherits    MyBaseClass
+                """,
             expected: """
                     @inherits MyBaseClass
                     """);
@@ -1173,6 +1584,9 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             input: """
                     @implements    IDisposable
                     """,
+            htmlFormatted: """
+                @implements    IDisposable
+                """,
             expected: """
                     @implements IDisposable
                     """);
@@ -1185,6 +1599,9 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             input: """
                     @preservewhitespace    true
                     """,
+            htmlFormatted: """
+                @preservewhitespace    true
+                """,
             expected: """
                     @preservewhitespace true
                     """);
@@ -1197,6 +1614,9 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             input: """
                     @inject    MyClass     myClass
                     """,
+            htmlFormatted: """
+                @inject    MyClass     myClass
+                """,
             expected: """
                     @inject MyClass myClass
                     """);
@@ -1209,6 +1629,9 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             input: """
                     @inject    MyClass     myClass
                     """,
+            htmlFormatted: """
+                @inject    MyClass     myClass
+                """,
             expected: """
                     @inject MyClass myClass
                     """);
@@ -1221,6 +1644,9 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             input: """
                     @attribute     [Obsolete(   "asdf"   , error:    false)]
                     """,
+            htmlFormatted: """
+                @attribute     [Obsolete(   "asdf"   , error:    false)]
+                """,
             expected: """
                     @attribute [Obsolete("asdf", error: false)]
                     """);
@@ -1235,6 +1661,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     @attribute   [Attribute(   "asdf"   , error:    false)]
                     @attribute [ALongAttributeName(   "asdf"   , error:    false)]
                     """,
+            htmlFormatted: """
+                @attribute     [Attr(   "asdf"   , error:    false)]
+                @attribute   [Attribute(   "asdf"   , error:    false)]
+                @attribute [ALongAttributeName(   "asdf"   , error:    false)]
+                """,
             expected: """
                     @attribute [Attr("asdf", error: false)]
                     @attribute [Attribute("asdf", error: false)]
@@ -1255,6 +1686,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     @attribute     [Obsolete(   "asdf"   , error:    false)]
                     <div></div>
                     """,
+            htmlFormatted: """
+                <div></div>
+                @attribute     [Obsolete(   "asdf"   , error:    false)]
+                <div></div>
+                @attribute     [Obsolete(   "asdf"   , error:    false)]
+                <div></div>
+                @attribute     [Obsolete(   "asdf"   , error:    false)]
+                <div></div>
+                """,
             expected: """
                     <div></div>
                     @attribute [Obsolete("asdf", error: false)]
@@ -1273,6 +1713,9 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             input: """
                     @typeparam     T
                     """,
+            htmlFormatted: """
+                @typeparam     T
+                """,
             expected: """
                     @typeparam T
                     """);
@@ -1285,6 +1728,9 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             input: """
                     @typeparam     T     where    T    :   IDisposable
                     """,
+            htmlFormatted: """
+                @typeparam     T     where    T    :   IDisposable
+                """,
             expected: """
                     @typeparam T where T : IDisposable
                     """);
@@ -1297,6 +1743,9 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             input: """
                     @typeparam     TItem     where    TItem    :   IDisposable
                     """,
+            htmlFormatted: """
+                @typeparam     TItem     where    TItem    :   IDisposable
+                """,
             expected: """
                     @typeparam TItem where TItem : IDisposable
                     """);
@@ -1319,6 +1768,19 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     </div>
                     """,
+            htmlFormatted: """
+                @using System
+                @typeparam     TItem     where    TItem    :   IDisposable
+                
+                <div>
+                    @{
+                    if (true)
+                    {
+                    // Hello
+                    }
+                    }
+                </div>
+                """,
             expected: """
                     @using System
                     @typeparam TItem where TItem : IDisposable
@@ -1348,6 +1810,16 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     // Hello
                     }
                     """,
+            htmlFormatted: """
+                @using System
+                @typeparam     TItem     where    TItem    :   IDisposable
+                @typeparam TParent where TParent : string
+                
+                @if (true)
+                {
+                // Hello
+                }
+                """,
             expected: """
                     @using System
                     @typeparam TItem where TItem : IDisposable
@@ -1367,6 +1839,9 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             input: """
                     @model    MyModel
                     """,
+            htmlFormatted: """
+                @model    MyModel
+                """,
             expected: """
                     @model MyModel
                     """,
@@ -1380,6 +1855,9 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             input: """
                     @page    "MyPage"
                     """,
+            htmlFormatted: """
+                @page    "MyPage"
+                """,
             expected: """
                     @page "MyPage"
                     """,
@@ -1399,6 +1877,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         *@
                     </div>
                     """,
+            htmlFormatted: """
+                <div>
+                    @* <div>
+                    This comment's opening at-star will be aligned, and the
+                    indentation of the rest of its lines will be preserved.
+                    </div>
+                    *@
+                </div>
+                """,
             expected: """
                     <div>
                         @* <div>
@@ -1423,6 +1910,14 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             </div>                        *@
                     </div>
                     """,
+            htmlFormatted: """
+                <div>
+                    @* <div>
+                    This comment's opening at-star will be aligned, and the
+                    indentation of the rest of its lines will be preserved.
+                    </div>                        *@
+                </div>
+                """,
             expected: """
                     <div>
                         @* <div>
@@ -1447,6 +1942,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     *@
                     </div>
                     """,
+            htmlFormatted: """
+                <div>
+                    @* <div>
+                    This comment's opening at-star will be aligned, and the
+                    indentation of the rest of its lines will be preserved.
+                    </div>
+                    *@
+                </div>
+                """,
             expected: """
                     <div>
                         @* <div>
@@ -1466,6 +1970,9 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             input: """
                     @using   System;
                     """,
+            htmlFormatted: """
+                @using   System;
+                """,
             expected: """
                     @using System;
                     """);
@@ -1478,6 +1985,9 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             input: """
                     @using  static   System.Math;
                     """,
+            htmlFormatted: """
+                @using  static   System.Math;
+                """,
             expected: """
                     @using static System.Math;
                     """);
@@ -1490,6 +2000,9 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             input: """
                     @using  M   =    System.Math;
                     """,
+            htmlFormatted: """
+                @using  M   =    System.Math;
+                """,
             expected: """
                     @using M = System.Math;
                     """);
@@ -1506,6 +2019,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     @removeTagHelper    "*,  Microsoft.AspNetCore.Mvc.TagHelpers"
                     @tagHelperPrefix    th:
                     """,
+            htmlFormatted: """
+                @addTagHelper    *,    Microsoft.AspNetCore.Mvc.TagHelpers
+                @removeTagHelper    *,     Microsoft.AspNetCore.Mvc.TagHelpers
+                @addTagHelper    "*,  Microsoft.AspNetCore.Mvc.TagHelpers"
+                @removeTagHelper    "*,  Microsoft.AspNetCore.Mvc.TagHelpers"
+                @tagHelperPrefix    th:
+                """,
             expected: """
                     @addTagHelper    *,    Microsoft.AspNetCore.Mvc.TagHelpers
                     @removeTagHelper    *,     Microsoft.AspNetCore.Mvc.TagHelpers
@@ -1521,6 +2041,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
     {
         await RunFormattingTestAsync(
             input: RazorTestResources.GetResourceText("FormattingTest.razor"),
+            htmlFormatted: RazorTestResources.GetResourceText("FormattingTest_HtmlFormatted.razor"),
             expected: RazorTestResources.GetResourceText("FormattingTest_Expected.razor"),
             allowDiagnostics: true);
     }
@@ -1538,6 +2059,17 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             </body>
                      </html>
                     """,
+            htmlFormatted: """
+                <html>
+                <head>
+                    <title>Hello</title>
+                </head>
+                <body>
+                    <div>
+                    </div>
+                </body>
+                </html>
+                """,
             expected: """
                     <html>
                     <head>
@@ -1566,6 +2098,17 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     </body>
                     </html>
                     """,
+            htmlFormatted: """
+                <html>
+                <head>
+                    <title>Hello</title>
+                </head>
+                <body>
+                    <div>
+                    </div>
+                </body>
+                </html>
+                """,
             expected: """
                     <html>
                     <head>
@@ -1607,6 +2150,33 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             </div>
                     </p>
                     """,
+            htmlFormatted: """
+                @page "/error"
+                
+                <h1 class="text-danger">
+                    Error.
+                </h1>
+                <h2 class="text-danger">An error occurred while processing your request.</h2>
+                
+                <h3>Development Mode</h3>
+                <p>
+                    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
+                </p>
+                <p>
+                    <strong>
+                        The Development environment shouldn't be enabled for deployed applications.
+                    </strong>
+                    <div>
+                        <div>
+                            <div>
+                                <div>
+                                    This is heavily nested
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </p>
+                """,
             expected: """
                     @page "/error"
 
@@ -1663,6 +2233,29 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             </div>
                     }
                     """,
+            htmlFormatted: """
+                @page "/test"
+                @{
+                <p>
+                    @{
+                    var t = 1;
+                    if (true)
+                    {
+                
+                    }
+                    }
+                </p>
+                <div>
+                    @{
+                    <div>
+                        <div>
+                            This is heavily nested
+                        </div>
+                    </div>
+                    }
+                </div>
+                }
+                """,
             expected: """
                     @page "/test"
                     @{
@@ -1705,6 +2298,19 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     <br class='@className'/>
                     <br class="@className"/>
                     """,
+            htmlFormatted: """
+                <div class=@className>Some Text</div>
+                <div class=@className style=@style>Some Text</div>
+                <div class=@className style="@style">Some Text</div>
+                <div class='@className'>Some Text</div>
+                <div class="@className">Some Text</div>
+                
+                <br class=@className/>
+                <br class=@className style=@style/>
+                <br class=@className style="@style"/>
+                <br class='@className'/>
+                <br class="@className"/>
+                """,
             expected: """
                     <div class=@className>Some Text</div>
                     <div class=@className style=@style>Some Text</div>
@@ -1746,6 +2352,28 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             </p>
                     }
                     """,
+            htmlFormatted: """
+                @page "/test"
+                
+                <div class=@className>Some Text</div>
+                
+                @{
+                @: Hi!
+                var x = 123;
+                <p>
+                    @if (true) {
+                    var t = 1;
+                    if (true)
+                    {
+                    <div>@DateTime.Now</div>
+                    }
+                
+                    @while(true){
+                    }
+                    }
+                </p>
+                }
+                """,
             expected: """
                     @page "/test"
 
@@ -1805,6 +2433,36 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         })
                     )
                     """,
+            htmlFormatted: """
+                @page "/test"
+                
+                <div attr='val'
+                     class=@className>
+                    Some Text
+                </div>
+                
+                @{
+                @: Hi!
+                var x = DateTime
+                    .Now.ToString();
+                <p>
+                    @if (true) {
+                    var t = 1;
+                    }
+                </p>
+                }
+                
+                @(DateTime
+                    .Now
+                .ToString())
+                
+                @(
+                    Foo.Values.Select(f =>
+                    {
+                        return f.ToString();
+                    })
+                )
+                """,
             expected: """
                     @page "/test"
 
@@ -1895,6 +2553,59 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @page "/"
+                
+                <h1>Hello, world!</h1>
+                
+                        Welcome to your new app.
+                
+                <PageTitle Title="How is Blazor working for you?" />
+                
+                <div class="FF"
+                     id="ERT">
+                    asdf
+                    <div class="3"
+                         id="3">
+                        @if(true){<p></p>}
+                    </div>
+                </div>
+                
+                @{
+                <div class="FF"
+                     id="ERT">
+                    asdf
+                    <div class="3"
+                         id="3">
+                        @if(true){<p></p>}
+                    </div>
+                </div>
+                }
+                
+                @{
+                <div class="FF"
+                     id="ERT">
+                    @{
+                    <div class="FF"
+                         id="ERT">
+                        asdf
+                        <div class="3"
+                             id="3">
+                            @if(true){<p></p>}
+                        </div>
+                    </div>
+                    }
+                </div>
+                }
+                
+                @functions {
+                        public class Foo
+                    {
+                        @* This is a Razor Comment *@
+                        void Method() { }
+                    }
+                }
+                """,
             expected: """
                     @page "/"
 
@@ -1968,6 +2679,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     </div>
                     @{<p></p>}
                     """,
+            htmlFormatted: """
+                <div>
+                </div>
+                @{<p></p>}
+                """,
             expected: """
                     <div>
                     </div>
@@ -1994,6 +2710,18 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                    public string DoSomething()
+                    {
+                <strong>
+                    @DateTime.Now.ToString()
+                </strong>
+                
+                        return String.Empty;
+                    }
+                }
+                """,
             expected: """
                     @code {
                         public string DoSomething()
@@ -2025,6 +2753,18 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                    public string DoSomething()
+                    {
+                <strong>
+                	@DateTime.Now.ToString()
+                </strong>
+                
+                        return String.Empty;
+                    }
+                }
+                """,
             expected: """
                     @code {
                     	public string DoSomething()
@@ -2036,8 +2776,8 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     		return String.Empty;
                     	}
                     }
-                    """,
-            tabSize: 4, // Due to a bug in the HTML formatter, this needs to be 4
+                    """, // Due to a bug in the HTML formatter, this needs to be 4
+            tabSize: 4,
             insertSpaces: false);
     }
 
@@ -2064,6 +2804,24 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                      </div>
                     }
                     """,
+            htmlFormatted: """
+                @page "/"
+                @{
+                 ViewData["Title"] = "Create";
+                <hr />
+                <div class="row">
+                	<div class="col-md-4">
+                		<form method="post">
+                			<div class="form-group">
+                				<label asp-for="Movie.Title" class="control-label"></label>
+                				<input asp-for="Movie.Title" class="form-control" />
+                				<span asp-validation-for="Movie.Title" class="text-danger"></span>
+                			</div>
+                		</form>
+                	</div>
+                </div>
+                }
+                """,
             expected: """
                     @page "/"
                     @{
@@ -2081,8 +2839,8 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     		</div>
                     	</div>
                     }
-                    """,
-            tabSize: 4, // Due to a bug in the HTML formatter, this needs to be 4
+                    """, // Due to a bug in the HTML formatter, this needs to be 4
+            tabSize: 4,
             insertSpaces: false,
             fileKind: RazorFileKind.Legacy);
     }
@@ -2108,6 +2866,22 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                       </div>
                      </div>
                     """,
+            htmlFormatted: """
+                @page "/"
+                
+                <hr />
+                <div class="row">
+                	<div class="col-md-4">
+                		<form method="post">
+                			<div class="form-group">
+                				<label asp-for="Movie.Title" class="control-label"></label>
+                				<input asp-for="Movie.Title" class="form-control" />
+                				<span asp-validation-for="Movie.Title" class="text-danger"></span>
+                			</div>
+                		</form>
+                	</div>
+                </div>
+                """,
             expected: """
                     @page "/"
 
@@ -2123,8 +2897,8 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     		</form>
                     	</div>
                     </div>
-                    """,
-            tabSize: 4, // Due to a bug in the HTML formatter, this needs to be 4
+                    """, // Due to a bug in the HTML formatter, this needs to be 4
+            tabSize: 4,
             insertSpaces: false,
             fileKind: RazorFileKind.Legacy);
     }
@@ -2152,6 +2926,24 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                       </div>
                      </div>
                     """,
+            htmlFormatted: """
+                @page "/"
+                
+                <hr />
+                <div class="row">
+                	<div class="col-md-4"
+                		 label="label">
+                		<form method="post">
+                			<div class="form-group">
+                				<label asp-for="Movie.Title"
+                					   class="control-label"></label>
+                				<input asp-for="Movie.Title" class="form-control" />
+                				<span asp-validation-for="Movie.Title" class="text-danger"></span>
+                			</div>
+                		</form>
+                	</div>
+                </div>
+                """,
             expected: """
                     @page "/"
 
@@ -2169,8 +2961,8 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     		</form>
                     	</div>
                     </div>
-                    """,
-            tabSize: 4, // Due to a bug in the HTML formatter, this needs to be 4
+                    """, // Due to a bug in the HTML formatter, this needs to be 4
+            tabSize: 4,
             insertSpaces: false,
             fileKind: RazorFileKind.Legacy);
     }
@@ -2199,6 +2991,25 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     </Router>
                     </CascadingAuthenticationState>
                     """,
+            htmlFormatted: """
+                <CascadingAuthenticationState>
+                    <Router AppAssembly="@typeof(Program).Assembly">
+                        <Found Context="routeData">
+                            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+                        </Found>
+                        <NotFound>
+                            <LayoutView Layout="@typeof(MainLayout)">
+                                <p>Sorry, there's nothing at this address.</p>
+                
+                                @if (true)
+                                {
+                                <strong></strong>
+                                }
+                            </LayoutView>
+                        </NotFound>
+                    </Router>
+                </CascadingAuthenticationState>
+                """,
             expected: """
                     <CascadingAuthenticationState>
                         <Router AppAssembly="@typeof(Program).Assembly">
@@ -2244,6 +3055,25 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         </table>
                     }
                     """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <p><em>Loading...</em></p>
+                }
+                else
+                {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Temp. (C)</th>
+                            <th>Temp. (F)</th>
+                            <th>Summary</th>
+                        </tr>
+                    </thead>
+                </table>
+                }
+                """,
             expected: """
                     @if (true)
                     {
@@ -2294,6 +3124,36 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
 
                 </div>
 
+                @code {
+                bool showResult = false;
+                object? productsForExport = null;
+                }
+                """,
+            htmlFormatted: """
+                <div class="p-3 pb-0" style="min-height:24rem;">
+                
+                    @if (productsForExport != null)
+                    {
+                    <label class="section-label">
+                        @(!showResult ? "some label" : "another label")
+                    </label>
+                
+                    <div class="row">
+                        <div class="col">
+                            @if (!showResult)
+                            {
+                            <label>
+                                <input type="checkbox" class="me-2 mt-1" />
+                                <span>some label</span>
+                            </label>
+                            }
+                        </div>
+                
+                    </div>
+                    }
+                
+                </div>
+                
                 @code {
                 bool showResult = false;
                 object? productsForExport = null;
@@ -2354,6 +3214,25 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         </table>
                     }
                     """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <p><em>Loading...</em></p>
+                }
+                else
+                {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Temp. (C)</th>
+                            <th>Temp. (F)</th>
+                            <th>Summary</th>
+                        </tr>
+                    </thead>
+                </table>
+                }
+                """,
             expected: """
                     @if (true)
                     {
@@ -2403,6 +3282,25 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code
+                {
+                    public void DoStuff(RenderFragment renderFragment)
+                    {
+                        DoThings();
+                        renderFragment(@
+                <PageTitle Title="Foo" />);
+                DoThings();
+                renderFragment(@
+                <PageTitle Title="Foo" />);
+                
+                        @* comment *@
+                <div></div>
+                
+                        @* comment *@<div></div>
+                    }
+                }
+                """,
             expected: """
                     @code
                     {
@@ -2446,6 +3344,18 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     </div>
                     """,
+            htmlFormatted: """
+                <div>
+                    @{
+                    renderFragment(@<PageTitle Title="Foo" />);
+                
+                    @* comment *@
+                    <div></div>
+                
+                    @* comment *@<div></div>
+                    }
+                </div>
+                """,
             expected: """
                     <div>
                         @{
@@ -2484,6 +3394,18 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     </div>
                     """,
+            htmlFormatted: """
+                <div>
+                    @{
+                    renderFragment    (@<PageTitle Title="Foo" />);
+                
+                    @* comment *@
+                    <div></div>
+                
+                    @* comment *@<div></div>
+                    }
+                </div>
+                """,
             expected: """
                     <div>
                         @{
@@ -2513,7 +3435,17 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 </text>;
                 }
                 """,
-         expected: """
+         htmlFormatted: """
+                @{
+                Func<(bool b1, bool b2), object> o1 = @<text>
+                    <div></div>
+                </text>;
+                Func<(bool b1, bool b2), object> o2 = @<text>
+                    <div></div>
+                </text>;
+                }
+                """,
+            expected: """
                 @{
                     Func<(bool b1, bool b2), object> o1 = @<text>
                         <div></div>
@@ -2543,6 +3475,20 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         </span>
                     }
                     """,
+            htmlFormatted: """
+                @foreach (var num in Enumerable.Range(1, 10))
+                {
+                <span class="skill_result btn">
+                    <!--asdfasd-->
+                    <span style="margin-left:0px">
+                        <svg>
+                            <rect width="1" height="1" />
+                        </svg>
+                    </span>
+                    <!--adfasfd-->
+                </span>
+                }
+                """,
             expected: """
                     @foreach (var num in Enumerable.Range(1, 10))
                     {
@@ -2574,6 +3520,16 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         </span>
                     }
                     """,
+            htmlFormatted: """
+                @foreach (var num in Enumerable.Range(1, 10))
+                {
+                <span class="skill_result btn">
+                    <!--asdfasd-->
+                    <input type="text" />
+                    <!--adfasfd-->
+                </span>
+                }
+                """,
             expected: """
                     @foreach (var num in Enumerable.Range(1, 10))
                     {
@@ -2606,6 +3562,21 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         </span>
                     }
                     """,
+            htmlFormatted: """
+                @foreach (var num in Enumerable.Range(1, 10))
+                {
+                <span class="skill_result btn">
+                    <!-- this is a
+                        very long
+                    comment in Html -->
+                    <input type="text" />
+                    <!-- this is a
+                    very long
+                    comment in Html
+                        -->
+                </span>
+                }
+                """,
             expected: """
                     @foreach (var num in Enumerable.Range(1, 10))
                     {
@@ -2655,6 +3626,33 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     public bool VarBool {get;set;}
                     }
                     """,
+            htmlFormatted: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                @if (Object1!= null)
+                {
+                <CascadingValue Value="Variable1">
+                    <CascadingValue Value="Variable2">
+                        <PageTitle />
+                        @if (VarBool)
+                        {
+                        <div class="mb-16">
+                            <PageTitle />
+                            <PageTitle />
+                        </div>
+                        }
+                    </CascadingValue>
+                </CascadingValue>
+                }
+                
+                @code
+                {
+                    public object Object1 {get;set;}
+                    public object Variable1 {get;set;}
+                public object Variable2 {get;set;}
+                public bool VarBool {get;set;}
+                }
+                """,
             expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
@@ -2715,6 +3713,31 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     public bool VarBool {get;set;}
                     }
                     """,
+            htmlFormatted: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                @if (Object1!= null)
+                {
+                <CascadingValue Value="Variable1">
+                    <PageTitle />
+                    @if (VarBool)
+                    {
+                    <div class="mb-16">
+                        <PageTitle />
+                        <PageTitle />
+                    </div>
+                    }
+                </CascadingValue>
+                }
+                
+                @code
+                {
+                    public object Object1 {get;set;}
+                    public object Variable1 {get;set;}
+                public object Variable2 {get;set;}
+                public bool VarBool {get;set;}
+                }
+                """,
             expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
@@ -2774,6 +3797,32 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     public bool VarBool {get;set;}
                     }
                     """,
+            htmlFormatted: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                @if (Object1!= null)
+                {
+                    @if (VarBool)
+                    {
+                <PageTitle />
+                            @if (VarBool)
+                        {
+                <div class="mb-16">
+                    <PageTitle />
+                    <PageTitle />
+                </div>
+                        }
+                }
+                }
+                
+                @code
+                {
+                    public object Object1 {get;set;}
+                    public object Variable1 {get;set;}
+                public object Variable2 {get;set;}
+                public bool VarBool {get;set;}
+                }
+                """,
             expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
@@ -2830,6 +3879,28 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     public bool VarBool {get;set;}
                     }
                     """,
+            htmlFormatted: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                <CascadingValue Value="Variable1">
+                    <PageTitle />
+                    @if (VarBool)
+                    {
+                    <div class="mb-16">
+                        <PageTitle />
+                        <PageTitle />
+                    </div>
+                    }
+                </CascadingValue>
+                
+                @code
+                {
+                    public object Object1 {get;set;}
+                    public object Variable1 {get;set;}
+                public object Variable2 {get;set;}
+                public bool VarBool {get;set;}
+                }
+                """,
             expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
@@ -2885,6 +3956,31 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     public bool VarBool {get;set;}
                     }
                     """,
+            htmlFormatted: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                @if (Object1!= null)
+                {
+                <PageTitle>
+                    <PageTitle />
+                    @if (VarBool)
+                    {
+                    <div class="mb-16">
+                        <PageTitle />
+                        <PageTitle />
+                    </div>
+                    }
+                </PageTitle>
+                }
+                
+                @code
+                {
+                    public object Object1 {get;set;}
+                    public object Variable1 {get;set;}
+                public object Variable2 {get;set;}
+                public bool VarBool {get;set;}
+                }
+                """,
             expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
@@ -2945,6 +4041,33 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     public bool VarBool {get;set;}
                     }
                     """,
+            htmlFormatted: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                @if (Object1!= null)
+                {
+                <CascadingValue Value="Variable1">
+                    <div>
+                        <PageTitle />
+                        @if (VarBool)
+                        {
+                        <div class="mb-16">
+                            <PageTitle />
+                            <PageTitle />
+                        </div>
+                        }
+                    </div>
+                </CascadingValue>
+                }
+                
+                @code
+                {
+                    public object Object1 {get;set;}
+                    public object Variable1 {get;set;}
+                public object Variable2 {get;set;}
+                public bool VarBool {get;set;}
+                }
+                """,
             expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
@@ -3001,6 +4124,27 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     </div>
                     """,
+            htmlFormatted: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                @code {
+                    private string _id {get;set;}
+                }
+                
+                <div>
+                    @if (true)
+                    {
+                    <div>
+                        <InputSelect @bind-Value="_id">
+                            @if (true)
+                            {
+                            <option>goo</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    }
+                </div>
+                """,
             expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
@@ -3048,6 +4192,24 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             </div>
                     </div>
                     """,
+            htmlFormatted: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                @code {
+                    private string _id {get;set;}
+                }
+                
+                <div>
+                    <div>
+                        <InputSelect @bind-Value="_id">
+                            @if (true)
+                            {
+                            <option>goo</option>
+                            }
+                        </InputSelect>
+                    </div>
+                </div>
+                """,
             expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
@@ -3089,6 +4251,21 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             </div>
                     </div>
                     """,
+            htmlFormatted: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                @code {
+                    private string _id {get;set;}
+                }
+                
+                <div>
+                    <div>
+                        <InputSelect @bind-Value="_id">
+                            <option>goo</option>
+                        </InputSelect>
+                    </div>
+                </div>
+                """,
             expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
@@ -3130,6 +4307,24 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     </div>
                     """,
+            htmlFormatted: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                @code {
+                    private string _id {get;set;}
+                }
+                
+                <div>
+                    @if (true)
+                    {
+                    <div>
+                        <InputSelect @bind-Value="_id">
+                            <option>goo</option>
+                        </InputSelect>
+                    </div>
+                    }
+                </div>
+                """,
             expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
@@ -3177,6 +4372,27 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     </div>
                     """,
+            htmlFormatted: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                @code {
+                    private string _id {get;set;}
+                }
+                
+                <div>
+                    @if (true)
+                    {
+                    <div>
+                        <InputSelect CssClass="goo"
+                                     @bind-Value="_id"
+                                     @ref="elem"
+                                     CurrentValue="boo">
+                            <option>goo</option>
+                        </InputSelect>
+                    </div>
+                    }
+                </div>
+                """,
             expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
@@ -3221,6 +4437,22 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                <p>Current count: @currentCount</p>
+                
+                <button @onclick="IncrementCount">Increment</button>
+                <button @onclick="@(e=>currentCount=4)">Update to 4</button>
+                <button @onclick="e=>currentCount=5">Update to 5</button>
+                
+                @code {
+                    private int currentCount=0;
+                
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
             expected: """
                     <p>Current count: @currentCount</p>
 
@@ -3262,6 +4494,24 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                <p>Current count: @currentCount</p>
+                
+                <InputText ValueChanged="IncrementCount">Increment</InputText>
+                <InputText ValueChanged="@(e=>currentCount=4)">Update to 4</InputText>
+                <InputText ValueChanged="e=>currentCount=5">Update to 5</InputText>
+                
+                @code {
+                    private int currentCount=0;
+                
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
             expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
@@ -3304,6 +4554,23 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                <p>Current count: @currentCount</p>
+                
+                <InputText @bind-Value="currentCount" @bind-Value:after="IncrementCount">Increment</InputText>
+                <InputText @bind-Value="currentCount" @bind-Value:after="e=>currentCount=5">Update to 5</InputText>
+                
+                @code {
+                    private int currentCount=0;
+                
+                    private void IncrementCount()
+                    {
+                        currentCount++;
+                    }
+                }
+                """,
             expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
@@ -3347,6 +4614,24 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     </div>
                     """,
+            htmlFormatted: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                @code {
+                    private bool _id {get;set;}
+                }
+                
+                <div>
+                    @if (true)
+                    {
+                    <div>
+                        <InputCheckbox CssClass="goo"
+                                       Value
+                                       accesskey="F" />
+                    </div>
+                    }
+                </div>
+                """,
             expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
@@ -3416,6 +4701,49 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @using System.Text;
+                
+                <div>
+                    @(new C()
+                    .M("Hello")
+                    .M("World")
+                    .M(source =>
+                    {
+                    if (source.Length > 0)
+                    {
+                    source.ToString();
+                    }
+                    }))
+                
+                    @(DateTime.Now)
+                
+                    @(DateTime
+                    .Now
+                    .ToString())
+                
+                    @(   Html.DisplayNameFor (@<text>
+                        <p>
+                            <h2></h2>
+                        </p>
+                    </text>)
+                    .ToString())
+                
+                    @{
+                    var x = @<p>Hi there!</p>;
+                    }
+                    @x()
+                    @(@x())
+                </div>
+                
+                @functions {
+                    class C
+                    {
+                        C M(string a) => this;
+                        C M(Func<string, C> a) => this;
+                    }
+                }
+                """,
             expected: """
                     @using System.Text;
 
@@ -3499,6 +4827,38 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             4))
                     </div>
                     """,
+            htmlFormatted: """
+                <div>
+                    @(   Html.DisplayNameFor (@<text>
+                        <p>
+                            <h2></h2>
+                        </p>
+                    </text>)
+                    .ToString())
+                
+                    @(   Html.DisplayNameFor (@<div></div>,
+                    1,   3,    4))
+                
+                    @(   Html.DisplayNameFor (@<div></div>,
+                    1,   3, @<div></div>,
+                    2, 4))
+                
+                    @(   Html.DisplayNameFor (
+                    1,   3, @<div></div>,
+                    2, 4))
+                
+                    @(   Html.DisplayNameFor (
+                    1,   3,
+                    2,  4))
+                
+                    @(   Html.DisplayNameFor (
+                    2, 4,
+                    1,   3, @<div></div>,
+                    2, 4,
+                    1,   3, @<div></div>,
+                    4))
+                </div>
+                """,
             expected: """
                     <div>
                         @(Html.DisplayNameFor(@<text>
@@ -3561,6 +4921,28 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             .ToString())
                     </div>
                     """,
+            htmlFormatted: """
+                @using System.Text;
+                
+                <div>
+                    @(new C()
+                    .M("Hello")
+                    .M("World")
+                    .M(source =>
+                    {
+                    if (source.Length > 0)
+                    {
+                    source.ToString();
+                    }
+                    }))
+                
+                    @(DateTime.Now)
+                
+                    @(DateTime
+                    .Now
+                    .ToString())
+                </div>
+                """,
             expected: """
                     @using System.Text;
 
@@ -3600,6 +4982,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                      void M() { }
                     }
                     """,
+            htmlFormatted: """
+                @page "Goo"
+                
+                <div></div>
+                
+                <button @functions {
+                        void M() { }
+                        }
+                """,
             expected: """
                     @page "Goo"
 
@@ -3625,6 +5016,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                      void M() { }
                     }
                     """,
+            htmlFormatted: """
+                <button @functions {
+                        void M() { }
+                        }
+                """,
             expected: """
                     <button @functions {
                         void M() { }
@@ -3643,6 +5039,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                      void M() { }
                     }|]
                     """,
+            htmlFormatted: """
+                <button @functions {
+                        void M() { }
+                        }
+                """,
             expected: """
                     <button
                     @functions {
@@ -3666,6 +5067,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                      void M() { }
                     }
                     """,
+            htmlFormatted: """
+                @page "Goo"
+                
+                <div></div>
+                
+                <button @functions {
+                        void M() { }
+                        }
+                """,
             expected: """
                     @page "Goo"
 
@@ -3741,6 +5151,63 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                        }
                     }
                     """,
+            htmlFormatted: """
+                Welcome.
+                
+                <div class="goo"
+                     align="center">
+                </div>
+                
+                <PageTitle Title="How is Blazor working for you?"
+                           Color="Red" />
+                
+                <PageTitle Title="How is Blazor working for you?"
+                           Color="Red"></PageTitle>
+                
+                <PageTitle Title="How is Blazor working for you?"
+                           Color="Red">
+                    Hello
+                </PageTitle>
+                
+                @if (true)
+                {
+                <div class="goo"
+                     align="center">
+                </div>
+                
+                <PageTitle Title="How is Blazor working for you?"
+                           Color="Red" />
+                
+                <tag attr1="value1"
+                     attr2="value2"
+                     attr3="value3" />
+                
+                <tag attr1="value1"
+                     attr2="value2"
+                     attr3="value3"></tag>
+                
+                <tag attr1="value1"
+                     attr2="value2"
+                     attr3="value3">
+                    Hello
+                </tag>
+                
+                   @if (true)
+                   {
+                   @if (true)
+                   {
+                   @if(true)
+                   {
+                <table width="10"
+                       height="10"
+                       cols="3"
+                       rows="3">
+                </table>
+                   }
+                   }
+                   }
+                }
+                """,
             expected: """
                     Welcome.
 
@@ -3810,6 +5277,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                 public class Foo{}
+                        public interface Bar {
+                }
+                }
+                """,
             expected: """
                     @code {
                         public class Foo { }
@@ -3836,6 +5310,18 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     </body>
                     </html>
                     """,
+            htmlFormatted: """
+                <html>
+                <body>
+                    <div>
+                        @{
+                        <span>foo</span>
+                        <span>foo</span>
+                        }
+                    </div>
+                </body>
+                </html>
+                """,
             expected: """
                     <html>
                     <body>
@@ -3877,6 +5363,28 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         </div>
                     </section>
                     """,
+            htmlFormatted: """
+                @page
+                @model BlazorApp58.Pages.Index2Model
+                @{
+                }
+                
+                <section class="section">
+                    <div class="container">
+                        <h1 class="title">Managed pohotos</h1>
+                        <p class="subtitle">@Model.ReferenceNumber</p>
+                    </div>
+                </section>
+                <section class="section">
+                    <div class="container">
+                        @foreach       (var item in Model.Images)
+                        {
+                        <div>
+                            <div>
+                                }
+                            </div>
+                </section>
+                """,
             expected: """
                     @page
                     @model BlazorApp58.Pages.Index2Model
@@ -3919,6 +5427,18 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     <div>
                             </div>
                     """,
+            htmlFormatted: """
+                @{
+                void Method(){
+                var x = "foo";
+                @(DateTime.Now)
+                <p></p>
+                var y= "fooo";
+                }
+                }
+                <div>
+                </div>
+                """,
             expected: """
                     @{
                         void Method()
@@ -3945,6 +5465,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     <div>
                             </div>
                     """,
+            htmlFormatted: """
+                @{
+                var x = "foo";
+                }
+                <div>
+                </div>
+                """,
             expected: """
                     @{
                         var x = "foo";
@@ -3965,6 +5492,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     }
                     """,
+            htmlFormatted: """
+                @functions {
+                 public class Foo{
+                void Method() { var x = "t"; <div></div> var y = "t";}
+                }
+                }
+                """,
             expected: """
                     @functions {
                         public class Foo
@@ -3991,6 +5525,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     }
                     """,
+            htmlFormatted: """
+                @functions {
+                 public class Foo{
+                void Method() { <div></div> }
+                }
+                }
+                """,
             expected: """
                     @functions {
                         public class Foo
@@ -4015,6 +5556,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                 public class Foo{
+                void Method() { @DateTime.Now }
+                    }
+                }
+                """,
             expected: """
                     @code {
                         public class Foo
@@ -4043,6 +5591,17 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         @DateTime.Now.ToString(   "d MM yyy"   ) <span>Today!</span>
                     </div>
                     """,
+            htmlFormatted: """
+                <div>
+                    It is @DateTime.Now.ToString(   "d MM yyy"   ). Or is it @DateTime.Now.ToString(   "d MM yyy"   ).
+                
+                    @DateTime.Now.ToString(   "d MM yyy"   ) it is.
+                
+                    @DateTime.Now.ToString(   "d MM yyy"   ). Is what it is today. Or is it @DateTime.Now.ToString(   "d MM yyy"   ).
+                
+                    @DateTime.Now.ToString(   "d MM yyy"   ) <span>Today!</span>
+                </div>
+                """,
             expected: """
                     <div>
                         It is @DateTime.Now.ToString("d MM yyy"). Or is it @DateTime.Now.ToString("d MM yyy").
@@ -4071,6 +5630,17 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         @(DateTime.    Now) <span>Today!</span>
                     </div>
                     """,
+            htmlFormatted: """
+                <div>
+                    It is @(DateTime.    Now). Or is it @(DateTime.    Now).
+                
+                    @(DateTime.    Now) it is.
+                
+                    @(DateTime.    Now). Is what it is today. Or is it @(DateTime.    Now).
+                
+                    @(DateTime.    Now) <span>Today!</span>
+                </div>
+                """,
             expected: """
                     <div>
                         It is @(DateTime.Now). Or is it @(DateTime.Now).
@@ -4095,6 +5665,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @functions {
+                 public class Foo{
+                void Method() { @(DateTime.Now) }
+                    }
+                }
+                """,
             expected: """
                     @functions {
                         public class Foo
@@ -4124,6 +5701,17 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     <script></script>
                     }
                     """,
+            htmlFormatted: """
+                @functions {
+                 public class Foo{
+                void Method() {  }
+                    }
+                }
+                
+                @section Scripts {
+                <script></script>
+                }
+                """,
             expected: """
                     @functions {
                         public class Foo
@@ -4157,6 +5745,20 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     </script>
                     }
                     """,
+            htmlFormatted: """
+                @functions {
+                 public class Foo{
+                void Method() {  }
+                    }
+                }
+                
+                @section Scripts {
+                <script>
+                    function f() {
+                    }
+                </script>
+                }
+                """,
             expected: """
                     @functions {
                         public class Foo
@@ -4194,6 +5796,21 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     }
                     """,
+            htmlFormatted: """
+                @functions {
+                 public class Foo{
+                void Method() {  }
+                    }
+                }
+                
+                @section Scripts {
+                <p>this is a para</p>
+                @if(true)
+                {
+                <p>and so is this</p>
+                }
+                }
+                """,
             expected: """
                     @functions {
                         public class Foo
@@ -4234,6 +5851,22 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         <p></p>
                     }
                     """,
+            htmlFormatted: """
+                @functions {
+                 public class Foo{
+                void Method() {  }
+                    }
+                }
+                
+                @section Scripts {
+                <script></script>
+                }
+                
+                @if (true)
+                {
+                <p></p>
+                }
+                """,
             expected: """
                     @functions {
                         public class Foo
@@ -4277,6 +5910,25 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
 
                     <p></p>
                     """,
+            htmlFormatted: """
+                @functions {
+                 public class Foo{
+                void Method() {  }
+                    }
+                }
+                
+                @section Foo {
+                    @{ var test = 1; }
+                }
+                
+                <p></p>
+                
+                @section Scripts {
+                <script></script>
+                }
+                
+                <p></p>
+                """,
             expected: """
                     @functions {
                         public class Foo
@@ -4324,6 +5976,24 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     }
                     """,
+            htmlFormatted: """
+                @functions {
+                 public class Foo{
+                void Method() {  }
+                    }
+                }
+                
+                @section Scripts {
+                <meta property="a" content="b">
+                <meta property="a" content="b" />
+                <meta property="a" content="b">
+                
+                @if(true)
+                {
+                <p>this is a paragraph</p>
+                }
+                }
+                """,
             expected: """
                     @functions {
                         public class Foo
@@ -4369,6 +6039,25 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     }
                     """,
+            htmlFormatted: """
+                @functions {
+                 public class Foo{
+                void Method() {  }
+                    }
+                }
+                
+                @section Scripts
+                {
+                <meta property="a" content="b">
+                <meta property="a" content="b" />
+                <meta property="a" content="b">
+                
+                @if(true)
+                {
+                <p>this is a paragraph</p>
+                }
+                }
+                """,
             expected: """
                     @functions {
                         public class Foo
@@ -4412,6 +6101,22 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     <p>and finally this</p>
                     }
                     """,
+            htmlFormatted: """
+                @functions {
+                 public class Foo{
+                void Method() {  }
+                    }
+                }
+                
+                @section Scripts {
+                <p>this is a para</p>
+                @if(true)
+                {
+                <p>and so is this</p>
+                }
+                <p>and finally this</p>
+                }
+                """,
             expected: """
                     @functions {
                         public class Foo
@@ -4460,6 +6165,30 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @functions {
+                 public class Foo{
+                void Method() {  }
+                    }
+                }
+                
+                @section Scripts {
+                <p>this is a para</p>
+                @if(true)
+                {
+                <p>and so is this</p>
+                }
+                <p>and finally this</p>
+                }
+                
+                <p>I lied when I said finally</p>
+                
+                @functions {
+                 public class Foo2{
+                void Method() {  }
+                    }
+                }
+                """,
             expected: """
                     @functions {
                         public class Foo
@@ -4501,6 +6230,14 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     }
                     """,
+            htmlFormatted: """
+                @functions {
+                 public class Foo{
+                @* This is a Razor Comment *@
+                void Method() {  }
+                }
+                }
+                """,
             expected: """
                     @functions {
                         public class Foo
@@ -4523,6 +6260,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @functions {
+                 public class Foo{
+                @* This is a Razor Comment *@
+                    }
+                }
+                """,
             expected: """
                     @functions {
                         public class Foo
@@ -4550,6 +6294,19 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
 
                    <div></div>
                    """,
+            htmlFormatted: """
+                @{
+                <text>Hello</text>
+                }
+                
+                @{ <text>Hello</text> }
+                
+                <div></div>
+                
+                @{ }
+                
+                <div></div>
+                """,
             expected: """
                     @{
                         <text>Hello</text>
@@ -4586,6 +6343,21 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                    <div></div>
                    </div>
                    """,
+            htmlFormatted: """
+                <div>
+                    @{
+                    <text>Hello</text>
+                    }
+                
+                    @{ <text>Hello</text> }
+                
+                    <div></div>
+                
+                    @{ }
+                
+                    <div></div>
+                </div>
+                """,
             expected: """
                     <div>
                         @{
@@ -4617,6 +6389,14 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     }
                     """,
+            htmlFormatted: """
+                <div>Foo</div>
+                @functions {
+                 public class Foo{}
+                        public interface Bar {
+                }
+                }
+                """,
             expected: """
                     <div>Foo</div>
                     @functions {
@@ -4638,6 +6418,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }|]
                     }
                     """,
+            htmlFormatted: """
+                @functions {
+                 public class Foo{}
+                        public interface Bar {
+                }
+                }
+                """,
             expected: """
                     @functions {
                      public class Foo{}
@@ -4666,6 +6453,20 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                               }
                     }
                     """,
+            htmlFormatted: """
+                @functions {
+                 public class Foo{}
+                        public interface Bar {
+                }
+                }
+                Hello World
+                @functions {
+                      public class Baz    {
+                          void Method ( )
+                          { }
+                          }
+                }
+                """,
             expected: """
                     @functions {
                         public class Foo { }
@@ -4702,6 +6503,19 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         public class Bar {}
                     }
                     """,
+            htmlFormatted: """
+                Hello World
+                @code {
+                public class HelloWorld
+                {
+                }
+                }
+                
+                @functions{
+                
+                    public class Bar {}
+                }
+                """,
             expected: """
                     Hello World
                     @code {
@@ -4726,6 +6540,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     }
                     """,
+            htmlFormatted: """
+                @functions {public class Foo{
+                }
+                }
+                """,
             expected: """
                     @functions {
                         public class Foo
@@ -4744,6 +6563,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     public class Foo{
                     }}
                     """,
+            htmlFormatted: """
+                @functions {
+                public class Foo{
+                }}
+                """,
             expected: """
                     @functions {
                         public class Foo
@@ -4761,7 +6585,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 @functions {public class Foo{}
                 }
                 """,
-        expected: """
+        htmlFormatted: """
+                @functions {public class Foo{}
+                }
+                """,
+            expected: """
                 @functions {
                     public class Foo { }
                 }
@@ -4777,6 +6605,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                          @functions {public class Foo{}
                     }
                     """,
+            htmlFormatted: """
+                Hello World
+                     @functions {public class Foo{}
+                }
+                """,
             expected: """
                     Hello World
                     @functions {
@@ -4794,6 +6627,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     public class Foo{}
                          }
                     """,
+            htmlFormatted: """
+                @functions {
+                public class Foo{}
+                     }
+                """,
             expected: """
                     @functions {
                         public class Foo { }
@@ -4830,6 +6668,31 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                                         }
                     }
                     """,
+            htmlFormatted: """
+                @using System.Buffers
+                @functions{
+                     public class Foo
+                            {
+                                public Foo()
+                                {
+                                    var arr = new string[ ] { "One", "two","three" };
+                                    var str = @"
+                This should
+                not
+                be indented.
+                ";
+                                }
+                public int MyProperty { get
+                {
+                return 0 ;
+                } set {} }
+                
+                void Method(){
+                
+                }
+                                    }
+                }
+                """,
             expected: """
                     @using System.Buffers
                     @functions {
@@ -4889,6 +6752,29 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     "";
                     }
                     """,
+            htmlFormatted: """
+                @functions{
+                private string str1 = "hello world";
+                private string str2 = $"hello world";
+                private string str3 = @"hello world";
+                private string str4 = $@"hello world";
+                private string str5 = @"
+                    One
+                        Two
+                            Three
+                ";
+                private string str6 = $@"
+                    One
+                        Two
+                            Three
+                ";
+                // This looks wrong, but matches what the C# formatter does. Try it and see!
+                private string str7 = "One" +
+                    "Two" +
+                        "Three" +
+                "";
+                }
+                """,
             expected: """
                     @functions {
                         private string str1 = "hello world";
@@ -4925,6 +6811,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                 public class Foo{}
+                        void Method(  ) {
+                }
+                }
+                """,
             expected: """
                     @code {
                     	public class Foo { }
@@ -4947,6 +6840,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                 public class Foo{}
+                        void Method(  ) {<div></div>
+                }
+                }
+                """,
             expected: """
                     @code {
                     	public class Foo { }
@@ -4971,6 +6871,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                 public class Foo{}
+                        void Method(  ) {
+                }
+                }
+                """,
             expected: """
                     @code {
                     	public class Foo { }
@@ -4994,6 +6901,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                 public class Foo{}
+                        void Method(  ) {
+                }
+                }
+                """,
             expected: """
                     @code {
                        public class Foo { }
@@ -5016,6 +6930,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                 public class Foo{}
+                        void Method(  ) {
+                }
+                }
+                """,
             expected: """
                     @code {
                             public class Foo { }
@@ -5038,6 +6959,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                 public class Foo{}
+                        void Method(  ) {
+                }
+                }
+                """,
             expected: """
                     @code {
                                 public class Foo { }
@@ -5059,6 +6987,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     @{ Debugger.Launch()$$;}
                     <div></div>
                     """,
+            htmlFormatted: """
+                <div></div>
+                @{ Debugger.Launch();}
+                <div></div>
+                """,
             expected: """
                     <div></div>
                     @{
@@ -5089,6 +7022,22 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                    private WeatherForecast[] forecasts;
+                
+                    protected override async Task OnInitializedAsync()
+                    {
+                <PageTitle>
+                    @{
+                    var t = DateTime.Now;
+                    t.ToString();
+                    }
+                </PageTitle>
+                        forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
+                    }
+                }
+                """,
             expected: """
                     @code {
                         private WeatherForecast[] forecasts;
@@ -5139,6 +7088,31 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         };
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                    public List<object> AList = new List<object>()
+                    {
+                        new
+                        {
+                            Name = "One",
+                            Goo = new
+                            {
+                                First = 1,
+                                Second = 2
+                            },
+                            Bar = new string[] {
+                                "Hello",
+                                "There"
+                            },
+                            Baz = new string[]
+                            {
+                                "Hello",
+                                "There"
+                            }
+                        }
+                    };
+                }
+                """,
             expected: """
                     @code {
                         public List<object> AList = new List<object>()
@@ -5191,6 +7165,24 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             };
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                    private object _x = new()
+                        {
+                            Name = "One",
+                            Goo = new
+                            {
+                                First = 1,
+                                Second = 2
+                            },
+                            Bar = new string[]
+                            {
+                                "Hello",
+                                "There"
+                            },
+                        };
+                }
+                """,
             expected: """
                     @code {
                         private object _x = new()
@@ -5229,6 +7221,19 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                    private void M()
+                    {
+                        var entries = new[]
+                        {
+                            "a",
+                            "b",
+                            "c"
+                        };
+                    }
+                }
+                """,
             expected: """
                     @code {
                         private void M()
@@ -5264,6 +7269,19 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                    private void M()
+                    {
+                        var entries = new string[]
+                        {
+                            "a",
+                            "b",
+                            "c"
+                        };
+                    }
+                }
+                """,
             expected: """
                     @code {
                         private void M()
@@ -5314,6 +7332,34 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                <p></p>
+                
+                @code {
+                    private void M()
+                    {
+                        var entries = new string[]
+                        {
+                            "a",
+                            "b",
+                            "c"
+                        };
+                
+                        object gridOptions = new()
+                        {
+                            Columns = new GridColumn<WorkOrderModel>[]
+                            {
+                                new TextColumn<WorkOrderModel>(e => e.Name) { Label = "Work Order #" },
+                                new TextColumn<WorkOrderModel>(e => e.PartNumber) { Label = "Part #" },
+                                new TextColumn<WorkOrderModel>(e => e.Lot) { Label = "Lot #" },
+                                        new DateTimeColumn<WorkOrderModel>(e => e.TargetStartOn) { Label = "Target Start" },
+                            },
+                            Data = Model.WorkOrders,
+                            Title = "Work Orders"
+                        };
+                    }
+                }
+                """,
             expected: """
                     <p></p>
                     
@@ -5375,6 +7421,30 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                    private void M()
+                    {
+                        var entries = new List<string[]>()
+                        {
+                            new string[]
+                            {
+                                "Hello",
+                                "There"
+                            },
+                            new string[] {
+                                "Hello",
+                                "There"
+                            },
+                            new string[]
+                            {
+                                "Hello",
+                                "There"
+                            }
+                        };
+                    }
+                }
+                """,
             expected: """
                     @code {
                         private void M()
@@ -5420,6 +7490,18 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                    private void M()
+                    {
+                        var entries = new
+                        {
+                            First = 1,
+                            Second = 2
+                        };
+                    }
+                }
+                """,
             expected: """
                     @code {
                         private void M()
@@ -5453,6 +7535,18 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                    private void M()
+                    {
+                        object entries = new()
+                        {
+                            First = 1,
+                            Second = 2
+                        };
+                    }
+                }
+                """,
             expected: """
                     @code {
                         private void M()
@@ -5487,6 +7581,19 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                    private void M()
+                    {
+                        var entries = new List<string>()
+                        {
+                            "a",
+                            "b",
+                            "c"
+                        };
+                    }
+                }
+                """,
             expected: """
                     @code {
                         private void M()
@@ -5523,6 +7630,20 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code
+                {
+                    private void M()
+                    {
+                        var entries = new List<string>()
+                        {
+                            "a",
+                            "b",
+                            "c"
+                        };
+                    }
+                }
+                """,
             expected: """
                     @code
                     {
@@ -5558,6 +7679,18 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                    private void M()
+                    {
+                        List<string> entries = [
+                            "a",
+                            "b",
+                            "c"
+                        ];
+                    }
+                }
+                """,
             expected: """
                     @code {
                         private void M()
@@ -5591,6 +7724,18 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                    private void M()
+                    {
+                        List<string> entries = [
+                                "a",
+                        "b",
+                            "c"
+                        ];
+                    }
+                }
+                """,
             expected: """
                     @code {
                         private void M()
@@ -5621,6 +7766,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                    private void M()
+                    {
+                        List<string> entries = [
+                        ];
+                    }
+                }
+                """,
             expected: """
                     @code {
                         private void M()
@@ -5645,6 +7799,14 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                    private void M(string[] strings)
+                    {
+                        List<string> entries = [  ..     strings,    "a",      "b",         "c"    ];
+                    }
+                }
+                """,
             expected: """
                     @code {
                         private void M(string[] strings)
@@ -5677,6 +7839,22 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                    public void Foo()
+                    {
+                        SomeMethod(new List<string>()
+                            {
+                
+                            });
+                
+                        SomeMethod(new Exception
+                            {
+                
+                            });
+                    }
+                }
+                """,
             expected: """
                     @code {
                         public void Foo()
@@ -5705,6 +7883,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     {
                     }
                     """,
+            htmlFormatted: """
+                        @if (true)
+                {
+                }
+                """,
             expected: """
                     @if (true)
                     {
@@ -5726,6 +7909,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     {
                     }
                     """,
+            htmlFormatted: """
+                @{
+                    // foo
+                }
+                
+                        @if (true)
+                {
+                }
+                """,
             expected: """
                     @{
                         // foo
@@ -5755,6 +7947,19 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     {
                     }
                     """,
+            htmlFormatted: """
+                @{
+                
+                    // foo
+                
+                        // foo
+                
+                }
+                
+                        @if (true)
+                {
+                }
+                """,
             expected: """
                     @{
 
@@ -5786,6 +7991,17 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     {
                     }
                     """,
+            htmlFormatted: """
+                @{
+                    var x = 3;
+                
+                    // foo
+                }
+                
+                        @if (true)
+                {
+                }
+                """,
             expected: """
                     @{
                         var x = 3;
@@ -5813,6 +8029,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     {
                     }
                     """,
+            htmlFormatted: """
+                @{
+                    var x = 3;
+                }
+                
+                        @if (true)
+                {
+                }
+                """,
             expected: """
                     @{
                         var x = 3;
@@ -5836,6 +8061,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                     </div>
                     """,
+            htmlFormatted: """
+                <div>
+                    @if (true)
+                    {
+                    }
+                </div>
+                """,
             expected: """
                     <div>
                         @if (true)
@@ -5859,6 +8091,16 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     <div></div>
                     </div>
                     """,
+            htmlFormatted: """
+                <div>
+                    <div></div>
+                    @if (true)
+                    {
+                    <div></div>
+                    }
+                    <div></div>
+                </div>
+                """,
             expected: """
                     <div>
                         <div></div>
@@ -5882,6 +8124,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     <div></div>
                     </div>
                     """,
+            htmlFormatted: """
+                <div>
+                    <div></div>
+                    @if (true) { <div></div> }
+                    <div></div>
+                </div>
+                """,
             expected: """
                     <div>
                         <div></div>
@@ -5921,6 +8170,29 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @{
+                    var icon = "/images/bootstrap-icons.svg#"
+                        + GetIconName(login.ProviderDisplayName!);
+                
+                    var x = DateTime
+                            .Now
+                        .ToString();
+                }
+                
+                @code
+                {
+                    public void M()
+                    {
+                        var icon2 = "/images/bootstrap-icons.svg#"
+                            + GetIconName(login.ProviderDisplayName!);
+                
+                        var x2 = DateTime
+                                .Now
+                            .ToString();
+                    }
+                }
+                """,
             expected: """
                     @{
                         var icon = "/images/bootstrap-icons.svg#"
@@ -5957,6 +8229,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             .ToString();
                     }
                     """,
+            htmlFormatted: """
+                @{
+                    var x = DateTime
+                        .Now
+                        .ToString();
+                }
+                """,
             expected: """
                     @{
                         var x = DateTime
@@ -5980,6 +8259,16 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             .ToString();
                     }
                     """,
+            htmlFormatted: """
+                @{
+                
+                
+                
+                    var x = DateTime
+                        .Now
+                        .ToString();
+                }
+                """,
             expected: """
                     @{
 
@@ -6004,6 +8293,14 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             .ToString();
                     }
                     """,
+            htmlFormatted: """
+                @{
+                    //
+                    var x = DateTime
+                        .Now
+                        .ToString();
+                }
+                """,
             expected: """
                     @{
                         //
@@ -6037,6 +8334,25 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                <div></div>
+                    @*
+                line 1
+                  line 2
+                    line 3
+                            *@
+                @code
+                {
+                    void M()
+                    {
+                    @*
+                line 1
+                  line 2
+                    line 3
+                                *@
+                    }
+                }
+                """,
             expected: """
                     <div></div>
                     @*
@@ -6073,7 +8389,17 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
 
                 """;
 
-        await RunFormattingTestAsync(input, input, fileKind: RazorFileKind.Component);
+        await RunFormattingTestAsync(input, htmlFormatted: """
+                @code {
+                    public void M()
+                    {
+                        Console.WriteLine("Hello");
+                        Console.WriteLine("World"); // <-- type/replace semicolon here
+                    }
+                }
+                
+                """, expected: input,
+            fileKind: RazorFileKind.Component);
     }
 
     [FormattingTestFact]
@@ -6107,6 +8433,32 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                
+                    protected Action Goo(string input)
+                    {
+                        return async () =>
+                        {
+                        foreach (var x in input)
+                        {
+                        if (true)
+                        {
+                        await Task.Delay(1);
+                
+                        if (true)
+                        {
+                        // do some stufff
+                        if (true)
+                        {
+                        }
+                        }
+                        }
+                        }
+                        };
+                    }
+                }
+                """,
             expected: """
                     @code {
 
@@ -6152,6 +8504,18 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     }
                     """,
+            htmlFormatted: """
+                @code {
+                
+                    public RenderFragment RenderFoo()
+                    {
+                        return (__builder) =>
+                        {
+                            @if (true) { }
+                        };
+                    }
+                }
+                """,
             expected: """
                     @code {
 
@@ -6190,6 +8554,25 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     RenderFragment R => @<div></div>;
                     }
                     """,
+            htmlFormatted: """
+                @page "/"
+                @code
+                {
+                    void T()
+                    {
+                        S("first"
+                            + "second"
+                            + "third");
+                    }
+                
+                string[] S(string s) =>
+                        s.Split(',')
+                        . Select(s => s.Trim())
+                        . ToArray();
+                
+                RenderFragment R => @<div></div>;
+                }
+                """,
             expected: """
                     @page "/"
                     @code
@@ -6235,6 +8618,25 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     RenderFragment     R      =>      @<div></div>;
                     }
                     """,
+            htmlFormatted: """
+                @page "/"
+                @code
+                {
+                    void T()
+                    {
+                        S("first"
+                            + "second"
+                            + "third");
+                    }
+                
+                string[] S(string s) =>
+                        s.Split(',')
+                        . Select(s => s.Trim())
+                        . ToArray();
+                
+                RenderFragment     R      =>      @<div></div>;
+                }
+                """,
             expected: """
                     @page "/"
                     @code
@@ -6280,6 +8682,25 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     RenderFragment R=>@<div></div>;
                     }
                     """,
+            htmlFormatted: """
+                @page "/"
+                @code
+                {
+                    void T()
+                    {
+                        S("first"
+                            + "second"
+                            + "third");
+                    }
+                
+                string[] S(string s) =>
+                        s.Split(',')
+                        . Select(s => s.Trim())
+                        . ToArray();
+                
+                RenderFragment R=>@<div></div>;
+                }
+                """,
             expected: """
                     @page "/"
                     @code
@@ -6326,6 +8747,26 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         @<div></div>;
                     }
                     """,
+            htmlFormatted: """
+                @page "/"
+                @code
+                {
+                    void T()
+                    {
+                        S("first"
+                            + "second"
+                            + "third");
+                    }
+                
+                string[] S(string s) =>
+                        s.Split(',')
+                        . Select(s => s.Trim())
+                        . ToArray();
+                
+                RenderFragment R =>
+                    @<div></div>;
+                }
+                """,
             expected: """
                     @page "/"
                     @code
@@ -6373,6 +8814,25 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         );    
                     }
                     """,
+            htmlFormatted: """
+                @page "/"
+                @using RazorClassLibrary2.Models
+                
+                @code{
+                    private DateTime? date1;
+                
+                    Gopt<int> gopt = new Gopt<int>()
+                    {
+                        Name = "hi"
+                    }
+                    .Editor(m =>
+                    {
+                    return
+                    @<text>hi</text>
+                    ; }
+                    );
+                }
+                """,
             expected: """
                     @page "/"
                     @using RazorClassLibrary2.Models
@@ -6423,6 +8883,30 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             </div>
                         }
                         </text>;
+                }
+                """,
+            htmlFormatted: """
+                @page "/"
+                
+                @code{
+                    protected RenderFragment RootFragment() =>
+                        @<text>
+                    @if (true)
+                    {
+                    <div class="test"
+                         accesskey="k">
+                        Hello
+                        @if (true)
+                        {
+                        <span>World</span>
+                        }
+                        else
+                        {
+                        <span>Not World</span>
+                        }
+                    </div>
+                    }
+                </text>;
                 }
                 """,
             expected: """
@@ -6487,6 +8971,30 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         </PageTitle>;
                 }
                 """,
+            htmlFormatted: """
+                @page "/"
+                
+                @code{
+                    protected RenderFragment RootFragment() =>
+                        @<PageTitle>
+                    @if (true)
+                    {
+                    <div class="test"
+                         accesskey="k">
+                        Hello
+                        @if (true)
+                        {
+                        <span>World</span>
+                        }
+                        else
+                        {
+                        <span>Not World</span>
+                        }
+                    </div>
+                    }
+                </PageTitle>;
+                }
+                """,
             expected: """
                 @page "/"
 
@@ -6546,6 +9054,29 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             </div>
                         }
                         </text>;
+                }
+                """,
+            htmlFormatted: """
+                @page "/"
+                
+                @code{
+                    protected RenderFragment RootFragment() => @<text>
+                    @if (true)
+                    {
+                    <div class="test"
+                         accesskey="k">
+                        Hello
+                        @if (true)
+                        {
+                        <span>World</span>
+                        }
+                        else
+                        {
+                        <span>Not World</span>
+                        }
+                    </div>
+                    }
+                </text>;
                 }
                 """,
             expected: """
@@ -6608,6 +9139,29 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         </text>;
                 }
                 """,
+            htmlFormatted: """
+                @page "/"
+                
+                @code{
+                    protected RenderFragment RootFragment()=>@<text>
+                    @if (true)
+                    {
+                    <div class="test"
+                         accesskey="k">
+                        Hello
+                        @if (true)
+                        {
+                        <span>World</span>
+                        }
+                        else
+                        {
+                        <span>Not World</span>
+                        }
+                    </div>
+                    }
+                </text>;
+                }
+                """,
             expected: """
                 @page "/"
 
@@ -6666,6 +9220,29 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             </div>
                         }
                         </text>;
+                }
+                """,
+            htmlFormatted: """
+                @page "/"
+                
+                @code{
+                    protected     RenderFragment     RootFragment()      =>     @<text>
+                    @if (true)
+                    {
+                    <div class="test"
+                         accesskey="k">
+                        Hello
+                        @if (true)
+                        {
+                        <span>World</span>
+                        }
+                        else
+                        {
+                        <span>Not World</span>
+                        }
+                    </div>
+                    }
+                </text>;
                 }
                 """,
             expected: """
@@ -6730,6 +9307,31 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         ;
                 }
                 """,
+            htmlFormatted: """
+                @page "/"
+                
+                @code{
+                    protected RenderFragment RootFragment() =>
+                        @<text>
+                    @if (true)
+                    {
+                    <div class="test"
+                         accesskey="k">
+                        Hello
+                        @if (true)
+                        {
+                        <span>World</span>
+                        }
+                        else
+                        {
+                        <span>Not World</span>
+                        }
+                    </div>
+                    }
+                </text>
+                        ;
+                }
+                """,
             expected: """
                 @page "/"
 
@@ -6783,6 +9385,23 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                                 </div>
                             </div>
                         </div>
+                        ;
+                }
+                """,
+            htmlFormatted: """
+                @page "/"
+                
+                @code{
+                    protected RenderFragment RootFragment() =>
+                        @<div>
+                    <div class="test"
+                         accesskey="k">
+                        Hello
+                        <div>
+                            <span>World</span>
+                        </div>
+                    </div>
+                </div>
                         ;
                 }
                 """,
@@ -6849,6 +9468,39 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         };
                     }
                     """,
+            htmlFormatted: """
+                @{
+                    // Stable
+                    var formatMe = new string[] {
+                        "One",
+                        "Two",
+                        "Three",
+                    };
+                
+                    // Closing brace advances to the right
+                    var formatMeTwo = new string[]
+                    {
+                        "One",
+                        "Two",
+                        "Three",
+                    };
+                
+                    // Stable
+                    var formatMeThree = new List<string> {
+                        "One",
+                        "Two",
+                        "Three",
+                    };
+                
+                    // Opening brace advances to the right
+                    var formatMeFour = new List<string>
+                    {
+                        "One",
+                        "Two",
+                        "Three",
+                    };
+                }
+                """,
             expected: """
                     @{
                         // Stable
@@ -6897,6 +9549,14 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
 
 
                     """,
+            htmlFormatted: """
+                        @page "/"
+                
+                        @using System
+                        @inject object Foo
+                
+                
+                """,
             expected: """
                     @page "/"
                     
@@ -6919,6 +9579,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 <div>
                 </div>
 
+                @functions {void Foo() { }}@Foo()
+                """,
+            htmlFormatted: """
+                @page "/"
+                @model IndexModel
+                
+                <div>
+                </div>
+                
                 @functions {void Foo() { }}@Foo()
                 """,
             expected: """
@@ -6947,6 +9616,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 <div>
                 </div>
 
+                @code {void Foo() { }}@Foo.ToString(   1  )
+                """,
+            htmlFormatted: """
+                @page "/"
+                @model IndexModel
+                
+                <div>
+                </div>
+                
                 @code {void Foo() { }}@Foo.ToString(   1  )
                 """,
             expected: """
@@ -6990,6 +9668,29 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 <button />
                 }
                 """,
+            htmlFormatted: """
+                @page "/"
+                @model IndexModel
+                
+                <style>
+                    @@media only screen and (max-width: 600px) {
+                        body {
+                            background-color: lightblue;
+                        }
+                    }
+                </style>
+                
+                <style>
+                    @@font-face {
+                        src: url();
+                    }
+                </style>
+                
+                @if (RendererInfo.IsInteractive)
+                {
+                <button />
+                }
+                """,
             expected: """
                 @page "/"
                 @model IndexModel
@@ -7025,6 +9726,19 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 <div>
                     <partial name="~/Views/Shared/_TestimonialRow.cshtml"
                     model="new DefaultTitleContentAreaViewModel
+                    {
+                    Title = Model.CurrentPage.TestimonialsTitle,
+                    ContentArea = Model.CurrentPage.TestimonialsContentArea,
+                    ChildCssClass = string.Empty
+                    }" />
+                </div>
+                """,
+            htmlFormatted: """
+                @page "/"
+                
+                <div>
+                    <partial name="~/Views/Shared/_TestimonialRow.cshtml"
+                             model="new DefaultTitleContentAreaViewModel
                     {
                     Title = Model.CurrentPage.TestimonialsTitle,
                     ContentArea = Model.CurrentPage.TestimonialsContentArea,
@@ -7073,6 +9787,34 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 <div>
                     <partial name="~/Views/Shared/_TestimonialRow.cshtml"
                     model="@(new DefaultTitleContentAreaViewModel
+                    {
+                    Title = Model.CurrentPage.TestimonialsTitle,
+                    ContentArea = Model.CurrentPage.TestimonialsContentArea,
+                    ChildCssClass = string.Empty
+                    })" />
+                </div>
+                """,
+            htmlFormatted: """
+                @page "/"
+                
+                <partial name="~/Views/Shared/_TestimonialRow.cshtml"
+                         model="@(new DefaultTitleContentAreaViewModel
+                    {
+                        Title = Model.CurrentPage.TestimonialsTitle,
+                        ContentArea = Model.CurrentPage.TestimonialsContentArea,
+                        ChildCssClass = string.Empty
+                    })" />
+                
+                <partial model="@(new DefaultTitleContentAreaViewModel
+                    {
+                        Title = Model.CurrentPage.TestimonialsTitle,
+                        ContentArea = Model.CurrentPage.TestimonialsContentArea,
+                        ChildCssClass = string.Empty
+                    })" />
+                
+                <div>
+                    <partial name="~/Views/Shared/_TestimonialRow.cshtml"
+                             model="@(new DefaultTitleContentAreaViewModel
                     {
                     Title = Model.CurrentPage.TestimonialsTitle,
                     ContentArea = Model.CurrentPage.TestimonialsContentArea,
@@ -7144,6 +9886,34 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 """;
         await RunFormattingTestAsync(
             input: code,
+            htmlFormatted: """
+                @page "/"
+                
+                <partial name="~/Views/Shared/_TestimonialRow.cshtml"
+                         model="@(new DefaultTitleContentAreaViewModel
+                         {
+                             Title = Model.CurrentPage.TestimonialsTitle,
+                             ContentArea = Model.CurrentPage.TestimonialsContentArea,
+                             ChildCssClass = string.Empty
+                         })" />
+                
+                <partial model="@(new DefaultTitleContentAreaViewModel
+                         {
+                             Title = Model.CurrentPage.TestimonialsTitle,
+                             ContentArea = Model.CurrentPage.TestimonialsContentArea,
+                             ChildCssClass = string.Empty
+                         })" />
+                
+                <div>
+                    <partial name="~/Views/Shared/_TestimonialRow.cshtml"
+                             model="@(new DefaultTitleContentAreaViewModel
+                                 {
+                                     Title = Model.CurrentPage.TestimonialsTitle,
+                                     ContentArea = Model.CurrentPage.TestimonialsContentArea,
+                                     ChildCssClass = string.Empty
+                                 })" />
+                </div>
+                """,
             expected: code);
     }
 
@@ -7188,6 +9958,41 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 """;
         await RunFormattingTestAsync(
             input: code,
+            htmlFormatted: """
+                @page "/"
+                
+                @if (true)
+                {
+                <textarea id="textarea1">
+                    a
+                        @if (true)
+                        {
+                        b
+                            }
+                            c
+                    </textarea>
+                }
+                
+                <textarea id="textarea2">
+                    a
+                        @if (true)
+                        {
+                        b
+                            }
+                            c
+                    </textarea>
+                
+                <div>
+                    <textarea id="textarea3">
+                            a
+                                @if (true)
+                                {
+                                b
+                                    }
+                                    c
+                        </textarea>
+                </div>
+                """,
             expected: code);
     }
 
@@ -7197,6 +10002,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             input: """
                 <textarea name="foo"
                                     id="foo">@("Foo")
+                     test</textarea>
+                """,
+            htmlFormatted: """
+                <textarea name="foo"
+                          id="foo">@("Foo")
                      test</textarea>
                 """,
             expected: """
@@ -7213,6 +10023,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                                     id="foo">@("Foo")
                      test</textarea>
                 """,
+            htmlFormatted: """
+                <textarea name="foo"
+                          id="foo">@("Foo")
+                     test</textarea>
+                """,
             expected: """
                 <textarea name="foo"
                     id="foo">@("Foo")
@@ -7226,6 +10041,11 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             input: """
                 <textarea name="foo"
                                     id="foo">@("Foo")
+                     test</textarea>
+                """,
+                        htmlFormatted: """
+                <textarea name="foo"
+                          id="foo">@("Foo")
                      test</textarea>
                 """,
             expected: """
@@ -7252,6 +10072,19 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     } [|private string _s = "";|]
                 }
                 """,
+            htmlFormatted: """
+                @code
+                {
+                    public string S
+                    {
+                        get => _s;
+                        set
+                        {
+                            _s = value;
+                        }
+                    } private string _s = "";
+                }
+                """,
             expected: """
                 @code
                 {
@@ -7267,7 +10100,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 }
                 """,
             debugAssertsEnabled: false
-            );
+);
 
     [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/11873")]
@@ -7295,6 +10128,30 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             }
                         </div>
                     </div>
+                }
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <div class="d-flex">
+                    <div class="d-flex flex-column" style="text-align: end;">
+                        @if (true)
+                        {
+                        <span>
+                            @((((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)) €
+                        </span>
+                        <hr class="my-1" />
+                        <span>
+                            @((123d +
+                            ((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)) €
+                        </span>
+                        }
+                    </div>
+                </div>
                 }
                 """,
             expected: """
@@ -7351,7 +10208,31 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
             }
             """;
 
-        return RunFormattingTestAsync(input: code, expected: code);
+        return RunFormattingTestAsync(input: code, htmlFormatted: """
+                @if (true)
+                {
+                <div class="d-flex">
+                    <div class="d-flex flex-column" style="text-align: end;">
+                        @if (true)
+                        {
+                        <span>
+                            @((((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)) €
+                        </span>
+                        <hr class="my-1" />
+                        <span>
+                            @((123d +
+                            ((true) ? 123d : 0d) +
+                            (true ? 123d : 0d)
+                            ).ToString("F2", CultureInfo.InvariantCulture)) €
+                        </span>
+                        }
+                    </div>
+                </div>
+                }
+                """,
+            expected: code);
     }
 
     [FormattingTestFact]
@@ -7373,6 +10254,23 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             (true ? 123d : 0d)
                             ).ToString("F2", CultureInfo.InvariantCulture)) €
                     </span>
+                }
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <span>
+                    @((((true) ? 123d : 0d) +
+                    (true ? 123d : 0d)
+                    ).ToString("F2", CultureInfo.InvariantCulture)) €
+                </span>
+                <hr class="my-1" />
+                <span>
+                    @((123d +
+                    ((true) ? 123d : 0d) +
+                    (true ? 123d : 0d)
+                    ).ToString("F2", CultureInfo.InvariantCulture)) €
+                </span>
                 }
                 """,
             expected: """
@@ -7414,6 +10312,25 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             ).ToString("F2", CultureInfo.InvariantCulture)
                         ) €
                     </span>
+                }
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <span>
+                    @((((true) ? 123d : 0d) +
+                    (true ? 123d : 0d)
+                    ).ToString("F2", CultureInfo.InvariantCulture)
+                    ) €
+                </span>
+                <hr class="my-1" />
+                <span>
+                    @((123d +
+                    ((true) ? 123d : 0d) +
+                    (true ? 123d : 0d)
+                    ).ToString("F2", CultureInfo.InvariantCulture)
+                    ) €
+                </span>
                 }
                 """,
             expected: """
@@ -7459,6 +10376,25 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     </span>
                 }
                 """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <span>
+                    @((((true) ? 123d : 0d) +
+                    (true ? 123d : 0d)
+                    ).ToString("F2", CultureInfo.InvariantCulture)
+                    ) €
+                </span>
+                <hr class="my-1" />
+                <span>
+                    @((123d +
+                    ((true) ? 123d : 0d) +
+                    (true ? 123d : 0d)
+                    ).ToString("F2", CultureInfo.InvariantCulture)
+                    ) €
+                </span>
+                }
+                """,
             expected: """
                 @if (true)
                 {
@@ -7489,7 +10425,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                 </InputSelect>
                 </div>
                 """,
-         expected: """
+         htmlFormatted: """
+                <div>
+                    <InputSelect TValue="Guid?">
+                    </InputSelect>
+                </div>
+                """,
+            expected: """
                 <div>
                     <InputSelect TValue="Guid?">
                     </InputSelect>
@@ -7519,6 +10461,26 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     </InputSelect>
                     </div>
                     """,
+            htmlFormatted: """
+                <div class="foo"
+                     disabled
+                     style="hello"
+                     @onclick="foo()">
+                    <InputSelect @onclick="foo()"
+                                 TValue="Guid?"
+                                 disabled
+                                 style="hello">
+                        <p></p><a href="#"
+                                  disabled
+                                  style="hello"
+                                  @onclick="foo()" />
+                        <br class="a"
+                            style="b"
+                            disabled>
+                        <br />
+                    </InputSelect>
+                </div>
+                """,
             expected: """
                     <div class="foo"
                          disabled
@@ -7551,6 +10513,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                       @onclick="foo()">
                     </div>
                     """,
+            htmlFormatted: """
+                <div class="foo"
+                     disabled
+                     style="hello"
+                     @onclick="foo()">
+                </div>
+                """,
             expected: """
                     <div class="foo"
                          disabled
@@ -7582,6 +10551,26 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     </InputSelect>
                     </div>
                     """,
+            htmlFormatted: """
+                <div class="foo"
+                     disabled
+                     style="hello"
+                     @onclick="foo()">
+                    <InputSelect @onclick="foo()"
+                                 TValue="Guid?"
+                                 disabled
+                                 style="hello">
+                        <p></p><a href="#"
+                                  disabled
+                                  style="hello"
+                                  @onclick="foo()" />
+                        <br class="a"
+                            style="b"
+                            disabled>
+                        <br />
+                    </InputSelect>
+                </div>
+                """,
             expected: """
                     <div class="foo"
                         disabled
@@ -7602,7 +10591,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         </InputSelect>
                     </div>
                     """,
-            attributeIndentStyle: CodeAnalysis.Razor.Settings.AttributeIndentStyle.IndentByOne);
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
 
     [FormattingTestFact]
     public Task HtmlAttributes_IndentByTwo()
@@ -7627,6 +10616,26 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     </InputSelect>
                     </div>
                     """,
+            htmlFormatted: """
+                <div class="foo"
+                     disabled
+                     style="hello"
+                     @onclick="foo()">
+                    <InputSelect @onclick="foo()"
+                                 TValue="Guid?"
+                                 disabled
+                                 style="hello">
+                        <p></p><a href="#"
+                                  disabled
+                                  style="hello"
+                                  @onclick="foo()" />
+                        <br class="a"
+                            style="b"
+                            disabled>
+                        <br />
+                    </InputSelect>
+                </div>
+                """,
             expected: """
                     <div class="foo"
                             disabled
@@ -7647,7 +10656,7 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         </InputSelect>
                     </div>
                     """,
-            attributeIndentStyle: CodeAnalysis.Razor.Settings.AttributeIndentStyle.IndentByTwo);
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
 
     [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/12223")]
@@ -7660,6 +10669,13 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             .Render())
                     }
                     """,
+            htmlFormatted: """
+                @if (true)
+                {
+                    @(Html.Grid()
+                        .Render())
+                }
+                """,
             expected: """
                     @if (true)
                     {
@@ -7691,6 +10707,25 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         })
                     </div>
                     """,
+            htmlFormatted: """
+                @{
+                    Func<Test, IHtmlContent> RenderTest = @<div>Test X: @item.X, Y: @item.Y</div>;
+                }
+                
+                @RenderTest(new Test()
+                {
+                    X = 10,
+                    Y = 20,
+                })
+                
+                <div>
+                    @RenderTest(new Test()
+                    {
+                    X = 1,
+                    Y = 2,
+                    })
+                </div>
+                """,
             expected: """
                     @{
                         Func<Test, IHtmlContent> RenderTest = @<div>Test X: @item.X, Y: @item.Y</div>;
@@ -7726,6 +10761,17 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     </div>
                     """,
+            htmlFormatted: """
+                <div>
+                    @if (true)
+                    {
+                    @Html.TextBox(new Test()
+                    {
+                    test = 5
+                    })
+                    }
+                </div>
+                """,
             expected: """
                     <div>
                         @if (true)
@@ -7751,6 +10797,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         }
                     </div>
                     """,
+            htmlFormatted: """
+                <div>
+                    @{
+                    var a = new int[] { 1, 2, 3 }
+                    .Where(i => i % 2 == 0)
+                    .ToArray();
+                    }
+                </div>
+                """,
             expected: """
                     <div>
                         @{
@@ -7774,6 +10829,18 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                             test = 5
                         })
                         <div></div>
+                    }
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    @if (true)
+                    {
+                    @Html.TextBox(new Test()
+                    {
+                    test = 5
+                    })
+                    <div></div>
                     }
                 </div>
                 """,
@@ -7803,6 +10870,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                 </div>
                 """,
+            htmlFormatted: """
+                <div>
+                    @if (true)
+                    {
+                    @Html.TextBox(new Test() { test = 5 })
+                    <div></div>
+                    }
+                </div>
+                """,
             expected: """
                 <div>
                     @if (true)
@@ -7825,6 +10901,16 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         test = 5
                     })
                     <div></div>
+                }
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                    @Html.TextBox(new Test()
+                    {
+                        test = 5
+                    })
+                <div></div>
                 }
                 """,
             expected: """
@@ -7854,6 +10940,22 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         @Html.TextBox(new 
                         {
                             test = 5,
+                        })
+                    </div>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <div>
+                        @Html.TextBox(new
+                        {
+                        test = 5,
+                        })
+                    </div>
+                    <div>
+                        @Html.TextBox(new
+                        {
+                        test = 5,
                         })
                     </div>
                 </div>
@@ -7888,6 +10990,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     <div></div>
                 }
                 """,
+            htmlFormatted: """
+                @if (true)
+                {
+                    @Html.TextBox(new Test() {
+                        test = 5
+                    })
+                <div></div>
+                }
+                """,
             expected: """
                 @if (true)
                 {
@@ -7910,6 +11021,15 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         test = 5
                     })
                     <div></div>
+                }
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                    @Html.TextBox(new Test() {
+                        test = 5
+                    })
+                <div></div>
                 }
                 """,
             expected: """
@@ -7938,6 +11058,16 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                         test = 5
                     })
                     <div></div>
+                }
+                """,
+            htmlFormatted: """
+                    @if (true)
+                {
+                    @Html.TextBox(new Test()
+                    {
+                        test = 5
+                    })
+                <div></div>
                 }
                 """,
             expected: """
@@ -7972,6 +11102,25 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                                 </div>
 
                                 <div></div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <div>
+                        <div>
+                            @if (true)
+                            {
+                            <div>
+                                @Html.TextBox(new
+                                {
+                                test = 6
+                                })
+                            </div>
+                
+                            <div></div>
                             }
                         </div>
                     </div>
@@ -8014,6 +11163,19 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     }
                 )
                 """,
+            htmlFormatted: """
+                @await Component.InvokeAsync("ReviewAndPublishModal",
+                    new {
+                        id = "ReviewPublishModal",
+                        title = "Review and publish",
+                        text = Model.ReviewNotes,
+                        state = Model.State,
+                        allowSave = allowSaveReview,
+                        allowPublish = allowPublish,
+                        isPublished =isCurrentPublished
+                    }
+                )
+                """,
             expected: """
                 @await Component.InvokeAsync("ReviewAndPublishModal",
                     new
@@ -8037,6 +11199,12 @@ public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattin
                     <tr>
                     <td>
                     """,
+            htmlFormatted: """
+                <table>
+                    <tr>
+                        <td>
+
+                """,
             expected: """
                     <table>
                         <tr>
