@@ -253,6 +253,32 @@ internal abstract class AbstractDocumentMappingService(ILogger logger) : IDocume
         return true;
     }
 
+    public ImmutableArray<SourceMapping> GetOverlappingSourceMappings(RazorCSharpDocument csharpDocument, LinePositionSpan razorRange)
+    {
+        var sourceText = csharpDocument.CodeDocument.Source.Text;
+        if (!IsRangeWithinDocument(razorRange, sourceText))
+        {
+            return [];
+        }
+
+        using var builder = new PooledArrayBuilder<SourceMapping>();
+
+        foreach (var mapping in csharpDocument.SourceMappings)
+        {
+            var originalSpan = mapping.OriginalSpan;
+            var originalLinePositionSpan = new LinePositionSpan(
+                new LinePosition(originalSpan.LineIndex, originalSpan.CharacterIndex),
+                new LinePosition(originalSpan.LineIndex + originalSpan.LineCount, originalSpan.EndCharacterIndex));
+
+            if (razorRange.OverlapsWith(originalLinePositionSpan))
+            {
+                builder.Add(mapping);
+            }
+        }
+
+        return builder.ToImmutableAndClear();
+    }
+
     public bool TryMapToRazorDocumentPosition(RazorCSharpDocument csharpDocument, int csharpIndex, out LinePosition razorPosition, out int razorIndex)
     {
         var sourceMappings = csharpDocument.SourceMappings;
