@@ -3,17 +3,14 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.Formatting;
-using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Test.Cohost.Formatting;
 
-[Collection(HtmlFormattingCollection.Name)]
-public class CascadingTypeParameterFormattingTest(FormattingTestContext context, HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
-    : FormattingTestBase(context, fixture.Service, testOutput), IClassFixture<FormattingTestContext>
+public class CascadingTypeParameterFormattingTest(FormattingTestContext context, ITestOutputHelper testOutput)
+    : DocumentFormattingTestBase(context, testOutput), IClassFixture<FormattingTestContext>
 {
     [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5648")]
@@ -224,8 +221,8 @@ public class CascadingTypeParameterFormattingTest(FormattingTestContext context,
 
     private Task RunFormattingTestAsync(
         TestCode input,
-        string expected,
-        string htmlFormatted)
+        string htmlFormatted,
+        string expected)
     {
         return base.RunFormattingTestAsync(
             input,

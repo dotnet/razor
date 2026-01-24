@@ -39,9 +39,8 @@ public class CSharpSyntaxFormattingOptionsTest_Generator
 
             namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 
-            [Collection(HtmlFormattingCollection.Name)]
-            public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
-                : FormattingTestBase(context, fixture.Service, testOutput), IClassFixture<FormattingTestContext>
+            public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, ITestOutputHelper testOutput)
+                : DocumentFormattingTestBase(context, testOutput), IClassFixture<FormattingTestContext>
             {
             """;
 
@@ -98,7 +97,7 @@ public class CSharpSyntaxFormattingOptionsTest_Generator
         bool[] booleanOptions = [true, false];
 
         var projectPath = TestProject.GetProjectDirectory(typeof(CSharpSyntaxFormattingOptionsTest_Generator), layer: TestProject.Layer.Tooling);
-        var testFileName = Path.Combine(projectPath, """Cohost\Formatting\CSharpSyntaxFormattingOptionsTest.cs""");
+        var testFileName = Path.Combine(projectPath, """Endpoints\Shared\Formatting\Formatting\CSharpSyntaxFormattingOptionsTest.cs""");
 
         var addExtraLine = false;
 

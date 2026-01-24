@@ -4,15 +4,13 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-[Collection(HtmlFormattingCollection.Name)]
-public class CodeDirectiveFormattingTest(FormattingTestContext context, HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
-    : FormattingTestBase(context, fixture.Service, testOutput), IClassFixture<FormattingTestContext>
+public class CodeDirectiveFormattingTest(FormattingTestContext context, ITestOutputHelper testOutput)
+    : DocumentFormattingTestBase(context, testOutput), IClassFixture<FormattingTestContext>
 {
     [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5648")]

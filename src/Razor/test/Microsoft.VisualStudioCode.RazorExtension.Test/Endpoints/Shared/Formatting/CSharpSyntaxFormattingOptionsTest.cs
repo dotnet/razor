@@ -11,9 +11,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 
-[Collection(HtmlFormattingCollection.Name)]
-public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
-    : FormattingTestBase(context, fixture.Service, testOutput), IClassFixture<FormattingTestContext>
+public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, ITestOutputHelper testOutput)
+    : DocumentFormattingTestBase(context, testOutput), IClassFixture<FormattingTestContext>
 {
     [FormattingTestFact]
     public async Task CSharpSyntaxFormattingOptions_WithoutBeforeMembersInObjectInitializers_SingleLine_PreserveSingle()

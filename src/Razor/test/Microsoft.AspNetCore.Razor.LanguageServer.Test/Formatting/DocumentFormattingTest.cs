@@ -16,9 +16,8 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 #endif
 
-[Collection(HtmlFormattingCollection.Name)]
-public class DocumentFormattingTest(FormattingTestContext context, HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
-    : FormattingTestBase(context, fixture.Service, testOutput), IClassFixture<FormattingTestContext>
+public class DocumentFormattingTest(FormattingTestContext context, ITestOutputHelper testOutput)
+    : DocumentFormattingTestBase(context, testOutput), IClassFixture<FormattingTestContext>
 {
     [FormattingTestFact]
     public async Task EmptyDocument()

@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 using Xunit;
 using Xunit.Abstractions;
@@ -17,9 +16,8 @@ using AssertEx = Roslyn.Test.Utilities.AssertEx;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Test.Cohost.Formatting;
 
-[Collection(HtmlFormattingCollection.Name)]
-public class HtmlFormattingPassTest(FormattingTestContext context, HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
-    : FormattingTestBase(context, fixture.Service, testOutput), IClassFixture<FormattingTestContext>
+public class HtmlFormattingPassTest(FormattingTestContext context, ITestOutputHelper testOutput)
+    : DocumentFormattingTestBase(context, testOutput), IClassFixture<FormattingTestContext>
 {
     public static TheoryData<string, string> StringLiteralSplitTestData => new()
     {
