@@ -16,8 +16,7 @@ using AssertEx = Roslyn.Test.Utilities.AssertEx;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Test.Cohost.Formatting;
 
-public class HtmlFormattingPassTest(FormattingTestContext context, ITestOutputHelper testOutput)
-    : DocumentFormattingTestBase(context, testOutput), IClassFixture<FormattingTestContext>
+public class HtmlFormattingPassTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
 {
     public static TheoryData<string, string> StringLiteralSplitTestData => new()
     {

@@ -22,11 +22,13 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 
 public abstract class FormattingTestBase : DocumentFormattingTestBase
 {
+    private readonly FormattingTestContext _context;
     private readonly HtmlFormattingService _htmlFormattingService;
 
     private protected FormattingTestBase(FormattingTestContext context, HtmlFormattingService htmlFormattingService, ITestOutputHelper testOutputHelper)
-        : base(context, testOutputHelper)
+        : base(testOutputHelper)
     {
+        _context = context;
         _htmlFormattingService = htmlFormattingService;
     }
 
@@ -97,5 +99,20 @@ public abstract class FormattingTestBase : DocumentFormattingTestBase
             var delta = lastLine - firstLine + changes.Count(e => e.NewText.AssumeNotNull().Contains(Environment.NewLine));
             Assert.Equal(changedLines, delta + 1);
         }
+    }
+
+    private (TestCode, string, string) ProcessFormattingContext(TestCode input, string htmlFormatted, string expected)
+    {
+        Assert.True(_context.CreatedByFormattingDiscoverer, "Test class is using FormattingTestContext, but not using [FormattingTestFact] or [FormattingTestTheory]");
+
+        if (_context.ShouldFlipLineEndings)
+        {
+            // flip the line endings of the stings (LF to CRLF and vice versa) and run again
+            input = new TestCode(FormattingTestContext.FlipLineEndings(input.OriginalInput));
+            expected = FormattingTestContext.FlipLineEndings(expected);
+            htmlFormatted = FormattingTestContext.FlipLineEndings(htmlFormatted);
+        }
+
+        return (input, htmlFormatted, expected);
     }
 }

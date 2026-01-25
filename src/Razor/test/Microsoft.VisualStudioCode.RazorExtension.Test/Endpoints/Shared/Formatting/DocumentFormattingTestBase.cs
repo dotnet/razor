@@ -23,12 +23,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 
-public abstract class DocumentFormattingTestBase(FormattingTestContext context, ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
+public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    private readonly FormattingTestContext _context = context;
-
-    private protected FormattingTestContext TestFormattingContext => _context;
-
     private protected async Task RunFormattingTestAsync(
         TestCode input,
         string htmlFormatted,
@@ -44,8 +40,6 @@ public abstract class DocumentFormattingTestBase(FormattingTestContext context, 
         RazorCSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null,
         (string fileName, string contents)[]? additionalFiles = null)
     {
-        (input, htmlFormatted, expected) = ProcessFormattingContext(input, htmlFormatted, expected);
-
         var document = CreateProjectAndRazorDocument(input.Text, fileKind, inGlobalNamespace: inGlobalNamespace, additionalFiles: additionalFiles);
         if (!allowDiagnostics)
         {
@@ -86,11 +80,8 @@ public abstract class DocumentFormattingTestBase(FormattingTestContext context, 
 
         var htmlEdited = source.WithChanges(htmlChanges);
         var htmlEditedLegacy = source.WithChanges(htmlChangesResult ?? []);
-        var htmlFormattedLegacy = TestFormattingContext.ShouldFlipLineEndings
-            ? htmlEditedLegacy.ToString().Replace("\r\n", "\n")
-            : htmlEditedLegacy.ToString();
-        Assert.Equal(htmlEdited.ToString(), htmlFormattedLegacy);
-        Assert.Equal(htmlFormatted, htmlFormattedLegacy);
+        Assert.Equal(htmlEdited.ToString(), htmlEditedLegacy.ToString());
+        Assert.Equal(htmlFormatted, htmlEditedLegacy.ToString());
         Assert.Equal(htmlFormatted, htmlEdited.ToString());
 #endif
 
@@ -166,20 +157,5 @@ public abstract class DocumentFormattingTestBase(FormattingTestContext context, 
         };
 
         return await rangeEndpoint.GetTestAccessor().HandleRequestAsync(rangeRequest, document, DisposalToken);
-    }
-
-    private protected (TestCode, string, string) ProcessFormattingContext(TestCode input, string htmlFormatted, string expected)
-    {
-        Assert.True(_context.CreatedByFormattingDiscoverer, "Test class is using FormattingTestContext, but not using [FormattingTestFact] or [FormattingTestTheory]");
-
-        if (_context.ShouldFlipLineEndings)
-        {
-            // flip the line endings of the stings (LF to CRLF and vice versa) and run again
-            input = new TestCode(FormattingTestContext.FlipLineEndings(input.OriginalInput));
-            expected = FormattingTestContext.FlipLineEndings(expected);
-            htmlFormatted = FormattingTestContext.FlipLineEndings(htmlFormatted);
-        }
-
-        return (input, htmlFormatted, expected);
     }
 }

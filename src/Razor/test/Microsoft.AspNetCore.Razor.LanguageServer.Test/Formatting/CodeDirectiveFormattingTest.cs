@@ -9,10 +9,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class CodeDirectiveFormattingTest(FormattingTestContext context, ITestOutputHelper testOutput)
-    : DocumentFormattingTestBase(context, testOutput), IClassFixture<FormattingTestContext>
+public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
 {
-    [FormattingTestFact]
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5648")]
     public async Task GenericComponentWithCascadingTypeParameter()
     {
@@ -95,7 +94,7 @@ public class CodeDirectiveFormattingTest(FormattingTestContext context, ITestOut
             tagHelpers: [.. GetComponentWithCascadingTypeParameter()]);
     }
 
-    [FormattingTestFact]
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5648")]
     public async Task GenericComponentWithCascadingTypeParameter_Nested()
     {
@@ -166,7 +165,7 @@ public class CodeDirectiveFormattingTest(FormattingTestContext context, ITestOut
             tagHelpers: [.. GetComponentWithCascadingTypeParameter()]);
     }
 
-    [FormattingTestFact]
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5648")]
     public async Task GenericComponentWithCascadingTypeParameter_MultipleParameters()
     {

@@ -24,11 +24,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 public abstract class FormattingTestBase : DocumentFormattingTestBase
 {
+    private readonly FormattingTestContext _context;
     private readonly HtmlFormattingService _htmlFormattingService;
 
     private protected FormattingTestBase(FormattingTestContext context, HtmlFormattingService htmlFormattingService, ITestOutputHelper testOutput)
-        : base(context, testOutput)
+        : base(testOutput)
     {
+        _context = context;
         _htmlFormattingService = htmlFormattingService;
     }
 
@@ -108,5 +110,20 @@ public abstract class FormattingTestBase : DocumentFormattingTestBase
             var delta = lastLine - firstLine + changes.Count(e => e.NewText.Contains(Environment.NewLine));
             Assert.Equal(expectedChangedLines.Value, delta + 1);
         }
+    }
+
+    private (string input, string htmlFormatted, string expected) ProcessFormattingContext(string input, string htmlFormatted, string expected)
+    {
+        Assert.True(_context.CreatedByFormattingDiscoverer, "Test class is using FormattingTestContext, but not using [FormattingTestFact] or [FormattingTestTheory]");
+
+        if (_context.ShouldFlipLineEndings)
+        {
+            // flip the line endings of the stings (LF to CRLF and vice versa) and run again
+            input = FormattingTestContext.FlipLineEndings(input);
+            expected = FormattingTestContext.FlipLineEndings(expected);
+            htmlFormatted = FormattingTestContext.FlipLineEndings(htmlFormatted);
+        }
+
+        return (input, htmlFormatted, expected);
     }
 }

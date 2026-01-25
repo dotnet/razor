@@ -9,10 +9,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Test.Cohost.Formatting;
 
-public class CascadingTypeParameterFormattingTest(FormattingTestContext context, ITestOutputHelper testOutput)
-    : DocumentFormattingTestBase(context, testOutput), IClassFixture<FormattingTestContext>
+public class CascadingTypeParameterFormattingTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
 {
-    [FormattingTestFact]
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5648")]
     public async Task GenericComponentWithCascadingTypeParameter()
     {
@@ -94,7 +93,7 @@ public class CascadingTypeParameterFormattingTest(FormattingTestContext context,
                     """);
     }
 
-    [FormattingTestFact]
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5648")]
     public async Task GenericComponentWithCascadingTypeParameter_Nested()
     {
@@ -164,7 +163,7 @@ public class CascadingTypeParameterFormattingTest(FormattingTestContext context,
                     """);
     }
 
-    [FormattingTestFact]
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5648")]
     public async Task GenericComponentWithCascadingTypeParameter_MultipleParameters()
     {

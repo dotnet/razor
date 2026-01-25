@@ -39,8 +39,7 @@ public class CSharpSyntaxFormattingOptionsTest_Generator
 
             namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 
-            public class CSharpSyntaxFormattingOptionsTest(FormattingTestContext context, ITestOutputHelper testOutput)
-                : DocumentFormattingTestBase(context, testOutput), IClassFixture<FormattingTestContext>
+            public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
             {
             """;
 
@@ -51,7 +50,7 @@ public class CSharpSyntaxFormattingOptionsTest_Generator
 
         //lang=C#-test
         var testTemplate = """"
-            [FormattingTestFact]
+            [Fact]
             public async Task {TestName}()
             {
                 await RunFormattingTestAsync(

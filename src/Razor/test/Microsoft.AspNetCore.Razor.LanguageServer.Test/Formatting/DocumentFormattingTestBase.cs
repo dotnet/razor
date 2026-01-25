@@ -31,15 +31,11 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public abstract class DocumentFormattingTestBase(FormattingTestContext context, ITestOutputHelper testOutput) : RazorToolingIntegrationTestBase(testOutput)
+public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutput) : RazorToolingIntegrationTestBase(testOutput)
 {
     private static readonly AsyncLazy<TagHelperCollection> s_standardTagHelpers = AsyncLazy.Create(GetStandardTagHelpersAsync);
 
-    private readonly FormattingTestContext _context = context;
-
     internal sealed override bool UseTwoPhaseCompilation => true;
-
-    private protected FormattingTestContext TestFormattingContext => _context;
 
     private protected async Task RunFormattingTestAsync(
         string input,
@@ -56,8 +52,6 @@ public abstract class DocumentFormattingTestBase(FormattingTestContext context, 
         bool debugAssertsEnabled = true,
         RazorCSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null)
     {
-        (input, htmlFormatted, expected) = ProcessFormattingContext(input, htmlFormatted, expected);
-
         var razorLSPOptions = RazorLSPOptions.Default with
         {
             CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine,
@@ -121,11 +115,8 @@ public abstract class DocumentFormattingTestBase(FormattingTestContext context, 
         var htmlFormatter = new HtmlFormatter(client);
         var htmlEdited = source.WithChanges(htmlChanges);
         var htmlEditedLegacy = source.WithChanges(await htmlFormatter.GetDocumentFormattingEditsAsync(documentSnapshot, uri, options, DisposalToken) ?? []);
-        var htmlFormattedLegacy = TestFormattingContext.ShouldFlipLineEndings
-            ? htmlEditedLegacy.ToString().Replace("\r\n", "\n")
-            : htmlEditedLegacy.ToString();
-        Assert.Equal(htmlEdited.ToString(), htmlFormattedLegacy);
-        Assert.Equal(htmlFormatted, htmlFormattedLegacy);
+        Assert.Equal(htmlEdited.ToString(), htmlEditedLegacy.ToString());
+        Assert.Equal(htmlFormatted, htmlEditedLegacy.ToString());
         AssertEx.EqualOrDiff(htmlFormatted, htmlEdited.ToString());
 #endif
 
@@ -142,21 +133,6 @@ public abstract class DocumentFormattingTestBase(FormattingTestContext context, 
         {
             Assert.Empty(changes);
         }
-    }
-
-    private protected (string input, string htmlFormatted, string expected) ProcessFormattingContext(string input, string htmlFormatted, string expected)
-    {
-        Assert.True(_context.CreatedByFormattingDiscoverer, "Test class is using FormattingTestContext, but not using [FormattingTestFact] or [FormattingTestTheory]");
-
-        if (_context.ShouldFlipLineEndings)
-        {
-            // flip the line endings of the stings (LF to CRLF and vice versa) and run again
-            input = FormattingTestContext.FlipLineEndings(input);
-            expected = FormattingTestContext.FlipLineEndings(expected);
-            htmlFormatted = FormattingTestContext.FlipLineEndings(htmlFormatted);
-        }
-
-        return (input, htmlFormatted, expected);
     }
 
     private protected static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(

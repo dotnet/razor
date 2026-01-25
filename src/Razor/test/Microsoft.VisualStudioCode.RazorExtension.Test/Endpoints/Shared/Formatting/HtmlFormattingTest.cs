@@ -14,10 +14,9 @@ using AssertEx = Roslyn.Test.Utilities.AssertEx;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Test.Cohost.Formatting;
 
-public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper testOutput)
-    : DocumentFormattingTestBase(context, testOutput), IClassFixture<FormattingTestContext>
+public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
 {
-    [FormattingTestFact]
+    [Fact]
     public async Task FormatsComponentTags()
     {
         await RunFormattingTestAsync(
@@ -74,7 +73,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
                     """);
     }
 
-    [FormattingTestFact]
+    [Fact]
     public async Task FormatsComponentTag_WithImplicitExpression()
     {
         await RunFormattingTestAsync(
@@ -104,7 +103,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
                     """);
     }
 
-    [FormattingTestFact]
+    [Fact]
     public async Task FormatsComponentTag_WithExplicitExpression()
     {
         await RunFormattingTestAsync(
@@ -131,7 +130,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
                     """);
     }
 
-    [FormattingTestFact]
+    [Fact]
     public async Task FormatsComponentTag_WithExplicitExpression_FormatsInside()
     {
         await RunFormattingTestAsync(
@@ -158,7 +157,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
                     """);
     }
 
-    [FormattingTestFact]
+    [Fact]
     public async Task FormatsComponentTag_WithExplicitExpression_MovesStart()
     {
         await RunFormattingTestAsync(
@@ -191,7 +190,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
                     """);
     }
 
-    [FormattingTestFact]
+    [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
     public async Task FormatNestedComponents2()
     {
@@ -258,7 +257,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
                     """);
     }
 
-    [FormattingTestFact]
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/8227")]
     public async Task FormatNestedComponents3()
     {
@@ -346,7 +345,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
                     """);
     }
 
-    [FormattingTestFact]
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/8228")]
     public async Task FormatNestedComponents4()
     {
@@ -377,7 +376,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
                     """);
     }
 
-    [FormattingTestFact]
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/8229")]
     public async Task FormatNestedComponents5()
     {
@@ -414,7 +413,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
                     """);
     }
 
-    [FormattingTestFact]
+    [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
     public async Task FormatNestedComponents2_Range()
     {
@@ -481,7 +480,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
                     """);
     }
 
-    [FormattingTestFact]
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/6211")]
     public async Task FormatCascadingValueWithCascadingTypeParameter()
     {
@@ -533,7 +532,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
                     """);
     }
 
-    [FormattingTestFact]
+    [Fact]
     public async Task PreprocessorDirectives()
     {
         await RunFormattingTestAsync(
@@ -588,7 +587,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
             allowDiagnostics: true);
     }
 
-    [FormattingTestTheory]
+    [Theory]
     [InlineData(AttributeIndentStyle.AlignWithFirst)]
     [InlineData(AttributeIndentStyle.IndentByOne)]
     internal Task HtmlAttributes_FirstNotOnSameLine(AttributeIndentStyle attributeIndentStyle)
@@ -619,7 +618,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
                 """,
             attributeIndentStyle);
 
-    [FormattingTestFact]
+    [Fact]
     internal Task HtmlAttributes_FirstNotOnSameLine_IndentByTwo()
     => RunAttributeIndentStyleTestAsync(
         input: """

@@ -11,10 +11,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper testOutput)
-    : DocumentFormattingTestBase(context, testOutput), IClassFixture<FormattingTestContext>
+public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
 {
-    [FormattingTestFact]
+    [Fact]
     public async Task FormatsComponentTags()
     {
         var tagHelpers = GetComponents();
@@ -73,7 +72,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
             tagHelpers: [.. tagHelpers]);
     }
 
-    [FormattingTestFact]
+    [Fact]
     public async Task FormatsComponentTag_WithImplicitExpression()
     {
         var tagHelpers = GetComponents();
@@ -105,7 +104,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
             tagHelpers: [.. tagHelpers]);
     }
 
-    [FormattingTestFact]
+    [Fact]
     public async Task FormatsComponentTag_WithExplicitExpression()
     {
         var tagHelpers = GetComponents();
@@ -134,7 +133,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
             tagHelpers: [.. tagHelpers]);
     }
 
-    [FormattingTestFact]
+    [Fact]
     public async Task FormatsComponentTag_WithExplicitExpression_FormatsInside()
     {
         var tagHelpers = GetComponents();
@@ -163,7 +162,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
             tagHelpers: [.. tagHelpers]);
     }
 
-    [FormattingTestFact]
+    [Fact]
     public async Task FormatsComponentTag_WithExplicitExpression_MovesStart()
     {
         var tagHelpers = GetComponents();
@@ -198,7 +197,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
             tagHelpers: [.. tagHelpers]);
     }
 
-    [FormattingTestFact]
+    [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
     public async Task FormatNestedComponents2()
     {
@@ -266,7 +265,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
             tagHelpers: [.. GetComponents()]);
     }
 
-    [FormattingTestFact]
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/8227")]
     public async Task FormatNestedComponents3()
     {
@@ -355,7 +354,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
             tagHelpers: [.. GetComponents()]);
     }
 
-    [FormattingTestFact]
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/8228")]
     public async Task FormatNestedComponents4()
     {
@@ -387,7 +386,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
             tagHelpers: [.. GetComponents()]);
     }
 
-    [FormattingTestFact]
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/8229")]
     public async Task FormatNestedComponents5()
     {
@@ -425,7 +424,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
             tagHelpers: [.. GetComponents()]);
     }
 
-    [FormattingTestFact]
+    [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
     public async Task FormatNestedComponents2_Range()
     {
@@ -493,7 +492,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
             tagHelpers: [.. GetComponents()]);
     }
 
-    [FormattingTestFact]
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/6211")]
     public async Task FormatCascadingValueWithCascadingTypeParameter()
     {
@@ -585,7 +584,7 @@ public class HtmlFormattingTest(FormattingTestContext context, ITestOutputHelper
         }
     }
 
-    [FormattingTestFact]
+    [Fact]
     public async Task PreprocessorDirectives()
     {
         await RunFormattingTestAsync(
