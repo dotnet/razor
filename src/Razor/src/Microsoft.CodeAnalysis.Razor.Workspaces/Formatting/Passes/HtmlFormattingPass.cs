@@ -190,7 +190,7 @@ internal sealed partial class HtmlFormattingPass(
         }
     }
 
-    public static ImmutableArray<LineInfo> GenerateLineInfo(RazorCodeDocument codeDocument, SourceText originalText)
+    private static ImmutableArray<LineInfo> GenerateLineInfo(RazorCodeDocument codeDocument, SourceText originalText)
     {
         var (scriptAndStyleSpans, razorCommentSpans) = BuildSpans(codeDocument, originalText);
 
@@ -253,7 +253,7 @@ internal sealed partial class HtmlFormattingPass(
 
         // Single traversal: look for both script/style elements and Razor comments
         // We only care about "top level" block type structures, so we use a filtered descent
-        foreach (var node in syntaxRoot.DescendantNodes(static node => node is MarkupElementSyntax || node.MayContainDirectives()))
+        foreach (var node in syntaxRoot.DescendantNodes())
         {
             if (node is MarkupElementSyntax element &&
                 RazorSyntaxFacts.IsScriptOrStyleBlock(element) &&

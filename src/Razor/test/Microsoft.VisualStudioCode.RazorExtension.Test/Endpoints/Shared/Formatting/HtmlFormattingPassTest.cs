@@ -103,6 +103,14 @@ public class HtmlFormattingPassTest(ITestOutputHelper testOutput) : DocumentForm
             $$hello</script></div>
             <script>
             </script>
+            @{
+                var x = @<div>
+                    <script>
+            $$            function foo() { }
+                    </script>
+                </div>;
+            }
+            
             """;
 
         var document = CreateProjectAndRazorDocument(input.Text);
