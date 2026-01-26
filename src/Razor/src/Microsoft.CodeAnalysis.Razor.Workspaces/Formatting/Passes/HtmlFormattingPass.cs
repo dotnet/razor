@@ -136,8 +136,18 @@ internal sealed partial class HtmlFormattingPass(
         {
             Debug.Assert(originalPosition < originalText.Length);
 
-            // Detect when the Html formatter is splitting a C# template, ie for "@<div>" it likes to place
-            // a newline after the @
+            // When render fragments are inside a C# code block, eg:
+            //
+            // @code {
+            //      void Foo()
+            //      {
+            //          Render(@<SurveyPrompt />);
+            //      }
+            // }
+            //
+            // This is popular in some libraries, like bUnit. The issue here is that
+            // the Html formatter sees ~~~~~<SurveyPrompt /> and puts a newline before
+            // the tag, but obviously that breaks things by separating the transition and the tag.
             if (originalPosition > 0 &&
                 originalText[originalPosition - 1] == '@' &&
                 originalText[originalPosition] == '<')
@@ -148,6 +158,10 @@ internal sealed partial class HtmlFormattingPass(
             // String literal protection - check if newline was added in a string literal.
             // We check at the position of the newline, which is the end of the formatted line, but need
             // to translate that back to the original document position.
+            // There is a good chance this is unnecessary, based on the pre-filtering we did above but
+            // since we're at the point where we know for sure a newline was added, and there shouldn't
+            // be too many of those scenarios, its worth being extra safe, because the pre-filtering is
+            // at the mercy of the exact shape of the edits the Html formatter made.
             if (IsInStringLiteral(originalPosition))
             {
                 return false;
@@ -225,6 +239,7 @@ internal sealed partial class HtmlFormattingPass(
                 ProcessIndentation: processIndentation,
                 ProcessFormatting: processFormatting,
                 CheckForNewLines: true,
+                // Everything below here is default/unused for Html formatting
                 SkipPreviousLine: false,
                 SkipNextLine: false,
                 SkipNextLineIfBrace: false,
@@ -251,8 +266,6 @@ internal sealed partial class HtmlFormattingPass(
         using var scriptStyleBuilder = new PooledArrayBuilder<TextSpan>();
         using var commentBuilder = new PooledArrayBuilder<TextSpan>();
 
-        // Single traversal: look for both script/style elements and Razor comments
-        // We only care about "top level" block type structures, so we use a filtered descent
         foreach (var node in syntaxRoot.DescendantNodes())
         {
             if (node is MarkupElementSyntax element &&
@@ -282,9 +295,6 @@ internal sealed partial class HtmlFormattingPass(
         return (scriptStyleBuilder.ToImmutable(), commentBuilder.ToImmutable());
     }
 
-    /// <summary>
-    /// Checks if a position is inside any of the given spans.
-    /// </summary>
     private static bool IsPositionInSpans(int position, ImmutableArray<TextSpan> spans)
     {
         if (spans.Length == 0)
