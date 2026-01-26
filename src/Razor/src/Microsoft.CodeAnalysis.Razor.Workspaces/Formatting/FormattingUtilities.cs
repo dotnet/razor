@@ -359,7 +359,7 @@ internal static class FormattingUtilities
         return [.. fixedChanges.Select(htmlSourceText.GetTextEdit)];
     }
 
-    public static void GetOriginalDocumentChangesFromFormattedDocument(FormattingContext context, SourceText originalText, ImmutableArray<LineInfo> formattedLineInfo, SourceText formattedText, ILogger logger, Func<int, bool>? shouldKeepInsertedNewlineAtPosition, ref PooledArrayBuilder<TextChange> formattingChanges, out int lastFormattedTextLine)
+    public static void GetOriginalDocumentChangesFromLineInfo(FormattingContext context, SourceText originalText, ImmutableArray<LineInfo> formattedLineInfo, SourceText formattedText, ILogger logger, Func<int, bool>? shouldKeepInsertedNewlineAtPosition, ref PooledArrayBuilder<TextChange> formattingChanges, out int lastFormattedTextLine)
     {
         var iFormatted = 0;
         for (var iOriginal = 0; iOriginal < originalText.Lines.Count; iOriginal++, iFormatted++)

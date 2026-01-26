@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -114,13 +115,13 @@ internal sealed partial class HtmlFormattingPass(
         context.Logger?.LogSourceText("FormattedHtmlSourceText", formattedText);
 
         // Compute the line metadata, to tell the formatting helper how to deal with each line
-        var formattingDocument = GenerateFormattedDocument(codeDocument, originalText, formattedText);
+        var lineInfo = GenerateLineInfo(codeDocument, originalText, formattedText);
 
-        context.Logger?.LogObject("HtmlFormattingLineInfo", formattingDocument.LineInfo);
+        context.Logger?.LogObject("HtmlFormattingLineInfo", lineInfo);
 
-        // Step 3: Go line-by-line and build the final text by selecting what to keep from each line
+        // Now go line-by-line and build the final changes by selecting what to keep from each line
         using var formattingChanges = new PooledArrayBuilder<TextChange>();
-        FormattingUtilities.GetOriginalDocumentChangesFromFormattedDocument(context, originalText, formattingDocument.LineInfo, formattedText, _logger, ShouldKeepInsertedNewLine, ref formattingChanges.AsRef(), out _);
+        FormattingUtilities.GetOriginalDocumentChangesFromLineInfo(context, originalText, lineInfo, formattedText, _logger, ShouldKeepInsertedNewLine, ref formattingChanges.AsRef(), out _);
 
         var finalFormattingChanges = formattingChanges.ToArray();
         context.Logger?.LogObject("FinalHtmlFormattingChanges", finalFormattingChanges);
@@ -133,9 +134,11 @@ internal sealed partial class HtmlFormattingPass(
 
         bool ShouldKeepInsertedNewLine(int originalPosition)
         {
+            Debug.Assert(originalPosition < originalText.Length);
+
             // Detect when the Html formatter is splitting a C# template, ie for "@<div>" it likes to place
             // a newline after the @
-            if (originalText.Length > 1 &&
+            if (originalPosition > 0 &&
                 originalText[originalPosition - 1] == '@' &&
                 originalText[originalPosition] == '<')
             {
@@ -166,6 +169,11 @@ internal sealed partial class HtmlFormattingPass(
                 validChanges.Add(change);
             }
 
+            if (changes.Length == validChanges.Count)
+            {
+                return changes;
+            }
+
             return validChanges.ToImmutableAndClear();
         }
 
@@ -182,7 +190,7 @@ internal sealed partial class HtmlFormattingPass(
         }
     }
 
-    public static FormattedDocument GenerateFormattedDocument(RazorCodeDocument codeDocument, SourceText originalText, SourceText formattedText)
+    public static ImmutableArray<LineInfo> GenerateLineInfo(RazorCodeDocument codeDocument, SourceText originalText, SourceText formattedText)
     {
         var (scriptAndStyleSpans, razorCommentSpans) = BuildSpans(codeDocument, originalText);
 
@@ -191,9 +199,8 @@ internal sealed partial class HtmlFormattingPass(
         // Build LineInfo for each line in the original document.
         // We try to find the corresponding line in the formatted document by matching
         // non-whitespace content. This handles cases where lines are shifted.
-        for (var iOriginal = 0; iOriginal < originalText.Lines.Count; iOriginal++)
+        foreach (var originalLine in originalText.Lines)
         {
-            var originalLine = originalText.Lines[iOriginal];
             var lineStart = originalLine.Start;
 
             // Determine processing flags based on context
@@ -229,7 +236,7 @@ internal sealed partial class HtmlFormattingPass(
                 AdditionalIndentation: null));
         }
 
-        return new FormattedDocument(formattedText, lineInfoBuilder.ToImmutable());
+        return lineInfoBuilder.ToImmutable();
     }
 
     /// <summary>
@@ -252,7 +259,11 @@ internal sealed partial class HtmlFormattingPass(
                 RazorSyntaxFacts.IsScriptOrStyleBlock(element) &&
                 element.GetLinePositionSpan(codeDocument.Source).SpansMultipleLines())
             {
-                // Script/style element: calculate content span
+                // We only want the contents of the script tag to be included, but not whitespace before the end tag if
+                // there is only whitespace before the tag, so the calculation of the end is a little annoying.
+                // eg, if the last line is just "    </script>", then the contents end at the start of the line, so
+                // we are free to modify the whitespace in front of the end tag. If the last line is "   foo();</script>"
+                // however, then we want the Html formatter to be in charge of the whitespace, so the contents end at the "f";
                 var endTagLine = sourceText.Lines.GetLineFromPosition(element.EndTag.SpanStart);
                 var firstNonWhitespace = endTagLine.GetFirstNonWhitespacePosition();
                 var end = firstNonWhitespace == element.EndTag.SpanStart

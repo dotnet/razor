@@ -57,7 +57,7 @@ internal sealed partial class CSharpFormattingPass(
         // one side entirely.
 
         using var formattingChanges = new PooledArrayBuilder<TextChange>();
-        FormattingUtilities.GetOriginalDocumentChangesFromFormattedDocument(context, changedText, generatedDocument.LineInfo, formattedCSharpText, _logger, shouldKeepInsertedNewlineAtPosition: null, ref formattingChanges.AsRef(), out var lastFormattedTextLine);
+        FormattingUtilities.GetOriginalDocumentChangesFromLineInfo(context, changedText, generatedDocument.LineInfo, formattedCSharpText, _logger, shouldKeepInsertedNewlineAtPosition: null, ref formattingChanges.AsRef(), out var lastFormattedTextLine);
 
         // We're finished processing the original file, which means we've done all of the indentation for the file, and we've done
         // the formatting changes for lines that are entirely C#, or start with C#, and lines that are Html or Razor. Now we process
