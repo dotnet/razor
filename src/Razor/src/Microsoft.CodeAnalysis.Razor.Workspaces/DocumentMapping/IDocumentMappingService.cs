@@ -22,5 +22,5 @@ internal interface IDocumentMappingService
 
     bool TryMapToCSharpPositionOrNext(RazorCSharpDocument csharpDocument, int razorIndex, out LinePosition csharpPosition, out int csharpIndex);
 
-    ImmutableArray<SourceMapping> GetOverlappingSourceMappings(RazorCSharpDocument csharpDocument, LinePositionSpan razorRange);
+    ImmutableArray<LinePositionSpan> GetCSharpSpansOverlappingRazorSpan(RazorCSharpDocument csharpDocument, LinePositionSpan razorSpan);
 }

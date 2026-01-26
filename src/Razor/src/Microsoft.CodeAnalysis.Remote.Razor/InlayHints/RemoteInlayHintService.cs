@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -43,9 +44,9 @@ internal sealed class RemoteInlayHintService(in ServiceArgs args) : RazorDocumen
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var overlappingSourceMappings = DocumentMappingService.GetOverlappingSourceMappings(csharpDocument, span);
+        var overlappingSpans = DocumentMappingService.GetCSharpSpansOverlappingRazorSpan(csharpDocument, span);
 
-        if (overlappingSourceMappings.IsEmpty)
+        if (overlappingSpans.IsEmpty)
         {
             // There's no C# in the range.
             return null;
@@ -62,15 +63,9 @@ internal sealed class RemoteInlayHintService(in ServiceArgs args) : RazorDocumen
         var csharpSourceText = codeDocument.GetCSharpSourceText();
         var root = codeDocument.GetRequiredSyntaxRoot();
 
-        foreach (var sourceMapping in overlappingSourceMappings)
+        foreach (var csharpSpan in overlappingSpans)
         {
-            var csharpSpan = sourceMapping.GeneratedSpan;
-            var range = new LspRange()
-            {
-                Start = new Position(csharpSpan.LineIndex, csharpSpan.CharacterIndex),
-                End = new Position(csharpSpan.LineIndex + csharpSpan.LineCount, csharpSpan.EndCharacterIndex)
-            };
-
+            var range = csharpSpan.ToRange();
             var hints = await InlayHints.GetInlayHintsAsync(generatedDocument, textDocument, range, displayAllOverride, _cacheWrapperProvider.GetCache(), cancellationToken).ConfigureAwait(false);
             if (hints is null)
             {
@@ -103,7 +98,10 @@ internal sealed class RemoteInlayHintService(in ServiceArgs args) : RazorDocumen
                     {
                         var changes = hint.TextEdits.SelectAsArray(csharpSourceText.GetTextChange);
                         var mappedChanges = DocumentMappingService.GetRazorDocumentEdits(csharpDocument, changes);
-                        hint.TextEdits = mappedChanges.Select(razorSourceText.GetTextEdit).ToArray();
+
+                        var textEdits = mappedChanges.SelectAsArray(razorSourceText.GetTextEdit);
+
+                        hint.TextEdits = ImmutableCollectionsMarshal.AsArray(textEdits);
                     }
 
                     hint.Data = new InlayHintDataWrapper(inlayHintParams.TextDocument, hint.Data, hint.Position);
