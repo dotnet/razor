@@ -115,7 +115,7 @@ internal sealed partial class HtmlFormattingPass(
         context.Logger?.LogSourceText("FormattedHtmlSourceText", formattedText);
 
         // Compute the line metadata, to tell the formatting helper how to deal with each line
-        var lineInfo = GenerateLineInfo(codeDocument, originalText, formattedText);
+        var lineInfo = GenerateLineInfo(codeDocument, originalText);
 
         context.Logger?.LogObject("HtmlFormattingLineInfo", lineInfo);
 
@@ -190,7 +190,7 @@ internal sealed partial class HtmlFormattingPass(
         }
     }
 
-    public static ImmutableArray<LineInfo> GenerateLineInfo(RazorCodeDocument codeDocument, SourceText originalText, SourceText formattedText)
+    public static ImmutableArray<LineInfo> GenerateLineInfo(RazorCodeDocument codeDocument, SourceText originalText)
     {
         var (scriptAndStyleSpans, razorCommentSpans) = BuildSpans(codeDocument, originalText);
 
