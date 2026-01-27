@@ -8,7 +8,7 @@
     }
   },
   "branches": {
-    "main": {
+    "release/insiders": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
