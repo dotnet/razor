@@ -73,6 +73,12 @@ internal class DesignTimeDirectiveTargetExtension : IDesignTimeDirectiveTargetEx
                         break;
                     }
 
+                    // Skip validation for "null" which is used to disable layouts
+                    if (string.Equals(node.Content, "null", StringComparison.Ordinal))
+                    {
+                        break;
+                    }
+
                     // {node.Content} __typeHelper = default({node.Content});
                     using (context.BuildLinePragma(node.Source))
                     {
