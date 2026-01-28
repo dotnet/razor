@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -23,32 +24,32 @@ public class RazorSourceGeneratedDocumentExcerptServiceTest(ITestOutputHelper te
     public async Task TryExcerptAsync_SingleLine_CanClassifyCSharp()
     {
         // Arrange
-        TestCode razorSource = @"
-<html>
-@{
-    var [|foo|] = ""Hello, World!"";
-}
-  <body>@foo</body>
-  <div>@(3 + 4)</div><div>@(foo + foo)</div>
-</html>
-";
+        TestCode razorSource = """
+            <html>
+            @{
+                var [|foo|] = "Hello, World!";
+            }
+              <body>@foo</body>
+              <div>@(3 + 4)</div><div>@(foo + foo)</div>
+            </html>
+            """;
 
-        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource, DisposalToken);
+        var (generatedDocument, generatedSpan) = await GetGeneratedDocumentAndSpanAsync(razorSource, DisposalToken);
 
-        var service = CreateExcerptService(primary);
+        var service = new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
-        var result = await service.TryExcerptAsync(secondary, secondarySpan, RazorExcerptMode.SingleLine, options, DisposalToken);
+        var result = await service.TryExcerptAsync(generatedDocument, generatedSpan, RazorExcerptMode.SingleLine, options, DisposalToken);
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(secondarySpan, result.Value.Span);
-        Assert.Same(secondary, result.Value.Document);
+        Assert.Equal(generatedSpan, result.Value.Span);
+        Assert.Same(generatedDocument, result.Value.Document);
 
         // Verifies that the right part of the primary document will be highlighted.
         Assert.Equal(
-            (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString(),
+            (await generatedDocument.GetTextAsync()).GetSubText(generatedSpan).ToString(),
             result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
             ignoreLineEndingDifferences: true);
 
@@ -88,7 +89,9 @@ public class RazorSourceGeneratedDocumentExcerptServiceTest(ITestOutputHelper te
             c =>
             {
                 Assert.Equal(ClassificationTypeNames.StringLiteral, c.ClassificationType);
-                Assert.Equal("\"Hello, World!\"", result.Value.Content.GetSubText(c.TextSpan).ToString());
+                Assert.Equal("""
+                    "Hello, World!"
+                    """, result.Value.Content.GetSubText(c.TextSpan).ToString());
             },
             c =>
             {
@@ -101,32 +104,32 @@ public class RazorSourceGeneratedDocumentExcerptServiceTest(ITestOutputHelper te
     public async Task TryExcerptAsync_SingleLine_CanClassifyCSharp_ImplicitExpression()
     {
         // Arrange
-        var razorSource = @"
-<html>
-@{
-    var foo = ""Hello, World!"";
-}
-  <body>@[|foo|]</body>
-  <div>@(3 + 4)</div><div>@(foo + foo)</div>
-</html>
-";
+        var razorSource = """
+            <html>
+            @{
+                var foo = "Hello, World!";
+            }
+              <body>@[|foo|]</body>
+              <div>@(3 + 4)</div><div>@(foo + foo)</div>
+            </html>
+            """;
 
-        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource, DisposalToken);
+        var (generatedDocument, generatedSpan) = await GetGeneratedDocumentAndSpanAsync(razorSource, DisposalToken);
 
-        var service = CreateExcerptService(primary);
+        var service = new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
-        var result = await service.TryExcerptAsync(secondary, secondarySpan, RazorExcerptMode.SingleLine, options, DisposalToken);
+        var result = await service.TryExcerptAsync(generatedDocument, generatedSpan, RazorExcerptMode.SingleLine, options, DisposalToken);
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(secondarySpan, result.Value.Span);
-        Assert.Same(secondary, result.Value.Document);
+        Assert.Equal(generatedSpan, result.Value.Span);
+        Assert.Same(generatedDocument, result.Value.Document);
 
         // Verifies that the right part of the primary document will be highlighted.
         Assert.Equal(
-            (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString(),
+            (await generatedDocument.GetTextAsync()).GetSubText(generatedSpan).ToString(),
             result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
             ignoreLineEndingDifferences: true);
 
@@ -154,31 +157,31 @@ public class RazorSourceGeneratedDocumentExcerptServiceTest(ITestOutputHelper te
     public async Task TryExcerptAsync_SingleLine_CanClassifyCSharp_ComplexLine()
     {
         // Arrange
-        var razorSource = @"
-    <html>
-    @{
-        var foo = ""Hello, World!"";
-    }
-      <body>@foo</body>
-      <div>@(3 + 4)</div><div>@(foo + [|foo|])</div>
-    </html>
-    ";
+        var razorSource = """
+            <html>
+            @{
+                var foo = "Hello, World!";
+            }
+              <body>@foo</body>
+              <div>@(3 + 4)</div><div>@(foo + [|foo|])</div>
+            </html>
+            """;
 
-        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource, DisposalToken);
+        var (generatedDocument, generatedSpan) = await GetGeneratedDocumentAndSpanAsync(razorSource, DisposalToken);
 
-        var service = CreateExcerptService(primary);
+        var service = new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
-        var result = await service.TryExcerptAsync(secondary, secondarySpan, RazorExcerptMode.SingleLine, options, DisposalToken);
+        var result = await service.TryExcerptAsync(generatedDocument, generatedSpan, RazorExcerptMode.SingleLine, options, DisposalToken);
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(secondarySpan, result.Value.Span);
-        Assert.Same(secondary, result.Value.Document);
+        Assert.Equal(generatedSpan, result.Value.Span);
+        Assert.Same(generatedDocument, result.Value.Document);
 
         Assert.Equal(
-            (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString(),
+            (await generatedDocument.GetTextAsync()).GetSubText(generatedSpan).ToString(),
             result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
             ignoreLineEndingDifferences: true);
 
@@ -271,22 +274,22 @@ public class RazorSourceGeneratedDocumentExcerptServiceTest(ITestOutputHelper te
                 </html>
                 """;
 
-        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource, DisposalToken);
+        var (generatedDocument, generatedSpan) = await GetGeneratedDocumentAndSpanAsync(razorSource, DisposalToken);
 
-        var service = CreateExcerptService(primary);
+        var service = new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
-        var result = await service.TryExcerptAsync(secondary, secondarySpan, RazorExcerptMode.Tooltip, options, DisposalToken);
+        var result = await service.TryExcerptAsync(generatedDocument, generatedSpan, RazorExcerptMode.Tooltip, options, DisposalToken);
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(secondarySpan, result.Value.Span);
-        Assert.Same(secondary, result.Value.Document);
+        Assert.Equal(generatedSpan, result.Value.Span);
+        Assert.Same(generatedDocument, result.Value.Document);
 
         // Verifies that the right part of the primary document will be highlighted.
         Assert.Equal(
-            (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString(),
+            (await generatedDocument.GetTextAsync()).GetSubText(generatedSpan).ToString(),
             result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
             ignoreLineEndingDifferences: true);
 
@@ -315,7 +318,7 @@ public class RazorSourceGeneratedDocumentExcerptServiceTest(ITestOutputHelper te
             c =>
             {
                 Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                Assert.Equal("\r\n    ", result.Value.Content.GetSubText(c.TextSpan).ToString(), ignoreLineEndingDifferences: true);
+                Assert.Equal($"{Environment.NewLine}    ", result.Value.Content.GetSubText(c.TextSpan).ToString(), ignoreLineEndingDifferences: true);
             },
             c =>
             {
@@ -375,26 +378,28 @@ public class RazorSourceGeneratedDocumentExcerptServiceTest(ITestOutputHelper te
                 </html>
                 """;
 
-        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource, DisposalToken);
+        var (generatedDocument, generatedSpan) = await GetGeneratedDocumentAndSpanAsync(razorSource, DisposalToken);
 
-        var service = CreateExcerptService(primary);
+        var service = new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
-        var result = await service.TryExcerptAsync(secondary, secondarySpan, RazorExcerptMode.SingleLine, options, DisposalToken);
+        var result = await service.TryExcerptAsync(generatedDocument, generatedSpan, RazorExcerptMode.SingleLine, options, DisposalToken);
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(secondarySpan, result.Value.Span);
-        Assert.Same(secondary, result.Value.Document);
+        Assert.Equal(generatedSpan, result.Value.Span);
+        Assert.Same(generatedDocument, result.Value.Document);
 
         // Verifies that the right part of the primary document will be highlighted.
         Assert.Equal(
-            (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString(),
+            (await generatedDocument.GetTextAsync()).GetSubText(generatedSpan).ToString(),
             result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
             ignoreLineEndingDifferences: true);
 
-        Assert.Equal("string bigString = @\"", result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
+        Assert.Equal("""
+            string bigString = @"
+            """, result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
 
         Assert.Collection(
             result.Value.ClassifiedSpans,
@@ -431,7 +436,9 @@ public class RazorSourceGeneratedDocumentExcerptServiceTest(ITestOutputHelper te
             c =>
             {
                 Assert.Equal(ClassificationTypeNames.VerbatimStringLiteral, c.ClassificationType);
-                Assert.Equal("@\"", result.Value.Content.GetSubText(c.TextSpan).ToString());
+                Assert.Equal("""
+                    @"
+                    """, result.Value.Content.GetSubText(c.TextSpan).ToString());
             });
     }
 
@@ -439,43 +446,44 @@ public class RazorSourceGeneratedDocumentExcerptServiceTest(ITestOutputHelper te
     public async Task TryGetExcerptInternalAsync_MultiLine_CanClassifyCSharp()
     {
         // Arrange
-        var razorSource = @"
-<html>
-@{
-    var [|foo|] = ""Hello, World!"";
-}
-  <body></body>
-  <div></div>
-</html>
-";
+        var razorSource = """
+            <html>
+            @{
+                var [|foo|] = "Hello, World!";
+            }
+              <body></body>
+              <div></div>
+            </html>
+            """;
 
-        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource, DisposalToken);
+        var (generatedDocument, generatedSpan) = await GetGeneratedDocumentAndSpanAsync(razorSource, DisposalToken);
 
-        var service = CreateExcerptService(primary);
+        var service = new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
-        var result = await service.TryExcerptAsync(secondary, secondarySpan, RazorExcerptMode.Tooltip, options, DisposalToken);
+        var result = await service.TryExcerptAsync(generatedDocument, generatedSpan, RazorExcerptMode.Tooltip, options, DisposalToken);
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(secondarySpan, result.Value.Span);
-        Assert.Same(secondary, result.Value.Document);
+        Assert.Equal(generatedSpan, result.Value.Span);
+        Assert.Same(generatedDocument, result.Value.Document);
 
         // Verifies that the right part of the primary document will be highlighted.
         Assert.Equal(
-            (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString(),
+            (await generatedDocument.GetTextAsync()).GetSubText(generatedSpan).ToString(),
             result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
             ignoreLineEndingDifferences: true);
 
         Assert.Equal(
-@"
-<html>
-@{
-    var foo = ""Hello, World!"";
-}
-  <body></body>
-  <div></div>",
+            """
+            <html>
+            @{
+                var foo = "Hello, World!";
+            }
+              <body></body>
+              <div></div>
+            """,
             result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
 
         Assert.Collection(
@@ -484,16 +492,17 @@ public class RazorSourceGeneratedDocumentExcerptServiceTest(ITestOutputHelper te
             {
                 Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
                 Assert.Equal(
-@"
-<html>
-@{",
+                    """
+                    <html>
+                    @{
+                    """,
                         result.Value.Content.GetSubText(c.TextSpan).ToString(),
                         ignoreLineEndingDifferences: true);
             },
             c =>
             {
                 Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                Assert.Equal("\r\n    ", result.Value.Content.GetSubText(c.TextSpan).ToString(), ignoreLineEndingDifferences: true);
+                Assert.Equal($"{Environment.NewLine}    ", result.Value.Content.GetSubText(c.TextSpan).ToString(), ignoreLineEndingDifferences: true);
             },
             c =>
             {
@@ -528,7 +537,9 @@ public class RazorSourceGeneratedDocumentExcerptServiceTest(ITestOutputHelper te
             c =>
             {
                 Assert.Equal(ClassificationTypeNames.StringLiteral, c.ClassificationType);
-                Assert.Equal("\"Hello, World!\"", result.Value.Content.GetSubText(c.TextSpan).ToString());
+                Assert.Equal("""
+                    "Hello, World!"
+                    """, result.Value.Content.GetSubText(c.TextSpan).ToString());
             },
             c =>
             {
@@ -538,15 +549,17 @@ public class RazorSourceGeneratedDocumentExcerptServiceTest(ITestOutputHelper te
             c =>
             {
                 Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                Assert.Equal("\r\n", result.Value.Content.GetSubText(c.TextSpan).ToString(), ignoreLineEndingDifferences: true);
+                Assert.Equal(Environment.NewLine, result.Value.Content.GetSubText(c.TextSpan).ToString(), ignoreLineEndingDifferences: true);
             },
             c =>
             {
                 Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
                 Assert.Equal(
-@"}
-  <body></body>
-  <div></div>",
+                    """
+                    }
+                      <body></body>
+                      <div></div>
+                    """,
                     result.Value.Content.GetSubText(c.TextSpan).ToString(),
                     ignoreLineEndingDifferences: true);
             });
@@ -558,28 +571,26 @@ public class RazorSourceGeneratedDocumentExcerptServiceTest(ITestOutputHelper te
         // Arrange
         var razorSource = @"@{ var [|foo|] = ""Hello, World!""; }";
 
-        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource, DisposalToken);
+        var (generatedDocument, generatedSpan) = await GetGeneratedDocumentAndSpanAsync(razorSource, DisposalToken);
 
-        var service = CreateExcerptService(primary);
+        var service = new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
-        var result = await service.TryExcerptAsync(secondary, secondarySpan, RazorExcerptMode.Tooltip, options, DisposalToken);
+        var result = await service.TryExcerptAsync(generatedDocument, generatedSpan, RazorExcerptMode.Tooltip, options, DisposalToken);
 
         // Assert
         // Verifies that the right part of the primary document will be highlighted.
         Assert.NotNull(result);
-        Assert.Equal(secondarySpan, result.Value.Span);
-        Assert.Same(secondary, result.Value.Document);
+        Assert.Equal(generatedSpan, result.Value.Span);
+        Assert.Same(generatedDocument, result.Value.Document);
 
         Assert.Equal(
-            (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString(),
+            (await generatedDocument.GetTextAsync()).GetSubText(generatedSpan).ToString(),
             result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
             ignoreLineEndingDifferences: true);
 
-        Assert.Equal(
-@"@{ var foo = ""Hello, World!""; }",
-            result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
+        Assert.Equal(@"@{ var foo = ""Hello, World!""; }", result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
 
         Assert.Collection(
             result.Value.ClassifiedSpans,
@@ -626,7 +637,9 @@ public class RazorSourceGeneratedDocumentExcerptServiceTest(ITestOutputHelper te
             c =>
             {
                 Assert.Equal(ClassificationTypeNames.StringLiteral, c.ClassificationType);
-                Assert.Equal("\"Hello, World!\"", result.Value.Content.GetSubText(c.TextSpan).ToString());
+                Assert.Equal("""
+                    "Hello, World!"
+                    """, result.Value.Content.GetSubText(c.TextSpan).ToString());
             },
             c =>
             {
@@ -645,12 +658,7 @@ public class RazorSourceGeneratedDocumentExcerptServiceTest(ITestOutputHelper te
             });
     }
 
-    private RazorSourceGeneratedDocumentExcerptService CreateExcerptService(TextDocument document)
-    {
-        return new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
-    }
-
-    private async Task<(TextDocument primary, SourceGeneratedDocument secondary, TextSpan secondarySpan)> InitializeWithSnapshotAsync(TestCode razorSource, CancellationToken cancellationToken)
+    private async Task<(SourceGeneratedDocument, TextSpan)> GetGeneratedDocumentAndSpanAsync(TestCode razorSource, CancellationToken cancellationToken)
     {
         var document = CreateProjectAndRazorDocument(razorSource.Text);
 
@@ -668,6 +676,6 @@ public class RazorSourceGeneratedDocumentExcerptServiceTest(ITestOutputHelper te
         Assert.True(documentMappingService.TryMapToCSharpDocumentRange(csharpDocument, razorRange, out var csharpRange));
         var csharpSpan = generatedSourceText.GetTextSpan(csharpRange);
 
-        return (document, generatedDocument, csharpSpan);
+        return (generatedDocument, csharpSpan);
     }
 }
