@@ -35,6 +35,9 @@
     <!-- Working around https://github.com/dotnet/sdk/issues/24747 -->
     <NoWarn>$(NoWarn);NU1505</NoWarn>
 
+    <!-- This is a servicing branch which will continue to build against older TFMs like net6.0 -->
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+
     <!-- Working around https://github.com/microsoft/msbuild/pull/4764 -->
     <EmbeddedResourceUseDependentUponConvention>false</EmbeddedResourceUseDependentUponConvention>
 
