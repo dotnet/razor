@@ -70,3 +70,13 @@ Razor documents contain multiple languages:
 ### Testing
 - `./build.sh -test` - Build and run tests
 - DO NOT USE `dotnet test` directly
+
+## VS Code Local Validation
+
+When making changes to Razor tooling for VS Code, you can validate your changes in a real VS Code environment:
+
+For automated validation, run the Playwright-based E2E tests:
+```powershell
+cd src\Razor\test\Microsoft.VisualStudioCode.Razor.E2ETests
+dotnet test
+```

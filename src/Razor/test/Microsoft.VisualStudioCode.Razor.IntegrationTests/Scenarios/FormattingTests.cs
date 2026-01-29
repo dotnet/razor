@@ -1,0 +1,61 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using Microsoft.VisualStudioCode.Razor.IntegrationTests.Infrastructure;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Scenarios;
+
+/// <summary>
+/// E2E tests for formatting in Razor files.
+/// </summary>
+public class FormattingTests(ITestOutputHelper output) : VSCodeIntegrationTestBase(output)
+{
+    [Fact(Skip = "Skipped for initial CI validation - only running HoverTests")]
+    public async Task FormatDocument_RazorFile_FormatsSuccessfully()
+    {
+        // Arrange
+        await OpenFileAsync("BlazorApp/Components/Pages/Home.razor");
+
+        // Act
+        var formattingWorked = await Razor.VerifyFormattingAsync();
+
+        // Assert
+        Assert.True(formattingWorked, "Expected formatting to produce output");
+    }
+
+    [Fact(Skip = "Skipped for initial CI validation - only running HoverTests")]
+    public async Task FormatDocument_CshtmlFile_FormatsSuccessfully()
+    {
+        // Arrange
+        await OpenFileAsync("RazorPagesApp/Pages/Index.cshtml");
+
+        // Act
+        var formattingWorked = await Razor.VerifyFormattingAsync();
+
+        // Assert
+        Assert.True(formattingWorked, "Expected formatting to produce output for .cshtml file");
+    }
+
+    [Fact(Skip = "Skipped for initial CI validation - only running HoverTests")]
+    public async Task FormatDocument_MalformedHtml_HandlesGracefully()
+    {
+        // Arrange
+        await OpenFileAsync("BlazorApp/Components/Pages/Home.razor");
+
+        // Add some malformed HTML
+        await Editor.GoToLineAsync(10);
+        await Editor.TypeAsync("<div><span></div></span>");
+
+        // Act - formatting should not crash
+        await Editor.FormatDocumentAsync();
+
+        // Assert - just verify we can still get text (didn't crash)
+        var text = await Editor.GetEditorTextAsync();
+        Assert.NotNull(text);
+
+        // Clean up
+        await Editor.UndoAsync();
+    }
+}
